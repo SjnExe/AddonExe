@@ -31,6 +31,7 @@ interface UpdateItemData {
     buyPrice: number;
     sellPrice: number;
     permission: string;
+    rankOverrides?: Record<string, { buy: number; sell: number }>;
 }
 
 /**
@@ -466,6 +467,11 @@ function updateMasterItemList(itemId: string, newData: UpdateItemData) {
         itemsRecord[itemId].displayName = newData.displayName;
         itemsRecord[itemId].itemId = newData.minecraftId;
         itemsRecord[itemId].icon = newData.icon;
+        if (isDefined(newData.rankOverrides)) {
+            itemsRecord[itemId].rankMultiplierOverrides = newData.rankOverrides;
+        } else {
+            delete itemsRecord[itemId].rankMultiplierOverrides;
+        }
     } else {
         addCustomItemToConfig(itemId, {
             displayName: newData.displayName,
@@ -514,6 +520,13 @@ export function updateShopItem(categoryName: string, subCategoryName: string | u
     targetContainer.items[itemId].buyPrice = newData.buyPrice;
     targetContainer.items[itemId].sellPrice = newData.sellPrice;
     targetContainer.items[itemId].permission = newData.permission;
+
+    if (isDefined(newData.rankOverrides)) {
+        targetContainer.items[itemId].rankMultiplierOverrides = newData.rankOverrides;
+    } else {
+        delete targetContainer.items[itemId].rankMultiplierOverrides;
+    }
+
     // Also update denormalized data like icon and displayName for consistency
     targetContainer.items[itemId].icon = newData.icon;
     targetContainer.items[itemId].displayName = newData.displayName;

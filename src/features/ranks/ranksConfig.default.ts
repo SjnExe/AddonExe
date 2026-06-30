@@ -21,6 +21,10 @@ export interface RankDefinition {
     groups: string[];
     allow: string[];
     deny: string[];
+    shopMultiplier?: {
+        buy: number;
+        sell: number;
+    };
 }
 
 export const defaultChatFormatting: Required<ChatFormatting> = {
@@ -30,28 +34,10 @@ export const defaultChatFormatting: Required<ChatFormatting> = {
 };
 
 export const permissionGroups: Record<string, string[]> = {
-    default: [
-        'cmd.help',
-        'cmd.spawn',
-        'cmd.tpa',
-        'cmd.tpahere',
-        'cmd.home',
-        'cmd.sethome',
-        'cmd.delhome',
-        'cmd.pay',
-        'cmd.balance',
-        'cmd.bounty',
-        'cmd.rtp',
-        'cmd.daily',
-        'cmd.kit',
-        'cmd.team',
-        'cmd.vote',
-        'cmd.panel',
-        'ui.panel.member'
-    ],
-    mod: ['cmd.kick', 'cmd.mute', 'cmd.unmute', 'cmd.freeze', 'cmd.unfreeze', 'cmd.inventory', 'cmd.vanish', 'ui.panel.mod'],
-    admin: ['cmd.ban', 'cmd.unban', 'cmd.tp', 'cmd.warp', 'cmd.setbalance', 'ui.panel.admin'],
-    owner: ['cmd.op', 'ui.panel.owner', 'cmd.debug', 'cmd.status', 'cmd.fixplayer', 'cmd.deathcoords']
+    default: ['cmd.**.member', 'ui.**.member', 'command.member'],
+    mod: ['cmd.**.mod', 'ui.**.mod'],
+    admin: ['cmd.**.admin', 'ui.**.admin'],
+    owner: ['cmd.**.owner', 'ui.**.owner']
 };
 
 export const rankDefinitions: RankDefinition[] = [
@@ -118,7 +104,7 @@ export const rankDefinitions: RankDefinition[] = [
         nametagPrefix: '§eHelper',
         conditions: [{ type: 'hasTag', value: 'helper' }],
         groups: ['default'],
-        allow: ['cmd.kick', 'cmd.mute'], // Specific permissions just for example
+        allow: ['cmd.kick.mod', 'cmd.mute.mod'], // Specific permissions just for example
         deny: []
     },
     {
@@ -135,7 +121,8 @@ export const rankDefinitions: RankDefinition[] = [
         conditions: [{ type: 'hasTag', value: 'donator' }],
         groups: ['default'],
         allow: [],
-        deny: []
+        deny: [],
+        shopMultiplier: { buy: 0.9, sell: 1.1 } // 10% discount on buy, 10% bonus on sell
     },
     {
         id: 'vip',
@@ -151,7 +138,8 @@ export const rankDefinitions: RankDefinition[] = [
         conditions: [{ type: 'hasTag', value: 'vip' }],
         groups: ['default'],
         allow: [],
-        deny: []
+        deny: [],
+        shopMultiplier: { buy: 0.8, sell: 1.2 } // 20% discount on buy, 20% bonus on sell
     },
     {
         id: 'verified',

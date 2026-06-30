@@ -23,7 +23,7 @@ export function isTeamChatEnabled(playerId: string): boolean {
 const teamChatCommand: CustomCommand = {
     name: 'teamchat',
     description: 'Toggle team chat mode.',
-    permissionNode: 'cmd.teamchat',
+    permissionNode: 'cmd.teamchat.member',
     aliases: ['tc'],
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
@@ -49,7 +49,7 @@ const teamChatCommand: CustomCommand = {
 const hqCommand: CustomCommand = {
     name: 'hq',
     description: "Teleports you to your team's home.",
-    permissionNode: 'cmd.hq',
+    permissionNode: 'cmd.hq.member',
     aliases: ['teamhome'],
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {

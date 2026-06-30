@@ -65,7 +65,7 @@ const muteCommand: CustomCommand = {
     description: 'Mutes a player for a specified duration with a reason.',
     category: 'Moderation',
     aliases: ['silence'],
-    permissionNode: 'cmd.mute',
+    permissionNode: 'cmd.mute.mod',
     allowConsole: true,
     parameters: [
         { name: 'target', type: 'player' },
@@ -145,7 +145,7 @@ const unmuteCommand: CustomCommand = {
     description: 'Unmutes a player.',
     category: 'Moderation',
     aliases: ['um'],
-    permissionNode: 'cmd.unmute',
+    permissionNode: 'cmd.unmute.mod',
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {

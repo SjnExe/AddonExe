@@ -13,7 +13,7 @@ const balanceCommand: CustomCommand = {
     aliases: ['bal', 'money', 'cash'],
     description: "Checks your or another player's balance.",
     category: 'Economy',
-    permissionNode: 'cmd.balance',
+    permissionNode: 'cmd.balance.member',
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const config = getConfig();
@@ -57,7 +57,7 @@ const oBalanceCommand: CustomCommand = {
     aliases: ['obal', 'offlinebalance'],
     description: "Checks an offline player's balance.",
     category: 'Economy',
-    permissionNode: 'cmd.obalance',
+    permissionNode: 'cmd.obalance.admin',
     allowConsole: true,
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
@@ -89,7 +89,7 @@ const baltopCommand: CustomCommand = {
     aliases: ['topbal', 'leaderboard', 'richlist'],
     description: 'Shows the players with the highest balances on the server.',
     category: 'Economy',
-    permissionNode: 'cmd.baltop',
+    permissionNode: 'cmd.baltop.member',
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         const config = getConfig();

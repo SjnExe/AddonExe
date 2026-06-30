@@ -5,6 +5,7 @@ import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
 import * as shopManager from '@features/shop/manager.js';
+import { getPlayerShopItemPrice, findShopItem } from '@features/shop/manager.js';
 import { ShopCategory } from '@features/shop/shopConfig.js';
 import { ensureItemsConfig, getAllItems, Item } from '@features/shop/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
@@ -57,15 +58,15 @@ export class ShopUserPanelHandler implements IPanelHandler {
         }
 
         if (panelId === 'shopSearchResultsPanel') {
-            return this.getSearchResultsItems(context, page);
+            return this.getSearchResultsItems(_player, context, page);
         }
 
         if (panelId.startsWith('shopCategoryPanel_')) {
-            return this.getCategoryPanelItems(context, page);
+            return this.getCategoryPanelItems(_player, context, page);
         }
 
         if (panelId.startsWith('shopItemListPanel_')) {
-            return this.getItemListPanelItems(context, page);
+            return this.getItemListPanelItems(_player, context, page);
         }
 
         return [];
@@ -107,7 +108,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getSearchResultsItems(context: UIContext, page: number): PanelItem[] {
+    private getSearchResultsItems(player: mc.Player, context: UIContext, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         const allItems = getAllItems();
         addBackButton(items, 'shopMainPanel');
@@ -122,7 +123,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
             for (const itemId in cat.items) {
                 const item = cat.items[itemId];
                 if (!isDefined(item)) continue;
-                this.addItemToResults(results, itemId, item, query, allItems);
+                this.addItemToResults(player, results, itemId, item, query, allItems);
             }
             // Subcategories
             for (const subName in cat.subCategories) {
@@ -131,7 +132,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
                 for (const itemId in sub.items) {
                     const item = sub.items[itemId];
                     if (!isDefined(item)) continue;
-                    this.addItemToResults(results, itemId, item, query, allItems);
+                    this.addItemToResults(player, results, itemId, item, query, allItems);
                 }
             }
         }
@@ -145,7 +146,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private addItemToResults(results: ShopItemEntry[], itemId: string, item: ShopItem, query: string, allItems: Record<string, Item>): void {
+    private addItemToResults(player: mc.Player, results: ShopItemEntry[], itemId: string, item: ShopItem, query: string, allItems: Record<string, Item>): void {
         const master: Item = allItems[itemId] ?? {};
         // Ensure string safety before calling string methods
         const displayNameRaw = item.displayName ?? master.displayName ?? itemId;
@@ -153,19 +154,20 @@ export class ShopUserPanelHandler implements IPanelHandler {
         const itemIdStr = String(itemId);
 
         if (displayName.toLowerCase().includes(query) || itemIdStr.toLowerCase().includes(query)) {
+            const fullShopItem = findShopItem(itemId);
             results.push({
                 id: itemId,
                 type: 'item',
                 ...(isNonEmptyString(item.icon) ? { icon: item.icon } : {}),
                 displayName,
-                buyPrice: item.buyPrice,
-                sellPrice: item.sellPrice,
+                buyPrice: isDefined(fullShopItem) ? getPlayerShopItemPrice(player, fullShopItem, 'buy') : item.buyPrice,
+                sellPrice: isDefined(fullShopItem) ? getPlayerShopItemPrice(player, fullShopItem, 'sell') : item.sellPrice,
                 permission: item.permission
             });
         }
     }
 
-    private generateCategoryEntries(category: ShopCategory): ShopEntry[] {
+    private generateCategoryEntries(category: ShopCategory, player: mc.Player): ShopEntry[] {
         const allEntries: ShopEntry[] = [];
 
         // Add Subcategories
@@ -187,10 +189,11 @@ export class ShopUserPanelHandler implements IPanelHandler {
         for (const id of itemIds) {
             const item = category.items[id];
             if (isDefined(item)) {
+                const fullShopItem = findShopItem(id);
                 const entry: ShopItemEntry = {
                     id,
-                    buyPrice: item.buyPrice,
-                    sellPrice: item.sellPrice,
+                    buyPrice: isDefined(fullShopItem) ? getPlayerShopItemPrice(player, fullShopItem, 'buy') : item.buyPrice,
+                    sellPrice: isDefined(fullShopItem) ? getPlayerShopItemPrice(player, fullShopItem, 'sell') : item.sellPrice,
                     permission: item.permission,
                     type: 'item'
                 };
@@ -202,7 +205,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         return allEntries;
     }
 
-    private getCategoryPanelItems(context: UIContext, page: number): PanelItem[] {
+    private getCategoryPanelItems(player: mc.Player, context: UIContext, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         const categoryName = context.categoryName as string;
         addBackButton(items, 'shopMainPanel');
@@ -210,7 +213,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         const category = shopConfig.categories[categoryName];
 
         if (isDefined(category)) {
-            const allEntries = this.generateCategoryEntries(category);
+            const allEntries = this.generateCategoryEntries(category, player);
             const paginated = getPaginatedItems(allEntries, page);
 
             for (const entry of paginated) {
@@ -233,7 +236,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         return items;
     }
 
-    private getItemListPanelItems(context: UIContext, page: number): PanelItem[] {
+    private getItemListPanelItems(player: mc.Player, context: UIContext, page: number): PanelItem[] {
         const items: PanelItem[] = [];
         const categoryName = context.categoryName as string;
         const subCategoryName = context.subCategoryName as string;
@@ -249,10 +252,11 @@ export class ShopUserPanelHandler implements IPanelHandler {
             for (const id of itemIds) {
                 const item = subCategory.items[id];
                 if (isDefined(item)) {
+                    const fullShopItem = findShopItem(id);
                     const entry: ShopItemEntry = {
                         id,
-                        buyPrice: item.buyPrice,
-                        sellPrice: item.sellPrice,
+                        buyPrice: isDefined(fullShopItem) ? getPlayerShopItemPrice(player, fullShopItem, 'buy') : item.buyPrice,
+                        sellPrice: isDefined(fullShopItem) ? getPlayerShopItemPrice(player, fullShopItem, 'sell') : item.sellPrice,
                         permission: item.permission,
                         type: 'item'
                     };

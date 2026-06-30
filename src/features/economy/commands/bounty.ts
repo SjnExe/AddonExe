@@ -67,7 +67,7 @@ const bountyCommand: CustomCommand = {
     description: 'Place a bounty on a player.',
     category: 'Economy',
     aliases: ['setbounty', 'addbounty', '+bounty', 'abounty'],
-    permissionNode: 'cmd.bounty',
+    permissionNode: 'cmd.bounty.member',
     parameters: [
         { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }
@@ -143,7 +143,7 @@ const oBountyCommand: CustomCommand = {
     aliases: ['offlinebounty'],
     description: 'Place a bounty on an offline player.',
     category: 'Economy',
-    permissionNode: 'cmd.obounty',
+    permissionNode: 'cmd.obounty.admin',
     hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
@@ -173,7 +173,7 @@ const oRemoveBountyCommand: CustomCommand = {
     aliases: ['offlineremovebounty'],
     description: 'Removes a bounty from an offline player.',
     category: 'Economy',
-    permissionNode: 'cmd.oremovebounty',
+    permissionNode: 'cmd.oremovebounty.admin',
     hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
@@ -266,7 +266,7 @@ const listBountyCommand: CustomCommand = {
     aliases: ['lbounty', 'bounties', 'bountylist', 'showbounties', 'hitlist'],
     description: "Lists all active bounties or a specific player's bounty.",
     category: 'Economy',
-    permissionNode: 'cmd.listbounty',
+    permissionNode: 'cmd.listbounty.member',
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -287,7 +287,7 @@ const oListBountyCommand: CustomCommand = {
     aliases: ['offlinelistbounty'],
     description: "Checks an offline player's bounty.",
     category: 'Economy',
-    permissionNode: 'cmd.olistbounty',
+    permissionNode: 'cmd.olistbounty.admin',
     allowConsole: true,
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],

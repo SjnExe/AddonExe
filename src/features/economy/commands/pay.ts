@@ -15,7 +15,7 @@ const payCommand: CustomCommand = {
     aliases: ['givemoney', 'transfer'],
     description: 'Pays another player from your balance.',
     category: 'Economy',
-    permissionNode: 'cmd.pay',
+    permissionNode: 'cmd.pay.member',
     parameters: [
         { name: 'targets', type: 'string' },
         { name: 'amount', type: 'string' }
@@ -69,7 +69,7 @@ const oPayCommand: CustomCommand = {
     aliases: ['offlinepay'],
     description: 'Pays an offline player.',
     category: 'Economy',
-    permissionNode: 'cmd.opay',
+    permissionNode: 'cmd.opay.admin',
     hidden: true,
     parameters: [
         { name: 'target', type: 'string' },
@@ -119,7 +119,7 @@ const payConfirmCommand: CustomCommand = {
     aliases: ['confirmpay'],
     description: 'Confirms a pending payment.',
     category: 'Economy',
-    permissionNode: 'cmd.payconfirm',
+    permissionNode: 'cmd.payconfirm.member',
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 

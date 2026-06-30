@@ -9,7 +9,7 @@ const debugCommand: CustomCommand = {
     name: 'debug',
     description: 'Displays debug information.',
     category: 'Essentials',
-    permissionNode: 'cmd.debug', // Admin only
+    permissionNode: 'cmd.debug.owner', // Admin only
     execute: (executor: CommandExecutor) => {
         const memory = mc.system.currentTick;
         // Optimization: Use cached player count

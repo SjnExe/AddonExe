@@ -164,7 +164,7 @@ export function hasPermission(player: mc.Player, node: string): boolean {
 
     // Admin core permissions
     if (ranks.some((r) => r.id === 'admin')) {
-        const adminCorePermissions = ['cmd.ban', 'cmd.unban', 'cmd.tp', 'cmd.warp', 'cmd.setbalance', 'ui.panel.admin'];
+        const adminCorePermissions = ['cmd.ban.admin', 'cmd.unban.admin', 'cmd.tp.admin', 'cmd.warp.admin', 'cmd.setbalance.admin', 'ui.panel.admin'];
         if (adminCorePermissions.includes(node)) {
             return true;
         }
@@ -178,24 +178,68 @@ export function hasPermission(player: mc.Player, node: string): boolean {
         return playerMap[node];
     }
 
-    // Wildcard matching (e.g., cmd.*)
-    const segments = node.split('.');
-    let currentWildcard = '';
+    // Check wildcards using Linux-style rules (* for 1 segment, ** for 0 or more)
+    // Because a node could match multiple patterns (e.g. `cmd.**` allowed, but `cmd.pay.**` denied),
+    // and because `calculatePlayerMap` processes higher priority ranks last (overwriting `playerMap` keys),
+    // we need to be careful. Currently, `playerMap` stores `pattern -> boolean`.
+    // We should return `false` if any matched pattern explicitly denies it. Wait, the exact rules:
+    // If a pattern matches and it's false, and there's another pattern that matches and it's true, which wins?
+    // Since we merged everything into `playerMap`, all we have are the final effective patterns for the player.
+    // Usually, explicit deny overrides allow, or longest match wins.
+    // For simplicity: If ANY matching pattern is FALSE, deny it. Otherwise if ANY matching pattern is TRUE, allow it.
 
-    for (let i = 0; i < segments.length - 1; i++) {
-        currentWildcard += (i === 0 ? '' : '.') + segments[i];
-        const wildcardNode = currentWildcard + '.*';
-        if (playerMap[wildcardNode] !== undefined) {
-            return playerMap[wildcardNode];
+    const nSegs = node.split('.');
+    let hasMatch = false;
+    let allowed = false;
+
+    // To respect specificity or order, we can check all matches.
+    // If ANY match is `false`, we explicitly return `false` (deny overrides).
+    // If NO match is `false` but AT LEAST ONE match is `true`, we return `true`.
+
+    for (const [pattern, patternAllowed] of Object.entries(playerMap)) {
+        if (pattern === '*') {
+            // Support legacy global '*' just in case
+            if (patternAllowed === false) return false;
+            hasMatch = true;
+            allowed = true;
+            continue;
+        }
+
+        const pSegs = pattern.split('.');
+        if (matchPermissionSegments(pSegs, nSegs, 0, 0)) {
+            if (patternAllowed === false) {
+                return false; // Explicit deny wins immediately
+            }
+            hasMatch = true;
+            allowed = true;
         }
     }
 
-    // Global wildcard
-    if (playerMap['*'] !== undefined) {
-        return playerMap['*'];
-    }
+    return hasMatch ? allowed : false;
+}
 
-    return false;
+function matchPermissionSegments(pSegs: string[], nSegs: string[], pIdx: number, nIdx: number): boolean {
+    if (pIdx === pSegs.length && nIdx === nSegs.length) return true;
+    if (pIdx === pSegs.length) return false;
+
+    const pSeg = pSegs[pIdx];
+
+    if (pSeg === '**') {
+        // ** can match 0 or more segments
+        if (matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx)) return true;
+        if (nIdx < nSegs.length && matchPermissionSegments(pSegs, nSegs, pIdx, nIdx + 1)) return true;
+        return false;
+    } else if (pSeg === '*') {
+        // * matches exactly 1 segment
+        if (nIdx < nSegs.length && matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx + 1)) return true;
+        return false;
+    } else {
+        // Exact match
+        if (nIdx < nSegs.length && pSeg === nSegs[nIdx]) {
+            return matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx + 1);
+        }
+        return false;
+    }
 }
 
 export function canGrantPermissions(editor: mc.Player, nodes: string[]): boolean {

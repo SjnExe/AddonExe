@@ -18,7 +18,7 @@ const clearCommand: CustomCommand = {
     slashName: 'xclear',
     description: 'Clears the inventory of a player or yourself.',
     aliases: ['ci', 'clearinv'],
-    permissionNode: 'cmd.clear',
+    permissionNode: 'cmd.clear.admin',
     allowConsole: true,
     parameters: [{ name: 'target', type: 'player', optional: true }],
 

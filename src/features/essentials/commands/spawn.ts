@@ -31,7 +31,7 @@ const spawnCommand: CustomCommand = {
     aliases: ['lobby', 'hub'],
     description: 'Teleports you to the server spawn point.',
     category: 'Transportation',
-    permissionNode: 'cmd.spawn',
+    permissionNode: 'cmd.spawn.member',
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
@@ -42,7 +42,7 @@ const spawnCommand: CustomCommand = {
 
         if (!spawnLocation || typeof spawnLocation.x !== 'number') {
             sendMessage('§cThe server spawn point has not been set.', executor);
-            if (hasPermission(executor, 'cmd.setspawn')) {
+            if (hasPermission(executor, 'cmd.setspawn.admin')) {
                 // Is admin or owner
                 sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.', executor, { raw: true });
             }
@@ -147,7 +147,7 @@ const setSpawnCommand: CustomCommand = {
     aliases: ['setworldspawn', 'spawnset'],
     description: "Sets the server's spawn location to your current position or specified coordinates.",
     category: 'Transportation',
-    permissionNode: 'cmd.setspawn', // Admins only
+    permissionNode: 'cmd.setspawn.admin', // Admins only
     allowConsole: true,
     parameters: [
         { name: 'x', type: 'float', optional: true },

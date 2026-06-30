@@ -10,11 +10,11 @@ const notifyCommand: CustomCommand = {
     name: 'notify',
     description: 'Toggle anti-cheat notifications.',
     category: 'Moderation',
-    permissionNode: 'cmd.notify', // Mod
+    permissionNode: 'cmd.notify.mod', // Mod
     execute: (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
             const pData = getPlayer(executor.id);
-            if (!pData || !hasPermission(executor, 'cmd.notify')) {
+            if (!pData || !hasPermission(executor, 'cmd.notify.mod')) {
                 executor.sendMessage('§cYou do not have permission to use this command.');
                 return;
             }

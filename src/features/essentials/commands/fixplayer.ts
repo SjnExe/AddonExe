@@ -7,7 +7,7 @@ const fixPlayerCommand: CustomCommand = {
     name: 'fixplayer',
     description: 'Fixes a player state (e.g. stuck in spawn protection, invulnerable).',
     category: 'Administration',
-    permissionNode: 'cmd.fixplayer', // Anyone can use it on themselves
+    permissionNode: 'cmd.fixplayer.member', // Anyone can use it on themselves
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 

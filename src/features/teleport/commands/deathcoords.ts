@@ -13,7 +13,7 @@ const deathCoordsCommand: CustomCommand = {
     aliases: ['deathlocation', 'lastdeath'],
     description: 'Shows your last death coordinates.',
     category: 'General',
-    permissionNode: 'cmd.deathcoords',
+    permissionNode: 'cmd.deathcoords.owner',
     parameters: [{ name: 'target', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {

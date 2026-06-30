@@ -410,7 +410,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 .textField('Icon Path', 'e.g., textures/items/diamond_sword')
                 .textField('Buy Price', '-1 to disable', { defaultValue: '-1' })
                 .textField('Sell Price', '-1 to disable', { defaultValue: '-1' })
-                .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
+                .textField('Permission Node', 'e.g., ui.panel.member', { defaultValue: 'ui.panel.member' })
+                .textField('Rank Multipliers (rank=buy,sell;)', 'e.g., vip=0.8,1.2', { defaultValue: '' });
         }
 
         if (panelId === 'addItemFromListPanel') {
@@ -455,6 +456,15 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const itemId = context.selectedItemId as string;
         const masterItem = allItems[itemId];
         if (!isDefined(masterItem)) return undefined;
+
+        // Serialize overrides for the text field
+        let overridesStr = '';
+        if (isDefined(masterItem.rankMultiplierOverrides)) {
+            overridesStr = Object.entries(masterItem.rankMultiplierOverrides)
+                .map(([rankId, multipliers]) => `${rankId}=${multipliers.buy},${multipliers.sell}`)
+                .join('; ');
+        }
+
         return new ModalFormData()
             .title(`Add ${String(masterItem.displayName ?? itemId)}`)
             .textField('Icon Path', 'e.g., textures/items/diamond_sword', {
@@ -462,7 +472,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             })
             .textField('Buy Price', '-1 to disable', { defaultValue: String(masterItem.buyPrice ?? -1) })
             .textField('Sell Price', '-1 to disable', { defaultValue: String(masterItem.sellPrice ?? -1) })
-            .textField('Permission Level', 'e.g., 1024', { defaultValue: '1024' });
+            .textField('Permission Node', 'e.g., ui.panel.member', { defaultValue: 'ui.panel.member' })
+            .textField('Rank Multipliers (rank=buy,sell;)', 'e.g., vip=0.8,1.2', { defaultValue: overridesStr });
     }
 
     private buildEditItemFormModal(context: UIContext): ModalFormData | undefined {
@@ -473,6 +484,14 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const shopItem = isNonEmptyString(subCategoryName) ? shopConfig.categories[categoryName]?.subCategories[subCategoryName]?.items[itemId] : shopConfig.categories[categoryName]?.items[itemId];
 
         if (!isDefined(shopItem)) return undefined;
+
+        // Serialize overrides for the text field
+        let overridesStr = '';
+        if (isDefined(shopItem.rankMultiplierOverrides)) {
+            overridesStr = Object.entries(shopItem.rankMultiplierOverrides)
+                .map(([rankId, multipliers]) => `${rankId}=${multipliers.buy},${multipliers.sell}`)
+                .join('; ');
+        }
 
         return new ModalFormData()
             .title(`Edit Item: ${String(itemId)}`)
@@ -485,7 +504,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             .textField('Icon', 'Icon', { defaultValue: isNonEmptyString(shopItem.icon) ? shopItem.icon : '' })
             .textField('Buy Price', 'Price', { defaultValue: String(shopItem.buyPrice) })
             .textField('Sell Price', 'Price', { defaultValue: String(shopItem.sellPrice) })
-            .textField('Permission Node', 'ui.panel.member', { defaultValue: shopItem.permission });
+            .textField('Permission Node', 'ui.panel.member', { defaultValue: shopItem.permission })
+            .textField('Rank Multipliers (rank=buy,sell;)', 'e.g., vip=0.8,1.2', { defaultValue: overridesStr });
     }
 
     async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
@@ -600,11 +620,36 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const buyPriceStr = values[4];
         const sellPriceStr = values[5];
         const permLevelStr = values[6];
+        const overridesRaw = values[7] ?? '';
 
         const icon = iconStr;
         const buyPrice = Number.parseInt(isNonEmptyString(buyPriceStr) ? buyPriceStr : '-1', 10);
         const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
         const permission = isNonEmptyString(permLevelStr) ? permLevelStr : 'ui.panel.member';
+
+        let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
+
+        if (isNonEmptyString(overridesRaw)) {
+            parsedOverrides = {};
+            const pairs = overridesRaw.split(';');
+            for (const pair of pairs) {
+                const parts = pair.trim().split('=');
+                if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
+                    const rankId = parts[0].trim();
+                    const multiParts = parts[1].split(',');
+                    if (multiParts.length === 2) {
+                        const buyM = Number.parseFloat(multiParts[0]!);
+                        const sellM = Number.parseFloat(multiParts[1]!);
+                        if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
+                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
+                        }
+                    }
+                }
+            }
+            if (Object.keys(parsedOverrides).length === 0) {
+                parsedOverrides = undefined;
+            }
+        }
 
         if (isNonEmptyString(customId) && isNonEmptyString(displayName) && isNonEmptyString(mcId) && !Number.isNaN(buyPrice)) {
             shopAdminManager.addCustomItemToConfig(customId, {
@@ -612,7 +657,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 icon: icon ?? '',
                 buyPrice,
                 sellPrice,
-                displayName
+                displayName,
+                rankMultiplierOverrides: parsedOverrides
             });
             shopAdminManager.setItem(context.categoryName as string, (context.subCategoryName as string) || undefined, customId, {
                 buyPrice,
@@ -620,7 +666,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 permission,
                 icon: icon ?? '',
                 displayName,
-                itemId: customId
+                itemId: customId,
+                rankOverrides: parsedOverrides
             });
             player.sendMessage(`§2Added ${displayName}.`);
         }
@@ -643,11 +690,36 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const buyPriceStr = values[1];
         const sellPriceStr = values[2];
         const permLevelStr = values[3];
+        const overridesRaw = values[4] ?? '';
 
         const icon = iconStr;
         const buyPrice = Number.parseInt(isNonEmptyString(buyPriceStr) ? buyPriceStr : '-1', 10);
         const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
         const permission = isNonEmptyString(permLevelStr) ? permLevelStr : 'ui.panel.member';
+
+        let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
+
+        if (isNonEmptyString(overridesRaw)) {
+            parsedOverrides = {};
+            const pairs = overridesRaw.split(';');
+            for (const pair of pairs) {
+                const parts = pair.trim().split('=');
+                if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
+                    const rankId = parts[0].trim();
+                    const multiParts = parts[1].split(',');
+                    if (multiParts.length === 2) {
+                        const buyM = Number.parseFloat(multiParts[0]!);
+                        const sellM = Number.parseFloat(multiParts[1]!);
+                        if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
+                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
+                        }
+                    }
+                }
+            }
+            if (Object.keys(parsedOverrides).length === 0) {
+                parsedOverrides = undefined;
+            }
+        }
 
         if (!Number.isNaN(buyPrice) && isDefined(masterItem)) {
             shopAdminManager.setItem(context.categoryName as string, (context.subCategoryName as string) || undefined, itemId, {
@@ -656,7 +728,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 permission,
                 icon: icon ?? '',
                 displayName: masterItem.displayName ?? '',
-                itemId: itemId
+                itemId: itemId,
+                rankOverrides: parsedOverrides
             });
             player.sendMessage(`§2Added ${masterItem.displayName}.`);
         }
@@ -683,6 +756,31 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const bPrice = vals[3] ?? undefined;
         const sPrice = vals[4] ?? undefined;
         const pLevel = vals[5];
+        const overridesRaw = vals[6] ?? '';
+
+        let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
+
+        if (isNonEmptyString(overridesRaw)) {
+            parsedOverrides = {};
+            const pairs = overridesRaw.split(';');
+            for (const pair of pairs) {
+                const parts = pair.trim().split('=');
+                if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
+                    const rankId = parts[0].trim();
+                    const multiParts = parts[1].split(',');
+                    if (multiParts.length === 2) {
+                        const buyM = Number.parseFloat(multiParts[0]!);
+                        const sellM = Number.parseFloat(multiParts[1]!);
+                        if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
+                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
+                        }
+                    }
+                }
+            }
+            if (Object.keys(parsedOverrides).length === 0) {
+                parsedOverrides = undefined;
+            }
+        }
 
         shopAdminManager.updateShopItem(categoryName, subCategoryName ?? undefined, itemId, {
             buyPrice: isDefined(bPrice) ? Number(bPrice) : -1,
@@ -690,7 +788,8 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             permission: pLevel ?? 'ui.panel.member',
             icon: icon ?? '',
             minecraftId: mId ?? itemId,
-            displayName: dName ?? itemId
+            displayName: dName ?? itemId,
+            rankOverrides: parsedOverrides
         });
         player.sendMessage('§2Item updated.');
         return showPanel(player, parent, context);

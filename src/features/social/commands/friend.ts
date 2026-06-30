@@ -8,7 +8,7 @@ const friendCommand: CustomCommand = {
     description: 'Manage your friend list.',
     category: 'Social',
     aliases: ['frnd', 'friends'],
-    permissionNode: 'cmd.friend',
+    permissionNode: 'cmd.friend.member',
     parameters: [
         { name: 'subcommand', type: 'string', optional: true }, // add, remove, list, accept
         { name: 'target', type: 'string', optional: true }

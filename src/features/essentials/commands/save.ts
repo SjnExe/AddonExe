@@ -12,7 +12,7 @@ const command: CustomCommand = {
     aliases: ['xsave'],
     description: 'Manually saves all server data to disk.',
     category: 'Administration',
-    permissionNode: 'cmd.save', // Admins only
+    permissionNode: 'cmd.save.admin', // Admins only
     allowConsole: true,
     parameters: [],
     execute: (executor) => {

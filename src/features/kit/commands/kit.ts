@@ -94,7 +94,7 @@ const kitCommand: CustomCommand = {
     name: 'kit',
     description: 'Claims a specific kit. Leave blank to see a list of available kits.',
     category: 'Economy',
-    permissionNode: 'cmd.kit',
+    permissionNode: 'cmd.kit.member',
     parameters: [
         {
             name: 'kitName',
@@ -141,7 +141,7 @@ const addKitCommand: CustomCommand = {
     name: 'addkit',
     description: 'Create a new kit from your inventory and open the editor.',
     category: 'Economy',
-    permissionNode: 'cmd.addkit', // Admins only
+    permissionNode: 'cmd.addkit.admin', // Admins only
     allowConsole: false,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],
     execute: async (executor: CommandExecutor, args: KitCommandArgs) => {

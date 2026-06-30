@@ -8,7 +8,7 @@ const command: CustomCommand = {
     aliases: ['ctc', 'chat'],
     description: 'Toggles or sets whether player chat is logged to the server console.',
     category: 'Administration',
-    permissionNode: 'cmd.chattoconsole', // Admins only
+    permissionNode: 'cmd.chattoconsole.admin', // Admins only
     allowConsole: true,
     parameters: [
         {
