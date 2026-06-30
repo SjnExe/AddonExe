@@ -84,7 +84,7 @@ export class TeamPanelHandler implements IPanelHandler {
 
                 const item: PanelItem = {
                     id: `req_${app.playerId}`,
-                    text: `${app.playerName} §7${new Date(app.timestamp).toLocaleDateString()}\n${rankText}`,
+                    text: `${app.playerName} §8${new Date(app.timestamp).toLocaleDateString()}\n${rankText}`,
                     icon: icon,
                     actionType: 'openPanel',
                     actionValue: 'teamRequestActionPanel',
@@ -187,7 +187,7 @@ export class TeamPanelHandler implements IPanelHandler {
             const browserItems = allTeam.slice(0, 50).map((t) => {
                 const item: PanelItem = {
                     id: `team_${t.id}`,
-                    text: `${t.name}\n§7Members: ${t.members.length}`,
+                    text: `${t.name}\n§8Members: ${t.members.length}`,
                     icon: 'textures/ui/world_glyph_color',
                     actionType: 'functionCall',
                     actionValue: 'applyToTeam',
@@ -239,7 +239,7 @@ export class TeamPanelHandler implements IPanelHandler {
             },
             {
                 id: 'teamInfoBtn',
-                text: `§e${team.name}§r\n§7Balance: $${team.balance}`,
+                text: `§6${team.name}§r\n§8Balance: $${team.balance}`,
                 icon: 'textures/ui/infobulb',
                 actionType: 'functionCall',
                 actionValue: 'noop',

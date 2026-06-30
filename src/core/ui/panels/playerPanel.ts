@@ -71,7 +71,7 @@ export class PlayerPanelHandler implements IPanelHandler {
                 },
                 {
                     id: 'stat_kills',
-                    text: `§cKills: §r${data.kills}`,
+                    text: `§4Kills: §r${data.kills}`,
                     icon: 'textures/items/iron_sword',
                     permission: 'ui.panel.member',
                     actionType: 'functionCall',

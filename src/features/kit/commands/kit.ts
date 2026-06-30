@@ -41,10 +41,10 @@ async function showKitList(player: mc.Player, page: number) {
     }
 
     if (page > 1) {
-        form.button('§e< Previous Page');
+        form.button('§6< Previous Page');
     }
     if (page < totalPages) {
-        form.button('§eNext Page >');
+        form.button('§6Next Page >');
     }
 
     try {

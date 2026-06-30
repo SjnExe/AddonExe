@@ -111,7 +111,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         if (hasPermission(player, 'ui.panel.owner')) {
             items.push({
                 id: 'resetSettings',
-                text: '§l§cReset Settings§r',
+                text: '§l§4Reset Settings§r',
                 icon: 'textures/ui/wysiwyg_reset',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -149,7 +149,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         categories.push({
             id: 'resetAll',
-            title: '§l§4Reset All Systems',
+            title: '§l§cReset All Systems',
             icon: 'textures/ui/trash'
         });
 

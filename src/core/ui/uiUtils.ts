@@ -193,7 +193,7 @@ export function getVisibleCategories(player: mc.Player): SystemItem[] {
 
     return sortedCategories.map((cat) => ({
         id: cat,
-        title: `§l§3${cat} Settings§r`,
+        title: `§l§b${cat} Settings§r`,
         icon: categoryIcons[cat] ?? 'textures/ui/settings_glyph_color_2x'
     }));
 }

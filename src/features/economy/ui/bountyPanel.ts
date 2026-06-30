@@ -36,7 +36,7 @@ export class BountyPanelHandler implements IPanelHandler {
         if (bounties.length === 0) {
             items.push({
                 id: 'no_bounties',
-                text: '§7No active bounties',
+                text: '§8No active bounties',
                 icon: 'textures/ui/info_icon',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',

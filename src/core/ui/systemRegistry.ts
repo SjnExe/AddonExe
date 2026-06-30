@@ -49,7 +49,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         // 2. Add complex custom systems
         {
             id: 'kits',
-            title: '§l§5Kit System§r',
+            title: '§l§dKit System§r',
             icon: 'textures/ui/inventory_icon',
             configPanelId: 'kitManagementPanel',
             category: 'Economy',
@@ -57,7 +57,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'ranks',
-            title: '§l§4Rank System§r',
+            title: '§l§cRank System§r',
             icon: 'textures/ui/permissions_member_star.png',
             configPanelId: 'rankManagementPanel',
             category: 'Visuals',
@@ -65,7 +65,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'shop',
-            title: '§l§2Shop System§r',
+            title: '§l§aShop System§r',
             icon: 'textures/items/emerald',
             configPanelId: 'shopManagementPanel',
             category: 'Economy',
@@ -81,7 +81,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'xray_ores',
-            title: '§l§4X-Ray Ores§r',
+            title: '§l§cX-Ray Ores§r',
             icon: 'textures/blocks/diamond_ore',
             configPanelId: 'xrayOresPanel',
             category: 'Moderation',
@@ -98,7 +98,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'worldProtection',
-            title: '§l§2World Protection System§r',
+            title: '§l§aWorld Protection System§r',
             icon: 'textures/ui/icon_recipe_nature',
             configPanelId: 'worldProtectionListPanel',
             category: 'World',
@@ -114,7 +114,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'wordle',
-            title: '§l§2Wordle Config§r',
+            title: '§l§aWordle Config§r',
             icon: 'textures/ui/icon_recipe_item',
             configPanelId: 'config_wordle',
             category: 'Games',

@@ -200,7 +200,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             },
             {
                 id: 'editCategory',
-                text: '§l§9* Edit Category',
+                text: '§l§1* Edit Category',
                 icon: 'textures/ui/icon_setting',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -264,7 +264,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             },
             {
                 id: 'editSubCategory',
-                text: '§l§9* Edit Subcategory',
+                text: '§l§1* Edit Subcategory',
                 icon: 'textures/ui/icon_setting',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
