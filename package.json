@@ -17,9 +17,9 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "bun run clean && bun scripts/generate-manifests.js && bun scripts/build-assets.js && tsup --env.NODE_ENV=development",
-        "build:release": "bun run clean && bun scripts/generate-manifests.js --release && bun scripts/build-assets.js --minify && tsup --minify --env.NODE_ENV=production",
-        "check-deps": "bun scripts/check-dependencies.js",
+        "build": "(command -v bun >/dev/null 2>&1 && bun run clean || pnpm run clean) && (command -v bun >/dev/null 2>&1 && bun scripts/generate-manifests.js || node scripts/generate-manifests.js) && (command -v bun >/dev/null 2>&1 && bun scripts/build-assets.js || node scripts/build-assets.js) && tsup --env.NODE_ENV=development",
+        "build:release": "(command -v bun >/dev/null 2>&1 && bun run clean || pnpm run clean) && (command -v bun >/dev/null 2>&1 && bun scripts/generate-manifests.js --release || node scripts/generate-manifests.js --release) && (command -v bun >/dev/null 2>&1 && bun scripts/build-assets.js --minify || node scripts/build-assets.js --minify) && tsup --minify --env.NODE_ENV=production",
+        "check-deps": "command -v bun >/dev/null 2>&1 && bun scripts/check-dependencies.js || node scripts/check-dependencies.js",
         "check-types": "tsc --noEmit",
         "clean": "rimraf build",
         "fix-project": "mct fix",
@@ -29,17 +29,17 @@
         "lint:check": "eslint src scripts eslint.config.js",
         "lint:fix": "eslint src scripts eslint.config.js --fix",
         "lint:report": "eslint src scripts eslint.config.js --output-file eslint_report.txt",
-        "prepare": "simple-git-hooks && bun scripts/generate-manifests.js",
+        "prepare": "simple-git-hooks && (command -v bun >/dev/null 2>&1 && bun scripts/generate-manifests.js || node scripts/generate-manifests.js)",
         "project-info": "mct info",
-        "reinstall": "rm -rf node_modules bun.lock && bun install",
+        "reinstall": "rm -rf node_modules bun.lock pnpm-lock.yaml && (command -v bun >/dev/null 2>&1 && bun install || pnpm install)",
         "test": "vitest run --passWithNoTests",
         "test:duplication": "jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
-        "validate": "bun run check-deps && mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun run check-deps && mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
-        "watch": "concurrently \"tsc -w\" \"bun scripts/build-assets.js --watch\" \"tsup --watch --env.NODE_ENV=development\""
+        "validate": "(command -v bun >/dev/null 2>&1 && bun run check-deps || pnpm run check-deps) && mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
+        "validate:report": "(command -v bun >/dev/null 2>&1 && bun run check-deps || pnpm run check-deps) && mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "watch": "concurrently \"tsc -w\" \"command -v bun >/dev/null 2>&1 && bun scripts/build-assets.js --watch || node scripts/build-assets.js --watch\" \"tsup --watch --env.NODE_ENV=development\""
     },
     "simple-git-hooks": {
-        "pre-commit": "bunx lint-staged"
+        "pre-commit": "command -v bunx >/dev/null 2>&1 && bunx lint-staged || npx lint-staged"
     },
     "lint-staged": {
         "*.{js,ts}": [
@@ -83,6 +83,7 @@
         "rimraf": "latest",
         "simple-git-hooks": "latest",
         "tsup": "latest",
+        "tsx": "^4.22.4",
         "type-fest": "latest",
         "typescript": "latest",
         "typescript-eslint": "latest",
