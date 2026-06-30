@@ -46,6 +46,7 @@ export const permissionGroups: Record<string, string[]> = {
         'cmd.kit',
         'cmd.team',
         'cmd.vote',
+        'cmd.panel',
         'ui.panel.member'
     ],
     mod: ['cmd.kick', 'cmd.mute', 'cmd.unmute', 'cmd.freeze', 'cmd.unfreeze', 'cmd.inventory', 'cmd.vanish', 'ui.panel.mod'],

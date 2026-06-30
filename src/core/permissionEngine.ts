@@ -1,7 +1,8 @@
 import { config } from '@core/../config.default.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { getAllRanks, getRankById } from '@core/rankManager.js';
-import { RankDefinition, permissionGroups } from '@features/ranks/ranksConfig.default.js';
+import { getRanksConfig } from '@core/configurations.js';
+import { RankDefinition } from '@features/ranks/ranksConfig.default.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -16,7 +17,7 @@ export function calculateRankMap(rank: RankDefinition): Record<string, boolean> 
 
     // 1. Process groups
     for (const group of rank.groups) {
-        const groupNodes = permissionGroups[group];
+        const groupNodes = getRanksConfig().permissionGroups[group];
         if (groupNodes) {
             for (const node of groupNodes) {
                 map[node] = true;
