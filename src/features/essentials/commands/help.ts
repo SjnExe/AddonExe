@@ -223,7 +223,7 @@ async function showUICategory(player: mc.Player, category: string) {
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
-    form.button('§c< Back');
+    form.button('§4< Back');
     for (const c of visibleCmds) form.button(`/${c.name}`);
 
     try {

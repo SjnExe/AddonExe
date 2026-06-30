@@ -94,7 +94,7 @@ const warpCommand: CustomCommand = {
         for (const warpName of warpList) {
             const location = warpsManager.getWarp(warpName);
             if (isDefined(location)) {
-                form.button(`${warpName}\n§7(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`);
+                form.button(`${warpName}\n§8(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`);
             }
         }
 

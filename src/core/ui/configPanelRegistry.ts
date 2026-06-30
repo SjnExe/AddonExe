@@ -38,7 +38,7 @@ export interface ConfigCategory {
 export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'general_server',
-        title: '§l§3Server Info§r',
+        title: '§l§bServer Info§r',
         icon: 'textures/ui/icon_book_writable',
         category: 'Server',
         settings: [
@@ -64,7 +64,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'back',
-        title: '§l§5Back System§r',
+        title: '§l§dBack System§r',
         icon: 'textures/ui/refresh_light',
         category: 'World',
         settings: [
@@ -147,7 +147,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'general_gameplay',
-        title: '§l§3Gameplay Settings§r',
+        title: '§l§bGameplay Settings§r',
         icon: 'textures/items/iron_sword',
         category: 'Gameplay',
         settings: [
@@ -162,7 +162,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'general_system',
-        title: '§l§3System Settings§r',
+        title: '§l§bSystem Settings§r',
         icon: 'textures/ui/settings_glyph_color_2x',
         category: 'System',
         settings: [
@@ -183,7 +183,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'announcements',
-        title: '§l§2Announcement System§r',
+        title: '§l§aAnnouncement System§r',
         icon: 'textures/ui/icon_bell',
         category: 'Chat',
         settings: [
@@ -301,7 +301,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'chat',
-        title: '§l§2Chat Settings§r',
+        title: '§l§aChat Settings§r',
         icon: 'textures/ui/chat_send',
         category: 'Chat',
         settings: [
@@ -469,7 +469,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'tpa',
-        title: '§l§5TPA System§r',
+        title: '§l§dTPA System§r',
         icon: 'textures/items/ender_pearl',
         category: 'World',
         settings: [
@@ -501,7 +501,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'homes',
-        title: '§l§2Home System§r',
+        title: '§l§aHome System§r',
         icon: 'textures/ui/icon_recipe_item',
         category: 'World',
         settings: [
@@ -672,7 +672,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'dimensionLock',
-        title: '§l§5Dimension Locking§r',
+        title: '§l§dDimension Locking§r',
         icon: 'textures/ui/realmPortalSmall',
         category: 'World',
         settings: [
@@ -698,7 +698,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'team',
-        title: '§l§1Team System§r',
+        title: '§l§9Team System§r',
         icon: 'textures/ui/icon_multiplayer',
         configSource: 'team',
         category: 'Social',
@@ -809,7 +809,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'restart',
-        title: '§l§3Restart Settings§r',
+        title: '§l§bRestart Settings§r',
         icon: 'textures/ui/refresh_light',
         category: 'Server',
         settings: [
@@ -835,7 +835,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'reports',
-        title: '§l§4Report Settings§r',
+        title: '§l§cReport Settings§r',
         icon: 'textures/ui/WarningGlyph',
         category: 'Moderation',
         settings: [
@@ -973,7 +973,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'wordle',
-        title: '§l§2Wordle Settings§r',
+        title: '§l§aWordle Settings§r',
         icon: 'textures/ui/icon_recipe_item',
         configSource: 'wordle',
         category: 'Games',

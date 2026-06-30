@@ -25,7 +25,7 @@ export class TeleportPanelHandler implements IPanelHandler {
             if (!config.tpa.enabled) {
                 items.push({
                     id: 'tpaDisabled',
-                    text: '§cSystem Globally Disabled',
+                    text: '§4System Globally Disabled',
                     icon: 'textures/ui/warning_alert',
                     permission: 'ui.panel.member',
                     actionType: 'functionCall',

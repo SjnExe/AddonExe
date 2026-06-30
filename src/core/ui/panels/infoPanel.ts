@@ -174,7 +174,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const realIndex = (page - 1) * itemsPerPage + idx;
             items.push({
                 id: String(realIndex),
-                text: `§l§6${link.title}§r\n§9${link.url}`,
+                text: `§l§6${link.title}§r\n§1${link.url}`,
                 icon: 'textures/items/chain',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',

@@ -32,7 +32,7 @@ async function handleActiveVote(player: mc.Player, activeVote: ReturnType<typeof
     const form = new ActionFormData().title('Current Vote').body(body);
 
     if (hasVoted) {
-        form.button('§cClose');
+        form.button('§4Close');
     } else {
         for (const opt of activeVote.options) {
             form.button(opt.text);
@@ -83,9 +83,9 @@ async function handleNoActiveVote(player: mc.Player, isAdmin: boolean) {
     const form = new ActionFormData().title('Voting').body(body);
 
     if (isAdmin) {
-        form.button('§aCreate New Vote');
+        form.button('§2Create New Vote');
     } else {
-        form.button('§cClose');
+        form.button('§4Close');
     }
 
     const response = await uiWait(player, form);

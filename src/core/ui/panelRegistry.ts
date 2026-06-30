@@ -35,7 +35,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'games',
-                text: '§l§aGames',
+                text: '§l§2Games',
                 icon: 'textures/ui/controller_icon',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -89,7 +89,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'info',
-                text: '§l§bServer Info',
+                text: '§l§3Server Info',
                 icon: 'textures/items/book_enchanted.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -173,7 +173,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'rules',
-                text: '§9Rules',
+                text: '§1Rules',
                 icon: 'textures/items/book_enchanted.png',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',
@@ -182,7 +182,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'helpfulLinks',
-                text: '§9Helpful Links',
+                text: '§1Helpful Links',
                 icon: 'textures/items/chain',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',
@@ -777,7 +777,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [] // Dynamically built in panelBuilder.js
     },
     xrayOresPanel: {
-        title: '§l§4X-Ray Ores§r',
+        title: '§l§cX-Ray Ores§r',
         parentPanelId: 'configCategoryPanel',
         items: [
             {
@@ -904,7 +904,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'singlePlayer',
-                text: '§l§aSingle Player',
+                text: '§l§2Single Player',
                 icon: 'textures/ui/icon_steve',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -913,7 +913,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'multiplayer',
-                text: '§l§eMultiplayer',
+                text: '§l§6Multiplayer',
                 icon: 'textures/ui/icon_multiplayer',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -922,7 +922,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'staffGame',
-                text: '§l§cStaff Hosted Game',
+                text: '§l§4Staff Hosted Game',
                 icon: 'textures/ui/op',
                 permission: 'ui.panel.mod',
                 actionType: 'openPanel',

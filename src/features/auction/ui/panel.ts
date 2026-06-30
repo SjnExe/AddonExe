@@ -103,16 +103,16 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
     const form = new ActionFormData().title('Listing Details').body(details);
 
     if (listing.sellerId === player.id) {
-        form.button('§cCancel Listing (Return to Bin)');
+        form.button('§4Cancel Listing (Return to Bin)');
     } else {
         if (listing.isBid) {
             const currentBid = listing.bidPrice ?? listing.price;
             form.button(`§6Place Bid (Min: ${formatCurrency(currentBid + 1)})`);
         } else {
-            form.button(`§aBuy Now for ${formatCurrency(listing.price)}`);
+            form.button(`§2Buy Now for ${formatCurrency(listing.price)}`);
         }
     }
-    form.button('§cBack');
+    form.button('§4Back');
 
     const response = await uiWait(player, form);
     if (!isDefined(response) || response.canceled) return;

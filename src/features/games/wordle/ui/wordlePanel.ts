@@ -52,8 +52,8 @@ export class WordlePanelHandler implements IPanelHandler {
             const form = new ActionFormData()
                 .title(isWin ? '§l§aYou Won!' : '§l§cYou Lost!')
                 .body(`${resultMsg}\n\n${history}`)
-                .button('§2Play Again\n§r§fStart a new game')
-                .button('§cReturn to Menu\n§r§fBack to games');
+                .button('§2Play Again\n§r§7Start a new game')
+                .button('§4Return to Menu\n§r§8Back to games');
             return form;
         }
 
@@ -70,16 +70,16 @@ export class WordlePanelHandler implements IPanelHandler {
                 .body(game ? `§7Game Active! Pool Prize: §6$${game.poolPrize}\n§7Guesses: ${game.guesses.length}` : '§7No active staff game.');
 
             if (game) {
-                form.button('§4End Game\n§r§fForce end the active game');
+                form.button('§4End Game\n§r§8Force end the active game');
             } else {
-                form.button('§2Start Game\n§r§fStart a new global game');
+                form.button('§2Start Game\n§r§8Start a new global game');
             }
-            form.button('§cBack\n§r§fReturn to Menu');
+            form.button('§4Back\n§r§8Return to Menu');
             return form;
         }
 
         if (panelId === 'wordleMultiplayerPanel') {
-            const form = new ActionFormData().title('§l§eMultiplayer Wordle').body('§7Coming soon in a future update!').button('§cBack\n§r§fReturn to Menu');
+            const form = new ActionFormData().title('§l§6Multiplayer Wordle').body('§7Coming soon in a future update!').button('§4Back\n§r§8Return to Menu');
             return form;
         }
         return undefined;
