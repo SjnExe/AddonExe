@@ -331,11 +331,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     configResetPanel: {
         title: 'Reset Configuration',
         parentPanelId: 'configCategoryPanel',
+        permission: 'ui.panel.owner',
         items: [] // Dynamically populated
     },
     shopManagementPanel: {
         title: 'Shop System',
         parentPanelId: 'configCategoryPanel',
+        permission: 'ui.panel.admin',
         items: [] // Dynamically populated
     },
     reportListPanel: {
@@ -485,11 +487,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     kitManagementPanel: {
         title: 'Kit System',
         parentPanelId: 'configCategoryPanel',
+        permission: 'ui.panel.admin',
         items: [] // Dynamically populated
     },
     rankManagementPanel: {
         title: 'Rank System',
         parentPanelId: 'configCategoryPanel',
+        permission: 'ui.panel.admin',
         items: [
             {
                 id: 'addRank',
@@ -657,6 +661,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     rulesManagementPanel: {
         title: 'Rules Management',
         parentPanelId: 'infoPanel',
+        permission: 'ui.panel.admin',
         items: [] // Dynamically populated
     },
     addRulePanel: {
@@ -672,6 +677,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     helpfulLinksManagementPanel: {
         title: 'Links Management',
         parentPanelId: 'infoPanel',
+        permission: 'ui.panel.admin',
         items: [] // Dynamically populated
     },
     rulesPanel: {
@@ -779,6 +785,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     xrayOresPanel: {
         title: '§l§cX-Ray Ores§r',
         parentPanelId: 'configCategoryPanel',
+        permission: 'ui.panel.admin',
         items: [
             {
                 id: 'addXrayOre',
@@ -793,11 +800,13 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
     addXrayOrePanel: {
         title: 'Add Monitored Ore',
         parentPanelId: 'xrayOresPanel',
+        permission: 'ui.panel.admin',
         items: [] // Modal form
     },
     editXrayOrePanel: {
         title: 'Edit Monitored Ore',
         parentPanelId: 'xrayOresPanel',
+        permission: 'ui.panel.admin',
         items: [] // Modal form
     },
     sidebarMainPanel: {
