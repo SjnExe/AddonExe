@@ -6,6 +6,7 @@ export interface Item {
     buyPrice?: number;
     sellPrice?: number;
     itemId?: string;
+    rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
 }
 
 let allItems: Record<string, Item> = {};

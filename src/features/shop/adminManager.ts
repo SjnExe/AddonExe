@@ -22,6 +22,7 @@ interface ItemData {
     sellPrice: number;
     permission?: string;
     category?: string;
+    rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
 }
 
 interface UpdateItemData {

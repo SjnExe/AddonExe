@@ -667,7 +667,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 icon: icon ?? '',
                 displayName,
                 itemId: customId,
-                rankOverrides: parsedOverrides
+                rankMultiplierOverrides: parsedOverrides
             });
             player.sendMessage(`§2Added ${displayName}.`);
         }
@@ -729,7 +729,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
                 icon: icon ?? '',
                 displayName: masterItem.displayName ?? '',
                 itemId: itemId,
-                rankOverrides: parsedOverrides
+                rankMultiplierOverrides: parsedOverrides
             });
             player.sendMessage(`§2Added ${masterItem.displayName}.`);
         }

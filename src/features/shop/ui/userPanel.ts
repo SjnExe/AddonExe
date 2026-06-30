@@ -5,7 +5,7 @@ import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
 import * as shopManager from '@features/shop/manager.js';
-import { getPlayerShopItemPrice, findShopItem } from '@features/shop/manager.js';
+import { findShopItem, getPlayerShopItemPrice } from '@features/shop/manager.js';
 import { ShopCategory } from '@features/shop/shopConfig.js';
 import { ensureItemsConfig, getAllItems, Item } from '@features/shop/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
