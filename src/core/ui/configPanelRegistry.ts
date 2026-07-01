@@ -212,7 +212,6 @@ export const configPanelSchema: ConfigCategory[] = [
         title: '§l§6Economy Settings§r',
         icon: 'textures/ui/Scaffolding',
         configSource: 'economy',
-        category: 'Economy',
         hidden: true,
         settings: [
             {
@@ -746,7 +745,6 @@ export const configPanelSchema: ConfigCategory[] = [
         title: '§l§6Steal System§r',
         icon: 'textures/items/iron_sword',
         configSource: 'economy',
-        category: 'Economy',
         settings: [
             {
                 key: 'steal.enabled',
@@ -773,7 +771,6 @@ export const configPanelSchema: ConfigCategory[] = [
         title: '§l§6PvP System§r',
         icon: 'textures/items/diamond_sword',
         configSource: 'economy',
-        category: 'Economy',
         settings: [
             {
                 key: 'pvp.enabled',
@@ -852,7 +849,6 @@ export const configPanelSchema: ConfigCategory[] = [
         title: '§l§eSidebar System§r',
         icon: 'textures/items/book_writable',
         configSource: 'sidebar',
-        category: 'Visuals',
         settings: [
             {
                 key: 'enabled',
@@ -958,7 +954,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'games',
-        title: '§l§aGames Settings§r',
+        title: '§l§eGlobal Games Config§r',
         icon: 'textures/ui/controller_icon',
         configSource: 'games',
         category: 'Games',
@@ -973,7 +969,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'wordle',
-        title: '§l§aWordle Settings§r',
+        title: '§l§eWordle Config§r',
         icon: 'textures/ui/icon_recipe_item',
         configSource: 'wordle',
         category: 'Games',
