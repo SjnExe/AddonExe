@@ -34,14 +34,14 @@
         "project-info": "bun --bun mct info",
         "reinstall": "rimraf node_modules bun.lockb bun.lock && bun install",
         "test": "bun test",
-        "test:duplication": "if [ -d /data/data/com.termux ]; then $HOME/.cargo/bin/jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore \"src/**/__tests__/**\"; else jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore \"src/**/__tests__/**\"; fi",
+        "test:duplication": "bun scripts/test-duplication.js",
         "test:watch": "bun test --watch",
         "validate": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
         "validate:report": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
         "watch": "bun --bun concurrently \"bun --bun tsc -w\" \"bun --bun scripts/build-assets.js --watch\" \"bun --bun tsup --watch --env.NODE_ENV=development\""
     },
     "simple-git-hooks": {
-        "pre-commit": "bun --bun lint-staged && (bun --bun concurrently --group \"bun check-types\" \"bun test\" \"bun validate\" > .git/pre-commit.log 2>&1 || { cat .git/pre-commit.log; exit 1; })"
+        "pre-commit": "bun scripts/pre-commit.js"
     },
     "lint-staged": {
         "*.{js,ts}": [
