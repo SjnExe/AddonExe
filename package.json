@@ -41,7 +41,7 @@
         "watch": "bun --bun concurrently \"bun --bun tsc -w\" \"bun --bun scripts/build-assets.js --watch\" \"bun --bun tsup --watch --env.NODE_ENV=development\""
     },
     "simple-git-hooks": {
-        "pre-commit": "bun --bun lint-staged"
+        "pre-commit": "bun --bun lint-staged && bun --bun concurrently \"bun check-types\" \"bun test\" \"bun validate\""
     },
     "lint-staged": {
         "*.{js,ts}": [
