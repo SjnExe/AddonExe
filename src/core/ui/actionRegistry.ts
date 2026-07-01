@@ -38,15 +38,15 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
     showRules: async (player: mc.Player) => {
         const rules = rulesManager.getRules();
 
-        const rulesForm = new ActionFormData().title('§l§6Server Rules').body(rules.join('\n'));
+        const rulesForm = new ActionFormData().title('Server Rules').body(rules.join('\n'));
 
         const isAdmin = hasPermission(player, 'ui.panel.admin');
 
         if (isAdmin) {
-            rulesForm.button('§l§4Edit Rules', 'textures/ui/icon_setting');
+            rulesForm.button('Edit Rules', 'textures/ui/icon_setting');
         }
 
-        rulesForm.button('§l§8Close', 'textures/ui/cancel');
+        rulesForm.button('Close', 'textures/ui/cancel');
 
         const response = await utils.uiWait(player, rulesForm);
 
@@ -62,22 +62,22 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
     showHelpfulLinks: async (player: mc.Player) => {
         const links = helpfulLinksManager.getHelpfulLinks();
 
-        const form = new ActionFormData().title('§l§9Helpful Links');
+        const form = new ActionFormData().title('Helpful Links');
 
         if (links.length === 0) {
-            form.body('§cNo helpful links have been configured by the admin.');
+            form.body('No helpful links have been configured by the admin.');
         } else {
-            const bodyText = links.map((link) => `§f${link.title}: §r${link.url}`).join('\n\n');
+            const bodyText = links.map((link) => `${link.title}: ${link.url}`).join('\n\n');
             form.body(bodyText);
         }
 
         const isAdmin = hasPermission(player, 'ui.panel.admin');
 
         if (isAdmin) {
-            form.button('§l§4Edit Links', 'textures/ui/icon_setting');
+            form.button('Manage Links', 'textures/ui/icon_setting');
         }
 
-        form.button('§l§8Close', 'textures/ui/cancel');
+        form.button('Close', 'textures/ui/cancel');
 
         const response = await utils.uiWait(player, form);
 
