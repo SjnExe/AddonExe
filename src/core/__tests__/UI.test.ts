@@ -1,25 +1,25 @@
+import { describe, test, expect, mock, it } from "bun:test";
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { panelRouter } from '@ui/PanelRouter.js';
-import { vi } from 'vitest';
 
 // Mock Config
-vi.mock('../configManager.js', () => ({
-    getConfig: vi.fn().mockReturnValue({
+mock.module('../configManager.js', () => ({
+    getConfig: mock().mockReturnValue({
         // Minimal config
         bounties: { enabled: true },
         tpa: { enabled: true },
         economy: { enabled: true }
     }),
-    updateConfig: vi.fn(),
-    updateMultipleConfig: vi.fn(),
-    resetConfigSection: vi.fn(),
-    onConfigUpdated: vi.fn(),
-    initializeConfigManager: vi.fn(),
-    reloadConfig: vi.fn()
+    updateConfig: mock(),
+    updateMultipleConfig: mock(),
+    resetConfigSection: mock(),
+    onConfigUpdated: mock(),
+    initializeConfigManager: mock(),
+    reloadConfig: mock()
 }));
 
 // Mock feature managers if needed by panels
-vi.mock('../bountyManager.js', () => ({
+mock.module('../bountyManager.js', () => ({
     bountyManager: { getBounties: () => [] }
 }));
 

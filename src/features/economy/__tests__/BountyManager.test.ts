@@ -1,21 +1,21 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, test, expect, mock, it, beforeEach } from "bun:test";
 
 // Mocks
-const mockIncrementPlayerBalance = vi.fn();
-const mockGetPlayer = vi.fn();
-const mockLoadPlayerData = vi.fn();
+const mockIncrementPlayerBalance = mock();
+const mockGetPlayer = mock();
+const mockLoadPlayerData = mock();
 
-vi.mock('@core/playerDataManager.js', () => ({
+mock.module('@core/playerDataManager.js', () => ({
     incrementPlayerBalance: mockIncrementPlayerBalance,
     getPlayer: mockGetPlayer,
     loadPlayerData: mockLoadPlayerData
 }));
 
-const mockStorageSave = vi.fn();
-const mockStorageLoad = vi.fn();
+const mockStorageSave = mock();
+const mockStorageLoad = mock();
 
-vi.mock('@core/storage/StorageManager.js', () => ({
-    StorageManager: vi.fn(function () {
+mock.module('@core/storage/StorageManager.js', () => ({
+    StorageManager: mock(function () {
         return {
             save: mockStorageSave,
             load: mockStorageLoad
@@ -23,16 +23,16 @@ vi.mock('@core/storage/StorageManager.js', () => ({
     })
 }));
 
-vi.mock('@core/logger.js', () => ({
-    debugLog: vi.fn(),
-    errorLog: vi.fn()
+mock.module('@core/logger.js', () => ({
+    debugLog: mock(),
+    errorLog: mock()
 }));
 
 const { placeBounty, getBounty } = await import('@features/economy/bountyManager.js');
 
 describe('BountyManager', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        mock.restore();
         mockStorageLoad.mockReturnValue([]);
     });
 

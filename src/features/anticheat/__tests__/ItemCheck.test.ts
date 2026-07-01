@@ -1,20 +1,20 @@
+import { describe, test, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
-import { vi } from 'vitest';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 // Mocks
-const mockFlag = vi.fn();
-vi.mock('../flagManager.js', () => ({
+const mockFlag = mock();
+mock.module('../flagManager.js', () => ({
     flag: mockFlag
 }));
 
-vi.mock('@core/logger.js', () => ({
-    errorLog: vi.fn()
+mock.module('@core/logger.js', () => ({
+    errorLog: mock()
 }));
 
-vi.mock('../configLoader.js', () => ({
-    getAnticheatConfig: vi.fn()
+mock.module('../configLoader.js', () => ({
+    getAnticheatConfig: mock()
 }));
 
 const { checkItem } = await import('../itemCheck.js');
@@ -22,10 +22,11 @@ const { checkItem } = await import('../itemCheck.js');
 describe('ItemCheck', () => {
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
     const player = new PlayerMock('p1', 'Cheater');
-    const updateItem = vi.fn();
+    const updateItem = mock();
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        mockFlag.mockClear();
+        updateItem.mockClear();
     });
 
     it('should flag illegal enchantments', () => {
@@ -33,7 +34,7 @@ describe('ItemCheck', () => {
             typeId: 'minecraft:diamond_sword',
             amount: 1,
             maxAmount: 1,
-            getComponent: vi.fn((id: string) => {
+            getComponent: mock((id: string) => {
                 if (id === 'minecraft:enchantable') {
                     return {
                         getEnchantments: () => [
@@ -66,7 +67,7 @@ describe('ItemCheck', () => {
             typeId: 'minecraft:diamond_sword',
             amount: 1,
             maxAmount: 1,
-            getComponent: vi.fn((id: string) => {
+            getComponent: mock((id: string) => {
                 if (id === 'minecraft:enchantable') {
                     return {
                         getEnchantments: () => [

@@ -1,2 +1,5 @@
 [install]
 trustedDependencies = ["simple-git-hooks", "esbuild", "unrs-resolver"]
+
+[test]
+preload = ["./src/core/__tests__/__mocks__/bunSetup.ts"]
