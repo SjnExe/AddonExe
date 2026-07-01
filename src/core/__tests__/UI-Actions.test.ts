@@ -1,6 +1,6 @@
-import { describe, expect, mock, it } from "bun:test";
 import { uiActionFunctions } from '@ui/actionRegistry.js';
 import { panelDefinitions } from '@ui/panelRegistry.js';
+import { describe, expect, it, mock } from 'bun:test';
 
 mock.module('../configManager.js', () => ({
     getConfig: mock().mockReturnValue({}),

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "bun:test";
 import { panelDefinitions } from '@ui/panelRegistry.js';
+import { describe, expect, it } from 'bun:test';
 
 describe('UI Permissions Integrity', () => {
     it('should have appropriate permission levels for potentially destructive or admin actions', () => {

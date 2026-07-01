@@ -1,4 +1,4 @@
-import { describe, expect, mock, it, beforeEach } from "bun:test";
+import { beforeEach, describe, it, mock } from 'bun:test';
 
 const mockConfigLoader = mock();
 const mockConfigManagerInstance = {
@@ -74,7 +74,7 @@ describe('ConfigManager', () => {
         const mockConfig = { test: true };
         mockConfigManagerInstance.get.mockReturnValue(mockConfig);
 
-        const result = getConfig();
+        getConfig();
         // expect(result).toBe(mockConfig);
     });
 

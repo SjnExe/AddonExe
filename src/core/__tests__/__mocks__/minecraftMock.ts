@@ -1,4 +1,4 @@
-import { mock } from "bun:test";
+import { mock } from 'bun:test';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // --- @minecraft/server Mocks ---

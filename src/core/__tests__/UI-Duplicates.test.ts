@@ -1,5 +1,5 @@
-import { describe, expect, it } from "bun:test";
 import { panelDefinitions } from '@ui/panelRegistry.js';
+import { describe, expect, it } from 'bun:test';
 
 describe('UI Duplicates Integrity', () => {
     it('should not have duplicate button IDs within the same panel', () => {
