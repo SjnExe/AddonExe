@@ -10,7 +10,10 @@ mock.module('../flagManager.js', () => ({
 }));
 
 mock.module('@core/logger.js', () => ({
-    errorLog: mock()
+    errorLog: mock(),
+    warnLog: mock(),
+    infoLog: mock(),
+    debugLog: mock()
 }));
 
 mock.module('../configLoader.js', () => ({

@@ -22,13 +22,16 @@ mock.module('@core/configManagerFactory.js', () => ({
 }));
 
 mock.module('@features/anticheat/configLoader.js', () => ({
-    loadAnticheatConfig: mock()
+    loadAnticheatConfig: mock(),
+    getAnticheatConfig: mock(),
+    saveAnticheatConfig: mock()
 }));
 
 mock.module('@core/logger.js', () => ({
     debugLog: mock(),
     errorLog: mock(),
-    infoLog: mock()
+    infoLog: mock(),
+    warnLog: mock()
 }));
 
 mock.module('@core/configurations.js', () => ({
@@ -44,6 +47,45 @@ mock.module('@core/configurations.js', () => ({
     loadDailyRewardsConfig: mock(),
     loadGamesConfig: mock(),
     loadWordleConfig: mock(),
+    getWorldProtectionConfig: mock(),
+    getShopConfig: mock(),
+    getRanksConfig: mock(),
+    getEconomyConfig: mock(),
+    getXrayConfig: mock(),
+    getTeamConfig: mock(),
+    getFriendConfig: mock(),
+    getSidebarConfig: mock(),
+    getAuctionHouseConfig: mock(),
+    getDailyRewardsConfig: mock(),
+    getGamesConfig: mock(),
+    getWordleConfig: mock(),
+    saveWorldProtectionConfig: mock(),
+    saveShopConfig: mock(),
+    saveRanksConfig: mock(),
+    saveEconomyConfig: mock(),
+    saveXrayConfig: mock(),
+    saveTeamConfig: mock(),
+    saveFriendConfig: mock(),
+    saveSidebarConfig: mock(),
+    saveAuctionHouseConfig: mock(),
+    saveDailyRewardsConfig: mock(),
+    saveGamesConfig: mock(),
+    saveWordleConfig: mock(),
+    resetWorldProtectionConfig: mock(),
+    resetShopConfig: mock(),
+    resetRanksConfig: mock(),
+    resetEconomyConfig: mock(),
+    resetXrayConfig: mock(),
+    resetTeamConfig: mock(),
+    resetFriendConfig: mock(),
+    resetSidebarConfig: mock(),
+    resetAuctionHouseConfig: mock(),
+    resetDailyRewardsConfig: mock(),
+    resetGamesConfig: mock(),
+    resetWordleConfig: mock(),
+    registerConfigReset: mock(),
+    registerConfigResetCallback: mock(),
+    reloadAllConfigs: mock(),
     configResetRegistry: {},
     configResetCallbacks: {}
 }));
