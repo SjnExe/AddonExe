@@ -17,8 +17,8 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "bun clean && bun --bun scripts/generate-manifests.js && bun --bun scripts/build-assets.js && bun --bun tsup --env.NODE_ENV=development",
-        "build:release": "bun clean && bun --bun scripts/generate-manifests.js --release && bun --bun scripts/build-assets.js --minify && bun --bun tsup --minify --env.NODE_ENV=production",
+        "build": "bun clean && bun --bun scripts/generate-manifests.js && bun --bun scripts/build-assets.js && bun --bun scripts/build-scripts.js",
+        "build:release": "bun clean && bun --bun scripts/generate-manifests.js --release && bun --bun scripts/build-assets.js --minify && NODE_ENV=production bun --bun scripts/build-scripts.js --minify",
         "check-deps": "bun --bun scripts/check-dependencies.js",
         "check-types": "bun --bun tsc --noEmit --incremental",
         "clean": "rm -rf build out",
@@ -38,7 +38,7 @@
         "test:watch": "bun test --watch",
         "validate": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
         "validate:report": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
-        "watch": "bun --bun concurrently \"bun --bun tsc -w\" \"bun --bun scripts/build-assets.js --watch\" \"bun --bun tsup --watch --env.NODE_ENV=development\""
+        "watch": "bun --bun concurrently \"bun --bun tsc -w\" \"bun --bun scripts/build-assets.js --watch\" \"bun --bun scripts/build-scripts.js --watch\""
     },
     "simple-git-hooks": {
         "pre-commit": "bun scripts/pre-commit.js"
@@ -84,7 +84,6 @@
         "prettier-plugin-packagejson": "latest",
         "rimraf": "latest",
         "simple-git-hooks": "latest",
-        "tsup": "latest",
         "type-fest": "latest",
         "typescript": "latest",
         "typescript-eslint": "latest"
