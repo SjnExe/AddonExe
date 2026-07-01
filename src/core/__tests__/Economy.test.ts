@@ -1,15 +1,16 @@
+import { describe, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
-import { vi } from 'vitest';
 
 // Create mock functions outside
 
-const { mockStorageLoad, mockStorageSave } = vi.hoisted(() => ({
-    mockStorageLoad: vi.fn(),
-    mockStorageSave: vi.fn()
-}));
+const { mockStorageLoad, mockStorageSave  } = {
+    mockStorageLoad: mock(),
+    mockStorageSave: mock()
+
+};
 
 // Define mocks using unstable_mockModule
-vi.mock('../configManager.js', () => ({
+mock.module('../configManager.js', () => ({
     getConfig: () => ({
         economy: {
             enabled: true,
@@ -26,7 +27,7 @@ vi.mock('../configManager.js', () => ({
     })
 }));
 
-vi.mock('../configurations.js', () => ({
+mock.module('../configurations.js', () => ({
     getEconomyConfig: () => ({
         enabled: true,
         startingBalance: 0,
@@ -35,23 +36,23 @@ vi.mock('../configurations.js', () => ({
     })
 }));
 
-vi.mock('../logger.js', () => ({
-    debugLog: vi.fn(),
-    errorLog: vi.fn(),
-    infoLog: vi.fn()
+mock.module('../logger.js', () => ({
+    debugLog: mock(),
+    errorLog: mock(),
+    infoLog: mock()
 }));
 
-vi.mock('../leaderboardManager.js', () => ({
-    updateAndSaveLeaderboard: vi.fn()
+mock.module('../leaderboardManager.js', () => ({
+    updateAndSaveLeaderboard: mock()
 }));
 
-vi.mock('../playerCache.js', () => ({
-    getAllPlayersFromCache: vi.fn(() => []),
-    getPlayerFromCache: vi.fn()
+mock.module('../playerCache.js', () => ({
+    getAllPlayersFromCache: mock(() => []),
+    getPlayerFromCache: mock()
 }));
 
-vi.mock('../storage/StorageManager.js', () => ({
-    StorageManager: vi.fn().mockImplementation(function (key: unknown) {
+mock.module('../storage/StorageManager.js', () => ({
+    StorageManager: mock().mockImplementation(function (key: unknown) {
         return {
             load: () => mockStorageLoad(key),
             save: mockStorageSave
@@ -68,14 +69,14 @@ const mockPlayer = (id: string, name: string) =>
         id,
         name,
         isValid: true,
-        sendMessage: vi.fn(),
-        getGameMode: vi.fn(),
-        getComponent: vi.fn()
+        sendMessage: mock(),
+        getGameMode: mock(),
+        getComponent: mock()
     }) as unknown as mc.Player;
 
 describe('Economy System', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        mock.restore();
         cleanupPlayerDataManager();
 
         // Reset storage mocks

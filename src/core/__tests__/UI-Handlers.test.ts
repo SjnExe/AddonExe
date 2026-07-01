@@ -1,34 +1,34 @@
+import { describe, expect, mock, spyOn, it } from "bun:test";
 import * as mc from '@minecraft/server';
 import { UIContext } from '@ui/panelRegistry.js';
 import { PlayerPanelHandler } from '@ui/panels/playerPanel.js';
-import { vi } from 'vitest';
 
-vi.mock('../configManager.js', () => ({
-    getConfig: vi.fn().mockReturnValue({})
+mock.module('../configManager.js', () => ({
+    getConfig: mock().mockReturnValue({})
 }));
-vi.mock('../rankManager.js', () => ({
-    getPlayerRank: vi.fn().mockReturnValue({ permission: 'ui.panel.owner' })
+mock.module('../rankManager.js', () => ({
+    getPlayerRank: mock().mockReturnValue({ permission: 'ui.panel.owner' })
 }));
-vi.mock('../playerDataManager.js', () => ({
-    getVisiblePlayers: vi.fn().mockReturnValue([]),
-    loadPlayerData: vi.fn().mockReturnValue(null)
+mock.module('../playerDataManager.js', () => ({
+    getVisiblePlayers: mock().mockReturnValue([]),
+    loadPlayerData: mock().mockReturnValue(null)
 }));
-vi.mock('../ui/actionRegistry.js', () => ({
-    uiActionFunctions: { noop: vi.fn() }
+mock.module('../ui/actionRegistry.js', () => ({
+    uiActionFunctions: { noop: mock() }
 }));
-vi.mock('../uiManager.js', () => ({
-    showPanel: vi.fn()
+mock.module('../uiManager.js', () => ({
+    showPanel: mock()
 }));
 
 describe('UI Handlers Response Logic', () => {
     it('should correctly handle selections in PlayerPanelHandler', async () => {
-        const dummyPlayer = { sendMessage: vi.fn() } as unknown as mc.Player;
+        const dummyPlayer = { sendMessage: mock() } as unknown as mc.Player;
         const dummyContext: UIContext = {};
 
         const handler = new PlayerPanelHandler();
 
         // Mock getItems specifically for this test
-        vi.spyOn(handler, 'getItems').mockResolvedValue([
+        spyOn(handler, 'getItems').mockResolvedValue([
             { id: '1', actionType: 'openPanel', actionValue: 'somePanel', permission: 'ui.panel.member', text: 'Test' },
             { id: '2', actionType: 'functionCall', actionValue: 'noop', permission: 'ui.panel.member', text: 'Test2' }
         ]);

@@ -1,25 +1,25 @@
+import { describe, expect, mock, it, beforeEach } from "bun:test";
 import { addPunishment, getPunishment, loadPunishments, removePunishment } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
-import { vi } from 'vitest';
 
 // Mock dependencies
-vi.mock('../configManager.js', () => ({
+mock.module('../configManager.js', () => ({
     getConfig: () => ({ data: { autoSaveIntervalSeconds: 30 } })
 }));
 
-vi.mock('../logger.js', () => ({
-    debugLog: vi.fn(),
-    errorLog: vi.fn(),
-    infoLog: vi.fn()
+mock.module('../logger.js', () => ({
+    debugLog: mock(),
+    errorLog: mock(),
+    infoLog: mock()
 }));
 
-vi.mock('../../features/anticheat/logManager.js', () => ({
-    addPunishmentLog: vi.fn()
+mock.module('../../features/anticheat/logManager.js', () => ({
+    addPunishmentLog: mock()
 }));
 
 describe('PunishmentManager', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        mock.restore();
         // Reset storage mock
         (mc.world.getDynamicProperty as any).mockReturnValue(undefined);
         loadPunishments();

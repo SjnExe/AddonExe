@@ -1,17 +1,17 @@
+import { describe, expect, mock, it } from "bun:test";
 import * as mc from '@minecraft/server';
 import { UIContext } from '@ui/panelRegistry.js';
 import { PlayerPanelHandler } from '@ui/panels/playerPanel.js';
-import { vi } from 'vitest';
 
-vi.mock('../configManager.js', () => ({
-    getConfig: vi.fn().mockReturnValue({})
+mock.module('../configManager.js', () => ({
+    getConfig: mock().mockReturnValue({})
 }));
-vi.mock('../rankManager.js', () => ({
-    getPlayerRank: vi.fn().mockReturnValue({ permission: 'ui.panel.owner' })
+mock.module('../rankManager.js', () => ({
+    getPlayerRank: mock().mockReturnValue({ permission: 'ui.panel.owner' })
 }));
-vi.mock('../playerDataManager.js', () => ({
-    getVisiblePlayers: vi.fn().mockReturnValue([]),
-    loadPlayerData: vi.fn().mockReturnValue(null)
+mock.module('../playerDataManager.js', () => ({
+    getVisiblePlayers: mock().mockReturnValue([]),
+    loadPlayerData: mock().mockReturnValue(null)
 }));
 
 describe('UI Dynamic Panels Integrity', () => {
