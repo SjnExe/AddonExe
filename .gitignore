@@ -38,3 +38,10 @@ validation_report
 
 # TypeScript
 *.tsbuildinfo
+
+# Prettier
+.prettiercache
+
+# Tool Caches
+.eslintcache
+*.tsbuildinfo
