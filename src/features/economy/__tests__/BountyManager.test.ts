@@ -1,4 +1,4 @@
-import { describe, expect, mock, it, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mocks
 const mockIncrementPlayerBalance = mock();

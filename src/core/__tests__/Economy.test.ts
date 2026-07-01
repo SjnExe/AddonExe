@@ -1,12 +1,11 @@
-import { describe, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Create mock functions outside
 
-const { mockStorageLoad, mockStorageSave  } = {
+const { mockStorageLoad, mockStorageSave } = {
     mockStorageLoad: mock(),
     mockStorageSave: mock()
-
 };
 
 // Define mocks using unstable_mockModule

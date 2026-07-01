@@ -1,6 +1,6 @@
-import { describe, expect, mock, it, beforeEach } from "bun:test";
 import { addPunishment, getPunishment, loadPunishments, removePunishment } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mock dependencies
 mock.module('../configManager.js', () => ({

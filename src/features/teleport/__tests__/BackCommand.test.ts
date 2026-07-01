@@ -1,5 +1,5 @@
-import { describe, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mocks
 const mockGetConfig = mock();

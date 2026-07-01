@@ -1,5 +1,5 @@
-import { describe, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';

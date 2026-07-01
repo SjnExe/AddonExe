@@ -1,7 +1,7 @@
-import { describe, expect, mock, it } from "bun:test";
 import * as mc from '@minecraft/server';
 import { UIContext } from '@ui/panelRegistry.js';
 import { PlayerPanelHandler } from '@ui/panels/playerPanel.js';
+import { describe, expect, it, mock } from 'bun:test';
 
 mock.module('../configManager.js', () => ({
     getConfig: mock().mockReturnValue({})

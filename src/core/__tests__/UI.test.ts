@@ -1,6 +1,6 @@
-import { describe, expect, mock, it } from "bun:test";
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { panelRouter } from '@ui/PanelRouter.js';
+import { describe, expect, it, mock } from 'bun:test';
 
 // Mock Config
 mock.module('../configManager.js', () => ({
