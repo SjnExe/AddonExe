@@ -119,18 +119,12 @@ AddonExe is designed to be highly customizable. There are two main ways to confi
 This method is ideal for those who fork the repository to make their own custom versions, as it prevents merge conflicts with future updates.
 
 1.  **Fork the Repository:** Start by forking the [AddonExe repository](https://github.com/SjnExe/AddonExe).
-2.  **Locate Default Configs:** Inside the `src/` and `src/core/` directories, you will find several configuration files ending in `.default.ts` (e.g., `config.default.ts`, `economyConfig.default.ts`). These are the template files.
-3.  **Create Your Local Config:**
-    - To create your own custom configuration, simply **copy and rename** the default file, removing the `.default` part.
-    - For example, copy `config.default.ts` and rename the new file to `config.ts`.
-4.  **Customize:** Open your new `config.ts` file and make any changes you desire.
-5.  **Build:** Run `npm run build` to compile your changes into the `packs/behavior` folder.
-
-**How it Works:**
-
-- When you build the addon, the system will automatically use your local `config.ts` if it exists.
-- If `config.ts` is not found, it will fall back to using the `config.default.ts`.
-- Because your local `config.ts` files are listed in `.gitignore`, they will never be tracked by Git, completely preventing merge conflicts when you pull updates from the main repository.
+2.  **Locate Configs:** Inside the `src/` and `src/features/*/` directories, you will find configuration files (e.g., `config.ts`, `economyConfig.ts`).
+3.  **Local Git Ignore:**
+    - To edit these files without Git tracking your changes (preventing merge conflicts on future pulls), run this command for each file you want to edit:
+      `git update-index --skip-worktree src/config.ts`
+4.  **Customize:** Open the config file and make any changes you desire.
+5.  **Build:** Run `bun run build` to compile your changes into the `packs/behavior` folder.
 
 <details>
 <summary><strong>💡 Quick Troubleshooting Tips & Full Guide</strong></summary>
