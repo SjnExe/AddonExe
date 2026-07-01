@@ -1,41 +1,41 @@
+import { describe, test, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
-import { vi } from 'vitest';
 
 // Mocks
-const mockGetConfig = vi.fn();
-const mockGetOrCreatePlayer = vi.fn();
-const mockIncrementPlayerBalance = vi.fn();
-const mockSendMessage = vi.fn();
-const mockStartTeleportWarmup = vi.fn();
+const mockGetConfig = mock();
+const mockGetOrCreatePlayer = mock();
+const mockIncrementPlayerBalance = mock();
+const mockSendMessage = mock();
+const mockStartTeleportWarmup = mock();
 
-vi.mock('@core/configManager.js', () => ({
+mock.module('@core/configManager.js', () => ({
     getConfig: mockGetConfig
 }));
 
-vi.mock('@core/playerDataManager.js', () => ({
+mock.module('@core/playerDataManager.js', () => ({
     getOrCreatePlayer: mockGetOrCreatePlayer,
     incrementPlayerBalance: mockIncrementPlayerBalance
 }));
 
-vi.mock('@core/messaging.js', () => ({
+mock.module('@core/messaging.js', () => ({
     sendMessage: mockSendMessage
 }));
 
-vi.mock('@core/teleportLogic.js', () => ({
+mock.module('@core/teleportLogic.js', () => ({
     startTeleportWarmup: mockStartTeleportWarmup
 }));
 
-vi.mock('@core/utils.js', () => ({
+mock.module('@core/utils.js', () => ({
     formatCurrency: (val: number) => `$${val}`,
-    playSound: vi.fn()
+    playSound: mock()
 }));
 
-vi.mock('@core/cooldownManager.js', () => ({
-    setCooldown: vi.fn()
+mock.module('@core/cooldownManager.js', () => ({
+    setCooldown: mock()
 }));
 
-vi.mock('@core/logger.js', () => ({
-    errorLog: vi.fn()
+mock.module('@core/logger.js', () => ({
+    errorLog: mock()
 }));
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
@@ -47,18 +47,22 @@ const backCommand = backCommands[0]!;
 describe('Back Command', () => {
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
     const player = new PlayerMock('p1', 'TestPlayer');
-    player.sendMessage = vi.fn();
+    player.sendMessage = mock();
     Object.defineProperty(player, 'isValid', {
         value: true,
         writable: true
     });
-    player.teleport = vi.fn();
+    player.teleport = mock();
 
     const dimension = { id: 'minecraft:overworld' };
     (mc.world.getDimension as any).mockReturnValue(dimension);
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        mockStartTeleportWarmup.mockClear();
+        mockSendMessage.mockClear();
+        mockIncrementPlayerBalance.mockClear();
+        (player.teleport as any).mockClear();
+
         mockGetConfig.mockReturnValue({
             back: { enabled: true, cost: 100, teleportWarmupSeconds: 5 },
             economy: { enabled: true }

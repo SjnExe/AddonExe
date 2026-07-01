@@ -1,48 +1,48 @@
+import { describe, test, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
-import { vi } from 'vitest';
 
 // --- Mocks ---
-const mockGetPlayerRank = vi.fn();
-const mockLoadPlayerData = vi.fn();
-const mockCanTarget = vi.fn();
+const mockGetPlayerRank = mock();
+const mockLoadPlayerData = mock();
+const mockCanTarget = mock();
 
-vi.mock('@core/rankManager.js', () => ({
+mock.module('@core/rankManager.js', () => ({
     getPlayerRank: mockGetPlayerRank,
     canTarget: mockCanTarget,
-    getRankById: vi.fn()
+    getRankById: mock()
 }));
 
-vi.mock('@core/playerDataManager.js', () => ({
-    getPlayer: vi.fn(),
+mock.module('@core/playerDataManager.js', () => ({
+    getPlayer: mock(),
     loadPlayerData: mockLoadPlayerData,
-    getOrCreatePlayer: vi.fn(),
-    getPlayerIdByName: vi.fn(() => 'targetId')
+    getOrCreatePlayer: mock(),
+    getPlayerIdByName: mock(() => 'targetId')
 }));
 
-vi.mock('@core/messaging.js', () => ({
+mock.module('@core/messaging.js', () => ({
     sendMessage: (msg: string, target: any) => {
         if (target && target.sendMessage) target.sendMessage(msg);
     }
 }));
 
-vi.mock('@core/utils.js', () => ({
-    playSound: vi.fn(),
-    resolveTarget: vi.fn((name) => {
-        if (name === 'target') return [{ name: 'Target', id: 'targetId', getComponent: vi.fn() }];
+mock.module('@core/utils.js', () => ({
+    playSound: mock(),
+    resolveTarget: mock((name) => {
+        if (name === 'target') return [{ name: 'Target', id: 'targetId', getComponent: mock() }];
         return [];
     })
 }));
 
-vi.mock('@core/logger.js', () => ({
-    errorLog: vi.fn(),
-    warnLog: vi.fn()
+mock.module('@core/logger.js', () => ({
+    errorLog: mock(),
+    warnLog: mock()
 }));
 
-vi.mock('@features/anticheat/logManager.js', () => ({
-    addPunishmentLog: vi.fn()
+mock.module('@features/anticheat/logManager.js', () => ({
+    addPunishmentLog: mock()
 }));
 
-vi.mock('@core/constants.js', () => ({
+mock.module('@core/constants.js', () => ({
     frozenTag: 'frozen',
     soundError: 'error',
     soundTeleport: 'teleport'
@@ -64,29 +64,29 @@ describe('Moderation Hierarchy', () => {
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
 
     const executor = new PlayerMock('executorId', 'Executor');
-    executor.sendMessage = vi.fn();
+    executor.sendMessage = mock();
     Object.defineProperty(executor, 'isValid', {
         value: true,
         writable: true
     });
 
     const target = new PlayerMock('targetId', 'Target');
-    target.sendMessage = vi.fn();
-    target.hasTag = vi.fn(() => false);
-    target.addTag = vi.fn();
-    target.removeTag = vi.fn();
-    target.addEffect = vi.fn();
-    target.removeEffect = vi.fn();
+    target.sendMessage = mock();
+    target.hasTag = mock(() => false);
+    target.addTag = mock();
+    target.removeTag = mock();
+    target.addEffect = mock();
+    target.removeEffect = mock();
 
     Object.defineProperty(target, 'dimension', {
-        value: { runCommand: vi.fn() },
+        value: { runCommand: mock() },
         writable: true
     });
 
-    target.getComponent = vi.fn();
+    target.getComponent = mock();
 
     beforeEach(() => {
-        vi.clearAllMocks();
+        mock.restore();
         mockCanTarget.mockReset();
     });
 

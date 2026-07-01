@@ -1,5 +1,5 @@
+import { test, mock } from "bun:test";
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { vi } from 'vitest';
 
 // --- @minecraft/server Mocks ---
 
@@ -8,12 +8,12 @@ export class Dimension {
     constructor(id: string) {
         this.id = id;
     }
-    runCommand = vi.fn();
-    spawnEntity = vi.fn();
-    getEntities = vi.fn(() => []);
-    getTopmostBlock = vi.fn();
-    getBlock = vi.fn();
-    playSound = vi.fn();
+    runCommand = mock();
+    spawnEntity = mock();
+    getEntities = mock(() => []);
+    getTopmostBlock = mock();
+    getBlock = mock();
+    playSound = mock();
 }
 
 export class BlockVolume {
@@ -24,38 +24,38 @@ export class BlockVolume {
 }
 
 export const world = {
-    getDynamicProperty: vi.fn(),
-    setDynamicProperty: vi.fn(),
-    getDimension: vi.fn((dim: string) => new Dimension(dim)),
-    getAllPlayers: vi.fn(() => []),
+    getDynamicProperty: mock(),
+    setDynamicProperty: mock(),
+    getDimension: mock((dim: string) => new Dimension(dim)),
+    getAllPlayers: mock(() => []),
     afterEvents: {
-        playerSpawn: { subscribe: vi.fn() },
-        playerLeave: { subscribe: vi.fn() },
-        entityDie: { subscribe: vi.fn() },
-        chatSend: { subscribe: vi.fn() }
+        playerSpawn: { subscribe: mock() },
+        playerLeave: { subscribe: mock() },
+        entityDie: { subscribe: mock() },
+        chatSend: { subscribe: mock() }
     },
     beforeEvents: {
-        chatSend: { subscribe: vi.fn() },
-        playerInteractWithEntity: { subscribe: vi.fn() },
-        playerInteractWithBlock: { subscribe: vi.fn() },
-        itemUse: { subscribe: vi.fn() },
-        playerBreakBlock: { subscribe: vi.fn() },
-        playerPlaceBlock: { subscribe: vi.fn() }
+        chatSend: { subscribe: mock() },
+        playerInteractWithEntity: { subscribe: mock() },
+        playerInteractWithBlock: { subscribe: mock() },
+        itemUse: { subscribe: mock() },
+        playerBreakBlock: { subscribe: mock() },
+        playerPlaceBlock: { subscribe: mock() }
     },
-    sendMessage: vi.fn()
+    sendMessage: mock()
 };
 
 export const system = {
-    run: vi.fn((callback: () => void) => {
+    run: mock((callback: () => void) => {
         callback();
         return 0;
     }),
-    runInterval: vi.fn(() => 1),
-    runTimeout: vi.fn((cb: () => void) => {
+    runInterval: mock(() => 1),
+    runTimeout: mock((cb: () => void) => {
         cb();
         return 1;
     }), // Run immediately for tests
-    runJob: vi.fn((generator: Generator) => {
+    runJob: mock((generator: Generator) => {
         // Execute generator fully for tests
         let result = generator.next();
         while (!result.done) {
@@ -63,12 +63,12 @@ export const system = {
         }
         return 0;
     }),
-    clearRun: vi.fn(),
+    clearRun: mock(),
     currentTick: 0,
     beforeEvents: {
-        startup: { subscribe: vi.fn() },
-        shutdown: { subscribe: vi.fn() },
-        watchdogTerminate: { subscribe: vi.fn() }
+        startup: { subscribe: mock() },
+        shutdown: { subscribe: mock() },
+        watchdogTerminate: { subscribe: mock() }
     }
 };
 
@@ -98,14 +98,14 @@ export class Player {
         return this.tags.delete(tag);
     }
 
-    sendMessage = vi.fn();
-    runCommand = vi.fn();
-    playSound = vi.fn();
-    getDynamicProperty = vi.fn();
-    setDynamicProperty = vi.fn();
+    sendMessage = mock();
+    runCommand = mock();
+    playSound = mock();
+    getDynamicProperty = mock();
+    setDynamicProperty = mock();
     isValid = true;
-    triggerEvent = vi.fn();
-    getComponent = vi.fn();
+    triggerEvent = mock();
+    getComponent = mock();
 }
 
 export enum CustomCommandParamType {
@@ -170,7 +170,7 @@ export class ModalFormData {
         return this;
     }
 
-    show = vi.fn().mockImplementation(async () => {
+    show = mock().mockImplementation(async () => {
         return {
             formValues: this._controls.map((c): string | number | boolean | undefined => {
                 if (c.type === 'toggle') return c.defaultValue ?? false;
@@ -198,17 +198,17 @@ export class ActionFormData {
         return this;
     }
 
-    show = vi.fn().mockImplementation(async () => {
+    show = mock().mockImplementation(async () => {
         return { selection: 0, canceled: false };
     });
 }
 
 export class MessageFormData {
-    title = vi.fn().mockReturnThis();
-    body = vi.fn().mockReturnThis();
-    button1 = vi.fn().mockReturnThis();
-    button2 = vi.fn().mockReturnThis();
-    show = vi.fn().mockImplementation(async () => {
+    title = mock().mockReturnThis();
+    body = mock().mockReturnThis();
+    button1 = mock().mockReturnThis();
+    button2 = mock().mockReturnThis();
+    show = mock().mockImplementation(async () => {
         return { selection: 0, canceled: false };
     });
 }

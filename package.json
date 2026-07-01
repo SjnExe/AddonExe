@@ -32,7 +32,7 @@
         "prepare": "simple-git-hooks && bun scripts/generate-manifests.js",
         "project-info": "bun --bun mct info",
         "reinstall": "rm -rf node_modules bun.lock && bun install",
-        "test": "bun --bun vitest run --passWithNoTests",
+        "test": "bun test",
         "test:duplication": "bun --bun jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
         "validate": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
         "validate:report": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
@@ -85,8 +85,7 @@
         "tsup": "latest",
         "type-fest": "latest",
         "typescript": "latest",
-        "typescript-eslint": "latest",
-        "vitest": "latest"
+        "typescript-eslint": "latest"
     },
     "trustedDependencies": [
         "bufferutil",

@@ -14,7 +14,7 @@ export async function loadConfig<T>(modulePath: string, suppressError = false): 
     try {
         // If we are in vitest context, try to resolve from .default.ts or .ts
         let finalPath = modulePath;
-        if (typeof process !== 'undefined' && process.env.VITEST) {
+        if (typeof process !== 'undefined' && process.env.BUN_ENV === "test") {
             const pathParts = modulePath.split('/');
             const filename = pathParts.pop();
             if (filename) {
