@@ -17,11 +17,11 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "bun run clean && bun scripts/generate-manifests.js && bun scripts/build-assets.js && bun --bun tsup --env.NODE_ENV=development",
-        "build:release": "bun run clean && bun scripts/generate-manifests.js --release && bun scripts/build-assets.js --minify && bun --bun tsup --minify --env.NODE_ENV=production",
+        "build": "bun clean && bun scripts/generate-manifests.js && bun scripts/build-assets.js && bun --bun tsup --env.NODE_ENV=development",
+        "build:release": "bun clean && bun scripts/generate-manifests.js --release && bun scripts/build-assets.js --minify && bun --bun tsup --minify --env.NODE_ENV=production",
         "check-deps": "bun scripts/check-dependencies.js",
         "check-types": "bun --bun tsc --noEmit",
-        "clean": "rm -rf build",
+        "clean": "rm -rf build out",
         "fix-project": "bun --bun mct fix",
         "format": "bun --bun prettier --write .",
         "format:check": "bun --bun prettier --check .",
@@ -34,12 +34,12 @@
         "reinstall": "rm -rf node_modules bun.lock && bun install",
         "test": "bun --bun vitest run --passWithNoTests",
         "test:duplication": "bun --bun jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
-        "validate": "bun run check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun run check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "validate": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
+        "validate:report": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
         "watch": "bun --bun concurrently \"bun --bun tsc -w\" \"bun scripts/build-assets.js --watch\" \"bun --bun tsup --watch --env.NODE_ENV=development\""
     },
     "simple-git-hooks": {
-        "pre-commit": "bun run --bun lint-staged"
+        "pre-commit": "bun --bun lint-staged"
     },
     "lint-staged": {
         "*.{js,ts}": [
