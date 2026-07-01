@@ -18,7 +18,7 @@ async function handleActiveVote(player: mc.Player, activeVote: ReturnType<typeof
     if (!activeVote) return; // Should be handled by caller check
 
     const hasVoted = activeVote.votedPlayerIds.includes(player.id);
-    let body = `§e${activeVote.question}\n§7Created by ${activeVote.creatorName}`;
+    let body = `§e${activeVote.question}\n§fCreated by ${activeVote.creatorName}`;
 
     if (hasVoted) {
         body += `\n\n§aYou have already voted.`;
@@ -77,7 +77,7 @@ async function handleNoActiveVote(player: mc.Player, isAdmin: boolean) {
     let body = 'There is currently no active vote.';
 
     if (isDefined(lastVote)) {
-        body += `\n\n§7Last Vote: ${lastVote.question}\nStatus: Ended`;
+        body += `\n\n§fLast Vote: ${lastVote.question}\nStatus: Ended`;
     }
 
     const form = new ActionFormData().title('Voting').body(body);

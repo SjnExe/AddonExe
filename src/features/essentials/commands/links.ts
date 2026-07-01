@@ -26,11 +26,11 @@ const linksCommand: CustomCommand = {
             return;
         }
 
-        let message = '§l§9--- Helpful Links ---';
+        let message = '--- Helpful Links ---';
         for (const link of links) {
             message += `\n${link.title}: §r${link.url}`;
         }
-        message += '\n§l§9-------------------';
+        message += '\n-------------------';
         if (executor instanceof mc.Player) {
             sendMessage(message, executor, { raw: true });
         } else {

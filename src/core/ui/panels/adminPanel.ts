@@ -32,7 +32,7 @@ export class AdminPanelHandler implements IPanelHandler {
             items.push(
                 {
                     id: 'placeholderList',
-                    text: '§l§6View Placeholders',
+                    text: 'View Placeholders',
                     icon: 'textures/ui/icon_sign',
                     permission: 'ui.panel.admin',
                     actionType: 'openPanel',
@@ -40,7 +40,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 },
                 {
                     id: 'create',
-                    text: '§l§2+ Create New',
+                    text: '+ Create New',
                     icon: 'textures/ui/color_plus',
                     permission: 'ui.panel.admin',
                     actionType: 'openPanel',
@@ -90,7 +90,7 @@ export class AdminPanelHandler implements IPanelHandler {
                 },
                 {
                     id: 'delete',
-                    text: '§4Delete Text',
+                    text: 'Delete Text',
                     icon: 'textures/ui/trash',
                     permission: 'ui.panel.admin',
                     actionType: 'functionCall',

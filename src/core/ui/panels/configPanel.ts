@@ -35,13 +35,18 @@ export class ConfigPanelHandler implements IPanelHandler {
             panelId.startsWith('config_') ||
             panelId === 'configTransferPanel' ||
             panelId === 'configExportPanel' ||
-            panelId === 'configImportPanel'
+            panelId === 'configImportPanel' ||
+            panelId === 'gamesConfigMainPanel'
         );
     }
 
     getItems(player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
         if (panelId === 'configCategoryPanel') {
             return Promise.resolve(this.getCategoryPanelItems(player, context));
+        }
+
+        if (panelId === 'gamesConfigMainPanel') {
+            return Promise.resolve([]); // Items are defined in panelRegistry.ts for this
         }
 
         if (panelId.startsWith('configSubCategoryPanel_')) {
@@ -111,7 +116,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         if (hasPermission(player, 'ui.panel.owner')) {
             items.push({
                 id: 'resetSettings',
-                text: '§l§4Reset Settings§r',
+                text: 'Reset Settings§r',
                 icon: 'textures/ui/wysiwyg_reset',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -149,7 +154,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         categories.push({
             id: 'resetAll',
-            title: '§l§cReset All Systems',
+            title: 'Reset All Systems',
             icon: 'textures/ui/trash'
         });
 
@@ -160,7 +165,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             if (cat.id === 'resetAll') {
                 items.push({
                     id: 'resetAll',
-                    text: '§l§4Reset All Systems',
+                    text: 'Reset All Systems',
                     icon: 'textures/ui/trash',
                     permission: 'ui.panel.owner',
                     actionType: 'functionCall',
@@ -190,7 +195,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         items.push({
             id: 'resetCategory',
-            text: `§l§4Reset All ${category}§r`,
+            text: `Reset All ${category}§r`,
             icon: 'textures/ui/trash',
             permission: 'ui.panel.owner',
             actionType: 'functionCall',

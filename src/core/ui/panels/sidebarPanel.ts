@@ -18,9 +18,9 @@ export class SidebarPanelHandler implements IPanelHandler {
     getBody(_player: mc.Player, panelId: string, _context: UIContext): Promise<string | undefined | void> {
         if (panelId === 'placeholderListPanel') {
             return Promise.resolve(
-                `§l§6Global Placeholders§r (Scoreboard, Floating Text)\n` +
+                `Global Placeholders§r (Scoreboard, Floating Text)\n` +
                     `{server_name}, {tps}, {online}, {maxplayers}, {time}, {date}\n\n` +
-                    `§l§dPersonal Placeholders§r (Action Bar Only)\n` +
+                    `Personal Placeholders§r (Action Bar Only)\n` +
                     `{name}, {money}, {rank}, {kills}, {deaths}, {streak}, {kdr}, {playtime}, {team}, {ping}, {x}, {y}, {z}, {dimension}`
             );
         }
@@ -56,7 +56,7 @@ export class SidebarPanelHandler implements IPanelHandler {
         const isSidebar = panelId === 'sidebarLinesPanel';
         items.push({
             id: 'addLine',
-            text: '§l§2+ Add Line',
+            text: '+ Add Line',
             icon: 'textures/ui/color_plus',
             permission: 'ui.panel.admin',
             actionType: 'openPanel',

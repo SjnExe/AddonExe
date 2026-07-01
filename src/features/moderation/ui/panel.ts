@@ -71,12 +71,12 @@ export class ModerationPanelHandler implements IPanelHandler {
             const targetReport = reportManager.getAllReports().find((r) => r.id === reportId);
             if (isDefined(targetReport)) {
                 return [
-                    `§8Report ID: §6${String(targetReport.id)}`,
-                    `§8Reported Player: §6${targetReport.reportedPlayerName}`,
-                    `§8Reporter: §6${targetReport.reporterName}`,
-                    `§8Reason: §6${targetReport.reason}`,
-                    `§8Status: §6${targetReport.status}`,
-                    `§8Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
+                    `Report ID: §6${String(targetReport.id)}`,
+                    `Reported Player: §6${targetReport.reportedPlayerName}`,
+                    `Reporter: §6${targetReport.reporterName}`,
+                    `Reason: §6${targetReport.reason}`,
+                    `Status: §6${targetReport.status}`,
+                    `Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
                 ].join('\n');
             }
             return '§cReport not found.';

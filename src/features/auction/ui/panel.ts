@@ -51,7 +51,7 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
     buttons.push({ label: `§dSort: ${sortLabel}`, icon: 'textures/items/hopper', action: () => showSortUI(player, searchQuery, sort) });
 
     if (clampedPage > 1) {
-        buttons.push({ label: '§c< Previous Page', action: () => showAuctionHouse(player, clampedPage - 1, searchQuery, sort) });
+        buttons.push({ label: '< Previous Page', action: () => showAuctionHouse(player, clampedPage - 1, searchQuery, sort) });
     }
     if (clampedPage < totalPages) {
         buttons.push({ label: '§aNext Page >', action: () => showAuctionHouse(player, clampedPage + 1, searchQuery, sort) });
@@ -199,7 +199,7 @@ async function showYourListings(player: mc.Player): Promise<void> {
     const form = new ActionFormData().title('Your Listings').body(`You have ${listings.length} active listings.`);
 
     const buttons: { label: string; action: () => Promise<void> }[] = [];
-    buttons.push({ label: '§c< Back to AH', action: () => showAuctionHouse(player) });
+    buttons.push({ label: '< Back to AH', action: () => showAuctionHouse(player) });
 
     for (const listing of listings) {
         let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
@@ -233,7 +233,7 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
     const form = new ActionFormData().title('Collection Bin').body(`You have ${mailbox.length} items to claim.`);
 
     const buttons: { label: string; icon?: string; action: () => Promise<void> }[] = [];
-    buttons.push({ label: '§c< Back', action: () => showAuctionHouse(player) });
+    buttons.push({ label: '< Back', action: () => showAuctionHouse(player) });
     buttons.push({ label: '§aClaim All Items', icon: 'textures/ui/realms_green_check', action: () => claimMailboxUI(player) });
 
     for (let i = 0; i < mailbox.length; i++) {

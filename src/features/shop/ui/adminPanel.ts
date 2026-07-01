@@ -120,7 +120,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             },
             {
                 id: 'addCategory',
-                text: '§l§2+ Add Category',
+                text: '+ Add Category',
                 icon: 'textures/ui/color_plus',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -184,7 +184,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         items.push(
             {
                 id: 'addItem',
-                text: '§l§2+ Add Item',
+                text: '+ Add Item',
                 icon: 'textures/ui/color_plus',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -192,7 +192,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             },
             {
                 id: 'addSubCategory',
-                text: '§l§2+ Add Subcategory',
+                text: '+ Add Subcategory',
                 icon: 'textures/ui/color_plus',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -200,7 +200,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             },
             {
                 id: 'editCategory',
-                text: '§l§1* Edit Category',
+                text: '* Edit Category',
                 icon: 'textures/ui/icon_setting',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -256,7 +256,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         items.push(
             {
                 id: 'addItem',
-                text: '§l§2+ Add Item',
+                text: '+ Add Item',
                 icon: 'textures/ui/color_plus',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -264,7 +264,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
             },
             {
                 id: 'editSubCategory',
-                text: '§l§1* Edit Subcategory',
+                text: '* Edit Subcategory',
                 icon: 'textures/ui/icon_setting',
                 permission: 'ui.panel.owner',
                 actionType: 'openPanel',
@@ -304,7 +304,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         addBackButton(items, `shopAdminCategoryPanel_${categoryName}`);
         items.push({
             id: 'addCustomItem',
-            text: '§l§2+ Add Custom Item',
+            text: '+ Add Custom Item',
             icon: 'textures/ui/color_plus',
             permission: 'ui.panel.owner',
             actionType: 'openPanel',

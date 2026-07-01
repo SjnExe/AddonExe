@@ -20,7 +20,7 @@ export class BountyPanelHandler implements IPanelHandler {
         const items: PanelItem[] = [
             {
                 id: '__back__',
-                text: '§l§8< Back',
+                text: '< Back',
                 icon: 'textures/gui/controls/left.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -36,7 +36,7 @@ export class BountyPanelHandler implements IPanelHandler {
         if (bounties.length === 0) {
             items.push({
                 id: 'no_bounties',
-                text: '§8No active bounties',
+                text: 'No active bounties',
                 icon: 'textures/ui/info_icon',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',
@@ -65,7 +65,7 @@ export class BountyPanelHandler implements IPanelHandler {
         if (page > 1) {
             items.push({
                 id: '__prev__',
-                text: '§6< Previous Page',
+                text: '< Previous Page',
                 icon: 'textures/ui/arrow_left.png',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',
@@ -75,7 +75,7 @@ export class BountyPanelHandler implements IPanelHandler {
         if (page < totalPages) {
             items.push({
                 id: '__next__',
-                text: '§6Next Page >',
+                text: 'Next Page >',
                 icon: 'textures/ui/arrow_right.png',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',

@@ -77,7 +77,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
         addBackButton(items, 'mainPanel');
         items.push({
             id: 'search',
-            text: '§l§6Search Item',
+            text: 'Search Item',
             icon: 'textures/ui/magnifyingGlass',
             permission: 'ui.panel.member',
             actionType: 'openPanel',

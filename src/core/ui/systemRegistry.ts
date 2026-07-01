@@ -32,7 +32,7 @@ export function getSystemRegistry(): SystemDefinition[] {
     cachedSystemRegistry = [
         // 1. Add simple schema-based systems first
         ...configPanelSchema
-            .filter((s) => s.id !== 'sidebar')
+            .filter((s) => s.id !== 'sidebar' && s.id !== 'games' && s.id !== 'wordle')
             .map((schema) => {
                 const def: SystemDefinition = {
                     id: schema.id,
@@ -49,7 +49,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         // 2. Add complex custom systems
         {
             id: 'kits',
-            title: '§l§dKit System§r',
+            title: 'Kit System§r',
             icon: 'textures/ui/inventory_icon',
             configPanelId: 'kitManagementPanel',
             category: 'Economy',
@@ -57,7 +57,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'ranks',
-            title: '§l§cRank System§r',
+            title: 'Rank System§r',
             icon: 'textures/ui/permissions_member_star.png',
             configPanelId: 'rankManagementPanel',
             category: 'Visuals',
@@ -65,7 +65,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'shop',
-            title: '§l§aShop System§r',
+            title: 'Shop System§r',
             icon: 'textures/items/emerald',
             configPanelId: 'shopManagementPanel',
             category: 'Economy',
@@ -73,7 +73,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'economy',
-            title: '§l§6Economy System§r',
+            title: 'Economy System§r',
             icon: 'textures/ui/Scaffolding',
             configPanelId: 'economyPanel',
             category: 'Economy',
@@ -81,7 +81,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'xray_ores',
-            title: '§l§cX-Ray Ores§r',
+            title: 'X-Ray Ores§r',
             icon: 'textures/blocks/diamond_ore',
             configPanelId: 'xrayOresPanel',
             category: 'Moderation',
@@ -90,7 +90,7 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'sidebar',
-            title: '§l§eSidebar System§r',
+            title: 'Sidebar System§r',
             icon: 'textures/items/book_writable',
             configPanelId: 'sidebarMainPanel',
             category: 'Visuals',
@@ -98,27 +98,19 @@ export function getSystemRegistry(): SystemDefinition[] {
         },
         {
             id: 'worldProtection',
-            title: '§l§aWorld Protection System§r',
+            title: 'World Protection System§r',
             icon: 'textures/ui/icon_recipe_nature',
             configPanelId: 'worldProtectionListPanel',
             category: 'World',
             isSimpleConfig: false
         },
         {
-            id: 'games',
-            title: '§l§aGames System§r',
+            id: 'gamesSystem',
+            title: 'Games System',
             icon: 'textures/ui/controller_icon',
-            configPanelId: 'config_games',
+            configPanelId: 'gamesConfigMainPanel',
             category: 'Games',
-            isSimpleConfig: true
-        },
-        {
-            id: 'wordle',
-            title: '§l§aWordle Config§r',
-            icon: 'textures/ui/icon_recipe_item',
-            configPanelId: 'config_wordle',
-            category: 'Games',
-            isSimpleConfig: true
+            isSimpleConfig: false
         }
     ];
 

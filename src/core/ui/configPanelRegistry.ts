@@ -38,7 +38,7 @@ export interface ConfigCategory {
 export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'general_server',
-        title: '§l§bServer Info§r',
+        title: 'Server Info',
         icon: 'textures/ui/icon_book_writable',
         category: 'Server',
         settings: [
@@ -64,7 +64,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'back',
-        title: '§l§dBack System§r',
+        title: 'Back System',
         icon: 'textures/ui/refresh_light',
         category: 'World',
         settings: [
@@ -108,7 +108,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'auctionHouse',
-        title: '§l§6Auction System§r',
+        title: 'Auction System',
         icon: 'textures/ui/gold_icon',
         configSource: 'auctionHouse',
         category: 'Economy',
@@ -147,7 +147,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'general_gameplay',
-        title: '§l§bGameplay Settings§r',
+        title: 'Gameplay Settings',
         icon: 'textures/items/iron_sword',
         category: 'Gameplay',
         settings: [
@@ -162,7 +162,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'general_system',
-        title: '§l§bSystem Settings§r',
+        title: 'System Settings',
         icon: 'textures/ui/settings_glyph_color_2x',
         category: 'System',
         settings: [
@@ -183,7 +183,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'announcements',
-        title: '§l§aAnnouncement System§r',
+        title: 'Announcement System',
         icon: 'textures/ui/icon_bell',
         category: 'Chat',
         settings: [
@@ -209,7 +209,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'economyGeneralSettings',
-        title: '§l§6Economy Settings§r',
+        title: 'Economy Settings',
         icon: 'textures/ui/Scaffolding',
         configSource: 'economy',
         category: 'Economy',
@@ -249,7 +249,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'warps',
-        title: '§l§dWarp System§r',
+        title: 'Warp System',
         icon: 'textures/blocks/portal_placeholder',
         category: 'World',
         settings: [
@@ -275,7 +275,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'bounties',
-        title: '§l§cBounty System§r',
+        title: 'Bounty System',
         icon: 'textures/items/diamond_sword',
         category: 'Economy',
         settings: [
@@ -301,7 +301,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'chat',
-        title: '§l§aChat Settings§r',
+        title: 'Chat Settings',
         icon: 'textures/ui/chat_send',
         category: 'Chat',
         settings: [
@@ -315,7 +315,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'spawn',
-        title: '§l§eSpawn System§r',
+        title: 'Spawn System',
         icon: 'textures/blocks/beacon',
         configSource: 'main',
         category: 'World',
@@ -469,7 +469,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'tpa',
-        title: '§l§dTPA System§r',
+        title: 'TPA System',
         icon: 'textures/items/ender_pearl',
         category: 'World',
         settings: [
@@ -501,7 +501,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'homes',
-        title: '§l§aHome System§r',
+        title: 'Home System',
         icon: 'textures/ui/icon_recipe_item',
         category: 'World',
         settings: [
@@ -533,7 +533,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'rtp',
-        title: '§l§9Random Teleport§r',
+        title: 'Random Teleport',
         icon: 'textures/items/ender_pearl',
         category: 'World',
         settings: [
@@ -571,7 +571,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'playerInfo',
-        title: '§l§ePlayer Info System§r',
+        title: 'Player Info System',
         icon: 'textures/ui/icon_multiplayer',
         category: 'Visuals',
         settings: [
@@ -621,7 +621,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'xray',
-        title: '§l§cX-Ray System§r',
+        title: 'X-Ray System',
         icon: 'textures/blocks/diamond_ore',
         configSource: 'xray',
         category: 'Moderation',
@@ -672,7 +672,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'dimensionLock',
-        title: '§l§dDimension Locking§r',
+        title: 'Dimension Locking',
         icon: 'textures/ui/realmPortalSmall',
         category: 'World',
         settings: [
@@ -698,7 +698,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'team',
-        title: '§l§9Team System§r',
+        title: 'Team System',
         icon: 'textures/ui/icon_multiplayer',
         configSource: 'team',
         category: 'Social',
@@ -743,7 +743,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'stealSystem',
-        title: '§l§6Steal System§r',
+        title: 'Steal System',
         icon: 'textures/items/iron_sword',
         configSource: 'economy',
         category: 'Economy',
@@ -770,7 +770,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'pvpSystem',
-        title: '§l§6PvP System§r',
+        title: 'PvP System',
         icon: 'textures/items/diamond_sword',
         configSource: 'economy',
         category: 'Economy',
@@ -809,7 +809,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'restart',
-        title: '§l§bRestart Settings§r',
+        title: 'Restart Settings',
         icon: 'textures/ui/refresh_light',
         category: 'Server',
         settings: [
@@ -835,7 +835,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'reports',
-        title: '§l§cReport Settings§r',
+        title: 'Report Settings',
         icon: 'textures/ui/WarningGlyph',
         category: 'Moderation',
         settings: [
@@ -849,7 +849,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'sidebar',
-        title: '§l§eSidebar System§r',
+        title: 'Sidebar System',
         icon: 'textures/items/book_writable',
         configSource: 'sidebar',
         category: 'Visuals',
@@ -907,7 +907,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'anticheat',
-        title: '§l§cAnti-Cheat System§r',
+        title: 'Anti-Cheat System',
         icon: 'textures/items/iron_chestplate',
         configSource: 'anticheat',
         category: 'Moderation',
@@ -958,10 +958,11 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'games',
-        title: '§l§aGames Settings§r',
+        title: 'Games Settings',
         icon: 'textures/ui/controller_icon',
         configSource: 'games',
         category: 'Games',
+        hidden: true,
         settings: [
             {
                 key: 'enabled',
@@ -973,10 +974,11 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'wordle',
-        title: '§l§aWordle Settings§r',
+        title: 'Wordle Settings',
         icon: 'textures/ui/icon_recipe_item',
         configSource: 'wordle',
         category: 'Games',
+        hidden: true,
         settings: [
             {
                 key: 'enabled',

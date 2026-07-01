@@ -36,7 +36,7 @@ const rulesCommand: CustomCommand = {
         const ruleNumber = args.ruleNumber === undefined ? undefined : Number(args.ruleNumber);
 
         if (ruleNumber === undefined) {
-            const messages = ['§l§a--- Server Rules ---', ...rules, '§l§a------------------'];
+            const messages = ['--- Server Rules ---', ...rules, '------------------'];
             if (executor instanceof mc.Player) {
                 for (const msg of messages) sendMessage(msg, executor, { raw: true });
             } else {
@@ -59,7 +59,7 @@ const rulesCommand: CustomCommand = {
             }
             // Safe access because of range check above
             const ruleText = rules[ruleNumber - 1];
-            const messages = ['§l§a--- Server Rules ---', ruleText ?? '', '§l§a------------------'];
+            const messages = ['--- Server Rules ---', ruleText ?? '', '------------------'];
             if (executor instanceof mc.Player) {
                 for (const msg of messages) sendMessage(msg, executor, { raw: true });
             } else {

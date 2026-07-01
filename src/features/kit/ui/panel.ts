@@ -32,7 +32,7 @@ export class KitPanelHandler implements IPanelHandler {
                 },
                 {
                     id: 'createKit',
-                    text: '§l§2+ Create New Kit',
+                    text: '+ Create New Kit',
                     icon: 'textures/ui/color_plus',
                     permission: 'ui.panel.admin',
                     actionType: 'functionCall',
@@ -97,7 +97,7 @@ export class KitPanelHandler implements IPanelHandler {
             items.push(
                 {
                     id: 'addItem',
-                    text: '§l§2+ Add New Item (Manual)',
+                    text: '+ Add New Item (Manual)',
                     icon: 'textures/ui/color_plus',
                     permission: 'ui.panel.admin',
                     actionType: 'functionCall',
@@ -105,7 +105,7 @@ export class KitPanelHandler implements IPanelHandler {
                 },
                 {
                     id: 'addItemHand',
-                    text: '§l§6+ Add Item From Hand',
+                    text: '+ Add Item From Hand',
                     icon: 'textures/ui/inventory_icon',
                     permission: 'ui.panel.admin',
                     actionType: 'functionCall',

@@ -111,7 +111,7 @@ const baltopCommand: CustomCommand = {
         };
         const defaultColor = '§e'; // Yellow
 
-        let message = '§l§b--- Top Balances ---\n';
+        let message = '--- Top Balances ---\n';
         for (const [index, entry] of topPlayers.entries()) {
             const rank = index + 1;
             const color = isNonEmptyString(rankColors[rank]) ? rankColors[rank] : defaultColor;

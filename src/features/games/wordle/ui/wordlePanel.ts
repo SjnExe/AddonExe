@@ -35,7 +35,7 @@ export class WordlePanelHandler implements IPanelHandler {
             const errorVal = (context as Record<string, unknown>).error;
             const errorMsg = typeof errorVal === 'string' ? `§c${errorVal}\n\n` : '';
 
-            const form = new ModalFormData().title('§l§aSingle Player Wordle').textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple');
+            const form = new ModalFormData().title('Single Player Wordle').textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple');
 
             return form;
         }
@@ -50,10 +50,10 @@ export class WordlePanelHandler implements IPanelHandler {
             const resultMsg = isWin ? '§aCongratulations! You guessed the word!' : `§cGame Over! The word was §f${word}`;
 
             const form = new ActionFormData()
-                .title(isWin ? '§l§aYou Won!' : '§l§cYou Lost!')
+                .title(isWin ? 'You Won!' : 'You Lost!')
                 .body(`${resultMsg}\n\n${history}`)
-                .button('§2Play Again\n§r§7Start a new game')
-                .button('§4Return to Menu\n§r§8Back to games');
+                .button('§2Play Again\n§r§fStart a new game')
+                .button('§4Return to Menu\n§r§fBack to games');
             return form;
         }
 
@@ -66,20 +66,20 @@ export class WordlePanelHandler implements IPanelHandler {
 
             const game = getStaffHostedGame();
             const form = new ActionFormData()
-                .title('§l§cStaff Hosted Game Control')
-                .body(game ? `§7Game Active! Pool Prize: §6$${game.poolPrize}\n§7Guesses: ${game.guesses.length}` : '§7No active staff game.');
+                .title('Staff Hosted Game Control')
+                .body(game ? `§fGame Active! Pool Prize: §6$${game.poolPrize}\n§fGuesses: ${game.guesses.length}` : '§fNo active staff game.');
 
             if (game) {
-                form.button('§4End Game\n§r§8Force end the active game');
+                form.button('§4End Game\n§r§fForce end the active game');
             } else {
-                form.button('§2Start Game\n§r§8Start a new global game');
+                form.button('§2Start Game\n§r§fStart a new global game');
             }
-            form.button('§4Back\n§r§8Return to Menu');
+            form.button('§4Back\n§r§fReturn to Menu');
             return form;
         }
 
         if (panelId === 'wordleMultiplayerPanel') {
-            const form = new ActionFormData().title('§l§6Multiplayer Wordle').body('§7Coming soon in a future update!').button('§4Back\n§r§8Return to Menu');
+            const form = new ActionFormData().title('Multiplayer Wordle').body('§fComing soon in a future update!').button('§4Back\n§r§fReturn to Menu');
             return form;
         }
         return undefined;

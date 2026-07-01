@@ -129,7 +129,7 @@ export class InfoPanelHandler implements IPanelHandler {
         if (hasPermission(player, 'ui.panel.admin')) {
             items.push({
                 id: 'addRule',
-                text: '§l§2+ Add Rule',
+                text: '+ Add Rule',
                 icon: 'textures/ui/color_plus',
                 permission: 'ui.panel.admin',
                 actionType: 'openPanel',
@@ -160,7 +160,7 @@ export class InfoPanelHandler implements IPanelHandler {
         if (hasPermission(player, 'ui.panel.admin')) {
             items.push({
                 id: 'addLink',
-                text: '§l§2+ Add Link',
+                text: '+ Add Link',
                 icon: 'textures/ui/color_plus',
                 permission: 'ui.panel.admin',
                 actionType: 'openPanel',
@@ -174,7 +174,7 @@ export class InfoPanelHandler implements IPanelHandler {
             const realIndex = (page - 1) * itemsPerPage + idx;
             items.push({
                 id: String(realIndex),
-                text: `§l§6${link.title}§r\n§1${link.url}`,
+                text: `${link.title}§r\n§1${link.url}`,
                 icon: 'textures/items/chain',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',

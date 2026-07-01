@@ -3,7 +3,7 @@ export const config = {
     globalInfo: {
         enabled: true,
         opacity: 'medium',
-        title: '§l§6{server_name}',
+        title: '{server_name}',
         updateInterval: 20,
         maxPlayers: 20,
         sidebarLines: ['§7----------------', '§fOnline: §a{online}', '§fTPS: §a{tps}', '§fTime: §b{time}', '§fDate: §7{date}', '§7----------------']

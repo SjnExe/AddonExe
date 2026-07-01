@@ -165,7 +165,7 @@ function showChatHelp(executor: CommandExecutor) {
             .toSorted((a, b) => a.name.localeCompare(b.name));
 
         if (visibleCmds.length > 0) {
-            helpMessage += `\n§l§e--- ${categoryName} ---§r`;
+            helpMessage += `\n--- ${categoryName} ---§r`;
             for (const cmd of visibleCmds) {
                 const slashCommand = cmd.slashName ?? cmd.name;
                 helpMessage += `\n §b/${slashCommand}§r: ${cmd.description}`;
@@ -200,7 +200,7 @@ async function showUIHelp(player: mc.Player) {
 
     const sortedCats = getSortedCategories(visibleCategories);
 
-    const form = new ActionFormData().title('§lHelp Menu').body('Select a category to view commands:');
+    const form = new ActionFormData().title('Help Menu').body('Select a category to view commands:');
 
     for (const cat of sortedCats) form.button(cat);
 
@@ -221,9 +221,9 @@ async function showUICategory(player: mc.Player, category: string) {
     const cmds = getCategorizedCommands().get(category) ?? [];
     const visibleCmds = cmds.filter((c) => hasPermission(player, c.permissionNode) && c.hidden !== true).toSorted((a, b) => a.name.localeCompare(b.name));
 
-    const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
+    const form = new ActionFormData().title(`${category}`).body(`Commands in ${category}:`);
 
-    form.button('§4< Back');
+    form.button('< Back');
     for (const c of visibleCmds) form.button(`/${c.name}`);
 
     try {

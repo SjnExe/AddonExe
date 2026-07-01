@@ -14,7 +14,7 @@ export const vanishedTag = 'vanished';
 export const frozenTag = 'frozen';
 
 // --- UI Form Titles ---
-export const mainPanelTitle = '§l§bAddonExe Control Panel';
+export const mainPanelTitle = 'AddonExe Control Panel';
 
 // --- Default Messages ---
 export const noPermission: RawMessage = { translate: 'error.no_permission' };

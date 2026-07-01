@@ -20,7 +20,7 @@ export class XrayPanelHandler implements IPanelHandler {
             addBackButton(items, 'configCategoryPanel', 'ui.panel.admin');
             items.push({
                 id: 'addOre',
-                text: '§l§2+ Add Ore',
+                text: '+ Add Ore',
                 icon: 'textures/ui/color_plus',
                 permission: 'ui.panel.admin',
                 actionType: 'openPanel',

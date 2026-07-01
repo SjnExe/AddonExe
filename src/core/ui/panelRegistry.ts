@@ -16,7 +16,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'shop',
-                text: '§l§2Shop',
+                text: 'Shop',
                 icon: 'textures/ui/trade_icon',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -26,7 +26,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'auctionHouse',
-                text: '§l§6Auction House',
+                text: 'Auction House',
                 icon: 'textures/items/gold_ingot',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',
@@ -35,7 +35,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'games',
-                text: '§l§2Games',
+                text: 'Games',
                 icon: 'textures/ui/controller_icon',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -44,7 +44,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'playerList',
-                text: '§l§3Player List',
+                text: 'Player List',
                 icon: 'textures/ui/icon_steve.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -53,7 +53,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'team',
-                text: '§l§1Team',
+                text: 'Team',
                 icon: 'textures/ui/icon_multiplayer.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -62,7 +62,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'friend',
-                text: '§l§5Friends',
+                text: 'Friends',
                 icon: 'textures/ui/icon_steve',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -71,7 +71,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'bountyList',
-                text: '§l§4Bounty List',
+                text: 'Bounty List',
                 icon: 'textures/items/netherite_sword.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -80,7 +80,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'profile',
-                text: '§l§3Profile',
+                text: 'Profile',
                 icon: 'textures/ui/profile_glyph_color',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -89,7 +89,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'info',
-                text: '§l§3Server Info',
+                text: 'Server Info',
                 icon: 'textures/items/book_enchanted.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -98,7 +98,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'staffDashboard',
-                text: '§l§4Staff Dashboard',
+                text: 'Staff Dashboard',
                 icon: 'textures/ui/op',
                 permission: 'ui.panel.mod',
                 actionType: 'openPanel',
@@ -114,7 +114,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'myStats',
-                text: '§3My Stats',
+                text: 'My Stats',
                 icon: 'textures/ui/profile_glyph_color.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -123,7 +123,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'tpaSettings',
-                text: '§5TPA Settings',
+                text: 'TPA Settings',
                 icon: 'textures/items/ender_pearl',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -173,7 +173,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'rules',
-                text: '§1Rules',
+                text: 'Rules',
                 icon: 'textures/items/book_enchanted.png',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',
@@ -182,7 +182,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'helpfulLinks',
-                text: '§1Helpful Links',
+                text: 'Helpful Links',
                 icon: 'textures/items/chain',
                 permission: 'ui.panel.member',
                 actionType: 'functionCall',
@@ -198,7 +198,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'reportManagement',
-                text: '§4Report Management',
+                text: 'Report Management',
                 icon: 'textures/ui/WarningGlyph',
                 permission: 'ui.panel.mod',
                 actionType: 'openPanel',
@@ -207,7 +207,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'playerManagement',
-                text: '§3Player Management',
+                text: 'Player Management',
                 icon: 'textures/ui/icon_multiplayer.png',
                 permission: 'ui.panel.mod',
                 actionType: 'openPanel',
@@ -216,7 +216,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'moderation',
-                text: '§4Moderation',
+                text: 'Moderation',
                 icon: 'textures/ui/hammer_l.png',
                 permission: 'ui.panel.mod',
                 actionType: 'openPanel',
@@ -225,7 +225,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'floatingText',
-                text: '§5Floating Text',
+                text: 'Floating Text',
                 icon: 'textures/ui/text_color_paintbrush',
                 permission: 'ui.panel.admin', // Restrict to admin
                 actionType: 'openPanel',
@@ -234,7 +234,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'config',
-                text: '§8Config',
+                text: 'Config',
                 icon: 'textures/ui/settings_glyph_color_2x',
                 permission: 'ui.panel.admin', // Restrict to admin
                 actionType: 'openPanel',
@@ -783,7 +783,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [] // Dynamically built in panelBuilder.js
     },
     xrayOresPanel: {
-        title: '§l§cX-Ray Ores§r',
+        title: 'X-Ray Ores§r',
         parentPanelId: 'configCategoryPanel',
         permission: 'ui.panel.admin',
         items: [
@@ -898,7 +898,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'wordle',
-                text: '§l§2Wordle',
+                text: 'Wordle',
                 icon: 'textures/ui/icon_recipe_item',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -913,7 +913,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         items: [
             {
                 id: 'singlePlayer',
-                text: '§l§2Single Player',
+                text: 'Single Player',
                 icon: 'textures/ui/icon_steve',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -922,7 +922,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'multiplayer',
-                text: '§l§6Multiplayer',
+                text: 'Multiplayer',
                 icon: 'textures/ui/icon_multiplayer',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
@@ -931,7 +931,7 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             },
             {
                 id: 'staffGame',
-                text: '§l§4Staff Hosted Game',
+                text: 'Staff Hosted Game',
                 icon: 'textures/ui/op',
                 permission: 'ui.panel.mod',
                 actionType: 'openPanel',
@@ -954,6 +954,29 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         title: 'Staff Hosted Wordle',
         parentPanelId: 'wordleMainPanel',
         items: [] // Handled by custom builder
+    },
+    gamesConfigMainPanel: {
+        title: 'Games System',
+        parentPanelId: 'configCategoryPanel',
+        permission: 'ui.panel.admin',
+        items: [
+            {
+                id: 'gamesGeneralSettings',
+                text: 'General Settings',
+                icon: 'textures/ui/controller_icon',
+                permission: 'ui.panel.admin',
+                actionType: 'openPanel',
+                actionValue: 'config_games'
+            },
+            {
+                id: 'wordleConfigSettings',
+                text: 'Wordle Settings',
+                icon: 'textures/ui/icon_recipe_item',
+                permission: 'ui.panel.admin',
+                actionType: 'openPanel',
+                actionValue: 'config_wordle'
+            }
+        ]
     }
 };
 

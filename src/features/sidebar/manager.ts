@@ -98,7 +98,7 @@ function updateSidebars() {
             // based on the sub-feature toggles.
 
             if (globalInfoEnabled) {
-                const title = 'globalInfo' in config ? config.globalInfo.title : ((config as { title?: string }).title ?? '§l§6{server_name}');
+                const title = 'globalInfo' in config ? config.globalInfo.title : ((config as { title?: string }).title ?? '{server_name}');
                 const lines: string[] = [];
 
                 const sourceLines = 'globalInfo' in config ? config.globalInfo.sidebarLines : ((config as { sidebarLines?: string[] }).sidebarLines ?? []);
