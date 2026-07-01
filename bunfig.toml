@@ -1,5 +1,2 @@
 [install]
 trustedDependencies = ["simple-git-hooks", "esbuild", "unrs-resolver"]
-
-[install.lockfile]
-print = "pnpm"
