@@ -17,36 +17,36 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "bun run clean && bun scripts/generate-manifests.js && bun scripts/build-assets.js && tsup --env.NODE_ENV=development",
-        "build:release": "bun run clean && bun scripts/generate-manifests.js --release && bun scripts/build-assets.js --minify && tsup --minify --env.NODE_ENV=production",
+        "build": "bun run clean && bun scripts/generate-manifests.js && bun scripts/build-assets.js && bun --bun tsup --env.NODE_ENV=development",
+        "build:release": "bun run clean && bun scripts/generate-manifests.js --release && bun scripts/build-assets.js --minify && bun --bun tsup --minify --env.NODE_ENV=production",
         "check-deps": "bun scripts/check-dependencies.js",
-        "check-types": "tsc --noEmit",
+        "check-types": "bun --bun tsc --noEmit",
         "clean": "rm -rf build",
-        "fix-project": "mct fix",
-        "format": "prettier --write .",
-        "format:check": "prettier --check .",
-        "lint": "eslint src scripts eslint.config.js",
-        "lint:check": "eslint src scripts eslint.config.js",
-        "lint:fix": "eslint src scripts eslint.config.js --fix",
-        "lint:report": "eslint src scripts eslint.config.js --output-file eslint_report.txt",
+        "fix-project": "bun --bun mct fix",
+        "format": "bun --bun prettier --write .",
+        "format:check": "bun --bun prettier --check .",
+        "lint": "bun --bun eslint src scripts eslint.config.js",
+        "lint:check": "bun --bun eslint src scripts eslint.config.js",
+        "lint:fix": "bun --bun eslint src scripts eslint.config.js --fix",
+        "lint:report": "bun --bun eslint src scripts eslint.config.js --output-file eslint_report.txt",
         "prepare": "simple-git-hooks && bun scripts/generate-manifests.js",
-        "project-info": "mct info",
+        "project-info": "bun --bun mct info",
         "reinstall": "rm -rf node_modules bun.lock pnpm-lock.yaml && bun install",
-        "test": "vitest run --passWithNoTests",
-        "test:duplication": "jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
-        "validate": "bun run check-deps && mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun run check-deps && mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
-        "watch": "concurrently \"tsc -w\" \"bun scripts/build-assets.js --watch\" \"tsup --watch --env.NODE_ENV=development\""
+        "test": "bun --bun vitest run --passWithNoTests",
+        "test:duplication": "bun --bun jscpd src/ --min-lines 5 --min-tokens 40 --max-lines 1000 --ignore 'src/**/__tests__/**'",
+        "validate": "bun run check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
+        "validate:report": "bun run check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "watch": "bun --bun concurrently \"bun --bun tsc -w\" \"bun scripts/build-assets.js --watch\" \"bun --bun tsup --watch --env.NODE_ENV=development\""
     },
     "simple-git-hooks": {
-        "pre-commit": "bunx lint-staged"
+        "pre-commit": "bun run --bun lint-staged"
     },
     "lint-staged": {
         "*.{js,ts}": [
-            "eslint --fix",
-            "prettier --write"
+            "bun --bun eslint --fix",
+            "bun --bun prettier --write"
         ],
-        "*.{json,md}": "prettier --write"
+        "*.{json,md}": "bun --bun prettier --write"
     },
     "overrides": {
         "react": "^18.2.0"
