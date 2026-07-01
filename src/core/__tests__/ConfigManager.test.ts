@@ -28,6 +28,7 @@ mock.module('@features/anticheat/configLoader.js', () => ({
 }));
 
 mock.module('@core/logger.js', () => ({
+    rawLog: mock(),
     debugLog: mock(),
     errorLog: mock(),
     infoLog: mock(),

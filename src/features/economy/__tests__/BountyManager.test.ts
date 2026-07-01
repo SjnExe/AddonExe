@@ -24,6 +24,7 @@ mock.module('@core/storage/StorageManager.js', () => ({
 }));
 
 mock.module('@core/logger.js', () => ({
+    rawLog: mock(),
     debugLog: mock(),
     errorLog: mock(),
     warnLog: mock(),

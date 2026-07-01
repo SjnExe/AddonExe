@@ -4,6 +4,7 @@ import { describe, expect, it, mock } from 'bun:test';
 
 // Mock logger to avoid rawLog not found error
 mock.module('@core/logger.js', () => ({
+    rawLog: mock(),
     debugLog: mock(),
     errorLog: mock(),
     warnLog: mock(),
