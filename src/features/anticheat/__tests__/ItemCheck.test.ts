@@ -10,6 +10,7 @@ mock.module('../flagManager.js', () => ({
 }));
 
 mock.module('@core/logger.js', () => ({
+    rawLog: mock(),
     errorLog: mock(),
     warnLog: mock(),
     infoLog: mock(),
