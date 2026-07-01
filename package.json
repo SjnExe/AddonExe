@@ -88,5 +88,14 @@
         "typescript": "latest",
         "typescript-eslint": "latest",
         "vitest": "latest"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "bufferutil",
+            "esbuild",
+            "simple-git-hooks",
+            "unrs-resolver",
+            "utf-8-validate"
+        ]
     }
 }
