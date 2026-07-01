@@ -266,7 +266,7 @@ const commandIndexPlugin = {
                 console.warn(`Error reading src/core/featureRegistry.ts: ${(error as Error).message}.`);
             }
 
-            const commandList: {varName: string, importPath: string}[] = [];
+            const commandList: { varName: string; importPath: string }[] = [];
 
             if (featureDirs.length > 0) {
                 await Promise.all(
@@ -336,7 +336,7 @@ async function bundleScripts() {
     for await (const file of glob.scan({ cwd: process.cwd() })) {
         const fullPath = file;
         const normalizedPath = fullPath.replace(/\\/g, '/');
-        const isIgnored = ignores.some(pattern => {
+        const isIgnored = ignores.some((pattern) => {
             const regex = new RegExp(pattern.replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*'));
             return regex.test(normalizedPath);
         });
@@ -379,7 +379,7 @@ async function bundleScripts() {
     });
 
     if (!result.success) {
-        console.error("Build failed");
+        console.error('Build failed');
         for (const message of result.logs) {
             console.error(message);
         }
@@ -427,13 +427,13 @@ function handleAssetsWatchEvent(filename: string | null) {
                     if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
                         processAsset(fullPath);
                     } else {
-                         // File was deleted
-                         const relPath = path.relative(srcDir, fullPath);
-                         const destPath = path.join(buildDir, relPath);
-                         if (fs.existsSync(destPath)) {
-                             fs.rmSync(destPath, { force: true });
-                             console.log(`Deleted from build: ${relPath}`);
-                         }
+                        // File was deleted
+                        const relPath = path.relative(srcDir, fullPath);
+                        const destPath = path.join(buildDir, relPath);
+                        if (fs.existsSync(destPath)) {
+                            fs.rmSync(destPath, { force: true });
+                            console.log(`Deleted from build: ${relPath}`);
+                        }
                     }
                 }
                 IN_FLIGHT_ASSETS.clear();
@@ -473,7 +473,7 @@ async function start() {
         console.log('Starting type checker...');
         Bun.spawn(['bun', 'run', 'check-types', '--watch'], {
             stdout: 'inherit',
-            stderr: 'inherit',
+            stderr: 'inherit'
         });
 
         const watcherOpts = { recursive: true };
