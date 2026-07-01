@@ -36,7 +36,7 @@ export function getStaticMenuItems(player: mc.Player, panelDef: PanelDefinition,
     if (isNonEmptyString(panelDef.parentPanelId) || (isDefined(context) && isNonEmptyString(context.returnPanel))) {
         resultItems.unshift({
             id: '__back__',
-            text: '§l§8< Back',
+            text: '< Back',
             icon: 'textures/gui/controls/left.png',
             permission: 'ui.panel.member',
             actionType: 'openPanel',
