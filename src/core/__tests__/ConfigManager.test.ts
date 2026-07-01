@@ -27,14 +27,6 @@ mock.module('@features/anticheat/configLoader.js', () => ({
     saveAnticheatConfig: mock()
 }));
 
-mock.module('@core/logger.js', () => ({
-    rawLog: mock(),
-    debugLog: mock(),
-    errorLog: mock(),
-    infoLog: mock(),
-    warnLog: mock()
-}));
-
 mock.module('@core/configurations.js', () => ({
     loadWorldProtectionConfig: mock(),
     loadShopConfig: mock(),

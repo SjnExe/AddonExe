@@ -34,14 +34,6 @@ mock.module('@core/cooldownManager.js', () => ({
     setCooldown: mock()
 }));
 
-mock.module('@core/logger.js', () => ({
-    rawLog: mock(),
-    errorLog: mock(),
-    warnLog: mock(),
-    infoLog: mock(),
-    debugLog: mock()
-}));
-
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 // Import command

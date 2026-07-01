@@ -33,12 +33,6 @@ mock.module('@core/utils.js', () => ({
     })
 }));
 
-mock.module('@core/logger.js', () => ({
-    rawLog: mock(),
-    errorLog: mock(),
-    warnLog: mock()
-}));
-
 mock.module('@features/anticheat/logManager.js', () => ({
     addPunishmentLog: mock()
 }));

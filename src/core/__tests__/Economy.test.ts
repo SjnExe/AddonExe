@@ -87,28 +87,8 @@ mock.module('../configurations.js', () => ({
     loadWordleConfig: mock()
 }));
 
-mock.module('../logger.js', () => ({
-    debugLog: mock(),
-    errorLog: mock(),
-    infoLog: mock()
-}));
-
 mock.module('../leaderboardManager.js', () => ({
     updateAndSaveLeaderboard: mock()
-}));
-
-mock.module('../playerCache.js', () => ({
-    getAllPlayersFromCache: mock(() => []),
-    getPlayerFromCache: mock()
-}));
-
-mock.module('../storage/StorageManager.js', () => ({
-    StorageManager: mock().mockImplementation(function (key: unknown) {
-        return {
-            load: () => mockStorageLoad(key),
-            save: mockStorageSave
-        };
-    })
 }));
 
 // Import module under test

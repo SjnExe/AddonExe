@@ -11,25 +11,7 @@ mock.module('@core/playerDataManager.js', () => ({
     loadPlayerData: mockLoadPlayerData
 }));
 
-const mockStorageSave = mock();
 const mockStorageLoad = mock();
-
-mock.module('@core/storage/StorageManager.js', () => ({
-    StorageManager: mock(function () {
-        return {
-            save: mockStorageSave,
-            load: mockStorageLoad
-        };
-    })
-}));
-
-mock.module('@core/logger.js', () => ({
-    rawLog: mock(),
-    debugLog: mock(),
-    errorLog: mock(),
-    warnLog: mock(),
-    infoLog: mock()
-}));
 
 const { placeBounty, getBounty } = await import('@features/economy/bountyManager.js');
 

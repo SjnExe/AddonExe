@@ -7,13 +7,6 @@ mock.module('../configManager.js', () => ({
     getConfig: () => ({ data: { autoSaveIntervalSeconds: 30 } })
 }));
 
-mock.module('../logger.js', () => ({
-    debugLog: mock(),
-    errorLog: mock(),
-    infoLog: mock(),
-    warnLog: mock()
-}));
-
 mock.module('../../features/anticheat/logManager.js', () => ({
     addPunishmentLog: mock()
 }));

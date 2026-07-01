@@ -9,14 +9,6 @@ mock.module('../flagManager.js', () => ({
     flag: mockFlag
 }));
 
-mock.module('@core/logger.js', () => ({
-    rawLog: mock(),
-    errorLog: mock(),
-    warnLog: mock(),
-    infoLog: mock(),
-    debugLog: mock()
-}));
-
 mock.module('../configLoader.js', () => ({
     getAnticheatConfig: mock()
 }));
