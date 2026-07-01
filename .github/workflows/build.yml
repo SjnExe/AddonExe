@@ -194,7 +194,7 @@ jobs:
                   bun run clean
                   bun scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
                   bun scripts/build-assets.js
-                  bunx tsup
+                  NODE_ENV=production bun --bun scripts/build-scripts.js
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'

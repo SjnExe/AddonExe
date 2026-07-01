@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import { globSync } from 'glob';
 import chokidar from 'chokidar';
+import fs from 'fs';
+import { globSync } from 'glob';
+import path from 'path';
 
 const isWatch = process.argv.includes('--watch');
 const isMinify = process.argv.includes('--minify') || process.env.NODE_ENV === 'production';
@@ -132,14 +132,7 @@ async function runBuild() {
     console.log('Building scripts with Bun...');
 
     const configFiles = globSync('src/**/*Config{.ts,.default.ts}', {
-        ignore: [
-            '**/__tests__/**',
-            '**/__mocks__/**',
-            'src/core/configManager*.ts',
-            'src/core/configurations.ts',
-            'src/core/configLoader.ts',
-            'src/features/anticheat/anticheatConfigLoader.ts'
-        ]
+        ignore: ['**/__tests__/**', '**/__mocks__/**', 'src/core/configManager*.ts', 'src/core/configurations.ts', 'src/core/configLoader.ts', 'src/features/anticheat/anticheatConfigLoader.ts']
     });
 
     configFiles.push('src/config.default.ts');
