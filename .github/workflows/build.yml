@@ -191,10 +191,7 @@ jobs:
             - name: Build TypeScript (Nightly)
               if: steps.build_type.outputs.type == 'nightly'
               run: |
-                  bun run clean
-                  bun scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
-                  bun scripts/build-assets.js
-                  bunx tsup
+                  bun scripts/build.ts --nightly --build-number ${{ github.run_number }}
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'
@@ -222,7 +219,7 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  zip -r -9 "AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" ./staging/* -x "*.map"
+                  (cd staging && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" ./* -x "*.map")
                   (cd staging/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
                   (cd staging/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 

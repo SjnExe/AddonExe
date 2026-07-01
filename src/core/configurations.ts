@@ -3,16 +3,16 @@ import * as mc from '@minecraft/server';
 import { loadConfig as asyncLoadConfig } from '@core/configLoader.js';
 import createConfigManager, { ConfigManager } from '@core/configManagerFactory.js';
 
-import type { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
-import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
-import type { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.default.js';
+import type { xrayConfig } from '@features/anticheat/xrayConfig.js';
+import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.js';
+import type { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.js';
 import type { economyConfig } from '@features/economy/economyConfig.js';
-import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.default.js';
-import type { GamesConfig } from '@features/games/gamesConfig.default.js';
-import type { WordleConfig } from '@features/games/wordle/wordleConfig.default.js';
-import type ranksConfig from '@features/ranks/ranksConfig.default.js';
+import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.js';
+import type { GamesConfig } from '@features/games/gamesConfig.js';
+import type { WordleConfig } from '@features/games/wordle/wordleConfig.js';
+import type ranksConfig from '@features/ranks/ranksConfig.js';
 import type { shopConfig } from '@features/shop/shopConfig.js';
-import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.default.js';
+import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.js';
 import type { friendConfig } from '@features/social/friendConfig.js';
 import type { teamConfig } from '@features/team/teamConfig.js';
 
@@ -42,7 +42,7 @@ let shopConfigManager: ConfigManager<ShopConfig>,
     wordleConfigManager: ConfigManager<WordleConfig>;
 
 export const loadWorldProtectionConfig = async (isMigration: boolean) => {
-    const { worldProtectionConfig } = await import('@features/essentials/worldProtectionConfig.default.js');
+    const { worldProtectionConfig } = await import('@features/essentials/worldProtectionConfig.js');
     worldProtectionConfigManager = createConfigManager('exe:worldProtectionConfig:current', worldProtectionConfig, 'WorldProtection');
     worldProtectionConfigManager.load(isMigration);
 };
@@ -132,7 +132,7 @@ export const saveDailyRewardsConfig = (config: DailyRewardsConfig) => dailyRewar
 export const resetDailyRewardsConfig = () => dailyRewardsConfigManager.reset();
 
 export const loadGamesConfig = async (isMigration: boolean) => {
-    const { gamesConfig } = await import('@features/games/gamesConfig.default.js');
+    const { gamesConfig } = await import('@features/games/gamesConfig.js');
     gamesConfigManager = createConfigManager('exe:gamesConfig:current', gamesConfig, 'Games');
     gamesConfigManager.load(isMigration);
 };
@@ -141,7 +141,7 @@ export const saveGamesConfig = (config: GamesConfig) => gamesConfigManager.set(c
 export const resetGamesConfig = () => gamesConfigManager.reset();
 
 export const loadWordleConfig = async (isMigration: boolean) => {
-    const { wordleConfig } = await import('@features/games/wordle/wordleConfig.default.js');
+    const { wordleConfig } = await import('@features/games/wordle/wordleConfig.js');
     wordleConfigManager = createConfigManager('exe:wordleConfig:current', wordleConfig, 'Wordle');
     wordleConfigManager.load(isMigration);
 };

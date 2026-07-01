@@ -53,9 +53,9 @@ async function main() {
     // Manifest updates are handled by scripts/generate-manifests.js during the build process.
 
     // Update the TypeScript source config
-    // Priority: src/config.ts (User Custom) -> src/config.default.ts (Repo Default)
+    // Priority: src/config.ts (User Custom) -> src/config.ts (Repo Default)
     const customConfigPath = path.join(baseDir, 'src/config.ts');
-    const defaultConfigPath = path.join(baseDir, 'src/config.default.ts');
+    const defaultConfigPath = path.join(baseDir, 'src/config.ts');
 
     let configExists = false;
     try {
@@ -69,9 +69,9 @@ async function main() {
     if (!configExists) {
         try {
             await fs.access(defaultConfigPath);
-            await updateConfig('src/config.default.ts');
+            await updateConfig('src/config.ts');
         } catch {
-            console.warn('Warning: Neither src/config.ts nor src/config.default.ts found. Config version update skipped.');
+            console.warn('Warning: Neither src/config.ts nor src/config.ts found. Config version update skipped.');
         }
     }
 

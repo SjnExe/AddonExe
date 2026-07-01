@@ -2,7 +2,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.default.js';
+import { config } from '@core/../config.js';
 import { getPlayerIdByName } from '@core/playerDataManager.js';
 import { canTarget } from '@core/rankManager.js';
 import { resolveTarget } from '@core/utils.js';

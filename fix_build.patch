@@ -1,0 +1,97 @@
+<<<<<<< SEARCH
+    // Fix Windows pathing bug
+    const entrypoints = ['src/main.ts', ...configFiles];
+
+    const external = [
+        '@minecraft/server',
+        '@minecraft/server-ui',
+        '@minecraft/server-gametest',
+        '@minecraft/debug-utilities',
+        '@minecraft/common',
+        ...configFiles.map((file) => {
+            // Ensure paths use forward slash for external mapping
+            const forwardSlashFile = file.replace(/\\/g, '/');
+            let relativePath = forwardSlashFile.replace('src/', './').replace('.ts', '.js');
+            if (relativePath.endsWith('.default.js')) {
+                relativePath = relativePath.replace('.default.js', '.js');
+            }
+            return relativePath;
+        })
+    ];
+
+    const result = await Bun.build({
+        entrypoints,
+        outdir: path.join(buildDir, 'behavior/scripts'),
+        target: 'browser', // For JS execution environment like Minecraft
+        format: 'esm',
+        minify: isMinify,
+        sourcemap: 'external',
+        external,
+        naming: '[dir]/[name].[ext]', root: './src', plugins: [commandIndexPlugin]
+    });
+
+    if (!result.success) {
+        console.error('Build failed');
+        for (const message of result.logs) {
+            console.error(message);
+        }
+        if (!isWatch) process.exit(1);
+    }
+
+    // Rename .default.js to .js and handle overrides
+    const outDirScripts = path.join(buildDir, 'behavior/scripts');
+    if (fs.existsSync(outDirScripts)) {
+        const outGlob = new Glob('**/*.default.js');
+        for await (const file of outGlob.scan({ cwd: outDirScripts })) {
+            const oldPath = path.join(outDirScripts, file);
+            const newPath = oldPath.replace('.default.js', '.js');
+
+            if (fs.existsSync(newPath)) {
+                fs.rmSync(oldPath);
+                if (fs.existsSync(oldPath + '.map')) fs.rmSync(oldPath + '.map');
+            } else {
+                fs.renameSync(oldPath, newPath);
+                if (fs.existsSync(oldPath + '.map')) fs.renameSync(oldPath + '.map', newPath + '.map');
+            }
+        }
+    }
+
+    console.log('Scripts bundled.');
+=======
+    // Fix Windows pathing bug
+    const entrypoints = ['src/main.ts', ...configFiles];
+
+    const external = [
+        '@minecraft/server',
+        '@minecraft/server-ui',
+        '@minecraft/server-gametest',
+        '@minecraft/debug-utilities',
+        '@minecraft/common',
+        ...configFiles.map((file) => {
+            // Ensure paths use forward slash for external mapping
+            const forwardSlashFile = file.replace(/\\/g, '/');
+            return forwardSlashFile.replace('src/', './').replace('.ts', '.js');
+        })
+    ];
+
+    const result = await Bun.build({
+        entrypoints,
+        outdir: path.join(buildDir, 'behavior/scripts'),
+        target: 'browser', // For JS execution environment like Minecraft
+        format: 'esm',
+        minify: isMinify,
+        sourcemap: 'external',
+        external,
+        naming: '[dir]/[name].[ext]', root: './src', plugins: [commandIndexPlugin]
+    });
+
+    if (!result.success) {
+        console.error('Build failed');
+        for (const message of result.logs) {
+            console.error(message);
+        }
+        if (!isWatch) process.exit(1);
+    }
+
+    console.log('Scripts bundled.');
+>>>>>>> REPLACE

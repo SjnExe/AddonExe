@@ -12,7 +12,7 @@ import { errorLog } from '@core/logger.js';
  */
 export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
     try {
-        // If we are in vitest context, try to resolve from .default.ts or .ts
+        // If we are in vitest context, try to resolve from .ts or .ts
         let finalPath = modulePath;
         if (typeof process !== 'undefined' && process.env.BUN_ENV === 'test') {
             const pathParts = modulePath.split('/');
@@ -25,7 +25,7 @@ export async function loadConfig<T>(modulePath: string, suppressError = false): 
                 // We're inside /app/src/core/configLoader.ts
                 const relativeToCore = pathParts.join('/');
                 const tryTs = `${relativeToCore}/${basename}.ts`;
-                const tryDefaultTs = `${relativeToCore}/${basename}.default.ts`;
+                const tryDefaultTs = `${relativeToCore}/${basename}.ts`;
 
                 try {
                     await import(tryTs);
@@ -41,7 +41,7 @@ export async function loadConfig<T>(modulePath: string, suppressError = false): 
                             await import(tryRootTs);
                             finalPath = tryRootTs;
                         } catch {
-                            finalPath = `../${relativeToCore.replace('./', '')}/${basename}.default.ts`;
+                            finalPath = `../${relativeToCore.replace('./', '')}/${basename}.ts`;
                         }
                     }
                 }

@@ -5,7 +5,7 @@ import createConfigManager, { ConfigManager } from '@core/configManagerFactory.j
 import { deepClone } from '@core/objectUtils.js';
 import { isDefined } from '@lib/guards.js';
 
-import type { config as Config } from '@core/../config.default.js';
+import type { config as Config } from '@core/../config.js';
 
 let mainConfigManager: ConfigManager<typeof Config>;
 const updateCallbacks: ((config: typeof Config) => void)[] = [];
@@ -133,4 +133,4 @@ export async function resetConfigSection(sectionKey: string, player?: mc.Player)
     }
 }
 
-export { type config as Config } from '@core/../config.default.js';
+export { type config as Config } from '@core/../config.js';
