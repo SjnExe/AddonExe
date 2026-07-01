@@ -1,4 +1,4 @@
-import { describe, test, expect, it } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { panelDefinitions } from '@ui/panelRegistry.js';
 
 describe('UI Duplicates Integrity', () => {

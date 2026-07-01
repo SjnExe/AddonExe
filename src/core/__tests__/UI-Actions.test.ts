@@ -11,7 +11,7 @@ describe('UI Actions Integrity', () => {
     it('should have a registered action for every static functionCall item', () => {
         const missingActions: string[] = [];
 
-        for (const [panelId, def] of Object.entries(panelDefinitions)) {
+        for (const [, def] of Object.entries(panelDefinitions)) {
             if (!def.items) continue;
             for (const item of def.items) {
                 if (item.actionType === 'functionCall' && item.actionValue !== 'noop') {

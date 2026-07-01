@@ -1,6 +1,6 @@
-import { describe, test, expect, mock, it, beforeEach } from "bun:test";
+import { describe, expect, mock, it, beforeEach } from "bun:test";
 
-const mockConfigLoader = mock<any>();
+const mockConfigLoader = mock();
 const mockConfigManagerInstance = {
     load: mock(),
     get: mock(),
@@ -13,26 +13,25 @@ const mockConfigManagerInstance = {
 };
 const mockFactory = mock(() => mockConfigManagerInstance);
 
-mock.module('../configLoader.js', () => ({
+mock.module('@core/configLoader.js', () => ({
     loadConfig: mockConfigLoader
 }));
 
-mock.module('../configManagerFactory.js', () => ({
+mock.module('@core/configManagerFactory.js', () => ({
     default: mockFactory
 }));
 
-mock.module('../../features/anticheat/configLoader.js', () => ({
+mock.module('@features/anticheat/configLoader.js', () => ({
     loadAnticheatConfig: mock()
 }));
 
-mock.module('../logger.js', () => ({
+mock.module('@core/logger.js', () => ({
     debugLog: mock(),
     errorLog: mock(),
     infoLog: mock()
 }));
 
-// Mock `configurations.ts` to prevent dynamic import issues in resetConfigSection
-mock.module('../configurations.js', () => ({
+mock.module('@core/configurations.js', () => ({
     loadWorldProtectionConfig: mock(),
     loadShopConfig: mock(),
     loadRanksConfig: mock(),
@@ -53,7 +52,11 @@ const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = aw
 
 describe('ConfigManager', () => {
     beforeEach(() => {
-        mock.restore();
+        mockConfigManagerInstance.load.mockClear();
+        mockConfigManagerInstance.get.mockClear();
+        mockConfigManagerInstance.update.mockClear();
+        mockFactory.mockClear();
+        mockConfigLoader.mockClear();
     });
 
     it('initializeConfigManager should load config and create manager', async () => {

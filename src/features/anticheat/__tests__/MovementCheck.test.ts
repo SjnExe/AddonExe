@@ -27,6 +27,7 @@ describe('MovementCheck', () => {
 
     beforeEach(() => {
         mock.restore();
+        mockFlag.mockClear();
         // Initialize cache
         (mc.world.getAllPlayers as any).mockReturnValue([]);
         initializePlayerCache();

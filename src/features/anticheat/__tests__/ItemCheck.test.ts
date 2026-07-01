@@ -1,4 +1,4 @@
-import { describe, test, expect, mock, it, beforeEach } from "bun:test";
+import { describe, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';

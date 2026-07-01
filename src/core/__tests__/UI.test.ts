@@ -1,4 +1,4 @@
-import { describe, test, expect, mock, it } from "bun:test";
+import { describe, expect, mock, it } from "bun:test";
 import { panelDefinitions } from '@ui/panelRegistry.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 

@@ -1,4 +1,4 @@
-import { describe, test, expect, mock, it } from "bun:test";
+import { describe, expect, mock, it } from "bun:test";
 import * as mc from '@minecraft/server';
 import { UIContext } from '@ui/panelRegistry.js';
 import { PlayerPanelHandler } from '@ui/panels/playerPanel.js';

@@ -1,4 +1,4 @@
-import { describe, test, expect, mock, it, beforeEach } from "bun:test";
+import { describe, expect, mock, it, beforeEach } from "bun:test";
 import * as mc from '@minecraft/server';
 
 // Mocks
