@@ -89,10 +89,10 @@ export function getPaginatedItems<T>(items: T[], page: number): T[] {
 export function addPaginationButtons(form: ActionFormData, page: number, totalItems: number): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
-        form.button('§l§4< §1Previous');
+        form.button('< Previous');
     }
     if (page < totalPages) {
-        form.button('§l§1Next §4>');
+        form.button('Next >');
     }
 }
 
@@ -104,7 +104,7 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
     if (page > 1) {
         items.push({
             id: '__prev__',
-            text: '§6< Previous Page',
+            text: '< Previous Page',
             icon: 'textures/ui/arrow_left.png',
             permission,
             actionType: 'functionCall',
@@ -114,7 +114,7 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
     if (page < totalPages) {
         items.push({
             id: '__next__',
-            text: '§6Next Page >',
+            text: 'Next Page >',
             icon: 'textures/ui/arrow_right.png',
             permission,
             actionType: 'functionCall',
@@ -129,7 +129,7 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
 export function addBackButton(items: PanelItem[], targetPanelId: string, permission: string = 'ui.panel.member'): void {
     items.push({
         id: '__back__',
-        text: '§l§8< Back',
+        text: '< Back',
         icon: 'textures/gui/controls/left.png',
         permission,
         actionType: 'openPanel',
@@ -193,7 +193,7 @@ export function getVisibleCategories(player: mc.Player): SystemItem[] {
 
     return sortedCategories.map((cat) => ({
         id: cat,
-        title: `§l§b${cat} Settings§r`,
+        title: cat === 'Games' ? 'Games System' : `${cat} Settings`,
         icon: categoryIcons[cat] ?? 'textures/ui/settings_glyph_color_2x'
     }));
 }
