@@ -49,6 +49,16 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
+            - name: Generate Cache Expiration Timestamp
+              id: cache-env
+              run: echo "week=$(date +'%Y-%U')" >> $GITHUB_OUTPUT
+            - name: Restore Cache
+              uses: actions/cache@v6
+              with:
+                  path: .eslintcache
+                  key: ${{ runner.os }}-eslint-${{ steps.cache-env.outputs.week }}-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-eslint-${{ steps.cache-env.outputs.week }}-
             - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
             - run: bun run lint
 
@@ -64,6 +74,16 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
+            - name: Generate Cache Expiration Timestamp
+              id: cache-env
+              run: echo "week=$(date +'%Y-%U')" >> $GITHUB_OUTPUT
+            - name: Restore Cache
+              uses: actions/cache@v6
+              with:
+                  path: .prettiercache
+                  key: ${{ runner.os }}-prettier-${{ steps.cache-env.outputs.week }}-${{ github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-prettier-${{ steps.cache-env.outputs.week }}-
             - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
             - run: bun run format:check
 
@@ -80,13 +100,16 @@ jobs:
               with:
                   bun-version: latest
             - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
+            - name: Generate Cache Expiration Timestamp
+              id: cache-env
+              run: echo "week=$(date +'%Y-%U')" >> $GITHUB_OUTPUT
             - name: Cache TypeScript Build Info
               uses: actions/cache@v6
               with:
                   path: tsconfig.tsbuildinfo
-                  key: ${{ runner.os }}-tsbuildinfo-${{ github.sha }}
+                  key: ${{ runner.os }}-tsbuildinfo-${{ steps.cache-env.outputs.week }}-${{ github.sha }}
                   restore-keys: |
-                      ${{ runner.os }}-tsbuildinfo-
+                      ${{ runner.os }}-tsbuildinfo-${{ steps.cache-env.outputs.week }}-
             - run: bun run check-types
 
     test:
@@ -137,7 +160,6 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  # Read base version from package.json (e.g., 0.7.0)
                   BASE_VER=$(bun -e "console.log(require('./package.json').version)")
 
                   MAJOR=$(echo $BASE_VER | cut -d. -f1)
@@ -146,15 +168,12 @@ jobs:
 
                   VERSION_STR="${MAJOR}.${MINOR}.${PATCH}"
                   VERSION_ARR_STR="[${MAJOR}, ${MINOR}, ${PATCH}]"
-
-                  # Treat all dev builds as Beta/Debug builds
                   IS_BETA="true"
 
                   echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
                   echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
                   echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
 
-                  # Generate Date
                   BUILD_DATE=$(date -u)
                   echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
 
@@ -203,13 +222,8 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  # Create main .mcaddon with max compression (Exclude maps)
-                  (cd staging && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" ./* -x "*.map")
-
-                  # Create BP .mcpack with max compression (Exclude maps)
+                  zip -r -9 "AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" ./staging/* -x "*.map"
                   (cd staging/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
-
-                  # Create RP .mcpack with max compression (Exclude maps)
                   (cd staging/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
             - name: Upload Raw Build Directory
@@ -288,7 +302,6 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  # Create note text
                   cat <<EOF > release_notes.md
                   **Latest Nightly Build**
                   Version: \`${{ env.VERSION_STRING }}\`
@@ -298,7 +311,6 @@ jobs:
                   *This is an automated development build. It may contain bugs.*
                   EOF
 
-                  # Use gh release create
                   gh release create nightly \
                       --title "Nightly Build (Latest Dev)" \
                       --prerelease \
@@ -312,7 +324,6 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  # Use gh release create
                   gh release create ${{ env.ARCHIVE_VERSION }} \
                       --generate-notes \
                       AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon \
