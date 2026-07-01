@@ -21,7 +21,7 @@
         "build:release": "bun clean && bun --bun scripts/generate-manifests.js --release && bun --bun scripts/build-assets.js --minify && bun --bun tsup --minify --env.NODE_ENV=production",
         "check-deps": "bun --bun scripts/check-dependencies.js",
         "check-types": "bun --bun tsc --noEmit --incremental",
-        "clean": "rimraf build out",
+        "clean": "rm -rf build out",
         "fix-project": "bun --bun mct fix",
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
