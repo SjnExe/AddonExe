@@ -191,10 +191,7 @@ jobs:
             - name: Build TypeScript (Nightly)
               if: steps.build_type.outputs.type == 'nightly'
               run: |
-                  bun run clean
-                  bun scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
-                  bun scripts/build-assets.js
-                  bunx tsup
+                  bun scripts/build.ts --nightly --build-number ${{ github.run_number }}
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'
