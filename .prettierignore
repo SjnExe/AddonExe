@@ -1,3 +1,1 @@
 # Ignore files and directories that should not be formatted
-Dev/
-pnpm-lock.yaml
