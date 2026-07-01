@@ -48,7 +48,7 @@
             "bun --bun eslint --fix",
             "bun --bun prettier --write"
         ],
-        "*.{json,md}": "bun --bun prettier --write"
+        "*.{json,md,yml,yaml}": "bun --bun prettier --write"
     },
     "overrides": {
         "react": "^18.2.0"
