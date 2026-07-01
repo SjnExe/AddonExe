@@ -2,6 +2,15 @@ import { panelDefinitions } from '@ui/panelRegistry.js';
 import { panelRouter } from '@ui/PanelRouter.js';
 import { describe, expect, it, mock } from 'bun:test';
 
+// Mock logger to avoid rawLog not found error
+mock.module('@core/logger.js', () => ({
+    debugLog: mock(),
+    errorLog: mock(),
+    warnLog: mock(),
+    infoLog: mock(),
+    rawLog: mock()
+}));
+
 // Mock Config
 mock.module('../configManager.js', () => ({
     getConfig: mock().mockReturnValue({
