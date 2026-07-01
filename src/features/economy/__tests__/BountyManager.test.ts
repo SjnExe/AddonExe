@@ -25,7 +25,9 @@ mock.module('@core/storage/StorageManager.js', () => ({
 
 mock.module('@core/logger.js', () => ({
     debugLog: mock(),
-    errorLog: mock()
+    errorLog: mock(),
+    warnLog: mock(),
+    infoLog: mock()
 }));
 
 const { placeBounty, getBounty } = await import('@features/economy/bountyManager.js');
