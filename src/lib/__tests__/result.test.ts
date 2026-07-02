@@ -42,9 +42,9 @@ describe('Result Utilities', () => {
             expect(resultFalse.success).toBe(true);
             expect(resultFalse.data).toBe(false);
 
-            const resultEmptyString = ok("");
+            const resultEmptyString = ok('');
             expect(resultEmptyString.success).toBe(true);
-            expect(resultEmptyString.data).toBe("");
+            expect(resultEmptyString.data).toBe('');
         });
 
         it('should create a success result with an array', () => {
