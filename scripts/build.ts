@@ -1,7 +1,10 @@
+import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
+const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const pkgPath = path.resolve(__dirname, '../package.json');
@@ -71,6 +74,39 @@ function minifyContent(filePath: string, content: string): string {
     return content;
 }
 
+/**
+ * Fetches the latest stable version of a package from npm.
+ * @param pkgName The name of the package.
+ * @returns The latest version.
+ */
+async function fetchLatestVersion(pkgName: string): Promise<string> {
+    try {
+        console.log(`[Build] Fetching latest version for ${pkgName}...`);
+        const { stdout } = await execAsync(`npm view ${pkgName} version`);
+        return stdout.trim();
+    } catch (error: any) {
+        console.warn(`[Build] Failed to fetch version for ${pkgName}, defaulting to 1.0.0. Error: ${error.message}`);
+        return '1.0.0';
+    }
+}
+
+/**
+ * Resolves the module version from the NPM version string.
+ */
+async function resolveModuleVersion(pkgName: string, npmVersion: string): Promise<string> {
+    if (!npmVersion) return '1.0.0';
+
+    if (npmVersion === 'beta') return 'beta';
+
+    if (npmVersion === 'latest') {
+        const version = await fetchLatestVersion(pkgName);
+        return version;
+    }
+
+    // Strip range characters like ^, ~, >= if explicit version provided
+    return npmVersion.replace(/^[^\d]*/, '');
+}
+
 // Asset Processing
 async function processAssets() {
     console.log('[Build] Processing Assets...');
@@ -131,14 +167,20 @@ async function generateManifests(versionArray: number[], versionStr: string, pkg
     const devDeps = pkg.devDependencies || {};
     const modulesToInclude = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities'];
 
-    const dependencies = modulesToInclude
-        .filter((mod) => devDeps[mod])
-        .map((mod) => ({
-            module_name: mod,
-            version: devDeps[mod].replace(/^[^\d]*/, '')
-        }));
+    const dependencies: any[] = [];
 
-    dependencies.push({
+    const modulePromises = modulesToInclude
+        .filter((mod) => devDeps[mod])
+        .map(async (mod) => {
+            const version = await resolveModuleVersion(mod, devDeps[mod]);
+            return {
+                module_name: mod,
+                version: version
+            };
+        });
+
+    const resolvedModules = await Promise.all(modulePromises);
+    dependencies.push(...resolvedModules, {
         uuid: UUIDS.rp.header,
         version: versionArray
     });
@@ -275,6 +317,7 @@ async function compileScripts(versionArray: number[]) {
     const result = await Bun.build({
         entrypoints,
         outdir: outDir,
+        root: './src',
         target: 'browser',
         format: 'esm',
         minify: isMinify,
