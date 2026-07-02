@@ -13,7 +13,7 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         if (!response.canceled && 'selection' in response && response.selection !== undefined && handler.getItems) {
             const items = await handler.getItems(player, panelId, context);
             if (items) {
-                const item = items[response.selection as number];
+                const item = items[response.selection];
                 if (item && item.text && item.text.includes('[§4Disabled]')) {
                     player.sendMessage('§cThis feature is currently disabled.');
                     return showPanel(player, panelId, context);
