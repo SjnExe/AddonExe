@@ -27,7 +27,7 @@ mock.module('@core/messaging.js', () => ({
 
 mock.module('@core/utils.js', () => ({
     playSound: mock(),
-    resolveTarget: mock((name) => {
+    resolveTarget: mock((name: any) => {
         if (name === 'target') return [{ name: 'Target', id: 'targetId', getComponent: mock() }];
         return [];
     })

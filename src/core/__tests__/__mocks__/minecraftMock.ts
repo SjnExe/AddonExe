@@ -26,8 +26,8 @@ export class BlockVolume {
 // Stateful Dynamic Property Store
 const _testDynamicProperties = new Map();
 export const world = {
-    getDynamicProperty: mock((key) => _testDynamicProperties.get(key)),
-    setDynamicProperty: mock((key, val) => {
+    getDynamicProperty: mock((key: string) => _testDynamicProperties.get(key)),
+    setDynamicProperty: mock((key: string, val: any) => {
         if (val === undefined) _testDynamicProperties.delete(key);
         else _testDynamicProperties.set(key, val);
     }),
@@ -216,4 +216,20 @@ export class MessageFormData {
     show = mock().mockImplementation(async () => {
         return { selection: 0, canceled: false };
     });
+}
+
+// --- added for itemsManager tests ---
+export class ItemStack {
+    typeId: string;
+    amount: number;
+    maxAmount: number;
+
+    constructor(typeId: string, amount: number) {
+        if (typeId === 'invalid:item') {
+            throw new Error('Invalid item type');
+        }
+        this.typeId = typeId;
+        this.amount = amount;
+        this.maxAmount = 64; // Default max stack size
+    }
 }

@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
         "target": "ES2023",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
         "strict": true,
         "noUncheckedIndexedAccess": true,
         "noImplicitReturns": true,
@@ -11,10 +11,12 @@
         "noFallthroughCasesInSwitch": true,
         "exactOptionalPropertyTypes": false,
         "noImplicitOverride": true,
-        "allowJs": true,
-        "checkJs": true,
-        "outDir": "./packs/behavior/scripts",
-        "rootDir": "./src",
+        "isolatedModules": true,
+        "verbatimModuleSyntax": false,
+        "allowJs": false,
+        "checkJs": false,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -29,8 +31,8 @@
             "@lib/*": ["./src/lib/*"],
             "@shared-types/*": ["./src/types/*"]
         },
-        "types": ["node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/server-gametest", "@minecraft/debug-utilities", "@minecraft/vanilla-data", "@minecraft/math"]
+        "types": ["bun", "node"]
     },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules", "src/**/__tests__"]
+    "include": ["src/**/*", "scripts/**/*"],
+    "exclude": ["node_modules"]
 }

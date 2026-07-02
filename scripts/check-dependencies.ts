@@ -30,10 +30,10 @@ async function main() {
     const manifestDeps = manifestJson.dependencies || [];
 
     // Filter package.json for @minecraft/* packages
-    const minecraftPackageKeys = Object.keys(packageDeps).filter((d) => d.startsWith('@minecraft/'));
+    const minecraftPackageKeys = Object.keys(packageDeps).filter((d: any) => d.startsWith('@minecraft/'));
 
     // Filter manifest.json for script modules (ignore UUID dependencies)
-    const minecraftManifestModules = manifestDeps.filter((d) => d.module_name && d.module_name.startsWith('@minecraft/')).map((d) => d.module_name);
+    const minecraftManifestModules = manifestDeps.filter((d: any) => d.module_name && d.module_name.startsWith('@minecraft/')).map((d: any) => d.module_name);
 
     const errors: string[] = [];
 
