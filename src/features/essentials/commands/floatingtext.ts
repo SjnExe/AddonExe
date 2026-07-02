@@ -9,19 +9,15 @@ const command: CustomCommand = {
     description: 'Manages floating text entities.',
     category: 'Essentials',
     permissionNode: 'cmd.floatingtext.admin', // Admin
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    execute: (executor: CommandExecutor, args: any) => {
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             // Console support for some actions could be added but mostly requires location context
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const action = args.action as string | undefined;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const id = args.id as string | undefined;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const text = args.text as string | undefined;
+        const action = typeof args.action === 'string' ? args.action : undefined;
+        const id = typeof args.id === 'string' ? args.id : undefined;
+        const text = typeof args.text === 'string' ? args.text : undefined;
 
         if (!isNonEmptyString(action) || !isNonEmptyString(id)) {
             executor.sendMessage('§cUsage: /floatingtext <create|delete|list|tp> <id> [text]');
