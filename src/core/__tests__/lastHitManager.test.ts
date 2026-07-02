@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it, spyOn, afterEach } from 'bun:test';
 import { clearLastHit, getLastHit, setLastHit } from '../lastHitManager.js';
 
 describe('lastHitManager', () => {
@@ -8,7 +8,38 @@ describe('lastHitManager', () => {
         clearLastHit('victim2');
     });
 
-    it('should correctly set and get last hit data', () => {
+    describe('setLastHit', () => {
+        let dateNowSpy: ReturnType<typeof spyOn>;
+
+        beforeEach(() => {
+            dateNowSpy = spyOn(Date, 'now').mockReturnValue(1234567890);
+        });
+
+        afterEach(() => {
+            dateNowSpy.mockRestore();
+        });
+
+        it('should correctly set last hit data with the current timestamp', () => {
+            setLastHit('victim1', 'attacker1');
+
+            const hitInfo = getLastHit('victim1');
+            expect(hitInfo).toBeDefined();
+            expect(hitInfo?.attackerId).toBe('attacker1');
+            expect(hitInfo?.timestamp).toBe(1234567890);
+        });
+
+        it('should overwrite previous hit data for the same victim', () => {
+            setLastHit('victim1', 'attacker1');
+            dateNowSpy.mockReturnValue(1234567899);
+            setLastHit('victim1', 'attacker2');
+
+            const hitInfo = getLastHit('victim1');
+            expect(hitInfo?.attackerId).toBe('attacker2');
+            expect(hitInfo?.timestamp).toBe(1234567899);
+        });
+    });
+
+    it('should correctly set and get last hit data without mocking', () => {
         const beforeTime = Date.now();
         setLastHit('victim1', 'attacker1');
         const afterTime = Date.now();
@@ -34,11 +65,4 @@ describe('lastHitManager', () => {
         expect(getLastHit('victim1')).toBeUndefined();
     });
 
-    it('should overwrite previous hit data for the same victim', () => {
-        setLastHit('victim1', 'attacker1');
-        setLastHit('victim1', 'attacker2');
-
-        const hitInfo = getLastHit('victim1');
-        expect(hitInfo?.attackerId).toBe('attacker2');
-    });
 });
