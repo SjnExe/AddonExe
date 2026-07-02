@@ -40,9 +40,7 @@ jobs:
     lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
+
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -65,9 +63,7 @@ jobs:
     format:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
+
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -90,9 +86,7 @@ jobs:
     typecheck:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
+
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -115,9 +109,7 @@ jobs:
     test:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
+
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -130,9 +122,7 @@ jobs:
     build:
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
+
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
@@ -160,7 +150,7 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  BASE_VER=$(bun -e "console.log(require('./package.json').version)")
+                  BASE_VER=$(bun -e "console.log((await Bun.file('package.json').json()).version)")
 
                   MAJOR=$(echo $BASE_VER | cut -d. -f1)
                   MINOR=$(echo $BASE_VER | cut -d. -f2)
