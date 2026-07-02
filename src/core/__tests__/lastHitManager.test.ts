@@ -41,4 +41,21 @@ describe('lastHitManager', () => {
         const hitInfo = getLastHit('victim1');
         expect(hitInfo?.attackerId).toBe('attacker2');
     });
+
+    it('should gracefully handle clearing a non-existent victim', () => {
+        expect(() => {
+            clearLastHit('non_existent_victim');
+        }).not.toThrow();
+        expect(getLastHit('non_existent_victim')).toBeUndefined();
+    });
+
+    it('should only clear the specified victim and leave others intact', () => {
+        setLastHit('victim1', 'attacker1');
+        setLastHit('victim2', 'attacker2');
+
+        clearLastHit('victim1');
+
+        expect(getLastHit('victim1')).toBeUndefined();
+        expect(getLastHit('victim2')?.attackerId).toBe('attacker2');
+    });
 });

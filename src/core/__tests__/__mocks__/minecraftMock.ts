@@ -217,3 +217,19 @@ export class MessageFormData {
         return { selection: 0, canceled: false };
     });
 }
+
+// --- added for itemsManager tests ---
+export class ItemStack {
+    typeId: string;
+    amount: number;
+    maxAmount: number;
+
+    constructor(typeId: string, amount: number) {
+        if (typeId === 'invalid:item') {
+            throw new Error('Invalid item type');
+        }
+        this.typeId = typeId;
+        this.amount = amount;
+        this.maxAmount = 64; // Default max stack size
+    }
+}
