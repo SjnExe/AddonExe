@@ -1,5 +1,5 @@
-import { describe, expect, it, mock } from 'bun:test';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
+import { describe, expect, it, mock } from 'bun:test';
 
 mock.module('../configurations.js', () => ({
     getRanksConfig: () => ({
@@ -86,9 +86,9 @@ describe('calculateRankMap', () => {
 
         const map = calculateRankMap(rank);
         expect(map['node.a']).toBe(false); // Deny overrides allow and group
-        expect(map['node.b']).toBe(true);  // From groupA
+        expect(map['node.b']).toBe(true); // From groupA
         expect(map['node.c']).toBe(false); // Deny overrides groupB
-        expect(map['node.x']).toBe(true);  // From allow
+        expect(map['node.x']).toBe(true); // From allow
         expect(map['node.y']).toBe(false); // From deny
         expect(Object.keys(map).length).toBe(5);
     });
