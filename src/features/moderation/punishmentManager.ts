@@ -44,9 +44,8 @@ export function loadPunishments() {
 
         for (const [playerId, record] of data) {
             // Check if legacy format (has 'type' property directly)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-            if (isDefined((record as any).type)) {
-                const legacyPunishment = record as unknown as Punishment;
+            if ('type' in record) {
+                const legacyPunishment = record;
                 if (legacyPunishment.type === 'ban') {
                     punishments.set(playerId, { ban: legacyPunishment });
                 } else {
@@ -54,7 +53,7 @@ export function loadPunishments() {
                 }
                 migratedCount++;
             } else {
-                punishments.set(playerId, record as PlayerPunishmentRecord);
+                punishments.set(playerId, record);
             }
         }
 
