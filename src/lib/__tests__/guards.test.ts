@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { isDefined, isString, isNumber, isNonEmptyString } from '../guards.js';
+import { isDefined, isNonEmptyString, isNumber, isString } from '../guards.js';
 
 describe('Type Guards', () => {
     describe('isDefined', () => {
