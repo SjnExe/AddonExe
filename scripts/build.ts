@@ -92,8 +92,7 @@ async function processAssets() {
                 }
 
                 // Skip manifests, we generate dynamically
-                if (relPath === 'behavior/manifest.json' || relPath === 'behavior\\manifest.json' ||
-                    relPath === 'resource/manifest.json' || relPath === 'resource\\manifest.json') {
+                if (relPath === 'behavior/manifest.json' || relPath === 'behavior\\manifest.json' || relPath === 'resource/manifest.json' || relPath === 'resource\\manifest.json') {
                     continue;
                 }
 
@@ -239,7 +238,7 @@ async function compileScripts(versionArray: number[]) {
         }
     }
 
-    const externalConfigs = entrypoints.map(ep => ep.replace('src/', './').replace('.ts', '.js'));
+    const externalConfigs = entrypoints.map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
 
     const versionArrayStr = `[${versionArray.join(', ')}]`;
 
@@ -283,14 +282,7 @@ async function compileScripts(versionArray: number[]) {
         splitting: false,
         naming: '[dir]/[name].[ext]',
         plugins: [commandIndexPlugin, dynamicImportPlugin],
-        external: [
-            '@minecraft/server',
-            '@minecraft/server-ui',
-            '@minecraft/server-gametest',
-            '@minecraft/debug-utilities',
-            '@minecraft/common',
-            ...externalConfigs
-        ]
+        external: ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', ...externalConfigs]
     });
 
     if (!result.success) {
@@ -359,7 +351,7 @@ export const commandIndexPlugin = {
         build.onResolve({ filter: /^virtual:command-index$/ }, (args) => {
             return {
                 path: args.path,
-                namespace: 'virtual-command-index',
+                namespace: 'virtual-command-index'
             };
         });
 
@@ -381,7 +373,7 @@ export const commandIndexPlugin = {
                 console.warn(`[Plugin] Error reading featureRegistry.ts: ${error.message}`);
             }
 
-            const commandList: { varName: string, importPath: string }[] = [];
+            const commandList: { varName: string; importPath: string }[] = [];
 
             if (featureDirs.length > 0) {
                 await Promise.all(
@@ -446,7 +438,7 @@ export function loadCommands() {
     }
 };
 
-main().catch(err => {
+main().catch((err) => {
     console.error(err);
     process.exit(1);
 });

@@ -61,13 +61,7 @@ export const anticheatConfig: AnticheatConfig = {
             { threshold: 5, command: 'kick {player} Illegal Items.' },
             { threshold: 10, command: 'ban {player} 1d Illegal Items.' }
         ],
-        bannedItems: [
-            'minecraft:bedrock',
-            'minecraft:barrier',
-            'minecraft:command_block',
-            'minecraft:structure_block',
-            'minecraft:border_block'
-        ],
+        bannedItems: ['minecraft:bedrock', 'minecraft:barrier', 'minecraft:command_block', 'minecraft:structure_block', 'minecraft:border_block'],
         illegalEnchantments: true,
         maxEnchantLevel: 5,
         removeIllegalItems: true
