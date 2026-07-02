@@ -1,5 +1,4 @@
 import { $ } from 'bun';
-import fs from 'fs';
 
 try {
     // 1. Run lint-staged first
@@ -16,7 +15,7 @@ try {
         `=== Validation (Exit: ${validate.exitCode}) ===\n${validate.stdout}${validate.stderr}`
     ].join('\n\n');
 
-    fs.writeFileSync('.git/pre-commit.log', logContent);
+    await Bun.write('.git/pre-commit.log', logContent);
 
     // 4. If any of them failed, dump logs to console and block the commit
     if (checkTypes.exitCode !== 0 || test.exitCode !== 0 || validate.exitCode !== 0) {

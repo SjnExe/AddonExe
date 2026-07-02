@@ -19,29 +19,29 @@
     "scripts": {
         "build": "bun scripts/build.ts",
         "build:release": "bun scripts/build.ts --release --minify",
-        "check-deps": "bun --bun scripts/check-dependencies.js",
+        "check-deps": "bun --bun scripts/check-dependencies.ts",
         "check-types": "bun --bun tsc --noEmit --incremental",
         "clean": "rm -rf build out",
-        "fix-project": "bun --bun mct fix",
+        "fix-project": "bun mct fix",
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
-        "postinstall": "bun --bun scripts/postinstall.js",
+        "postinstall": "bun --bun scripts/postinstall.ts",
         "lint": "bun --bun eslint src scripts eslint.config.js --cache",
         "lint:check": "bun --bun eslint src scripts eslint.config.js --cache",
         "lint:fix": "bun --bun eslint src scripts eslint.config.js --fix --cache",
         "lint:report": "bun --bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
         "prepare": "simple-git-hooks",
-        "project-info": "bun --bun mct info",
-        "reinstall": "rimraf node_modules bun.lockb bun.lock && bun install",
+        "project-info": "bun mct info",
+        "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
         "test": "bun test",
-        "test:duplication": "bun scripts/test-duplication.js",
+        "test:duplication": "bun scripts/test-duplication.ts",
         "test:watch": "bun test --watch",
-        "validate": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "validate": "bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
+        "validate:report": "bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
         "watch": "bun scripts/build.ts --watch"
     },
     "simple-git-hooks": {
-        "pre-commit": "bun scripts/pre-commit.js"
+        "pre-commit": "bun scripts/pre-commit.ts"
     },
     "lint-staged": {
         "*.{js,ts}": [

@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,18 +8,16 @@ const packageJsonPath = path.join(__dirname, '../package.json');
 const manifestJsonPath = path.join(__dirname, '../build/behavior/manifest.json');
 
 async function main() {
-    try {
-        await Promise.all([fs.access(packageJsonPath), fs.access(manifestJsonPath)]);
-    } catch {
+    const pkgFile = Bun.file(packageJsonPath);
+    const manifestFile = Bun.file(manifestJsonPath);
+
+    if (!(await pkgFile.exists()) || !(await manifestFile.exists())) {
         // If manifest doesn't exist yet (e.g. pre-build), skip check or warn
         console.warn('Could not find package.json or build/behavior/manifest.json. Skipping dependency check.');
         process.exit(0);
     }
 
-    const [packageJsonContent, manifestJsonContent] = await Promise.all([fs.readFile(packageJsonPath, 'utf8'), fs.readFile(manifestJsonPath, 'utf8')]);
-
-    const packageJson = JSON.parse(packageJsonContent);
-    const manifestJson = JSON.parse(manifestJsonContent);
+    const [packageJson, manifestJson] = await Promise.all([pkgFile.json(), manifestFile.json()]);
 
     const packageDeps = {
         ...packageJson.dependencies,
@@ -38,10 +35,10 @@ async function main() {
     // Filter manifest.json for script modules (ignore UUID dependencies)
     const minecraftManifestModules = manifestDeps.filter((d) => d.module_name && d.module_name.startsWith('@minecraft/')).map((d) => d.module_name);
 
-    const errors = [];
+    const errors: string[] = [];
 
     // Define known Script API modules
-    const runtimeModules = new Set([
+    const runtimeModules = new Set<string>([
         '@minecraft/server',
         '@minecraft/server-ui',
         '@minecraft/server-gametest',
@@ -63,8 +60,8 @@ async function main() {
     // Sticking to basic parity check for core modules.
 
     // Optimization: Use Sets for O(1) checks
-    const manifestModuleSet = new Set(minecraftManifestModules);
-    const packageKeySet = new Set(minecraftPackageKeys);
+    const manifestModuleSet = new Set<string>(minecraftManifestModules);
+    const packageKeySet = new Set<string>(minecraftPackageKeys);
 
     for (const pkg of minecraftPackageKeys) {
         if (

@@ -178,14 +178,15 @@ export default tseslint.config(
         }
     },
 
-    // JS Configuration (Scripts)
+    // Configuration (Scripts)
     {
-        files: ['scripts/**/*.js'],
+        files: ['scripts/**/*.{js,ts}'],
         extends: [...tseslint.configs.recommended],
         rules: {
             'no-console': 'off',
             'unicorn/no-process-exit': 'off',
-            'unicorn/prefer-top-level-await': 'off'
+            'unicorn/prefer-top-level-await': 'off',
+            '@typescript-eslint/no-explicit-any': 'off'
         }
     },
 
