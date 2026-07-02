@@ -64,7 +64,7 @@ describe('result', () => {
         it('should throw a new Error with stringified content for custom object errors', () => {
             const customError = { code: 500 };
             const result = err(customError);
-            expect(() => unwrap(result)).toThrow(new Error(String(customError)));
+            expect(() => unwrap(result)).toThrow(new Error('[object Object]'));
         });
     });
 });
