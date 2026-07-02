@@ -172,7 +172,9 @@ describe('startTeleportWarmup', () => {
         const intervalCallback = mockRunInterval.mock.calls[0][0];
 
         // Cause an exception by making distance function throw
-        mockDistance.mockImplementation(() => { throw new Error('Test error'); });
+        mockDistance.mockImplementation(() => {
+            throw new Error('Test error');
+        });
 
         intervalCallback();
 
@@ -182,7 +184,9 @@ describe('startTeleportWarmup', () => {
 
     it('should not throw if cleanup fails', () => {
         mockRunInterval.mockReturnValue(123);
-        mockUnsubscribe.mockImplementation(() => { throw new Error('Cleanup error'); });
+        mockUnsubscribe.mockImplementation(() => {
+            throw new Error('Cleanup error');
+        });
 
         startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 

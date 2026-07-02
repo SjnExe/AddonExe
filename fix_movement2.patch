@@ -1,0 +1,16 @@
+--- src/features/anticheat/__tests__/MovementCheck.test.ts
++++ src/features/anticheat/__tests__/MovementCheck.test.ts
+@@ -17,7 +17,13 @@
+
+ mock.module('@minecraft/server', () => ({
+     world: {
+-        getAllPlayers: mock()
++        getAllPlayers: mock(),
++        afterEvents: {
++            playerSpawn: { subscribe: mock(), unsubscribe: mock() },
++            playerLeave: { subscribe: mock(), unsubscribe: mock() },
++            entityHurt: { subscribe: mock(), unsubscribe: mock() },
++            entityDie: { subscribe: mock(), unsubscribe: mock() }
++        }
+     }
+ }));

@@ -18,13 +18,7 @@ mock.module('../configLoader.js', () => ({
 
 mock.module('@minecraft/server', () => ({
     world: {
-        getAllPlayers: mock(),
-        afterEvents: {
-            playerSpawn: { subscribe: mock(), unsubscribe: mock() },
-            playerLeave: { subscribe: mock(), unsubscribe: mock() },
-            entityHurt: { subscribe: mock(), unsubscribe: mock() },
-            entityDie: { subscribe: mock(), unsubscribe: mock() }
-        }
+        getAllPlayers: mock()
     }
 }));
 
