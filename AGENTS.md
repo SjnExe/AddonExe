@@ -11,9 +11,10 @@ Your primary goal is to assist users by completing coding tasks, such as solving
 If you need to initialize or reset the environment, use the following commands. These handle dependencies, system tools, and repository state.
 
 ```bash
-npm i -g npm@latest
-npm i
-npm run build || true
+sudo rm -rf /usr/local/bun
+sudo curl -fsSL https://bun.sh/install | sudo BUN_INSTALL=/usr/local/bun bash
+sudo ln -sf /usr/local/bun/bin/bun /usr/local/bin/bun
+bun install --frozen-lockfile --no-progress --no-summary
 ```
 
 ## 3. Understanding the Codebase
