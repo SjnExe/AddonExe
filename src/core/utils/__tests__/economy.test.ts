@@ -1,8 +1,10 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+
+let mockCurrencySymbol: string | undefined = '$';
 
 mock.module('@core/configurations.js', () => ({
     getEconomyConfig: () => ({
-        currencySymbol: '$'
+        currencySymbol: mockCurrencySymbol
     })
 }));
 
@@ -10,6 +12,10 @@ const { formatCurrency, parseCurrency } = await import('../economy.ts');
 
 describe('economy utils', () => {
     describe('formatCurrency', () => {
+        beforeEach(() => {
+            mockCurrencySymbol = '$';
+        });
+
         it('should format numbers less than 1000 correctly', () => {
             expect(formatCurrency(100)).toBe('$100.00');
             expect(formatCurrency(0)).toBe('$0.00');
@@ -65,6 +71,16 @@ describe('economy utils', () => {
             expect(formatCurrency(1550)).toBe('$1.55k');
             expect(formatCurrency(1555)).toBe('$1.55k');
         });
+
+        it('should use default $ if currencySymbol is undefined', () => {
+            mockCurrencySymbol = undefined;
+            expect(formatCurrency(100)).toBe('$100.00');
+        });
+
+        it('should use configured currencySymbol', () => {
+            mockCurrencySymbol = '€';
+            expect(formatCurrency(100)).toBe('€100.00');
+        });
     });
 
     describe('parseCurrency', () => {
@@ -107,6 +123,10 @@ describe('economy utils', () => {
 
         it('should trim inputs before parsing', () => {
             expect(parseCurrency(' 1k ')).toBe(1000);
+        });
+
+        it('should return NaN for unparseable floats like "."', () => {
+            expect(parseCurrency('.')).toBeNaN();
         });
     });
 });
