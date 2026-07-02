@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { clearLastHit, getLastHit, setLastHit } from '../lastHitManager.js';
 
 describe('lastHitManager', () => {
@@ -10,6 +10,29 @@ describe('lastHitManager', () => {
     });
 
     describe('setLastHit()', () => {
+        let originalDateNow: () => number;
+
+        beforeEach(() => {
+            originalDateNow = Date.now;
+        });
+
+        afterEach(() => {
+            Date.now = originalDateNow;
+        });
+
+        it('should correctly set last hit data with an exact mocked timestamp', () => {
+            const mockTimestamp = 1600000000000;
+            Date.now = () => mockTimestamp;
+
+            setLastHit('victim1', 'attacker1');
+
+            const hitInfo = getLastHit('victim1');
+
+            expect(hitInfo).toBeDefined();
+            expect(hitInfo?.attackerId).toBe('attacker1');
+            expect(hitInfo?.timestamp).toBe(mockTimestamp);
+        });
+
         it('should correctly set last hit data with a valid timestamp', () => {
             const beforeTime = Date.now();
             setLastHit('victim1', 'attacker1');
@@ -29,6 +52,13 @@ describe('lastHitManager', () => {
 
             const hitInfo = getLastHit('victim1');
             expect(hitInfo?.attackerId).toBe('attacker2');
+        });
+
+        it('should allow empty string for victimId and attackerId', () => {
+            setLastHit('', '');
+
+            const hitInfo = getLastHit('');
+            expect(hitInfo?.attackerId).toBe('');
         });
     });
 
