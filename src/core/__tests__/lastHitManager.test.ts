@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, spyOn, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 import { clearLastHit, getLastHit, setLastHit } from '../lastHitManager.js';
 
 describe('lastHitManager', () => {
@@ -64,5 +64,4 @@ describe('lastHitManager', () => {
         clearLastHit('victim1');
         expect(getLastHit('victim1')).toBeUndefined();
     });
-
 });
