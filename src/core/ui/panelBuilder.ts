@@ -17,16 +17,25 @@ export function getStaticMenuItems(player: mc.Player, panelDef: PanelDefinition,
     const config = getConfig() as unknown as MainConfig;
     const items = (isDefined(panelDef.items) ? panelDef.items : [])
         .filter((item: PanelItem) => {
+            return hasPermission(player, item.permission ?? 'ui.panel.member');
+        })
+        .map((item: PanelItem) => {
+            const newItem = { ...item };
+            let isDisabled = false;
             if (isNonEmptyString(item.requiresFeature)) {
                 const isEnabled = getValueFromPath(config, item.requiresFeature);
                 if (isEnabled !== true) {
-                    return false;
+                    isDisabled = true;
                 }
             } else if (item.actionValue === 'shopMainPanel' && (isDefined(config.shop) ? config.shop.enabled : undefined) !== true) {
                 // Fallback for older hardcoded definition
-                return false;
+                isDisabled = true;
             }
-            return hasPermission(player, item.permission ?? 'ui.panel.member');
+
+            if (isDisabled) {
+                newItem.text += '\n[§4Disabled]';
+            }
+            return newItem;
         })
         .toSorted((a: PanelItem, b: PanelItem) => (a.sortId ?? 0) - (b.sortId ?? 0));
 
