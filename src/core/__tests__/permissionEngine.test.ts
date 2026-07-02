@@ -6,7 +6,8 @@ mock.module('../configurations.js', () => ({
         permissionGroups: {
             groupA: ['node.a', 'node.b'],
             groupB: ['node.c'],
-            groupOverride: ['node.a']
+            groupOverride: ['node.a'],
+            emptyGroup: []
         }
     })
 }));
@@ -101,6 +102,58 @@ describe('calculateRankMap', () => {
             permissionLevel: 1,
             conditions: [],
             groups: [],
+            allow: [],
+            deny: []
+        } as unknown as RankDefinition;
+
+        const map = calculateRankMap(rank);
+        expect(Object.keys(map).length).toBe(0);
+    });
+
+    it('should handle overlapping group permissions', () => {
+        const rank = {
+            id: 'test',
+            name: 'Test',
+            priority: 1,
+            permissionLevel: 1,
+            conditions: [],
+            groups: ['groupA', 'groupOverride'],
+            allow: [],
+            deny: []
+        } as unknown as RankDefinition;
+
+        const map = calculateRankMap(rank);
+        expect(map['node.a']).toBe(true);
+        expect(map['node.b']).toBe(true);
+        expect(Object.keys(map).length).toBe(2);
+    });
+
+    it('should handle duplicate groups', () => {
+        const rank = {
+            id: 'test',
+            name: 'Test',
+            priority: 1,
+            permissionLevel: 1,
+            conditions: [],
+            groups: ['groupA', 'groupA'],
+            allow: [],
+            deny: []
+        } as unknown as RankDefinition;
+
+        const map = calculateRankMap(rank);
+        expect(map['node.a']).toBe(true);
+        expect(map['node.b']).toBe(true);
+        expect(Object.keys(map).length).toBe(2);
+    });
+
+    it('should handle empty groups', () => {
+        const rank = {
+            id: 'test',
+            name: 'Test',
+            priority: 1,
+            permissionLevel: 1,
+            conditions: [],
+            groups: ['emptyGroup'],
             allow: [],
             deny: []
         } as unknown as RankDefinition;
