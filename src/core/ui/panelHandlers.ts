@@ -12,9 +12,12 @@ export async function handleFormResponse(player: mc.Player, panelId: string, res
         // Global check for disabled items in ActionFormData dynamically built lists
         if (!response.canceled && 'selection' in response && response.selection !== undefined && handler.getItems) {
             const items = await handler.getItems(player, panelId, context);
-            if (items && items[response.selection] && items[response.selection].text.includes('[§4Disabled]')) {
-                player.sendMessage('§cThis feature is currently disabled.');
-                return showPanel(player, panelId, context);
+            if (items) {
+                const item = items[response.selection as number];
+                if (item && item.text && item.text.includes('[§4Disabled]')) {
+                    player.sendMessage('§cThis feature is currently disabled.');
+                    return showPanel(player, panelId, context);
+                }
             }
         }
 
