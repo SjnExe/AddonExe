@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 const mockGetConfig = mock();
 const mockUpdateMultipleConfig = mock();
 const mockDebugLog = mock();
-const mockErrorLog = mock((msg: any) => console.log('ERROR LOG:', msg));
+const mockErrorLog = mock((msg) => console.log('ERROR LOG:', msg));
 
 mock.module('@core/configManager.js', () => ({
     getConfig: mockGetConfig,
@@ -53,7 +53,7 @@ describe('Kit Items Manager', () => {
             expect(result.success).toBe(true);
 
             // Check what updateMultipleConfig was called with
-            const callArgs = mockUpdateMultipleConfig.mock.calls[0]![0];
+            const callArgs = mockUpdateMultipleConfig.mock.calls[0][0];
             const updatedKit = callArgs['kits.kitDefinitions']['TestKit'];
             expect(updatedKit.items[0].amount).toBe(64); // capped at maxAmount from MockItemStack
         });

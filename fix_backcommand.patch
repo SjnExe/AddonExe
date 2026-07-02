@@ -1,0 +1,25 @@
+--- src/features/teleport/__tests__/BackCommand.test.ts
++++ src/features/teleport/__tests__/BackCommand.test.ts
+@@ -37,6 +37,13 @@
+     setCooldown: mock()
+ }));
+
++mock.module('@minecraft/server', () => ({
++    world: {
++        getDimension: mock(),
++        afterEvents: { entityHurt: { subscribe: mock(), unsubscribe: mock() } }
++    }
++}));
++
+ import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
+
+ // Import command
+@@ -51,7 +58,7 @@
+     player.teleport = mock();
+
+     const dimension = { id: 'minecraft:overworld' };
+-    (mc.world.getDimension as any).mockReturnValue(dimension);
++    (mc.world?.getDimension as any)?.mockReturnValue?.(dimension);
+
+     beforeEach(() => {
+         mockStartTeleportWarmup.mockClear();

@@ -73,7 +73,7 @@ describe('friendManager', () => {
             const player = { id: 'p1', name: 'PlayerOne', sendMessage: mock() } as unknown as mc.Player;
             const friendId = 'f1';
 
-            mockUpdatePlayerData.mockImplementation((_id: string, cb: (data: any) => void) => {
+            mockUpdatePlayerData.mockImplementation((id: string, cb: (data: any) => void) => {
                 const data = { friends: ['p1', 'f1'] };
                 cb(data);
             });
@@ -92,7 +92,7 @@ describe('friendManager', () => {
             const player = { id: 'p1', name: 'PlayerOne', sendMessage: mock() } as unknown as mc.Player;
             const friendId = 'f1';
 
-            mockUpdatePlayerData.mockImplementation((_id: string, cb: (data: any) => void) => {
+            mockUpdatePlayerData.mockImplementation((id: string, cb: (data: any) => void) => {
                 const data = { friends: undefined };
                 cb(data);
                 expect(data.friends).toBeUndefined();

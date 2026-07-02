@@ -34,13 +34,6 @@ mock.module('@core/cooldownManager.js', () => ({
     setCooldown: mock()
 }));
 
-mock.module('@minecraft/server', () => ({
-    world: {
-        getDimension: mock(),
-        afterEvents: { entityHurt: { subscribe: mock(), unsubscribe: mock() } }
-    }
-}));
-
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 // Import command
@@ -58,7 +51,7 @@ describe('Back Command', () => {
     player.teleport = mock();
 
     const dimension = { id: 'minecraft:overworld' };
-    (mc.world?.getDimension as any)?.mockReturnValue?.(dimension);
+    (mc.world.getDimension as any).mockReturnValue(dimension);
 
     beforeEach(() => {
         mockStartTeleportWarmup.mockClear();

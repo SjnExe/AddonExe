@@ -40,7 +40,9 @@ jobs:
     lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -63,7 +65,9 @@ jobs:
     format:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -86,7 +90,9 @@ jobs:
     typecheck:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -109,7 +115,9 @@ jobs:
     test:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -122,7 +130,9 @@ jobs:
     build:
         runs-on: ubuntu-latest
         timeout-minutes: 30
-
+        env:
+            NODE_OPTIONS: '--max-old-space-size=16384'
+            MAKEFLAGS: '-j4'
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
@@ -150,7 +160,7 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  BASE_VER=$(bun -e "console.log((await Bun.file('package.json').json()).version)")
+                  BASE_VER=$(bun -e "console.log(require('./package.json').version)")
 
                   MAJOR=$(echo $BASE_VER | cut -d. -f1)
                   MINOR=$(echo $BASE_VER | cut -d. -f2)
@@ -227,7 +237,7 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                   name: debug-symbols-nightly
-                  path: build/**/*.map
+                  path: staging/**/*.map
                   retention-days: 7
             - name: Create build meta file
               run: |
@@ -308,3 +318,34 @@ jobs:
                       AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon \
                       AddonExe_BP.Release.${{ env.ARCHIVE_VERSION }}.mcpack \
                       AddonExe_RP.Release.${{ env.ARCHIVE_VERSION }}.mcpack
+
+    analyze:
+        name: Analyze
+        runs-on: ubuntu-latest
+        permissions:
+            actions: read
+            contents: read
+            security-events: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v7
+
+            - name: Initialize CodeQL
+              uses: github/codeql-action/init@v4
+              with:
+                  languages: javascript-typescript
+                  config: |
+                      paths-ignore:
+                          - '**/__tests__/**'
+                          - '**/__mocks__/**'
+                          - 'scripts/**'
+                          - '*.config.*'
+                  tools: latest
+
+            - name: Perform CodeQL Analysis
+              uses: github/codeql-action/analyze@v4
+              with:
+                  category: '/language:javascript-typescript'
+                  ram: 14336
+                  threads: 4

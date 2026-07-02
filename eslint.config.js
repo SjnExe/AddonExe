@@ -128,7 +128,7 @@ export default tseslint.config(
             ecmaVersion: 'latest',
             sourceType: 'module',
             parserOptions: {
-                project: './tsconfig.json',
+                project: './tsconfig.test.json',
                 tsconfigRootDir: __dirname
             },
             globals: {
@@ -150,7 +150,7 @@ export default tseslint.config(
         settings: {
             'import/resolver': {
                 typescript: {
-                    project: './tsconfig.json'
+                    project: './tsconfig.test.json'
                 }
             }
         },

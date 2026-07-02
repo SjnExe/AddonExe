@@ -1,0 +1,24 @@
+--- MovementCheck.test.ts
++++ MovementCheck.test.ts
+@@ -10,6 +10,12 @@
+     }
+ }));
+
++mock.module('@minecraft/server', () => ({
++    world: {
++        getAllPlayers: mock()
++    }
++}));
++
+ // Import the module AFTER setting up mocks
+ const { checkMovement } = await import('../movementCheck.js');
+
+@@ -25,7 +31,7 @@
+         mock.restore();
+         mockFlag.mockClear();
+         // Initialize cache
+-        (mc.world.getAllPlayers as any).mockReturnValue([]);
++        (mc.world?.getAllPlayers as any)?.mockReturnValue?.([]);
+
+         // Setup getComponent mock for player
+         (mockPlayer.getComponent as any).mockReturnValue({
