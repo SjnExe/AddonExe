@@ -12,37 +12,27 @@ import { errorLog } from '@core/logger.js';
  */
 export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
     try {
-        // If we are in vitest context, try to resolve from .default.ts or .ts
+        // If we are in vitest context, try to resolve from .ts instead of .js
         let finalPath = modulePath;
         if (typeof process !== 'undefined' && process.env.BUN_ENV === 'test') {
             const pathParts = modulePath.split('/');
             const filename = pathParts.pop();
             if (filename) {
                 const basename = filename.replace('.js', '');
-                // Build an absolute path or correct relative path to src/
-                // modulePath comes as e.g. './features/shop/shopConfig.js'
-                // But in vitest, the cwd is the project root /app, so relative paths from configLoader are tricky.
-                // We're inside /app/src/core/configLoader.ts
                 const relativeToCore = pathParts.join('/');
                 const tryTs = `${relativeToCore}/${basename}.ts`;
-                const tryDefaultTs = `${relativeToCore}/${basename}.default.ts`;
 
                 try {
                     await import(tryTs);
                     finalPath = tryTs;
                 } catch {
+                    // If it fails, maybe it needs a path relative to root or src
                     try {
-                        await import(tryDefaultTs);
-                        finalPath = tryDefaultTs;
+                        const tryRootTs = `../${relativeToCore.replace('./', '')}/${basename}.ts`;
+                        await import(tryRootTs);
+                        finalPath = tryRootTs;
                     } catch {
-                        // If it fails, maybe it needs a path relative to root or src
-                        try {
-                            const tryRootTs = `../${relativeToCore.replace('./', '')}/${basename}.ts`;
-                            await import(tryRootTs);
-                            finalPath = tryRootTs;
-                        } catch {
-                            finalPath = `../${relativeToCore.replace('./', '')}/${basename}.default.ts`;
-                        }
+                        finalPath = modulePath; // let it fail natively if we can't find it
                     }
                 }
             }

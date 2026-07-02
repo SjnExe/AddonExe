@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { config } from '@core/../config.default.js';
+import { config } from '@core/../config.js';
 import { soundError, soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { hasPermission } from '@core/permissionEngine.js';

@@ -73,11 +73,11 @@ After the reload, a new snapshot is taken, and the process repeats on the next `
 
 ## 📄 Core Configuration Files
 
-### `config.js` - The Main Hub
+### `config.ts` - The Main Hub
 
 This is the primary file for most top-level settings. **Changes to this file can be reloaded with `/xreload`**.
 
-- **File:** `packs/behavior/scripts/config.js`
+- **File:** `src/config.ts` (in the repo) or `packs/behavior/scripts/config.js` (compiled)
 - **Purpose:**
     - Define `ownerPlayerNames` and the `adminTag`.
     - Enable or disable major systems (`tpa.enabled`, `homes.enabled`, `economy.enabled`, etc.).
@@ -120,11 +120,11 @@ This is the primary file for most top-level settings. **Changes to this file can
 - **Settings:**
     - `allowAdminBypass` (boolean): If `true`, players with admin permissions can enter locked dimensions. If `false`, the lock applies to everyone.
 
-### `ranksConfig.js` - Ranks & Permissions
+### `ranksConfig.ts` - Ranks & Permissions
 
 This file defines the entire hierarchy of roles on your server. **Requires a server restart to apply changes.**
 
-- **File:** `packs/behavior/scripts/core/ranksConfig.js`
+- **File:** `src/features/ranks/ranksConfig.ts` (in the repo) or `packs/behavior/scripts/src/features/ranks/ranksConfig.js` (compiled)
 - **Purpose:**
     - Define all available ranks (e.g., Owner, Admin, Member, custom ranks).
     - Set the `permissionLevel` for each rank, which controls access to commands.
@@ -142,17 +142,9 @@ This file controls the layout, buttons, and actions of the `/panel` user interfa
     - Change button text, icons, and required permission levels.
     - Link buttons to specific actions (like running a command or opening another panel).
 
-### Kit System Configuration
+### Kit System Configuration (Currently Deprecated)
 
-The kit system is configured through a combination of a master file (`kitsConfig.js`) and an in-game management panel.
-
-- **`kitsConfig.js` - Master Kit List**
-    - This file defines all possible kits that can be available. It serves as a master list that populates the in-game "Kit Management" panel. You should edit this file to add new kits or change the items within a kit. **Requires a server restart to apply changes.**
-    - **File:** `packs/behavior/scripts/core/kitsConfig.js`
-    - **Purpose:**
-        - Define a comprehensive list of all kits you want on your server.
-        - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds`, and `permissionLevel` in this file act as the defaults for when a kit is first loaded.
-    - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
+The kit system configuration logic is handled mostly by the in-game management panel. - **Purpose:** - Define a comprehensive list of all kits you want on your server. - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds`, and `permissionLevel` in this file act as the defaults for when a kit is first loaded. - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
 
 - **In-Game Kit Management**
     - The live settings for kits are configured in-game by an admin. This allows for live updates without restarting the server.
@@ -169,18 +161,18 @@ The kit system is configured through a combination of a master file (`kitsConfig
 
 The shop system is configured through a combination of files and in-game actions.
 
-- **`itemsConfig.js` - Master Shop Item List**
+- **`itemsConfig.ts` - Master Shop Item List**
     - This file defines all possible items that can be sold in the shop. It serves as a master list from which admins can enable items. **Requires a server restart to apply changes.**
-    - **File:** `packs/behavior/scripts/core/itemsConfig.js`
+    - **File:** `src/features/shop/itemsConfig.ts`
     - **Purpose:**
         - Define a comprehensive list of all items you might ever want to sell.
         - For each item, you can set a default buy price, sell price, category, and icon.
         - Enchanted books can be defined with their specific enchantment type and level.
     - **Note:** This file only defines what _can_ be in the shop. To actually make an item available for players to buy or sell, an admin must enable it through the in-game "Edit Shop" panel.
 
-- **`shopCategoryConfig.js` - Shop Category Icons**
+- **`shopCategoryConfig.ts` - Shop Category Icons**
     - This file defines the icons used for each category and sub-category in the shop UI. **Requires a server restart to apply changes.**
-    - **File:** `packs/behavior/scripts/core/shopCategoryConfig.js`
+    - **File:** `src/features/shop/shopCategoryConfig.ts`
     - **Purpose:**
         - Assign a specific texture path to each category name (e.g., 'Building Blocks', 'Ores & Minerals').
 

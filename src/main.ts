@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { loadCommands } from '@core/commands/index.js';
 import { getConfig, initializeConfigManager } from '@core/configManager.js';
 import { dataManager, loadPersistentData } from '@core/dataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
@@ -18,6 +17,8 @@ import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/ess
 import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import { initialize as initializeUIPanels } from '@ui/panels/index.js';
+// @ts-ignore: Virtual module handled by build system
+import { loadCommands } from 'virtual:command-index';
 
 const VERSION = '0.7.0'; // Current Addon Version
 

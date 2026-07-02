@@ -25,12 +25,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# User-specific configuration files (ignore custom *.ts configs)
-# We want to ignore all *Config.ts but KEEP *Config.default.ts
-src/**/*Config.ts
-!src/**/*Config.default.ts
-src/config.ts
-!src/config.default.ts
+# Configuration files are no longer ignored
 
 # Reports
 eslint_report.txt

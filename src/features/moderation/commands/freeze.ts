@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.default.js';
+import { config } from '@core/../config.js';
 import { frozenTag } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';

@@ -1,8 +1,8 @@
-import { config } from '@core/../config.default.js';
+import { config } from '@core/../config.js';
 import { getRanksConfig } from '@core/configurations.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { getAllRanks, getRankById } from '@core/rankManager.js';
-import { RankDefinition } from '@features/ranks/ranksConfig.default.js';
+import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

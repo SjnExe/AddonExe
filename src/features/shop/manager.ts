@@ -5,7 +5,7 @@ import { errorLog } from '@core/logger.js';
 import { getPlayerRanks } from '@core/permissionEngine.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
-import { items as allItems } from '@features/shop/itemsConfig.default.js';
+import { items as allItems } from '@features/shop/itemsConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 interface ItemInfo {
