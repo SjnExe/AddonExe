@@ -46,8 +46,7 @@ export function unwrap<T, E>(result: Result<T, E>): T {
 
     let errorMessage: string;
     try {
-        errorMessage =
-            typeof result.error === 'object' && result.error !== null ? JSON.stringify(result.error) : String(result.error);
+        errorMessage = typeof result.error === 'object' && result.error !== null ? JSON.stringify(result.error) : String(result.error);
     } catch {
         errorMessage = String(result.error);
     }
