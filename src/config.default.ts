@@ -1,6 +1,6 @@
 export const config = {
     // --- System & Core Settings ---
-    version: [1, 0, 0], // This will be replaced by the release workflow
+    version: __INJECTED_VERSION__, // This will be replaced by the release workflow
     ownerPlayerNames: ['Your•Name•Here'], // Default : ['Your•Name•Here']
     serverName: '§cServerExe§r',
     defaultGamemode: 'survival',

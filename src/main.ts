@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { loadCommands } from '@core/commands/index.js';
+import { loadCommands } from 'virtual:command-index';
 import { getConfig, initializeConfigManager } from '@core/configManager.js';
 import { dataManager, loadPersistentData } from '@core/dataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
@@ -19,7 +19,7 @@ import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import { initialize as initializeUIPanels } from '@ui/panels/index.js';
 
-const VERSION = '0.7.0'; // Current Addon Version
+const VERSION = __ADDON_VERSION__; // Current Addon Version
 
 // Load Commands immediately to register slash commands during startup
 loadCommands();

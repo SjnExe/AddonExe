@@ -17,8 +17,8 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "bun clean && bun --bun scripts/generate-manifests.js && bun --bun scripts/build-assets.js && bun --bun tsup --env.NODE_ENV=development",
-        "build:release": "bun clean && bun --bun scripts/generate-manifests.js --release && bun --bun scripts/build-assets.js --minify && bun --bun tsup --minify --env.NODE_ENV=production",
+        "build": "bun clean && bun scripts/build.ts",
+        "build:release": "bun clean && bun scripts/build.ts --release --minify",
         "check-deps": "bun --bun scripts/check-dependencies.js",
         "check-types": "bun --bun tsc --noEmit --incremental",
         "clean": "rm -rf build out",
@@ -30,7 +30,7 @@
         "lint:check": "bun --bun eslint src scripts eslint.config.js --cache",
         "lint:fix": "bun --bun eslint src scripts eslint.config.js --fix --cache",
         "lint:report": "bun --bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
-        "prepare": "simple-git-hooks && bun --bun scripts/generate-manifests.js",
+        "prepare": "simple-git-hooks",
         "project-info": "bun --bun mct info",
         "reinstall": "rimraf node_modules bun.lockb bun.lock && bun install",
         "test": "bun test",
@@ -38,7 +38,7 @@
         "test:watch": "bun test --watch",
         "validate": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
         "validate:report": "bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
-        "watch": "bun --bun concurrently \"bun --bun tsc -w\" \"bun --bun scripts/build-assets.js --watch\" \"bun --bun tsup --watch --env.NODE_ENV=development\""
+        "watch": "bun scripts/build.ts --watch"
     },
     "simple-git-hooks": {
         "pre-commit": "bun scripts/pre-commit.js"
