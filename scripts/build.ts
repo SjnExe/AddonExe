@@ -16,7 +16,8 @@ const isMinify = args.includes('--minify') || isRelease;
 let buildNumber = 0;
 const buildNumIndex = args.indexOf('--build-number');
 if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
-    buildNumber = Number.parseInt(args[buildNumIndex + 1], 10);
+    const buildNumArg = args[buildNumIndex + 1];
+    buildNumber = Number.parseInt(buildNumArg ?? '', 10);
     if (isNaN(buildNumber)) buildNumber = 0;
 }
 
@@ -407,7 +408,7 @@ export const commandIndexPlugin = {
                 const regex = /\{\s*id:\s*'([^']+)'/g;
                 let match;
                 while ((match = regex.exec(content)) !== null) {
-                    featureDirs.push(match[1]);
+                    if (match[1]) if (match[1]) featureDirs.push(match[1]);
                 }
             } catch (error: any) {
                 console.warn(`[Plugin] Error reading featureRegistry.ts: ${error.message}`);

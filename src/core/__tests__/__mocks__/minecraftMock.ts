@@ -26,8 +26,8 @@ export class BlockVolume {
 // Stateful Dynamic Property Store
 const _testDynamicProperties = new Map();
 export const world = {
-    getDynamicProperty: mock((key) => _testDynamicProperties.get(key)),
-    setDynamicProperty: mock((key, val) => {
+    getDynamicProperty: mock((key: string) => _testDynamicProperties.get(key)),
+    setDynamicProperty: mock((key: string, val: any) => {
         if (val === undefined) _testDynamicProperties.delete(key);
         else _testDynamicProperties.set(key, val);
     }),
