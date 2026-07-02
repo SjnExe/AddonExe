@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mocks
 const mockGetConfig = mock();
@@ -29,10 +29,10 @@ describe('Kit Items Manager', () => {
         mockGetConfig.mockReturnValue({
             kits: {
                 kitDefinitions: {
-                    'TestKit': {
+                    TestKit: {
                         items: []
                     },
-                    'FullKit': {
+                    FullKit: {
                         items: new Array(36).fill({ typeId: 'minecraft:stone', amount: 1 })
                     }
                 }
