@@ -92,25 +92,23 @@ Installing on a Bedrock Dedicated Server is slightly different, as you manually 
 
 ---
 
-## How does the customized configuration work?
+## How does the configuration system work?
 
-AddonExe uses a flexible configuration system that works differently depending on whether you are editing the source code (repository) or the installed addon.
+AddonExe uses a standard configuration system.
 
 ### 1. For Developers (Repository)
 
 If you are developing the addon or building it from source:
 
-- **Default Files:** The repository contains template configuration files ending in `.default.ts` (e.g., `src/config.default.ts`). These files define the structure and default values.
-- **Custom Configuration:** To customize the build, create a copy of the default file and rename it to remove `.default`. For example, copy `src/config.default.ts` to `src/config.ts`.
-- **Git Ignore:** Your custom `src/config.ts` file is ignored by Git, ensuring your personal settings are not overwritten when you pull updates.
-- **Build Process:** When you run `npm run build`, the system prioritizes your custom `src/config.ts`. If it doesn't exist, it falls back to the default.
+- **Config Files:** The repository contains the primary configuration files in the `src/` directory, ending in `.ts` (e.g., `src/config.ts`).
+- **Customization:** You can simply open and edit these configuration files directly to adjust your settings before building.
+- **Build Process:** When you run `npm run build`, the system will compile these configuration files directly into the build output alongside the rest of your scripts.
 
 ### 2. For Users (Installed Addon)
 
 If you have downloaded the `.mcaddon` or `.mcpack`:
 
-- **Active Config Files:** Inside the `AddonExeBP/scripts/` folder, you will find active configuration files like `config.js`, `economyConfig.js`, etc.
-- **No Defaults:** The `.default.js` files are automatically removed from the release version to keep things clean.
+- **Active Config Files:** Inside the `AddonExeBP/scripts/` folder, you will find the compiled active configuration files like `config.js`, `economyConfig.js`, etc.
 - **Customization:** You can directly edit these `.js` files to configure the addon. Your changes will be loaded the next time the server starts or reloads.
 
 ### 3. Updating the Addon

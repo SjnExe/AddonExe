@@ -4,7 +4,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { parseCurrency } from '@core/utils.js';
-import { items as allItems } from '@features/shop/itemsConfig.default.js';
+import { items as allItems } from '@features/shop/itemsConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import * as shopAdminManager from '@features/shop/adminManager.js';

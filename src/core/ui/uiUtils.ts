@@ -18,10 +18,10 @@ import {
 import { hasPermission } from '@core/permissionEngine.js';
 import { showPanel } from '@core/uiManager.js';
 import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/configLoader.js';
-import { xrayConfig } from '@features/anticheat/xrayConfig.default.js';
-import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.default.js';
+import { xrayConfig } from '@features/anticheat/xrayConfig.js';
+import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.js';
 import { economyConfig } from '@features/economy/economyConfig.js';
-import ranksConfig from '@features/ranks/ranksConfig.default.js';
+import ranksConfig from '@features/ranks/ranksConfig.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
 import * as mc from '@minecraft/server';

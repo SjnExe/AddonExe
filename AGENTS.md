@@ -31,9 +31,8 @@ Before implementing changes, strive to understand the relevant parts of the code
 - **Core Managers:** `src/core` handles cross-cutting concerns.
 - **Features:** Each feature in `src/features/` should be self-contained (Manager, Config, Commands).
 - **Configuration Files:**
-    - `src/config.js` (or `.ts`): Main settings, feature toggles, owner/admin setup.
-    - `src/core/ranksConfig.js`: Defines all ranks and their visual styles.
-    - `src/core/panelLayoutConfig.js`: Defines the layout and content of the UI panels.
+    - `src/config.ts`: Main settings, feature toggles, owner/admin setup.
+    - `src/features/ranks/ranksConfig.ts`: Defines all ranks and their visual styles.
 - **Coding Conventions:** Strictly follow guidelines in `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
 - **Naming Conventions:**
     - The general rule for all project-specific JavaScript/TypeScript identifiers is that **any code style is allowed, but not snake_case**.
@@ -86,8 +85,8 @@ The following patterns must be verified and adhered to when working on the codeb
     - `commandManager.ts`: Uses named exports.
 - **Configuration:**
     - Persistence: Use `.set(newConfig)` to update and save configurations. `.save()` persists current memory state.
-    - Structure: `bounties` are in `config.js`, but other economy settings are in `economyConfig.js`.
-    - Validation: `xrayConfig.js` uses a `monitoredOreTypes` structure.
+    - Structure: `bounties` are in `config.ts`, but other economy settings are in `economyConfig.ts`.
+    - Validation: `xrayConfig.ts` uses a `monitoredOreTypes` structure.
 - **UI System:**
     - Source of Truth: `src/core/ui/panelRegistry.js` contains the schema for UI panels.
     - Dynamic Config IDs: Panels generated from schema use IDs like `config_<schemaId>`.

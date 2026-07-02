@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { loadCommands } from '@core/commands/index.js';
+import { loadCommands } from 'virtual:command-index';
 import { getConfig, initializeConfigManager } from '@core/configManager.js';
 import { dataManager, loadPersistentData } from '@core/dataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';

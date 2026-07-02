@@ -1,5 +1,5 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.default.js';
+import { config } from '@core/../config.js';
 import { sendMessage } from '@core/messaging.js';
 import { canTarget } from '@core/rankManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';

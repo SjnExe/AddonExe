@@ -177,29 +177,24 @@ jobs:
                   BUILD_DATE=$(date -u)
                   echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
 
-            - name: Prepare Release Source (Nightly only)
-              if: steps.build_type.outputs.type == 'nightly'
-              shell: bash
-              env:
-                  VERSION_STRING: ${{ env.VERSION_STRING }}
-                  VERSION_ARRAY_STRING: ${{ env.VERSION_ARRAY_STRING }}
-                  IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
-              run: |
-                  set -e
-                  bun scripts/prepare-release.js
-
             - name: Build TypeScript (Nightly)
               if: steps.build_type.outputs.type == 'nightly'
               run: |
-                  bun run clean
-                  bun scripts/generate-manifests.js --nightly --build-number ${{ github.run_number }}
-                  bun scripts/build-assets.js
-                  bunx tsup
+                  bun run build -- --nightly --build-number ${{ github.run_number }}
+              env:
+                  IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'
               run: |
                   bun run build:release
+
+            - name: Verify Staged Packs
+              run: |
+                  if [ ! -d "build/behavior/scripts" ]; then
+                    echo "Error: Scripts directory missing from behavior pack."
+                    exit 1
+                  fi
 
             - name: Set Version Variable for Archive Names
               run: |
@@ -211,20 +206,14 @@ jobs:
                       echo "PREFIX=Nightly" >> $GITHUB_ENV
                   fi
 
-            - name: Create staging directory and copy addon folders
-              run: |
-                  set -e
-                  mkdir staging
-                  cp -r build/behavior staging/
-                  cp -r build/resource staging/
-
             - name: Create Release Archives
               shell: bash
               run: |
                   set -e
-                  zip -r -9 "AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" ./staging/* -x "*.map"
-                  (cd staging/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
-                  (cd staging/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+                  # Zip directly from the build directory to ensure exact packaging
+                  (cd build && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
+                  (cd build/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+                  (cd build/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
             - name: Upload Raw Build Directory
               uses: actions/upload-artifact@v7

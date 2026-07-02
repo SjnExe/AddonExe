@@ -96,10 +96,10 @@ This document provides a detailed breakdown of the features available in AddonEx
     - Enable or disable any item from a master list.
     - Set custom buy and sell prices for each item. Setting a price to -1 or 0 disables that action.
 - **Configuration:**
-    - The master list of all potential shop items is defined in `packs/behavior/scripts/core/itemsConfig.js`. Each item in this list has a default price, category, and other properties.
-    - Shop categories and their icons are defined in `packs/behavior/scripts/core/shopCategoryConfig.js`.
+    - The master list of all potential shop items is defined in `src/features/shop/itemsConfig.ts`. Each item in this list has a default price, category, and other properties.
+    - Shop categories and their icons are defined in `src/features/shop/shopCategoryConfig.ts`.
     - The active shop configuration (which items are enabled and their current prices) is saved to the world's dynamic properties and persists across restarts. This is modified via the in-game editor.
-    - _Key Configs: `itemsConfig.js`, `shopCategoryConfig.js` (for setup); world data (for live prices)_
+    - _Key Configs: `itemsConfig.ts`, `shopCategoryConfig.ts` (for setup); world data (for live prices)_
 
 ### E. Homes System
 
@@ -123,8 +123,8 @@ This document provides a detailed breakdown of the features available in AddonEx
 - Allows players to claim predefined kits of items.
 - **Commands:** `/kit`.
 - **Cooldowns:** Kits can have cooldowns to prevent them from being claimed too frequently.
-- **Customizable:** Kits are defined in `packs/behavior/scripts/core/kitsConfig.js`.
-- _Key Configs: `config.js` (under the `kits` section)_
+- **Customizable:** Kits are defined via the in-game panel, replacing the old file structure.
+- _Key Configs: `config.ts` (under the `kits` section)_
 
 ### H. Player Information & Experience
 

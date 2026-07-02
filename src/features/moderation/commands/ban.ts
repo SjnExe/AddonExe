@@ -2,7 +2,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.default.js';
+import { config } from '@core/../config.js';
 import { errorLog, warnLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
