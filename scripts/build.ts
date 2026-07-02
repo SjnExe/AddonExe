@@ -1,10 +1,8 @@
-import { exec } from 'node:child_process';
+import { $ } from 'bun';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { promisify } from 'node:util';
 
-const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const pkgPath = path.resolve(__dirname, '../package.json');
@@ -24,9 +22,8 @@ if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
 
 // Version Parsing
 async function getVersionParts() {
-    const pkgRaw = await fs.readFile(pkgPath, 'utf-8');
-    const pkg = JSON.parse(pkgRaw);
-    let versionStr = pkg.version || '0.0.1';
+    const pkg = await Bun.file(pkgPath).json();
+    const versionStr = pkg.version || '0.0.1';
 
     const parts = versionStr.split('.').map(Number);
     let major = parts[0] || 0;
@@ -82,8 +79,8 @@ function minifyContent(filePath: string, content: string): string {
 async function fetchLatestVersion(pkgName: string): Promise<string> {
     try {
         console.log(`[Build] Fetching latest version for ${pkgName}...`);
-        const { stdout } = await execAsync(`npm view ${pkgName} version`);
-        return stdout.trim();
+        const output = await $`npm view ${pkgName} version`.text();
+        return output.trim();
     } catch (error: any) {
         console.warn(`[Build] Failed to fetch version for ${pkgName}, defaulting to 1.0.0. Error: ${error.message}`);
         return '1.0.0';
@@ -136,10 +133,10 @@ async function processAssets() {
                 await fs.mkdir(path.dirname(destPath), { recursive: true });
 
                 if (isMinify && (fullPath.endsWith('.json') || fullPath.endsWith('.lang') || fullPath.endsWith('.mcfunction'))) {
-                    const content = await fs.readFile(fullPath, 'utf8');
-                    await fs.writeFile(destPath, minifyContent(fullPath, content));
+                    const content = await Bun.file(fullPath).text();
+                    await Bun.write(destPath, minifyContent(fullPath, content));
                 } else {
-                    await fs.copyFile(fullPath, destPath);
+                    await Bun.write(destPath, Bun.file(fullPath));
                 }
             }
         }
@@ -248,8 +245,8 @@ async function generateManifests(versionArray: number[], versionStr: string, pkg
     await fs.mkdir(path.join(buildDir, 'behavior'), { recursive: true });
     await fs.mkdir(path.join(buildDir, 'resource'), { recursive: true });
 
-    await fs.writeFile(path.join(buildDir, 'behavior/manifest.json'), JSON.stringify(bpManifest, null, 4));
-    await fs.writeFile(path.join(buildDir, 'resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
+    await Bun.write(path.join(buildDir, 'behavior/manifest.json'), JSON.stringify(bpManifest, null, 4));
+    await Bun.write(path.join(buildDir, 'resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
 }
 
 // Compile TypeScript with Bun
@@ -297,7 +294,7 @@ async function compileScripts(versionArray: number[]) {
 
             // Text replace version in src/config.ts dynamically
             build.onLoad({ filter: /src[\\/]config\.ts$/ }, async (args) => {
-                let content = await fs.readFile(args.path, 'utf8');
+                let content = await Bun.file(args.path).text();
                 content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: ${versionArrayStr}`);
 
                 if (process.env.IS_BETA_RELEASE === 'true') {
@@ -406,7 +403,7 @@ export const commandIndexPlugin = {
             const featureDirs: string[] = [];
             try {
                 const registryTsPath = path.resolve(SRC_DIR, 'core/featureRegistry.ts');
-                const content = await fs.readFile(registryTsPath, 'utf8');
+                const content = await Bun.file(registryTsPath).text();
                 const regex = /\{\s*id:\s*'([^']+)'/g;
                 let match;
                 while ((match = regex.exec(content)) !== null) {
