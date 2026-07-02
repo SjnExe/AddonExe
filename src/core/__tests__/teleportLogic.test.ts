@@ -96,7 +96,7 @@ describe('startTeleportWarmup', () => {
         expect(mockSubscribe).toHaveBeenCalled();
         expect(mockRunInterval).toHaveBeenCalled();
 
-        const intervalCallback = mockRunInterval.mock.calls[0][0];
+        const intervalCallback = mockRunInterval.mock.calls[0]?.[0] as () => void;
 
         // First tick (remaining: 1)
         intervalCallback();
@@ -116,7 +116,7 @@ describe('startTeleportWarmup', () => {
     it('should cancel if player takes damage', () => {
         startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-        const hurtListener = mockSubscribe.mock.calls[0][0];
+        const hurtListener = mockSubscribe.mock.calls[0]?.[0] as (event: any) => void;
 
         // Simulate damage to another player
         hurtListener({ hurtEntity: { id: 'player2' } });
@@ -133,7 +133,7 @@ describe('startTeleportWarmup', () => {
     it('should cancel if player moves too far', () => {
         startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-        const intervalCallback = mockRunInterval.mock.calls[0][0];
+        const intervalCallback = mockRunInterval.mock.calls[0]?.[0] as () => void;
 
         mockDistance.mockReturnValue(3); // Moved more than 2 blocks
         intervalCallback();
@@ -146,7 +146,7 @@ describe('startTeleportWarmup', () => {
     it('should cancel if player changes dimension', () => {
         startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-        const intervalCallback = mockRunInterval.mock.calls[0][0];
+        const intervalCallback = mockRunInterval.mock.calls[0]?.[0] as () => void;
 
         mockPlayer.dimension.id = 'minecraft:nether';
         intervalCallback();
@@ -158,7 +158,7 @@ describe('startTeleportWarmup', () => {
     it('should cancel if player becomes invalid', () => {
         startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-        const intervalCallback = mockRunInterval.mock.calls[0][0];
+        const intervalCallback = mockRunInterval.mock.calls[0]?.[0] as () => void;
 
         mockPlayer.isValid = false;
         intervalCallback();
@@ -169,7 +169,7 @@ describe('startTeleportWarmup', () => {
     it('should handle interval exceptions gracefully', () => {
         startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-        const intervalCallback = mockRunInterval.mock.calls[0][0];
+        const intervalCallback = mockRunInterval.mock.calls[0]?.[0] as () => void;
 
         // Cause an exception by making distance function throw
         mockDistance.mockImplementation(() => {
@@ -190,7 +190,7 @@ describe('startTeleportWarmup', () => {
 
         startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-        const intervalCallback = mockRunInterval.mock.calls[0][0];
+        const intervalCallback = mockRunInterval.mock.calls[0]?.[0] as () => void;
         mockPlayer.isValid = false;
 
         // This should trigger cleanup which will throw, but it should be caught
