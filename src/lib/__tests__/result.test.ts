@@ -18,6 +18,42 @@ describe('Result Utilities', () => {
             expect(result.success).toBe(true);
             expect(result.data).toBe(data);
         });
+
+        it('should create a success result with null data', () => {
+            const result = ok(null);
+
+            expect(result.success).toBe(true);
+            expect(result.data).toBeNull();
+        });
+
+        it('should create a success result with undefined data', () => {
+            const result = ok(undefined);
+
+            expect(result.success).toBe(true);
+            expect(result.data).toBeUndefined();
+        });
+
+        it('should create a success result with falsy values', () => {
+            const resultZero = ok(0);
+            expect(resultZero.success).toBe(true);
+            expect(resultZero.data).toBe(0);
+
+            const resultFalse = ok(false);
+            expect(resultFalse.success).toBe(true);
+            expect(resultFalse.data).toBe(false);
+
+            const resultEmptyString = ok('');
+            expect(resultEmptyString.success).toBe(true);
+            expect(resultEmptyString.data).toBe('');
+        });
+
+        it('should create a success result with an array', () => {
+            const data = [1, 2, 3];
+            const result = ok(data);
+
+            expect(result.success).toBe(true);
+            expect(result.data).toBe(data);
+        });
     });
 
     describe('err()', () => {
