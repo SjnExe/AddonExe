@@ -2,20 +2,30 @@ import { $ } from 'bun';
 import fs from 'fs';
 
 try {
-    // Run lint-staged first (inherits console output natively)
+    // 1. Run lint-staged first
     await $`bun --bun lint-staged`;
 
-    // Run validation checks in parallel and capture stdout/stderr quietly
-    const result = await $`bun --bun concurrently --group "bun check-types" "bun test" "bun validate"`.nothrow().quiet();
+    // 2. Run validation checks concurrently using native JS Promises
+    console.log('Running validation checks in parallel...');
+    const [checkTypes, test, validate] = await Promise.all([$`bun check-types`.nothrow().quiet(), $`bun test`.nothrow().quiet(), $`bun validate`.nothrow().quiet()]);
 
-    const logContent = result.stdout.toString() + result.stderr.toString();
+    // 3. Group the logs cleanly
+    const logContent = [
+        `=== Type Check (Exit: ${checkTypes.exitCode}) ===\n${checkTypes.stdout}${checkTypes.stderr}`,
+        `=== Tests (Exit: ${test.exitCode}) ===\n${test.stdout}${test.stderr}`,
+        `=== Validation (Exit: ${validate.exitCode}) ===\n${validate.stdout}${validate.stderr}`
+    ].join('\n\n');
+
     fs.writeFileSync('.git/pre-commit.log', logContent);
 
-    if (result.exitCode !== 0) {
-        // Print the failure log out to the terminal so you know what failed
+    // 4. If any of them failed, dump logs to console and block the commit
+    if (checkTypes.exitCode !== 0 || test.exitCode !== 0 || validate.exitCode !== 0) {
         console.log(logContent);
+        console.error('\n❌ Pre-commit checks failed. See details above.');
         process.exit(1);
     }
+
+    console.log('✨ All pre-commit checks passed!');
 } catch (error) {
     console.error('Pre-commit hook exception:', error);
     process.exit(1);
