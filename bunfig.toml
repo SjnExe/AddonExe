@@ -1,5 +1,4 @@
 # Bun Configuration - Optimized Multi-Core Pipeline
-
 [install]
 cache = true
 
@@ -10,4 +9,4 @@ parallel = true
 smol = false
 
 [runtime]
-flags = ["--use-v8-jit"]
+flags = []
