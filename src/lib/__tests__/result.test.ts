@@ -74,7 +74,7 @@ describe('Result Utilities', () => {
             const customError = { code: 500 };
             const result = err(customError);
 
-            expect(() => unwrap(result)).toThrow(new Error('[object Object]'));
+            expect(() => unwrap(result)).toThrow(new Error('{"code":500}'));
         });
     });
 });
