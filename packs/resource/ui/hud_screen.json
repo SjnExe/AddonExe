@@ -2607,12 +2607,6 @@
             },
             {
                 "camera_renderer@camera_renderer": {}
-            },
-            {
-                "crosshair_renderer@crosshair_renderer": {}
-            },
-            {
-                "subtitle_container_host@subtitle_container_host": {}
             }
         ]
     }
