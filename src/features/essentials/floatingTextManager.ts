@@ -25,13 +25,30 @@ const dynamicTexts = new Map<string, FloatingTextConfig>();
 
 const pendingDespawns = new Map<string, number>();
 const unloadedChunkQueue = new Set<string>();
-const lastUpdateTick = new Map<string, number>();
+
+const scheduledUpdates = new Map<number, Set<string>>();
+const nextUpdateTick = new Map<string, number>();
 
 let expirationIntervalId: number | undefined;
 let retrySpawnIntervalId: number | undefined;
 let updateLoopId: number | undefined;
+let lastProcessedTick: number = 0;
 
 const lastResolvedText = new Map<string, string>();
+
+function scheduleTextUpdate(id: string, tick: number) {
+    nextUpdateTick.set(id, tick);
+    let set = scheduledUpdates.get(tick);
+    if (!set) {
+        set = new Set();
+        scheduledUpdates.set(tick, set);
+    }
+    set.add(id);
+}
+
+function unscheduleTextUpdate(id: string) {
+    nextUpdateTick.delete(id);
+}
 
 function loadTexts() {
     try {
@@ -40,9 +57,13 @@ function loadTexts() {
             const parsedData = JSON.parse(dataString) as unknown as [string, FloatingTextConfig][];
             floatingTexts = new Map(parsedData);
             dynamicTexts.clear();
+            scheduledUpdates.clear();
+            nextUpdateTick.clear();
+            const currentTick = mc.system.currentTick;
             for (const text of floatingTexts.values()) {
                 if (isNumber(text.updateInterval) && text.updateInterval > 0) {
                     dynamicTexts.set(text.id, text);
+                    scheduleTextUpdate(text.id, currentTick + text.updateInterval);
                 }
             }
             debugLog(`[FloatingText] Loaded ${floatingTexts.size} floating texts.`);
@@ -77,6 +98,7 @@ export function initialize() {
     spawnAllTexts();
     runExpirationLoop();
     runRetrySpawnLoop();
+    lastProcessedTick = mc.system.currentTick;
     runUpdateLoop();
 }
 
@@ -90,23 +112,31 @@ function* updateLoopJob() {
 
     // 1. Identify texts needing update
     let checkCount = 0;
-    for (const textConfig of dynamicTexts.values()) {
-        const lastTick = lastUpdateTick.get(textConfig.id) ?? 0;
-        if (!isDefined(textConfig.updateInterval) || now - lastTick < textConfig.updateInterval) {
-            continue;
+    for (let tick = lastProcessedTick + 1; tick <= now; tick++) {
+        const textsToUpdate = scheduledUpdates.get(tick);
+        scheduledUpdates.delete(tick);
+
+        if (textsToUpdate) {
+            for (const id of textsToUpdate) {
+                if (nextUpdateTick.get(id) !== tick) continue; // rescheduled
+
+                const textConfig = dynamicTexts.get(id);
+                if (!textConfig || !isDefined(textConfig.updateInterval)) continue;
+
+                scheduleTextUpdate(id, now + textConfig.updateInterval);
+
+                const dim = textConfig.dimension;
+                if (!textsByDimension.has(dim)) {
+                    textsByDimension.set(dim, []);
+                }
+                textsByDimension.get(dim)!.push(textConfig);
+
+                checkCount++;
+                if (checkCount % 50 === 0) yield; // Yield every 50 checks
+            }
         }
-
-        lastUpdateTick.set(textConfig.id, now);
-
-        const dim = textConfig.dimension;
-        if (!textsByDimension.has(dim)) {
-            textsByDimension.set(dim, []);
-        }
-        textsByDimension.get(dim)!.push(textConfig);
-
-        checkCount++;
-        if (checkCount % 50 === 0) yield; // Yield every 50 checks
     }
+    lastProcessedTick = now;
 
     // 2. Batch update by dimension
     for (const [dimId, texts] of textsByDimension) {
@@ -357,8 +387,10 @@ export function updateText(id: string, updates: Partial<FloatingTextConfig>) {
     floatingTexts.set(id, newConfig);
     if (isNumber(newConfig.updateInterval) && newConfig.updateInterval > 0) {
         dynamicTexts.set(id, newConfig);
+        scheduleTextUpdate(id, mc.system.currentTick + newConfig.updateInterval);
     } else {
         dynamicTexts.delete(id);
+        unscheduleTextUpdate(id);
     }
     saveTexts();
     debugLog(`[FloatingText] Saved updated config for ID: ${id}`);
@@ -533,6 +565,7 @@ export function deleteText(player: mc.Player | undefined, id: string) {
     despawnText(id);
     floatingTexts.delete(id);
     dynamicTexts.delete(id);
+    unscheduleTextUpdate(id);
     saveTexts();
 
     if (isDefined(player)) {
@@ -586,7 +619,8 @@ export function cleanup() {
     unloadedChunkQueue.clear();
     floatingTexts.clear();
     dynamicTexts.clear();
-    lastUpdateTick.clear();
+    scheduledUpdates.clear();
+    nextUpdateTick.clear();
 
     debugLog('[FloatingText] Cleanup complete.');
 }
