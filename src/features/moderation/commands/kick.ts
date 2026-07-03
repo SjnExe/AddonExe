@@ -8,6 +8,7 @@ import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { canTarget } from '@core/rankManager.js';
 import { playSound } from '@core/utils.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 
 export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | undefined, reason: string) {
@@ -38,8 +39,9 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | 
     }
 
     try {
-        const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
-        const commandToRun = `kick "${targetPlayer.name}" ${sanitizedReason}`;
+        const safeReason = escapeCommandArg(reason);
+        const safeTargetName = escapeCommandArg(targetPlayer.name);
+        const commandToRun = `kick "${safeTargetName}" "${safeReason}"`;
         mc.world.getDimension('overworld').runCommand(commandToRun);
         if (executor instanceof mc.Player) {
             sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`, executor);

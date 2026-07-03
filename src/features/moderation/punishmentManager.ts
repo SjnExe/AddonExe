@@ -4,6 +4,7 @@ import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 interface AnticheatLogsService {
@@ -184,8 +185,10 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
     const punishment = getPunishment(player.id, 'ban');
     if (isDefined(punishment)) {
         const banReason = isNonEmptyString(punishment.reason) ? punishment.reason : 'You are banned.';
+        const safeReason = escapeCommandArg(banReason);
+        const safePlayerName = escapeCommandArg(player.name);
         // Use a slight delay to ensure the kick command processes after join
-        mc.system.runTimeout(() => mc.world.getDimension('overworld').runCommand(`kick "${player.name}" ${banReason}`), 5);
+        mc.system.runTimeout(() => mc.world.getDimension('overworld').runCommand(`kick "${safePlayerName}" "${safeReason}"`), 5);
         return true;
     }
     return false;
