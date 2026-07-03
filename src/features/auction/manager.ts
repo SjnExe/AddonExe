@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { v4 as uuidv4 } from 'uuid';
 
 import { getAuctionHouseConfig } from '@core/configurations.js';
 import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';
@@ -34,13 +35,9 @@ export enum SortOption {
 const storage = new StorageManager('exe:auctionHouse');
 const activeListings = new Map<string, AuctionListing>();
 
-// Generate a simple UUID
+// Generate a secure UUID using the uuid package
 function generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c) => {
-        const r = Math.trunc(Math.random() * 16);
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
+    return uuidv4();
 }
 
 export function initializeAuctionHouse() {

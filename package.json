@@ -1,21 +1,59 @@
 {
     "name": "AddonExe",
     "version": "0.7.0",
-    "private": true,
-    "description": "<p align=\"center\"> <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
-    "keywords": [],
-    "homepage": "https://github.com/SjnExe/AddonExe#readme",
-    "bugs": {
-        "url": "https://github.com/SjnExe/AddonExe/issues"
-    },
+    "author": "SjnExe",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/SjnExe/AddonExe.git"
     },
-    "license": "MIT",
-    "author": "SjnExe",
-    "type": "module",
     "main": "index.js",
+    "devDependencies": {
+        "@eslint/js": "latest",
+        "@minecraft/common": "latest",
+        "@minecraft/creator-tools": "latest",
+        "@minecraft/debug-utilities": "beta",
+        "@minecraft/math": "latest",
+        "@minecraft/server": "beta",
+        "@minecraft/server-gametest": "beta",
+        "@minecraft/server-ui": "beta",
+        "@minecraft/vanilla-data": "latest",
+        "@types/node": "latest",
+        "@types/uuid": "^11.0.0",
+        "@typescript-eslint/eslint-plugin": "latest",
+        "@typescript-eslint/parser": "latest",
+        "eslint": "latest",
+        "eslint-config-prettier": "latest",
+        "eslint-plugin-import": "latest",
+        "eslint-plugin-jsonc": "latest",
+        "eslint-plugin-minecraft-linting": "latest",
+        "globals": "latest",
+        "jscpd": "latest",
+        "lint-staged": "latest",
+        "prettier": "latest",
+        "prettier-plugin-organize-imports": "latest",
+        "prettier-plugin-packagejson": "latest",
+        "type-fest": "latest",
+        "typescript": "latest",
+        "typescript-eslint": "latest"
+    },
+    "bugs": {
+        "url": "https://github.com/SjnExe/AddonExe/issues"
+    },
+    "description": "<p align=\"center\"> <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
+    "homepage": "https://github.com/SjnExe/AddonExe#readme",
+    "keywords": [],
+    "license": "MIT",
+    "lint-staged": {
+        "*.{js,ts}": [
+            "bun --bun eslint --fix",
+            "bun --bun prettier --write"
+        ],
+        "*.{json,md,yml,yaml}": "bun --bun prettier --write"
+    },
+    "overrides": {
+        "react": "^18.2.0"
+    },
+    "private": true,
     "scripts": {
         "build": "bun scripts/build.ts",
         "build:release": "bun scripts/build.ts --release --minify",
@@ -38,47 +76,13 @@
         "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
         "watch": "bun scripts/build.ts --watch"
     },
-    "lint-staged": {
-        "*.{js,ts}": [
-            "bun --bun eslint --fix",
-            "bun --bun prettier --write"
-        ],
-        "*.{json,md,yml,yaml}": "bun --bun prettier --write"
-    },
-    "overrides": {
-        "react": "^18.2.0"
-    },
-    "devDependencies": {
-        "@eslint/js": "latest",
-        "@minecraft/common": "latest",
-        "@minecraft/creator-tools": "latest",
-        "@minecraft/debug-utilities": "beta",
-        "@minecraft/math": "latest",
-        "@minecraft/server": "beta",
-        "@minecraft/server-gametest": "beta",
-        "@minecraft/server-ui": "beta",
-        "@minecraft/vanilla-data": "latest",
-        "@types/node": "latest",
-        "@typescript-eslint/eslint-plugin": "latest",
-        "@typescript-eslint/parser": "latest",
-        "eslint": "latest",
-        "eslint-config-prettier": "latest",
-        "eslint-plugin-import": "latest",
-        "eslint-plugin-jsonc": "latest",
-        "eslint-plugin-minecraft-linting": "latest",
-        "globals": "latest",
-        "jscpd": "latest",
-        "lint-staged": "latest",
-        "prettier": "latest",
-        "prettier-plugin-organize-imports": "latest",
-        "prettier-plugin-packagejson": "latest",
-        "type-fest": "latest",
-        "typescript": "latest",
-        "typescript-eslint": "latest"
-    },
     "trustedDependencies": [
         "bufferutil",
         "esbuild",
         "utf-8-validate"
-    ]
+    ],
+    "type": "module",
+    "dependencies": {
+        "uuid": "^14.0.1"
+    }
 }
