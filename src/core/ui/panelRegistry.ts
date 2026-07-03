@@ -36,10 +36,11 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
             {
                 id: 'games',
                 text: 'Games',
-                icon: 'textures/ui/controller_icon',
+                icon: 'textures/ui/controller_icon.png',
                 permission: 'ui.panel.member',
                 actionType: 'openPanel',
                 actionValue: 'gamesMainPanel',
+                requiresFeature: 'games.enabled',
                 sortId: 15
             },
             {
