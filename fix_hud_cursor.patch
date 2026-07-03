@@ -1,0 +1,19 @@
+--- packs/resource/ui/hud_screen.json
++++ packs/resource/ui/hud_screen.json
+@@ -2334,16 +2334,6 @@
+             },
+             { "vignette_rend@vignette_renderer": {} },
+             {
+-                "curor_rend@cursor_renderer": {
+-                    "bindings": [
+-                        {
+-                            "binding_name": "#show_cursor",
+-                            "binding_name_override": "#visible"
+-                        }
+-                    ]
+-                }
+-            },
+-            {
+                 "game_tip@game_tip.game_tip_factory": {}
+             },
+             {
