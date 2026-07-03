@@ -25,8 +25,15 @@ export interface WordleGame {
 const activeGames = new Map<string, WordleGame>();
 let globalStaffGameId: string | undefined = undefined;
 
+let _fallbackGameIdCounter = 0;
+
 function generateGameId(): string {
-    return Math.random().toString(36).substring(2, 9);
+    _fallbackGameIdCounter = (_fallbackGameIdCounter + 1) % 100000;
+    // Combine timestamp, a counter, and Math.random() as the most practical
+    // unique id generation method for QuickJS engine without crypto API.
+    const timePart = Date.now().toString(36);
+    const randPart = Math.random().toString(36).substring(2, 6);
+    return `${timePart}-${_fallbackGameIdCounter}-${randPart}`;
 }
 
 export function evaluateGuess(guess: string, answer: string): GuessResult {
