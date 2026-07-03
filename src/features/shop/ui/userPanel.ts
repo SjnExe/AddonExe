@@ -4,8 +4,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils.js';
-import * as shopManager from '@features/shop/manager.js';
-import { findShopItem, getPlayerShopItemPrice } from '@features/shop/manager.js';
+import { buyItem, findShopItem, getPlayerShopItemPrice, sellItem } from '@features/shop/manager.js';
 import { ShopCategory } from '@features/shop/shopConfig.js';
 import { ensureItemsConfig, getAllItems, Item } from '@features/shop/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
@@ -419,7 +418,7 @@ export class ShopUserPanelHandler implements IPanelHandler {
             return showPanel(player, parent, context);
         }
 
-        const result = action === 'buy' ? shopManager.buyItem(player, itemId, amount) : shopManager.sellItem(player, itemId, amount);
+        const result = action === 'buy' ? buyItem(player, itemId, amount) : sellItem(player, itemId, amount);
         player.sendMessage(result.message);
         return showPanel(player, parent, context);
     }
