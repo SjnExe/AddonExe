@@ -4,6 +4,7 @@ import { config as Config } from '@core/../config.js';
 
 import { getRanksConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { findPlayerByName, getPlayerFromCache } from '@core/playerCache.js';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -119,7 +120,7 @@ export function canTarget(executor: mc.Player | CommandExecutor, targetId: strin
     let targetRankPriority = 1000;
 
     // Check if target is online
-    const targetPlayer = mc.world.getPlayers({ name: targetId })[0] || mc.world.getAllPlayers().find((p) => p.id === targetId);
+    const targetPlayer = getPlayerFromCache(targetId) || findPlayerByName(targetId);
     if (targetPlayer) {
         const targetRank = getPlayerRank(targetPlayer, config);
         targetRankPriority = targetRank.priority;
