@@ -30,21 +30,51 @@ mock.module('@features/games/wordle/wordleConfig.js', () => ({
     wordleConfig: { test: 'wordle' }
 }));
 
-const {
-    loadWorldProtectionConfig, getWorldProtectionConfig, saveWorldProtectionConfig, resetWorldProtectionConfig,
-    loadShopConfig, getShopConfig, saveShopConfig, resetShopConfig,
-    loadGamesConfig, getGamesConfig, saveGamesConfig, resetGamesConfig,
-    registerConfigReset, registerConfigResetCallback, configResetRegistry, configResetCallbacks, reloadAllConfigs
-} = await import('../configurations.js');
-
 describe('configurations', () => {
-    beforeEach(() => {
+    let loadWorldProtectionConfig: any;
+    let getWorldProtectionConfig: any;
+    let saveWorldProtectionConfig: any;
+    let resetWorldProtectionConfig: any;
+    let loadShopConfig: any;
+    let getShopConfig: any;
+    let saveShopConfig: any;
+    let resetShopConfig: any;
+    let loadGamesConfig: any;
+    let getGamesConfig: any;
+    let saveGamesConfig: any;
+    let resetGamesConfig: any;
+    let registerConfigReset: any;
+    let registerConfigResetCallback: any;
+    let configResetRegistry: any;
+    let configResetCallbacks: any;
+    let reloadAllConfigs: any;
+
+    beforeEach(async () => {
         mockCreateConfigManager.mockClear();
         mockAsyncLoadConfig.mockClear();
         mockConfigManagerInstance.load.mockClear();
         mockConfigManagerInstance.get.mockClear();
         mockConfigManagerInstance.set.mockClear();
         mockConfigManagerInstance.reset.mockClear();
+
+        const module = await import('../configurations.js');
+        loadWorldProtectionConfig = module.loadWorldProtectionConfig;
+        getWorldProtectionConfig = module.getWorldProtectionConfig;
+        saveWorldProtectionConfig = module.saveWorldProtectionConfig;
+        resetWorldProtectionConfig = module.resetWorldProtectionConfig;
+        loadShopConfig = module.loadShopConfig;
+        getShopConfig = module.getShopConfig;
+        saveShopConfig = module.saveShopConfig;
+        resetShopConfig = module.resetShopConfig;
+        loadGamesConfig = module.loadGamesConfig;
+        getGamesConfig = module.getGamesConfig;
+        saveGamesConfig = module.saveGamesConfig;
+        resetGamesConfig = module.resetGamesConfig;
+        registerConfigReset = module.registerConfigReset;
+        registerConfigResetCallback = module.registerConfigResetCallback;
+        configResetRegistry = module.configResetRegistry;
+        configResetCallbacks = module.configResetCallbacks;
+        reloadAllConfigs = module.reloadAllConfigs;
     });
 
     describe('WorldProtectionConfig', () => {
