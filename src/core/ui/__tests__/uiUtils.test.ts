@@ -1,5 +1,5 @@
+import { addPaginationButtons, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 import { describe, expect, it, mock } from 'bun:test';
-import { getPaginatedItems, itemsPerPage, addPaginationButtons } from '@ui/uiUtils.js';
 
 describe('uiUtils', () => {
     describe('getPaginatedItems', () => {
