@@ -1,22 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import * as mc from '@minecraft/server';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Ensure clearJob is mocked because it's missing in the global mock
 if (!(mc.system as any).clearJob) {
     (mc.system as any).clearJob = mock();
 }
 
-import {
-    cleanupTimers,
-    clearTrackedInterval,
-    clearTrackedJob,
-    clearTrackedTimeout,
-    getTimerStats,
-    setTrackedInterval,
-    setTrackedJob,
-    setTrackedTimeout,
-    startSystemTimers
-} from '../timerManager.js';
+import { cleanupTimers, clearTrackedInterval, clearTrackedJob, clearTrackedTimeout, getTimerStats, setTrackedInterval, setTrackedJob, setTrackedTimeout, startSystemTimers } from '../timerManager.js';
 
 describe('timerManager', () => {
     beforeEach(() => {
@@ -139,7 +129,9 @@ describe('timerManager', () => {
         it('should clear tracked job and remove from tracking', () => {
             (mc.system.runJob as any).mockImplementationOnce(() => 456);
 
-            function* testGenerator() { yield; }
+            function* testGenerator() {
+                yield;
+            }
             const id = setTrackedJob(testGenerator());
 
             expect(getTimerStats().jobs).toBe(1);
@@ -163,9 +155,11 @@ describe('timerManager', () => {
             (mc.system.runJob as any).mockImplementationOnce(() => 3);
 
             setTrackedInterval(() => {}, 10); // ID 1
-            setTrackedTimeout(() => {}, 20);  // ID 2
-            function* gen() { yield; }
-            setTrackedJob(gen());             // ID 3
+            setTrackedTimeout(() => {}, 20); // ID 2
+            function* gen() {
+                yield;
+            }
+            setTrackedJob(gen()); // ID 3
 
             expect(getTimerStats().intervals).toBe(1);
             expect(getTimerStats().timeouts).toBe(1);
