@@ -1,4 +1,4 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const mockConfigManagerInstance = {
     load: mock(),
@@ -28,29 +28,26 @@ mock.module('@features/games/wordle/wordleConfig.js', () => ({
 }));
 
 import {
-    loadWorldProtectionConfig,
-    getWorldProtectionConfig,
-    saveWorldProtectionConfig,
-    resetWorldProtectionConfig,
-
-    loadShopConfig,
-    getShopConfig,
-    saveShopConfig,
-    resetShopConfig,
-
-    loadGamesConfig,
+    configResetCallbacks,
+    configResetRegistry,
     getGamesConfig,
-    saveGamesConfig,
-    resetGamesConfig,
-
+    getShopConfig,
+    getWorldProtectionConfig,
+    loadGamesConfig,
+    loadShopConfig,
+    loadWorldProtectionConfig,
     registerConfigReset,
     registerConfigResetCallback,
-    configResetRegistry,
-    configResetCallbacks
+    resetGamesConfig,
+    resetShopConfig,
+    resetWorldProtectionConfig,
+    saveGamesConfig,
+    saveShopConfig,
+    saveWorldProtectionConfig
 } from '@core/configurations.js';
 
-import createConfigManager from '@core/configManagerFactory.js';
 import { loadConfig } from '@core/configLoader.js';
+import createConfigManager from '@core/configManagerFactory.js';
 
 describe('Configurations Manager', () => {
     beforeEach(() => {
