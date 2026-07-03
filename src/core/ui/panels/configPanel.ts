@@ -321,10 +321,11 @@ export class ConfigPanelHandler implements IPanelHandler {
                 // Title Fix for SubCategories
                 if (item.actionValue.startsWith('configSubCategoryPanel_')) {
                     const catId = item.actionValue.replace('configSubCategoryPanel_', '');
-                    const title = catId
-                        .replace(/([A-Z])/g, ' $1')
-                        .trim()
-                        .replace(/^./, (str) => str.toUpperCase()) + ' Configuration';
+                    const title =
+                        catId
+                            .replace(/([A-Z])/g, ' $1')
+                            .trim()
+                            .replace(/^./, (str) => str.toUpperCase()) + ' Configuration';
                     return showPanel(player, item.actionValue, { ...context, page: 1, customTitle: title });
                 }
                 return showPanel(player, item.actionValue, { ...context, page: 1 });
