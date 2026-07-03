@@ -11,7 +11,7 @@ import * as mc from '@minecraft/server';
 const rankCache = new Map<string, Record<string, boolean>>();
 
 // Cache for player final merged maps
-const playerMapCache = new Map<string, { map: Record<string, boolean>; tick: number }>();
+const playerMapCache = new Map<string, { map: Record<string, boolean>; tick: number; resolvedCache: Map<string, boolean> }>();
 
 export function calculateRankMap(rank: RankDefinition): Record<string, boolean> {
     const map: Record<string, boolean> = Object.create(null) as Record<string, boolean>;
@@ -125,12 +125,12 @@ function evaluateRankConditions(player: mc.Player, rank: RankDefinition, assigne
     return true;
 }
 
-export function calculatePlayerMap(player: mc.Player): Record<string, boolean> {
+export function calculatePlayerMap(player: mc.Player): { map: Record<string, boolean>; resolvedCache: Map<string, boolean> } {
     const currentTick = mc.system.currentTick;
     const cached = playerMapCache.get(player.id);
 
     if (cached && currentTick - cached.tick < 20) {
-        return cached.map;
+        return cached;
     }
 
     const ranks = getPlayerRanks(player);
@@ -144,8 +144,9 @@ export function calculatePlayerMap(player: mc.Player): Record<string, boolean> {
         Object.assign(playerMap, rankMap);
     }
 
-    playerMapCache.set(player.id, { map: playerMap, tick: currentTick });
-    return playerMap;
+    const resolvedCache = new Map<string, boolean>();
+    playerMapCache.set(player.id, { map: playerMap, tick: currentTick, resolvedCache });
+    return { map: playerMap, resolvedCache };
 }
 
 // Ensure cache is cleared when players leave
@@ -172,11 +173,16 @@ export function hasPermission(player: mc.Player, node: string): boolean {
     }
 
     // 2. Map Lookup
-    const playerMap = calculatePlayerMap(player);
+    const { map: playerMap, resolvedCache } = calculatePlayerMap(player);
 
     // Exact match
     if (playerMap[node] !== undefined) {
         return playerMap[node];
+    }
+
+    const cachedResolution = resolvedCache.get(node);
+    if (cachedResolution !== undefined) {
+        return cachedResolution;
     }
 
     // Check wildcards using Linux-style rules (* for 1 segment, ** for 0 or more)
@@ -197,10 +203,16 @@ export function hasPermission(player: mc.Player, node: string): boolean {
     // If ANY match is `false`, we explicitly return `false` (deny overrides).
     // If NO match is `false` but AT LEAST ONE match is `true`, we return `true`.
 
-    for (const [pattern, patternAllowed] of Object.entries(playerMap)) {
+    const mapEntries = Object.entries(playerMap);
+    for (const [pattern, patternAllowed] of mapEntries) {
+        if (!pattern.includes('*')) continue; // Exact matches are already handled above
+
         if (pattern === '*') {
             // Support legacy global '*' just in case
-            if (patternAllowed === false) return false;
+            if (patternAllowed === false) {
+                resolvedCache.set(node, false);
+                return false;
+            }
             hasMatch = true;
             allowed = true;
             continue;
@@ -209,14 +221,17 @@ export function hasPermission(player: mc.Player, node: string): boolean {
         const pSegs = pattern.split('.');
         if (matchPermissionSegments(pSegs, nSegs, 0, 0)) {
             if (patternAllowed === false) {
-                return false; // Explicit deny wins immediately
+                resolvedCache.set(node, false); // Explicit deny wins immediately
+                return false;
             }
             hasMatch = true;
             allowed = true;
         }
     }
 
-    return hasMatch ? allowed : false;
+    const finalResult = hasMatch ? allowed : false;
+    resolvedCache.set(node, finalResult);
+    return finalResult;
 }
 
 function matchPermissionSegments(pSegs: string[], nSegs: string[], pIdx: number, nIdx: number): boolean {
