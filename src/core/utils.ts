@@ -9,3 +9,4 @@ export * from '@core/utils/time.js';
 export * from '@core/utils/ui.js';
 // Explicitly re-export reinitializeOnlinePlayers if it's not being picked up by *
 export { reinitializeOnlinePlayers } from '@core/utils/player.js';
+export * from '@core/utils/id.js';

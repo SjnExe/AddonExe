@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { generateId } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
 const storage = new StorageManager('exe:reports');
@@ -63,7 +64,7 @@ export function saveReports(options: { force?: boolean } = {}) {
  */
 export function createReport(reporter: mc.Player, reportedPlayerId: string, reportedPlayerName: string, reason: string) {
     const report: Report = {
-        id: Math.random().toString(36).slice(2, 9),
+        id: generateId(7),
         reporterId: reporter.id,
         reporterName: reporter.name,
         reportedPlayerId: reportedPlayerId,

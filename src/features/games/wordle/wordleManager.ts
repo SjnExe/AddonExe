@@ -1,4 +1,5 @@
 import { getWordleConfig } from '@core/configurations.js';
+import { generateId } from '@core/utils.js';
 import * as mc from '@minecraft/server';
 import { getRandomSolution, isValidWord } from './wordPool.js';
 
@@ -26,7 +27,7 @@ const activeGames = new Map<string, WordleGame>();
 let globalStaffGameId: string | undefined = undefined;
 
 function generateGameId(): string {
-    return Math.random().toString(36).substring(2, 9);
+    return generateId(7);
 }
 
 export function evaluateGuess(guess: string, answer: string): GuessResult {

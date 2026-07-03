@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { debugLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { generateId } from '@core/utils.js';
 
 export interface VoteOption {
     id: number;
@@ -60,7 +61,7 @@ export function createVote(creator: mc.Player, question: string, options: string
     }));
 
     currentVote = {
-        id: Date.now().toString(),
+        id: generateId(10),
         creatorName: creator.name,
         question,
         options: voteOptions,

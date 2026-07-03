@@ -6,7 +6,7 @@ import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, updatePlayerData } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { formatCurrency } from '@core/utils.js';
+import { formatCurrency, generateUUID } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export interface AuctionListing {
@@ -33,15 +33,6 @@ export enum SortOption {
 
 const storage = new StorageManager('exe:auctionHouse');
 const activeListings = new Map<string, AuctionListing>();
-
-// Generate a simple UUID
-function generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c) => {
-        const r = Math.trunc(Math.random() * 16);
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
-}
 
 export function initializeAuctionHouse() {
     loadAuctions();
