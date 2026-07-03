@@ -16,6 +16,10 @@ import { PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
 import { addBackButton, addPaginationItems, getPaginatedItems, getSystemsByCategory, getVisibleCategories, configHandlers as uiConfigHandlers } from '@ui/uiUtils.js';
 
+const uiConfigHandlerKeys = Object.keys(uiConfigHandlers);
+const uiConfigHandlerEntries = Object.entries(uiConfigHandlers);
+const systemOptionsCache = ['All Systems', ...uiConfigHandlerKeys];
+
 interface ConfigSetting {
     key: string;
     type: string;
@@ -243,7 +247,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
     private buildTransferModal(panelId: string): Promise<ModalFormData> {
         const form = new ModalFormData();
-        const systemOptions = ['All Systems', ...Object.keys(uiConfigHandlers)];
+        const systemOptions = systemOptionsCache;
 
         if (panelId === 'configExportPanel') {
             form.title('Export Configuration');
@@ -502,7 +506,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         const values = response.formValues;
         if (!isDefined(values) || !isDefined(values[0])) return showPanel(player, 'configTransferPanel', context);
 
-        const systemOptions = ['All Systems', ...Object.keys(uiConfigHandlers)];
+        const systemOptions = systemOptionsCache;
         const selectedIndex = values[0] as number;
         const selectedSystem = systemOptions[selectedIndex];
 
@@ -510,7 +514,7 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         if (selectedSystem === 'All Systems') {
             const allData: Record<string, unknown> = {};
-            for (const [key, handler] of Object.entries(uiConfigHandlers)) {
+            for (const [key, handler] of uiConfigHandlerEntries) {
                 allData[key] = handler.get();
             }
             exportData = allData;
@@ -551,7 +555,7 @@ export class ConfigPanelHandler implements IPanelHandler {
             return showPanel(player, 'configTransferPanel', context);
         }
 
-        const systemOptions = ['All Systems', ...Object.keys(uiConfigHandlers)];
+        const systemOptions = systemOptionsCache;
         const selectedIndex = values[0] as number;
         const selectedSystem = systemOptions[selectedIndex];
         const jsonString = values[1] as string;
@@ -578,7 +582,7 @@ export class ConfigPanelHandler implements IPanelHandler {
         try {
             if (selectedSystem === 'All Systems') {
                 const parsedData = importData as Record<string, unknown>;
-                for (const [key, handler] of Object.entries(uiConfigHandlers)) {
+                for (const [key, handler] of uiConfigHandlerEntries) {
                     if (isDefined(parsedData[key])) {
                         handler.save(parsedData[key]);
                     }
