@@ -183,7 +183,7 @@ export function getVisibleCategories(player: mc.Player): SystemItem[] {
         if (sys.category !== undefined && sys.category.length > 0) categories.add(sys.category);
     }
 
-    const sortedCategories = [...categories].toSorted((a, b) => a.localeCompare(b));
+    const sortedCategories = [...categories].sort((a, b) => a.localeCompare(b));
 
     // Add "Reset" category if Owner
     if (hasPermission(player, 'ui.panel.owner')) {

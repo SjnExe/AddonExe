@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { findPlayerByName, getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -54,17 +54,17 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
     }
 
     // 2. Exact Name Match
-    // Use cached players list
-    const allPlayers = getAllPlayersFromCache();
-    const exactMatch = allPlayers.find((p) => p.name.toLowerCase() === lowerInput);
+    const exactMatch = findPlayerByName(lowerInput);
     if (exactMatch) return [exactMatch];
 
     // 3. Quoted Name Match (handling "Name With Spaces")
     const cleanInput = input.replaceAll('"', '');
-    const quotedMatch = allPlayers.find((p) => p.name === cleanInput);
-    if (quotedMatch) return [quotedMatch];
+    const quotedMatch = findPlayerByName(cleanInput);
+    // ensure exact case match like the previous implementation
+    if (quotedMatch && quotedMatch.name === cleanInput) return [quotedMatch];
 
     // 4. Partial Name Match
+    const allPlayers = getAllPlayersFromCache();
     const partialMatches = allPlayers.filter((p) => p.name.toLowerCase().includes(lowerInput));
     if (partialMatches.length > 0) return partialMatches;
 
