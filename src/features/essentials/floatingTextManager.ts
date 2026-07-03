@@ -142,20 +142,6 @@ function* updateLoopJob() {
     for (const [dimId, texts] of textsByDimension) {
         try {
             const dimension = mc.world.getDimension(dimId);
-            const entitiesMap = new Map<string, mc.Entity>();
-
-            // Batch query once per dimension
-            const allEntities = dimension.getEntities({ type: 'exe:floating_text' });
-            for (const entity of allEntities) {
-                if (!entity.isValid) continue;
-                for (const tag of entity.getTags()) {
-                    if (tag.startsWith('ft_')) {
-                        const id = tag.slice(3);
-                        entitiesMap.set(id, entity);
-                    }
-                }
-            }
-            yield;
 
             for (const textConfig of texts) {
                 const sidebarService = serviceLocator.getService<SidebarService>('sidebar.utils');
@@ -164,10 +150,16 @@ function* updateLoopJob() {
 
                 if (resolved !== last) {
                     lastResolvedText.set(textConfig.id, resolved);
-                    const entity = entitiesMap.get(textConfig.id);
 
-                    if (isDefined(entity) && entity.isValid) {
-                        entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
+                    const entities = dimension.getEntities({
+                        type: 'exe:floating_text',
+                        tags: [`ft_${textConfig.id}`]
+                    });
+
+                    for (const entity of entities) {
+                        if (isDefined(entity) && entity.isValid) {
+                            entity.nameTag = resolved.replaceAll(String.raw`\n`, '\n');
+                        }
                     }
                 }
             }
