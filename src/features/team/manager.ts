@@ -194,7 +194,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     };
 
     // Ensure ID uniqueness (Race Condition Fix)
-    if (activeTeam.has(newTeamId)) {
+    while (activeTeam.has(newTeamId)) {
         let maxId = 0;
         for (const id of activeTeam.keys()) {
             if (id > maxId) maxId = id;
