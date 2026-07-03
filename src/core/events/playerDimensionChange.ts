@@ -2,8 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
-import * as playerDataManager from '@core/playerDataManager.js';
-import { getLockState } from '@core/playerDataManager.js';
+import { getLockState, getOrCreatePlayer } from '@core/playerDataManager.js';
 
 export const eventName = 'playerDimensionChange';
 
@@ -26,7 +25,7 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
     }
 
     if (config.dimensionLock.allowAdminBypass) {
-        const pData = playerDataManager.getOrCreatePlayer(player);
+        const pData = getOrCreatePlayer(player);
         if (pData.permissionLevel <= 1) {
             debugLog(`[DimensionLock] Allowing admin ${player.name} to enter locked ${dimensionId} dimension.`);
             return;
