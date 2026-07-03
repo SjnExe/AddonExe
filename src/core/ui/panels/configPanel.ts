@@ -492,6 +492,11 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     private handleExportConfig(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> | void {
+        if (!hasPermission(player, 'ui.panel.owner')) {
+            player.sendMessage('§4You do not have permission to export configurations.');
+            return showPanel(player, 'configTransferPanel', context);
+        }
+
         if (response.canceled) return showPanel(player, 'configTransferPanel', context);
 
         const values = response.formValues;
@@ -534,6 +539,11 @@ export class ConfigPanelHandler implements IPanelHandler {
     }
 
     private handleImportConfig(player: mc.Player, response: ModalFormResponse, context: UIContext): Promise<void> | void {
+        if (!hasPermission(player, 'ui.panel.owner')) {
+            player.sendMessage('§4You do not have permission to import configurations.');
+            return showPanel(player, 'configTransferPanel', context);
+        }
+
         if (response.canceled) return showPanel(player, 'configTransferPanel', context);
 
         const values = response.formValues;
@@ -553,7 +563,13 @@ export class ConfigPanelHandler implements IPanelHandler {
 
         let importData: unknown;
         try {
-            importData = JSON.parse(jsonString);
+            importData = JSON.parse(jsonString, (key, value) => {
+                if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+                    return undefined;
+                }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return value;
+            });
         } catch {
             player.sendMessage('§4Invalid JSON format. Please ensure you copied the entire exported string correctly.');
             return showPanel(player, 'configTransferPanel', context);
