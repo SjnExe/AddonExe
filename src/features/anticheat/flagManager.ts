@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog, warnLog } from '@core/logger.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatString } from '@core/utils.js';
@@ -92,7 +93,7 @@ export function flag(player: mc.Player, checkName: string, message: string) {
 }
 
 function notifyAdmins(suspect: mc.Player, check: string, vl: number, info: string, minLevel: number) {
-    for (const admin of mc.world.getAllPlayers()) {
+    for (const admin of getAllPlayersFromCache()) {
         const pData = getPlayer(admin.id);
         if (isDefined(pData) && pData.permissionLevel <= minLevel && !admin.hasTag('exe:ac_notify_off')) {
             admin.sendMessage(`§c[AC] §e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
