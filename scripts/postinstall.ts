@@ -20,3 +20,12 @@ if (await termuxDir.exists()) {
         console.log('\n⚠️ [Termux Warning]: cargo not found. Run "pkg install rust lld" to enable optimized jscpd support.\n');
     }
 }
+
+// Native Git Hooks Setup (Replaces simple-git-hooks bloat)
+const gitDir = Bun.file('.git');
+if (await gitDir.exists()) {
+    const hookPath = '.git/hooks/pre-commit';
+    await Bun.write(hookPath, '#!/bin/sh\nbun scripts/pre-commit.ts\n');
+    await $`chmod +x ${hookPath}`.quiet();
+    console.log('⚙️ Native Git pre-commit hook configured successfully.');
+}

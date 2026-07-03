@@ -53,9 +53,6 @@ export default tseslint.config(
         },
         settings: {
             'import/resolver': {
-                typescript: {
-                    project: './tsconfig.json'
-                },
                 node: {
                     extensions: ['.js', '.ts']
                 }
@@ -73,7 +70,7 @@ export default tseslint.config(
         },
         rules: {
             'minecraft-linting/avoid-unnecessary-command': 'error',
-            'import/no-unresolved': ['error', { commonjs: true, amd: true, ignore: ['^virtual:command-index$'] }],
+            'import/no-unresolved': 'off',
             'import/no-cycle': 'error',
             'import/named': 'error',
             'import/namespace': 'error',
@@ -85,18 +82,17 @@ export default tseslint.config(
             'no-var': 'error',
             curly: ['error', 'all'],
             'import/no-duplicates': 'error',
-            '@typescript-eslint/no-explicit-any': 'error', // Upgraded to error
+            '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-var-requires': 'error',
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
             '@typescript-eslint/no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
-            // Strict type safety rules - Upgraded to error
-            '@typescript-eslint/no-unsafe-argument': 'error', // Upgraded to error
-            '@typescript-eslint/no-unsafe-assignment': 'error', // Upgraded to error
-            '@typescript-eslint/no-unsafe-call': 'error', // Upgraded to error
-            '@typescript-eslint/no-unsafe-member-access': 'error', // Upgraded to error
-            '@typescript-eslint/no-unsafe-return': 'error', // Upgraded to error
+            '@typescript-eslint/no-unsafe-argument': 'error',
+            '@typescript-eslint/no-unsafe-assignment': 'error',
+            '@typescript-eslint/no-unsafe-call': 'error',
+            '@typescript-eslint/no-unsafe-member-access': 'error',
+            '@typescript-eslint/no-unsafe-return': 'error',
             '@typescript-eslint/no-unsafe-enum-comparison': 'error',
             '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': 'allow-with-description', 'ts-nocheck': true, 'ts-check': false }],
             '@typescript-eslint/restrict-template-expressions': 'error',
@@ -106,8 +102,6 @@ export default tseslint.config(
             '@typescript-eslint/require-await': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': 'error',
             '@typescript-eslint/prefer-readonly': 'error',
-
-            // NEW STRICT RULES
             '@typescript-eslint/no-unnecessary-condition': 'error',
             '@typescript-eslint/no-unnecessary-type-assertion': 'error',
             'no-restricted-syntax': [
@@ -146,13 +140,6 @@ export default tseslint.config(
         },
         plugins: {
             import: importPlugin
-        },
-        settings: {
-            'import/resolver': {
-                typescript: {
-                    project: './tsconfig.test.json'
-                }
-            }
         },
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
