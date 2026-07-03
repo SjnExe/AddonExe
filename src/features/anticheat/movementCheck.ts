@@ -227,17 +227,14 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
 
     if (player.location.y > config.maxHeight) {
         // Teleport down or kick
-        // Kick is safest to force reset
         try {
-            // Check if there is space below, else just run command to kick/kill
-            // We'll teleport them down 5 blocks as a soft fix, if that fails, maybe more drastic
-            // User requested: "gets kicked"
-            // We execute as the dimension (server context) to ensure it works even if the player is non-op.
-            player.dimension.runCommand(`kick "${player.name}" Nether Roof Detected`);
+            // We'll teleport them down 5 blocks as a soft fix, if that fails, more drastic
+            player.teleport({ x: player.location.x, y: player.location.y - 5, z: player.location.z }, { dimension: player.dimension });
         } catch {
-            // If kick fails, TP down
+            // If TP down fails, fallback to kick
             try {
-                player.teleport({ x: player.location.x, y: 120, z: player.location.z }, { dimension: player.dimension });
+                // We execute as the dimension (server context) to ensure it works even if the player is non-op.
+                player.dimension.runCommand(`kick "${player.name}" Nether Roof Detected`);
             } catch {
                 // Ignore
             }
