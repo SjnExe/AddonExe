@@ -79,7 +79,7 @@ describe('PlayerDataManager - updatePlayerData', () => {
         const p1 = mockPlayer('p1', 'PlayerOne');
         getOrCreatePlayer(p1);
 
-        updatePlayerData('p1', (pData) => {
+        updatePlayerData('p1', () => {
             pData.kills = 10;
         });
 
@@ -96,7 +96,7 @@ describe('PlayerDataManager - updatePlayerData', () => {
             return undefined;
         });
 
-        updatePlayerData('p2', (pData) => {
+        updatePlayerData('p2', () => {
             pData.kills = 5;
         });
 
@@ -118,7 +118,7 @@ describe('PlayerDataManager - updatePlayerData', () => {
         mockStorageLoad.mockReturnValue(undefined);
 
         let callbackCalled = false;
-        updatePlayerData('nonexistent', (pData) => {
+        updatePlayerData('nonexistent', () => {
             callbackCalled = true;
         });
 
