@@ -1,12 +1,13 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
+
 const { mockStorageLoad, mockStorageSave } = {
     mockStorageLoad: mock(),
     mockStorageSave: mock()
 };
 
-mock.module('@core/configManager.js', () => ({
+mock.module('../configManager.js', () => ({
     getConfig: () => ({
         economy: {
             enabled: true,
@@ -21,7 +22,7 @@ mock.module('@core/configManager.js', () => ({
     })
 }));
 
-mock.module('@core/configurations.js', () => ({
+mock.module('../configurations.js', () => ({
     getEconomyConfig: () => ({
         enabled: true,
         startingBalance: 0,
@@ -79,7 +80,7 @@ describe('PlayerDataManager - updatePlayerData', () => {
         const p1 = mockPlayer('p1', 'PlayerOne');
         getOrCreatePlayer(p1);
 
-        updatePlayerData('p1', () => {
+        updatePlayerData('p1', (pData: any) => {
             pData.kills = 10;
         });
 
@@ -96,7 +97,7 @@ describe('PlayerDataManager - updatePlayerData', () => {
             return undefined;
         });
 
-        updatePlayerData('p2', () => {
+        updatePlayerData('p2', (pData: any) => {
             pData.kills = 5;
         });
 
@@ -118,7 +119,8 @@ describe('PlayerDataManager - updatePlayerData', () => {
         mockStorageLoad.mockReturnValue(undefined);
 
         let callbackCalled = false;
-        updatePlayerData('nonexistent', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        updatePlayerData('nonexistent', (pData: any) => {
             callbackCalled = true;
         });
 
