@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { beforeEach, afterEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const mockDebugLog = mock();
 const mockStorageLoad = mock();
@@ -11,7 +11,7 @@ mock.module('@core/logger.js', () => ({
 
 mock.module('@core/storage/StorageManager.js', () => ({
     StorageManager: class {
-        constructor(id: string) {}
+        constructor() {}
         load = mockStorageLoad;
         save = mockStorageSave;
     }
@@ -25,14 +25,7 @@ const mockWorldSendMessage = mock().mockImplementation(() => {});
 (mc.system as any).runInterval = mockSystemRunInterval;
 (mc.world as any).sendMessage = mockWorldSendMessage;
 
-const {
-    initializeVoting,
-    createVote,
-    castVote,
-    endVote,
-    getActiveVote,
-    getLastVote
-} = await import('../manager.js');
+const { initializeVoting, createVote, castVote, endVote, getActiveVote, getLastVote } = await import('../manager.js');
 
 describe('Vote Manager', () => {
     let mockDateNow: ReturnType<typeof mock>;
@@ -109,9 +102,7 @@ describe('Vote Manager', () => {
             expect(activeVote?.options[1]).toEqual({ id: 1, text: 'Blue', count: 0 });
 
             expect(mockStorageSave).toHaveBeenCalledWith(activeVote);
-            expect(mockWorldSendMessage).toHaveBeenCalledWith(
-                `§a§lNew Vote Started!§r\n§eFavorite Color?\n§7Type §f/vote§7 to participate.`
-            );
+            expect(mockWorldSendMessage).toHaveBeenCalledWith(`§a§lNew Vote Started!§r\n§eFavorite Color?\n§7Type §f/vote§7 to participate.`);
         });
     });
 
@@ -201,9 +192,7 @@ describe('Vote Manager', () => {
 
             expect(mockStorageSave).toHaveBeenCalledWith(lastVote);
 
-            expect(mockWorldSendMessage).toHaveBeenCalledWith(
-                `§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt2: §a2 §7(66.7%)\n§7- §fOpt1: §a1 §7(33.3%)\n`
-            );
+            expect(mockWorldSendMessage).toHaveBeenCalledWith(`§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt2: §a2 §7(66.7%)\n§7- §fOpt1: §a1 §7(33.3%)\n`);
         });
 
         it('should handle zero votes correctly', () => {
@@ -213,9 +202,7 @@ describe('Vote Manager', () => {
             mockWorldSendMessage.mockClear();
             endVote();
 
-            expect(mockWorldSendMessage).toHaveBeenCalledWith(
-                `§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt1: §a0 §7(0.0%)\n`
-            );
+            expect(mockWorldSendMessage).toHaveBeenCalledWith(`§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt1: §a0 §7(0.0%)\n`);
         });
     });
 
