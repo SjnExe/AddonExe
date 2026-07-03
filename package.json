@@ -59,7 +59,6 @@
         "@minecraft/server-ui": "beta",
         "@minecraft/vanilla-data": "latest",
         "@types/node": "latest",
-        "@types/uuid": "^11.0.0",
         "@typescript-eslint/eslint-plugin": "latest",
         "@typescript-eslint/parser": "latest",
         "eslint": "latest",
@@ -81,8 +80,5 @@
         "bufferutil",
         "esbuild",
         "utf-8-validate"
-    ],
-    "dependencies": {
-        "uuid": "^14.0.1"
-    }
+    ]
 }

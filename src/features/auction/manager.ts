@@ -34,6 +34,17 @@ export enum SortOption {
 const storage = new StorageManager('exe:auctionHouse');
 const activeListings = new Map<string, AuctionListing>();
 
+const searchStringCache = new WeakMap<AuctionListing, string>();
+
+function listingMatchesQuery(listing: AuctionListing, query: string): boolean {
+    let s = searchStringCache.get(listing);
+    if (!s) {
+        s = `${listing.item.typeId.toLowerCase()} ${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag.toLowerCase() : ''} ${listing.sellerName.toLowerCase()}`;
+        searchStringCache.set(listing, s);
+    }
+    return s.includes(query);
+}
+
 // Generate a simple UUID
 function generateUUID(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c) => {
@@ -405,17 +416,14 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
 }
 
 export function getListings(page: number = 1, pageSize: number = 45, searchQuery?: string, sort: SortOption = SortOption.Newest, sellerId?: string): AuctionListing[] {
-    let all = [...activeListings.values()];
+    let all: AuctionListing[] = [];
+    const query = isNonEmptyString(searchQuery) ? searchQuery.toLowerCase() : undefined;
+    const hasSellerId = isNonEmptyString(sellerId);
 
-    if (isNonEmptyString(sellerId)) {
-        all = all.filter((l) => l.sellerId === sellerId);
-    }
-
-    if (isNonEmptyString(searchQuery)) {
-        const query = searchQuery.toLowerCase();
-        all = all.filter(
-            (l) => l.item.typeId.toLowerCase().includes(query) || (isNonEmptyString(l.item.nameTag) && l.item.nameTag.toLowerCase().includes(query)) || l.sellerName.toLowerCase().includes(query)
-        );
+    for (const l of activeListings.values()) {
+        if (hasSellerId && l.sellerId !== sellerId) continue;
+        if (query && !listingMatchesQuery(l, query)) continue;
+        all.push(l);
     }
 
     // Sort
@@ -448,18 +456,12 @@ export function getListings(page: number = 1, pageSize: number = 45, searchQuery
 
 export function getListingsCount(searchQuery?: string, sellerId?: string): number {
     if (!isNonEmptyString(searchQuery) && !isNonEmptyString(sellerId)) return activeListings.size;
-    const query = isNonEmptyString(searchQuery) ? searchQuery.toLowerCase() : '';
+    const query = isNonEmptyString(searchQuery) ? searchQuery.toLowerCase() : undefined;
+    const hasSellerId = isNonEmptyString(sellerId);
     let count = 0;
     for (const l of activeListings.values()) {
-        if (isNonEmptyString(sellerId) && l.sellerId !== sellerId) continue;
-        if (
-            query &&
-            !l.item.typeId.toLowerCase().includes(query) &&
-            (!isNonEmptyString(l.item.nameTag) || !l.item.nameTag.toLowerCase().includes(query)) &&
-            !l.sellerName.toLowerCase().includes(query)
-        ) {
-            continue;
-        }
+        if (hasSellerId && l.sellerId !== sellerId) continue;
+        if (query && !listingMatchesQuery(l, query)) continue;
         count++;
     }
     return count;

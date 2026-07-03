@@ -22,6 +22,18 @@ export interface Report {
 let reports: Report[] = [];
 let needsSave = false;
 
+// We cannot use a true crypto UUID implementation like `uuidv4` because the QuickJS
+// engine in Minecraft Bedrock lacks the Web Crypto API, which will cause a crash.
+// Instead, we mitigate predictability by generating a high-entropy string using multiple Math.random() calls.
+function generateReportId(): string {
+    const timePart = Date.now().toString(36);
+    const r1 = Math.random().toString(36).substring(2);
+    const r2 = Math.random().toString(36).substring(2);
+    const r3 = Math.random().toString(36).substring(2);
+    const r4 = Math.random().toString(36).substring(2);
+    return `${timePart}-${r1}${r2}${r3}${r4}`;
+}
+
 /**
  * Loads reports from world dynamic properties.
  */
@@ -63,7 +75,7 @@ export function saveReports(options: { force?: boolean } = {}) {
  */
 export function createReport(reporter: mc.Player, reportedPlayerId: string, reportedPlayerName: string, reason: string) {
     const report: Report = {
-        id: Math.random().toString(36).slice(2, 9),
+        id: generateReportId(),
         reporterId: reporter.id,
         reporterName: reporter.name,
         reportedPlayerId: reportedPlayerId,

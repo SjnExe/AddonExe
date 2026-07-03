@@ -165,17 +165,18 @@ export function cleanupPlayerDataManager() {
 function saveShardedMap(map: Map<string, string>, prefix: string) {
     const entries = [...map.entries()];
     const totalShards = Math.ceil(entries.length / MAP_SHARD_SIZE);
+    const world = mc.world;
 
     for (let i = 0; i < totalShards; i++) {
         const start = i * MAP_SHARD_SIZE;
         const chunk = entries.slice(start, start + MAP_SHARD_SIZE);
-        mc.world.setDynamicProperty(`${prefix}${i}`, JSON.stringify(chunk));
+        world.setDynamicProperty(`${prefix}${i}`, JSON.stringify(chunk));
     }
 
     // Cleanup stale shards if the map shrank
     let nextIndex = totalShards;
-    while (mc.world.getDynamicProperty(`${prefix}${nextIndex}`) !== undefined) {
-        mc.world.setDynamicProperty(`${prefix}${nextIndex}`, undefined);
+    while (world.getDynamicProperty(`${prefix}${nextIndex}`) !== undefined) {
+        world.setDynamicProperty(`${prefix}${nextIndex}`, undefined);
         nextIndex++;
     }
 }
@@ -192,12 +193,16 @@ function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefi
     // 2. Load Shards
     if (!migrated) {
         let i = 0;
+        const world = mc.world;
         while (true) {
-            const data = mc.world.getDynamicProperty(`${shardPrefix}${i}`) as string | undefined;
+            const data = world.getDynamicProperty(`${shardPrefix}${i}`) as string | undefined;
             if (!isNonEmptyString(data)) break;
             try {
                 const entries = JSON.parse(data) as [string, string][];
-                for (const [k, v] of entries) map.set(k, v);
+                for (let j = 0; j < entries.length; j++) {
+                    const entry = entries[j];
+                    if (entry) map.set(entry[0], entry[1]);
+                }
             } catch (error) {
                 errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(error)}`);
             }
