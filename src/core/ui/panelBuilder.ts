@@ -33,7 +33,7 @@ export function getStaticMenuItems(player: mc.Player, panelDef: PanelDefinition,
             }
 
             if (isDisabled) {
-                newItem.text += '\n[§4Disabled]';
+                newItem.text += '\n§4[Disabled]';
             }
             return newItem;
         })
