@@ -7,7 +7,6 @@ import * as playerCache from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as utils from '@core/utils.js';
-import { formatCurrency } from '@core/utils.js';
 import { showAuctionHouse } from '@features/auction/ui/panel.js';
 import * as bountyManager from '@features/economy/bountyManager.js';
 import * as helpfulLinksManager from '@features/essentials/helpfulLinksManager.js';
@@ -303,7 +302,7 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             const amount = Number(amountStr);
             const config = getConfig();
             if (Number.isNaN(amount) || (isDefined(config.bounties) && amount < config.bounties.minimumBounty)) {
-                player.sendMessage(`§cInvalid amount. The minimum bounty is ${formatCurrency((isDefined(config.bounties) ? config.bounties.minimumBounty : undefined) ?? 0)}.`);
+                player.sendMessage(`§cInvalid amount. The minimum bounty is ${utils.formatCurrency((isDefined(config.bounties) ? config.bounties.minimumBounty : undefined) ?? 0)}.`);
                 return;
             }
             const pData = getOrCreatePlayer(player);
@@ -314,8 +313,8 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
 
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, amount);
-            player.sendMessage(`§2You have placed a bounty of §6${formatCurrency(amount)}§2 on ${targetPlayerName}.`);
-            mc.world.sendMessage(`§cSomeone has placed a bounty of §6${formatCurrency(amount)}§c on ${targetPlayerName}!`);
+            player.sendMessage(`§2You have placed a bounty of §6${utils.formatCurrency(amount)}§2 on ${targetPlayerName}.`);
+            mc.world.sendMessage(`§cSomeone has placed a bounty of §6${utils.formatCurrency(amount)}§c on ${targetPlayerName}!`);
         }
     },
 
@@ -350,7 +349,9 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             return;
         }
 
-        const form = new ModalFormData().title(`Remove Bounty from ${targetPlayerName}`).textField(`Bounty Amount: ${formatCurrency(targetBounty.amount)}\nEnter amount to remove:`, 'Enter amount');
+        const form = new ModalFormData()
+            .title(`Remove Bounty from ${targetPlayerName}`)
+            .textField(`Bounty Amount: ${utils.formatCurrency(targetBounty.amount)}\nEnter amount to remove:`, 'Enter amount');
 
         const response = await utils.uiWait(player, form);
 
@@ -365,7 +366,7 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
             }
 
             if (amount > targetBounty.amount) {
-                player.sendMessage(`§cYou cannot remove more than the bounty amount (${formatCurrency(targetBounty.amount)}).`);
+                player.sendMessage(`§cYou cannot remove more than the bounty amount (${utils.formatCurrency(targetBounty.amount)}).`);
                 return;
             }
 
@@ -377,8 +378,8 @@ export const uiActionFunctions: Record<string, (player: mc.Player, context: UICo
 
             incrementPlayerBalance(player.id, -amount);
             bountyManager.incrementBounty(targetPlayerId, -amount);
-            player.sendMessage(`§2You have removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty.`);
-            mc.world.sendMessage(`§2${player.name} has removed ${formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
+            player.sendMessage(`§2You have removed ${utils.formatCurrency(amount)} from ${targetPlayerName}'s bounty.`);
+            mc.world.sendMessage(`§2${player.name} has removed ${utils.formatCurrency(amount)} from ${targetPlayerName}'s bounty!`);
         }
     }
 };
