@@ -52,7 +52,7 @@ export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, du
     }
 
     try {
-        const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
+        const sanitizedReason = reason.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' ');
         const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`;
         mc.world.getDimension('overworld').runCommand(command);
     } catch (error: unknown) {
@@ -198,7 +198,7 @@ export function offlineBanPlayer(executor: CommandExecutor, targetId: string, ta
     }
 
     try {
-        const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
+        const sanitizedReason = reason.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' ');
         mc.world.getDimension('overworld').runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
     } catch {
         // Player is likely offline, which is fine.

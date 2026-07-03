@@ -175,7 +175,7 @@ export class ModerationPanelHandler implements IPanelHandler {
         const values = (res as import('@minecraft/server-ui').ModalFormResponse).formValues;
         if (!isDefined(values)) return showPanel(player, (context.returnPanel as string) || 'playerActionsPanel', context);
         const [reason] = values as [string];
-        const safeReason = sanitizeString(reason, true).replaceAll('"', "'");
+        const safeReason = sanitizeString(reason, true).replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' ');
 
         try {
             player.dimension.runCommand(`kick "${target.name}" ${safeReason}`);
@@ -311,7 +311,8 @@ export class ModerationPanelHandler implements IPanelHandler {
         const target = getPlayerFromCache(targetId);
         if (isDefined(target)) {
             try {
-                player.dimension.runCommand(`kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
+                const safeReason = reason.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' ');
+                player.dimension.runCommand(`kick "${target.name}" §4You have been banned.\nReason: ${safeReason}\nExpires: ${new Date(expires).toLocaleString()}`);
             } catch {
                 // Ignore if kick fails
             }
