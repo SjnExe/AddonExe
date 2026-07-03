@@ -48,7 +48,10 @@ async function createTickingArea(dimension: mc.Dimension, name: string, x: numbe
     } catch {
         // Fallback to command if API method fails (e.g., if there's no space in the manager)
         try {
-            const sanitizedName = name.replaceAll('\\', String.raw`\\`).replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
+            const sanitizedName = name
+                .replaceAll('\\', String.raw`\\`)
+                .replaceAll('"', String.raw`\"`)
+                .replaceAll('\n', ' ');
             dimension.runCommand(`tickingarea add circle ${x} 0 ${z} 1 "${sanitizedName}"`);
             await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 60));
         } catch {
@@ -179,7 +182,10 @@ function safeRemoveTickingArea(dimension: mc.Dimension, name: string) {
     } catch {
         // Fallback to command
         try {
-            const sanitizedName = name.replaceAll('\\', String.raw`\\`).replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
+            const sanitizedName = name
+                .replaceAll('\\', String.raw`\\`)
+                .replaceAll('"', String.raw`\"`)
+                .replaceAll('\n', ' ');
             dimension.runCommand(`tickingarea remove "${sanitizedName}"`);
         } catch {
             // Ignore if it doesn't exist
