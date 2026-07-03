@@ -1,5 +1,6 @@
 import { config } from '@core/../config.js';
 import { getRanksConfig } from '@core/configurations.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { getAllRanks, getRankById } from '@core/rankManager.js';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
@@ -41,7 +42,7 @@ export function calculateRankMap(rank: RankDefinition): Record<string, boolean> 
 export function invalidateRankCache(rankId: string) {
     rankCache.delete(rankId);
     // Remove from player cache any player holding this rank
-    for (const player of mc.world.getAllPlayers()) {
+    for (const player of getAllPlayersFromCache()) {
         const pData = getPlayer(player.id);
         if (pData && pData.ranks.includes(rankId)) {
             playerMapCache.delete(player.id);
