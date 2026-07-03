@@ -1,5 +1,5 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
+import * as mc from '@minecraft/server';
 
 // This command toggles the announcer or forces an announcement
 const announcementCommand: CustomCommand = {
@@ -15,10 +15,7 @@ const announcementCommand: CustomCommand = {
 };
 
 export function broadcastAnnouncement(message: string) {
-    const allPlayers = getAllPlayersFromCache();
-    for (const player of allPlayers) {
-        player.sendMessage(`§d[Announcement] §r${message}`);
-    }
+    mc.world.sendMessage(`§d[Announcement] §r${message}`);
 }
 
 export function restartAnnouncer() {

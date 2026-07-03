@@ -2,6 +2,25 @@ import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
+const rankIndexCache = new Map<string, number>();
+
+function getRankIndex(ranks: RankDefinition[], rankId: string): number {
+    const index = rankIndexCache.get(rankId);
+    if (index !== undefined && ranks[index]?.id === rankId) {
+        return index;
+    }
+
+    rankIndexCache.clear();
+    for (let i = 0; i < ranks.length; i++) {
+        const rank = ranks[i];
+        if (rank) {
+            rankIndexCache.set(rank.id, i);
+        }
+    }
+
+    return rankIndexCache.get(rankId) ?? -1;
+}
+
 /**
  * Gets all ranks from the config.
  */
@@ -14,7 +33,9 @@ export function getRanks(): RankDefinition[] {
  * @param rankId The ID of the rank to find.
  */
 export function getRankById(rankId: string): RankDefinition | undefined {
-    return getRanks().find((r) => r.id === rankId);
+    const ranks = getRanks();
+    const index = getRankIndex(ranks, rankId);
+    return index !== -1 ? ranks[index] : undefined;
 }
 
 /**
@@ -27,6 +48,7 @@ export function addRank(rankData: RankDefinition): { success: boolean; message: 
         return { success: false, message: `Rank with ID '${rankData.id}' already exists.` };
     }
     ranksConfig.rankDefinitions.push(rankData);
+    rankIndexCache.clear();
     saveRanksConfig(ranksConfig);
     return { success: true, message: `Rank '${rankData.name}' added successfully.` };
 }
@@ -38,7 +60,7 @@ export function addRank(rankData: RankDefinition): { success: boolean; message: 
  */
 export function updateRank(rankId: string, updatedData: Partial<RankDefinition>): { success: boolean; message: string } {
     const ranksConfig = getRanksConfig();
-    const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
+    const rankIndex = getRankIndex(ranksConfig.rankDefinitions, rankId);
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }
@@ -110,7 +132,7 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
  */
 export function deleteRank(rankId: string): { success: boolean; message: string } {
     const ranksConfig = getRanksConfig();
-    const rankIndex = ranksConfig.rankDefinitions.findIndex((r: RankDefinition) => r.id === rankId);
+    const rankIndex = getRankIndex(ranksConfig.rankDefinitions, rankId);
     if (rankIndex === -1) {
         return { success: false, message: `Rank with ID '${rankId}' not found.` };
     }
@@ -127,6 +149,7 @@ export function deleteRank(rankId: string): { success: boolean; message: string 
 
     const deletedRankName = rank.name;
     ranksConfig.rankDefinitions.splice(rankIndex, 1);
+    rankIndexCache.clear();
     saveRanksConfig(ranksConfig);
     return { success: true, message: `Rank '${deletedRankName}' deleted successfully.` };
 }
