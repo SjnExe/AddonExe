@@ -19,7 +19,11 @@ mock.module('@core/storage/StorageManager.js', () => ({
 
 // Mock the system and world methods manually on the imported module
 // Since it's imported, mc.world and mc.system are accessible and we can attach mocks
-const mockSystemRunInterval = mock().mockImplementation(() => 1 as any);
+let intervalCallback: (() => void) | undefined;
+const mockSystemRunInterval = mock().mockImplementation((cb: () => void) => {
+    intervalCallback = cb;
+    return 1 as any;
+});
 const mockWorldSendMessage = mock().mockImplementation(() => {});
 
 (mc.system as any).runInterval = mockSystemRunInterval;
@@ -38,6 +42,7 @@ describe('Vote Manager', () => {
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
         mockSystemRunInterval.mockClear();
+        intervalCallback = undefined;
         mockWorldSendMessage.mockClear();
 
         originalSystemRunInterval = (mc.system as any).runInterval;
@@ -57,6 +62,63 @@ describe('Vote Manager', () => {
         global.Date.now = originalDateNow;
         (mc.system as any).runInterval = originalSystemRunInterval;
         (mc.world as any).sendMessage = originalWorldSendMessage;
+    });
+
+    describe('checkVoteExpiry (via interval or initialization)', () => {
+        it('should handle expired vote loaded from storage immediately in initializeVoting', () => {
+            const activeVote = { status: 'active', durationSeconds: 60, startTime: 1000000, options: [], votedPlayerIds: [], question: 'Q' };
+            mockStorageLoad.mockReturnValue(activeVote);
+
+            // Time is 1000000 + 60000 = 1060000 for expiry. Current time is 1060001
+            mockDateNow.mockReturnValue(1060001);
+
+            initializeVoting();
+
+            // Vote should be ended immediately
+            expect(getActiveVote()).toBeUndefined();
+            const lastVote = getLastVote();
+            expect(lastVote?.status).toBe('ended');
+            expect(mockWorldSendMessage).toHaveBeenCalled(); // Results broadcasted
+        });
+
+        it('should not end vote if durationSeconds is 0', () => {
+            const creator = { name: 'PlayerOne' } as mc.Player;
+            createVote(creator, 'Q', ['A', 'B'], 0);
+
+            // Advance time significantly
+            mockDateNow.mockReturnValue(2000000);
+
+            if (intervalCallback) intervalCallback();
+
+            expect(getActiveVote()?.status).toBe('active');
+        });
+
+        it('should not end vote if current time is less than expiry time', () => {
+            const creator = { name: 'PlayerOne' } as mc.Player;
+            createVote(creator, 'Q', ['A', 'B'], 60);
+
+            // Start time is 1000000, expiry is 1060000
+            mockDateNow.mockReturnValue(1059999);
+
+            if (intervalCallback) intervalCallback();
+
+            expect(getActiveVote()?.status).toBe('active');
+        });
+
+        it('should end vote if current time is greater than or equal to expiry time', () => {
+            const creator = { name: 'PlayerOne' } as mc.Player;
+            createVote(creator, 'Q', ['A', 'B'], 60);
+
+            // Start time is 1000000, expiry is 1060000
+            mockDateNow.mockReturnValue(1060000);
+
+            if (intervalCallback) intervalCallback();
+
+            expect(getActiveVote()).toBeUndefined();
+            const lastVote = getLastVote();
+            expect(lastVote?.status).toBe('ended');
+            expect(mockWorldSendMessage).toHaveBeenCalled(); // Results broadcasted
+        });
     });
 
     describe('initializeVoting', () => {
