@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
-
 const { mockStorageLoad, mockStorageSave } = {
     mockStorageLoad: mock(),
     mockStorageSave: mock()
