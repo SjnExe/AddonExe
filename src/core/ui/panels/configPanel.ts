@@ -567,6 +567,7 @@ export class ConfigPanelHandler implements IPanelHandler {
                 if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
                     return undefined;
                 }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return value;
             });
         } catch {
