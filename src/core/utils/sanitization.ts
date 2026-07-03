@@ -31,3 +31,15 @@ export function validateInput(input: string, maxLength = 256): boolean {
     if (input.length > maxLength) return false;
     return true;
 }
+
+/**
+ * Escapes a string to be safely used as an argument in a Minecraft command.
+ * It escapes backslashes and double quotes, and replaces newlines with spaces.
+ * The resulting string should be wrapped in double quotes in the command.
+ * @param input The string to escape.
+ * @returns The escaped string.
+ */
+export function escapeCommandArg(input: string): string {
+    if (!input) return '';
+    return input.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', ' ');
+}

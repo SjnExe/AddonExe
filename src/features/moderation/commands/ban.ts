@@ -8,6 +8,7 @@ import { sendMessage } from '@core/messaging.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { canTarget } from '@core/rankManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 
 import { addPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
@@ -52,8 +53,9 @@ export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, du
     }
 
     try {
-        const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
-        const command = `kick "${targetPlayer.name}" You have been banned ${durationText}. Reason: ${sanitizedReason}`;
+        const safeReason = escapeCommandArg(reason);
+        const safeTargetName = escapeCommandArg(targetPlayer.name);
+        const command = `kick "${safeTargetName}" "You have been banned ${durationText}. Reason: ${safeReason}"`;
         mc.world.getDimension('overworld').runCommand(command);
     } catch (error: unknown) {
         warnLog(`[Commands:Ban] Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
@@ -198,8 +200,9 @@ export function offlineBanPlayer(executor: CommandExecutor, targetId: string, ta
     }
 
     try {
-        const sanitizedReason = reason.replaceAll('"', String.raw`\"`).replaceAll('\n', ' ');
-        mc.world.getDimension('overworld').runCommand(`kick "${targetName}" You have been banned ${durationText}. Reason: ${sanitizedReason}`);
+        const safeReason = escapeCommandArg(reason);
+        const safeTargetName = escapeCommandArg(targetName);
+        mc.world.getDimension('overworld').runCommand(`kick "${safeTargetName}" "You have been banned ${durationText}. Reason: ${safeReason}"`);
     } catch {
         // Player is likely offline, which is fine.
     }

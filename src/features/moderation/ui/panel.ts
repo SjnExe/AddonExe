@@ -178,7 +178,10 @@ export class ModerationPanelHandler implements IPanelHandler {
         const safeReason = sanitizeString(reason, true).replaceAll('"', "'");
 
         try {
-            player.dimension.runCommand(`kick "${target.name}" ${safeReason}`);
+            const { escapeCommandArg } = await import('@core/utils/sanitization.js');
+            const escapedReason = escapeCommandArg(safeReason);
+            const escapedTargetName = escapeCommandArg(target.name);
+            player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
             player.sendMessage(`§2Kicked ${target.name}.`);
         } catch (error) {
             player.sendMessage(`§4Failed to kick player: ${String(error)}`);
@@ -311,7 +314,10 @@ export class ModerationPanelHandler implements IPanelHandler {
         const target = getPlayerFromCache(targetId);
         if (isDefined(target)) {
             try {
-                player.dimension.runCommand(`kick "${target.name}" §4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
+                const { escapeCommandArg } = await import('@core/utils/sanitization.js');
+                const escapedTargetName = escapeCommandArg(target.name);
+                const escapedReason = escapeCommandArg(`§4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
+                player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
             } catch {
                 // Ignore if kick fails
             }
