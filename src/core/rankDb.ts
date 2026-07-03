@@ -12,7 +12,10 @@ function getRankIndex(ranks: RankDefinition[], rankId: string): number {
 
     rankIndexCache.clear();
     for (let i = 0; i < ranks.length; i++) {
-        rankIndexCache.set(ranks[i].id, i);
+        const rank = ranks[i];
+        if (rank) {
+            rankIndexCache.set(rank.id, i);
+        }
     }
 
     return rankIndexCache.get(rankId) ?? -1;
