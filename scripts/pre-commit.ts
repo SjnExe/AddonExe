@@ -16,7 +16,7 @@ try {
 
     // 2. Run validation checks concurrently using native JS Promises
     console.log('Running validation checks in parallel...');
-    const [checkTypes, test, validate] = await Promise.all([$`bun check-types`.nothrow().quiet(), $`bun test --isolate`.nothrow().quiet(), $`bun validate`.nothrow().quiet()]);
+    const [checkTypes, test, validate] = await Promise.all([$`bun check-types`.nothrow().quiet(), $`bun test --isolate --parallel`.nothrow().quiet(), $`bun validate`.nothrow().quiet()]);
 
     // 3. Group the logs cleanly
     const logContent = [

@@ -12,15 +12,10 @@ async function configureSystemEnvironment() {
 
     if (isTermux) {
         console.log('📱 Termux environment detected. Validating repositories and toolchains...');
-
-        // Parallel repository initialization and system dependency verification
         await $`pkg update -y`.quiet();
 
         console.log('📦 Deploying system components concurrently...');
-        await Promise.all([
-            $`pkg install -y rust lld`.quiet(),
-            $`pkg install -y glibc-repo`.quiet().catch(() => {}) // Gracefully handle if glibc-repo package name varies
-        ]);
+        await Promise.all([$`pkg install -y rust lld`.quiet(), $`pkg install -y glibc-repo`.quiet().catch(() => {})]);
     } else {
         console.log('💻 Standard Linux environment verified.');
     }
@@ -32,28 +27,41 @@ async function syncProfileConfiguration() {
     console.log('⚙️ Synchronizing shell environmental paths safely...');
     let content = await fs.readFile(bashrcPath, 'utf8');
 
-    // Define unique markers to isolate AddonExe changes cleanly
     const startMarker = '# >>> ADDONEXE PROFILE START >>>';
     const endMarker = '# <<< ADDONEXE PROFILE END <<<';
 
-    // Regex to cleanly match and remove any pre-existing config blocks to prevent duplication
     const blockRegex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}\\n?`, 'g');
     content = content.replace(blockRegex, '');
 
     const optimizedBlock = `${startMarker}
 # Automated Environment Paths for Cargo and Bun runtimes
 export PATH="${homeDir}/.cargo/bin:${homeDir}/.bun/bin:$PATH"
+
+# Global Interceptor Engine to optimize native Bun workflows
+bun() {
+  if [ "$1" = "upgrade" ]; then
+    echo "🔄 Intercepting 'bun upgrade' to use the safe Termux installer..."
+    if command -v btm >/dev/null 2>&1; then
+      btm update bun
+    else
+      curl -fsSL "https://raw.githubusercontent.com/Happ1ness-dev/bun-termux/main/helper_scripts/bun-termux-manager" | bash -s install
+    fi
+    if [ -d "$HOME/bun-termux" ]; then rm -rf "$HOME/bun-termux"; fi
+  elif [ "$1" = "test" ]; then
+    shift
+    command bun test --isolate --parallel "$@"
+  else
+    command bun "$@"
+  fi
+}
 ${endMarker}\n`;
 
-    // Append clean, unique block to the end of your configuration file
     await fs.writeFile(bashrcPath, content + optimizedBlock, 'utf8');
     console.log('✨ System shell profile updated idempotently (zero duplicates generated).');
 }
 
 async function runPipeline() {
     console.log('--- Starting Architecture Setup ---');
-
-    // Core pipeline runs concurrently where safe
     await configureSystemEnvironment();
     await syncProfileConfiguration();
 
