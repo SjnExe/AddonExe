@@ -31,7 +31,6 @@ async function configureSystemEnvironment() {
     await $`pkg install -y rust lld glibc-repo`.quiet();
 
     console.log('🧹 Purging redundant APT package download archives...');
-    // Completely drops cached .deb files to keep system storage pristine
     await $`apt clean`.quiet();
 }
 
@@ -83,10 +82,17 @@ async function runPipeline() {
     await Promise.all([configureSystemEnvironment(), syncProfileConfiguration()]);
 
     console.log('🚀 Invoking package ecosystem installation (Online-First Sync)...');
-    // Standard invocation to ensure active remote registry checking
     await $`bun install`;
 
     console.log('✨ System environment alignment fully operational.');
+    console.log('\n🔄 Spawning optimized interactive shell session...');
+
+    // Synchronously shifts execution into a fresh shell that reads the updated profile rules
+    Bun.spawnSync(['bash'], {
+        stdin: 'inherit',
+        stdout: 'inherit',
+        stderr: 'inherit'
+    });
 }
 
 runPipeline().catch((err) => {
