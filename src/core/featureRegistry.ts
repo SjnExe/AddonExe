@@ -2,138 +2,119 @@ export interface FeatureModule {
     initialize?: (isMigration: boolean, subfeatures?: Record<string, boolean>) => void | Promise<void>;
 }
 
-export type FeatureStatus = 'prod' | 'dev';
-
 export interface RawFeatureDef {
     id: string;
     name: string;
-    status: FeatureStatus;
     dependencies?: string[];
-    subfeatures?: Record<string, FeatureStatus>;
+    subfeatures?: Record<string, boolean>;
     load: () => Promise<FeatureModule>;
 }
-
-const isProduction = typeof process !== 'undefined' ? process.env.NODE_ENV === 'production' : false;
 
 // The raw list of features
 export const RAW_FEATURES: RawFeatureDef[] = [
     {
         id: 'anticheat',
         name: 'Anti-Cheat',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/anticheat/index.js')
     },
     {
         id: 'daily',
         name: 'Daily Rewards',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/daily/index.js')
     },
     {
         id: 'economy',
         name: 'Economy',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/economy/index.js')
     },
     {
         id: 'essentials',
         name: 'Essentials',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/essentials/index.js')
     },
     {
         id: 'kit',
         name: 'Kits',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/kit/index.js')
     },
     {
         id: 'moderation',
         name: 'Moderation',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/moderation/index.js')
     },
     {
         id: 'shop',
         name: 'Shop',
-        status: 'prod',
         dependencies: ['economy'],
         load: () => import('@features/shop/index.js')
     },
     {
         id: 'social',
         name: 'Social',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/social/index.js')
     },
     {
         id: 'teleport',
         name: 'Teleport',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/teleport/index.js')
     },
     {
         id: 'vote',
         name: 'Voting',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/vote/index.js')
     },
     {
         id: 'ranks',
         name: 'Ranks',
-        status: 'prod',
         dependencies: [],
         load: () => import('@features/ranks/index.js')
     }
 ];
 
-if (!isProduction) {
-    RAW_FEATURES.push(
-        {
-            id: 'games',
-            name: 'Games',
-            status: 'dev',
-            dependencies: ['economy'],
-            load: () => import('@features/games/index.js')
-        },
-        {
-            id: 'auction',
-            name: 'Auction House',
-            status: 'dev',
-            dependencies: ['economy'],
-            load: () => import('@features/auction/index.js')
-        },
-        {
-            id: 'sidebar',
-            name: 'Sidebar',
-            status: 'dev',
-            dependencies: [],
-            load: () => import('@features/sidebar/index.js')
-        },
-        {
-            id: 'team',
-            name: 'Teams',
-            status: 'dev',
-            dependencies: [],
-            load: () => import('@features/team/index.js')
-        },
-        {
-            id: 'test',
-            name: 'Testing Framework',
-            status: 'dev',
-            dependencies: [],
-            load: () => import('@features/test/index.js')
-        }
-    );
+RAW_FEATURES.push(
+    {
+        id: 'games',
+        name: 'Games',
+        dependencies: ['economy'],
+        load: () => import('@features/games/index.js')
+    },
+    {
+        id: 'auction',
+        name: 'Auction House',
+        dependencies: ['economy'],
+        load: () => import('@features/auction/index.js')
+    },
+    {
+        id: 'sidebar',
+        name: 'Sidebar',
+        dependencies: [],
+        load: () => import('@features/sidebar/index.js')
+    },
+    {
+        id: 'team',
+        name: 'Teams',
+        dependencies: [],
+        load: () => import('@features/team/index.js')
+    }
+);
+
+// @ts-ignore - __IS_NIGHTLY__ is injected via esbuild
+if (typeof __IS_NIGHTLY__ !== 'undefined' && __IS_NIGHTLY__) {
+    RAW_FEATURES.push({
+        id: 'test',
+        name: 'Testing Framework',
+        dependencies: [],
+        load: () => import('@features/test/index.js')
+    });
 }
 
 export interface ProcessedFeature {
@@ -144,12 +125,7 @@ export interface ProcessedFeature {
 }
 
 function processFeatures(): ProcessedFeature[] {
-    const enabledFeatures = RAW_FEATURES.filter((f) => {
-        if (isProduction && f.status === 'dev') {
-            return false;
-        }
-        return true;
-    });
+    const enabledFeatures = RAW_FEATURES;
 
     const featureMap = new Map<string, RawFeatureDef>();
     for (const f of enabledFeatures) {
@@ -201,11 +177,7 @@ function processFeatures(): ProcessedFeature[] {
         if (f.subfeatures) {
             activeSubfeatures = {};
             for (const [subId, status] of Object.entries(f.subfeatures)) {
-                if (isProduction && status === 'dev') {
-                    activeSubfeatures[subId] = false;
-                } else {
-                    activeSubfeatures[subId] = true;
-                }
+                activeSubfeatures[subId] = status;
             }
         }
 
