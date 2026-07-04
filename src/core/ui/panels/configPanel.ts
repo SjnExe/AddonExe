@@ -327,7 +327,8 @@ export class ConfigPanelHandler implements IPanelHandler {
                     const catId = item.actionValue.replace('configSubCategoryPanel_', '');
                     const title =
                         catId
-                            .replace(/([A-Z])/g, ' $1')
+                            .replace(/([a-z])([A-Z])/g, '$1 $2')
+                            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
                             .trim()
                             .replace(/^./, (str) => str.toUpperCase()) + ' Configuration';
                     return showPanel(player, item.actionValue, { ...context, page: 1, customTitle: title });
