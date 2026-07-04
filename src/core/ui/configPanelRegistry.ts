@@ -114,6 +114,18 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'Economy',
         settings: [
             {
+                key: 'enabled',
+                label: 'Auction House Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the entire auction house system.'
+            },
+            {
+                key: 'enabled',
+                label: 'Auction House Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the entire auction house system.'
+            },
+            {
                 key: 'taxRate',
                 label: 'Tax Rate (0.05 = 5%)',
                 type: 'textField',
@@ -305,6 +317,54 @@ export const configPanelSchema: ConfigCategory[] = [
         icon: 'textures/ui/chat_send',
         category: 'Chat',
         settings: [
+            {
+                key: 'chat.enabled',
+                label: 'Chat Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the chat system.'
+            },
+            {
+                key: 'chat.allowMentions',
+                label: 'Allow Mentions',
+                type: 'toggle',
+                description: 'Allows players to mention others.'
+            },
+            {
+                key: 'chat.loggingEnabled',
+                label: 'Logging Enabled',
+                type: 'toggle',
+                description: 'Enables chat logging.'
+            },
+            {
+                key: 'chat.logExpirationDays',
+                label: 'Log Expiration Days',
+                type: 'textField',
+                description: 'How long chat logs are kept.'
+            },
+            {
+                key: 'chat.enabled',
+                label: 'Chat Enabled',
+                type: 'toggle',
+                description: 'Enables or disables the chat system.'
+            },
+            {
+                key: 'chat.allowMentions',
+                label: 'Allow Mentions',
+                type: 'toggle',
+                description: 'Allows players to mention others.'
+            },
+            {
+                key: 'chat.loggingEnabled',
+                label: 'Logging Enabled',
+                type: 'toggle',
+                description: 'Enables chat logging.'
+            },
+            {
+                key: 'chat.logExpirationDays',
+                label: 'Log Expiration Days',
+                type: 'textField',
+                description: 'How long chat logs are kept.'
+            },
             {
                 key: 'chat.logToConsole',
                 label: 'Log Chat to Console',
