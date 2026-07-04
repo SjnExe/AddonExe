@@ -16,7 +16,6 @@ async function configureSystemEnvironment() {
 
     console.log('📱 Termux environment detected. Checking toolchain status...');
 
-    // Fast-path guard: Check if binaries are already present to skip package manager latency
     const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(path.join(homeDir, '.cargo/bin/cargo'));
     const hasLld = existsSync('/data/data/com.termux/files/usr/bin/lld');
 
@@ -29,8 +28,11 @@ async function configureSystemEnvironment() {
     await $`apt update -y`.quiet();
 
     console.log('📥 Deploying system dependencies inside a single transaction...');
-    // Combined into a single atomic call to eliminate dpkg frontend lock contention
     await $`pkg install -y rust lld glibc-repo`.quiet();
+
+    console.log('🧹 Purging redundant APT package download archives...');
+    // Completely drops cached .deb files to keep system storage pristine
+    await $`apt clean`.quiet();
 }
 
 async function syncProfileConfiguration() {
@@ -39,7 +41,6 @@ async function syncProfileConfiguration() {
     console.log('⚙️ Synchronizing shell environmental paths safely...');
     let content = await fs.readFile(bashrcPath, 'utf8');
 
-    // Strip unmanaged lines injected by the community installer outside our block
     const externalInjectionsRegex = /# bun\nexport BUN_INSTALL="\$HOME\/\.bun"\nexport PATH="\$BUN_INSTALL\/bin:\$PATH"\n?/g;
     content = content.replace(externalInjectionsRegex, '');
 
@@ -79,10 +80,10 @@ ${endMarker}\n`;
 async function runPipeline() {
     console.log('--- Starting Architecture Setup ---');
 
-    // Execute hardware provisioning and configuration parsing concurrently
     await Promise.all([configureSystemEnvironment(), syncProfileConfiguration()]);
 
-    console.log('🚀 Invoking project package ecosystem installation...');
+    console.log('🚀 Invoking package ecosystem installation (Online-First Sync)...');
+    // Standard invocation to ensure active remote registry checking
     await $`bun install`;
 
     console.log('✨ System environment alignment fully operational.');
