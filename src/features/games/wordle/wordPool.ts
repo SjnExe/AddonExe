@@ -12,13 +12,16 @@ function unpack3To1(str: string): string {
         let c = str.charCodeAt(i);
         if (c >= 0x0100 && c < 0x5000) {
             c -= 0x0100;
-            const v3 = c % 26; c = Math.floor(c / 26);
-            const v2 = c % 26; c = Math.floor(c / 26);
+            const v3 = c % 26;
+            c = Math.floor(c / 26);
+            const v2 = c % 26;
+            c = Math.floor(c / 26);
             const v1 = c;
             out += String.fromCharCode(v1 + 97, v2 + 97, v3 + 97);
         } else if (c >= 0x5000) {
             c -= 0x5000;
-            const v2 = c % 26; c = Math.floor(c / 26);
+            const v2 = c % 26;
+            c = Math.floor(c / 26);
             const v1 = c;
             out += String.fromCharCode(v1 + 97, v2 + 97);
         } else {
