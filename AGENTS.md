@@ -44,9 +44,6 @@ Before implementing changes, strive to understand the relevant parts of the code
 ## 4. Workflow and Task Management
 
 - **Chat-First Workflow:** The primary mode of operation is through the chat session. Tasks, plans, and execution happen dynamically here.
-- **Large Tasks:** For large-scale projects requiring multiple sessions or batched work, we utilize the `Dev/tasks/` directory.
-    - Break down big features into sub-tasks in `Dev/tasks/`.
-    - Use separate Jules sessions to tackle these batches.
 
 ## 5. Documentation Responsibilities
 
