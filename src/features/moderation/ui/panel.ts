@@ -3,6 +3,7 @@ import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft
 
 import { getPlayerIdByName } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
+import { getTimestampFromUUIDv7 } from '@core/utils.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -34,7 +35,7 @@ export class ModerationPanelHandler implements IPanelHandler {
             const reports = reportManager
                 .getAllReports()
                 .filter((r) => r.status === 'open' || r.status === 'assigned')
-                .toSorted((a, b) => a.timestamp - b.timestamp);
+                .toSorted((a, b) => getTimestampFromUUIDv7(a.id) - getTimestampFromUUIDv7(b.id));
             const paginated = getPaginatedItems(reports, (context.page as number) || 1);
             for (const report of paginated) {
                 const statusColor = report.status === 'assigned' ? '§6' : '§4';
@@ -76,7 +77,7 @@ export class ModerationPanelHandler implements IPanelHandler {
                     `§8Reporter: §6${targetReport.reporterName}`,
                     `§8Reason: §6${targetReport.reason}`,
                     `§8Status: §6${targetReport.status}`,
-                    `§8Date: §6${new Date(targetReport.timestamp).toLocaleString()}`
+                    `§8Date: §6${new Date(getTimestampFromUUIDv7(targetReport.id)).toLocaleString()}`
                 ].join('\n');
             }
             return '§cReport not found.';

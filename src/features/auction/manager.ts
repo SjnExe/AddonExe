@@ -6,8 +6,9 @@ import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData, updatePlayerData } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { formatCurrency } from '@core/utils.js';
+import { formatCurrency, getTimestampFromUUIDv7 } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { v7 as generateUUIDv7 } from 'uuid';
 
 export interface AuctionListing {
     id: string; // Unique ID (UUID)
@@ -19,7 +20,6 @@ export interface AuctionListing {
     bidPrice?: number;
     highestBidderId?: string;
     highestBidderName?: string;
-    startTime: number;
     duration: number; // Seconds
 }
 
@@ -43,15 +43,6 @@ function listingMatchesQuery(listing: AuctionListing, query: string): boolean {
         searchStringCache.set(listing, s);
     }
     return s.includes(query);
-}
-
-// Generate a simple UUID
-function generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c) => {
-        const r = Math.trunc(Math.random() * 16);
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
 }
 
 export function initializeAuctionHouse() {
@@ -108,13 +99,12 @@ export function createListing(player: mc.Player, item: SerializedItem, price: nu
     }
 
     const listing: AuctionListing = {
-        id: generateUUID(),
+        id: generateUUIDv7(),
         sellerId: player.id,
         sellerName: player.name,
         item: item,
         price: price,
         isBid: isBid,
-        startTime: Date.now(),
         duration: duration
     };
     if (isBid) listing.bidPrice = price;
@@ -250,7 +240,7 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
     listing.highestBidderName = bidder.name;
 
     // Extend time if near end (Anti-Snipe)
-    const timeLeft = listing.startTime + listing.duration * 1000 - Date.now();
+    const timeLeft = getTimestampFromUUIDv7(listing.id) + listing.duration * 1000 - Date.now();
     if (timeLeft < 30_000) {
         // Less than 30s
         listing.duration += 60; // Add 1 minute
@@ -271,7 +261,7 @@ function* checkExpiredAuctionsJob() {
         // Ensure listing still exists (Race Condition Check)
         if (!activeListings.has(id)) continue;
 
-        const expiry = listing.startTime + listing.duration * 1000;
+        const expiry = getTimestampFromUUIDv7(listing.id) + listing.duration * 1000;
         if (now >= expiry) {
             expired.push(id);
 
@@ -436,16 +426,16 @@ export function getListings(page: number = 1, pageSize: number = 45, searchQuery
                 return b.price - a.price;
             }
             case SortOption.Oldest: {
-                return a.startTime - b.startTime;
+                return getTimestampFromUUIDv7(a.id) - getTimestampFromUUIDv7(b.id);
             }
             case SortOption.SellerAsc: {
                 return a.sellerName.localeCompare(b.sellerName);
             }
             case SortOption.Newest: {
-                return b.startTime - a.startTime;
+                return getTimestampFromUUIDv7(b.id) - getTimestampFromUUIDv7(a.id);
             }
             default: {
-                return b.startTime - a.startTime;
+                return getTimestampFromUUIDv7(b.id) - getTimestampFromUUIDv7(a.id);
             }
         }
     });

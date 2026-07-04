@@ -84,6 +84,10 @@ export function formatTime(seconds: number): string {
     return formatDuration(seconds * 1000);
 }
 
+export function getTimestampFromUUIDv7(uuid: string): number {
+    return parseInt(uuid.slice(0, 8) + uuid.slice(9, 13), 16);
+}
+
 export function formatCooldown(seconds: number): string {
     if (seconds <= 0) {
         return 'Ready';

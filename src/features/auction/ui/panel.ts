@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
-import { formatCurrency, formatTime, uiWait } from '@core/utils.js';
+import { formatCurrency, formatTime, getTimestampFromUUIDv7, uiWait } from '@core/utils.js';
 import { AuctionListing, buyItem, cancelListing, claimMailbox, claimMailboxItem, getListings, getListingsCount, placeBid, SortOption } from '@features/auction/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -87,7 +87,7 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
     let details = `§eItem: §f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId}\n`;
     details += `§eAmount: §f${item.amount}\n`;
     details += `§eSeller: §f${listing.sellerName}\n`;
-    details += `§eExpires in: §f${formatTime((listing.startTime + listing.duration * 1000 - Date.now()) / 1000)}\n`;
+    details += `§eExpires in: §f${formatTime((getTimestampFromUUIDv7(listing.id) + listing.duration * 1000 - Date.now()) / 1000)}\n`;
 
     if (item.lore && item.lore.length > 0) details += `\n§5Lore:\n§d${item.lore.join('\n')}\n`;
     if (item.enchantments && item.enchantments.length > 0) {

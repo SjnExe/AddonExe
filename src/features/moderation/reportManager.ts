@@ -3,7 +3,9 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { getTimestampFromUUIDv7 } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
+import { v7 as generateUUIDv7 } from 'uuid';
 
 const storage = new StorageManager('exe:reports');
 
@@ -16,7 +18,6 @@ export interface Report {
     reason: string;
     status: 'open' | 'assigned' | 'resolved';
     assignedAdminId: string | undefined;
-    timestamp: number;
 }
 
 let reports: Report[] = [];
@@ -63,15 +64,14 @@ export function saveReports(options: { force?: boolean } = {}) {
  */
 export function createReport(reporter: mc.Player, reportedPlayerId: string, reportedPlayerName: string, reason: string) {
     const report: Report = {
-        id: Math.random().toString(36).slice(2, 9),
+        id: generateUUIDv7(),
         reporterId: reporter.id,
         reporterName: reporter.name,
         reportedPlayerId: reportedPlayerId,
         reportedPlayerName: reportedPlayerName,
         reason: reason,
         status: 'open',
-        assignedAdminId: undefined,
-        timestamp: Date.now()
+        assignedAdminId: undefined
     };
     reports.push(report);
     needsSave = true;
@@ -155,7 +155,7 @@ export function clearOldResolvedReports() {
 
     reports = reports.filter((report) => {
         if (report.status === 'resolved') {
-            return now - report.timestamp < lifetimeMs;
+            return now - getTimestampFromUUIDv7(report.id) < lifetimeMs;
         }
         return true; // Keep all non-resolved reports
     });
