@@ -30,7 +30,7 @@ async function configureSystemEnvironment() {
     console.log('📥 Deploying system dependencies inside a single transaction...');
     await $`pkg install -y rust lld glibc-repo`.quiet();
 
-    console.log('🧹 Purging redundant APT package download archives...');
+    console.log('🧹 Purging redundant APT package download archives... ');
     await $`apt clean`.quiet();
 }
 
@@ -85,14 +85,6 @@ async function runPipeline() {
     await $`bun install`;
 
     console.log('✨ System environment alignment fully operational.');
-    console.log('\n🔄 Spawning optimized interactive shell session...');
-
-    // Synchronously shifts execution into a fresh shell that reads the updated profile rules
-    Bun.spawnSync(['bash'], {
-        stdin: 'inherit',
-        stdout: 'inherit',
-        stderr: 'inherit'
-    });
 }
 
 runPipeline().catch((err) => {
