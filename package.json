@@ -48,6 +48,9 @@
     "overrides": {
         "react": "^18.2.0"
     },
+    "dependencies": {
+        "uuid": "latest"
+    },
     "devDependencies": {
         "@eslint/js": "latest",
         "@minecraft/common": "latest",
@@ -81,8 +84,5 @@
         "bufferutil",
         "esbuild",
         "utf-8-validate"
-    ],
-    "dependencies": {
-        "uuid": "latest"
-    }
+    ]
 }
