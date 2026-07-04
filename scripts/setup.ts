@@ -2,23 +2,35 @@ import { $ } from 'bun';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';
+import path from 'node:path';
 
 const isTermux = existsSync('/data/data/com.termux');
 const homeDir = os.homedir();
-const bashrcPath = `${homeDir}/.bashrc`;
+const bashrcPath = path.join(homeDir, '.bashrc');
 
 async function configureSystemEnvironment() {
-    console.log('🔍 Analyzing system environment profile...');
-
-    if (isTermux) {
-        console.log('📱 Termux environment detected. Validating repositories and toolchains...');
-        await $`pkg update -y`.quiet();
-
-        console.log('📦 Deploying system components concurrently...');
-        await Promise.all([$`pkg install -y rust lld`.quiet(), $`pkg install -y glibc-repo`.quiet().catch(() => {})]);
-    } else {
+    if (!isTermux) {
         console.log('💻 Standard Linux environment verified.');
+        return;
     }
+
+    console.log('📱 Termux environment detected. Checking toolchain status...');
+
+    // Fast-path guard: Check if binaries are already present to skip package manager latency
+    const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(path.join(homeDir, '.cargo/bin/cargo'));
+    const hasLld = existsSync('/data/data/com.termux/files/usr/bin/lld');
+
+    if (hasCargo && hasLld) {
+        console.log('✅ Core toolchains already provisioned. Skipping package manager overhead.');
+        return;
+    }
+
+    console.log('📦 Missing components detected. Synchronizing repository indexes...');
+    await $`apt update -y`.quiet();
+
+    console.log('📥 Deploying system dependencies inside a single transaction...');
+    // Combined into a single atomic call to eliminate dpkg frontend lock contention
+    await $`pkg install -y rust lld glibc-repo`.quiet();
 }
 
 async function syncProfileConfiguration() {
@@ -61,13 +73,14 @@ bun() {
 ${endMarker}\n`;
 
     await fs.writeFile(bashrcPath, content + optimizedBlock, 'utf8');
-    console.log('✨ System shell profile updated idempotently (zero duplicates generated).');
+    console.log('✨ System shell profile updated idempotently.');
 }
 
 async function runPipeline() {
     console.log('--- Starting Architecture Setup ---');
-    await configureSystemEnvironment();
-    await syncProfileConfiguration();
+
+    // Execute hardware provisioning and configuration parsing concurrently
+    await Promise.all([configureSystemEnvironment(), syncProfileConfiguration()]);
 
     console.log('🚀 Invoking project package ecosystem installation...');
     await $`bun install`;
