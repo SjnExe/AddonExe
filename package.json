@@ -23,7 +23,7 @@
         "check-types": "bun --bun tsc --noEmit --incremental",
         "clean": "rm -rf build out",
         "fix-project": "bun mct fix",
-        "format": "prettier --write .",
+        "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
         "postinstall": "bun --bun scripts/postinstall.ts",
         "lint": "eslint .",
