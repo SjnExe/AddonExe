@@ -24,19 +24,13 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Configuration files are no longer ignored
+bun-debug.log*
 
 # Reports
 eslint_report.txt
 validation_report
 
-# TypeScript
-*.tsbuildinfo
-
-# Prettier
-.prettiercache
-
 # Tool Caches
 .eslintcache
 *.tsbuildinfo
+.prettiercache
