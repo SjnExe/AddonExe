@@ -27,7 +27,7 @@ async function syncProfileConfiguration() {
     console.log('⚙️ Synchronizing shell environmental paths safely...');
     let content = await fs.readFile(bashrcPath, 'utf8');
 
-    // Strip loose legacy lines injected by the community installer outside our block
+    // Strip unmanaged lines injected by the community installer outside our block
     const externalInjectionsRegex = /# bun\nexport BUN_INSTALL="\$HOME\/\.bun"\nexport PATH="\$BUN_INSTALL\/bin:\$PATH"\n?/g;
     content = content.replace(externalInjectionsRegex, '');
 
@@ -39,7 +39,8 @@ async function syncProfileConfiguration() {
 
     const optimizedBlock = `${startMarker}
 # Automated Environment Paths for Cargo and Bun runtimes
-export PATH="${homeDir}/.cargo/bin:${homeDir}/.bun/bin:$PATH"
+export BUN_INSTALL="${homeDir}/.bun"
+export PATH="${homeDir}/.cargo/bin:$BUN_INSTALL/bin:$PATH"
 
 # Global Interceptor Engine to optimize native Bun workflows
 bun() {
