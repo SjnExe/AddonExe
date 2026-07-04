@@ -1,4 +1,14 @@
 import { $ } from 'bun';
+import os from 'node:os';
+import path from 'node:path';
+
+const homeDir = os.homedir();
+const termuxBinDir = '/data/data/com.termux/files/usr/bin';
+const cargoBinDir = `${homeDir}/.cargo/bin`;
+
+// Immunize the subshell path environment completely against degradation
+const paths = [cargoBinDir, termuxBinDir, process.env.PATH].filter(Boolean);
+process.env.PATH = paths.join(path.delimiter);
 
 try {
     // 1. Run lint-staged first
