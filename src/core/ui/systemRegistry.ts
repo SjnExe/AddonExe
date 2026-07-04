@@ -46,7 +46,7 @@ export function getSystemRegistry(): SystemDefinition[] {
                 return def;
             }),
 
-                {
+        {
             id: 'economyMain',
             title: 'Economy Main Config',
             icon: 'textures/ui/Scaffolding',
@@ -55,7 +55,7 @@ export function getSystemRegistry(): SystemDefinition[] {
             hidden: true,
             isSimpleConfig: true
         },
-                {
+        {
             id: 'shopSettings',
             title: 'Shop Settings',
             icon: 'textures/items/emerald',
