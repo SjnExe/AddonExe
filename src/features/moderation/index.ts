@@ -3,8 +3,8 @@ import { getAvailableDates, getChatLogs } from '@features/moderation/chatLogMana
 import { initializeFreezeListener } from '@features/moderation/freezeListener.js';
 import { ModerationPanelHandler } from '@features/moderation/ui/panel.js';
 import { XrayPanelHandler } from '@features/moderation/ui/xrayPanel.js';
-import { panelRouter } from '@ui/PanelRouter.js';
 import { initializeWatchManager } from '@features/moderation/watchManager.js';
+import { panelRouter } from '@ui/PanelRouter.js';
 
 export function initialize() {
     panelRouter.register(new ModerationPanelHandler());

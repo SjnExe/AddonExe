@@ -1,6 +1,6 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { setWorldBorder, getWorldBorder } from '@features/essentials/worldBorderManager.js';
+import { getWorldBorder, setWorldBorder } from '@features/essentials/worldBorderManager.js';
+import * as mc from '@minecraft/server';
 
 const worldborderCommand: CustomCommand = {
     name: 'worldborder',

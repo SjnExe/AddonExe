@@ -1,7 +1,7 @@
-import * as mc from '@minecraft/server';
+import { errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isDefined } from '@lib/guards.js';
-import { errorLog } from '@core/logger.js';
+import * as mc from '@minecraft/server';
 
 interface WorldBorderConfig {
     enabled: boolean;
@@ -77,14 +77,14 @@ function checkWorldBorder() {
                     // Try to teleport to top block, but this is simple logic
                     player.teleport({ x: safeX, y: loc.y, z: safeZ }, { dimension: dim });
                     player.sendMessage('§cYou have reached the world border!');
-                } catch(e) {
+                } catch {
                     // Teleport might fail if dimension not loaded or out of bounds for y, fallback to spawn
                     player.teleport(mc.world.getDefaultSpawnLocation(), { dimension: mc.world.getDimension('overworld') });
                     player.sendMessage('§cYou have reached the world border and were sent to spawn!');
                 }
             }
         }
-    } catch(err) {
-        errorLog(`[WorldBorder] Check failed: ${err}`);
+    } catch (err) {
+        errorLog(`[WorldBorder] Check failed: ${String(err)}`);
     }
 }

@@ -1,6 +1,6 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const listranksCommand: CustomCommand = {
     name: 'listranks',
@@ -10,14 +10,14 @@ const listranksCommand: CustomCommand = {
     allowConsole: true,
     execute: async (executor: CommandExecutor) => {
         const configManager = await import('@core/configManager.js');
-        const ranksConfig = configManager.getConfig().ranks as any;
+        const ranksConfig = configManager.getConfig().ranks;
 
         let ranksDef;
-        if (isDefined(ranksConfig) && isDefined(ranksConfig.rankDefinitions)) {
-            ranksDef = ranksConfig.rankDefinitions;
+        if (isDefined(ranksConfig) && isDefined((ranksConfig as unknown as { rankDefinitions: unknown[] }).rankDefinitions)) {
+            ranksDef = (ranksConfig as unknown as { rankDefinitions: unknown[] }).rankDefinitions;
         } else {
-             const { default: defaultRanksConfig } = await import('@features/ranks/ranksConfig.js');
-             ranksDef = defaultRanksConfig.rankDefinitions;
+            const { default: defaultRanksConfig } = await import('@features/ranks/ranksConfig.js');
+            ranksDef = defaultRanksConfig.rankDefinitions;
         }
 
         if (!isDefined(ranksDef) || ranksDef.length === 0) {
@@ -28,7 +28,7 @@ const listranksCommand: CustomCommand = {
         }
 
         let message = `§2Configured Ranks:§r\n`;
-        message += ranksDef.map((r: any) => `§7- §b${r.name} §8(ID: ${r.id}, Priority: ${r.priority})`).join('\n');
+        message += ranksDef.map((r: unknown) => `§7- §b${(r as { name: string }).name} §8(ID: ${(r as { id: string }).id}, Priority: ${(r as { priority: number }).priority})`).join('\n');
 
         if (executor instanceof mc.Player) {
             executor.sendMessage(message);

@@ -1,6 +1,6 @@
-import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getWatchedPlayers } from '@features/moderation/watchManager.js';
+import { getWatchedPlayers, toggleWatch } from '@features/moderation/watchManager.js';
+import * as mc from '@minecraft/server';
 
 const listwatchedCommand: CustomCommand = {
     name: 'listwatched',
@@ -21,7 +21,7 @@ const listwatchedCommand: CustomCommand = {
         }
 
         let message = `§2Watched Players:§r\n`;
-        message += watched.map(p => `§7- §b${p.name}`).join('\n');
+        message += watched.map((p) => `§7- §b${p.name}`).join('\n');
 
         if (executor instanceof mc.Player) {
             executor.sendMessage(message);
@@ -31,7 +31,6 @@ const listwatchedCommand: CustomCommand = {
     }
 };
 
-import { toggleWatch } from '@features/moderation/watchManager.js';
 import { getPlayerIdByName } from '@core/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -41,9 +40,7 @@ const watchCommand: CustomCommand = {
     category: 'Moderation',
     permissionNode: 'cmd.watch.mod',
     allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'string' }
-    ],
+    parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         const targetName = args.target as string;
         const targetId = getPlayerIdByName(targetName);
