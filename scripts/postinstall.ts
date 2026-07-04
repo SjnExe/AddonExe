@@ -1,27 +1,34 @@
 import { $ } from 'bun';
 import { existsSync } from 'node:fs';
 import os from 'node:os';
+import path from 'node:path';
 
 const homeDir = os.homedir();
-// Dynamically pass Cargo context pathing directly into runtime process execution
-process.env.PATH = `${homeDir}/.cargo/bin:${process.env.PATH}`;
+const termuxBinDir = '/data/data/com.termux/files/usr/bin';
+const cargoBinDir = `${homeDir}/.cargo/bin`;
+
+const paths = [cargoBinDir, termuxBinDir, process.env.PATH].filter(Boolean);
+process.env.PATH = paths.join(path.delimiter);
 
 async function postinstallTask() {
     if (existsSync('/data/data/com.termux')) {
-        try {
-            await $`command -v cargo`.quiet();
+        const cargoExists = existsSync(path.join(termuxBinDir, 'cargo')) || existsSync(path.join(cargoBinDir, 'cargo'));
 
-            console.log('⚡ Native toolchain found: Compiling jscpd binary utilizing LLVM optimizations...');
-            await $`RUSTFLAGS="-C link-arg=-fuse-ld=lld" cargo install jscpd`;
+        if (cargoExists) {
+            try {
+                console.log('⚡ Termux toolchain verified: Compiling native jscpd with LLVM optimization...');
+                await $`RUSTFLAGS="-C link-arg=-fuse-ld=lld" cargo install jscpd`;
 
-            console.log('🧹 Purging secondary cargo registry cache directories...');
-            await $`rm -rf ${homeDir}/.cargo/registry/src ${homeDir}/.cargo/registry/cache`.quiet();
-        } catch {
-            console.log('\n⚠️ [Toolchain Warning]: cargo could not be initialized. Verify "pkg install rust lld" output.\n');
+                console.log('🧹 Purging secondary cargo registry cache directories...');
+                await $`rm -rf ${homeDir}/.cargo/registry/src ${homeDir}/.cargo/registry/cache`.quiet();
+            } catch (err) {
+                console.error('❌ Native compilation failed during execution:', err);
+            }
+        } else {
+            console.log('\n⚠️ [Toolchain Warning]: cargo binary not found. Run "pkg install rust lld" to enable optimized jscpd support.\n');
         }
     }
 
-    // Git Hook Generation Hook
     if (existsSync('.git')) {
         const hookPath = '.git/hooks/pre-commit';
         await Bun.write(hookPath, '#!/bin/sh\nbun scripts/pre-commit.ts\n');
