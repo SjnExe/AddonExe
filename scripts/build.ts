@@ -281,6 +281,53 @@ async function compileScripts(versionArray: number[]) {
 
     const versionArrayStr = `[${versionArray.join(', ')}]`;
 
+    // Word pool compress plugin
+    const wordPoolCompressPlugin = {
+        name: 'word-pool-compress',
+        setup(build: import('bun').PluginBuilder) {
+            build.onLoad({ filter: /wordPool\.[jt]s$/ }, async (args) => {
+                let content = await Bun.file(args.path).text();
+
+                // Match the 4 and 5 length plain text pools
+                const match4 = content.match(/4: '([^']+)'/);
+                const match5 = content.match(/5: '([^']+)'/);
+
+                if (match4 && match5) {
+                    const compress = (str: string) => {
+                        let out = '';
+                        // Pad the string so we process exactly in chunks of 3 characters
+                        const originalLength = str.length;
+                        while (str.length % 3 !== 0) str += 'a';
+
+                        for (let i = 0; i < str.length; i += 3) {
+                            const c1 = str.charCodeAt(i) - 97;
+                            const c2 = str.charCodeAt(i + 1) - 97;
+                            const c3 = str.charCodeAt(i + 2) - 97;
+                            const val = c1 * 676 + c2 * 26 + c3;
+                            out += String.fromCharCode(val + 0x4000);
+                        }
+                        // Append the original string length as the last character
+                        // Since length can be > 65535, we need to split it into two characters
+                        out += String.fromCharCode(Math.floor(originalLength / 0x4000) + 0x4000);
+                        out += String.fromCharCode((originalLength % 0x4000) + 0x4000);
+                        return out;
+                    };
+
+                    const comp4 = compress(match4[1]);
+                    const comp5 = compress(match5[1]);
+
+                    content = content.replace(/4: '([^']+)'/, `4: '${comp4}'`);
+                    content = content.replace(/5: '([^']+)'/, `5: '${comp5}'`);
+                }
+
+                return {
+                    contents: content,
+                    loader: 'ts'
+                };
+            });
+        }
+    };
+
     // Dynamic import interceptor
     const dynamicImportPlugin = {
         name: 'dynamic-import-resolver',
@@ -324,7 +371,7 @@ async function compileScripts(versionArray: number[]) {
         define: {
             __IS_NIGHTLY__: String(isNightly)
         },
-        plugins: [commandIndexPlugin, dynamicImportPlugin],
+        plugins: [commandIndexPlugin, dynamicImportPlugin, wordPoolCompressPlugin],
         external: ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', ...externalConfigs]
     });
 
