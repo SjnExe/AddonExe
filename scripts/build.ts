@@ -281,6 +281,46 @@ async function compileScripts(versionArray: number[]) {
 
     const versionArrayStr = `[${versionArray.join(', ')}]`;
 
+    // Compress word pool plugin
+    const wordPoolCompressPlugin = {
+        name: 'wordpool-compress',
+        setup(build: import('bun').PluginBuilder) {
+            build.onLoad({ filter: /src[\\/]features[\\/]games[\\/]wordle[\\/]wordPool\.ts$/ }, async (args) => {
+                const content = await Bun.file(args.path).text();
+                const replaced = content.replace(/(\d+):\s*'([a-z]+)'/g, (match, lenStr, plainWords) => {
+                    const wordLen = parseInt(lenStr, 10);
+                    const words = [];
+                    for (let i = 0; i < plainWords.length; i += wordLen) {
+                        words.push(plainWords.substring(i, i + wordLen));
+                    }
+
+                    const SOLUTION_LIMIT = 500;
+                    const solutions = words.slice(0, SOLUTION_LIMIT).sort();
+                    const rest = words.slice(SOLUTION_LIMIT).sort();
+                    const combined = [...solutions, ...rest];
+
+                    if (combined.length === 0) return match;
+
+                    let compressed = combined[0];
+                    for (let i = 1; i < combined.length; i++) {
+                        const prev = combined[i - 1];
+                        const curr = combined[i];
+                        let shared = 0;
+                        while (shared < wordLen && prev[shared] === curr[shared]) {
+                            shared++;
+                        }
+                        compressed += shared.toString(36) + curr.substring(shared);
+                    }
+                    return `${lenStr}: '${compressed}'`;
+                });
+                return {
+                    contents: replaced,
+                    loader: 'ts'
+                };
+            });
+        }
+    };
+
     // Dynamic import interceptor
     const dynamicImportPlugin = {
         name: 'dynamic-import-resolver',
@@ -324,7 +364,7 @@ async function compileScripts(versionArray: number[]) {
         define: {
             __IS_NIGHTLY__: String(isNightly)
         },
-        plugins: [commandIndexPlugin, dynamicImportPlugin],
+        plugins: [commandIndexPlugin, dynamicImportPlugin, wordPoolCompressPlugin],
         external: ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', ...externalConfigs]
     });
 

@@ -11,18 +11,59 @@ export const compressedWordPool: Record<number, string> = {
 // N = 500 means the first 500 words (including Minecraft words + top english words) are possible solutions.
 const SOLUTION_LIMIT = 500;
 
+const decompressedWordPool: Record<number, string> = {};
+
+function getPool(length: number): string {
+    if (decompressedWordPool[length] !== undefined) {
+        return decompressedWordPool[length] as string;
+    }
+
+    const compressed = compressedWordPool[length];
+    if (!compressed) {
+        decompressedWordPool[length] = '';
+        return '';
+    }
+
+    // Try to see if it's compressed or plain. The compression logic replaces
+    // letters with digits or relies on the first word being fully intact.
+    // By definition of our prefix compression, the very first character of the second block is a base36 digit.
+    // If it's the raw original format (during dev/tests before build), it'll just be all alphabetical.
+    // We can just check if there are any numbers.
+    if (!/\d/.test(compressed) && !compressed.includes('0')) {
+        decompressedWordPool[length] = compressed;
+        return compressed;
+    }
+
+    let decompressed = compressed.substring(0, length);
+    let prevWord = decompressed;
+    let idx = length;
+    while (idx < compressed.length) {
+        const shared = parseInt(compressed[idx] as string, 36);
+        idx++;
+        const restLen = length - shared;
+        const restStr = compressed.substring(idx, idx + restLen);
+        idx += restLen;
+        const currWord = prevWord.substring(0, shared) + restStr;
+        decompressed += currWord;
+        prevWord = currWord;
+    }
+
+    decompressedWordPool[length] = decompressed;
+    return decompressed;
+}
+
 export function isValidWord(word: string): boolean {
     const len = word.length;
-    const pool = compressedWordPool[len];
+    const pool = getPool(len);
     if (!pool) return false;
 
-    // In a compressed string of fixed-length words, check if it's a multiple of length
+    // In a continuous string of fixed-length words, check if it's a multiple of length
     const idx = pool.indexOf(word.toLowerCase());
     return idx !== -1 && idx % len === 0;
 }
 
 export function getRandomSolution(length: number): string | undefined {
-    const pool = compressedWordPool[length];
+    const pool = getPool(length);
     if (!pool) return undefined;
 
     const maxWordsInPool = pool.length / length;
