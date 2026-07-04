@@ -19,8 +19,9 @@ async function postinstallTask() {
         if (cargoExists) {
             if (!jscpdExists) {
                 try {
-                    console.log('⚡ Termux toolchain verified: Compiling native jscpd with LLVM optimization...');
-                    await $`RUSTFLAGS="-C link-arg=-fuse-ld=lld" cargo install jscpd`;
+                    console.log('⚡ Termux toolchain verified: Compiling native jscpd with microarchitecture optimizations...');
+                    // Target native CPU architecture features and strip binary symbols completely
+                    await $`RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -C strip=symbols" cargo install jscpd`;
                 } catch (err) {
                     console.error('❌ Native compilation failed during execution:', err);
                 }
