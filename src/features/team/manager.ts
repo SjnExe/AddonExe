@@ -115,19 +115,29 @@ function saveNextTeamId() {
     mc.world.setDynamicProperty(nextTeamIdKey, nextTeamId);
 }
 
-/**
- * Creates a new team.
- * @param player The player creating the team.
- * @param name The name of the team.
- * @returns The result of the operation.
- */
-export function createTeam(player: mc.Player, name: string): ActionResult {
-    const teamConfig = getTeamConfig();
-    if (!teamConfig.enabled) {
-        return { success: false, message: '§cTeam system is disabled.' };
+function processTeamCreationCost(playerId: string, balance: number, cost: number): { success: boolean; message?: string; charged: boolean } {
+    let economyEnabled = false;
+    try {
+        const mainConfig = getConfig() as Record<string, unknown>;
+        economyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
+    } catch {
+        // Fallback
     }
 
-    // Validation
+    if (economyEnabled && cost > 0) {
+        if (balance < cost) {
+            return { success: false, message: `§cInsufficient funds. Cost: ${cost}`, charged: false };
+        }
+        // Deduct money first
+        incrementPlayerBalance(playerId, -cost);
+        return { success: true, charged: true };
+    }
+
+    return { success: true, charged: false };
+}
+
+function validateTeamName(name: string): ActionResult | null {
+    const teamConfig = getTeamConfig();
     if (name.length < teamConfig.nameMinLength || name.length > teamConfig.nameMaxLength) {
         return {
             success: false,
@@ -140,7 +150,6 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         return { success: false, message: '§cName contains invalid characters. Allowed: A-Z, 0-9, space, §, &, +, -' };
     }
 
-    // Check for obfuscated formatting codes
     if (name.includes('§k') || name.includes('&k')) {
         return { success: false, message: '§cTeam names cannot contain obfuscated (magic) text.' };
     }
@@ -150,11 +159,30 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         return { success: false, message: '§cName contains forbidden words.' };
     }
 
-    // Check if name exists (case-insensitive)
     for (const team of activeTeam.values()) {
         if (team.name.toLowerCase() === lowerName) {
             return { success: false, message: '§cTeam name already taken.' };
         }
+    }
+
+    return null;
+}
+
+/**
+ * Creates a new team.
+ * @param player The player creating the team.
+ * @param name The name of the team.
+ * @returns The result of the operation.
+ */
+export function createTeam(player: mc.Player, name: string): ActionResult {
+    const teamConfig = getTeamConfig();
+    if (!teamConfig.enabled) {
+        return { success: false, message: '§cTeam system is disabled.' };
+    }
+
+    const validationResult = validateTeamName(name);
+    if (validationResult) {
+        return validationResult;
     }
 
     const pData = getOrCreatePlayer(player);
@@ -162,21 +190,9 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         return { success: false, message: '§cYou are already in a team.' };
     }
 
-    const cost = teamConfig.creationCost;
-    let economyEnabled = false;
-    try {
-        const mainConfig = getConfig() as Record<string, unknown>;
-        economyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
-    } catch {
-        // Fallback
-    }
-
-    if (economyEnabled && cost > 0) {
-        if (pData.balance < cost) {
-            return { success: false, message: `§cInsufficient funds. Cost: ${cost}` };
-        }
-        // Deduct money first
-        incrementPlayerBalance(player.id, -cost);
+    const costResult = processTeamCreationCost(player.id, pData.balance, teamConfig.creationCost);
+    if (!costResult.success) {
+        return { success: false, message: costResult.message };
     }
 
     let newTeamId = nextTeamId++;
@@ -214,8 +230,8 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         setPlayerTeam(player.id, newTeamId);
     } catch (error) {
         // Rollback
-        if (economyEnabled && cost > 0) {
-            incrementPlayerBalance(player.id, cost);
+        if (costResult.charged) {
+            incrementPlayerBalance(player.id, teamConfig.creationCost);
         }
         activeTeam.delete(newTeamId);
         errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(error)}`);
