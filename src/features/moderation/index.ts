@@ -4,11 +4,13 @@ import { initializeFreezeListener } from '@features/moderation/freezeListener.js
 import { ModerationPanelHandler } from '@features/moderation/ui/panel.js';
 import { XrayPanelHandler } from '@features/moderation/ui/xrayPanel.js';
 import { panelRouter } from '@ui/PanelRouter.js';
+import { initializeWatchManager } from '@features/moderation/watchManager.js';
 
 export function initialize() {
     panelRouter.register(new ModerationPanelHandler());
     panelRouter.register(new XrayPanelHandler());
     initializeFreezeListener();
+    initializeWatchManager();
 
     serviceLocator.registerService('moderation.chatLogs', {
         getAvailableDates,
