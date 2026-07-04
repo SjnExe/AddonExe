@@ -27,6 +27,10 @@ async function syncProfileConfiguration() {
     console.log('⚙️ Synchronizing shell environmental paths safely...');
     let content = await fs.readFile(bashrcPath, 'utf8');
 
+    // Strip loose legacy lines injected by the community installer outside our block
+    const externalInjectionsRegex = /# bun\nexport BUN_INSTALL="\$HOME\/\.bun"\nexport PATH="\$BUN_INSTALL\/bin:\$PATH"\n?/g;
+    content = content.replace(externalInjectionsRegex, '');
+
     const startMarker = '# >>> ADDONEXE PROFILE START >>>';
     const endMarker = '# <<< ADDONEXE PROFILE END <<<';
 

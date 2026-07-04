@@ -40,9 +40,6 @@ jobs:
     lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -65,9 +62,6 @@ jobs:
     format:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -90,9 +84,6 @@ jobs:
     typecheck:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -115,9 +106,6 @@ jobs:
     test:
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
         steps:
             - uses: actions/checkout@v7
             - name: Setup Bun
@@ -125,14 +113,11 @@ jobs:
               with:
                   bun-version: latest
             - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
-            - run: bun test --isolate
+            - run: bun test --isolate --parallel
 
     build:
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        env:
-            NODE_OPTIONS: '--max-old-space-size=16384'
-            MAKEFLAGS: '-j4'
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
@@ -210,7 +195,6 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  # Zip directly from the build directory to ensure exact packaging
                   (cd build && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
                   (cd build/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
                   (cd build/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
