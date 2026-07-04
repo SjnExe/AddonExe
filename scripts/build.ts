@@ -321,6 +321,9 @@ async function compileScripts(versionArray: number[]) {
         sourcemap: 'external',
         splitting: false,
         naming: '[dir]/[name].[ext]',
+        define: {
+            __IS_NIGHTLY__: String(isNightly)
+        },
         plugins: [commandIndexPlugin, dynamicImportPlugin],
         external: ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', ...externalConfigs]
     });
@@ -407,7 +410,9 @@ export const commandIndexPlugin = {
                 const regex = /\{\s*id:\s*'([^']+)'/g;
                 let match;
                 while ((match = regex.exec(content)) !== null) {
-                    featureDirs.push(match[1]);
+                    const featureName = match[1];
+                    if (featureName === 'test' && !isNightly) continue;
+                    featureDirs.push(featureName);
                 }
             } catch (error: any) {
                 console.warn(`[Plugin] Error reading featureRegistry.ts: ${error.message}`);
