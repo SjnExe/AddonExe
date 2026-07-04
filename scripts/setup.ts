@@ -35,6 +35,12 @@ async function configureSystemEnvironment() {
 }
 
 async function syncProfileConfiguration() {
+    // Clear out the failed global bunfig experiment
+    const globalBunfigPath = path.join(homeDir, '.bunfig.toml');
+    if (existsSync(globalBunfigPath)) {
+        await fs.unlink(globalBunfigPath).catch(() => {});
+    }
+
     if (!existsSync(bashrcPath)) return;
 
     console.log('⚙️ Synchronizing shell environmental paths safely...');
