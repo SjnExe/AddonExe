@@ -221,7 +221,7 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                   name: debug-symbols-nightly
-                  path: staging/**/*.map
+                  path: build/**/*.map
                   retention-days: 7
             - name: Create build meta file
               run: |
