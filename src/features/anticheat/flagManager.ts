@@ -4,7 +4,7 @@ import { debugLog, errorLog, warnLog } from '@core/logger.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { formatString } from '@core/utils.js';
+import { escapeCommandArg, formatString } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
 
 import { BaseCheckConfig } from '@features/anticheat/anticheatConfig.js';
@@ -101,8 +101,10 @@ function notifyAdmins(suspect: mc.Player, check: string, vl: number, info: strin
     }
 }
 
-function executePunishment(player: mc.Player, commandTemplate: string) {
-    const cmd = formatString(commandTemplate, { player: player.name });
+export function executePunishment(player: mc.Player, commandTemplate: string) {
+    const safePlayerName = escapeCommandArg(player.name);
+    const normalizedTemplate = commandTemplate.replaceAll('"{player}"', '{player}').replaceAll("'{player}'", '{player}');
+    const cmd = formatString(normalizedTemplate, { player: `"${safePlayerName}"` });
     try {
         player.dimension.runCommand(cmd);
         debugLog(`[AntiCheat] Executed: ${cmd}`);

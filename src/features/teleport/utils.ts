@@ -1,7 +1,11 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
 import { setPlayerLastLocation } from '@core/playerDataManager.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { isDefined } from '@lib/guards.js';
 
 /**
@@ -84,4 +88,42 @@ export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3):
         }
     }
     return undefined;
+}
+
+export interface ExecuteTeleportParams {
+    executor: mc.Player;
+    location: mc.Vector3 & { dimensionId: string };
+    destinationName: string;
+    teleportType: string;
+    warmupSeconds: number;
+    cooldownSeconds: number;
+    cooldownKey: string;
+}
+
+/**
+ * Consolidates the common teleport logic including warmup, dimension resolving, cooldown setting, and error logging.
+ */
+export function executeTeleport(params: ExecuteTeleportParams): void {
+    const { executor, location, destinationName, teleportType, warmupSeconds, cooldownSeconds, cooldownKey } = params;
+
+    const teleportLogic = () => {
+        try {
+            saveLastLocation(executor);
+            const dimension = mc.world.getDimension(location.dimensionId);
+            if (isDefined(dimension)) {
+                executor.teleport(location, { dimension });
+                sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.`, executor);
+                setCooldown(executor.id, cooldownKey, cooldownSeconds);
+            } else {
+                sendMessage(`§cError: Dimension '${location.dimensionId}' not found.`, executor);
+            }
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            const stack = error instanceof Error ? error.stack : String(error);
+            sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
+            errorLog(`[/${teleportType}] Failed to teleport: ${stack}`);
+        }
+    };
+
+    startTeleportWarmup(executor, warmupSeconds, teleportLogic, `${teleportType} '${destinationName}'`);
 }
