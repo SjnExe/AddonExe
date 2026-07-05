@@ -26,15 +26,14 @@ mock.module('@core/playerDataManager.js', () => ({
 
 mock.module('@core/rankManager.js', () => ({
     getAllRanks: mock(() => []),
-    getRankById: mock((id) => null)
+    getRankById: mock(() => null)
 }));
 
 // Import after the mock
-import { calculateRankMap, getPlayerRanks } from '../permissionEngine.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { getAllRanks, getRankById } from '@core/rankManager.js';
 import { config } from '../../config.js';
-
+import { calculateRankMap, getPlayerRanks } from '../permissionEngine.js';
 
 describe('calculateRankMap', () => {
     it('should merge permissions from multiple groups', () => {
@@ -184,8 +183,6 @@ describe('calculateRankMap', () => {
     });
 });
 
-
-
 describe('getPlayerRanks', () => {
     let mockPlayer: any;
 
@@ -207,7 +204,7 @@ describe('getPlayerRanks', () => {
     it('should return assigned ranks from player data', () => {
         const assignedRank = { id: 'admin', name: 'Admin', priority: 1, conditions: [] };
         (getPlayer as any).mockReturnValue({ ranks: ['admin'] });
-        (getRankById as any).mockImplementation((id: string) => id === 'admin' ? assignedRank : null);
+        (getRankById as any).mockImplementation((id: string) => (id === 'admin' ? assignedRank : null));
         (getAllRanks as any).mockReturnValue([]);
 
         const ranks = getPlayerRanks(mockPlayer);
@@ -218,7 +215,7 @@ describe('getPlayerRanks', () => {
     it('should fallback to config default rank if no rank assigned', () => {
         const defaultRank = { id: 'defaultRank', name: 'Default', priority: 10, conditions: [] };
         (getPlayer as any).mockReturnValue({ ranks: [] }); // No ranks
-        (getRankById as any).mockImplementation((id: string) => id === 'defaultRank' ? defaultRank : null);
+        (getRankById as any).mockImplementation((id: string) => (id === 'defaultRank' ? defaultRank : null));
         (getAllRanks as any).mockReturnValue([]);
 
         const ranks = getPlayerRanks(mockPlayer);
@@ -231,7 +228,7 @@ describe('getPlayerRanks', () => {
         const memberRank = { id: 'member', name: 'Member', priority: 20, conditions: [] };
 
         (getPlayer as any).mockReturnValue({ ranks: [] });
-        (getRankById as any).mockImplementation((id: string) => id === 'member' ? memberRank : null);
+        (getRankById as any).mockImplementation((id: string) => (id === 'member' ? memberRank : null));
         (getAllRanks as any).mockReturnValue([]);
 
         const ranks = getPlayerRanks(mockPlayer);
@@ -246,7 +243,7 @@ describe('getPlayerRanks', () => {
         const memberRank = { id: 'member', name: 'Member', priority: 20, conditions: [] };
 
         (getPlayer as any).mockReturnValue({ ranks: ['member'] });
-        (getRankById as any).mockImplementation((id: string) => id === 'member' ? memberRank : null);
+        (getRankById as any).mockImplementation((id: string) => (id === 'member' ? memberRank : null));
         (getAllRanks as any).mockReturnValue([ownerRank, memberRank]);
 
         const ranks = getPlayerRanks(mockPlayer);
@@ -263,7 +260,7 @@ describe('getPlayerRanks', () => {
         const memberRank = { id: 'member', name: 'Member', priority: 20, conditions: [] };
 
         (getPlayer as any).mockReturnValue({ ranks: ['member'] });
-        (getRankById as any).mockImplementation((id: string) => id === 'member' ? memberRank : null);
+        (getRankById as any).mockImplementation((id: string) => (id === 'member' ? memberRank : null));
         (getAllRanks as any).mockReturnValue([vipRank, memberRank]);
 
         const ranks = getPlayerRanks(mockPlayer);
@@ -286,7 +283,7 @@ describe('getPlayerRanks', () => {
 
         const ranks = getPlayerRanks(mockPlayer);
         // It should match 'default' condition because ranks.length === 0 when evaluateRankConditions runs
-        expect(ranks.some(r => r.id === 'autoDefault')).toBe(true);
+        expect(ranks.some((r) => r.id === 'autoDefault')).toBe(true);
     });
 
     it('should explicitely add default config rank if absolutely no ranks were assigned or conditions met', () => {
@@ -296,7 +293,7 @@ describe('getPlayerRanks', () => {
         (getPlayer as any).mockReturnValue({ ranks: ['someMissingRank'] });
 
         // This will be called a second time explicitly
-        (getRankById as any).mockImplementation((id: string) => id === 'defaultRank' ? defaultRank : null);
+        (getRankById as any).mockImplementation((id: string) => (id === 'defaultRank' ? defaultRank : null));
         (getAllRanks as any).mockReturnValue([]);
 
         const ranks = getPlayerRanks(mockPlayer);
