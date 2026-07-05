@@ -12,8 +12,58 @@ mock.module('../configurations.js', () => ({
     })
 }));
 
+mock.module('../playerCache.js', () => ({
+    getAllPlayersFromCache: () => [{ id: 'player1' }, { id: 'player2' }]
+}));
+
+mock.module('../playerDataManager.js', () => ({
+    getPlayer: (id: string) => {
+        if (id === 'player1') return { ranks: ['rank1', 'rank3'] };
+        if (id === 'player2') return { ranks: ['rank2'] };
+        return null;
+    }
+}));
+
+let rankPermissions: Record<string, string[]> = {
+    rank1: ['node.a'],
+    rank2: ['node.b'],
+    rank3: ['node.c']
+};
+
+mock.module('../rankManager.js', () => ({
+    getRankById: (id: string) => {
+        return {
+            id,
+            name: id,
+            priority: 1,
+            permissionLevel: 1,
+            conditions: [],
+            groups: [],
+            allow: rankPermissions[id] || [],
+            deny: []
+        };
+    },
+    getAllRanks: () => []
+}));
+
+mock.module('@minecraft/server', () => ({
+    system: { currentTick: 100 },
+    world: {
+        afterEvents: {
+            playerLeave: { subscribe: () => {} }
+        }
+    }
+}));
+
+mock.module('../../config.js', () => ({
+    config: {
+        playerDefaults: { rankId: 'member' },
+        ownerPlayerNames: []
+    }
+}));
+
 // Import after the mock
-import { calculateRankMap } from '../permissionEngine.js';
+import { calculateRankMap, calculatePlayerMap, invalidateRankCache, invalidateAllRankCaches, hasPermission } from '../permissionEngine.js';
 
 describe('calculateRankMap', () => {
     it('should merge permissions from multiple groups', () => {
@@ -160,5 +210,53 @@ describe('calculateRankMap', () => {
 
         const map = calculateRankMap(rank);
         expect(Object.keys(map).length).toBe(0);
+    });
+});
+
+describe('invalidateRankCache', () => {
+    it('should invalidate rank and player caches properly based on real behavior', () => {
+        invalidateAllRankCaches();
+
+        // Initially rank1 has 'node.a', rank2 has 'node.b'
+        rankPermissions = {
+            rank1: ['node.a'],
+            rank2: ['node.b'],
+            rank3: ['node.c']
+        };
+
+        const player1 = { id: 'player1', name: 'Player 1', hasTag: () => false } as any;
+        const player2 = { id: 'player2', name: 'Player 2', hasTag: () => false } as any;
+
+        // Player1 (has rank1) should have 'node.a'
+        expect(hasPermission(player1, 'node.a')).toBe(true);
+        expect(hasPermission(player1, 'node.new')).toBe(false);
+
+        // Player2 (has rank2) should have 'node.b'
+        expect(hasPermission(player2, 'node.b')).toBe(true);
+        expect(hasPermission(player2, 'node.new')).toBe(false);
+
+        // Change rank1's underlying permissions
+        rankPermissions.rank1 = ['node.a', 'node.new'];
+
+        // Without invalidation, the cache still serves the old values
+        expect(hasPermission(player1, 'node.new')).toBe(false);
+
+        // Invalidate rank1 cache
+        invalidateRankCache('rank1');
+
+        // Now player1 should have 'node.new' because their cache was cleared
+        expect(hasPermission(player1, 'node.new')).toBe(true);
+
+        // Change rank2's underlying permissions
+        rankPermissions.rank2 = ['node.b', 'node.new'];
+
+        // Player2's cache was NOT invalidated (since rank1 was invalidated, and they only have rank2), so it still serves old data
+        expect(hasPermission(player2, 'node.new')).toBe(false);
+
+        // Invalidate rank2 cache
+        invalidateRankCache('rank2');
+
+        // Now player2 should have 'node.new'
+        expect(hasPermission(player2, 'node.new')).toBe(true);
     });
 });
