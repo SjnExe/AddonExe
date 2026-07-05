@@ -1,7 +1,11 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
+import { setCooldown } from '@core/cooldownManager.js';
+import { errorLog } from '@core/logger.js';
+import { sendMessage } from '@core/messaging.js';
 import { setPlayerLastLocation } from '@core/playerDataManager.js';
+import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { isDefined } from '@lib/guards.js';
 
 /**
@@ -46,14 +50,17 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
 export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vector3 | undefined {
     const { x: startX, y: startY, z: startZ } = location;
     const radius = 3; // Scan radius
+    const baseX = Math.floor(startX);
+    const baseY = Math.floor(startY);
+    const baseZ = Math.floor(startZ);
 
     for (let x = -radius; x <= radius; x++) {
         for (let z = -radius; z <= radius; z++) {
             for (let y = -2; y <= 2; y++) {
                 const checkPos = {
-                    x: Math.floor(startX) + x,
-                    y: Math.floor(startY) + y,
-                    z: Math.floor(startZ) + z
+                    x: baseX + x,
+                    y: baseY + y,
+                    z: baseZ + z
                 };
 
                 // Block below feet
@@ -81,4 +88,42 @@ export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3):
         }
     }
     return undefined;
+}
+
+export interface ExecuteTeleportParams {
+    executor: mc.Player;
+    location: mc.Vector3 & { dimensionId: string };
+    destinationName: string;
+    teleportType: string;
+    warmupSeconds: number;
+    cooldownSeconds: number;
+    cooldownKey: string;
+}
+
+/**
+ * Consolidates the common teleport logic including warmup, dimension resolving, cooldown setting, and error logging.
+ */
+export function executeTeleport(params: ExecuteTeleportParams): void {
+    const { executor, location, destinationName, teleportType, warmupSeconds, cooldownSeconds, cooldownKey } = params;
+
+    const teleportLogic = () => {
+        try {
+            saveLastLocation(executor);
+            const dimension = mc.world.getDimension(location.dimensionId);
+            if (isDefined(dimension)) {
+                executor.teleport(location, { dimension });
+                sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.`, executor);
+                setCooldown(executor.id, cooldownKey, cooldownSeconds);
+            } else {
+                sendMessage(`§cError: Dimension '${location.dimensionId}' not found.`, executor);
+            }
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            const stack = error instanceof Error ? error.stack : String(error);
+            sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
+            errorLog(`[/${teleportType}] Failed to teleport: ${stack}`);
+        }
+    };
+
+    startTeleportWarmup(executor, warmupSeconds, teleportLogic, `${teleportType} '${destinationName}'`);
 }

@@ -6,7 +6,7 @@ import { getShopConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import * as shopAdminManager from '@features/shop/adminManager.js';
 import { ShopCategory } from '@features/shop/shopConfig.js';
-import { ensureItemsConfig, getAllItems } from '@features/shop/utils.js';
+import { ensureItemsConfig, getAllItems, parseRankOverrides } from '@features/shop/utils.js';
 import { isDefined, isNonEmptyString, isNumber, isString } from '@lib/guards.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { IPanelHandler, MainConfig, PanelItem, ShopItem, UIContext } from '@ui/types.js';
@@ -627,29 +627,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
         const permission = isNonEmptyString(permLevelStr) ? permLevelStr : 'ui.panel.member';
 
-        let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
-
-        if (isNonEmptyString(overridesRaw)) {
-            parsedOverrides = {};
-            const pairs = overridesRaw.split(';');
-            for (const pair of pairs) {
-                const parts = pair.trim().split('=');
-                if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
-                    const rankId = parts[0].trim();
-                    const multiParts = parts[1].split(',');
-                    if (multiParts.length === 2) {
-                        const buyM = Number.parseFloat(multiParts[0]!);
-                        const sellM = Number.parseFloat(multiParts[1]!);
-                        if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
-                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
-                        }
-                    }
-                }
-            }
-            if (Object.keys(parsedOverrides).length === 0) {
-                parsedOverrides = undefined;
-            }
-        }
+        const parsedOverrides = parseRankOverrides(overridesRaw);
 
         if (isNonEmptyString(customId) && isNonEmptyString(displayName) && isNonEmptyString(mcId) && !Number.isNaN(buyPrice)) {
             shopAdminManager.addCustomItemToConfig(customId, {
@@ -697,29 +675,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const sellPrice = Number.parseInt(isNonEmptyString(sellPriceStr) ? sellPriceStr : '-1', 10);
         const permission = isNonEmptyString(permLevelStr) ? permLevelStr : 'ui.panel.member';
 
-        let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
-
-        if (isNonEmptyString(overridesRaw)) {
-            parsedOverrides = {};
-            const pairs = overridesRaw.split(';');
-            for (const pair of pairs) {
-                const parts = pair.trim().split('=');
-                if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
-                    const rankId = parts[0].trim();
-                    const multiParts = parts[1].split(',');
-                    if (multiParts.length === 2) {
-                        const buyM = Number.parseFloat(multiParts[0]!);
-                        const sellM = Number.parseFloat(multiParts[1]!);
-                        if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
-                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
-                        }
-                    }
-                }
-            }
-            if (Object.keys(parsedOverrides).length === 0) {
-                parsedOverrides = undefined;
-            }
-        }
+        const parsedOverrides = parseRankOverrides(overridesRaw);
 
         if (!Number.isNaN(buyPrice) && isDefined(masterItem)) {
             shopAdminManager.setItem(context.categoryName as string, (context.subCategoryName as string) || undefined, itemId, {
@@ -758,29 +714,7 @@ export class ShopAdminPanelHandler implements IPanelHandler {
         const pLevel = vals[5];
         const overridesRaw = vals[6] ?? '';
 
-        let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
-
-        if (isNonEmptyString(overridesRaw)) {
-            parsedOverrides = {};
-            const pairs = overridesRaw.split(';');
-            for (const pair of pairs) {
-                const parts = pair.trim().split('=');
-                if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
-                    const rankId = parts[0].trim();
-                    const multiParts = parts[1].split(',');
-                    if (multiParts.length === 2) {
-                        const buyM = Number.parseFloat(multiParts[0]!);
-                        const sellM = Number.parseFloat(multiParts[1]!);
-                        if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
-                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
-                        }
-                    }
-                }
-            }
-            if (Object.keys(parsedOverrides).length === 0) {
-                parsedOverrides = undefined;
-            }
-        }
+        const parsedOverrides = parseRankOverrides(overridesRaw);
 
         shopAdminManager.updateShopItem(categoryName, subCategoryName ?? undefined, itemId, {
             buyPrice: isDefined(bPrice) ? Number(bPrice) : -1,

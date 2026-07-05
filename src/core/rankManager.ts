@@ -13,6 +13,9 @@ let sortedRanks: RankDefinition[] = [];
 // Cache for player ranks: Map<playerId, { rank: RankDefinition, tick: number }>
 const rankCache = new Map<string, { rank: RankDefinition; tick: number }>();
 
+// Cache for rank definitions by ID for O(1) lookups
+const ranksMap = new Map<string, RankDefinition>();
+
 /**
  * Reloads and sorts the ranks from the config manager cache.
  * This can be called to refresh ranks after they've been modified in the UI.
@@ -20,6 +23,13 @@ const rankCache = new Map<string, { rank: RankDefinition; tick: number }>();
 export function reloadRanks() {
     const allRanks = getRanksConfig().rankDefinitions;
     sortedRanks = [...allRanks].toSorted((a, b) => a.priority - b.priority);
+
+    // Rebuild ranks map
+    ranksMap.clear();
+    for (const rank of allRanks) {
+        ranksMap.set(rank.id, rank);
+    }
+
     // Clear cache on reload
     rankCache.clear();
     import('@core/permissionEngine.js').then((m) => m.invalidateAllRankCaches()).catch(() => {});
@@ -153,7 +163,18 @@ export function canTarget(executor: mc.Player | CommandExecutor, targetId: strin
  * @param rankId The ID of the rank to get.
  */
 export function getRankById(rankId: string): RankDefinition | undefined {
-    return getRanksConfig().rankDefinitions.find((rank) => rank.id === rankId);
+    const cachedRank = ranksMap.get(rankId);
+    if (cachedRank) {
+        return cachedRank;
+    }
+
+    // Fallback if map isn't populated yet (e.g. before initialization)
+    const allRanks = getRanksConfig().rankDefinitions;
+    const rank = allRanks.find((r) => r.id === rankId);
+    if (rank) {
+        ranksMap.set(rank.id, rank);
+    }
+    return rank;
 }
 
 /**

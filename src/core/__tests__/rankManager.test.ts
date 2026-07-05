@@ -131,6 +131,8 @@ describe('rankManager', () => {
             (getRanksConfig as ReturnType<typeof mock>).mockReturnValue({
                 rankDefinitions: [mockRanks[0], mockRanks[2]] // Remove 'default' rank
             });
+            // Also need to clear the cached map that might have 'default'
+            reloadRanks();
 
             const rank = getPlayerRank(player, Config);
             expect(rank.id).toBe('fallback');
