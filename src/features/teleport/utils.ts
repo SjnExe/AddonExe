@@ -50,14 +50,17 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
 export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vector3 | undefined {
     const { x: startX, y: startY, z: startZ } = location;
     const radius = 3; // Scan radius
+    const baseX = Math.floor(startX);
+    const baseY = Math.floor(startY);
+    const baseZ = Math.floor(startZ);
 
     for (let x = -radius; x <= radius; x++) {
         for (let z = -radius; z <= radius; z++) {
             for (let y = -2; y <= 2; y++) {
                 const checkPos = {
-                    x: Math.floor(startX) + x,
-                    y: Math.floor(startY) + y,
-                    z: Math.floor(startZ) + z
+                    x: baseX + x,
+                    y: baseY + y,
+                    z: baseZ + z
                 };
 
                 // Block below feet
