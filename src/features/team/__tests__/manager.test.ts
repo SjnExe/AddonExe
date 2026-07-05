@@ -5,7 +5,7 @@ mock.module('@minecraft/server', () => ({
     world: {
         getDynamicProperty: mock(),
         setDynamicProperty: mock(),
-        getDimension: mock(),
+        getDimension: mock()
     },
     Player: class {}
 }));
@@ -50,11 +50,27 @@ mock.module('@ui/PanelRouter.js', () => ({
     }
 }));
 
-import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { getTeamConfig } from '@core/configurations.js';
 import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
-import { createTeam, deleteTeam, getTeam, getPlayerTeamId, getTeamByPlayer, setPlayerTeam, kickMember, promoteMember, demoteMember, transferOwnership, invitePlayer, acceptInvite, denyInvite, applyToTeam, acceptApplication, denyApplication, getAllTeam } from '../manager.js';
+import * as mc from '@minecraft/server';
+import {
+    acceptApplication,
+    acceptInvite,
+    applyToTeam,
+    createTeam,
+    deleteTeam,
+    demoteMember,
+    denyApplication,
+    denyInvite,
+    getAllTeam,
+    getTeam,
+    getTeamByPlayer,
+    invitePlayer,
+    kickMember,
+    promoteMember,
+    transferOwnership
+} from '../manager.js';
 
 describe('Team Manager', () => {
     let mockPlayers: Record<string, any> = {};
@@ -143,7 +159,11 @@ describe('Team Manager', () => {
 
         it('should handle economy cost if enabled', () => {
             (getTeamConfig as ReturnType<typeof mock>).mockReturnValue({
-                enabled: true, nameMinLength: 3, nameMaxLength: 16, nameBlacklist: [], creationCost: 50
+                enabled: true,
+                nameMinLength: 3,
+                nameMaxLength: 16,
+                nameBlacklist: [],
+                creationCost: 50
             });
             (getConfig as ReturnType<typeof mock>).mockReturnValue({
                 economy: { enabled: true }
@@ -158,7 +178,11 @@ describe('Team Manager', () => {
 
         it('should create team and deduct cost if economy enabled and sufficient funds', () => {
             (getTeamConfig as ReturnType<typeof mock>).mockReturnValue({
-                enabled: true, nameMinLength: 3, nameMaxLength: 16, nameBlacklist: [], creationCost: 50
+                enabled: true,
+                nameMinLength: 3,
+                nameMaxLength: 16,
+                nameBlacklist: [],
+                creationCost: 50
             });
             (getConfig as ReturnType<typeof mock>).mockReturnValue({
                 economy: { enabled: true }
@@ -194,7 +218,11 @@ describe('Team Manager', () => {
     describe('deleteTeam', () => {
         it('should delete a team and refund if economy enabled', () => {
             (getTeamConfig as ReturnType<typeof mock>).mockReturnValue({
-                enabled: true, nameMinLength: 3, nameMaxLength: 16, nameBlacklist: [], creationCost: 50
+                enabled: true,
+                nameMinLength: 3,
+                nameMaxLength: 16,
+                nameBlacklist: [],
+                creationCost: 50
             });
             (getConfig as ReturnType<typeof mock>).mockReturnValue({
                 economy: { enabled: true }
