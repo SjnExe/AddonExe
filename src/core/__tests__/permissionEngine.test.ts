@@ -12,8 +12,36 @@ mock.module('../configurations.js', () => ({
     })
 }));
 
+mock.module('../playerDataManager.js', () => ({
+    getPlayer: mock(() => ({
+        id: 'test-player-1',
+        name: 'TestPlayer',
+        ranks: ['test-rank']
+    }))
+}));
+
+mock.module('../rankManager.js', () => ({
+    getRankById: mock((id: string) => {
+        if (id === 'test-rank') {
+            return {
+                id: 'test-rank',
+                name: 'Test Rank',
+                priority: 10,
+                permissionLevel: 1,
+                conditions: [],
+                groups: ['groupA'],
+                allow: ['node.custom'],
+                deny: []
+            };
+        }
+        return undefined;
+    }),
+    getAllRanks: mock(() => [])
+}));
+
 // Import after the mock
-import { calculateRankMap } from '../permissionEngine.js';
+import * as mc from '@minecraft/server';
+import { calculatePlayerMap, calculateRankMap, invalidateAllRankCaches } from '../permissionEngine.js';
 
 describe('calculateRankMap', () => {
     it('should merge permissions from multiple groups', () => {
@@ -160,5 +188,60 @@ describe('calculateRankMap', () => {
 
         const map = calculateRankMap(rank);
         expect(Object.keys(map).length).toBe(0);
+    });
+});
+
+describe('calculatePlayerMap', () => {
+    it('should calculate initial player map and populate cache', () => {
+        invalidateAllRankCaches();
+        const player = { id: 'test-player-1' } as mc.Player;
+        (mc.system as any).currentTick = 100;
+
+        const result = calculatePlayerMap(player);
+
+        expect(result.map['node.a']).toBe(true);
+        expect(result.map['node.b']).toBe(true);
+        expect(result.map['node.custom']).toBe(true);
+        expect(Object.keys(result.map).length).toBe(3);
+    });
+
+    it('should return cached map within 20 ticks', () => {
+        invalidateAllRankCaches();
+        const player = { id: 'test-player-1' } as mc.Player;
+
+        // Initial call at tick 100
+        (mc.system as any).currentTick = 100;
+        const initialResult = calculatePlayerMap(player);
+
+        // Modify the underlying map just to verify it's returning the exact same object
+        initialResult.map['injected-for-test'] = true;
+
+        // Second call at tick 119 (within 20 ticks)
+        (mc.system as any).currentTick = 119;
+        const cachedResult = calculatePlayerMap(player);
+
+        // It should return the exact same object we mutated
+        expect(cachedResult.map).toBe(initialResult.map);
+        expect(cachedResult.map['injected-for-test']).toBe(true);
+    });
+
+    it('should recalculate map after 20 ticks', () => {
+        invalidateAllRankCaches();
+        const player = { id: 'test-player-1' } as mc.Player;
+
+        // Initial call at tick 100
+        (mc.system as any).currentTick = 100;
+        const initialResult = calculatePlayerMap(player);
+
+        initialResult.map['injected-for-test'] = true;
+
+        // Second call at tick 120 (exactly 20 ticks later, should recalculate)
+        (mc.system as any).currentTick = 120;
+        const newResult = calculatePlayerMap(player);
+
+        // It should be a new object, not the mutated cached one
+        expect(newResult.map).not.toBe(initialResult.map);
+        expect(newResult.map['injected-for-test']).toBeUndefined();
+        expect(newResult.map['node.a']).toBe(true);
     });
 });

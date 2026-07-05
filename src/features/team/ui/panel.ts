@@ -581,7 +581,8 @@ export class TeamPanelHandler implements IPanelHandler {
             }
 
             const allTeams = teamManager.getAllTeam();
-            const foundTeam = allTeams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
+            const lowerTeamName = teamName.toLowerCase();
+            const foundTeam = allTeams.find((t) => t.name.toLowerCase() === lowerTeamName);
 
             if (!foundTeam) {
                 player.sendMessage('§cTeam not found.');

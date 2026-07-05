@@ -3,14 +3,12 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
-import { saveLastLocation } from '@features/teleport/utils.js';
+import { executeTeleport } from '@features/teleport/utils.js';
 import * as warpsManager from '@features/teleport/warpsManager.js';
 
 interface WarpCommandArgs {
@@ -54,26 +52,15 @@ const warpCommand: CustomCommand = {
                 return;
             }
 
-            const warmupSeconds = config.warps.teleportWarmupSeconds;
-            const teleportLogic = () => {
-                try {
-                    saveLastLocation(executor);
-                    const dimension = mc.world.getDimension(warpLocation.dimensionId);
-                    if (isDefined(dimension)) {
-                        executor.teleport(warpLocation, { dimension });
-                        sendMessage(`§aTeleported to warp '${warpName}'.`, executor);
-                        setCooldown(executor.id, 'warp', config.warps.cooldownSeconds);
-                    } else {
-                        sendMessage(`§cError: Dimension '${warpLocation.dimensionId}' not found.`, executor);
-                    }
-                } catch (error: unknown) {
-                    if (error instanceof Error) {
-                        sendMessage(`§cFailed to teleport. Error: ${error.message}`, executor);
-                        errorLog(`[/warp] Failed to teleport: ${error.stack}`);
-                    }
-                }
-            };
-            startTeleportWarmup(executor, warmupSeconds, teleportLogic, `warp '${warpName}'`);
+            executeTeleport({
+                executor,
+                location: warpLocation,
+                destinationName: warpName,
+                teleportType: 'warp',
+                warmupSeconds: config.warps.teleportWarmupSeconds,
+                cooldownSeconds: config.warps.cooldownSeconds,
+                cooldownKey: 'warp'
+            });
         };
 
         const warpNameArg = (args as unknown as WarpCommandArgs).warpName;
