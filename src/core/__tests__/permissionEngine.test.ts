@@ -1,5 +1,5 @@
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
-import { describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 mock.module('../configurations.js', () => ({
     getRanksConfig: () => ({
@@ -13,7 +13,28 @@ mock.module('../configurations.js', () => ({
 }));
 
 // Import after the mock
-import { calculateRankMap } from '../permissionEngine.js';
+mock.module('../../config.js', () => ({
+    config: {
+        playerDefaults: { rankId: 'defaultRank' },
+        ownerPlayerNames: ['owner_test']
+    }
+}));
+
+mock.module('@core/playerDataManager.js', () => ({
+    getPlayer: mock(() => ({ ranks: [] }))
+}));
+
+mock.module('@core/rankManager.js', () => ({
+    getAllRanks: mock(() => []),
+    getRankById: mock((id) => null)
+}));
+
+// Import after the mock
+import { calculateRankMap, getPlayerRanks } from '../permissionEngine.js';
+import { getPlayer } from '@core/playerDataManager.js';
+import { getAllRanks, getRankById } from '@core/rankManager.js';
+import { config } from '../../config.js';
+
 
 describe('calculateRankMap', () => {
     it('should merge permissions from multiple groups', () => {
@@ -160,5 +181,126 @@ describe('calculateRankMap', () => {
 
         const map = calculateRankMap(rank);
         expect(Object.keys(map).length).toBe(0);
+    });
+});
+
+
+
+describe('getPlayerRanks', () => {
+    let mockPlayer: any;
+
+    beforeEach(() => {
+        mockPlayer = {
+            id: '123',
+            name: 'test_player',
+            hasTag: mock(() => false)
+        };
+        // Reset mocks
+        (getPlayer as any).mockClear();
+        (getAllRanks as any).mockClear();
+        (getRankById as any).mockClear();
+
+        config.playerDefaults.rankId = 'defaultRank';
+        config.ownerPlayerNames = ['owner_test'];
+    });
+
+    it('should return assigned ranks from player data', () => {
+        const assignedRank = { id: 'admin', name: 'Admin', priority: 1, conditions: [] };
+        (getPlayer as any).mockReturnValue({ ranks: ['admin'] });
+        (getRankById as any).mockImplementation((id: string) => id === 'admin' ? assignedRank : null);
+        (getAllRanks as any).mockReturnValue([]);
+
+        const ranks = getPlayerRanks(mockPlayer);
+        expect(ranks).toHaveLength(1);
+        expect(ranks[0].id).toBe('admin');
+    });
+
+    it('should fallback to config default rank if no rank assigned', () => {
+        const defaultRank = { id: 'defaultRank', name: 'Default', priority: 10, conditions: [] };
+        (getPlayer as any).mockReturnValue({ ranks: [] }); // No ranks
+        (getRankById as any).mockImplementation((id: string) => id === 'defaultRank' ? defaultRank : null);
+        (getAllRanks as any).mockReturnValue([]);
+
+        const ranks = getPlayerRanks(mockPlayer);
+        expect(ranks).toHaveLength(1);
+        expect(ranks[0].id).toBe('defaultRank');
+    });
+
+    it('should fallback to "member" if config default is missing and no rank assigned', () => {
+        config.playerDefaults.rankId = undefined as any; // Clear config default
+        const memberRank = { id: 'member', name: 'Member', priority: 20, conditions: [] };
+
+        (getPlayer as any).mockReturnValue({ ranks: [] });
+        (getRankById as any).mockImplementation((id: string) => id === 'member' ? memberRank : null);
+        (getAllRanks as any).mockReturnValue([]);
+
+        const ranks = getPlayerRanks(mockPlayer);
+        expect(ranks).toHaveLength(1);
+        expect(ranks[0].id).toBe('member');
+    });
+
+    it('should add condition-based ranks (isOwner)', () => {
+        mockPlayer.name = 'owner_test'; // Match the config
+
+        const ownerRank = { id: 'owner', name: 'Owner', priority: 0, conditions: [{ type: 'isOwner' }] };
+        const memberRank = { id: 'member', name: 'Member', priority: 20, conditions: [] };
+
+        (getPlayer as any).mockReturnValue({ ranks: ['member'] });
+        (getRankById as any).mockImplementation((id: string) => id === 'member' ? memberRank : null);
+        (getAllRanks as any).mockReturnValue([ownerRank, memberRank]);
+
+        const ranks = getPlayerRanks(mockPlayer);
+        expect(ranks).toHaveLength(2);
+        // Sorted by priority (lowest number = highest priority)
+        expect(ranks[0].id).toBe('owner');
+        expect(ranks[1].id).toBe('member');
+    });
+
+    it('should add condition-based ranks (hasTag)', () => {
+        mockPlayer.hasTag = mock((tag: string) => tag === 'vip_tag');
+
+        const vipRank = { id: 'vip', name: 'VIP', priority: 5, conditions: [{ type: 'hasTag', value: 'vip_tag' }] };
+        const memberRank = { id: 'member', name: 'Member', priority: 20, conditions: [] };
+
+        (getPlayer as any).mockReturnValue({ ranks: ['member'] });
+        (getRankById as any).mockImplementation((id: string) => id === 'member' ? memberRank : null);
+        (getAllRanks as any).mockReturnValue([vipRank, memberRank]);
+
+        const ranks = getPlayerRanks(mockPlayer);
+        expect(ranks).toHaveLength(2);
+        expect(ranks[0].id).toBe('vip');
+        expect(ranks[1].id).toBe('member');
+    });
+
+    it('should add condition-based ranks (default condition) only if no other ranks assigned', () => {
+        // Here, the default rank fallback adds config.playerDefaults.rankId to rankIds
+        // so assignedRankCount > 0 normally.
+        // We will make getRankById return null so ranks array is empty.
+
+        const autoDefaultRank = { id: 'autoDefault', name: 'Auto Default', priority: 30, conditions: [{ type: 'default' }] };
+
+        (getPlayer as any).mockReturnValue({ ranks: ['someMissingRank'] });
+        // Return null for everything, so ranks length will be 0 before condition check
+        (getRankById as any).mockReturnValue(null);
+        (getAllRanks as any).mockReturnValue([autoDefaultRank]);
+
+        const ranks = getPlayerRanks(mockPlayer);
+        // It should match 'default' condition because ranks.length === 0 when evaluateRankConditions runs
+        expect(ranks.some(r => r.id === 'autoDefault')).toBe(true);
+    });
+
+    it('should explicitely add default config rank if absolutely no ranks were assigned or conditions met', () => {
+        const defaultRank = { id: 'defaultRank', name: 'Default', priority: 10, conditions: [] };
+
+        // Let's pretend rankIds fallback happened but getRankById returned null for it.
+        (getPlayer as any).mockReturnValue({ ranks: ['someMissingRank'] });
+
+        // This will be called a second time explicitly
+        (getRankById as any).mockImplementation((id: string) => id === 'defaultRank' ? defaultRank : null);
+        (getAllRanks as any).mockReturnValue([]);
+
+        const ranks = getPlayerRanks(mockPlayer);
+        expect(ranks).toHaveLength(1);
+        expect(ranks[0].id).toBe('defaultRank');
     });
 });
