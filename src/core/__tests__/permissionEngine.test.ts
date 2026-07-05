@@ -63,7 +63,7 @@ mock.module('../../config.js', () => ({
 }));
 
 // Import after the mock
-import { calculateRankMap, calculatePlayerMap, invalidateRankCache, invalidateAllRankCaches, hasPermission } from '../permissionEngine.js';
+import { calculateRankMap, hasPermission, invalidateAllRankCaches, invalidateRankCache } from '../permissionEngine.js';
 
 describe('calculateRankMap', () => {
     it('should merge permissions from multiple groups', () => {
