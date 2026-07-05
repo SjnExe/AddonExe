@@ -3,15 +3,13 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { uiWait } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import * as homesManager from '@features/teleport/homesManager.js';
-import { saveLastLocation } from '@features/teleport/utils.js';
+import { executeTeleport } from '@features/teleport/utils.js';
 
 interface HomeCommandArgs {
     homeName?: string;
@@ -41,26 +39,15 @@ const homeCommand: CustomCommand = {
                 return;
             }
 
-            const warmupSeconds = config.homes.teleportWarmupSeconds;
-            const teleportLogic = () => {
-                try {
-                    saveLastLocation(executor);
-                    const dimension = mc.world.getDimension(homeLocation.dimensionId);
-                    if (isDefined(dimension)) {
-                        executor.teleport(homeLocation, { dimension });
-                        sendMessage(`§aTeleported to home '${homeName}'.`, executor);
-                        setCooldown(executor.id, 'homes', config.homes.cooldownSeconds);
-                    } else {
-                        sendMessage(`§cError: Dimension '${homeLocation.dimensionId}' not found.`, executor);
-                    }
-                } catch (error: unknown) {
-                    const message = error instanceof Error ? error.message : String(error);
-                    const stack = error instanceof Error ? error.stack : String(error);
-                    sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
-                    errorLog(`[/home] Failed to teleport: ${stack}`);
-                }
-            };
-            startTeleportWarmup(executor, warmupSeconds, teleportLogic, `home '${homeName}'`);
+            executeTeleport({
+                executor,
+                location: homeLocation,
+                destinationName: homeName,
+                teleportType: 'home',
+                warmupSeconds: config.homes.teleportWarmupSeconds,
+                cooldownSeconds: config.homes.cooldownSeconds,
+                cooldownKey: 'homes'
+            });
         };
 
         const homeNameArg = args.homeName;
