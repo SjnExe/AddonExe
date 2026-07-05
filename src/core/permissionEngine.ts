@@ -84,7 +84,11 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
     }
 
     // Gather assigned ranks
-    const ranks = rankIds.map((id) => getRankById(id)).filter(isDefined);
+    const ranks = rankIds.reduce<RankDefinition[]>((acc, id) => {
+        const rank = getRankById(id);
+        if (isDefined(rank)) acc.push(rank);
+        return acc;
+    }, []);
 
     // Check condition-based ranks (like isOwner, hasTag) and add them if they apply
     const allRanks = getAllRanks();
