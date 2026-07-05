@@ -40,8 +40,8 @@ mock.module('../rankManager.js', () => ({
 }));
 
 // Import after the mock
-import { calculateRankMap, calculatePlayerMap, invalidateAllRankCaches } from '../permissionEngine.js';
 import * as mc from '@minecraft/server';
+import { calculatePlayerMap, calculateRankMap, invalidateAllRankCaches } from '../permissionEngine.js';
 
 describe('calculateRankMap', () => {
     it('should merge permissions from multiple groups', () => {
