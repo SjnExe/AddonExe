@@ -726,6 +726,14 @@ export const panelDefinitions: Record<string, PanelDefinition> = {
         parentPanelId: 'configCategoryPanel',
         items: [
             {
+                id: 'economyMain',
+                text: 'Main Config',
+                icon: 'textures/ui/Scaffolding',
+                permission: 'ui.panel.admin',
+                actionType: 'openPanel',
+                actionValue: 'config_economyMain'
+            },
+            {
                 id: 'economyGeneralSettings',
                 text: 'General Settings',
                 icon: 'textures/ui/settings_glyph_color_2x',

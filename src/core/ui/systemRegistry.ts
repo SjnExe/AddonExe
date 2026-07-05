@@ -46,6 +46,24 @@ export function getSystemRegistry(): SystemDefinition[] {
                 return def;
             }),
 
+        {
+            id: 'economyMain',
+            title: 'Economy Main Config',
+            icon: 'textures/ui/Scaffolding',
+            configPanelId: 'config_economyMain',
+            category: 'Economy',
+            hidden: true,
+            isSimpleConfig: true
+        },
+        {
+            id: 'shopSettings',
+            title: 'Shop Settings',
+            icon: 'textures/items/emerald',
+            configPanelId: 'config_shopSettings',
+            category: 'Economy',
+            hidden: true,
+            isSimpleConfig: true
+        },
         // 2. Add complex custom systems
         {
             id: 'kits',
