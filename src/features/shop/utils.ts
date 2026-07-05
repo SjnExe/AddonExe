@@ -1,4 +1,5 @@
 import { loadConfig } from '@core/configLoader.js';
+import { isNonEmptyString } from '@lib/guards.js';
 
 export interface Item {
     displayName?: string;
@@ -34,4 +35,36 @@ export async function ensureItemsConfig() {
  */
 export function getAllItems(): Record<string, Item> {
     return allItems;
+}
+
+/**
+ * Parses rank override string into a record of multipliers.
+ * @param overridesRaw String format "rank1=buy,sell;rank2=buy,sell"
+ */
+export function parseRankOverrides(overridesRaw: string | undefined): Record<string, { buy: number; sell: number }> | undefined {
+    let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
+
+    if (isNonEmptyString(overridesRaw)) {
+        parsedOverrides = {};
+        const pairs = overridesRaw.split(';');
+        for (const pair of pairs) {
+            const parts = pair.trim().split('=');
+            if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
+                const rankId = parts[0].trim();
+                const multiParts = parts[1].split(',');
+                if (multiParts.length === 2) {
+                    const buyM = Number.parseFloat(multiParts[0]!);
+                    const sellM = Number.parseFloat(multiParts[1]!);
+                    if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
+                        parsedOverrides[rankId] = { buy: buyM, sell: sellM };
+                    }
+                }
+            }
+        }
+        if (Object.keys(parsedOverrides).length === 0) {
+            parsedOverrides = undefined;
+        }
+    }
+
+    return parsedOverrides;
 }

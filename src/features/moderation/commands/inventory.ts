@@ -6,6 +6,7 @@ import { config } from '@core/../config.js';
 import { getPlayerIdByName } from '@core/playerDataManager.js';
 import { canTarget } from '@core/rankManager.js';
 import { resolveTarget } from '@core/utils.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 
 function inspectArmor(equipment: mc.EntityEquippableComponent): string {
@@ -144,8 +145,9 @@ const ecwipeCommand: CustomCommand = {
             } else {
                 // Fallback to command if player is offline but exists
                 // Ender Chest has 27 slots (0-26)
+                const safeTargetName = escapeCommandArg(targetNameResolved);
                 for (let i = 0; i < 27; i++) {
-                    const command = `replaceitem entity "${targetNameResolved}" slot.enderchest ${i} air`;
+                    const command = `replaceitem entity "${safeTargetName}" slot.enderchest ${i} air`;
                     overworld.runCommand(command);
                 }
             }
