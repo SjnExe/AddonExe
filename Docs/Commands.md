@@ -68,7 +68,6 @@ Commands available to all players by default.
 - **/kit [kitName]**
     - Lists available kits or claims a specific kit.
 
-
 ### TPA System
 
 - **/tpa <target>**
@@ -143,7 +142,6 @@ Commands available to all players by default.
     - Opens the shop interface filtered to only show sellable items.
 - **/sellhand**
     - Sells the item currently in your main hand.
-
 
 ---
 
