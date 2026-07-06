@@ -62,14 +62,6 @@ To help identify potential bottlenecks, the addon includes a basic performance p
 - **Enable:** Set `enablePerformanceProfiling: true` in your config.
 - **Logging:** When enabled, aggregated performance data will be logged to the content log.
 
-## Task Management for Development
-
-Tasks are tracked in the `Docs/Development/tasks/` directory:
-
-- **`Docs/Development/tasks/ongoing.md`**: Current active task.
-- **`Docs/Development/tasks/todo.md`**: Planned tasks.
-- **`Docs/Development/tasks/completed.md`**: History of completed work.
-
 ## Important Workflow Notes for AI Assistants
 
 For detailed guidelines, project-specific conventions, and workflow instructions tailored for AI assistants (like Jules) working on this codebase, please refer to the main **[agents.md](../../agents.md)** file located in the root of the repository.

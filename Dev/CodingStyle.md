@@ -19,7 +19,7 @@ The use of `snake_case` (e.g., `my_variable`) or `UPPER_SNAKE_CASE` (e.g., `MY_C
 
 ### Command Naming
 
-- User-facing commands typed in chat **MUST** be lowercase (e.g., `!gmc`, `!help`).
+- User-facing commands typed in chat **MUST** be lowercase (e.g., `/gmc`, `/xhelp`).
 - The internal registration name of a command (in its definition file) **SHOULD** be descriptive and clear (e.g., `ban`, `kick`, `mute`).
 
 ## JSDoc and Comments

@@ -15,7 +15,7 @@ This document provides a detailed breakdown of the features available in AddonEx
             - **From the Player Management list (all players):** Provides a full suite of moderation tools, including Kick, Ban, Mute, Unmute, and the new Freeze/Unfreeze actions.
               The UI has been updated with clearer icons and a more logical button layout to improve usability for admins.
     - **For Regular Players:** Shows user-specific info like personal stats, server rules, and useful links.
-- **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. These can be run in-game, from the server console, or using a chat-based fallback (e.g., `!panel`). (See [Commands List](Commands.md) for a complete reference).
+- **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. These can be run in-game or from the server console. (See [Commands List](Commands.md) for a complete reference).
 - **Persistent Player Data:** Active mutes and bans are saved using Minecraft's dynamic properties, ensuring they persist across player sessions and server restarts.
 
 ### B. Moderation Tools

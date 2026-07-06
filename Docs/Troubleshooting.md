@@ -11,7 +11,7 @@ If your issue isn't listed in the F.A.Q. or this guide, please consider [reporti
 1. [Installation Issues](#1-installation-issues)
 2. [Configuration & Permission Problems](#2-configuration--permission-problems)
 3. [Commands Not Working](#3-commands-not-working)
-4. [Admin UI (`!panel`) Issues](#4-admin-ui-panel-issues)
+4. [Admin UI (`/panel`) Issues](#4-admin-ui-panel-issues)
 5. [General Tips](#5-general-tips)
 6. [Reporting Bugs Effectively](#6-reporting-bugs-effectively)
 
@@ -46,7 +46,7 @@ This is the most common setup issue. The key is understanding that the addon's c
 2.  **Open the correct file:** `AddonExeBP/scripts/config.js`.
 3.  **Add your name:** Find the `ownerPlayerNames` setting and add your **exact**, case-sensitive in-game name.
 4.  **Save and restart your server.**
-5.  **Run the reload command:** Once you are in-game, run the command `!reload`. This will force the addon to sync the owner name from the file and apply the rank.
+5.  **Run the reload command:** Once you are in-game, run the command `/xreload`. This will force the addon to sync the owner name from the file and apply the rank.
 
 For a quick summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner).
 
@@ -69,15 +69,14 @@ For a quick summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)
 
 ## 3. Commands Not Working
 
-**Problem: Commands like `!help` or `!panel` do nothing.**
+**Problem: Commands like `/xhelp` or `/panel` do nothing.**
 
 1.  **Check Installation:** First, double-check all steps in the [Installation Issues](#1-installation-issues) section. If the addon isn't running, commands won't work.
-2.  **Check Command Prefix:** The default command prefix is `!`. This can be changed in `config.js` (`commandPrefix`). If you've changed it, use your custom prefix.
-3.  **Check Permissions:**
-    - Admin commands (like `!kick`, `!ban`) require appropriate permissions. Ensure you are set up correctly as an Owner or Admin. (See [Configuration & Permission Problems](#2-configuration--permission-problems)).
-    - Use `!help` to see the commands available to your rank.
-4.  **Check if Command is Disabled:** In `config.js`, there is a `commandSettings` section. Verify that the command you are trying to use is not set to `enabled: false`.
-5.  **Check for Typos:** Ensure you're typing the command correctly.
+2.  **Check Permissions:**
+    - Admin commands (like `/kick`, `/ban`) require appropriate permissions. Ensure you are set up correctly as an Owner or Admin. (See [Configuration & Permission Problems](#2-configuration--permission-problems)).
+    - Use `/xhelp` to see the commands available to your rank.
+3.  **Check if Command is Disabled:** In `config.js`, there is a `commandSettings` section. Verify that the command you are trying to use is not set to `enabled: false`.
+4.  **Check for Typos:** Ensure you're typing the command correctly.
 
 **Problem: The `/baltop` command is slow or seems to lag the first time it's run.**
 
@@ -86,9 +85,9 @@ For a quick summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)
 
 ---
 
-## 4. Admin UI (`!panel`) Issues
+## 4. Admin UI (`/panel`) Issues
 
-**Problem: `!panel` (or `!ui`) command doesn't open the UI, or the UI is broken.**
+**Problem: `/panel` command doesn't open the UI, or the UI is broken.**
 
 - **Resource Pack:** The UI relies on `AddonExeRP`. Ensure it's applied and active.
 - **Permissions:** You need to be Owner or have an Admin rank with UI permissions.
