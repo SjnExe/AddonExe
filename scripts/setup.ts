@@ -9,33 +9,32 @@ const homeDir = os.homedir();
 const bashrcPath = path.join(homeDir, '.bashrc');
 
 async function configureSystemEnvironment() {
-    if (!isTermux) {
-        console.log('💻 Standard Linux environment verified.');
-        return;
+    console.log('🔍 Analyzing system environment profile...');
+
+    if (isTermux) {
+        console.log('📱 Termux environment detected. Validating repositories and toolchains...');
+
+        // Parallel repository initialization and system dependency verification
+        await $`pkg update -y`.quiet();
+
+        console.log('📦 Deploying system components concurrently...');
+        await Promise.all([$`pkg install -y rust lld`.quiet(), $`pkg install -y glibc-repo`.quiet().catch(() => {})]);
+
+        const cargoBin = path.join(homeDir, '.cargo/bin/cargo');
+        const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(cargoBin);
+        const jscpdBin = path.join(homeDir, '.cargo/bin/jscpd');
+
+        if (hasCargo && !existsSync(jscpdBin)) {
+            console.log('🦀 Installing native jscpd via Cargo for Termux support...');
+            await $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`;
+        }
+    } else {
+        console.log('💻 Standard Linux environment verified. No system-level dependencies required.');
     }
-
-    console.log('📱 Termux environment detected. Checking toolchain status...');
-
-    const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(path.join(homeDir, '.cargo/bin/cargo'));
-    const hasLld = existsSync('/data/data/com.termux/files/usr/bin/lld');
-
-    if (hasCargo && hasLld) {
-        console.log('✅ Core toolchains already provisioned. Skipping package manager overhead.');
-        return;
-    }
-
-    console.log('📦 Missing components detected. Synchronizing repository indexes...');
-    await $`apt update -y`.quiet();
-
-    console.log('📥 Deploying system dependencies inside a single transaction...');
-    await $`pkg install -y rust lld glibc-repo`.quiet();
-
-    console.log('🧹 Purging redundant APT package download archives... ');
-    await $`apt clean`.quiet();
 }
 
 async function syncProfileConfiguration() {
-    // Clear out the failed global bunfig experiment
+    // Clean up failed old global bunfig if it exists
     const globalBunfigPath = path.join(homeDir, '.bunfig.toml');
     if (existsSync(globalBunfigPath)) {
         await fs.unlink(globalBunfigPath).catch(() => {});
@@ -46,48 +45,34 @@ async function syncProfileConfiguration() {
     console.log('⚙️ Synchronizing shell environmental paths safely...');
     let content = await fs.readFile(bashrcPath, 'utf8');
 
-    const externalInjectionsRegex = /# bun\nexport BUN_INSTALL="\$HOME\/\.bun"\nexport PATH="\$BUN_INSTALL\/bin:\$PATH"\n?/g;
-    content = content.replace(externalInjectionsRegex, '');
-
+    // Define unique markers to isolate AddonExe changes cleanly
     const startMarker = '# >>> ADDONEXE PROFILE START >>>';
     const endMarker = '# <<< ADDONEXE PROFILE END <<<';
 
+    // Regex to cleanly match and remove any pre-existing config blocks to prevent duplication
     const blockRegex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}\\n?`, 'g');
     content = content.replace(blockRegex, '');
 
+    // Note: We deliberately exclude the 'bun test' alias interceptor here because
+    // test flags (--isolate --parallel) are now natively applied via bunfig.toml and package.json
     const optimizedBlock = `${startMarker}
 # Automated Environment Paths for Cargo and Bun runtimes
-export BUN_INSTALL="${homeDir}/.bun"
-export PATH="${homeDir}/.cargo/bin:$BUN_INSTALL/bin:$PATH"
-
-# Global Interceptor Engine to optimize native Bun workflows
-bun() {
-  if [ "$1" = "upgrade" ]; then
-    echo "🔄 Intercepting 'bun upgrade' to use the safe Termux installer..."
-    if command -v btm >/dev/null 2>&1; then
-      btm update bun
-    else
-      curl -fsSL "https://raw.githubusercontent.com/Happ1ness-dev/bun-termux/main/helper_scripts/bun-termux-manager" | bash -s install
-    fi
-  elif [ "$1" = "test" ]; then
-    shift
-    command bun test --isolate --parallel "$@"
-  else
-    command bun "$@"
-  fi
-}
+export PATH="${homeDir}/.cargo/bin:${homeDir}/.bun/bin:$PATH"
 ${endMarker}\n`;
 
+    // Append clean, unique block to the end of your configuration file
     await fs.writeFile(bashrcPath, content + optimizedBlock, 'utf8');
-    console.log('✨ System shell profile updated idempotently.');
+    console.log('✨ System shell profile updated idempotently (zero duplicates generated).');
 }
 
 async function runPipeline() {
     console.log('--- Starting Architecture Setup ---');
 
-    await Promise.all([configureSystemEnvironment(), syncProfileConfiguration()]);
+    // Core pipeline runs sequentially to avoid apt/pkg lock collisions
+    await configureSystemEnvironment();
+    await syncProfileConfiguration();
 
-    console.log('🚀 Invoking package ecosystem installation (Online-First Sync)...');
+    console.log('🚀 Invoking project package ecosystem installation...');
     await $`bun install`;
 
     console.log('✨ System environment alignment fully operational.');

@@ -16,27 +16,6 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    update-lockfile:
-        runs-on: ubuntu-latest
-        if: github.actor == 'dependabot[bot]'
-        timeout-minutes: 5
-        permissions:
-            contents: write
-        steps:
-            - uses: actions/checkout@v7
-              with:
-                  ref: ${{ github.head_ref }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
-            - run: bun install
-            - uses: stefanzweifel/git-auto-commit-action@v7
-              with:
-                  commit_message: 'chore(deps): update bun.lock'
-                  file_pattern: 'bun.lock'
-
     lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
@@ -56,7 +35,7 @@ jobs:
                   key: ${{ runner.os }}-eslint-${{ steps.cache-env.outputs.week }}-${{ github.sha }}
                   restore-keys: |
                       ${{ runner.os }}-eslint-${{ steps.cache-env.outputs.week }}-
-            - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
+            - run: bun install --frozen-lockfile
             - run: bun run lint
 
     format:
@@ -78,7 +57,7 @@ jobs:
                   key: ${{ runner.os }}-prettier-${{ steps.cache-env.outputs.week }}-${{ github.sha }}
                   restore-keys: |
                       ${{ runner.os }}-prettier-${{ steps.cache-env.outputs.week }}-
-            - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
+            - run: bun install --frozen-lockfile
             - run: bun run format:check
 
     typecheck:
@@ -90,7 +69,7 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-            - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
+            - run: bun install --frozen-lockfile
             - name: Generate Cache Expiration Timestamp
               id: cache-env
               run: echo "week=$(date +'%Y-%U')" >> $GITHUB_OUTPUT
@@ -112,7 +91,7 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-            - run: ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
+            - run: bun install --frozen-lockfile
             - run: bun test --isolate --parallel
 
     build:
@@ -129,7 +108,7 @@ jobs:
                   bun-version: latest
             - name: Install dependencies
               run: |
-                  ${{ github.actor == 'dependabot[bot]' && 'bun install' || 'bun install --frozen-lockfile' }}
+                  bun install --frozen-lockfile
 
             - name: Determine Build Type
               id: build_type
