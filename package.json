@@ -22,27 +22,27 @@
         "check-deps": "bun --bun scripts/check-dependencies.ts",
         "check-types": "bun --bun tsc --noEmit --incremental",
         "clean": "rm -rf build out",
-        "fix-project": "bun mct fix",
+        "fix-project": "bun --bun mct fix",
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
         "postinstall": "bun --bun scripts/postinstall.ts",
         "lint": "bun --bun eslint src scripts eslint.config.js --fix --cache",
         "lint:check": "bun --bun eslint src scripts eslint.config.js --cache",
         "lint:report": "bun --bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
-        "project-info": "bun mct info",
+        "project-info": "bun --bun mct info",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
         "test:duplication": "bun scripts/test-duplication.ts",
         "test:watch": "bun test --watch",
         "validate": "bun run build && bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "validate:report": "bun run build && bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
         "watch": "bun scripts/build.ts --watch"
     },
     "lint-staged": {
         "*.{js,ts}": [
-            "bun --bun eslint --fix",
-            "bun --bun prettier --write"
+            "bun --bun eslint --fix --cache",
+            "bun --bun prettier --write --cache"
         ],
-        "*.{json,md,yml,yaml}": "bun --bun prettier --write"
+        "*.{json,md,yml,yaml}": "bun --bun prettier --write --cache"
     },
     "overrides": {
         "react": "^18.2.0"
