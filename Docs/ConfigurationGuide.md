@@ -6,7 +6,7 @@ This guide provides an overview of how to configure AddonExe. Proper configurati
 
 The addon's configuration is split across several files, each with a specific purpose. This modular approach keeps settings organized and easier to manage.
 
-- **`config.js`:** The main hub for most toggles and values. Use this file to enable/disable major features, set the chat command prefix, define owner/admin access, and adjust feature-specific settings.
+- **`config.js`:** The main hub for most toggles and values. Use this file to enable/disable major features, define owner/admin access, and adjust feature-specific settings.
 - **`ranksConfig.js`:** The definitive file for managing all permissions and visual rank styles (chat, nametags).
 - **`panelLayoutConfig.js`:** Controls the structure and content of the main Admin UI (`/panel`).
 - **`kitsConfig.js`:** Defines the contents and cooldowns for player kits.
@@ -49,7 +49,7 @@ For more advanced control over permissions and visual styles, you can edit the r
 
 AddonExe features a smart reloading system to apply configuration changes without needing to restart your server.
 
-- **Command:** `/xreload` (or `!reload` in chat)
+- **Command:** `/xreload`
 - **Permission:** Admin
 
 ### How it Works
@@ -81,7 +81,6 @@ This is the primary file for most top-level settings. **Changes to this file can
 - **Purpose:**
     - Define `ownerPlayerNames` and the `adminTag`.
     - Enable or disable major systems (`tpa.enabled`, `homes.enabled`, `economy.enabled`, etc.).
-    - Set the global chat command `prefix` (default: `!`).
     - Configure server features like starting economy balance, max homes, or welcome messages.
     - Customize server info like Discord links and rules.
     - Toggle individual commands on or off in the `commandSettings` section.

@@ -13,7 +13,7 @@ Designed to be robust, highly configurable, and packed with features to ensure f
 
 - **Scripting Power:** Built entirely with the Minecraft Scripting API, offering flexibility and complex logic not always possible with traditional methods.
 - **Comprehensive Detection (Under Redevelopment):** While currently a powerful moderation tool, a full suite of cheat detections is being redesigned and will be re-introduced in a future update.
-- **User-Friendly Tools:** Manage your server with ease using an intuitive in-game UI (`/panel`) and extensive slash commands, which can be used in-game, from the server console, or via a chat-based fallback (e.g., `!panel`).
+- **User-Friendly Tools:** Manage your server with ease using an intuitive in-game UI (`/panel`) and extensive slash commands, which can be used in-game or from the server console.
 - **Highly Customizable:** Fine-tune almost every aspect, from feature toggles to command permissions, to perfectly suit your server's needs.
 - **Active Development:** Continuously updated with new features, improvements, and compatibility for the latest Minecraft versions.
 - **Open & Documented:** With clear documentation and an open codebase, understand how it works and even contribute!

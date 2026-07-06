@@ -38,7 +38,7 @@ Designed to be robust, highly configurable, and packed with features to ensure f
 
 - **Scripting Power:** Built entirely with the Minecraft Scripting API, offering flexibility and complex detection logic not always possible with traditional methods.
 - **Comprehensive Detection (Under Redevelopment):** While currently a powerful moderation tool, a full suite of cheat detections is being redesigned and will be re-introduced in a future update.
-- **User-Friendly Tools:** Manage your server with ease using an intuitive in-game UI (`/panel`) and extensive slash commands, which can be used in-game, from the server console, or via a chat-based fallback (e.g. `!panel`).
+- **User-Friendly Tools:** Manage your server with ease using an intuitive in-game UI (`/panel`) and extensive slash commands, which can be used in-game or from the server console.
 - **Highly Customizable:** Fine-tune almost every aspect, from feature toggles to command permissions, to perfectly suit your server's needs.
 - **Active Development:** Continuously updated with new features, improvements, and compatibility for the latest Minecraft versions.
 - **Open & Documented:** With clear documentation and an open codebase, understand how it works and even contribute!
@@ -57,7 +57,7 @@ This addon is packed with features to keep your server clean:
         - Player names are clearly marked with `(Owner)`, `(Admin)`, and `(You)` suffixes.
         - Perform a wide range of actions: Kick, Ban/Unban, Mute/Unmute, Freeze, View/Clear Inventory, Teleport.
     - **New Commands:** `/xclear` (clear inventory), `/ecwipe` (wipe ender chest), `/invsee` (view inventory).
-    - Extensive slash commands for all administrative functions (Note: a `!` prefix is available as a fallback).
+    - Extensive slash commands for all administrative functions.
 - 💾 **Persistent Player Data Management:**
     - Mutes and bans are saved across player sessions using dynamic properties.
 - ⚙️ **Highly Configurable System:**

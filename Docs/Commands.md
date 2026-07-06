@@ -8,20 +8,13 @@ Commands in AddonExe are primarily run using native slash commands, which suppor
 >
 > - **Commands are run with a `/` prefix,** just like in-game (e.g., `/xhelp`).
 > - **Specify the target player:** For commands that normally affect the person running them (like `/home` or `/clear`), you must specify the target player's name. For example: `/home "Steve" "my-base"` or `/clear "Steve"`.
-> - The chat-based `!` prefix is not supported in the console.
 
 > [!NOTE]
-> **Slash Commands vs. Chat Commands**
+> **Slash Commands**
 >
-> There are two ways to run commands, and they have important differences:
->
-> 1.  **Slash Commands (e.g., `/ban`)**
->     - These are native Minecraft commands registered by the addon.
->     - They support in-game argument suggestions and validation.
->     - **Arguments with spaces MUST be enclosed in double quotes.** For example: `/ban "Player Name" "Griefing the server"`.
-> 2.  **Chat Commands (e.g., `!ban`)**
->     - These are a convenient fallback, processed from chat messages.
->     - They are more lenient and can also use **double or single quotes** for arguments with spaces. For example: `!ban "Player Name" 'Griefing the server'`.
+> - These are native Minecraft commands registered by the addon.
+> - They support in-game argument suggestions and validation.
+> - **Arguments with spaces MUST be enclosed in double quotes.** For example: `/ban "Player Name" "Griefing the server"`.
 >
 > **Other Important Notes:**
 >
@@ -40,37 +33,41 @@ Commands available to all players by default.
 
 - **/team**
     - Opens the team panel.
-    - _Chat Alias: `!team`_
+
+- **/friend <add|remove|accept|list> [target]**
+    - Manage your friend list. Can also be accessed via the UI by using `/friend` with no arguments.
+    - _Aliases: `/frnd`, `/friends`_
+
 - **/teamchat [message]**
     - Toggles or sends a message in team chat.
-    - _Chat Alias: `!tc`_
+
 - **/xhelp [command]**
     - Shows a list of available commands or help for a specific command.
-    - _Chat Alias: `!help`_
+
 - **/panel**
     - Opens the main UI panel.
-    - _Chat Alias: `!panel`_
+
 - **/rules [ruleNumber]**
     - Displays the server rules.
-    - _Chat Alias: `!rules`_
+
 - **/status**
     - Displays the current server status.
-    - _Chat Alias: `!status`_
+
 - **/version**
     - Displays the current version of the addon.
-    - _Chat Alias: `!version`_
+
 - **/deathcoords**
     - Shows your last death coordinates.
-    - _Chat Alias: `!deathcoords`_
+
 - **/spawn**
     - Teleports you to the world spawn.
-    - _Chat Alias: `!spawn`_
+
 - **/rtp**
     - Teleports you to a random safe location in the world.
-    - _Chat Alias: `!rtp` or `!randomtp`_
+
 - **/kit [kitName]**
     - Lists available kits or claims a specific kit.
-    - _Chat Alias: `!kit`_
+
 
 ### TPA System
 
@@ -146,7 +143,7 @@ Commands available to all players by default.
     - Opens the shop interface filtered to only show sellable items.
 - **/sellhand**
     - Sells the item currently in your main hand.
-    - _Chat Alias: `!sellhand` or `!sh`_
+
 
 ---
 
@@ -182,7 +179,7 @@ Commands available to Admins and above.
     - Views a player's inventory.
 - **/xclear [target]**
     - Clears another player's inventory.
-    - _Chat Alias: `!clear`_
+
 - **/ecwipe [target]**
     - Clears a player's Ender Chest.
 - **/ecsee <target>**
@@ -219,7 +216,7 @@ Commands for high-level server management.
 
 - **/xreload**
     - Reloads the addon's internal configuration state. Does **not** reload file changes from disk.
-    - _Chat Alias: `!reload`_
+
 - **/debug [true|false]**
     - Toggles the script debug logging mode.
 - **/save**
@@ -253,7 +250,7 @@ Commands for high-level server management.
     - Teleports you to a specified warp, or opens a UI to select one.
 - **/addwarp <warpName> [x] [y] [z]**
     - Creates a new warp point.
-    - _Chat Alias: `!setwarp`_
+
 - **/delwarp [warpName]**
     - Deletes an existing warp point.
 

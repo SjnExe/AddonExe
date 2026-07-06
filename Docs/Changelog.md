@@ -118,7 +118,7 @@ This version introduces a major performance overhaul for the bounty system, a ne
 
 ### 📚 Documentation
 
-- **Command Documentation**: Updated `Docs/Commands.md` to clearly explain the difference between slash commands (`/`) and chat commands (`!`), especially regarding how they handle multi-word arguments with quotes.
+- **Command Documentation**: Updated `Docs/Commands.md` to clearly explain how slash commands (`/`) handle multi-word arguments with quotes.
 - **Features Documentation**: Added details about the hidden world seed anti-cheat feature to `Docs/FeaturesOverview.md`.
 
 ## [0.1.0] - 2025-09-06
