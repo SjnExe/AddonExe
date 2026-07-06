@@ -69,9 +69,6 @@ bun() {
     else
       curl -fsSL "https://raw.githubusercontent.com/Happ1ness-dev/bun-termux/main/helper_scripts/bun-termux-manager" | bash -s install
     fi
-  elif [ "$1" = "test" ]; then
-    shift
-    command bun test --isolate --parallel "$@"
   else
     command bun "$@"
   fi
