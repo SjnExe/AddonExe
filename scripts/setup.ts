@@ -52,7 +52,8 @@ async function syncProfileConfiguration() {
 
     // Note: We deliberately exclude the 'bun test' alias interceptor here because
     // test flags (--isolate --parallel) are now natively applied via bunfig.toml and package.json
-    const bunUpgradeInterceptor = isTermux ? `
+    const bunUpgradeInterceptor = isTermux
+        ? `
 # Intercept 'bun upgrade' in Termux to use the community manager
 function bun() {
     if [ "$1" = "upgrade" ]; then
@@ -61,7 +62,8 @@ function bun() {
         command bun "$@"
     fi
 }
-` : '';
+`
+        : '';
 
     const optimizedBlock = `${startMarker}
 # Automated Environment Paths for Cargo and Bun runtimes
