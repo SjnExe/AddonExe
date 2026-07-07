@@ -31,7 +31,6 @@
         "lint:report": "bun --bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
         "project-info": "bun --bun mct info",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
-        "test": "bun test --isolate --parallel",
         "test:duplication": "bun scripts/test-duplication.ts",
         "test:watch": "bun test --isolate --parallel --watch",
         "validate": "bun run build && bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
