@@ -3,12 +3,14 @@
 export PATH="$HOME/.bun/bin:$HOME/.cargo/bin:$PATH"
 
 if [ -d "/data/data/com.termux" ]; then
-    if ! command -v glibc-runner >/dev/null 2>&1; then
-        echo "📱 Termux environment confirmed: Provisioning core glibc translation layer..."
-        pkg install -y glibc-repo
-        pkg update -y
-        pkg install -y glibc-runner
-    fi
+    echo "📱 Termux environment confirmed: Provisioning system dependencies..."
+
+    # We always ensure glibc-repo and update to avoid lock issues later
+    pkg install -y glibc-repo
+    pkg update -y
+
+    # Install all required packages sequentially to avoid dpkg lock contention
+    pkg install -y glibc-runner rust lld attr-glibc bzip2-glibc coreutils-glibc curl-glibc findutils-glibc grep-glibc less-glibc libacl-glibc libcap-glibc libcap-ng-glibc libgmp-glibc libpam-glibc libsmartcols-glibc pcre2-glibc sed-glibc tar-glibc util-linux-glibc xz-utils-glibc
 fi
 
 # Verify actual runtime execution instead of trusting path lookups

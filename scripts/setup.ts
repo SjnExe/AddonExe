@@ -12,25 +12,22 @@ async function configureSystemEnvironment() {
     console.log('🔍 Analyzing system environment profile...');
 
     if (isTermux) {
-        console.log('📱 Termux environment detected. Validating repositories and toolchains...');
-
-        // Parallel repository initialization and system dependency verification
-        await $`pkg update -y`.quiet();
-
-        console.log('📦 Deploying system components concurrently...');
-        await Promise.all([$`pkg install -y rust lld`.quiet(), $`pkg install -y glibc-repo`.quiet().catch(() => {})]);
+        console.log('📱 Termux environment detected. Toolchains were handled by setup.sh.');
 
         const cargoBin = path.join(homeDir, '.cargo/bin/cargo');
         const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(cargoBin);
         const jscpdBin = path.join(homeDir, '.cargo/bin/jscpd');
 
         if (hasCargo && !existsSync(jscpdBin)) {
-            console.log('🦀 Installing native jscpd via Cargo for Termux support...');
-            await $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`;
+            console.log('🦀 Started installing native jscpd via Cargo for Termux support in background...');
+            // Start compilation in background but return the promise to await it later
+            return $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`;
         }
     } else {
         console.log('💻 Standard Linux environment verified. No system-level dependencies required.');
     }
+
+    return Promise.resolve();
 }
 
 async function syncProfileConfiguration() {
@@ -55,9 +52,22 @@ async function syncProfileConfiguration() {
 
     // Note: We deliberately exclude the 'bun test' alias interceptor here because
     // test flags (--isolate --parallel) are now natively applied via bunfig.toml and package.json
+    const bunUpgradeInterceptor = isTermux
+        ? `
+# Intercept 'bun upgrade' in Termux to use the community manager
+function bun() {
+    if [ "$1" = "upgrade" ]; then
+        btm update bun
+    else
+        command bun "$@"
+    fi
+}
+`
+        : '';
+
     const optimizedBlock = `${startMarker}
 # Automated Environment Paths for Cargo and Bun runtimes
-export PATH="${homeDir}/.cargo/bin:${homeDir}/.bun/bin:$PATH"
+export PATH="${homeDir}/.cargo/bin:${homeDir}/.bun/bin:$PATH"${bunUpgradeInterceptor}
 ${endMarker}\n`;
 
     // Append clean, unique block to the end of your configuration file
@@ -68,12 +78,17 @@ ${endMarker}\n`;
 async function runPipeline() {
     console.log('--- Starting Architecture Setup ---');
 
-    // Core pipeline runs sequentially to avoid apt/pkg lock collisions
-    await configureSystemEnvironment();
+    // Start background tasks
+    const jscpdTask = configureSystemEnvironment();
+
+    // Core pipeline continues sequentially
     await syncProfileConfiguration();
 
     console.log('🚀 Invoking project package ecosystem installation...');
-    await $`bun install`;
+    const bunInstallTask = $`bun install`;
+
+    // Wait for all concurrent installations to finish
+    await Promise.all([jscpdTask, bunInstallTask]);
 
     console.log('✨ System environment alignment fully operational.');
 }
