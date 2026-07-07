@@ -19,30 +19,31 @@
     "scripts": {
         "build": "bun scripts/build.ts",
         "build:release": "bun scripts/build.ts --release --minify",
-        "check-deps": "bun --bun scripts/check-dependencies.ts",
-        "check-types": "bun --bun tsc --noEmit --incremental",
+        "check-deps": "bun scripts/check-dependencies.ts",
+        "check-types": "bun tsc --noEmit --incremental",
         "clean": "rm -rf build out",
-        "fix-project": "bun --bun mct fix",
+        "fix-project": "bun mct fix",
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
-        "postinstall": "bun --bun scripts/postinstall.ts",
-        "lint": "bun --bun eslint src scripts eslint.config.js --fix --cache",
-        "lint:check": "bun --bun eslint src scripts eslint.config.js --cache",
-        "lint:report": "bun --bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
-        "project-info": "bun --bun mct info",
+        "postinstall": "bun scripts/postinstall.ts",
+        "lint": "bun eslint src scripts eslint.config.js --fix --cache",
+        "lint:check": "bun eslint src scripts eslint.config.js --cache",
+        "lint:report": "bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
+        "project-info": "bun mct info",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
+        "test": "bun test --isolate --parallel",
         "test:duplication": "bun scripts/test-duplication.ts",
         "test:watch": "bun test --isolate --parallel --watch",
-        "validate": "bun run build && bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun run build && bun check-deps && bun --bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "validate": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
+        "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
         "watch": "bun scripts/build.ts --watch"
     },
     "lint-staged": {
         "*.{js,ts}": [
-            "bun --bun eslint --fix --cache",
-            "bun --bun prettier --write --cache"
+            "bun eslint --fix --cache",
+            "bun prettier --write --cache"
         ],
-        "*.{json,md,yml,yaml}": "bun --bun prettier --write --cache"
+        "*.{json,md,yml,yaml}": "bun prettier --write --cache"
     },
     "overrides": {
         "react": "^18.2.0"

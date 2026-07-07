@@ -5,8 +5,15 @@ cache = true
 [test]
 preload = ["./src/core/__tests__/__mocks__/bunSetup.ts"]
 isolate = true
-parallel = true
+parallel = true 
 smol = false
-
-[runtime]
-flags = []
+retry = 2
+# randomize = true # Currently turned off to pass the tests
+[run]
+bun = true
+shell = "bun"
+logLevel = "warn"
+telemetry = false
+noOrphans = true
+linker = "isolated"
+peer = true
