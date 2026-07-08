@@ -1,6 +1,7 @@
 # Bun Configuration - Optimized Multi-Core Pipeline
 [install]
 cache = true
+minimumReleaseAge = 0
 
 [test]
 preload = ["./src/core/__tests__/__mocks__/bunSetup.ts"]
@@ -9,6 +10,7 @@ parallel = true
 smol = false
 coverage = true
 timeout = 5000
+onlyFailures = true
 # randomize = true # Currently turned off to pass the tests
 [run]
 bun = true

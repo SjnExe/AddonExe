@@ -6,7 +6,6 @@ import path from 'node:path';
 
 const isTermux = existsSync('/data/data/com.termux');
 const homeDir = os.homedir();
-const bashrcPath = path.join(homeDir, '.bashrc');
 
 async function configureSystemEnvironment() {
     console.log('🔍 Analyzing system environment profile...');
@@ -20,8 +19,7 @@ async function configureSystemEnvironment() {
 
         if (hasCargo && !existsSync(jscpdBin)) {
             console.log('🦀 Started installing native jscpd via Cargo for Termux support in background...');
-            // Start compilation in background but return the promise to await it later
-            return $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`;
+            return $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`.quiet();
         }
     } else {
         console.log('💻 Standard Linux environment verified. No system-level dependencies required.');
@@ -30,65 +28,67 @@ async function configureSystemEnvironment() {
     return Promise.resolve();
 }
 
-async function syncProfileConfiguration() {
-    // Clean up failed old global bunfig if it exists
-    const globalBunfigPath = path.join(homeDir, '.bunfig.toml');
-    if (existsSync(globalBunfigPath)) {
-        await fs.unlink(globalBunfigPath).catch(() => {});
+async function compilePatchedTsc(): Promise<string | null> {
+    if (!isTermux) return null;
+
+    console.log('🏗️  Preparing native TypeScript compiler engine workspace...');
+    const buildDir = path.join(homeDir, '.cache/typescript-go');
+    await fs.mkdir(buildDir, { recursive: true });
+
+    if (!existsSync(path.join(buildDir, '.git'))) {
+        console.log('📥 Cloning microsoft/typescript-go upstream engine...');
+        await $`git clone https://github.com/microsoft/typescript-go.git ${buildDir}`.quiet();
+    } else {
+        console.log('🔄 Hydrating and syncing latest typescript-go source changes...');
+        await $`git -C ${buildDir} reset --hard`.quiet();
+        await $`git -C ${buildDir} pull`.quiet();
     }
 
-    if (!existsSync(bashrcPath)) return;
+    const targetFile = path.join(buildDir, 'internal/fswatch/fanotify_linux.go');
+    if (existsSync(targetFile)) {
+        let code = await Bun.file(targetFile).text();
 
-    console.log('⚙️ Synchronizing shell environmental paths safely...');
-    let content = await fs.readFile(bashrcPath, 'utf8');
+        if (code.includes('unix.FanotifyInit') && !code.includes('fakeFanotifyInit')) {
+            console.log('🧬 Injecting universal Seccomp sandbox mitigation into source logic...');
+            code = code.replaceAll('unix.FanotifyInit', 'fakeFanotifyInit');
 
-    // Define unique markers to isolate AddonExe changes cleanly
-    const startMarker = '# >>> ADDONEXE PROFILE START >>>';
-    const endMarker = '# <<< ADDONEXE PROFILE END <<<';
-
-    // Regex to cleanly match and remove any pre-existing config blocks to prevent duplication
-    const blockRegex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}\\n?`, 'g');
-    content = content.replace(blockRegex, '');
-
-    // Note: We deliberately exclude the 'bun test' alias interceptor here because
-    // test flags (--isolate --parallel) are now natively applied via bunfig.toml and package.json
-    const bunUpgradeInterceptor = isTermux
-        ? `
-# Intercept 'bun upgrade' in Termux to use the community manager
-function bun() {
-    if [ "$1" = "upgrade" ]; then
-        btm update bun
-    else
-        command bun "$@"
-    fi
+            const mockImplementation = `
+// Patched dynamically for Termux Android Seccomp sandboxing safety
+func fakeFanotifyInit(flags uint, event_f_flags uint) (int, error) {
+\treturn -1, unix.ENOSYS
 }
-`
-        : '';
+`;
+            await Bun.write(targetFile, code + mockImplementation);
+        }
+    }
 
-    const optimizedBlock = `${startMarker}
-# Automated Environment Paths for Cargo and Bun runtimes
-export PATH="${homeDir}/.cargo/bin:${homeDir}/.bun/bin:$PATH"${bunUpgradeInterceptor}
-${endMarker}\n`;
+    console.log('🐹 Building optimized native toolchain binary via Go...');
+    await $`cd ${buildDir} && go build -o tsc ./cmd/tsgo`.quiet();
 
-    // Append clean, unique block to the end of your configuration file
-    await fs.writeFile(bashrcPath, content + optimizedBlock, 'utf8');
-    console.log('✨ System shell profile updated idempotently (zero duplicates generated).');
+    const persistentBinPath = path.join(homeDir, '.cache/tsc-patched-bin');
+    await fs.copyFile(path.join(buildDir, 'tsc'), persistentBinPath);
+
+    console.log('🧹 Purging redundant codebase files to minimize mobile storage footprint...');
+    const workspaceFiles = await fs.readdir(buildDir);
+    for (const file of workspaceFiles) {
+        if (file !== '.git') {
+            await fs.rm(path.join(buildDir, file), { recursive: true, force: true }).catch(() => {});
+        }
+    }
+
+    return persistentBinPath;
 }
 
 async function runPipeline() {
     console.log('--- Starting Architecture Setup ---');
 
-    // Start background tasks
     const jscpdTask = configureSystemEnvironment();
-
-    // Core pipeline continues sequentially
-    await syncProfileConfiguration();
+    const tscBuildTask = compilePatchedTsc();
 
     console.log('🚀 Invoking project package ecosystem installation...');
     const bunInstallTask = $`bun install`;
 
-    // Wait for all concurrent installations to finish
-    await Promise.all([jscpdTask, bunInstallTask]);
+    await Promise.all([jscpdTask, tscBuildTask, bunInstallTask]);
 
     console.log('✨ System environment alignment fully operational.');
 }
