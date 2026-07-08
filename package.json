@@ -45,7 +45,11 @@
         "*.{json,md,yml,yaml}": "bun prettier --write --cache"
     },
     "overrides": {
-        "react": "^18.2.0"
+        "axios": "latest",
+        "react": "^18.2.0",
+        "tmp": "latest",
+        "uuid": "latest",
+        "ws": "latest"
     },
     "dependencies": {
         "uuid": "latest"
