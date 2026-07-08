@@ -101,7 +101,14 @@ async function resolveModuleVersion(pkgName: string, npmVersion: string): Promis
     }
 
     // Strip range characters like ^, ~, >= if explicit version provided
-    return npmVersion.replace(/^[^\d]*/, '');
+    const cleanVersion = npmVersion.replace(/^[^\d]*/, '');
+
+    // Collapse Mojang stable-line beta strings into "beta" tags to satisfy Bedrock and mct runtime constraints
+    if (cleanVersion.includes('-beta.') && cleanVersion.includes('-stable')) {
+        return 'beta';
+    }
+
+    return cleanVersion;
 }
 
 // Asset Processing
