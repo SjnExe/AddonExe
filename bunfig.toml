@@ -2,6 +2,7 @@
 [install]
 cache = true
 minimumReleaseAge = 0
+peer = true
 
 [test]
 preload = ["./src/core/__tests__/__mocks__/bunSetup.ts"]
@@ -19,4 +20,3 @@ logLevel = "warn"
 telemetry = false
 noOrphans = true
 linker = "isolated"
-peer = true
