@@ -81,7 +81,7 @@
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
         "type-fest": "latest",
-        "typescript": "~5.7.3",
+        "typescript": "~6.0.3",
         "typescript-eslint": "latest"
     },
     "trustedDependencies": [

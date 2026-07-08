@@ -58,6 +58,20 @@ async function postinstallTask() {
         }
     }
 
+    // Force hot-swap the native jscpd binary into the local node_modules layout on every installation pass
+    if (isTermux) {
+        const nativeJscpdPath = path.join(homeDir, '.cargo/bin/jscpd');
+        const npmJscpdBinDir = path.join(process.cwd(), 'node_modules/jscpd-linux-arm64-gnu/bin');
+        const npmJscpdPath = path.join(npmJscpdBinDir, 'jscpd');
+
+        if (existsSync(nativeJscpdPath)) {
+            await fs.mkdir(npmJscpdBinDir, { recursive: true });
+            await fs.copyFile(nativeJscpdPath, npmJscpdPath);
+            await fs.chmod(npmJscpdPath, 0o755);
+            console.log('✅ Injected Termux-compliant native jscpd binary wrapper successfully.');
+        }
+    }
+
     const bashrcPath = path.join(homeDir, '.bashrc');
     if (existsSync(bashrcPath)) {
         console.log('⚙️  Synchronizing shell profile configuration wrappers...');
@@ -95,7 +109,7 @@ function bun() {
 ${endMarker}\n`;
 
         await Bun.write(bashrcPath, bashrcContent + runtimeInterceptorBlock);
-        console.log('✨ System shell profile synchronization completely successfully.');
+        console.log('✨ System shell profile synchronization completed successfully.');
     }
 }
 
