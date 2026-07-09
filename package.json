@@ -21,7 +21,7 @@
         "build:release": "bun scripts/build.ts --release --minify",
         "check-deps": "bun scripts/check-dependencies.ts",
         "check-types": "bun tsc --noEmit --incremental",
-        "clean": "rm -rf build out",
+        "clean": "rm -rf out packs/behavior/scripts",
         "fix-project": "bun mct fix",
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
@@ -33,8 +33,8 @@
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
         "test:duplication": "bun scripts/test-duplication.ts",
         "test:watch": "bun test --isolate --parallel --watch",
-        "validate": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build",
-        "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i build -o validation_report",
+        "validate": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs",
+        "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs -o validation_report",
         "watch": "bun scripts/build.ts --watch"
     },
     "lint-staged": {

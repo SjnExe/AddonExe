@@ -34,3 +34,6 @@ validation_report
 .eslintcache
 *.tsbuildinfo
 .prettiercache
+/packs/behavior/scripts/
+/packs/behavior/manifest.json
+/packs/resource/manifest.json

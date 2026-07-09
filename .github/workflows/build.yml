@@ -155,7 +155,7 @@ jobs:
 
             - name: Verify Staged Packs
               run: |
-                  if [ ! -d "build/behavior/scripts" ]; then
+                  if [ ! -d "packs/behavior/scripts" ]; then
                     echo "Error: Scripts directory missing from behavior pack."
                     exit 1
                   fi
@@ -174,15 +174,15 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  (cd build && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
-                  (cd build/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
-                  (cd build/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+                  (cd packs && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
+                  (cd packs/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+                  (cd packs/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
             - name: Upload Raw Build Directory
               uses: actions/upload-artifact@v7
               with:
                   name: build-dir
-                  path: build/
+                  path: packs/
                   retention-days: 1
 
             - name: Upload Build Artifacts
@@ -200,7 +200,7 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                   name: debug-symbols-nightly
-                  path: build/**/*.map
+                  path: packs/**/*.map
                   retention-days: 7
             - name: Create build meta file
               run: |
