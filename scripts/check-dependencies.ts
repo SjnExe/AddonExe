@@ -5,7 +5,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const packageJsonPath = path.join(__dirname, '../package.json');
-const manifestJsonPath = path.join(__dirname, '../build/behavior/manifest.json');
+const manifestJsonPath = path.join(__dirname, '../packs/behavior/manifest.json');
 
 async function main() {
     const pkgFile = Bun.file(packageJsonPath);
@@ -13,7 +13,7 @@ async function main() {
 
     if (!(await pkgFile.exists()) || !(await manifestFile.exists())) {
         // If manifest doesn't exist yet (e.g. pre-build), skip check or warn
-        console.warn('Could not find package.json or build/behavior/manifest.json. Skipping dependency check.');
+        console.warn('Could not find package.json or packs/behavior/manifest.json. Skipping dependency check.');
         process.exit(0);
     }
 
