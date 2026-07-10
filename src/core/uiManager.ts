@@ -27,6 +27,22 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
 
         debugLog(`[UIManager] Showing panel '${panelId}' to ${player.name} with context: ${JSON.stringify(context)}`);
 
+        // Manage UI History via context
+        const history = context.uiHistory || [];
+        // Prevent pushing the same panel consecutively
+        if (history.length === 0 || history[history.length - 1].panelId !== panelId) {
+            // Push a copy of context without uiHistory to avoid circular references/bloat
+            const contextCopy = { ...context };
+            delete contextCopy.uiHistory;
+            history.push({ panelId, context: contextCopy });
+        } else {
+             // Update the last context
+             const contextCopy = { ...context };
+             delete contextCopy.uiHistory;
+             history[history.length - 1].context = contextCopy;
+        }
+        context.uiHistory = history;
+
         const form = await buildPanelForm(player, panelId, context);
         if (!isDefined(form)) {
             debugLog(`[UIManager] buildPanelForm returned undefined for panel '${panelId}'. Aborting.`);
@@ -36,16 +52,30 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         const response = await utils.uiWait(player, form);
         if (!isDefined(response) || response.canceled) {
             debugLog(`[UIManager] Panel '${panelId}' was canceled by ${player.name}.`);
+
+            // Pop the current panel
+            history.pop();
+            const previousPanel = history.length > 0 ? history[history.length - 1] : undefined;
+
             // Show the parent panel if the user cancels and a parent is defined
             if (isNonEmptyString(context.returnPanel)) {
                 const targetPanel = context.returnPanel;
                 delete context.returnPanel;
                 return showPanel(player, targetPanel, context);
             }
+
+            if (isDefined(previousPanel) && previousPanel.panelId !== panelId) {
+                // Ensure we pop the previous panel so that when we show it, it gets re-pushed correctly
+                history.pop();
+                const newContext = { ...previousPanel.context, uiHistory: history };
+                return showPanel(player, previousPanel.panelId, newContext);
+            }
+
             const panelDef = panelDefinitions[panelId];
             if (isDefined(panelDef) && isNonEmptyString(panelDef.parentPanelId)) {
                 return showPanel(player, panelDef.parentPanelId, context);
             }
+
             return;
         }
 

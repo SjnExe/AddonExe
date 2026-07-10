@@ -1,3 +1,4 @@
+import { setTrackedInterval } from "@core/timerManager.js";
 import * as mc from '@minecraft/server';
 
 import { debugLog } from '@core/logger.js';
@@ -32,7 +33,7 @@ export function initializeVoting() {
     }
 
     // Check expiry loop
-    mc.system.runInterval(() => {
+    setTrackedInterval(() => {
         checkVoteExpiry();
     }, 200); // 10 seconds
 }

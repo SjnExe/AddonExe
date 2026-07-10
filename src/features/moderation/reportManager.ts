@@ -1,3 +1,4 @@
+import { setTrackedInterval } from "@core/timerManager.js";
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
@@ -168,6 +169,6 @@ export function clearOldResolvedReports() {
 }
 
 // Periodically clean up old reports. Saving is now handled by the central dataManager.
-mc.system.runInterval(() => {
+setTrackedInterval(() => {
     clearOldResolvedReports();
 }, 36_000); // Clean up every 30 minutes (36000 ticks)

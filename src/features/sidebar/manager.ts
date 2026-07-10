@@ -1,3 +1,4 @@
+import { setTrackedInterval } from "@core/timerManager.js";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 
@@ -31,7 +32,7 @@ interface TeamManagerService {
 let sidebarInterval: number | undefined;
 
 export function initializeSidebar() {
-    sidebarInterval = mc.system.runInterval(() => {
+    sidebarInterval = setTrackedInterval(() => {
         updateSidebars();
     }, 20); // Update every second
 }

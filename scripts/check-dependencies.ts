@@ -42,8 +42,6 @@ async function main() {
         '@minecraft/server',
         '@minecraft/server-ui',
         '@minecraft/server-gametest',
-        '@minecraft/server-net',
-        '@minecraft/server-admin',
         '@minecraft/server-editor',
         '@minecraft/debug-utilities',
         '@minecraft/common', // Often dev-only, but check logic below

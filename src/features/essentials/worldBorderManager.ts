@@ -1,3 +1,4 @@
+import { setTrackedInterval } from "@core/timerManager.js";
 import { errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -26,7 +27,7 @@ export function initializeWorldBorder() {
         config = loadedConfig;
     }
 
-    mc.system.runInterval(() => checkWorldBorder(), 20); // Check every second (20 ticks)
+    setTrackedInterval(() => checkWorldBorder(), 20); // Check every second (20 ticks)
 }
 
 function saveConfig() {

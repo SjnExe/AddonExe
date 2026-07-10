@@ -1,3 +1,4 @@
+import { setTrackedInterval } from "@core/timerManager.js";
 import { getConfig } from '@core/configManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
@@ -32,7 +33,7 @@ export function initializeChatLogger() {
     pruneOldLogs();
 
     // Auto-save loop
-    mc.system.runInterval(() => {
+    setTrackedInterval(() => {
         const newDay = getTodayDateString();
         if (newDay === today) {
             saveChatLogs();

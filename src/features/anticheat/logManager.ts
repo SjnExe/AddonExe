@@ -1,4 +1,4 @@
-import * as mc from '@minecraft/server';
+import { setTrackedInterval } from "@core/timerManager.js";
 
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
@@ -37,7 +37,7 @@ export function initializeLogManager() {
     punishLogs = punishLogs.filter((l) => now - l.timestamp < ONE_WEEK);
 
     // Auto-save every 30 seconds
-    mc.system.runInterval(() => saveLogs(), 600);
+    setTrackedInterval(() => saveLogs(), 600);
 }
 
 export function addFlagLog(playerName: string, checkName: string, vl: number, details: string) {

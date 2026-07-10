@@ -5,6 +5,7 @@ import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
+import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
 
 export function startTeleportWarmup(player: mc.Player, durationSeconds: number, onWarmupComplete: () => void, teleportName = 'teleport', onCancel?: () => void): void {
     if (durationSeconds <= 0) {
@@ -20,7 +21,7 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
 
     const cleanup = () => {
         if (isNumber(intervalId)) {
-            mc.system.clearRun(intervalId);
+            clearTrackedInterval(intervalId);
             intervalId = undefined;
         }
         if (isDefined(hurtListener)) {
@@ -52,7 +53,7 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
-    intervalId = mc.system.runInterval(() => {
+    intervalId = setTrackedInterval(() => {
         try {
             if (!player.isValid) {
                 cancel();
