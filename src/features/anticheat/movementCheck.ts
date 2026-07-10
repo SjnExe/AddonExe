@@ -1,4 +1,3 @@
-import { setTrackedInterval } from '@core/timerManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
@@ -22,7 +21,7 @@ const ICE_BLOCKS = new Set<string>([MinecraftBlockTypes.Ice, MinecraftBlockTypes
 export function startMovementCheckLoop() {
     // Check world border/roof/movement every few ticks
     // Using runJob to spread execution across ticks to prevent lag with many players.
-    setTrackedInterval(() => {
+    mc.system.runInterval(() => {
         if (isChecking) return;
         try {
             const config = getAnticheatConfig();

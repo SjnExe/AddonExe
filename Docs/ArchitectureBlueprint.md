@@ -12,21 +12,35 @@ Based on a deep audit, here is an evaluation of the requested architectural pill
 ### High Priority & Implemented
 
 - **Pillar 1: Cross-Environment Compilation (BDS vs. Realms Split)**
-    - _Status:_ **Reverted / Removed**. The build pipeline was simplified. We removed the split for BDS and Realms to ensure full compatibility for both environments without splitting packages. Removed dependencies `@minecraft/server-net` and `@minecraft/server-admin`.
+    - _Status:_ **Implemented**. The build pipeline in `scripts/build.ts` was modified to output two distinct artifacts (default for Realms, `scripts-bds` for BDS). A new ESBuild define flag `__ENVIRONMENT__` allows conditional tree-shaking of `@minecraft/server-net` and `@minecraft/server-admin`.
 - **Pillar 2: Programmatic JSON Schema Guardrails**
     - _Status:_ **Implemented**. A new validation script `scripts/validate-schemas.ts` utilizing `ajv` and `@minecraft/bedrock-schemas` was written and integrated into the NPM `lint:check` and `lint` scripts. It automatically ensures JSON formats (like entities/items) are valid before hitting `mct validate`.
 - **Pillar 3: Type-Safe Dynamic Property Database Wrapper**
     - _Status:_ **Implemented**. `StorageManager.ts` already supported fragmentation across keys. It was refactored into a type-safe generic class `StorageManager<T>` with a newly added `update(partialData: Partial<T>)` method to efficiently manage state updates without fully replacing the property payload.
-- **Pillar 4: Reactive UI State Engine**
-    - _Status:_ **Implemented**. Modified `uiManager.ts` to implement a `UIStack` manager tracking the UI history per player. This allows for fully reliable "Back" navigation.
-- **Pillar 5: Script-Driven Visual & Atmospheric Controller**
-    - _Status:_ **Implemented**. Added `atmosphereManager.ts` to coordinate cinematic screen displays, actionbars, sounds, and particles smoothly.
-- **Pillar 6: High-Performance Vector & Spatial Math Suite**
-    - _Status:_ **Implemented**. Added a wrapper class `MathUtils` inside `src/core/utils/mathUtils.ts` to properly integrate `@minecraft/math` utilities for performance-critical vector operations.
-- **Pillar 7 & 8: Low-Overhead Performance Profiler & Event Multiplexer**
-    - _Status:_ **Implemented**. Refactored `timerManager.ts` to use a central `TickMultiplexer`. Instead of spawning raw `system.runInterval` calls which stack lag, the multiplexer staggers executions based on modulo math. Includes a time profiler that tracks execution durations for each multiplexed task and warns if it exceeds 5ms.
 
-## 3. Implementation Layout
+### Recommended for Future Structural Optimization
+
+- **Pillar 4: Reactive UI State Engine**
+    - _Status:_ Deferred. The existing UI pattern (`uiManager.ts` & `panelBuilder.ts`) is functional but relies on manual response handling. A centralized Event-Driven framework with history stacks and debouncing would greatly improve UX, but requires significant refactoring of existing panel logic.
+- **Pillar 6: High-Performance Vector & Spatial Math Suite**
+    - _Status:_ Deferred. Math-heavy operations should migrate to `@minecraft/math` and `@minecraft/gameplay-utilities` to offload logic to native engine routines, reducing script tick latency.
+- **Pillar 8: Low-Overhead Performance Profiler & Event Multiplexer**
+    - _Status:_ Deferred. The current `timerManager.ts` simply wraps raw `system.runInterval`. Implementing a central ticking multiplexer would severely reduce frame-time load by staggering events across custom intervals.
+
+### Specialized / Optional Focus
+
+- **Pillar 5: Script-Driven Visual & Atmospheric Controller**
+    - _Status:_ Deferred. Using `@minecraft/server-graphics` offers highly cinematic experiences (e.g., boss fights or custom dimensions), but is less critical unless the addon fundamentally pivots to heavily atmospheric gameplay.
+- **Pillar 7: Telemetry, Memory & Event Profiling Harness**
+    - _Status:_ Deferred. A wrapper leveraging `@minecraft/diagnostics` will be invaluable during dev cycles, but can be deferred until the core multiplexer (Pillar 8) is built.
+
+## 3. Pillar 1 & 2 Blueprint Layout
+
+### Pillar 1: Cross-Environment Build Pipeline
+
+- **Targeting:** `scripts/build.ts` was refactored to accept an `environment` parameter.
+- **Esbuild Changes:** It now defines `__ENVIRONMENT__` as `"BDS"` or `"REALMS"`. When `"BDS"` is targeted, `['@minecraft/server-net', '@minecraft/server-admin']` are appended to the `externalModules` list.
+- **Output:** `bun run build` loops twice. It compiles standard Realm output to `packs/behavior/scripts/` and BDS output to `packs/behavior/scripts-bds/`.
 
 ### Pillar 2: Programmatic JSON Schema Validator
 

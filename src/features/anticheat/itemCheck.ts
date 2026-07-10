@@ -1,4 +1,3 @@
-import { setTrackedInterval } from '@core/timerManager.js';
 import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
@@ -11,7 +10,7 @@ import { flag } from '@features/anticheat/flagManager.js';
 let isChecking = false;
 
 export function startItemCheckLoop() {
-    setTrackedInterval(() => {
+    mc.system.runInterval(() => {
         if (isChecking) return;
         try {
             const config = getAnticheatConfig();

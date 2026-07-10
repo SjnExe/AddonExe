@@ -1,4 +1,3 @@
-import { setTrackedInterval } from '@core/timerManager.js';
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
@@ -36,7 +35,7 @@ const outgoingRequests = new Map<string, TpaRequest>();
 const incomingRequests = new Map<string, TpaRequest[]>();
 
 // Global interval to clean up expired requests
-setTrackedInterval(() => {
+mc.system.runInterval(() => {
     const now = Date.now();
     for (const [sourceId, request] of outgoingRequests.entries()) {
         if (request.expiryTimestamp <= now) {

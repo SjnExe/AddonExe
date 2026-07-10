@@ -1,4 +1,3 @@
-import { setTrackedInterval } from '@core/timerManager.js';
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog, warnLog } from '@core/logger.js';
@@ -32,7 +31,7 @@ export function initializeFlagManager() {
     }
 
     // Auto-save loop
-    setTrackedInterval(() => saveFlags(), 600); // 30s
+    mc.system.runInterval(() => saveFlags(), 600); // 30s
 }
 
 export function saveFlags() {

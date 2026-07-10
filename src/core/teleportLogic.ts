@@ -1,5 +1,4 @@
 import { errorLog } from '@core/logger.js';
-import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
 import { playSound } from '@core/utils/sound.js';
 import { getCountdownColor } from '@core/utils/ui.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
@@ -21,7 +20,7 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
 
     const cleanup = () => {
         if (isNumber(intervalId)) {
-            clearTrackedInterval(intervalId);
+            mc.system.clearRun(intervalId);
             intervalId = undefined;
         }
         if (isDefined(hurtListener)) {
@@ -53,7 +52,7 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
-    intervalId = setTrackedInterval(() => {
+    intervalId = mc.system.runInterval(() => {
         try {
             if (!player.isValid) {
                 cancel();

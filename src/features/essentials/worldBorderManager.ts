@@ -1,6 +1,5 @@
 import { errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { setTrackedInterval } from '@core/timerManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -27,7 +26,7 @@ export function initializeWorldBorder() {
         config = loadedConfig;
     }
 
-    setTrackedInterval(() => checkWorldBorder(), 20); // Check every second (20 ticks)
+    mc.system.runInterval(() => checkWorldBorder(), 20); // Check every second (20 ticks)
 }
 
 function saveConfig() {

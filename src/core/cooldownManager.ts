@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from '@core/logger.js';
-import { setTrackedInterval } from '@core/timerManager.js';
 import { isNumber } from '@lib/guards.js';
 
 const cooldownDbKey = 'exe:cooldowns';
@@ -113,7 +112,7 @@ export function getCooldown(playerId: string, identifier: string): number {
 }
 
 // Periodically clear expired cooldowns and save to the world
-setTrackedInterval(() => {
+mc.system.runInterval(() => {
     clearExpiredCooldowns();
     saveCooldowns();
 }, saveIntervalTicks);

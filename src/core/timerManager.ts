@@ -12,70 +12,15 @@ const intervalIds = new Set<number>();
 const timeoutIds = new Set<number>();
 const jobIds = new Set<number>();
 
-// Event Multiplexer & Profiler
-interface MultiplexTask {
-    id: number;
-    callback: () => void;
-    interval: number;
-    lastRunTick: number;
-}
-
-const multiplexTasks = new Map<number, MultiplexTask>();
-let nextMultiplexId = 1;
-let currentTick = 0;
-let multiplexerRunning = false;
-
-function startMultiplexer() {
-    if (multiplexerRunning) return;
-    multiplexerRunning = true;
-
-    // Centralized single runInterval loop
-    mc.system.runInterval(() => {
-        currentTick++;
-
-        for (const [id, task] of multiplexTasks.entries()) {
-            // Staggering based on interval to prevent all running on same tick
-            // using modulo math against the currentTick
-            if (currentTick % task.interval === id % task.interval) {
-                const startTime = Date.now();
-
-                try {
-                    task.callback();
-                } catch (e) {
-                    debugLog(`[TickMultiplexer] Task ${id} failed: ${String(e)}`);
-                }
-
-                task.lastRunTick = currentTick;
-
-                // Profiler logic
-                const duration = Date.now() - startTime;
-                if (duration > 5) {
-                    debugLog(`[Profiler] Warning: Task ${id} took ${duration}ms to execute!`);
-                }
-            }
-        }
-    }, 1); // Run every tick
-}
-
 /**
- * A wrapper for system.runInterval that uses the TickMultiplexer
- * to stagger executions and profile performance.
+ * A wrapper for system.runInterval that tracks the interval ID.
  * @param callback The function to execute.
  * @param tickInterval The interval in ticks.
  * @returns The ID of the interval.
  */
 export function setTrackedInterval(callback: () => void, tickInterval: number): number {
-    startMultiplexer();
-
-    const id = nextMultiplexId++;
-    multiplexTasks.set(id, {
-        id,
-        callback,
-        interval: tickInterval,
-        lastRunTick: currentTick
-    });
-
-    intervalIds.add(id); // Keep tracking logic intact for cleanup
+    const id = mc.system.runInterval(callback, tickInterval);
+    intervalIds.add(id);
     return id;
 }
 
@@ -115,7 +60,7 @@ export function setTrackedJob(generator: Generator<void, void, void>): number {
  */
 export function clearTrackedInterval(id: number): void {
     if (intervalIds.has(id)) {
-        multiplexTasks.delete(id);
+        mc.system.clearRun(id);
         intervalIds.delete(id);
     }
 }
@@ -149,7 +94,9 @@ export function clearTrackedJob(id: number): void {
 export function cleanupTimers(): void {
     debugLog(`[TimerManager] Clearing ${intervalIds.size} intervals, ${timeoutIds.size} timeouts, and ${jobIds.size} jobs.`);
 
-    multiplexTasks.clear();
+    for (const id of intervalIds) {
+        mc.system.clearRun(id);
+    }
     intervalIds.clear();
 
     for (const id of timeoutIds) {

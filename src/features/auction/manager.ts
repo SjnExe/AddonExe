@@ -1,4 +1,3 @@
-import { setTrackedInterval } from '@core/timerManager.js';
 import * as mc from '@minecraft/server';
 
 import { getAuctionHouseConfig } from '@core/configurations.js';
@@ -50,7 +49,7 @@ export function initializeAuctionHouse() {
     loadAuctions();
 
     // Start Expiry Loop (Every minute)
-    setTrackedInterval(() => {
+    mc.system.runInterval(() => {
         mc.system.runJob(checkExpiredAuctionsJob());
     }, 1200); // 60 seconds * 20 ticks
 }

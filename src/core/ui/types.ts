@@ -72,7 +72,6 @@ export interface UIContext extends Record<string, unknown> {
     targetPlayerId?: string;
     customTitle?: string;
     returnPanel?: string;
-    uiHistory?: { panelId: string; context: Record<string, unknown> }[];
 }
 
 export interface IPanelHandler {

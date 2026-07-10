@@ -1,4 +1,3 @@
-import { setTrackedInterval } from '@core/timerManager.js';
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
@@ -236,7 +235,7 @@ export function removePunishment(playerId: string, type: PunishmentType) {
 export function initializePunishmentManager() {
     // Periodically clear expired punishments and save to the world
     const config = getConfig();
-    setTrackedInterval(() => {
+    mc.system.runInterval(() => {
         clearExpiredPunishments();
         savePunishments();
     }, config.data.autoSaveIntervalSeconds * 20);
