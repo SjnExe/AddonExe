@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 const mockGetConfig = mock();
 const mockUpdateMultipleConfig = mock();
 const mockDebugLog = mock();
-const mockErrorLog = mock((msg) => console.log('ERROR LOG:', msg));
+const mockErrorLog = mock();
 
 mock.module('@core/configManager.js', () => ({
     getConfig: mockGetConfig,

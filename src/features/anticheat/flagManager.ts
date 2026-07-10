@@ -1,4 +1,4 @@
-import { setTrackedInterval } from "@core/timerManager.js";
+import { setTrackedInterval } from '@core/timerManager.js';
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog, warnLog } from '@core/logger.js';

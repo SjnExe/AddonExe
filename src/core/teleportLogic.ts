@@ -1,11 +1,11 @@
 import { errorLog } from '@core/logger.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
 import { playSound } from '@core/utils/sound.js';
 import { getCountdownColor } from '@core/utils/ui.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
-import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
 
 export function startTeleportWarmup(player: mc.Player, durationSeconds: number, onWarmupComplete: () => void, teleportName = 'teleport', onCancel?: () => void): void {
     if (durationSeconds <= 0) {

@@ -1,5 +1,5 @@
-import * as mc from '@minecraft/server';
 import { setTrackedInterval } from '@core/timerManager.js';
+import * as mc from '@minecraft/server';
 
 import { getAuctionHouseConfig } from '@core/configurations.js';
 import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';

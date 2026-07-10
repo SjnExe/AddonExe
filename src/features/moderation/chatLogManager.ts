@@ -1,6 +1,6 @@
-import { setTrackedInterval } from "@core/timerManager.js";
 import { getConfig } from '@core/configManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { setTrackedInterval } from '@core/timerManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

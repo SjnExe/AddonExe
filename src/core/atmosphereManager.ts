@@ -1,5 +1,5 @@
-import * as mc from '@minecraft/server';
 import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
+import * as mc from '@minecraft/server';
 
 /**
  * Manager for handling script-driven visual and atmospheric effects.
@@ -9,14 +9,7 @@ export class AtmosphereManager {
     /**
      * Show a title and subtitle on the player's screen.
      */
-    public static showTitle(
-        player: mc.Player,
-        title: string,
-        subtitle?: string,
-        fadeInDuration = 20,
-        stayDuration = 60,
-        fadeOutDuration = 20
-    ): void {
+    public static showTitle(player: mc.Player, title: string, subtitle?: string, fadeInDuration = 20, stayDuration = 60, fadeOutDuration = 20): void {
         const titleDisplayOptions: mc.TitleDisplayOptions = {
             fadeInDuration,
             stayDuration,
@@ -43,23 +36,14 @@ export class AtmosphereManager {
     /**
      * Play a sound for a specific player.
      */
-    public static playSoundForPlayer(
-        player: mc.Player,
-        soundId: string,
-        options?: mc.PlayerSoundOptions
-    ): void {
+    public static playSoundForPlayer(player: mc.Player, soundId: string, options?: mc.PlayerSoundOptions): void {
         player.playSound(soundId, options);
     }
 
     /**
      * Play a sound at a specific location in a dimension for all nearby players.
      */
-    public static playSoundAtLocation(
-        dimension: mc.Dimension,
-        soundId: string,
-        location: mc.Vector3,
-        options?: mc.WorldSoundOptions
-    ): void {
+    public static playSoundAtLocation(dimension: mc.Dimension, soundId: string, location: mc.Vector3, options?: mc.WorldSoundOptions): void {
         dimension.playSound(soundId, location, options);
     }
 
@@ -67,12 +51,7 @@ export class AtmosphereManager {
      * Create a simple "cinematic" sweep by triggering a sequence of particles and sounds
      * over a duration using the ticking system. This relies on the system.runTimeout wrapper.
      */
-    public static playCinematicEffect(
-        player: mc.Player,
-        particleId: string,
-        soundId: string,
-        durationTicks: number = 60
-    ): void {
+    public static playCinematicEffect(player: mc.Player, particleId: string, soundId: string, durationTicks: number = 60): void {
         const startLocation = player.location;
         const dimension = player.dimension;
 
@@ -82,7 +61,7 @@ export class AtmosphereManager {
         this.playSoundForPlayer(player, soundId, { volume: 1.0, pitch: 1.0 });
 
         const intervalId = setTrackedInterval(() => {
-            if (ticksElapsed >= durationTicks || !player.isValid()) {
+            if (ticksElapsed >= durationTicks || !player.isValid) {
                 clearTrackedInterval(intervalId);
                 return;
             }

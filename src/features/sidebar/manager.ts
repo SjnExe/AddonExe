@@ -1,4 +1,4 @@
-import { setTrackedInterval } from "@core/timerManager.js";
+import { setTrackedInterval } from '@core/timerManager.js';
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import * as mc from '@minecraft/server';
 

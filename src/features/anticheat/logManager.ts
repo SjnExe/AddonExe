@@ -1,4 +1,4 @@
-import { setTrackedInterval } from "@core/timerManager.js";
+import { setTrackedInterval } from '@core/timerManager.js';
 
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isNonEmptyString } from '@lib/guards.js';

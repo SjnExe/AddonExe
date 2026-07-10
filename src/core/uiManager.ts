@@ -30,16 +30,19 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         // Manage UI History via context
         const history = context.uiHistory || [];
         // Prevent pushing the same panel consecutively
-        if (history.length === 0 || history[history.length - 1].panelId !== panelId) {
+        if (history.length === 0 || (history[history.length - 1] && history[history.length - 1]!.panelId !== panelId)) {
             // Push a copy of context without uiHistory to avoid circular references/bloat
             const contextCopy = { ...context };
             delete contextCopy.uiHistory;
             history.push({ panelId, context: contextCopy });
         } else {
-             // Update the last context
-             const contextCopy = { ...context };
-             delete contextCopy.uiHistory;
-             history[history.length - 1].context = contextCopy;
+            // Update the last context
+            const contextCopy = { ...context };
+            delete contextCopy.uiHistory;
+            const lastItem = history[history.length - 1];
+            if (lastItem) {
+                lastItem.context = contextCopy;
+            }
         }
         context.uiHistory = history;
 

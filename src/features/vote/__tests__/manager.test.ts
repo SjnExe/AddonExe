@@ -17,16 +17,20 @@ mock.module('@core/storage/StorageManager.js', () => ({
     }
 }));
 
-// Mock the system and world methods manually on the imported module
-// Since it's imported, mc.world and mc.system are accessible and we can attach mocks
-let intervalCallback: (() => void) | undefined;
-const mockSystemRunInterval = mock().mockImplementation((cb: () => void) => {
+const mockSetTrackedInterval = mock().mockImplementation((cb: () => void) => {
     intervalCallback = cb;
     return 1 as any;
 });
+
+mock.module('@core/timerManager.js', () => ({
+    setTrackedInterval: mockSetTrackedInterval
+}));
+
+// Mock the system and world methods manually on the imported module
+// Since it's imported, mc.world and mc.system are accessible and we can attach mocks
+let intervalCallback: (() => void) | undefined;
 const mockWorldSendMessage = mock().mockImplementation(() => {});
 
-(mc.system as any).runInterval = mockSystemRunInterval;
 (mc.world as any).sendMessage = mockWorldSendMessage;
 
 const { initializeVoting, createVote, castVote, endVote, getActiveVote, getLastVote } = await import('../manager.js');
@@ -34,18 +38,16 @@ const { initializeVoting, createVote, castVote, endVote, getActiveVote, getLastV
 describe('Vote Manager', () => {
     let mockDateNow: ReturnType<typeof mock>;
     let originalDateNow: any;
-    let originalSystemRunInterval: any;
     let originalWorldSendMessage: any;
 
     beforeEach(() => {
         mockDebugLog.mockReset();
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
-        mockSystemRunInterval.mockClear();
+        mockSetTrackedInterval.mockClear();
         intervalCallback = undefined;
         mockWorldSendMessage.mockClear();
 
-        originalSystemRunInterval = (mc.system as any).runInterval;
         originalWorldSendMessage = (mc.world as any).sendMessage;
 
         mockStorageLoad.mockReturnValue(undefined);
@@ -60,7 +62,6 @@ describe('Vote Manager', () => {
     afterEach(() => {
         // Reset Date.now to original
         global.Date.now = originalDateNow;
-        (mc.system as any).runInterval = originalSystemRunInterval;
         (mc.world as any).sendMessage = originalWorldSendMessage;
     });
 
@@ -130,7 +131,7 @@ describe('Vote Manager', () => {
 
             expect(mockStorageLoad).toHaveBeenCalled();
             expect(mockDebugLog).toHaveBeenCalledWith('[Voting] Loaded active vote.');
-            expect(mockSystemRunInterval).toHaveBeenCalled();
+            expect(mockSetTrackedInterval).toHaveBeenCalled();
             expect(getActiveVote()).toEqual(activeVote as any);
         });
 
@@ -140,7 +141,7 @@ describe('Vote Manager', () => {
             initializeVoting();
 
             expect(mockDebugLog).not.toHaveBeenCalled();
-            expect(mockSystemRunInterval).toHaveBeenCalled();
+            expect(mockSetTrackedInterval).toHaveBeenCalled();
             expect(getActiveVote()).toBeUndefined();
         });
     });

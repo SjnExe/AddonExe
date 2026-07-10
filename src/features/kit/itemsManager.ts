@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
-import { debugLog, errorLog } from '@core/logger.js';
+import { debugLog } from '@core/logger.js';
 import { Kit } from '@features/kit/adminManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -64,12 +64,7 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
         });
         debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
         return { success: true, message: 'Item added successfully.' };
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            errorLog(`[KitItemsManager] Failed to add item to kit: ${error.stack}`);
-        } else {
-            errorLog(`[KitItemsManager] Failed to add item to kit: ${String(error)}`);
-        }
+    } catch {
         return { success: false, message: `Invalid item type ID: ${itemInfo.typeId}` };
     }
 }
@@ -172,12 +167,7 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
         });
         debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);
         return { success: true, message: 'Item updated successfully.' };
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            errorLog(`[KitItemsManager] Failed to update item in kit: ${error.stack}`);
-        } else {
-            errorLog(`[KitItemsManager] Failed to update item in kit: ${String(error)}`);
-        }
+    } catch {
         return { success: false, message: `Invalid item type ID: ${newItemInfo.typeId}` };
     }
 }

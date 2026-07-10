@@ -1,5 +1,5 @@
-import * as mc from '@minecraft/server';
 import { Vector3Utils } from '@minecraft/math';
+import * as mc from '@minecraft/server';
 
 /**
  * High-Performance Vector and Spatial Math Suite.
