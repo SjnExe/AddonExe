@@ -35,5 +35,6 @@ validation_report
 *.tsbuildinfo
 .prettiercache
 /packs/behavior/scripts/
+/packs/behavior/scripts-bds/
 /packs/behavior/manifest.json
 /packs/resource/manifest.json

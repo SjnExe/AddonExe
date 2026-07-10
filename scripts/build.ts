@@ -146,8 +146,8 @@ export function loadCommands() {
     }
 };
 
-async function compileScripts(versionArray: number[]) {
-    console.log('[Build] Compiling Scripts...');
+async function compileScripts(versionArray: number[], environment: 'BDS' | 'REALMS', outDirSuffix: string = '') {
+    console.log(`[Build] Compiling Scripts for ${environment}...`);
 
     const entrypoints = ['src/main.ts'];
     const srcDir = path.resolve(__dirname, '../src');
@@ -170,7 +170,12 @@ async function compileScripts(versionArray: number[]) {
     }
 
     const externalConfigs = entrypoints.map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
-    const outDir = path.resolve(__dirname, '../packs/behavior/scripts');
+    const outDir = path.resolve(__dirname, `../packs/behavior/scripts${outDirSuffix}`);
+
+    const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
+    if (environment === 'BDS') {
+        externalModules.push('@minecraft/server-net', '@minecraft/server-admin');
+    }
 
     const result = await Bun.build({
         entrypoints,
@@ -183,7 +188,8 @@ async function compileScripts(versionArray: number[]) {
         splitting: false,
         naming: '[dir]/[name].[ext]',
         define: {
-            __IS_NIGHTLY__: String(isNightly)
+            __IS_NIGHTLY__: String(isNightly),
+            __ENVIRONMENT__: `"${environment}"`
         },
         plugins: [
             commandIndexPlugin,
@@ -206,17 +212,17 @@ async function compileScripts(versionArray: number[]) {
                 }
             }
         ],
-        external: ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', ...externalConfigs]
+        external: [...externalModules, ...externalConfigs]
     });
 
     if (!result.success) {
-        console.error('[Build] Script compilation failed:');
+        console.error(`[Build] Script compilation failed for ${environment}:`);
         for (const msg of result.logs) {
             console.error(msg);
         }
         process.exit(1);
     }
-    console.log(`[Build] Scripts compiled successfully.`);
+    console.log(`[Build] Scripts compiled successfully for ${environment}.`);
 }
 
 async function main() {
@@ -230,7 +236,11 @@ async function main() {
     await $`bun scripts/update-manifests.ts ${updateArgs}`;
 
     const { versionArray } = await getVersionParts();
-    await compileScripts(versionArray);
+
+    // We compile for REALMS as the default output
+    await compileScripts(versionArray, 'REALMS', '');
+    // And compile BDS to a separate output directory so both targets are available
+    await compileScripts(versionArray, 'BDS', '-bds');
 
     console.log('--- Build Complete ---');
 
@@ -242,7 +252,8 @@ async function main() {
             buildTimeout = setTimeout(async () => {
                 console.log('[Watch] Change detected, rebuilding...');
                 try {
-                    await compileScripts(versionArray);
+                    await compileScripts(versionArray, 'REALMS', '');
+                    await compileScripts(versionArray, 'BDS', '-bds');
                     console.log('[Watch] Rebuild complete.');
                 } catch (e: any) {
                     console.error(`[Watch] Rebuild failed: ${e.message}`);

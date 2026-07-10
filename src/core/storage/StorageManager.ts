@@ -14,7 +14,7 @@ export class StorageManager {
     /**
      * Saves data to dynamic properties, handling sharding if necessary.
      */
-    save(data: unknown): void {
+    save<T>(data: T): void {
         try {
             const jsonString = JSON.stringify(data);
             const totalLength = jsonString.length;
@@ -42,7 +42,7 @@ export class StorageManager {
     /**
      * Generator version of save for use with mc.system.runJob to avoid lag spikes with large data.
      */
-    *saveJob(data: unknown): Generator<void, void, void> {
+    *saveJob<T>(data: T): Generator<void, void, void> {
         try {
             const jsonString = JSON.stringify(data);
             yield; // Yield after stringify (heavy op)
@@ -104,6 +104,20 @@ export class StorageManager {
                 errorLog(`[StorageManager] Failed to load ${this.dbName}`, error);
             }
             return undefined;
+        }
+    }
+
+    /**
+     * Update a specific portion of the stored data without replacing it entirely.
+     * Only works if the stored data is an object.
+     */
+    update<T>(partialData: Partial<T>): void {
+        const currentData = this.load<T>();
+        if (currentData && typeof currentData === 'object' && !Array.isArray(currentData)) {
+            const updatedData = { ...currentData, ...partialData };
+            this.save(updatedData);
+        } else {
+            errorLog(`[StorageManager] Cannot update non-object data for ${this.dbName}`);
         }
     }
 
