@@ -1,7 +1,7 @@
+import Ajv from 'ajv';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import Ajv from 'ajv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -111,7 +111,7 @@ async function main() {
     }
 }
 
-main().catch(err => {
+main().catch((err) => {
     console.error(err);
     process.exit(1);
 });
