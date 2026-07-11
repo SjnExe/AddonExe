@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 import { getConfig } from '@core/configManager.js';
 import * as lastHitManager from '@core/lastHitManager.js';
@@ -16,7 +17,7 @@ export const eventName = 'entityDie';
 function handleEntityDie(event: mc.EntityDieAfterEvent) {
     try {
         const { deadEntity } = event;
-        if (deadEntity.typeId !== 'minecraft:player') {
+        if (deadEntity.typeId !== MinecraftEntityTypes.Player) {
             return;
         }
 

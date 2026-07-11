@@ -1,6 +1,7 @@
 import { getConfig } from '@core/configManager.js';
 import { getWorldProtectionConfig } from '@core/configurations.js';
 import type { Vector3 } from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export type ProtectionFlags = {
     preventPvP: boolean;
@@ -95,7 +96,8 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
         // Verify spawn location has coordinates
         if (!isNaN(x) && !isNaN(z)) {
             // Spawn protection uses the configured dimension (or Overworld if undefined, though it defaults to Overworld)
-            const spawnDimension = spawnLoc.dimensionId || 'minecraft:overworld';
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            const spawnDimension = spawnLoc.dimensionId || MinecraftDimensionTypes.Overworld;
             if (dimensionId === spawnDimension) {
                 const radius = Number(spawnConfig.spawnProtection.protectionRadius) || 0;
 

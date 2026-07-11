@@ -5,6 +5,7 @@ import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
 import * as floatingTextManager from '@features/essentials/floatingTextManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
 import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
 import { IPanelHandler } from '@ui/types.js';
@@ -118,8 +119,8 @@ export class AdminPanelHandler implements IPanelHandler {
             const expiresAt = text.expiresAt;
             const updateInterval = text.updateInterval ?? 0;
             const dimensionOptions = ['Overworld', 'Nether', 'The End'];
-            const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
-            const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
+            const dimensionIds = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
+            const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension as MinecraftDimensionTypes));
             return Promise.resolve(
                 new ModalFormData()
                     .title(`Edit: ${id}`)
@@ -172,8 +173,8 @@ export class AdminPanelHandler implements IPanelHandler {
             const useExpiration = rawValues[6] as boolean;
             const expirationMinutes = rawValues[7] as string;
 
-            const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
-            const selectedDimension = (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? 'minecraft:overworld';
+            const dimensionIds = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
+            const selectedDimension = (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? MinecraftDimensionTypes.Overworld;
 
             const updatedConfig = {
                 text: textContent,

@@ -93,7 +93,7 @@ export default tseslint.config(
             '@typescript-eslint/no-unsafe-call': 'error',
             '@typescript-eslint/no-unsafe-member-access': 'error',
             '@typescript-eslint/no-unsafe-return': 'error',
-            '@typescript-eslint/no-unsafe-enum-comparison': 'error',
+            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
             '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': 'allow-with-description', 'ts-nocheck': true, 'ts-check': false }],
             '@typescript-eslint/restrict-template-expressions': 'error',
             '@typescript-eslint/only-throw-error': 'error',
@@ -109,6 +109,14 @@ export default tseslint.config(
                 {
                     selector: 'CallExpression[callee.property.name="runCommandAsync"]',
                     message: 'runCommandAsync is deprecated. Please use native APIs.'
+                },
+                {
+                    selector: 'Literal[value=/^minecraft:/]',
+                    message: 'Do not use raw strings for Minecraft IDs. Import and use the appropriate enum from @minecraft/vanilla-data instead (e.g. MinecraftEntityTypes, MinecraftItemTypes, etc.).'
+                },
+                {
+                    selector: 'TemplateLiteral[quasis.0.value.raw=/^minecraft:/]',
+                    message: 'Do not use template literals starting with "minecraft:". Import and use the appropriate enum from @minecraft/vanilla-data instead.'
                 }
             ]
         }

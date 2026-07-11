@@ -3,6 +3,7 @@ import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { getProtectionFlags } from '@core/protectionService.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 function canBypass(player: mc.Player): boolean {
     // Check if admin bypass is allowed globally or in spawn configuration
@@ -59,7 +60,7 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     const flags = getProtectionFlags(loc, event.dimension.id);
 
     // Prevent Mob Griefing logic (Creepers, Withers)
-    if (flags.preventMobGriefing && event.source && event.source.typeId !== 'minecraft:player') {
+    if (flags.preventMobGriefing && event.source && event.source.typeId !== MinecraftEntityTypes.Player) {
         // Prevent block damage from mob explosions
         event.setImpactedBlocks([]);
         return;
@@ -78,7 +79,7 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     for (const block of impactedBlocks) {
         if (!isDefined(block)) continue;
         const blockFlags = getProtectionFlags(block.location, event.dimension.id);
-        if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !event.source || event.source.typeId === 'minecraft:player')) {
+        if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !event.source || event.source.typeId === MinecraftEntityTypes.Player)) {
             allowedBlocks.push(block);
         }
     }
@@ -93,18 +94,18 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
     if (flags.preventProjectileUsage) {
         // Basic list of items that shoot projectiles
         const projectileItems = [
-            'minecraft:bow',
-            'minecraft:crossbow',
-            'minecraft:snowball',
-            'minecraft:ender_pearl',
-            'minecraft:egg',
-            'minecraft:splash_potion',
-            'minecraft:lingering_potion',
-            'minecraft:experience_bottle',
-            'minecraft:trident'
+            MinecraftItemTypes.Bow,
+            MinecraftItemTypes.Crossbow,
+            MinecraftItemTypes.Snowball,
+            MinecraftItemTypes.EnderPearl,
+            MinecraftItemTypes.Egg,
+            MinecraftItemTypes.SplashPotion,
+            MinecraftItemTypes.LingeringPotion,
+            MinecraftItemTypes.ExperienceBottle,
+            MinecraftItemTypes.Trident
         ];
 
-        if (projectileItems.includes(event.itemStack.typeId)) {
+        if (projectileItems.includes(event.itemStack.typeId as MinecraftItemTypes)) {
             if (!canBypass(player)) {
                 event.cancel = true;
                 mc.system.run(() => {
@@ -141,10 +142,13 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
         // Let's allow interaction with players, tameables (wolves, cats, parrots),
         // rideables (horses, donkeys, mules, pigs with saddle, striders)
 
-        if (target.typeId !== 'minecraft:player') {
+        if (target.typeId !== MinecraftEntityTypes.Player) {
             // Allow interactions if it can be tamed or ridden (pets/mounts)
+            // eslint-disable-next-line no-restricted-syntax
             const canRide = target.hasComponent('minecraft:rideable');
+            // eslint-disable-next-line no-restricted-syntax
             const canTame = target.hasComponent('minecraft:tameable');
+            // eslint-disable-next-line no-restricted-syntax
             const isTamed = target.hasComponent('minecraft:is_tamed'); // already tamed
 
             if (!canRide && !canTame && !isTamed) {
@@ -161,7 +165,7 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
 
 export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
     const entity = event.entity;
-    if (entity.typeId !== 'minecraft:player') return;
+    if (entity.typeId !== MinecraftEntityTypes.Player) return;
     const player = entity as mc.Player;
 
     const flags = getProtectionFlags(player.location, player.dimension.id);
@@ -183,7 +187,8 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
         if (!isValid) return;
 
         // If hostile spawning is prevented
-        if (entity.typeId !== 'minecraft:player') {
+        if (entity.typeId !== MinecraftEntityTypes.Player) {
+            // eslint-disable-next-line no-restricted-syntax
             const familyTypes = entity.getComponent('minecraft:type_family');
             if (familyTypes?.hasTypeFamily('monster')) {
                 const flags = getProtectionFlags(entity.location, entity.dimension.id);
@@ -226,7 +231,7 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
         return;
     }
 
-    if (victim.typeId !== 'minecraft:player') return;
+    if (victim.typeId !== MinecraftEntityTypes.Player) return;
 
     const player = victim as mc.Player;
 
@@ -235,12 +240,13 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     const damagingEntity = damageSource.damagingEntity;
 
     // Helper to get actual attacker (e.g., owner of projectile)
+    // eslint-disable-next-line no-restricted-syntax
     const projectileComponent = damagingEntity?.getComponent('minecraft:projectile');
     const attacker = projectileComponent?.owner ?? damagingEntity;
 
     // PvP Protection
     if (flags.preventPvP) {
-        if (attacker && attacker.typeId === 'minecraft:player' && attacker.id !== player.id) {
+        if (attacker && attacker.typeId === MinecraftEntityTypes.Player && attacker.id !== player.id) {
             event.cancel = true;
             return;
         }
@@ -249,7 +255,8 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     // Hostile Damage Protection
     if (flags.preventHostileDamage) {
         // Direct damage from non-player entities
-        if (attacker && attacker.typeId !== 'minecraft:player') {
+        if (attacker && attacker.typeId !== MinecraftEntityTypes.Player) {
+            // eslint-disable-next-line no-restricted-syntax
             const familyTypes = attacker.getComponent('minecraft:type_family');
             if (familyTypes?.hasTypeFamily('monster') || familyTypes?.hasTypeFamily('mob')) {
                 event.cancel = true;

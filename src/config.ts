@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 export const config = {
     // --- System & Core Settings ---
     version: [1, 0, 0], // This will be replaced by the release workflow
@@ -29,7 +31,7 @@ export const config = {
             x: undefined as number | undefined,
             y: undefined as number | undefined,
             z: undefined as number | undefined,
-            dimensionId: 'minecraft:overworld'
+            dimensionId: MinecraftDimensionTypes.Overworld
         }
     },
     spawnProtection: {
