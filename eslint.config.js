@@ -109,6 +109,14 @@ export default tseslint.config(
                 {
                     selector: 'CallExpression[callee.property.name="runCommandAsync"]',
                     message: 'runCommandAsync is deprecated. Please use native APIs.'
+                },
+                {
+                    selector: 'Literal[value=/^minecraft:/]',
+                    message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
+                },
+                {
+                    selector: 'TemplateLiteral > TemplateElement:first-child[value.raw=/^minecraft:/]',
+                    message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
                 }
             ]
         }
