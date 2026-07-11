@@ -28,10 +28,11 @@ describe('timerManager', () => {
 
             const id = setTrackedInterval(callback, tickInterval);
 
-            expect(mc.system.runInterval).toHaveBeenCalledWith(callback, tickInterval);
+            // Our new multiplexer calls runInterval with tick delay 1
+            expect(mc.system.runInterval).toHaveBeenCalledWith(expect.any(Function), 1);
             const stats = getTimerStats();
             expect(stats.intervals).toBe(1);
-            expect(id).toBe(1); // From the minecraftMock
+            expect(id).toBe(1); // Since nextIntervalId starts at 1
         });
     });
 
@@ -94,13 +95,15 @@ describe('timerManager', () => {
 
             clearTrackedInterval(id);
 
-            expect(mc.system.clearRun).toHaveBeenCalledWith(id);
+            // With the multiplexer, we don't clear the system interval when removing one task
+            // We just remove it from tracking
             expect(getTimerStats().intervals).toBe(0);
         });
 
         it('should do nothing if interval ID is not tracked', () => {
             clearTrackedInterval(999);
-            expect(mc.system.clearRun).not.toHaveBeenCalled();
+            // It just silently ignores
+            expect(getTimerStats().intervals).toBe(0);
         });
     });
 

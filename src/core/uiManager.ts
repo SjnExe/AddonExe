@@ -27,6 +27,8 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
 
         debugLog(`[UIManager] Showing panel '${panelId}' to ${player.name} with context: ${JSON.stringify(context)}`);
 
+        context.history = context.history || [];
+
         const form = await buildPanelForm(player, panelId, context);
         if (!isDefined(form)) {
             debugLog(`[UIManager] buildPanelForm returned undefined for panel '${panelId}'. Aborting.`);
@@ -36,6 +38,12 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
         const response = await utils.uiWait(player, form);
         if (!isDefined(response) || response.canceled) {
             debugLog(`[UIManager] Panel '${panelId}' was canceled by ${player.name}.`);
+
+            if (Array.isArray(context.history) && context.history.length > 0) {
+                const previousPanel = context.history.pop();
+                if (previousPanel) return showPanel(player, previousPanel, context);
+            }
+
             // Show the parent panel if the user cancels and a parent is defined
             if (isNonEmptyString(context.returnPanel)) {
                 const targetPanel = context.returnPanel;
@@ -49,6 +57,7 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
             return;
         }
 
+        if (Array.isArray(context.history)) context.history.push(panelId);
         await handleFormResponse(player, panelId, response, context);
     } catch (error: unknown) {
         errorLog(`[UIManager] showPanel failed for panel '${String(panelId)}': ${String(error)}`);

@@ -1,3 +1,4 @@
+import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
@@ -87,7 +88,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
 
     // Convert blocks/tick to blocks/second (approximate)
     // We strictly check HORIZONTAL speed to avoid flagging falling players
-    const hSpeed = Math.hypot(velocity.x, velocity.z) * 20;
+    const hSpeed = Vector3Utils.distance({ x: 0, y: 0, z: 0 }, { x: velocity.x, y: 0, z: velocity.z }) * 20;
 
     // Determine context-based limit
     let limit = config.maxSpeed;
@@ -201,7 +202,7 @@ function checkWorldBorder(
         const vecZ = player.location.z - center.z;
 
         // Normalize and invert
-        const len = Math.hypot(vecX, vecZ);
+        const len = Vector3Utils.distance({ x: 0, y: 0, z: 0 }, { x: vecX, y: 0, z: vecZ });
         const pushX = len > 0 ? (vecX / len) * -config.knockbackAmount : 0;
         const pushZ = len > 0 ? (vecZ / len) * -config.knockbackAmount : 0;
 

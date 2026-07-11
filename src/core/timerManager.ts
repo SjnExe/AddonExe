@@ -8,19 +8,35 @@ import { debugLog } from '@core/logger.js';
  */
 
 // Use Sets to store the IDs of active timers. Sets provide O(1) for add/delete.
-const intervalIds = new Set<number>();
 const timeoutIds = new Set<number>();
 const jobIds = new Set<number>();
+const intervals = new Map<number, { callback: () => void; tickInterval: number }>();
+let nextIntervalId = 1;
+let masterIntervalId: number | undefined;
+let tickCount = 0;
+
+function startMasterInterval() {
+    if (masterIntervalId !== undefined) return;
+    masterIntervalId = mc.system.runInterval(() => {
+        tickCount++;
+        for (const interval of intervals.values()) {
+            if (tickCount % interval.tickInterval === 0) {
+                interval.callback();
+            }
+        }
+    }, 1);
+}
 
 /**
- * A wrapper for system.runInterval that tracks the interval ID.
+ * A wrapper for system.runInterval that tracks the interval ID and multiplexes execution.
  * @param callback The function to execute.
  * @param tickInterval The interval in ticks.
  * @returns The ID of the interval.
  */
 export function setTrackedInterval(callback: () => void, tickInterval: number): number {
-    const id = mc.system.runInterval(callback, tickInterval);
-    intervalIds.add(id);
+    const id = nextIntervalId++;
+    intervals.set(id, { callback, tickInterval });
+    startMasterInterval();
     return id;
 }
 
@@ -59,10 +75,7 @@ export function setTrackedJob(generator: Generator<void, void, void>): number {
  * @param id The ID of the interval to clear.
  */
 export function clearTrackedInterval(id: number): void {
-    if (intervalIds.has(id)) {
-        mc.system.clearRun(id);
-        intervalIds.delete(id);
-    }
+    intervals.delete(id);
 }
 
 /**
@@ -92,12 +105,13 @@ export function clearTrackedJob(id: number): void {
  * This is crucial for handling script reloads gracefully.
  */
 export function cleanupTimers(): void {
-    debugLog(`[TimerManager] Clearing ${intervalIds.size} intervals, ${timeoutIds.size} timeouts, and ${jobIds.size} jobs.`);
+    debugLog(`[TimerManager] Clearing ${intervals.size} intervals, ${timeoutIds.size} timeouts, and ${jobIds.size} jobs.`);
 
-    for (const id of intervalIds) {
-        mc.system.clearRun(id);
+    intervals.clear();
+    if (masterIntervalId !== undefined) {
+        mc.system.clearRun(masterIntervalId);
+        masterIntervalId = undefined;
     }
-    intervalIds.clear();
 
     for (const id of timeoutIds) {
         mc.system.clearRun(id);
@@ -122,7 +136,7 @@ export function startSystemTimers() {
  */
 export function getTimerStats(): { intervals: number; timeouts: number; jobs: number } {
     return {
-        intervals: intervalIds.size,
+        intervals: intervals.size,
         timeouts: timeoutIds.size,
         jobs: jobIds.size
     };

@@ -72,6 +72,7 @@ export interface UIContext extends Record<string, unknown> {
     targetPlayerId?: string;
     customTitle?: string;
     returnPanel?: string;
+    history?: string[];
 }
 
 export interface IPanelHandler {
