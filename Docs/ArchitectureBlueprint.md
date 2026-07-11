@@ -11,8 +11,8 @@ Based on a deep audit, here is an evaluation of the requested architectural pill
 
 ### High Priority & Implemented
 
-- **Pillar 1: Cross-Environment Compilation (BDS vs. Realms Split)**
-    - _Status:_ **Implemented**. The build pipeline in `scripts/build.ts` was modified to output two distinct artifacts (default for Realms, `scripts-bds` for BDS). A new ESBuild define flag `__ENVIRONMENT__` allows conditional tree-shaking of `@minecraft/server-net` and `@minecraft/server-admin`.
+- **Pillar 1: Unified Cross-Environment Compilation**
+    - _Status:_ **Implemented**. The build pipeline in `scripts/build.ts` produces a single unified artifact that is compatible with both BDS and Realms, simplifying deployment and removing the need for environment-specific builds or `@minecraft/server-net` and `@minecraft/server-admin` dependencies.
 - **Pillar 2: Programmatic JSON Schema Guardrails**
     - _Status:_ **Implemented**. A new validation script `scripts/validate-schemas.ts` utilizing `ajv` and `@minecraft/bedrock-schemas` was written and integrated into the NPM `lint:check` and `lint` scripts. It automatically ensures JSON formats (like entities/items) are valid before hitting `mct validate`.
 - **Pillar 3: Type-Safe Dynamic Property Database Wrapper**
@@ -36,11 +36,11 @@ Based on a deep audit, here is an evaluation of the requested architectural pill
 
 ## 3. Pillar 1 & 2 Blueprint Layout
 
-### Pillar 1: Cross-Environment Build Pipeline
+### Pillar 1: Unified Cross-Environment Build Pipeline
 
-- **Targeting:** `scripts/build.ts` was refactored to accept an `environment` parameter.
-- **Esbuild Changes:** It now defines `__ENVIRONMENT__` as `"BDS"` or `"REALMS"`. When `"BDS"` is targeted, `['@minecraft/server-net', '@minecraft/server-admin']` are appended to the `externalModules` list.
-- **Output:** `bun run build` loops twice. It compiles standard Realm output to `packs/behavior/scripts/` and BDS output to `packs/behavior/scripts-bds/`.
+- **Targeting:** `scripts/build.ts` compiles a single build targeting all environments.
+- **Esbuild Changes:** The build no longer relies on an `__ENVIRONMENT__` flag.
+- **Output:** `bun run build` loops once, outputting standard cross-compatible scripts to `packs/behavior/scripts/`.
 
 ### Pillar 2: Programmatic JSON Schema Validator
 

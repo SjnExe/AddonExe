@@ -84,7 +84,7 @@ async function main() {
     };
 
     const devDeps = pkg.devDependencies || {};
-    const modulesToInclude = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/server-net', '@minecraft/server-admin'];
+    const modulesToInclude = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities'];
 
     const dependencies: any[] = [];
     const modulePromises = modulesToInclude

@@ -15,9 +15,7 @@
         "@minecraft/debug-utilities": "1.0.0-beta.1.26.32-stable",
         "@minecraft/math": "latest",
         "@minecraft/server": "2.9.0-beta.1.26.32-stable",
-        "@minecraft/server-admin": "1.0.0-beta.1.26.32-stable",
         "@minecraft/server-gametest": "1.0.0-beta.1.26.32-stable",
-        "@minecraft/server-net": "1.0.0-beta.1.26.32-stable",
         "@minecraft/server-ui": "2.2.0-beta.1.26.32-stable",
         "@minecraft/vanilla-data": "latest",
         "@types/node": "latest",
@@ -103,11 +101,7 @@
 
     "@minecraft/server": ["@minecraft/server@2.9.0-beta.1.26.32-stable", "", { "peerDependencies": { "@minecraft/common": "^1.2.0", "@minecraft/vanilla-data": ">=1.20.70" } }, "sha512-PXY/gskLhgxbWe8j8sS6JYi80cztD4JeZdiQuDNQFpe7GQy59wJV85mDbTsUzZlcC+2R0eut9kJL07doGL0r9A=="],
 
-    "@minecraft/server-admin": ["@minecraft/server-admin@1.0.0-beta.1.26.32-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^1.17.0 || ^2.0.0" } }, "sha512-TdDDY6IbIJgTR+gOU1w96Bvb1g0m4r6cQpzhUtHxbkaIDqu1g/uKAQmTel+mOzijktGpQVoXjYIG/7weHSrmyQ=="],
-
     "@minecraft/server-gametest": ["@minecraft/server-gametest@1.0.0-beta.1.26.32-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^1.17.0 || ^2.0.0 || ^2.9.0-beta.1.26.32-stable" } }, "sha512-s2MHqEOhyePd67/cYPM6I89C1BlEzXoN3j1luyfdSDTarlvQHm8eaSW5MLuKkcPpu8xJarG893AeUNX289na1A=="],
-
-    "@minecraft/server-net": ["@minecraft/server-net@1.0.0-beta.1.26.32-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^1.17.0 || ^2.0.0", "@minecraft/server-admin": "^1.0.0-beta.1.26.32-stable" } }, "sha512-p41v45N6z+DhO8l+NezZT2ass11fUPr6YoKC6KQ0jSlnFdknGUJpcRI76b4gtOmjrpL6HSEJBzUTI/ENj7Ay/w=="],
 
     "@minecraft/server-ui": ["@minecraft/server-ui@2.2.0-beta.1.26.32-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^2.0.0 || ^2.9.0-beta.1.26.32-stable" } }, "sha512-TkxrERxWv9q4cPLxAleY/eXcFXFAdKQRSxo52hZH4YAxE+zOxfK9N6zXMhhMLfdUtdoaHAo8bYXgf27j4pt9TA=="],
 

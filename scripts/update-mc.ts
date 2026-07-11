@@ -4,7 +4,7 @@ import path from 'node:path';
 const MC_VERSION = '1.26.32';
 const TARGET_SUFFIX = `-beta.${MC_VERSION}-stable`;
 
-const targetPackages = ['@minecraft/debug-utilities', '@minecraft/server', '@minecraft/server-gametest', '@minecraft/server-ui', '@minecraft/server-net', '@minecraft/server-admin'];
+const targetPackages = ['@minecraft/debug-utilities', '@minecraft/server', '@minecraft/server-gametest', '@minecraft/server-ui'];
 
 async function autoAlignDependencies() {
     console.log(`🌐 Synchronizing Minecraft Ecosystem Engine configurations to match version: v${MC_VERSION}...`);
