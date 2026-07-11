@@ -4,6 +4,7 @@ import { handlePlayerJoin } from '@core/events/playerSpawn.js';
 import { findPlayerByName, getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
+import { Vector3Utils } from '@minecraft/math';
 
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
     if (!input) return [];
@@ -26,10 +27,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
             for (const player of allPlayers) {
                 if (player.id === executor.id) continue;
                 // Approximate distance check (squared)
-                const dx = player.location.x - executor.location.x;
-                const dy = player.location.y - executor.location.y;
-                const dz = player.location.z - executor.location.z;
-                const distSq = dx * dx + dy * dy + dz * dz;
+                const distSq = Vector3Utils.distance(player.location, executor.location) ** 2;
 
                 if (distSq < minDist) {
                     minDist = distSq;
