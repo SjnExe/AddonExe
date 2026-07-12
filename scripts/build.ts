@@ -150,9 +150,16 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
     console.log(`[Build] Compiling Scripts...`);
 
     const coreEntrypoints = ['src/main.ts'];
-    const configEntrypoints = ['src/config.ts'];
+    const configPaths: { src: string; dest: string }[] = [];
     const srcDir = path.resolve(__dirname, '../src');
     const featuresDir = path.join(srcDir, 'features');
+    const outDir = path.resolve(__dirname, `../packs/behavior/scripts${outDirSuffix}`);
+
+    // Map main config path
+    configPaths.push({
+        src: path.join(srcDir, 'config.ts'),
+        dest: path.join(outDir, 'config.js')
+    });
 
     try {
         const featureDirs = await fs.readdir(featuresDir);
@@ -163,7 +170,11 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
                 const files = await fs.readdir(fullPath);
                 for (const file of files) {
                     if (file.endsWith('Config.ts')) {
-                        configEntrypoints.push(`src/features/${dir}/${file}`);
+                        const outName = file.replace('.ts', '.js');
+                        configPaths.push({
+                            src: path.join(fullPath, file),
+                            dest: path.join(outDir, 'features', dir, outName)
+                        });
                     }
                 }
             }
@@ -172,13 +183,26 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
         console.warn('[Build] Optional features module sweep skipped or directory unreadable.', error);
     }
 
-    const allEntrypoints = [...coreEntrypoints, ...configEntrypoints];
-    const externalConfigs = allEntrypoints.map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
-    const outDir = path.resolve(__dirname, `../packs/behavior/scripts${outDirSuffix}`);
+    const allConfigEntrypoints = ['src/config.ts'];
+    try {
+        const featureDirs = await fs.readdir(featuresDir);
+        for (const dir of featureDirs) {
+            const fullPath = path.join(featuresDir, dir);
+            if ((await fs.stat(fullPath)).isDirectory()) {
+                const files = await fs.readdir(fullPath);
+                for (const file of files) {
+                    if (file.endsWith('Config.ts')) allConfigEntrypoints.push(`src/features/${dir}/${file}`);
+                }
+            }
+        }
+    } catch {
+        console.warn('[Build] Dynamic feature configuration checkpoint skipped.');
+    }
 
+    const externalConfigs = ['src/main.ts', ...allConfigEntrypoints].map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
     const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', '@minecraft/vanilla-data'];
 
-    // Pass 1: Compile Core Engines (Minified and source-mapped for target runtimes)
+    // Pass 1: Bundle Core Engine Modules (Optimized & Minified)
     const coreResult = await Bun.build({
         entrypoints: coreEntrypoints,
         outdir: outDir,
@@ -196,67 +220,48 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
         external: [...externalModules, ...externalConfigs]
     });
 
-    // Pass 2: Compile Config maps (Pristine spacing, literal text values, absolutely no debug symbols)
-    const configResult = await Bun.build({
-        entrypoints: configEntrypoints,
-        outdir: outDir,
-        root: './src',
-        target: 'browser',
-        format: 'esm',
-        minify: false,
-        sourcemap: 'none',
-        splitting: false,
-        naming: '[dir]/[name].[ext]',
-        define: {
-            __IS_NIGHTLY__: String(isNightly)
-        },
-        plugins: [
-            {
-                name: 'config-inliner',
-                setup(build) {
-                    build.onLoad({ filter: /config\.ts$|Config\.ts$/i }, async (args) => {
-                        let content = await Bun.file(args.path).text();
-
-                        if (args.path.endsWith('config.ts')) {
-                            content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: [${versionArray.join(', ')}]`);
-                            if (process.env.IS_BETA_RELEASE === 'true') {
-                                content = content.replace(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
-                                content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
-                            }
-                        }
-
-                        // Inline translate all active nominal enum tokens directly to exact, readable strings
-                        content = content.replace(/(?:Minecraft[A-Za-z]+Types|ItemComponentTypes|EntityComponentTypes)\.([A-Za-z0-9_]+)/g, (match, prop) => {
-                            if (prop === 'BowInfinity') return "'minecraft:infinity'";
-                            if (prop === 'EvocationIllager') return "'minecraft:evocation_illager'";
-                            if (prop === 'HardenedClay') return "'minecraft:terracotta'";
-                            if (prop === 'UndyedShulkerBox') return "'minecraft:shulker_box'";
-
-                            const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
-                            return `'minecraft:${snake}'`;
-                        });
-
-                        // Completely clear out the compile-time vanilla data import signatures
-                        content = content.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"]\s*;?/g, '');
-
-                        return {
-                            contents: content,
-                            loader: 'ts'
-                        };
-                    });
-                }
-            }
-        ],
-        external: [...externalModules, ...externalConfigs]
-    });
-
-    if (!coreResult.success || !configResult.success) {
-        console.error(`[Build] Script compilation failed:`);
-        for (const msg of [...coreResult.logs, ...configResult.logs]) {
-            console.error(msg);
-        }
+    if (!coreResult.success) {
+        console.error(`[Build] Core script compilation failed:`);
+        for (const msg of coreResult.logs) console.error(msg);
         process.exit(1);
     }
+
+    // Pass 2: Stream-Translation Pass for User Configs (Preserves Comments, Spacing, and 10_000 Formats)
+    for (const conf of configPaths) {
+        try {
+            let content = await Bun.file(conf.src).text();
+
+            if (conf.src.endsWith('config.ts')) {
+                content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: [${versionArray.join(', ')}]`);
+                if (process.env.IS_BETA_RELEASE === 'true') {
+                    content = content.replace(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
+                    content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
+                }
+            }
+
+            // Inline translate all nominal registry tokens directly into exact readable string literals
+            content = content.replace(/(?:Minecraft[A-Za-z]+Types|ItemComponentTypes|EntityComponentTypes)\.([A-Za-z0-9_]+)/g, (match, prop) => {
+                if (prop === 'BowInfinity') return "'minecraft:infinity'";
+                if (prop === 'EvocationIllager') return "'minecraft:evocation_illager'";
+                if (prop === 'HardenedClay') return "'minecraft:terracotta'";
+                if (prop === 'UndyedShulkerBox') return "'minecraft:shulker_box'";
+
+                const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
+                return `'minecraft:${snake}'`;
+            });
+
+            // Strip out strict TypeScript compilation types cleanly
+            content = content.replace(/\s+as\s+number\s*\|\s*undefined/g, '');
+            content = content.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"]\s*;?\n?/g, '');
+
+            await fs.mkdir(path.dirname(conf.dest), { recursive: true });
+            await fs.writeFile(conf.dest, content, 'utf8');
+        } catch (err: any) {
+            console.error(`[Build] Failed to process configuration asset ${conf.src}: ${err.message}`);
+            process.exit(1);
+        }
+    }
+
     console.log(`[Build] Scripts compiled successfully.`);
 }
 
