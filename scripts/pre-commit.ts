@@ -12,7 +12,7 @@ process.env.PATH = paths.join(path.delimiter);
 
 try {
     // 1. Run lint-staged first
-    await $`bun --bun lint-staged`;
+    await $`bun lint-staged`;
 
     // 2. Run validation checks concurrently using native JS Promises
     console.log('Running validation checks in parallel...');

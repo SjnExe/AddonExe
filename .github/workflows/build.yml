@@ -36,7 +36,7 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-eslint-${{ steps.cache-env.outputs.week }}-
             - run: bun install --frozen-lockfile
-            - run: bun run lint
+            - run: bun lint
 
     format:
         runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-prettier-${{ steps.cache-env.outputs.week }}-
             - run: bun install --frozen-lockfile
-            - run: bun run format:check
+            - run: bun format:check
 
     typecheck:
         runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
                   key: ${{ runner.os }}-tsbuildinfo-${{ steps.cache-env.outputs.week }}-${{ github.sha }}
                   restore-keys: |
                       ${{ runner.os }}-tsbuildinfo-${{ steps.cache-env.outputs.week }}-
-            - run: bun run check-types
+            - run: bun check-types
 
     test:
         runs-on: ubuntu-latest
