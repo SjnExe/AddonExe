@@ -17,8 +17,9 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "build": "bun scripts/build.ts",
-        "build:release": "bun scripts/build.ts --release --minify",
+        "build": "bun clean && bun scripts/build.ts",
+        "build:nightly": "bun clean && bun scripts/build.ts --nightly",
+        "build:release": "bun clean && bun scripts/build.ts --release --minify",
         "check-deps": "bun scripts/check-dependencies.ts",
         "check-types": "bun tsc --noEmit --incremental",
         "clean": "rm -rf out packs/behavior/scripts",
