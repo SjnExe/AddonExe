@@ -83,7 +83,7 @@ async function main() {
         }
     };
 
-    const devDeps = pkg.devDependencies || {};
+    const allDeps = { ...(pkg.devDependencies || {}), ...(pkg.dependencies || {}) };
     const modulesToInclude = [
         '@minecraft/server',
         '@minecraft/server-ui',
@@ -96,9 +96,9 @@ async function main() {
 
     const dependencies: any[] = [];
     const modulePromises = modulesToInclude
-        .filter((mod) => devDeps[mod])
+        .filter((mod) => allDeps[mod])
         .map(async (mod) => {
-            const version = await resolveModuleVersion(mod, devDeps[mod]);
+            const version = await resolveModuleVersion(mod, allDeps[mod]);
             return {
                 module_name: mod,
                 version: version
