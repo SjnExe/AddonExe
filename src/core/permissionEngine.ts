@@ -1,4 +1,4 @@
-import { config } from '@core/../config.js';
+import { getConfig } from '@core/configManager.js';
 import { getRanksConfig } from '@core/configurations.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
@@ -73,11 +73,11 @@ function getRankMap(rankId: string): Record<string, boolean> {
 export function getPlayerRanks(player: mc.Player): RankDefinition[] {
     const pData = getPlayer(player.id);
 
-    // Fallback logic, ensuring we match `config.playerDefaults.rankId` or the hardcoded default 'member' if all else fails
+    // Fallback logic, ensuring we match `getConfig().playerDefaults.rankId` or the hardcoded default 'member' if all else fails
     let rankIds = pData?.ranks;
     if (!rankIds || rankIds.length === 0) {
-        if (config.playerDefaults.rankId) {
-            rankIds = [config.playerDefaults.rankId];
+        if (getConfig().playerDefaults.rankId) {
+            rankIds = [getConfig().playerDefaults.rankId];
         } else {
             rankIds = ['member'];
         }
@@ -101,7 +101,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
 
     // If absolutely no rank was assigned or conditions met, explicitly grant the configured default rank
     if (ranks.length === 0) {
-        const defaultRank = getRankById(config.playerDefaults.rankId);
+        const defaultRank = getRankById(getConfig().playerDefaults.rankId);
         if (defaultRank) {
             ranks.push(defaultRank);
         }
@@ -116,7 +116,7 @@ function evaluateRankConditions(player: mc.Player, rank: RankDefinition, assigne
 
     for (const condition of rank.conditions) {
         if (condition.type === 'isOwner') {
-            const ownerNames = config.ownerPlayerNames.map((name: string) => name.trim().toLowerCase());
+            const ownerNames = getConfig().ownerPlayerNames.map((name: string) => name.trim().toLowerCase());
             const playerName = player.name.trim().toLowerCase();
             if (!ownerNames.includes(playerName)) return false;
         } else if (condition.type === 'hasTag') {

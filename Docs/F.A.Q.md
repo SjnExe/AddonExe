@@ -102,7 +102,7 @@ If you are developing the addon or building it from source:
 
 - **Config Files:** The repository contains the primary configuration files in the `src/` directory, ending in `.ts` (e.g., `src/config.ts`).
 - **Customization:** You can simply open and edit these configuration files directly to adjust your settings before building.
-- **Build Process:** When you run `npm run build`, the system will compile these configuration files directly into the build output alongside the rest of your scripts.
+- **Build Process:** When you run `bun run build`, the system will compile these configuration files directly into the build output alongside the rest of your scripts.
 
 ### 2. For Users (Installed Addon)
 

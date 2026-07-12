@@ -40,7 +40,7 @@ The project uses a structured versioning system where `package.json` is the sing
 - **Source of Truth:** The version in `package.json` controls the version of the generated addon.
 - **Manifest Templates:** The `manifest.json` files in `packs/` are generated from `manifest.template.json` during the build. Do not edit `manifest.json` directly as it is git-ignored and will be overwritten.
 - **Build Modes:**
-    - **Local Build:** `npm run build` uses the exact version from `package.json`.
+    - **Local Build:** `bun run build` uses the exact version from `package.json`.
     - **Public Release:** Triggered by tagging a commit with `vX.Y.Z`. Enforces `Patch = 0` (e.g., `1.2.0`).
     - **Nightly Build:** Triggered by pushes to the `Dev` branch. Uses `Major.Minor` from `package.json` + GitHub Run Number as the patch (e.g., `0.7.124`).
 
@@ -49,7 +49,7 @@ The project uses a structured versioning system where `package.json` is the sing
 The codebase uses **TypeScript** for robustness and maintainability.
 
 - **Source Directory:** All behavior pack scripts are located in `src/`.
-- **Compilation:** Run `npm run build` to compile the TypeScript source into JavaScript in `packs/behavior/scripts/`. This command also auto-generates the `manifest.json` files.
+- **Compilation:** Run `bun run build` to compile the TypeScript source into JavaScript in `packs/behavior/scripts/`. This command also auto-generates the `manifest.json` files.
 - **Local Configuration:**
     - The repository contains `src/config.default.ts` as the template.
     - **Action:** Create a copy named `src/config.ts`. This file is git-ignored.

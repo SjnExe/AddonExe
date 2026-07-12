@@ -33,6 +33,12 @@ mock.module('../../config.js', () => ({
     }
 }));
 
+import { config as Config } from '../../config.js';
+
+mock.module('@core/configManager.js', () => ({
+    getConfig: () => Config
+}));
+
 mock.module('../playerCache.js', () => ({
     getAllPlayersFromCache: () => [{ id: 'player1' }, { id: 'player2' }]
 }));

@@ -55,17 +55,17 @@ Before implementing changes, strive to understand the relevant parts of the code
 
 - **Adherence to Guidelines:** Strictly follow `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
 - **TypeScript:** All Behavior Pack scripts are written in TypeScript (or JavaScript migrating to TypeScript) in the `src/` directory.
-- **Build Artifacts:** Do not edit files in `packs/behavior/scripts/` directly. Always edit the source in `src/` and run `npm run build`.
+- **Build Artifacts:** Do not edit files in `packs/behavior/scripts/` directly. Always edit the source in `src/` and run `bun run build`.
 - **Error Handling:** Implement robust error handling (e.g., `try...catch` blocks for risky operations, validation of inputs). Refer to `Docs/Development/StandardizationGuidelines.md` (Section 6) for detailed error logging standards.
 - **Logging:** Utilize the `debugLog()` function from `core/logger.ts` for development messages. This is conditional on `config.debug` being true.
     - **User-Facing Text:** Most user-facing text is hardcoded directly in the command or UI files where it is used. Configurable messages (like the welcome message or rules) are in `config.js`. Button texts for dynamically generated panels are defined in `src/core/panelLayoutConfig.js`.
 - **Linting & Formatting:**
-    - Run `npm run lint` to check for linting issues (ESLint).
-    - Run `npm run format` to format code (Prettier).
-    - Please ensure your changes pass linting and build (`npm run build`) before submitting.
+    - Run `bun run lint` to check for linting issues (ESLint).
+    - Run `bun run format` to format code (Prettier).
+    - Please ensure your changes pass linting and build (`bun run build`) before submitting.
     - **No Log Files:** Do not create `.txt` or other log files to store lint or build output (e.g., `lint_errors.txt`, `build.log`).
     - **Check Console:** Always read errors and warnings directly from the terminal/console output.
-    - **Fixing Workflow:** When fixing issues, run the command (e.g., `npm run lint`), check the console for remaining errors, fix them, and repeat.
+    - **Fixing Workflow:** When fixing issues, run the command (e.g., `bun run lint`), check the console for remaining errors, fix them, and repeat.
 
 ## 7. Planning and Communication
 
@@ -109,8 +109,8 @@ The following patterns must be verified and adhered to when working on the codeb
     - `eslint.config.js` now enables strict type-checking rules (e.g., `no-unsafe-assignment`) as **warnings**. Strive to resolve these when working on files.
     - Use `@minecraft/vanilla-data` for strict typing of Block, Item, and Entity IDs (e.g., `MinecraftItemTypes.Diamond`) instead of string literals.
     - Use `@minecraft/math` for vector math operations (e.g., `Vector3Utils.distance`) instead of manual calculations.
-    - Run `npm run check-deps` to verify that `package.json` dependencies match `manifest.json` dependencies. This is integrated into `npm run validate`.
-    - Run `npm run project-info` to view project details via `@minecraft/creator-tools`.
-    - Run `npm run fix-project` to apply automated fixes via `@minecraft/creator-tools`.
+    - Run `bun run check-deps` to verify that `package.json` dependencies match `manifest.json` dependencies. This is integrated into `bun run validate`.
+    - Run `bun run project-info` to view project details via `@minecraft/creator-tools`.
+    - Run `bun run fix-project` to apply automated fixes via `@minecraft/creator-tools`.
 
 By following these guidelines, you will help ensure the continued quality, consistency, and maintainability of the AddonExe. Thank you!
