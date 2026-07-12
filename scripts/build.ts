@@ -210,7 +210,8 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
         target: 'browser',
         format: 'esm',
         minify: isMinify,
-        sourcemap: 'external',
+        sourcemap: isRelease ? 'none' : 'external',
+        drop: isRelease ? ['debugger'] : [],
         splitting: false,
         naming: '[dir]/[name].[ext]',
         define: {

@@ -144,7 +144,7 @@ jobs:
             - name: Build TypeScript (Nightly)
               if: steps.build_type.outputs.type == 'nightly'
               run: |
-                  bun run build -- --nightly --build-number ${{ github.run_number }}
+                  bun run build:nightly -- --build-number ${{ github.run_number }}
               env:
                   IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
 
