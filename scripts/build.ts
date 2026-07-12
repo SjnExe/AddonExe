@@ -257,7 +257,7 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
                 compilerOptions: {
                     target: ts.ScriptTarget.ESNext,
                     module: ts.ModuleKind.ESNext,
-                    removeComments: false,
+                    removeComments: false
                 }
             }).outputText;
             content = content.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"]\s*;?\n?/g, '');
