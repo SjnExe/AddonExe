@@ -1,3 +1,5 @@
+import { EntityComponentTypes } from '@minecraft/server';
+
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
@@ -167,7 +169,7 @@ const addKitCommand: CustomCommand = {
             }
         }
 
-        const inventory = executor.getComponent('minecraft:inventory')?.container;
+        const inventory = executor.getComponent(EntityComponentTypes.Inventory)?.container;
         if (!isDefined(inventory)) {
             return executor.sendMessage('§cCould not access your inventory.');
         }

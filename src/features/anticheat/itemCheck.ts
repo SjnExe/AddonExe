@@ -1,3 +1,5 @@
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
+
 import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
@@ -52,7 +54,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
     if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) return;
 
     // Check Main Inventory
-    const inventory = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
+    const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     if (isDefined(inventory) && isDefined(inventory.container)) {
         const container = inventory.container;
         for (let i = 0; i < container.size; i++) {
@@ -64,7 +66,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
     }
 
     // Check Equipment (Armor + Offhand)
-    const equippable = player.getComponent('minecraft:equippable') as mc.EntityEquippableComponent;
+    const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent;
     if (isDefined(equippable)) {
         const slots = [mc.EquipmentSlot.Head, mc.EquipmentSlot.Chest, mc.EquipmentSlot.Legs, mc.EquipmentSlot.Feet, mc.EquipmentSlot.Offhand];
 
@@ -93,7 +95,7 @@ export function checkItem(item: mc.ItemStack, player: mc.Player, config: ItemChe
     }
 
     // Check Enchants
-    const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+    const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
     if (isDefined(enchantable) && 'getEnchantments' in enchantable) {
         // getEnchantments() returns readonly array
         const enchants = enchantable.getEnchantments();

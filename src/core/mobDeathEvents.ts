@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
+
 import * as mc from '@minecraft/server';
 
 import { getTeamByPlayer } from '@features/team/manager.js';
@@ -20,7 +22,7 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
 
     let killer: mc.Player | undefined;
 
-    if (damagingEntity && damagingEntity.typeId === 'minecraft:player') {
+    if (damagingEntity && damagingEntity.typeId === (MinecraftEntityTypes.Player as string)) {
         killer = damagingEntity as mc.Player;
     } else {
         // Indirect kill (Void, etc.)
@@ -36,10 +38,10 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     }
 
     // Handle Player Death (Stat updates)
-    if (deadEntity.typeId === 'minecraft:player') {
+    if (deadEntity.typeId === (MinecraftEntityTypes.Player as string)) {
         const victim = deadEntity as mc.Player;
         // KDR Death: Only count if killed by another player (PvP)
-        if (killer && killer.isValid && killer.typeId === 'minecraft:player') {
+        if (killer && killer.isValid && killer.typeId === (MinecraftEntityTypes.Player as string)) {
             incrementDeathCount(victim.id);
         }
         resetKillStreak(victim.id);
@@ -52,14 +54,14 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     }
 
     // KDR Kill & Streak: Only count if victim was a player (PvP)
-    if (deadEntity.typeId === 'minecraft:player') {
+    if (deadEntity.typeId === (MinecraftEntityTypes.Player as string)) {
         incrementKillCount(killer.id);
         incrementKillStreak(killer.id);
     }
 
     const economyConfig = getEconomyConfig();
 
-    if (deadEntity.typeId === 'minecraft:player') {
+    if (deadEntity.typeId === (MinecraftEntityTypes.Player as string)) {
         const victim = deadEntity as mc.Player;
 
         if (handlePvPDeath(victim, killer) === true) {

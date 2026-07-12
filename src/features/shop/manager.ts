@@ -1,3 +1,5 @@
+import { ItemComponentTypes } from '@minecraft/server';
+
 import * as mc from '@minecraft/server';
 
 import { getShopConfig } from '@core/configurations.js';
@@ -45,7 +47,7 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
     // Handle enchantments
     if (isDefined(itemInfo.enchantment)) {
         try {
-            const enchantable = itemStack.getComponent('minecraft:enchantable');
+            const enchantable = itemStack.getComponent(ItemComponentTypes.Enchantable);
             if (isDefined(enchantable)) {
                 enchantable.addEnchantment({
                     type: mc.EnchantmentTypes.get(itemInfo.enchantment.id)!,
@@ -288,12 +290,12 @@ function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
     if (item.typeId !== shopItem.itemId) return false;
 
     // Exploit Prevention: Skip damaged or enchanted items unless explicitly allowed
-    const durability = item.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
+    const durability = item.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent;
     if (isDefined(durability) && durability.damage > 0) {
         return false;
     }
 
-    const enchantable = item.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+    const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
     const hasEnchants = isDefined(enchantable) && enchantable.getEnchantments().length > 0;
     if (hasEnchants && !isDefined(shopItem.enchantment)) {
         return false;

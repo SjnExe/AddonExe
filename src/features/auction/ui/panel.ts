@@ -58,7 +58,7 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
     }
 
     for (const listing of listings) {
-        let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
+        let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace(/^minecraft:/, '')}`;
         label += `
 §7x${listing.item.amount} `;
         label += listing.isBid ? `§eBid: ${formatCurrency(listing.bidPrice ?? listing.price)}` : `§a${formatCurrency(listing.price)}`;
@@ -202,7 +202,7 @@ async function showYourListings(player: mc.Player): Promise<void> {
     buttons.push({ label: '§c< Back to AH', action: () => showAuctionHouse(player) });
 
     for (const listing of listings) {
-        let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace('minecraft:', '')}`;
+        let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace(/^minecraft:/, '')}`;
         label += `
 §a${formatCurrency(listing.price)}`;
         if (listing.isBid && isDefined(listing.bidPrice)) {
@@ -239,7 +239,7 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
     for (let i = 0; i < mailbox.length; i++) {
         const item = mailbox[i];
         if (!isDefined(item)) continue;
-        const label = `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '')}
+        const label = `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '')}
 §7x${item.amount}`;
         const itemIndex = i;
         buttons.push({

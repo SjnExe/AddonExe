@@ -4,18 +4,7 @@
         "outDir": "./dist/tests",
         "types": ["vitest/globals", "node"],
         "noEmit": true,
-        "module": "Node16",
-        "moduleResolution": "Node16",
-        "target": "ES2023",
-        "isolatedModules": true,
-        "paths": {
-            "@core/*": ["./src/core/*"],
-            "@features/*": ["./src/features/*"],
-            "@ui/*": ["./src/core/ui/*"],
-            "@commands/*": ["./src/core/commands/*"],
-            "@lib/*": ["./src/lib/*"],
-            "@shared-types/*": ["./src/types/*"]
-        }
+        "isolatedModules": true
     },
     "include": ["src/**/__tests__/**/*.ts", "src/**/__mocks__/**/*.ts"],
     "exclude": ["node_modules"]

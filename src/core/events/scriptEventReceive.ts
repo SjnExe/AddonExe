@@ -12,6 +12,7 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
     const { id, sourceEntity } = event;
 
     // Handle script unload event
+    // eslint-disable-next-line no-restricted-syntax
     if (id === 'minecraft:script_unload') {
         // Script unload is handled by a subscription in main.js for now,
         // as it requires access to cleanupAddon which is local to main.js.

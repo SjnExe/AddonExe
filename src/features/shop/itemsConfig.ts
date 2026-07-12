@@ -5,7 +5,7 @@
  *
  * Structure for each item:
  * {
- *   itemId: string,        // The Minecraft item type ID (e.g., 'minecraft:diamond').
+ *   itemId: string,        // The Minecraft item type ID (e.g., MinecraftItemTypes.Diamond).
  *   icon: string,          // The texture path for the icon (e.g., 'textures/items/diamond').
  *   buyPrice: number,      // Default buy price. -1 to disable buying.
  *   sellPrice: number,     // Default sell price. -1 to disable selling.
@@ -14,6 +14,8 @@
  *   displayName?: string    // Optional display name for items like enchanted books.
  * }
  */
+import { MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+
 export interface ItemData {
     itemId: string;
     icon: string;
@@ -33,7 +35,7 @@ export interface ItemData {
 export const items: Record<string, ItemData> = {
     // == Ores & Minerals ==
     diamond: {
-        itemId: 'minecraft:diamond',
+        itemId: MinecraftItemTypes.Diamond,
         icon: 'textures/items/diamond',
         buyPrice: 1000,
         sellPrice: 500,
@@ -41,7 +43,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond'
     },
     emerald: {
-        itemId: 'minecraft:emerald',
+        itemId: MinecraftItemTypes.Emerald,
         icon: 'textures/items/emerald',
         buyPrice: 800,
         sellPrice: 400,
@@ -49,7 +51,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Emerald'
     },
     goldIngot: {
-        itemId: 'minecraft:gold_ingot',
+        itemId: MinecraftItemTypes.GoldIngot,
         icon: 'textures/items/gold_ingot',
         buyPrice: 100,
         sellPrice: 50,
@@ -57,7 +59,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Gold Ingot'
     },
     ironIngot: {
-        itemId: 'minecraft:iron_ingot',
+        itemId: MinecraftItemTypes.IronIngot,
         icon: 'textures/items/iron_ingot',
         buyPrice: 50,
         sellPrice: 25,
@@ -65,7 +67,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Iron Ingot'
     },
     netheriteIngot: {
-        itemId: 'minecraft:netherite_ingot',
+        itemId: MinecraftItemTypes.NetheriteIngot,
         icon: 'textures/items/netherite_ingot',
         buyPrice: 10_000,
         sellPrice: 5000,
@@ -73,7 +75,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Ingot'
     },
     netheriteScrap: {
-        itemId: 'minecraft:netherite_scrap',
+        itemId: MinecraftItemTypes.NetheriteScrap,
         icon: 'textures/items/netherite_scrap',
         buyPrice: 2000,
         sellPrice: 1000,
@@ -81,7 +83,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Scrap'
     },
     ancientDebris: {
-        itemId: 'minecraft:ancient_debris',
+        itemId: MinecraftItemTypes.AncientDebris,
         icon: 'textures/blocks/ancient_debris_side',
         buyPrice: 1800,
         sellPrice: 900,
@@ -89,7 +91,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Ancient Debris'
     },
     lapisLazuli: {
-        itemId: 'minecraft:lapis_lazuli',
+        itemId: MinecraftItemTypes.LapisLazuli,
         icon: 'textures/blocks/lapis_ore',
         buyPrice: 20,
         sellPrice: 10,
@@ -97,7 +99,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Lapis Lazuli'
     },
     quartz: {
-        itemId: 'minecraft:quartz',
+        itemId: MinecraftItemTypes.Quartz,
         icon: 'textures/items/quartz',
         buyPrice: 30,
         sellPrice: 15,
@@ -107,7 +109,7 @@ export const items: Record<string, ItemData> = {
 
     // == Special Items ==
     totemOfUndying: {
-        itemId: 'minecraft:totem_of_undying',
+        itemId: MinecraftItemTypes.TotemOfUndying,
         icon: 'textures/items/totem',
         buyPrice: 5000,
         sellPrice: 2500,
@@ -115,7 +117,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Totem Of Undying'
     },
     netherStar: {
-        itemId: 'minecraft:nether_star',
+        itemId: MinecraftItemTypes.NetherStar,
         icon: 'textures/items/nether_star',
         buyPrice: 20_000,
         sellPrice: -1, // Cannot be sold
@@ -123,7 +125,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Nether Star'
     },
     shulkerShell: {
-        itemId: 'minecraft:shulker_shell',
+        itemId: MinecraftItemTypes.ShulkerShell,
         icon: 'textures/items/shulker_shell',
         buyPrice: 750,
         sellPrice: 300,
@@ -131,7 +133,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Shulker Shell'
     },
     elytra: {
-        itemId: 'minecraft:elytra',
+        itemId: MinecraftItemTypes.Elytra,
         icon: 'textures/items/elytra',
         buyPrice: 15_000,
         sellPrice: -1,
@@ -139,7 +141,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Elytra'
     },
     witherSkeletonSkull: {
-        itemId: 'minecraft:wither_skeleton_skull',
+        itemId: MinecraftItemTypes.WitherSkeletonSkull,
         icon: 'textures/items/spawn_eggs/spawn_egg_wither_skeleton',
         buyPrice: 8000,
         sellPrice: 2000,
@@ -147,7 +149,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Wither Skeleton Skull'
     },
     enchantedGoldenApple: {
-        itemId: 'minecraft:enchanted_golden_apple',
+        itemId: MinecraftItemTypes.EnchantedGoldenApple,
         icon: 'textures/items/apple_golden',
         buyPrice: 25_000,
         sellPrice: -1,
@@ -157,7 +159,7 @@ export const items: Record<string, ItemData> = {
 
     // == Tools & Weapons ==
     diamondSword: {
-        itemId: 'minecraft:diamond_sword',
+        itemId: MinecraftItemTypes.DiamondSword,
         icon: 'textures/items/diamond_sword',
         buyPrice: 2500,
         sellPrice: 1000,
@@ -166,7 +168,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Sword'
     },
     diamondPickaxe: {
-        itemId: 'minecraft:diamond_pickaxe',
+        itemId: MinecraftItemTypes.DiamondPickaxe,
         icon: 'textures/items/diamond_pickaxe',
         buyPrice: 3500,
         sellPrice: 1200,
@@ -175,7 +177,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Pickaxe'
     },
     diamondAxe: {
-        itemId: 'minecraft:diamond_axe',
+        itemId: MinecraftItemTypes.DiamondAxe,
         icon: 'textures/items/diamond_axe',
         buyPrice: 3500,
         sellPrice: 1200,
@@ -184,7 +186,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Axe'
     },
     diamondShovel: {
-        itemId: 'minecraft:diamond_shovel',
+        itemId: MinecraftItemTypes.DiamondShovel,
         icon: 'textures/items/diamond_shovel',
         buyPrice: 1500,
         sellPrice: 600,
@@ -193,7 +195,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Shovel'
     },
     diamondHoe: {
-        itemId: 'minecraft:diamond_hoe',
+        itemId: MinecraftItemTypes.DiamondHoe,
         icon: 'textures/items/diamond_hoe',
         buyPrice: 2500,
         sellPrice: 1000,
@@ -202,7 +204,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Hoe'
     },
     netheriteSword: {
-        itemId: 'minecraft:netherite_sword',
+        itemId: MinecraftItemTypes.NetheriteSword,
         icon: 'textures/items/netherite_sword',
         buyPrice: 15_000,
         sellPrice: 7500,
@@ -211,7 +213,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Sword'
     },
     netheritePickaxe: {
-        itemId: 'minecraft:netherite_pickaxe',
+        itemId: MinecraftItemTypes.NetheritePickaxe,
         icon: 'textures/items/netherite_pickaxe',
         buyPrice: 18_000,
         sellPrice: 8000,
@@ -222,7 +224,7 @@ export const items: Record<string, ItemData> = {
 
     // == Armor ==
     diamondHelmet: {
-        itemId: 'minecraft:diamond_helmet',
+        itemId: MinecraftItemTypes.DiamondHelmet,
         icon: 'textures/items/diamond_helmet',
         buyPrice: 5000,
         sellPrice: 2000,
@@ -231,7 +233,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Helmet'
     },
     diamondChestplate: {
-        itemId: 'minecraft:diamond_chestplate',
+        itemId: MinecraftItemTypes.DiamondChestplate,
         icon: 'textures/items/diamond_chestplate',
         buyPrice: 8000,
         sellPrice: 3500,
@@ -240,7 +242,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Chestplate'
     },
     diamondLeggings: {
-        itemId: 'minecraft:diamond_leggings',
+        itemId: MinecraftItemTypes.DiamondLeggings,
         icon: 'textures/items/diamond_leggings',
         buyPrice: 7000,
         sellPrice: 3000,
@@ -249,7 +251,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Leggings'
     },
     diamondBoots: {
-        itemId: 'minecraft:diamond_boots',
+        itemId: MinecraftItemTypes.DiamondBoots,
         icon: 'textures/items/diamond_boots',
         buyPrice: 4000,
         sellPrice: 1800,
@@ -258,7 +260,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Diamond Boots'
     },
     netheriteHelmet: {
-        itemId: 'minecraft:netherite_helmet',
+        itemId: MinecraftItemTypes.NetheriteHelmet,
         icon: 'textures/items/netherite_helmet',
         buyPrice: 20_000,
         sellPrice: 10_000,
@@ -267,7 +269,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Helmet'
     },
     netheriteChestplate: {
-        itemId: 'minecraft:netherite_chestplate',
+        itemId: MinecraftItemTypes.NetheriteChestplate,
         icon: 'textures/items/netherite_chestplate',
         buyPrice: 30_000,
         sellPrice: 15_000,
@@ -276,7 +278,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Chestplate'
     },
     netheriteLeggings: {
-        itemId: 'minecraft:netherite_leggings',
+        itemId: MinecraftItemTypes.NetheriteLeggings,
         icon: 'textures/items/netherite_leggings',
         buyPrice: 25_000,
         sellPrice: 12_000,
@@ -285,7 +287,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherite Leggings'
     },
     netheriteBoots: {
-        itemId: 'minecraft:netherite_boots',
+        itemId: MinecraftItemTypes.NetheriteBoots,
         icon: 'textures/items/netherite_boots',
         buyPrice: 18_000,
         sellPrice: 9000,
@@ -296,7 +298,7 @@ export const items: Record<string, ItemData> = {
 
     // == Logs ==
     oakLog: {
-        itemId: 'minecraft:oak_log',
+        itemId: MinecraftItemTypes.OakLog,
         icon: 'textures/blocks/log_oak_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -304,7 +306,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Oak Log'
     },
     spruceLog: {
-        itemId: 'minecraft:spruce_log',
+        itemId: MinecraftItemTypes.SpruceLog,
         icon: 'textures/blocks/log_spruce_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -312,7 +314,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Spruce Log'
     },
     birchLog: {
-        itemId: 'minecraft:birch_log',
+        itemId: MinecraftItemTypes.BirchLog,
         icon: 'textures/blocks/log_birch_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -320,7 +322,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Birch Log'
     },
     jungleLog: {
-        itemId: 'minecraft:jungle_log',
+        itemId: MinecraftItemTypes.JungleLog,
         icon: 'textures/blocks/log_jungle_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -328,7 +330,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Jungle Log'
     },
     acaciaLog: {
-        itemId: 'minecraft:acacia_log',
+        itemId: MinecraftItemTypes.AcaciaLog,
         icon: 'textures/blocks/log_acacia_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -336,7 +338,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Acacia Log'
     },
     darkOakLog: {
-        itemId: 'minecraft:dark_oak_log',
+        itemId: MinecraftItemTypes.DarkOakLog,
         icon: 'textures/blocks/log_big_oak_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -344,7 +346,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Dark Oak Log'
     },
     mangroveLog: {
-        itemId: 'minecraft:mangrove_log',
+        itemId: MinecraftItemTypes.MangroveLog,
         icon: 'textures/blocks/mangrove_log_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -352,7 +354,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Mangrove Log'
     },
     cherryLog: {
-        itemId: 'minecraft:cherry_log',
+        itemId: MinecraftItemTypes.CherryLog,
         icon: 'textures/blocks/cherry_log_top',
         buyPrice: 20,
         sellPrice: 10,
@@ -360,7 +362,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Cherry Log'
     },
     crimsonStem: {
-        itemId: 'minecraft:crimson_stem',
+        itemId: MinecraftItemTypes.CrimsonStem,
         icon: 'textures/blocks/huge_fungus/crimson_log_top',
         buyPrice: 25,
         sellPrice: 12,
@@ -368,7 +370,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Crimson Stem'
     },
     warpedStem: {
-        itemId: 'minecraft:warped_stem',
+        itemId: MinecraftItemTypes.WarpedStem,
         icon: 'textures/blocks/huge_fungus/warped_stem_top',
         buyPrice: 25,
         sellPrice: 12,
@@ -378,7 +380,7 @@ export const items: Record<string, ItemData> = {
 
     // == Building Blocks ==
     stone: {
-        itemId: 'minecraft:stone',
+        itemId: MinecraftItemTypes.Stone,
         icon: 'textures/blocks/stone',
         buyPrice: 10,
         sellPrice: 5,
@@ -386,7 +388,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Stone'
     },
     cobblestone: {
-        itemId: 'minecraft:cobblestone',
+        itemId: MinecraftItemTypes.Cobblestone,
         icon: 'textures/blocks/cobblestone',
         buyPrice: 5,
         sellPrice: 1,
@@ -394,7 +396,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Cobblestone'
     },
     dirt: {
-        itemId: 'minecraft:dirt',
+        itemId: MinecraftItemTypes.Dirt,
         icon: 'textures/blocks/dirt',
         buyPrice: 2,
         sellPrice: 1,
@@ -402,7 +404,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Dirt'
     },
     sand: {
-        itemId: 'minecraft:sand',
+        itemId: MinecraftItemTypes.Sand,
         icon: 'textures/blocks/sand',
         buyPrice: 5,
         sellPrice: 2,
@@ -410,7 +412,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Sand'
     },
     gravel: {
-        itemId: 'minecraft:gravel',
+        itemId: MinecraftItemTypes.Gravel,
         icon: 'textures/blocks/gravel',
         buyPrice: 5,
         sellPrice: 2,
@@ -418,7 +420,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Gravel'
     },
     glass: {
-        itemId: 'minecraft:glass',
+        itemId: MinecraftItemTypes.Glass,
         icon: 'textures/blocks/glass',
         buyPrice: 15,
         sellPrice: 5,
@@ -426,7 +428,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Glass'
     },
     terracotta: {
-        itemId: 'minecraft:terracotta',
+        itemId: MinecraftItemTypes.HardenedClay,
         icon: 'textures/blocks/hardened_clay',
         buyPrice: 10,
         sellPrice: 5,
@@ -434,7 +436,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Terracotta'
     },
     whiteConcrete: {
-        itemId: 'minecraft:white_concrete',
+        itemId: MinecraftItemTypes.WhiteConcrete,
         icon: 'textures/blocks/concrete_white',
         buyPrice: 20,
         sellPrice: 10,
@@ -442,7 +444,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'White Concrete'
     },
     stoneBricks: {
-        itemId: 'minecraft:stone_bricks',
+        itemId: MinecraftItemTypes.StoneBricks,
         icon: 'textures/blocks/stonebrick',
         buyPrice: 12,
         sellPrice: 6,
@@ -450,7 +452,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Stone Bricks'
     },
     obsidian: {
-        itemId: 'minecraft:obsidian',
+        itemId: MinecraftItemTypes.Obsidian,
         icon: 'textures/blocks/obsidian',
         buyPrice: 100,
         sellPrice: 50,
@@ -458,7 +460,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Obsidian'
     },
     glowstone: {
-        itemId: 'minecraft:glowstone',
+        itemId: MinecraftItemTypes.Glowstone,
         icon: 'textures/blocks/glowstone',
         buyPrice: 80,
         sellPrice: 40,
@@ -466,7 +468,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Glowstone'
     },
     netherrack: {
-        itemId: 'minecraft:netherrack',
+        itemId: MinecraftItemTypes.Netherrack,
         icon: 'textures/blocks/netherrack',
         buyPrice: 5,
         sellPrice: 1,
@@ -474,7 +476,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Netherrack'
     },
     endStone: {
-        itemId: 'minecraft:end_stone',
+        itemId: MinecraftItemTypes.EndStone,
         icon: 'textures/blocks/end_stone',
         buyPrice: 10,
         sellPrice: 2,
@@ -482,7 +484,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'End Stone'
     },
     purpurBlock: {
-        itemId: 'minecraft:purpur_block',
+        itemId: MinecraftItemTypes.PurpurBlock,
         icon: 'textures/blocks/purpur_block',
         buyPrice: 15,
         sellPrice: 5,
@@ -492,7 +494,7 @@ export const items: Record<string, ItemData> = {
 
     // == Food ==
     steak: {
-        itemId: 'minecraft:cooked_beef',
+        itemId: MinecraftItemTypes.CookedBeef,
         icon: 'textures/items/beef_cooked',
         buyPrice: 20,
         sellPrice: 10,
@@ -500,7 +502,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Steak'
     },
     cookedPorkchop: {
-        itemId: 'minecraft:cooked_porkchop',
+        itemId: MinecraftItemTypes.CookedPorkchop,
         icon: 'textures/items/porkchop_cooked',
         buyPrice: 20,
         sellPrice: 10,
@@ -508,7 +510,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Cooked Porkchop'
     },
     bread: {
-        itemId: 'minecraft:bread',
+        itemId: MinecraftItemTypes.Bread,
         icon: 'textures/items/bread',
         buyPrice: 15,
         sellPrice: 5,
@@ -516,7 +518,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Bread'
     },
     goldenCarrot: {
-        itemId: 'minecraft:golden_carrot',
+        itemId: MinecraftItemTypes.GoldenCarrot,
         icon: 'textures/items/carrot_golden',
         buyPrice: 100,
         sellPrice: 40,
@@ -524,7 +526,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Golden Carrot'
     },
     cookedSalmon: {
-        itemId: 'minecraft:cooked_salmon',
+        itemId: MinecraftItemTypes.CookedSalmon,
         icon: 'textures/items/fish_salmon_cooked',
         buyPrice: 20,
         sellPrice: 10,
@@ -532,7 +534,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Cooked Salmon'
     },
     cookedCod: {
-        itemId: 'minecraft:cooked_cod',
+        itemId: MinecraftItemTypes.CookedCod,
         icon: 'textures/items/fish_cooked',
         buyPrice: 20,
         sellPrice: 10,
@@ -540,7 +542,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Cooked Cod'
     },
     chorusFruit: {
-        itemId: 'minecraft:chorus_fruit',
+        itemId: MinecraftItemTypes.ChorusFruit,
         icon: 'textures/items/chorus_fruit',
         buyPrice: 50,
         sellPrice: 25,
@@ -550,7 +552,7 @@ export const items: Record<string, ItemData> = {
 
     // == Farming ==
     wheat: {
-        itemId: 'minecraft:wheat',
+        itemId: MinecraftItemTypes.Wheat,
         icon: 'textures/items/wheat',
         buyPrice: 5,
         sellPrice: 2,
@@ -558,7 +560,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Wheat'
     },
     carrot: {
-        itemId: 'minecraft:carrot',
+        itemId: MinecraftItemTypes.Carrot,
         icon: 'textures/items/carrot',
         buyPrice: 5,
         sellPrice: 2,
@@ -566,7 +568,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Carrot'
     },
     potato: {
-        itemId: 'minecraft:potato',
+        itemId: MinecraftItemTypes.Potato,
         icon: 'textures/items/potato',
         buyPrice: 5,
         sellPrice: 2,
@@ -574,7 +576,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Potato'
     },
     melonSlice: {
-        itemId: 'minecraft:melon_slice',
+        itemId: MinecraftItemTypes.MelonSlice,
         icon: 'textures/items/melon',
         buyPrice: 3,
         sellPrice: 1,
@@ -582,7 +584,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Melon Slice'
     },
     pumpkin: {
-        itemId: 'minecraft:pumpkin',
+        itemId: MinecraftItemTypes.Pumpkin,
         icon: 'textures/blocks/pumpkin_face_off',
         buyPrice: 10,
         sellPrice: 5,
@@ -590,7 +592,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Pumpkin'
     },
     sugarCane: {
-        itemId: 'minecraft:sugar_cane',
+        itemId: MinecraftItemTypes.SugarCane,
         icon: 'textures/items/reeds',
         buyPrice: 8,
         sellPrice: 4,
@@ -598,7 +600,7 @@ export const items: Record<string, ItemData> = {
         displayName: 'Sugar Cane'
     },
     netherWart: {
-        itemId: 'minecraft:nether_wart',
+        itemId: MinecraftItemTypes.NetherWart,
         icon: 'textures/items/nether_wart',
         buyPrice: 25,
         sellPrice: 10,
@@ -610,249 +612,249 @@ export const items: Record<string, ItemData> = {
     // == Enchantment Books ==
     // General
     enchantMending: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 8000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'General',
         displayName: 'Mending',
-        enchantment: { id: 'minecraft:mending', level: 1 }
+        enchantment: { id: MinecraftEnchantmentTypes.Mending, level: 1 }
     },
     enchantUnbreaking3: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'General',
         displayName: 'Unbreaking III',
-        enchantment: { id: 'minecraft:unbreaking', level: 3 }
+        enchantment: { id: MinecraftEnchantmentTypes.Unbreaking, level: 3 }
     },
 
     // Sword
     enchantSharpness5: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Sharpness V',
-        enchantment: { id: 'minecraft:sharpness', level: 5 }
+        enchantment: { id: MinecraftEnchantmentTypes.Sharpness, level: 5 }
     },
     enchantLooting3: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 3000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Looting III',
-        enchantment: { id: 'minecraft:looting', level: 3 }
+        enchantment: { id: MinecraftEnchantmentTypes.Looting, level: 3 }
     },
     enchantFireAspect2: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 2000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Sword',
         displayName: 'Fire Aspect II',
-        enchantment: { id: 'minecraft:fire_aspect', level: 2 }
+        enchantment: { id: MinecraftEnchantmentTypes.FireAspect, level: 2 }
     },
 
     // Armour
     enchantProtection4: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 4500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Armour',
         displayName: 'Protection IV',
-        enchantment: { id: 'minecraft:protection', level: 4 }
+        enchantment: { id: MinecraftEnchantmentTypes.Protection, level: 4 }
     },
     enchantFeatherFalling4: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 3500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Armour',
         displayName: 'Feather Falling IV',
-        enchantment: { id: 'minecraft:feather_falling', level: 4 }
+        enchantment: { id: MinecraftEnchantmentTypes.FeatherFalling, level: 4 }
     },
 
     // Tools
     enchantEfficiency5: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Efficiency V',
-        enchantment: { id: 'minecraft:efficiency', level: 5 }
+        enchantment: { id: MinecraftEnchantmentTypes.Efficiency, level: 5 }
     },
     enchantFortune3: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Fortune III',
-        enchantment: { id: 'minecraft:fortune', level: 3 }
+        enchantment: { id: MinecraftEnchantmentTypes.Fortune, level: 3 }
     },
     enchantSilkTouch: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 6000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Tools',
         displayName: 'Silk Touch',
-        enchantment: { id: 'minecraft:silk_touch', level: 1 }
+        enchantment: { id: MinecraftEnchantmentTypes.SilkTouch, level: 1 }
     },
 
     // Bow
     enchantPower5: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Power V',
-        enchantment: { id: 'minecraft:power', level: 5 }
+        enchantment: { id: MinecraftEnchantmentTypes.Power, level: 5 }
     },
     enchantInfinity: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 7000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Infinity',
-        enchantment: { id: 'minecraft:infinity', level: 1 }
+        enchantment: { id: MinecraftEnchantmentTypes['BowInfinity'], level: 1 }
     },
     enchantFlame: {
         _comment: 'Note: sellPrice changed from 500 to -1',
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 2000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Bow',
         displayName: 'Flame',
-        enchantment: { id: 'minecraft:flame', level: 1 }
+        enchantment: { id: MinecraftEnchantmentTypes.Flame, level: 1 }
     },
 
     // Trident
     enchantImpaling5: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 3000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Impaling V',
-        enchantment: { id: 'minecraft:impaling', level: 5 }
+        enchantment: { id: MinecraftEnchantmentTypes.Impaling, level: 5 }
     },
     enchantLoyalty3: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 2500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Loyalty III',
-        enchantment: { id: 'minecraft:loyalty', level: 3 }
+        enchantment: { id: MinecraftEnchantmentTypes.Loyalty, level: 3 }
     },
     enchantChanneling: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Channeling',
-        enchantment: { id: 'minecraft:channeling', level: 1 }
+        enchantment: { id: MinecraftEnchantmentTypes.Channeling, level: 1 }
     },
     enchantRiptide3: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 3500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Trident',
         displayName: 'Riptide III',
-        enchantment: { id: 'minecraft:riptide', level: 3 }
+        enchantment: { id: MinecraftEnchantmentTypes.Riptide, level: 3 }
     },
 
     // Mace
     enchantDensity5: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 5000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Mace',
         displayName: 'Density V',
-        enchantment: { id: 'minecraft:density', level: 5 }
+        enchantment: { id: MinecraftEnchantmentTypes.Density, level: 5 }
     },
     enchantBreach4: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Mace',
         displayName: 'Breach IV',
-        enchantment: { id: 'minecraft:breach', level: 4 }
+        enchantment: { id: MinecraftEnchantmentTypes.Breach, level: 4 }
     },
     enchantWindBurst3: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 6000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Mace',
         displayName: 'Wind Burst III',
-        enchantment: { id: 'minecraft:wind_burst', level: 3 }
+        enchantment: { id: MinecraftEnchantmentTypes.WindBurst, level: 3 }
     },
 
     // Crossbow
     enchantMultishot1: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 4000,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Crossbow',
         displayName: 'Multishot',
-        enchantment: { id: 'minecraft:multishot', level: 1 }
+        enchantment: { id: MinecraftEnchantmentTypes.Multishot, level: 1 }
     },
     enchantPiercing4: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 4500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Crossbow',
         displayName: 'Piercing IV',
-        enchantment: { id: 'minecraft:piercing', level: 4 }
+        enchantment: { id: MinecraftEnchantmentTypes.Piercing, level: 4 }
     },
     enchantQuickCharge3: {
-        itemId: 'minecraft:enchanted_book',
+        itemId: MinecraftItemTypes.EnchantedBook,
         icon: 'textures/items/book_enchanted',
         buyPrice: 3500,
         sellPrice: -1,
         category: 'Enchantments',
         subCategory: 'Crossbow',
         displayName: 'Quick Charge III',
-        enchantment: { id: 'minecraft:quick_charge', level: 3 }
+        enchantment: { id: MinecraftEnchantmentTypes.QuickCharge, level: 3 }
     }
 };
 

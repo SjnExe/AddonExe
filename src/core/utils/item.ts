@@ -5,7 +5,7 @@ const iconCache = new Map<string, string>();
 
 /**
  * Generates a clean, human-readable display name from an item's type ID.
- * Example: 'minecraft:diamond_sword' becomes 'Diamond Sword'.
+ * Example: MinecraftItemTypes.DiamondSword becomes 'Diamond Sword'.
  * @param typeId The item's type ID.
  * @returns A formatted display name.
  */
@@ -35,7 +35,7 @@ export function generateDisplayName(typeId: string): string {
 /**
  * Resolves an icon path from an item ID.
  * Uses heuristics to guess the path based on whether it's a block or item.
- * @param typeId The item ID (e.g. 'minecraft:diamond').
+ * @param typeId The item ID (e.g. MinecraftItemTypes.Diamond).
  * @returns The resolved icon path.
  */
 export function resolveIcon(typeId: string): string {
@@ -47,7 +47,7 @@ export function resolveIcon(typeId: string): string {
         return iconCache.get(typeId)!;
     }
 
-    const id = typeId.replace('minecraft:', '');
+    const id = typeId.replace(/^minecraft:/, '');
     let iconPath: string;
 
     // Handle spawn eggs

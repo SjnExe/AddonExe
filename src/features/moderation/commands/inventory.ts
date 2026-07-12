@@ -1,4 +1,6 @@
 // FIXED
+import { EntityComponentTypes } from '@minecraft/server';
+
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -18,7 +20,7 @@ function inspectArmor(equipment: mc.EntityEquippableComponent): string {
     for (const [index, slot] of armorSlots.entries()) {
         const item = equipment.getEquipment(slot);
         if (isDefined(item)) {
-            const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
+            const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
             output += ` §7${armorNames[index]}: §f${name} §7x${item.amount}\n`;
         }
     }
@@ -33,7 +35,7 @@ function inspectInventory(inventory: mc.Container): string {
     for (let i = 0; i < inventory.size; i++) {
         const item = inventory.getItem(i);
         if (isDefined(item)) {
-            const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace('minecraft:', '');
+            const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
             const isHotbar = i < hotbarSize;
             const prefix = isHotbar ? '§e' : '§7';
             output += ` ${prefix}[${i}] §f${name} §7x${item.amount}\n`;
@@ -136,7 +138,7 @@ const ecwipeCommand: CustomCommand = {
             const targetPlayer = mc.world.getPlayers({ name: targetNameResolved })[0];
 
             if (isDefined(targetPlayer)) {
-                const enderInv = targetPlayer.getComponent('minecraft:ender_inventory') as mc.EntityEnderInventoryComponent;
+                const enderInv = targetPlayer.getComponent(EntityComponentTypes.EnderInventory) as mc.EntityEnderInventoryComponent;
                 if (isDefined(enderInv) && isDefined(enderInv.container)) {
                     enderInv.container.clearAll();
                 } else {

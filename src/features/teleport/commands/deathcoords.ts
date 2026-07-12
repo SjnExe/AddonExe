@@ -53,7 +53,7 @@ const deathCoordsCommand: CustomCommand = {
                 x: location.x.toFixed(2),
                 y: location.y.toFixed(2),
                 z: location.z.toFixed(2),
-                dimensionId: location.dimensionId.replace('minecraft:', '')
+                dimensionId: location.dimensionId.replace(/^minecraft:/, '')
             };
             const messageRaw = formatString(config.playerInfo.deathCoordsMessage, context);
             const prefix = targetId === executor.id ? '' : `§e${targetDisplayName}'s Death Coords: §r`;

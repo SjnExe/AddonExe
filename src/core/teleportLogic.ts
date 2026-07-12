@@ -1,3 +1,5 @@
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
+
 import { errorLog } from '@core/logger.js';
 import { playSound } from '@core/utils/sound.js';
 import { getCountdownColor } from '@core/utils/ui.js';
@@ -48,7 +50,7 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
         }
     };
 
-    mc.world.afterEvents.entityHurt.subscribe(hurtListener, { entityTypes: ['minecraft:player'] });
+    mc.world.afterEvents.entityHurt.subscribe(hurtListener, { entityTypes: [MinecraftEntityTypes.Player] });
 
     player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 

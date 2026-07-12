@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 import { getConfig } from '@core/configManager.js';
 import { getWorldProtectionConfig } from '@core/configurations.js';
 import type { Vector3 } from '@minecraft/server';
@@ -56,7 +58,7 @@ function isWithinBox(location: Vector3, min: Vector3, max: Vector3): boolean {
 /**
  * Gets the combined protection flags for a given location and dimension.
  * @param location The coordinate to check.
- * @param dimensionId The dimension of the coordinate (e.g., 'minecraft:overworld').
+ * @param dimensionId The dimension of the coordinate (e.g., MinecraftDimensionTypes.Overworld).
  * @returns The combined active protection flags. If any overlapping zone prevents an action, it is prevented.
  */
 export function getProtectionFlags(location: Vector3, dimensionId: string): ProtectionFlags {
@@ -95,8 +97,9 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
         // Verify spawn location has coordinates
         if (!isNaN(x) && !isNaN(z)) {
             // Spawn protection uses the configured dimension (or Overworld if undefined, though it defaults to Overworld)
-            const spawnDimension = spawnLoc.dimensionId || 'minecraft:overworld';
-            if (dimensionId === spawnDimension) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            const spawnDimension = spawnLoc.dimensionId || MinecraftDimensionTypes.Overworld;
+            if (dimensionId === (spawnDimension as string)) {
                 const radius = Number(spawnConfig.spawnProtection.protectionRadius) || 0;
 
                 // Construct Bounding Box for Spawn Protection (infinite Y axis realistically bounded by world limits)

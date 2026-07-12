@@ -1,3 +1,5 @@
+import { ItemComponentTypes } from '@minecraft/server';
+
 import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
@@ -44,7 +46,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     }
 
     // Durability
-    const durability = itemStack.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
+    const durability = itemStack.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent;
     if (isDefined(durability)) {
         serialized.durability = {
             damage: durability.damage,
@@ -53,7 +55,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     }
 
     // Enchantments
-    const enchantable = itemStack.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+    const enchantable = itemStack.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
     if (isDefined(enchantable)) {
         const enchants = enchantable.getEnchantments();
         if (enchants.length > 0) {
@@ -119,7 +121,7 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
 
         // Durability
         if (isDefined(data.durability)) {
-            const durability = itemStack.getComponent('minecraft:durability') as mc.ItemDurabilityComponent;
+            const durability = itemStack.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent;
             if (isDefined(durability)) {
                 // Validate bounds
                 const safeDamage = Math.max(0, Math.min(data.durability.damage, durability.maxDurability));
@@ -129,7 +131,7 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
 
         // Enchantments
         if (isDefined(data.enchantments)) {
-            const enchantable = itemStack.getComponent('minecraft:enchantable') as mc.ItemEnchantableComponent;
+            const enchantable = itemStack.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
             if (isDefined(enchantable)) {
                 for (const enc of data.enchantments) {
                     const type = mc.EnchantmentTypes.get(enc.id);

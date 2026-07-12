@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 import { errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -17,7 +19,7 @@ let config: WorldBorderConfig = {
     centerX: 0,
     centerZ: 0,
     radius: 1000,
-    dimension: 'minecraft:overworld'
+    dimension: MinecraftDimensionTypes.Overworld
 };
 
 export function initializeWorldBorder() {

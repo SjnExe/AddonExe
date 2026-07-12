@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -61,8 +63,8 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
             form.textField('Zone ID/Name (No spaces recommended)', 'e.g., spawn_city', { defaultValue: zone?.id ?? '' });
             form.textField('Display Name', 'e.g., Spawn City', { defaultValue: zone?.name ?? '' });
 
-            const dimensions = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
-            const dimIndex = zone ? Math.max(0, dimensions.indexOf(zone.dimension)) : 0;
+            const dimensions = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
+            const dimIndex = zone ? Math.max(0, dimensions.indexOf(zone.dimension as MinecraftDimensionTypes)) : 0;
             form.dropdown('Dimension', dimensions, { defaultValueIndex: dimIndex });
 
             // Use context.formValues to restore state on error
@@ -146,7 +148,7 @@ export class WorldProtectionPanelHandler implements IPanelHandler {
 
             const newId = (values[0] as string).trim();
             const newName = (values[1] as string).trim();
-            const dimensions = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
+            const dimensions = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
             const dimension = dimensions[values[2] as number] as string;
 
             const pos1Str = (values[3] as string).trim();

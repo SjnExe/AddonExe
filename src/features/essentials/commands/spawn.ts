@@ -164,7 +164,7 @@ const setSpawnCommand: CustomCommand = {
                 'spawn.spawnLocation': location
             });
 
-            const dimName = location.dimensionId.replace('minecraft:', '');
+            const dimName = location.dimensionId.replace(/^minecraft:/, '');
             const locationString = `§aAddon spawn point set to: §fX: ${location.x!.toFixed(2)}, Y: ${location.y!.toFixed(2)}, Z: ${location.z!.toFixed(2)} in ${dimName}`;
             sendSetSpawnMessage(executor, locationString);
 

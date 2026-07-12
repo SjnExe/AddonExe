@@ -1,3 +1,5 @@
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -57,8 +59,8 @@ export class XrayPanelHandler implements IPanelHandler {
                 .title('Add X-Ray Ore')
                 .textField('Internal ID (no spaces)', 'diamond')
                 .textField('Display Name', 'Diamond Ore')
-                .textField('Block ID', 'minecraft:diamond_ore')
-                .textField('Dimension', 'minecraft:overworld')
+                .textField('Block ID', MinecraftBlockTypes.DiamondOre)
+                .textField('Dimension', MinecraftDimensionTypes.Overworld)
                 .textField('Min Y', '-64')
                 .textField('Max Y', '16');
         }
@@ -70,7 +72,7 @@ export class XrayPanelHandler implements IPanelHandler {
             if (!isDefined(ore)) return undefined;
 
             // Simplify: Only edit first block definition for now in UI
-            const block = ore.blocks[0] ?? { blockId: '', dimensionId: 'minecraft:overworld', minY: -64, maxY: 320 };
+            const block = ore.blocks[0] ?? { blockId: '', dimensionId: MinecraftDimensionTypes.Overworld, minY: -64, maxY: 320 };
 
             return new ModalFormData()
                 .title(`Edit ${ore.oreName}`)
@@ -120,7 +122,7 @@ export class XrayPanelHandler implements IPanelHandler {
                     blocks: [
                         {
                             blockId,
-                            dimensionId: isNonEmptyString(dimId) ? dimId : 'minecraft:overworld',
+                            dimensionId: isNonEmptyString(dimId) ? dimId : MinecraftDimensionTypes.Overworld,
                             minY: Number.parseInt(minY) || -64,
                             maxY: Number.parseInt(maxY) || 320
                         }

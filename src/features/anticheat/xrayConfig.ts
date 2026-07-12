@@ -1,3 +1,5 @@
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 export interface MonitoredBlock {
     blockId: string;
     dimensionId: string;
@@ -44,14 +46,14 @@ export const xrayConfig: XrayConfig = {
             oreName: 'Diamond Ore',
             blocks: [
                 {
-                    blockId: 'minecraft:diamond_ore',
-                    dimensionId: 'minecraft:overworld',
+                    blockId: MinecraftBlockTypes.DiamondOre,
+                    dimensionId: MinecraftDimensionTypes.Overworld,
                     minY: -64,
                     maxY: 16
                 },
                 {
-                    blockId: 'minecraft:deepslate_diamond_ore',
-                    dimensionId: 'minecraft:overworld',
+                    blockId: MinecraftBlockTypes.DeepslateDiamondOre,
+                    dimensionId: MinecraftDimensionTypes.Overworld,
                     minY: -64,
                     maxY: 16
                 }
@@ -62,8 +64,8 @@ export const xrayConfig: XrayConfig = {
             oreName: 'Ancient Debris',
             blocks: [
                 {
-                    blockId: 'minecraft:ancient_debris',
-                    dimensionId: 'minecraft:nether',
+                    blockId: MinecraftBlockTypes.AncientDebris,
+                    dimensionId: MinecraftDimensionTypes.Nether,
                     minY: 8,
                     maxY: 119
                 }

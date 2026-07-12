@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
@@ -11,9 +13,9 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
     const config = getConfig();
 
     let dimensionId: 'nether' | 'end' | undefined;
-    if (toDimension.id === 'minecraft:nether') {
+    if (toDimension.id === (MinecraftDimensionTypes.Nether as string)) {
         dimensionId = 'nether';
-    } else if (toDimension.id === 'minecraft:the_end') {
+    } else if (toDimension.id === (MinecraftDimensionTypes.TheEnd as string)) {
         dimensionId = 'end';
     } else {
         return;

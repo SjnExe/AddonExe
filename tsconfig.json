@@ -11,6 +11,7 @@
         "noFallthroughCasesInSwitch": true,
         "exactOptionalPropertyTypes": false,
         "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": false,
         "allowJs": true,
         "checkJs": true,
         "outDir": "./packs/behavior/scripts",

@@ -333,7 +333,7 @@ export function addShopItemFromHand(itemStack: mc.ItemStack, categoryName: strin
         return { success: false, message: "You aren't holding anything." };
     }
 
-    const baseId = itemStack.typeId.replace('minecraft:', '');
+    const baseId = itemStack.typeId.replace(/^minecraft:/, '');
     const newId = generateUniqueItemId(baseId);
     const { icon, displayName } = resolveItemMetadata(itemStack);
 

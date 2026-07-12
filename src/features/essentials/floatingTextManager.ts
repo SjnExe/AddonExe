@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from '@core/logger.js';
@@ -201,7 +203,7 @@ function runRetrySpawnLoop() {
 }
 
 function pruneOrphanedTexts() {
-    const dimensions = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
+    const dimensions = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
     for (const dimId of dimensions) {
         try {
             const dimension = mc.world.getDimension(dimId);

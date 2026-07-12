@@ -1,3 +1,5 @@
+import { EntityComponentTypes } from '@minecraft/server';
+
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -79,7 +81,7 @@ const sellHandCommand: CustomCommand = {
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
-        const equipment = executor.getComponent('minecraft:equippable');
+        const equipment = executor.getComponent(EntityComponentTypes.Equippable);
         if (!isDefined(equipment)) {
             return executor.sendMessage('§cCould not access your inventory.');
         }
@@ -155,7 +157,7 @@ const addShopCommand: CustomCommand = {
             return executor.sendMessage('§cInvalid precision. Prices can only have up to 2 decimal places (e.g. 10.55).');
         }
 
-        const equipment = executor.getComponent('minecraft:equippable');
+        const equipment = executor.getComponent(EntityComponentTypes.Equippable);
         if (!isDefined(equipment)) {
             return executor.sendMessage('§cCould not access your inventory.');
         }

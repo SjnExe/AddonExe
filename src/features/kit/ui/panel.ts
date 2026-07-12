@@ -1,3 +1,5 @@
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
+
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -121,7 +123,7 @@ export class KitPanelHandler implements IPanelHandler {
                     const realIdx = (((context.page as number) || 1) - 1) * itemsPerPage + idx;
                     items.push({
                         id: String(realIdx),
-                        text: `${realIdx + 1}. ${item.typeId.replace('minecraft:', '')} x${item.amount}`,
+                        text: `${realIdx + 1}. ${item.typeId.replace(/^minecraft:/, '')} x${item.amount}`,
                         icon: 'textures/items/item_frame',
                         permission: 'ui.panel.admin',
                         actionType: 'functionCall',
@@ -248,7 +250,7 @@ export class KitPanelHandler implements IPanelHandler {
 
     private async handleAddKitItem(player: mc.Player, panelId: string, context: UIContext): Promise<void> {
         const kitName = panelId.replace('kitItemsPanel_', '');
-        const form = new ModalFormData().title('Add Item').textField('Item ID', 'minecraft:stone').textField('Amount', '1', { defaultValue: '1' });
+        const form = new ModalFormData().title('Add Item').textField('Item ID', MinecraftItemTypes.Stone).textField('Amount', '1', { defaultValue: '1' });
         const res = await form.show(player);
         if (!res.canceled && res.formValues) {
             const [typeId, amountStr] = res.formValues as [string, string];

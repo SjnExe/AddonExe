@@ -3,6 +3,8 @@
  * It separates configuration UI definitions from the main navigation panel registry.
  */
 
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 export type UIControlType = 'toggle' | 'textField' | 'dropdown';
 
 export interface ConfigSetting {
@@ -408,7 +410,7 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'spawn.spawnLocation.dimensionId',
                 label: 'Spawn Dimension',
                 type: 'dropdown',
-                options: ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'],
+                options: [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd],
                 description: 'The dimension where spawn is located.'
             },
             {

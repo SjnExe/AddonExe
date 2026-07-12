@@ -233,3 +233,20 @@ export class ItemStack {
         this.maxAmount = 64; // Default max stack size
     }
 }
+
+// --- Component Types added for strict production-grade enum matching ---
+export const EntityComponentTypes = {
+    Inventory: 'minecraft:inventory',
+    Equippable: 'minecraft:equippable',
+    EnderInventory: 'minecraft:ender_inventory',
+    Rideable: 'minecraft:rideable',
+    Tameable: 'minecraft:tameable',
+    IsTamed: 'minecraft:is_tamed',
+    TypeFamily: 'minecraft:type_family',
+    Projectile: 'minecraft:projectile'
+};
+
+export const ItemComponentTypes = {
+    Durability: 'minecraft:durability',
+    Enchantable: 'minecraft:enchantable'
+};

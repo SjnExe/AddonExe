@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+
 export const config = {
     // --- System & Core Settings ---
     version: [1, 0, 0], // This will be replaced by the release workflow
@@ -29,7 +31,7 @@ export const config = {
             x: undefined as number | undefined,
             y: undefined as number | undefined,
             z: undefined as number | undefined,
-            dimensionId: 'minecraft:overworld'
+            dimensionId: MinecraftDimensionTypes.Overworld
         }
     },
     spawnProtection: {
@@ -99,11 +101,11 @@ export const config = {
                 price: 0,
                 permission: 'ui.panel.member',
                 items: [
-                    { typeId: 'minecraft:stone_sword', amount: 1 },
-                    { typeId: 'minecraft:stone_pickaxe', amount: 1 },
-                    { typeId: 'minecraft:stone_axe', amount: 1 },
-                    { typeId: 'minecraft:stone_shovel', amount: 1 },
-                    { typeId: 'minecraft:bread', amount: 16 }
+                    { typeId: MinecraftItemTypes.StoneSword, amount: 1 },
+                    { typeId: MinecraftItemTypes.StonePickaxe, amount: 1 },
+                    { typeId: MinecraftItemTypes.StoneAxe, amount: 1 },
+                    { typeId: MinecraftItemTypes.StoneShovel, amount: 1 },
+                    { typeId: MinecraftItemTypes.Bread, amount: 16 }
                 ]
             },
             food: {
@@ -113,7 +115,7 @@ export const config = {
                 icon: 'textures/items/beef_cooked',
                 price: 10,
                 permission: 'ui.panel.member',
-                items: [{ typeId: 'minecraft:cooked_beef', amount: 8 }]
+                items: [{ typeId: MinecraftItemTypes.CookedBeef, amount: 8 }]
             },
             warrior: {
                 enabled: true,
@@ -123,13 +125,13 @@ export const config = {
                 price: 100,
                 permission: 'ui.panel.member',
                 items: [
-                    { typeId: 'minecraft:iron_sword', amount: 1 },
-                    { typeId: 'minecraft:iron_helmet', amount: 1 },
-                    { typeId: 'minecraft:iron_chestplate', amount: 1 },
-                    { typeId: 'minecraft:iron_leggings', amount: 1 },
-                    { typeId: 'minecraft:iron_boots', amount: 1 },
-                    { typeId: 'minecraft:shield', amount: 1 },
-                    { typeId: 'minecraft:cooked_beef', amount: 16 }
+                    { typeId: MinecraftItemTypes.IronSword, amount: 1 },
+                    { typeId: MinecraftItemTypes.IronHelmet, amount: 1 },
+                    { typeId: MinecraftItemTypes.IronChestplate, amount: 1 },
+                    { typeId: MinecraftItemTypes.IronLeggings, amount: 1 },
+                    { typeId: MinecraftItemTypes.IronBoots, amount: 1 },
+                    { typeId: MinecraftItemTypes.Shield, amount: 1 },
+                    { typeId: MinecraftItemTypes.CookedBeef, amount: 16 }
                 ]
             },
             archer: {
@@ -140,13 +142,13 @@ export const config = {
                 price: 100,
                 permission: 'ui.panel.member',
                 items: [
-                    { typeId: 'minecraft:bow', amount: 1 },
-                    { typeId: 'minecraft:arrow', amount: 64 },
-                    { typeId: 'minecraft:leather_helmet', amount: 1 },
-                    { typeId: 'minecraft:leather_chestplate', amount: 1 },
-                    { typeId: 'minecraft:leather_leggings', amount: 1 },
-                    { typeId: 'minecraft:leather_boots', amount: 1 },
-                    { typeId: 'minecraft:cooked_chicken', amount: 16 }
+                    { typeId: MinecraftItemTypes.Bow, amount: 1 },
+                    { typeId: MinecraftItemTypes.Arrow, amount: 64 },
+                    { typeId: MinecraftItemTypes.LeatherHelmet, amount: 1 },
+                    { typeId: MinecraftItemTypes.LeatherChestplate, amount: 1 },
+                    { typeId: MinecraftItemTypes.LeatherLeggings, amount: 1 },
+                    { typeId: MinecraftItemTypes.LeatherBoots, amount: 1 },
+                    { typeId: MinecraftItemTypes.CookedChicken, amount: 16 }
                 ]
             },
             miner: {
@@ -157,11 +159,11 @@ export const config = {
                 price: 50,
                 permission: 'ui.panel.member',
                 items: [
-                    { typeId: 'minecraft:iron_pickaxe', amount: 1 },
-                    { typeId: 'minecraft:iron_shovel', amount: 1 },
-                    { typeId: 'minecraft:torch', amount: 64 },
-                    { typeId: 'minecraft:coal', amount: 16 },
-                    { typeId: 'minecraft:bread', amount: 16 }
+                    { typeId: MinecraftItemTypes.IronPickaxe, amount: 1 },
+                    { typeId: MinecraftItemTypes.IronShovel, amount: 1 },
+                    { typeId: MinecraftItemTypes.Torch, amount: 64 },
+                    { typeId: MinecraftItemTypes.Coal, amount: 16 },
+                    { typeId: MinecraftItemTypes.Bread, amount: 16 }
                 ]
             },
             builder: {
@@ -172,10 +174,10 @@ export const config = {
                 price: 200,
                 permission: 'ui.panel.member',
                 items: [
-                    { typeId: 'minecraft:oak_log', amount: 64 },
-                    { typeId: 'minecraft:oak_log', amount: 64 },
-                    { typeId: 'minecraft:glass', amount: 64 },
-                    { typeId: 'minecraft:stone_bricks', amount: 64 }
+                    { typeId: MinecraftItemTypes.OakLog, amount: 64 },
+                    { typeId: MinecraftItemTypes.OakLog, amount: 64 },
+                    { typeId: MinecraftItemTypes.Glass, amount: 64 },
+                    { typeId: MinecraftItemTypes.StoneBricks, amount: 64 }
                 ]
             }
         }

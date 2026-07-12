@@ -1,3 +1,5 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getWorldBorder, setWorldBorder } from '@features/essentials/worldBorderManager.js';
 import * as mc from '@minecraft/server';
@@ -53,7 +55,7 @@ const worldborderCommand: CustomCommand = {
 
             let x = args.x as number | undefined;
             let z = args.z as number | undefined;
-            let dim = 'minecraft:overworld';
+            let dim = MinecraftDimensionTypes.Overworld as string;
 
             if (executor instanceof mc.Player) {
                 if (x === undefined) x = executor.location.x;

@@ -1,3 +1,5 @@
+import { EntityComponentTypes } from '@minecraft/server';
+
 import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
 
@@ -143,7 +145,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
         return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
     }
 
-    const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
+    const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         return { success: false, message: 'Could not access inventory.' };
     }
@@ -182,7 +184,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
  */
 
 export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
-    const inventoryComp = player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
+    const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         throw new Error('Could not access player inventory.');
     }

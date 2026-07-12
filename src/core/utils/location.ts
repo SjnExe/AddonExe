@@ -23,7 +23,7 @@ export function formatLocation(
     const y = location.y.toFixed(2);
     const z = location.z.toFixed(2);
     const dimensionName = (location.dimensionId ?? 'Unknown')
-        .replace('minecraft:', '')
+        .replace(/^minecraft:/, '')
         .replace('_', ' ')
         .replaceAll(/\b\w/g, (l) => l.toUpperCase());
     return `X: ${x}, Y: ${y}, Z: ${z} in ${dimensionName}`;

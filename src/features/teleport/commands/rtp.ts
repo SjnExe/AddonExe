@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
@@ -27,7 +27,7 @@ const rtpCommand: CustomCommand = {
             return;
         }
 
-        if (executor.dimension.id !== 'minecraft:overworld') {
+        if (executor.dimension.id !== (MinecraftDimensionTypes.Overworld as string)) {
             sendMessage('§cYou can only use /rtp in the Overworld.', executor);
             return;
         }
