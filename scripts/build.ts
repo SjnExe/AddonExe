@@ -149,38 +149,40 @@ export function loadCommands() {
 async function compileScripts(versionArray: number[], outDirSuffix: string = '') {
     console.log(`[Build] Compiling Scripts...`);
 
-    const entrypoints = ['src/main.ts'];
+    const coreEntrypoints = ['src/main.ts'];
+    const configEntrypoints = ['src/config.ts'];
     const srcDir = path.resolve(__dirname, '../src');
-    const featuresDir = path.resolve(srcDir, 'features');
+    const featuresDir = path.join(srcDir, 'features');
 
-    entrypoints.push('src/config.ts');
-
-    const featureDirs = await fs.readdir(featuresDir);
-    for (const dir of featureDirs) {
-        const fullPath = path.join(featuresDir, dir);
-        const stat = await fs.stat(fullPath);
-        if (stat.isDirectory()) {
-            const files = await fs.readdir(fullPath);
-            for (const file of files) {
-                if (file.endsWith('Config.ts')) {
-                    entrypoints.push(`src/features/${dir}/${file}`);
+    try {
+        const featureDirs = await fs.readdir(featuresDir);
+        for (const dir of featureDirs) {
+            const fullPath = path.join(featuresDir, dir);
+            const stat = await fs.stat(fullPath);
+            if (stat.isDirectory()) {
+                const files = await fs.readdir(fullPath);
+                for (const file of files) {
+                    if (file.endsWith('Config.ts')) {
+                        configEntrypoints.push(`src/features/${dir}/${file}`);
+                    }
                 }
             }
         }
+    } catch (error) {
+        console.warn('[Build] Optional features module sweep skipped or directory unreadable.', error);
     }
 
-    const externalConfigs = entrypoints.map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
+    const allEntrypoints = [...coreEntrypoints, ...configEntrypoints];
+    const externalConfigs = allEntrypoints.map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
     const outDir = path.resolve(__dirname, `../packs/behavior/scripts${outDirSuffix}`);
 
     const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
 
-    const result = await Bun.build({
-        entrypoints,
+    const sharedBuildConfig = {
         outdir: outDir,
         root: './src',
         target: 'browser',
         format: 'esm',
-        minify: isMinify,
         sourcemap: 'external',
         splitting: false,
         naming: '[dir]/[name].[ext]',
@@ -209,11 +211,25 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
             }
         ],
         external: [...externalModules, ...externalConfigs]
+    };
+
+    // Pass 1: Compile core logic bundles (Minified for target optimization)
+    const coreResult = await Bun.build({
+        ...sharedBuildConfig,
+        entrypoints: coreEntrypoints,
+        minify: isMinify
     });
 
-    if (!result.success) {
+    // Pass 2: Compile user-facing configurations (Always unminified and human-readable)
+    const configResult = await Bun.build({
+        ...sharedBuildConfig,
+        entrypoints: configEntrypoints,
+        minify: false
+    });
+
+    if (!coreResult.success || !configResult.success) {
         console.error(`[Build] Script compilation failed:`);
-        for (const msg of result.logs) {
+        for (const msg of [...coreResult.logs, ...configResult.logs]) {
             console.error(msg);
         }
         process.exit(1);
