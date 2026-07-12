@@ -200,7 +200,7 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
     }
 
     const externalConfigs = ['src/main.ts', ...allConfigEntrypoints].map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
-    const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', '@minecraft/vanilla-data'];
+    const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
 
     // Pass 1: Bundle Core Engine Modules (Optimized & Minified)
     const coreResult = await Bun.build({
