@@ -60,7 +60,7 @@
     "devDependencies": {
         "@eslint/js": "latest",
         "@minecraft/bedrock-schemas": "latest",
-        "@minecraft/common": "latest",
+        "@minecraft/common": "1.3.0",
         "@minecraft/creator-tools": "latest",
         "@minecraft/debug-utilities": "1.0.0-beta.1.26.33-stable",
         "@minecraft/server": "2.9.0-beta.1.26.33-stable",
