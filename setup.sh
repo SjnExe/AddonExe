@@ -5,6 +5,14 @@ export PATH="$HOME/.bun/bin:$HOME/.cargo/bin:$PATH"
 if [ -d "/data/data/com.termux" ]; then
     echo "📱 Termux environment confirmed: Provisioning system dependencies..."
 
+    # Inject Bun Android target profile into configuration safely if not present
+    if ! grep -q "BUN_OPTIONS=" "$HOME/.bashrc" 2>/dev/null; then
+        echo "🔧 Injecting Bun Android target mapping into ~/.bashrc..."
+        printf "\n# Added by AddonExe Setup Engine\nexport BUN_OPTIONS='--os=android'\n" >> "$HOME/.bashrc"
+    fi
+    # Apply to current execution context for the following pipeline tasks
+    export BUN_OPTIONS='--os=android'
+
     # We always ensure glibc-repo and update to avoid lock issues later
     pkg install -y glibc-repo
     pkg update -y
