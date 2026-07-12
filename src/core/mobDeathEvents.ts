@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
@@ -30,7 +29,7 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
         if (lastHit) {
             const config = getConfig(); // Need main config for timeout
             // Default 15s if not found
-            const creditTimeout = config.bounties.bountyCreditTimeoutSeconds ?? 15;
+            const creditTimeout = config.bounties.bountyCreditTimeoutSeconds;
             if ((Date.now() - lastHit.timestamp) / 1000 <= creditTimeout) {
                 killer = getPlayerFromCache(lastHit.attackerId);
             }
@@ -68,7 +67,7 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
             return;
         }
 
-        if (economyConfig.steal?.enabled) {
+        if (economyConfig.steal.enabled) {
             const { percent, sameTeamImmunity } = economyConfig.steal;
 
             if (sameTeamImmunity) {

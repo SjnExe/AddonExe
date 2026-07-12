@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -129,7 +128,7 @@ export class RankPanelHandler implements IPanelHandler {
     private async handleAddRankResponse(player: mc.Player, response: ModalFormResponse): Promise<void> {
         const values = response.formValues;
         if (response.canceled) return showPanel(player, 'rankManagementPanel');
-        const rawValues = (values as (string | undefined)[]) ?? [];
+        const rawValues = values as (string | undefined)[];
         const [id, name, permStr, prefix, nameColor, messageColor, allowNodesStr, denyNodesStr] = rawValues;
 
         if (!isNonEmptyString(id) || !isNonEmptyString(name) || !isNonEmptyString(permStr)) {
@@ -199,7 +198,7 @@ export class RankPanelHandler implements IPanelHandler {
         const values = response.formValues;
         if (response.canceled) return showPanel(player, 'rankManagementPanel');
         const rankId = context.id as string;
-        const rawValues = (values as (string | boolean | undefined)[]) ?? [];
+        const rawValues = values as (string | boolean | undefined)[];
         const name = rawValues[0] as string | undefined;
         const permStr = rawValues[1] as string | undefined;
         const prefix = rawValues[2] as string | undefined;

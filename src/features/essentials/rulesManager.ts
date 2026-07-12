@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { debugLog } from '@core/logger.js';
 
@@ -8,7 +7,7 @@ import { debugLog } from '@core/logger.js';
  */
 export function getRules(): string[] {
     const config = getConfig();
-    return config.serverInfo.rules || [];
+    return config.serverInfo.rules;
 }
 
 /**
@@ -92,7 +91,7 @@ export function moveRule(index: number, direction: 'up' | 'down') {
             rules[index] = prev;
             debugLog(`[RulesManager] Moved rule up at index ${index}`);
         }
-    } else if (direction === 'down') {
+    } else {
         if (index === rules.length - 1) {
             return;
         } // Can't move down if already at the bottom

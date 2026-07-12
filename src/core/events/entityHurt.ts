@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
@@ -11,7 +10,7 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent) {
     const { hurtEntity, damageSource } = event;
     const victim = hurtEntity;
 
-    if (victim?.typeId !== (MinecraftEntityTypes.Player as string)) {
+    if (victim.typeId !== (MinecraftEntityTypes.Player as string)) {
         return;
     }
 
@@ -28,7 +27,7 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent) {
 
     const attacker = (damagingEntity as EntityWithOwner).owner ?? damagingEntity;
 
-    if (attacker?.typeId === (MinecraftEntityTypes.Player as string) && attacker.id !== victim.id) {
+    if (attacker.typeId === (MinecraftEntityTypes.Player as string) && attacker.id !== victim.id) {
         lastHitManager.setLastHit(victim.id, (attacker as mc.Player).id);
 
         // Friendly Fire Check

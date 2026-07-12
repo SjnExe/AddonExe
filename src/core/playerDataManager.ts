@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
@@ -187,29 +186,22 @@ function saveShardedMap(map: Map<string, string>, prefix: string) {
  */
 function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefix: string): boolean {
     const migrated = false;
-
-    // 1. Try Legacy (Removed in V1)
-
-    // 2. Load Shards
-    if (!migrated) {
-        let i = 0;
-        const world = mc.world;
-        while (true) {
-            const data = world.getDynamicProperty(`${shardPrefix}${i}`) as string | undefined;
-            if (!isNonEmptyString(data)) break;
-            try {
-                const entries = JSON.parse(data) as [string, string][];
-                for (let j = 0; j < entries.length; j++) {
-                    const entry = entries[j];
-                    if (entry) map.set(entry[0], entry[1]);
-                }
-            } catch (error) {
-                errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(error)}`);
+    let i = 0;
+    const world = mc.world;
+    for (;;) {
+        const data = world.getDynamicProperty(`${shardPrefix}${i}`) as string | undefined;
+        if (!isNonEmptyString(data)) break;
+        try {
+            const entries = JSON.parse(data) as [string, string][];
+            for (let j = 0; j < entries.length; j++) {
+                const entry = entries[j];
+                if (entry) map.set(entry[0], entry[1]);
             }
-            i++;
+        } catch (error) {
+            errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(error)}`);
         }
+        i++;
     }
-
     return migrated;
 }
 
@@ -259,7 +251,7 @@ export function savePlayerData(playerId: string): boolean {
             const sessionStart = sessionStartTimes.get(playerId);
             if (isDefined(sessionStart)) {
                 const sessionDuration = now - sessionStart;
-                playerData.totalPlayTime = (playerData.totalPlayTime ?? 0) + sessionDuration;
+                playerData.totalPlayTime = playerData.totalPlayTime + sessionDuration;
                 // Reset session start to now to avoid double counting if saved multiple times
                 sessionStartTimes.set(playerId, now);
             }
@@ -631,8 +623,8 @@ export function deletePlayerHome(playerId: string, homeName: string) {
 
 export function setPlayerBalance(playerId: string, newBalance: number) {
     const economyConfig = getEconomyConfig();
-    const min = economyConfig.minBalance ?? -1_000_000;
-    const max = economyConfig.maxBalance ?? 1_000_000_000;
+    const min = economyConfig.minBalance;
+    const max = economyConfig.maxBalance;
 
     updatePlayerData(playerId, (pData) => {
         const clampedBalance = Math.max(min, Math.min(newBalance, max));
@@ -644,8 +636,8 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
 
 export function incrementPlayerBalance(playerId: string, amount: number) {
     const economyConfig = getEconomyConfig();
-    const min = economyConfig.minBalance ?? -1_000_000;
-    const max = economyConfig.maxBalance ?? 1_000_000_000;
+    const min = economyConfig.minBalance;
+    const max = economyConfig.maxBalance;
 
     updatePlayerData(playerId, (pData) => {
         // Ensure current balance is treated as a number to prevent string concatenation or NaN issues
@@ -731,7 +723,7 @@ export function transfer(sourcePlayerId: string, targetPlayerId: string, amount:
     }
 
     const economyConfig = getEconomyConfig();
-    const max = economyConfig.maxBalance ?? 1_000_000_000;
+    const max = economyConfig.maxBalance;
     const currentTargetBal = Number(targetData.balance);
     const safeTargetBal = Number.isNaN(currentTargetBal) ? 0 : currentTargetBal;
 
@@ -824,7 +816,7 @@ export function getPlayTime(playerId: string): number {
         currentSessionTime = Date.now() - start;
     }
 
-    return (pData.totalPlayTime ?? 0) + currentSessionTime;
+    return pData.totalPlayTime + currentSessionTime;
 }
 
 export function setSidebarVisible(playerId: string, visible: boolean) {

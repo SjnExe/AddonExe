@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
@@ -47,7 +46,7 @@ function handleEntityDie(event: mc.EntityDieAfterEvent) {
         lastHitManager.clearLastHit(deadPlayer.id);
 
         const timeSinceHit = (Date.now() - lastHit.timestamp) / 1000;
-        const creditTimeout = config.bounties.bountyCreditTimeoutSeconds ?? 15;
+        const creditTimeout = config.bounties.bountyCreditTimeoutSeconds;
 
         if (timeSinceHit > creditTimeout) {
             debugLog(`[BountyClaim] Kill credit for ${deadPlayer.name} expired. Time since last hit: ${timeSinceHit}s`);

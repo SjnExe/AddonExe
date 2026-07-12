@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -356,9 +355,9 @@ async function showLogSettings(player: mc.Player) {
     const modal = new ModalFormData()
         .title('Log Settings')
 
-        .toggle('Enable Chat Logging', { defaultValue: chatConfig.loggingEnabled ?? true })
+        .toggle('Enable Chat Logging', { defaultValue: chatConfig.loggingEnabled })
 
-        .textField('Chat Log Expiration (Days)', '7', { defaultValue: String(chatConfig.logExpirationDays ?? 7) });
+        .textField('Chat Log Expiration (Days)', '7', { defaultValue: String(chatConfig.logExpirationDays) });
 
     const res = await uiWait(player, modal);
     if (!isDefined(res) || res.canceled) return showLogsMenu(player);

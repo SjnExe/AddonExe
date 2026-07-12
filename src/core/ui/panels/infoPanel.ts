@@ -1,5 +1,4 @@
 import { hasPermission } from '@core/permissionEngine.js';
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import * as mc from '@minecraft/server';
 import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -225,7 +224,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
         if (panelId === 'addRulePanel') {
             if (response.canceled) return showPanel(player, 'rulesManagementPanel');
-            const [rule] = (values as [string | undefined]) ?? [];
+            const [rule] = values as [string | undefined];
             if (isNonEmptyString(rule)) {
                 rulesManager.addRule(rule);
                 player.sendMessage('§2Rule added.');
@@ -235,7 +234,7 @@ export class InfoPanelHandler implements IPanelHandler {
 
         if (panelId === 'addHelpfulLinkPanel') {
             if (response.canceled) return showPanel(player, 'helpfulLinksManagementPanel');
-            const [title, url] = (values as [string | undefined, string | undefined]) ?? [];
+            const [title, url] = values as [string | undefined, string | undefined];
             if (isNonEmptyString(title) && isNonEmptyString(url)) {
                 helpfulLinksManager.addHelpfulLink(title, url);
                 player.sendMessage('§2Link added.');
