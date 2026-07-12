@@ -79,12 +79,13 @@ export default function createConfigManager<T>(key: string, defaultConfig: T, na
                         break;
                     }
                     case 'Ranks': {
+                        const baseConfig = reconcileConfig(newDefaultConfig as unknown as Record<string, unknown>, lastLoadedConfigForMerge, userSavedConfig);
                         const mergedRanks = mergeRanks(
-                            userSavedConfig.rankDefinitions as Record<string, unknown>[],
+                            (userSavedConfig.rankDefinitions || []) as Record<string, unknown>[],
                             (newDefaultConfig as unknown as { rankDefinitions: Record<string, unknown>[] }).rankDefinitions,
-                            lastLoadedConfigForMerge.rankDefinitions as Record<string, unknown>[]
+                            (lastLoadedConfigForMerge.rankDefinitions || []) as Record<string, unknown>[]
                         );
-                        currentConfig = { ...userSavedConfig, rankDefinitions: mergedRanks } as unknown as T;
+                        currentConfig = { ...baseConfig, rankDefinitions: mergedRanks } as unknown as T;
 
                         break;
                     }

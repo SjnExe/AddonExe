@@ -34,10 +34,10 @@ export const defaultChatFormatting: Required<ChatFormatting> = {
 };
 
 export const permissionGroups: Record<string, string[]> = {
-    default: ['cmd.**.member', 'ui.**.member', 'command.member'],
-    mod: ['cmd.**.mod', 'ui.**.mod'],
-    admin: ['cmd.**.admin', 'ui.**.admin'],
-    owner: ['cmd.**.owner', 'ui.**.owner']
+    default: ['**.member'],
+    mod: ['**.mod'],
+    admin: ['**.admin'],
+    owner: ['**.owner']
 };
 
 export const rankDefinitions: RankDefinition[] = [
