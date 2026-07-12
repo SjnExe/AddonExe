@@ -121,7 +121,7 @@ This method is ideal for those who fork the repository to make their own custom 
 1.  **Fork the Repository:** Start by forking the [AddonExe repository](https://github.com/SjnExe/AddonExe).
 2.  **Locate Configs:** Inside the `src/` and `src/features/` directories, you will find several configuration files ending in `.ts` (e.g., `config.ts`, `economyConfig.ts`). These are the primary settings files.
 3.  **Customize:** Open the `config.ts` file (or any feature configuration file) and make any changes you desire.
-4.  **Build:** Run `npm run build` to compile your changes into the `packs/behavior` folder.
+4.  **Build:** Run `bun run build` to compile your changes into the `packs/behavior` folder.
 
 **How it Works:**
 

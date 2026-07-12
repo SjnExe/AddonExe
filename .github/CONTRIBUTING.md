@@ -90,7 +90,7 @@ Key points:
 
 - **TypeScript:** The project is migrating to TypeScript. All new code should be written in TypeScript (`.ts`) in the `src/` directory. Legacy JavaScript code should be preserved or migrated with care.
 - **Naming Conventions:** Pay close attention to naming conventions (typically `camelCase` for variables and functions), formatting, and documentation standards.
-- **Formatting & Linting:** Run `npm run format` and `npm run lint` before submitting your changes.
+- **Formatting & Linting:** Run `bun run format` and `bun run lint` before submitting your changes.
 
 ### Testing
 

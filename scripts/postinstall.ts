@@ -72,21 +72,6 @@ async function postinstallTask() {
         }
     }
 
-    const bashrcPath = path.join(homeDir, '.bashrc');
-    if (existsSync(bashrcPath)) {
-        console.log('🧹 Cleaning up old shell profile configuration wrappers if present...');
-        let bashrcContent = await Bun.file(bashrcPath).text();
-
-        const startMarker = '# >>> ADDONEXE PROFILE START >>>';
-        const endMarker = '# <<< ADDONEXE PROFILE END <<<';
-
-        const blockRegex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}\\n?`, 'g');
-        if (blockRegex.test(bashrcContent)) {
-            bashrcContent = bashrcContent.replace(blockRegex, '');
-            await Bun.write(bashrcPath, bashrcContent);
-            console.log('✨ Cleaned up old shell profile synchronization.');
-        }
-    }
 }
 
 postinstallTask().catch(console.error);
