@@ -1,4 +1,3 @@
-import { $ } from 'bun';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,14 +17,18 @@ if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
 }
 
 /**
- * Fetches the latest stable version of a package from npm.
+ * Fetches the latest stable version of a package from the npm registry.
  */
 async function fetchLatestVersion(pkgName: string): Promise<string> {
     try {
-        const output = await $`npm view ${pkgName} version`.text();
-        return output.trim();
-    } catch {
-        console.warn(`[Prebuild] Failed to fetch version for ${pkgName}, defaulting to 1.0.0.`);
+        const response = await fetch(`https://registry.npmjs.org/${pkgName}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        return data['dist-tags'].latest || '1.0.0';
+    } catch (err: any) {
+        console.warn(`[Prebuild] Failed to fetch version for ${pkgName} from registry: ${err.message}. Defaulting to 1.0.0.`);
         return '1.0.0';
     }
 }

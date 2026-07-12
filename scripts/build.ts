@@ -69,16 +69,21 @@ export const commandIndexPlugin = {
             const featureDirs: string[] = [];
             try {
                 const registryTsPath = path.resolve(SRC_DIR, 'core/featureRegistry.ts');
-                const content = await Bun.file(registryTsPath).text();
-                const regex = /\{\s*id:\s*'([^']+)'/g;
-                let match;
-                while ((match = regex.exec(content)) !== null) {
-                    const featureName = match[1];
-                    if (featureName === 'test' && !isNightly) continue;
-                    featureDirs.push(featureName);
+                const registryContent = await Bun.file(registryTsPath).text();
+                const ts = await import('typescript');
+                const sourceFile = ts.createSourceFile('featureRegistry.ts', registryContent, ts.ScriptTarget.Latest, true);
+
+                function visit(node: import('typescript').Node) {
+                    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && node.name.text === 'id' && ts.isStringLiteral(node.initializer)) {
+                        const featureName = node.initializer.text;
+                        if (featureName === 'test' && !isNightly) return;
+                        featureDirs.push(featureName);
+                    }
+                    ts.forEachChild(node, visit);
                 }
+                visit(sourceFile);
             } catch (error: any) {
-                console.warn(`[Plugin] Error reading featureRegistry.ts: ${error.message}`);
+                console.warn(`[Plugin] Error parsing featureRegistry.ts: ${error.message}`);
             }
 
             const commandList: { varName: string; importPath: string }[] = [];
@@ -227,7 +232,39 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
         process.exit(1);
     }
 
-    // Pass 2: Stream-Translation Pass for User Configs (Preserves Comments, Spacing, and 10_000 Formats)
+    // Pass 2: AST-Based Translation Pass for User Configs (Preserves Comments, Spacing, and Formats cleanly)
+    const ts = await import('typescript');
+
+    const configTransformer = (context: import('typescript').TransformationContext) => {
+        return (rootNode: import('typescript').SourceFile) => {
+            function visit(node: import('typescript').Node): import('typescript').Node | undefined {
+                if (ts.isPropertyAccessExpression(node)) {
+                    if (ts.isIdentifier(node.expression)) {
+                        const expName = node.expression.text;
+                        if (['MinecraftItemTypes', 'MinecraftDimensionTypes', 'MinecraftBlockTypes', 'MinecraftEntityTypes', 'ItemComponentTypes', 'EntityComponentTypes'].includes(expName)) {
+                            const prop = node.name.text;
+                            if (prop === 'BowInfinity') return ts.factory.createStringLiteral('minecraft:infinity');
+                            if (prop === 'EvocationIllager') return ts.factory.createStringLiteral('minecraft:evocation_illager');
+                            if (prop === 'HardenedClay') return ts.factory.createStringLiteral('minecraft:terracotta');
+                            if (prop === 'UndyedShulkerBox') return ts.factory.createStringLiteral('minecraft:shulker_box');
+
+                            const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
+                            return ts.factory.createStringLiteral(`minecraft:${snake}`);
+                        }
+                    }
+                }
+                if (ts.isImportDeclaration(node)) {
+                    const moduleSpecifier = node.moduleSpecifier;
+                    if (ts.isStringLiteral(moduleSpecifier) && moduleSpecifier.text === '@minecraft/vanilla-data') {
+                        return undefined; // Remove the import
+                    }
+                }
+                return ts.visitEachChild(node, visit, context);
+            }
+            return ts.visitNode(rootNode, visit) as import('typescript').SourceFile;
+        };
+    };
+
     for (const conf of configPaths) {
         try {
             let content = await Bun.file(conf.src).text();
@@ -240,27 +277,16 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
                 }
             }
 
-            // Inline translate all nominal registry tokens directly into exact readable string literals
-            content = content.replace(/(?:Minecraft[A-Za-z]+Types|ItemComponentTypes|EntityComponentTypes)\.([A-Za-z0-9_]+)/g, (match, prop) => {
-                if (prop === 'BowInfinity') return "'minecraft:infinity'";
-                if (prop === 'EvocationIllager') return "'minecraft:evocation_illager'";
-                if (prop === 'HardenedClay') return "'minecraft:terracotta'";
-                if (prop === 'UndyedShulkerBox') return "'minecraft:shulker_box'";
-
-                const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
-                return `'minecraft:${snake}'`;
-            });
-
-            // Strip out strict TypeScript compilation types cleanly
-            const ts = await import('typescript');
             content = ts.transpileModule(content, {
                 compilerOptions: {
                     target: ts.ScriptTarget.ESNext,
                     module: ts.ModuleKind.ESNext,
                     removeComments: false
+                },
+                transformers: {
+                    before: [configTransformer]
                 }
             }).outputText;
-            content = content.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"]\s*;?\n?/g, '');
 
             await fs.mkdir(path.dirname(conf.dest), { recursive: true });
             await fs.writeFile(conf.dest, content, 'utf8');

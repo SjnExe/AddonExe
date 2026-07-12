@@ -33,6 +33,7 @@
         "project-info": "bun mct info",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
         "test:duplication": "bun scripts/test-duplication.ts",
+        "test": "bun test --isolate --parallel",
         "test:watch": "bun test --isolate --parallel --watch",
         "validate": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs",
         "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs -o validation_report",

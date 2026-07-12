@@ -74,42 +74,18 @@ async function postinstallTask() {
 
     const bashrcPath = path.join(homeDir, '.bashrc');
     if (existsSync(bashrcPath)) {
-        console.log('⚙️  Synchronizing shell profile configuration wrappers...');
+        console.log('🧹 Cleaning up old shell profile configuration wrappers if present...');
         let bashrcContent = await Bun.file(bashrcPath).text();
 
         const startMarker = '# >>> ADDONEXE PROFILE START >>>';
         const endMarker = '# <<< ADDONEXE PROFILE END <<<';
 
         const blockRegex = new RegExp(`${startMarker}[\\s\\S]*?${endMarker}\\n?`, 'g');
-        bashrcContent = bashrcContent.replace(blockRegex, '');
-
-        const runtimeInterceptorBlock = `${startMarker}
-# Automated Environment Paths for Cargo and Bun runtimes
-export PATH="${homeDir}/.cargo/bin:${homeDir}/.bun/bin:$PATH"
-
-function bun() {
-    if [ "$1" = "test" ]; then
-        shift
-        command bun test --isolate --parallel "$@"
-    elif [ -d "/data/data/com.termux" ]; then
-        if [ "$1" = "upgrade" ]; then
-            btm update bun
-        elif [ "$1" = "install" ] || [ "$1" = "i" ] || [ "$1" = "add" ]; then
-            if [ -f "scripts/update-mc.ts" ]; then
-                command bun scripts/update-mc.ts
-            fi
-            command bun "$@"
-        else
-            command bun "$@"
-        fi
-    else
-        command bun "$@"
-    fi
-}
-${endMarker}\n`;
-
-        await Bun.write(bashrcPath, bashrcContent + runtimeInterceptorBlock);
-        console.log('✨ System shell profile synchronization completed successfully.');
+        if (blockRegex.test(bashrcContent)) {
+            bashrcContent = bashrcContent.replace(blockRegex, '');
+            await Bun.write(bashrcPath, bashrcContent);
+            console.log('✨ Cleaned up old shell profile synchronization.');
+        }
     }
 }
 
