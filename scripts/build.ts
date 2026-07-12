@@ -252,7 +252,14 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
             });
 
             // Strip out strict TypeScript compilation types cleanly
-            content = content.replace(/\s+as\s+number\s*\|\s*undefined/g, '');
+            const ts = await import('typescript');
+            content = ts.transpileModule(content, {
+                compilerOptions: {
+                    target: ts.ScriptTarget.ESNext,
+                    module: ts.ModuleKind.ESNext,
+                    removeComments: false,
+                }
+            }).outputText;
             content = content.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"]\s*;?\n?/g, '');
 
             await fs.mkdir(path.dirname(conf.dest), { recursive: true });
