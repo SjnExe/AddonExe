@@ -176,32 +176,69 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
     const externalConfigs = allEntrypoints.map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
     const outDir = path.resolve(__dirname, `../packs/behavior/scripts${outDirSuffix}`);
 
-    const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
+    const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common', '@minecraft/vanilla-data'];
 
-    const sharedBuildConfig = {
+    // Pass 1: Compile Core Engines (Minified and source-mapped for target runtimes)
+    const coreResult = await Bun.build({
+        entrypoints: coreEntrypoints,
         outdir: outDir,
         root: './src',
         target: 'browser',
         format: 'esm',
+        minify: isMinify,
         sourcemap: 'external',
         splitting: false,
         naming: '[dir]/[name].[ext]',
         define: {
             __IS_NIGHTLY__: String(isNightly)
         },
-        plugins: [
-            commandIndexPlugin,
-            {
-                name: 'config-replacer',
-                setup(build) {
-                    build.onLoad({ filter: /src[\\/]config\.ts$/ }, async (args) => {
-                        let content = await Bun.file(args.path).text();
-                        content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: [${versionArray.join(', ')}]`);
+        plugins: [commandIndexPlugin],
+        external: [...externalModules, ...externalConfigs]
+    });
 
-                        if (process.env.IS_BETA_RELEASE === 'true') {
-                            content = content.replace(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
-                            content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
+    // Pass 2: Compile Config maps (Pristine spacing, literal text values, absolutely no debug symbols)
+    const configResult = await Bun.build({
+        entrypoints: configEntrypoints,
+        outdir: outDir,
+        root: './src',
+        target: 'browser',
+        format: 'esm',
+        minify: false,
+        sourcemap: 'none',
+        splitting: false,
+        naming: '[dir]/[name].[ext]',
+        define: {
+            __IS_NIGHTLY__: String(isNightly)
+        },
+        plugins: [
+            {
+                name: 'config-inliner',
+                setup(build) {
+                    build.onLoad({ filter: /config\.ts$|Config\.ts$/i }, async (args) => {
+                        let content = await Bun.file(args.path).text();
+
+                        if (args.path.endsWith('config.ts')) {
+                            content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: [${versionArray.join(', ')}]`);
+                            if (process.env.IS_BETA_RELEASE === 'true') {
+                                content = content.replace(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
+                                content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
+                            }
                         }
+
+                        // Inline translate all active nominal enum tokens directly to exact, readable strings
+                        content = content.replace(/(?:Minecraft[A-Za-z]+Types|ItemComponentTypes|EntityComponentTypes)\.([A-Za-z0-9_]+)/g, (match, prop) => {
+                            if (prop === 'BowInfinity') return "'minecraft:infinity'";
+                            if (prop === 'EvocationIllager') return "'minecraft:evocation_illager'";
+                            if (prop === 'HardenedClay') return "'minecraft:terracotta'";
+                            if (prop === 'UndyedShulkerBox') return "'minecraft:shulker_box'";
+
+                            const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
+                            return `'minecraft:${snake}'`;
+                        });
+
+                        // Completely clear out the compile-time vanilla data import signatures
+                        content = content.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"]\s*;?/g, '');
+
                         return {
                             contents: content,
                             loader: 'ts'
@@ -211,20 +248,6 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
             }
         ],
         external: [...externalModules, ...externalConfigs]
-    };
-
-    // Pass 1: Compile core logic bundles (Minified for target optimization)
-    const coreResult = await Bun.build({
-        ...sharedBuildConfig,
-        entrypoints: coreEntrypoints,
-        minify: isMinify
-    });
-
-    // Pass 2: Compile user-facing configurations (Always unminified and human-readable)
-    const configResult = await Bun.build({
-        ...sharedBuildConfig,
-        entrypoints: configEntrypoints,
-        minify: false
     });
 
     if (!coreResult.success || !configResult.success) {
@@ -240,7 +263,6 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
 async function main() {
     console.log('--- Starting Build Pipeline ---');
 
-    // Ensure manifests are updated
     const updateArgs = [];
     if (isNightly) updateArgs.push('--nightly');
     if (buildNumber > 0) updateArgs.push('--build-number', String(buildNumber));
