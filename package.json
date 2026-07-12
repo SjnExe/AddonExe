@@ -53,6 +53,8 @@
         "ws": "latest"
     },
     "dependencies": {
+        "@minecraft/math": "latest",
+        "@minecraft/vanilla-data": "latest",
         "uuid": "latest"
     },
     "devDependencies": {
@@ -61,11 +63,9 @@
         "@minecraft/common": "latest",
         "@minecraft/creator-tools": "latest",
         "@minecraft/debug-utilities": "1.0.0-beta.1.26.33-stable",
-        "@minecraft/math": "latest",
         "@minecraft/server": "2.9.0-beta.1.26.33-stable",
         "@minecraft/server-gametest": "1.0.0-beta.1.26.33-stable",
         "@minecraft/server-ui": "2.2.0-beta.1.26.33-stable",
-        "@minecraft/vanilla-data": "latest",
         "@types/node": "latest",
         "@types/uuid": "latest",
         "@typescript-eslint/eslint-plugin": "latest",
