@@ -17,7 +17,7 @@ interface ActionFormButton {
 export class ActionFormBuilder {
     private formTitle: string = '';
     private formBody: string = '';
-    private buttons: ActionFormButton[] = [];
+    private readonly buttons: ActionFormButton[] = [];
     private backAction?: ActionFormCallback;
 
     title(title: string): this {
@@ -72,7 +72,7 @@ export class ActionFormBuilder {
             form.button(btnText, btn.iconPath);
         }
 
-        const response = await utils.uiWait(player, form);
+        const response = await utils.uiWait(player, form) as import('@minecraft/server-ui').ActionFormResponse;
 
         if (!isDefined(response) || response.canceled || response.selection === undefined) {
             // Cancelled, if back action exists, maybe call it? usually cancel means close entirely.

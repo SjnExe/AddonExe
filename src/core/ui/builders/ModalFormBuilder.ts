@@ -40,9 +40,9 @@ interface ToggleField extends ModalFieldBase {
 
 type ModalField = DropdownField | SliderField | TextField | ToggleField;
 
-export class ModalFormBuilder<T extends Record<string, any>> {
+export class ModalFormBuilder<T extends Record<string, unknown>> {
     private formTitle: string = '';
-    private fields: ModalField[] = [];
+    private readonly fields: ModalField[] = [];
 
     title(title: string): this {
         this.formTitle = title;
@@ -76,35 +76,34 @@ export class ModalFormBuilder<T extends Record<string, any>> {
         for (const field of this.fields) {
             switch (field.type) {
                 case 'dropdown':
-                    form.dropdown(field.label, field.options, field.defaultValueIndex);
+                    form.dropdown(field.label, field.options, { defaultValueIndex: field.defaultValueIndex });
                     break;
                 case 'slider':
-                    form.slider(field.label, field.minimumValue, field.maximumValue, field.valueStep, field.defaultValue);
+                    form.slider(field.label, field.minimumValue, field.maximumValue, { valueStep: field.valueStep, defaultValue: field.defaultValue });
                     break;
                 case 'textField':
-                    form.textField(field.label, field.placeholderText, field.defaultValue);
+                    form.textField(field.label, field.placeholderText, { defaultValue: field.defaultValue });
                     break;
                 case 'toggle':
-                    form.toggle(field.label, field.defaultValue);
+                    form.toggle(field.label, { defaultValue: field.defaultValue });
                     break;
             }
         }
 
-        const response = await utils.uiWait(player, form);
+        const response = await utils.uiWait(player, form) as import('@minecraft/server-ui').ModalFormResponse;
 
         if (!isDefined(response) || response.canceled || !isDefined(response.formValues)) {
             return; // Cancelled
         }
 
-        const result: Partial<T> = {};
+        const result: Record<string, unknown> = {};
         for (let i = 0; i < this.fields.length; i++) {
             const field = this.fields[i];
             if (isDefined(field)) {
-                // @ts-ignore
                 result[field.id] = response.formValues[i];
             }
         }
 
-        await onCallback(result as T);
+        await onCallback(result as unknown as T);
     }
 }

@@ -1,0 +1,23 @@
+<<<<<<< SEARCH
+        const response = await utils.uiWait(player, form);
+
+        if (!isDefined(response) || response.canceled || response.selection === undefined) {
+            // Cancelled, if back action exists, maybe call it? usually cancel means close entirely.
+            // But legacy behavior sometimes goes back on cancel if a parent is present.
+            // For now, builders will treat cancel as cancel (return).
+            return;
+        }
+
+        const selectedBtn = visibleButtons[response.selection];
+=======
+        const response = await utils.uiWait(player, form) as import('@minecraft/server-ui').ActionFormResponse;
+
+        if (!isDefined(response) || response.canceled || response.selection === undefined) {
+            // Cancelled, if back action exists, maybe call it? usually cancel means close entirely.
+            // But legacy behavior sometimes goes back on cancel if a parent is present.
+            // For now, builders will treat cancel as cancel (return).
+            return;
+        }
+
+        const selectedBtn = visibleButtons[response.selection];
+>>>>>>> REPLACE

@@ -42,7 +42,7 @@ export class MessageFormBuilder {
         form.button1(this.button1Text);
         form.button2(this.button2Text);
 
-        const response = await utils.uiWait(player, form);
+        const response = await utils.uiWait(player, form) as import('@minecraft/server-ui').MessageFormResponse;
 
         if (!isDefined(response) || response.canceled || response.selection === undefined) {
             return;
