@@ -29,6 +29,12 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
 
         context.history = context.history || [];
 
+        // HACK: Bridge to new functional panels
+        if (panelId === 'mainPanel') {
+            const { showMainPanel } = await import('@core/ui/panels/generalPanel.js');
+            return showMainPanel(player, context);
+        }
+
         const form = await buildPanelForm(player, panelId, context);
         if (!isDefined(form)) {
             debugLog(`[UIManager] buildPanelForm returned undefined for panel '${panelId}'. Aborting.`);
