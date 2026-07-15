@@ -9,11 +9,13 @@ The current UI system in the addon relies on a centralized string-based registry
 - Distant separation of UI definition (in registries) and business logic (in handlers/actions).
 - Heavy use of index-based selection for form responses, making it prone to errors when dynamic lists are modified.
 
+**Important Note:** No backward compatibility or legacy stuff will be maintained during this refactoring. Legacy UI code, registries, and string-based routing will be completely removed, and everything will be strictly migrated to the new architecture.
+
 ## Proposed Architecture: Type-Safe Fluent Builders
 
 We will replace the string-based registry with a programmatic, type-safe builder pattern that closely wraps the `@minecraft/server-ui` API, while adding utility functions (like pagination, back buttons, and permission checks).
 
-### 1. Form Builders (`src/core/ui/builders/`)
+### Form Builders (`src/core/ui/builders/`)
 
 Create wrapper classes for standard UI forms that accept callbacks instead of string IDs:
 
@@ -21,13 +23,7 @@ Create wrapper classes for standard UI forms that accept callbacks instead of st
 - **`ModalFormBuilder`**: Wraps `ModalFormData`. Binds responses directly to types instead of a generic array of values.
 - **`MessageFormBuilder`**: Wraps `MessageFormData`.
 
-### 2. Eliminating Registries
-
-- **Delete `panelRegistry.ts`**: UI layouts will no longer be stored globally.
-- **Delete `actionRegistry.ts`**: Action logic will move directly to the component/panel that triggers it.
-- **Delete `PanelRouter.ts`**: Navigation will simply be calling another asynchronous builder function.
-
-### 3. Functional Panel Generation
+### Functional Panel Generation
 
 Panels will become async functions that take a player and strongly typed arguments (replacing `UIContext`).
 
@@ -55,13 +51,42 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 }
 ```
 
-### 4. Migration Strategy
+## Migration Strategy (Divided into Sessions)
 
-1. **Implement Core Builders**: Write and test the new `ActionFormBuilder`, `ModalFormBuilder` in a new `src/core/ui/builders/` directory.
-2. **Refactor Core Panels**: Migrate `mainPanel`, `adminPanel`, `playerPanel`, and `configPanel` to functional panels in `src/core/ui/panels/`.
-3. **Refactor Feature Panels**: Systematically update each feature folder (`src/features/*/ui/`) to use the new builder pattern.
-4. **Remove Legacy Code**: Once all panels are migrated, delete the legacy registries, router, and context types in `src/core/ui/`.
-5. **Update Systems Registry**: Modify `systemRegistry.ts` and `uiUtils.ts` to accept functional callbacks for settings panels instead of mapping to string-based config schemas.
+### Session 1: Implement Core Builders
+- [ ] Create `src/core/ui/builders/` directory.
+- [ ] Implement and test `ActionFormBuilder`.
+- [ ] Implement and test `ModalFormBuilder`.
+- [ ] Implement and test `MessageFormBuilder`.
+
+### Session 2: Refactor Core Panels
+- [ ] Migrate `mainPanel` to the new functional builder pattern in `src/core/ui/panels/`.
+- [ ] Migrate `adminPanel` to the new functional builder pattern.
+- [ ] Migrate `playerPanel` to the new functional builder pattern.
+- [ ] Migrate `configPanel` to the new functional builder pattern.
+
+### Session 3: Refactor Feature Panels (Part 1)
+- [ ] Migrate UI panels in `src/features/auction/ui/`.
+- [ ] Migrate UI panels in `src/features/economy/ui/`.
+- [ ] Migrate UI panels in `src/features/essentials/ui/`.
+- [ ] Migrate UI panels in `src/features/games/ui/`.
+
+### Session 4: Refactor Feature Panels (Part 2)
+- [ ] Migrate UI panels in `src/features/kit/ui/`.
+- [ ] Migrate UI panels in `src/features/moderation/ui/`.
+- [ ] Migrate UI panels in `src/features/shop/ui/`.
+- [ ] Migrate UI panels in `src/features/social/ui/`.
+- [ ] Migrate UI panels in `src/features/team/ui/`.
+- [ ] Migrate UI panels in `src/features/teleport/ui/`.
+- [ ] Migrate UI panels in `src/features/vote/ui/`.
+
+### Session 5: Update Systems Registry and Remove Legacy Code
+- [ ] Modify `systemRegistry.ts` to accept functional callbacks for settings panels instead of mapping to string-based config schemas.
+- [ ] Modify `uiUtils.ts` to support the new builder patterns.
+- [ ] Delete `panelRegistry.ts`.
+- [ ] Delete `actionRegistry.ts`.
+- [ ] Delete `PanelRouter.ts`.
+- [ ] Remove legacy UI context types in `src/core/ui/types.ts`.
 
 ## Benefits
 
