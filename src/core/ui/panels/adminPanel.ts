@@ -1,276 +1,197 @@
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
-import * as mc from '@minecraft/server';
-import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
-
+import { hasPermission } from '@core/permissionEngine.js';
 import { showPanel } from '@core/uiManager.js';
-import { formatLocation } from '@core/utils.js';
-import * as floatingTextManager from '@features/essentials/floatingTextManager.js';
+import { createText, getAllTexts, getTextById, updateText } from '@features/essentials/floatingTextManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
-import { IPanelHandler } from '@ui/types.js';
-import { addBackButton } from '@ui/uiUtils.js';
+import { panelDefinitions } from '@ui/panelRegistry.js';
 
-export class AdminPanelHandler implements IPanelHandler {
-    canHandle(panelId: string): boolean {
-        return panelId === 'staffDashboardPanel' || panelId.startsWith('floatingText');
-    }
+export async function showStaffDashboardPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('Staff Dashboard');
+    const def = panelDefinitions['staffDashboardPanel'];
 
-    getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
-        const items: PanelItem[] = [];
-        // Admin Panel uses static items (delegates to sub-panels)
-        if (panelId === 'staffDashboardPanel') {
-            const def = panelDefinitions[panelId];
-            if (isDefined(def)) {
-                const staticItems = getStaticMenuItems(player, def);
-                items.push(...staticItems);
-            }
-            return Promise.resolve(items);
-        }
-
-        if (panelId === 'floatingTextListPanel') {
-            addBackButton(items, 'staffDashboardPanel');
-            items.push(
-                {
-                    id: 'placeholderList',
-                    text: '§l§6View Placeholders',
-                    icon: 'textures/ui/icon_sign',
-                    permission: 'ui.panel.admin',
-                    actionType: 'openPanel',
-                    actionValue: 'placeholderListPanel'
-                },
-                {
-                    id: 'create',
-                    text: '§l§2+ Create New',
-                    icon: 'textures/ui/color_plus',
-                    permission: 'ui.panel.admin',
-                    actionType: 'openPanel',
-                    actionValue: 'floatingTextCreatePanel'
-                }
-            );
-
-            const texts = floatingTextManager.getAllTexts();
-            for (const text of texts) {
-                items.push({
-                    id: text.id,
-                    text: `§6${text.id}§r\n${formatLocation(text.location)}`,
-                    permission: 'ui.panel.admin',
-                    actionType: 'openPanel',
-                    actionValue: 'floatingTextActionPanel'
-                });
-            }
-            return Promise.resolve(items);
-        }
-
-        if (panelId === 'floatingTextActionPanel') {
-            addBackButton(items, 'floatingTextListPanel');
-            items.push(
-                {
-                    id: 'edit',
-                    text: 'Edit Settings',
-                    icon: 'textures/ui/icon_setting',
-                    permission: 'ui.panel.admin',
-                    actionType: 'openPanel',
-                    actionValue: 'floatingTextEditPanel'
-                },
-                {
-                    id: 'respawn',
-                    text: 'Respawn Entity',
-                    icon: 'textures/ui/refresh_light',
-                    permission: 'ui.panel.admin',
-                    actionType: 'functionCall',
-                    actionValue: 'respawnText'
-                },
-                {
-                    id: 'despawn',
-                    text: 'Despawn Entity',
-                    icon: 'textures/ui/cancel',
-                    permission: 'ui.panel.admin',
-                    actionType: 'functionCall',
-                    actionValue: 'despawnText'
-                },
-                {
-                    id: 'delete',
-                    text: '§4Delete Text',
-                    icon: 'textures/ui/trash',
-                    permission: 'ui.panel.admin',
-                    actionType: 'functionCall',
-                    actionValue: 'deleteText'
-                }
-            );
-            return Promise.resolve(items);
-        }
-
-        return Promise.resolve(items);
-    }
-
-    buildModal(_player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | undefined | void> {
-        if (panelId === 'floatingTextCreatePanel') {
-            return Promise.resolve(
-                new ModalFormData().title('Create New Floating Text').textField('Unique ID (no spaces)', 'e.g., "welcome_message"').textField('Text Content', 'Enter text to display')
-            );
-        }
-
-        if (panelId === 'floatingTextEditPanel') {
-            const id = (context.id ?? context.selectedItemId) as string;
-            if (!isNonEmptyString(id)) return Promise.resolve();
-            const text = floatingTextManager.getTextById(id);
-            if (!isDefined(text)) return Promise.resolve();
-            const expiresAt = text.expiresAt;
-            const updateInterval = text.updateInterval ?? 0;
-            const dimensionOptions = ['Overworld', 'Nether', 'The End'];
-            const dimensionIds = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
-            const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension as MinecraftDimensionTypes));
-            return Promise.resolve(
-                new ModalFormData()
-                    .title(`Edit: ${id}`)
-                    .textField('Text Content', 'Enter the text to display', { defaultValue: text.text })
-                    .textField('X', 'X', { defaultValue: String(text.location.x.toFixed(2)) })
-                    .textField('Y', 'Y', { defaultValue: String(text.location.y.toFixed(2)) })
-                    .textField('Z', 'Z', { defaultValue: String(text.location.z.toFixed(2)) })
-                    .dropdown('Dimension', dimensionOptions, { defaultValueIndex: defaultDimensionIndex })
-                    .textField('Update Interval', '0 to disable', { defaultValue: String(updateInterval) })
-                    .toggle('Expiration', { defaultValue: isNumber(expiresAt) })
-                    .textField('Expiration (mins)', 'mins', {
-                        defaultValue: isNumber(expiresAt) ? String(Math.round((expiresAt - Date.now()) / 60_000)) : '0'
-                    })
-            );
-        }
-        return Promise.resolve();
-    }
-
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
-        const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
-
-        if (panelId === 'floatingTextCreatePanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextListPanel');
-            const rawValues = (values ?? []) as (string | undefined)[];
-            const id = rawValues[0];
-            const text = rawValues[1];
-
-            if (!isNonEmptyString(id) || id.includes(' ')) {
-                player.sendMessage('§4Invalid ID.');
-                return showPanel(player, 'floatingTextCreatePanel');
-            }
-            if (floatingTextManager.createText(player, id, isNonEmptyString(text) ? text : '')) {
-                // Success msg in manager
-            }
-            return showPanel(player, 'floatingTextListPanel');
-        }
-
-        if (panelId === 'floatingTextEditPanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'floatingTextActionPanel', context);
-            const id = context.id as string;
-            const rawValues = values ?? [];
-
-            const textContent = rawValues[0] as string;
-            const x = rawValues[1] as string;
-            const y = rawValues[2] as string;
-            const z = rawValues[3] as string;
-            const dimensionIndex = rawValues[4] as number;
-            const updateIntervalStr = rawValues[5] as string;
-            const useExpiration = rawValues[6] as boolean;
-            const expirationMinutes = rawValues[7] as string;
-
-            const dimensionIds = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
-            const selectedDimension = (isDefined(dimensionIndex) ? dimensionIds[dimensionIndex] : undefined) ?? MinecraftDimensionTypes.Overworld;
-
-            const updatedConfig = {
-                text: textContent,
-                location: { x: Number.parseFloat(x), y: Number.parseFloat(y), z: Number.parseFloat(z) },
-                dimension: selectedDimension,
-                updateInterval: Number.parseInt(updateIntervalStr) || 0,
-                expiresAt: useExpiration === true && Number(expirationMinutes) > 0 ? Date.now() + Number(expirationMinutes) * 60_000 : undefined
-            };
-            floatingTextManager.updateText(id, updatedConfig);
-            player.sendMessage(`§2Successfully updated floating text: ${id}`);
-            return showPanel(player, 'floatingTextActionPanel', context);
-        }
-
-        if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!isDefined(item)) return;
+    if (def) {
+        const items = getStaticMenuItems(player, def);
+        for (const item of items) {
+            if (item.id === '__back__') continue;
+            form.button(item.text, item.icon, async () => {
                 if (item.actionType === 'openPanel') {
-                    const newContext = {
-                        ...context,
-                        page: 1,
-                        selectedItemId: item.id,
-                        id: item.id
-                    };
-
-                    // Fix: Preserve the floating text ID when navigating to the edit panel
-                    if (panelId === 'floatingTextActionPanel' && item.actionValue === 'floatingTextEditPanel') {
-                        newContext.id = context.id as string;
-                    }
-
-                    return showPanel(player, item.actionValue, newContext);
+                    await showPanel(player, item.actionValue, { page: 1 });
+                } else {
+                    const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+                    const action = uiActionFunctions[item.actionValue];
+                    if (action) await action(player, {}, 'staffDashboardPanel');
                 }
-                const actionContext = {
-                    ...context,
-                    selectedItemId: item.id,
-                    id: item.id
-                };
-
-                if (panelId === 'floatingTextActionPanel') {
-                    actionContext.id = context.id as string;
-                }
-
-                if (item.actionValue === 'showRules') {
-                    return showPanel(player, 'rulesManagementPanel', actionContext);
-                }
-                if (item.actionValue === 'showHelpfulLinks') {
-                    return showPanel(player, 'helpfulLinksManagementPanel', actionContext);
-                }
-                if (item.actionValue === 'respawnText') {
-                    const { respawnText } = await import('@features/essentials/floatingTextManager.js');
-                    if (isNonEmptyString(actionContext.id)) {
-                        try {
-                            respawnText(actionContext.id);
-                            player.sendMessage(`§2Respawned text: ${actionContext.id}`);
-                        } catch (error) {
-                            player.sendMessage(`§4Error respawning text: ${String(error)}`);
-                        }
-                    }
-                    return showPanel(player, 'floatingTextActionPanel', actionContext);
-                }
-                if (item.actionValue === 'despawnText') {
-                    const { despawnText } = await import('@features/essentials/floatingTextManager.js');
-                    if (isNonEmptyString(actionContext.id)) {
-                        try {
-                            despawnText(actionContext.id);
-                            player.sendMessage(`§2Despawned text: ${actionContext.id}`);
-                        } catch (error) {
-                            player.sendMessage(`§4Error despawning text: ${String(error)}`);
-                        }
-                    }
-                    return showPanel(player, 'floatingTextActionPanel', actionContext);
-                }
-                if (item.actionValue === 'deleteText') {
-                    const { deleteText } = await import('@features/essentials/floatingTextManager.js');
-                    if (isNonEmptyString(actionContext.id)) {
-                        try {
-                            deleteText(player, actionContext.id);
-                        } catch (error) {
-                            player.sendMessage(`§4Error deleting text: ${String(error)}`);
-                        }
-                    }
-                    return showPanel(player, 'floatingTextListPanel', actionContext);
-                }
-
-                const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
-                const action = uiActionFunctions[item.actionValue];
-                if (isDefined(action)) {
-                    await action(player, context, panelId);
-                    return;
-                }
-
-                player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
-                return;
-            }
+            });
         }
     }
+
+    form.addBackButton(async () => {
+        await showPanel(player, 'mainPanel');
+    });
+
+    await form.show(player);
+}
+
+export async function showFloatingTextListPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('Floating Text');
+
+    if (hasPermission(player, 'ui.panel.admin')) {
+        form.button('Create New Text', 'textures/ui/color_plus', async () => {
+            await showFloatingTextCreatePanel(player);
+        });
+
+        const texts = getAllTexts();
+        for (const textConfig of texts) {
+            const id = textConfig.id;
+            form.button(id, 'textures/ui/text_color_paintbrush', async () => {
+                await showFloatingTextActionPanel(player, id);
+            });
+        }
+
+        form.button('§bView Placeholders', 'textures/ui/infobulb', async () => {
+            await showPanel(player, 'placeholderListPanel', { returnPanel: 'floatingTextListPanel' });
+        });
+    }
+
+    form.addBackButton(async () => {
+        await showStaffDashboardPanel(player);
+    });
+
+    await form.show(player);
+}
+
+export async function showFloatingTextCreatePanel(player: mc.Player): Promise<void> {
+    const form = new ModalFormBuilder()
+        .title('Create New Floating Text')
+        .textField('id', 'Unique ID (no spaces)', 'e.g., "welcome_message"')
+        .textField('text', 'Text Content', 'Enter text to display');
+
+    const result = await form.show(player);
+
+    if (result.canceled) {
+        return showFloatingTextListPanel(player);
+    }
+
+    const id = result.formValues?.id as string;
+    const text = result.formValues?.text as string;
+
+    if (!isNonEmptyString(id) || id.includes(' ')) {
+        player.sendMessage('§4Invalid ID.');
+        return showFloatingTextCreatePanel(player);
+    }
+
+    if (createText(player, id, isNonEmptyString(text) ? text : '')) {
+        // Success handled
+    }
+
+    await showFloatingTextListPanel(player);
+}
+
+export async function showFloatingTextActionPanel(player: mc.Player, textId: string): Promise<void> {
+    const form = new ActionFormBuilder().title('Floating Text Actions');
+
+    if (hasPermission(player, 'ui.panel.admin')) {
+        form.button('Edit Config', 'textures/ui/edit', async () => {
+            await showFloatingTextEditPanel(player, textId);
+        });
+
+        form.button('Respawn Entity', 'textures/ui/refresh_light', async () => {
+            const { respawnText } = await import('@features/essentials/floatingTextManager.js');
+            try {
+                respawnText(textId);
+                player.sendMessage(`§2Respawned text: ${textId}`);
+            } catch (error) {
+                player.sendMessage(`§4Error respawning text: ${String(error)}`);
+            }
+            await showFloatingTextActionPanel(player, textId);
+        });
+
+        form.button('Despawn Entity', 'textures/ui/cancel', async () => {
+            const { despawnText } = await import('@features/essentials/floatingTextManager.js');
+            try {
+                despawnText(textId);
+                player.sendMessage(`§2Despawned text: ${textId}`);
+            } catch (error) {
+                player.sendMessage(`§4Error despawning text: ${String(error)}`);
+            }
+            await showFloatingTextActionPanel(player, textId);
+        });
+
+        form.button('§4Delete Text', 'textures/ui/trash', async () => {
+            const { deleteText } = await import('@features/essentials/floatingTextManager.js');
+            try {
+                deleteText(player, textId);
+            } catch (error) {
+                player.sendMessage(`§4Error deleting text: ${String(error)}`);
+            }
+            await showFloatingTextListPanel(player);
+        });
+    }
+
+    form.addBackButton(async () => {
+        await showFloatingTextListPanel(player);
+    });
+
+    await form.show(player);
+}
+
+export async function showFloatingTextEditPanel(player: mc.Player, textId: string): Promise<void> {
+    const text = getTextById(textId);
+    if (!isDefined(text)) {
+        return showFloatingTextListPanel(player);
+    }
+
+    const expiresAt = text.expiresAt;
+    const updateInterval = text.updateInterval ?? 0;
+    const dimensionOptions = ['Overworld', 'Nether', 'The End'];
+    const dimensionIds = ['minecraft:overworld', 'minecraft:nether', 'minecraft:the_end'];
+    const defaultDimensionIndex = Math.max(0, dimensionIds.indexOf(text.dimension));
+
+    const form = new ModalFormBuilder()
+        .title(`Edit: ${textId}`)
+        .textField('text', 'Text Content', 'Enter the text to display', text.text)
+        .textField('x', 'X', 'X', String(text.location.x.toFixed(2)))
+        .textField('y', 'Y', 'Y', String(text.location.y.toFixed(2)))
+        .textField('z', 'Z', 'Z', String(text.location.z.toFixed(2)))
+        .dropdown('dimensionIndex', 'Dimension', dimensionOptions, defaultDimensionIndex)
+        .textField('updateInterval', 'Update Interval', '0 to disable', String(updateInterval))
+        .toggle('useExpiration', 'Expiration', isNumber(expiresAt))
+        .textField('expirationMinutes', 'Expiration (mins)', 'mins', isNumber(expiresAt) ? String(Math.round((expiresAt - Date.now()) / 60_000)) : '0');
+
+    const result = await form.show(player);
+
+    if (result.canceled) {
+        return showFloatingTextActionPanel(player, textId);
+    }
+
+    const values = result.formValues;
+    if (!values) return showFloatingTextActionPanel(player, textId);
+
+    const textContent = values.text as string;
+    const xStr = values.x as string;
+    const yStr = values.y as string;
+    const zStr = values.z as string;
+    const dimIdx = values.dimensionIndex as number;
+    const intStr = values.updateInterval as string;
+    const useExp = values.useExpiration as boolean;
+    const expMins = values.expirationMinutes as string;
+
+    const selectedDimension = (isDefined(dimIdx) ? dimensionIds[dimIdx] : undefined) ?? 'minecraft:overworld';
+
+    const updatedConfig = {
+        text: textContent,
+        location: { x: Number.parseFloat(xStr), y: Number.parseFloat(yStr), z: Number.parseFloat(zStr) },
+        dimension: selectedDimension,
+        updateInterval: Number.parseInt(intStr) || 0,
+        expiresAt: useExp === true && Number(expMins) > 0 ? Date.now() + Number(expMins) * 60_000 : undefined
+    };
+
+    updateText(textId, updatedConfig);
+    player.sendMessage(`§2Successfully updated floating text: ${textId}`);
+
+    await showFloatingTextActionPanel(player, textId);
 }

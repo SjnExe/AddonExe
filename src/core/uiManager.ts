@@ -29,6 +29,92 @@ export async function showPanel(player: mc.Player, panelId: string, context: UIC
 
         context.history = context.history || [];
 
+        // Intercept functionally migrated panels (Session 2)
+        if (panelId === 'mainPanel') {
+            const { showMainPanel } = await import('@ui/panels/generalPanel.js');
+            return showMainPanel(player);
+        }
+        if (panelId === 'profileMainPanel') {
+            const { showProfileMainPanel } = await import('@ui/panels/generalPanel.js');
+            return showProfileMainPanel(player);
+        }
+        if (panelId === 'bountyListPanel') {
+            const { showBountyListPanel } = await import('@ui/panels/generalPanel.js');
+            return showBountyListPanel(player);
+        }
+        if (panelId === 'bountyActionsPanel') {
+            const { showBountyActionsPanel } = await import('@ui/panels/generalPanel.js');
+            return showBountyActionsPanel(player, context.targetPlayerId as string, context.targetPlayerName as string);
+        }
+        if (panelId === 'staffDashboardPanel') {
+            const { showStaffDashboardPanel } = await import('@ui/panels/adminPanel.js');
+            return showStaffDashboardPanel(player);
+        }
+        if (panelId === 'floatingTextListPanel') {
+            const { showFloatingTextListPanel } = await import('@ui/panels/adminPanel.js');
+            return showFloatingTextListPanel(player);
+        }
+        if (panelId === 'floatingTextCreatePanel') {
+            const { showFloatingTextCreatePanel } = await import('@ui/panels/adminPanel.js');
+            return showFloatingTextCreatePanel(player);
+        }
+        if (panelId === 'floatingTextEditPanel') {
+            const { showFloatingTextEditPanel } = await import('@ui/panels/adminPanel.js');
+            return showFloatingTextEditPanel(player, context.id as string);
+        }
+        if (panelId === 'floatingTextActionPanel') {
+            const { showFloatingTextActionPanel } = await import('@ui/panels/adminPanel.js');
+            return showFloatingTextActionPanel(player, context.id as string);
+        }
+        if (panelId === 'playerListPanel') {
+            const { showPlayerListPanel } = await import('@ui/panels/playerPanel.js');
+            return showPlayerListPanel(player);
+        }
+        if (panelId === 'playerManagementPanel') {
+            const { showPlayerManagementPanel } = await import('@ui/panels/playerPanel.js');
+            return showPlayerManagementPanel(player);
+        }
+        if (panelId === 'myStatsPanel') {
+            const { showMyStatsPanel } = await import('@ui/panels/playerPanel.js');
+            return showMyStatsPanel(player);
+        }
+        if (panelId === 'playerActionsPanel') {
+            const { showPlayerActionsPanel } = await import('@ui/panels/playerPanel.js');
+            return showPlayerActionsPanel(player, context.targetPlayerId as string, context.customTitle as string, context.returnPanel as string);
+        }
+        if (panelId.startsWith('config_')) {
+            const { showSimpleConfigPanel } = await import('@ui/panels/configPanel.js');
+            const systemId = panelId.replace('config_', '');
+            // For simple configs triggered directly, we fallback the category to 'Uncategorized' or retrieve it from system registry
+            const { getSystemRegistry } = await import('@ui/systemRegistry.js');
+            const sys = getSystemRegistry().find((s) => s.id === systemId);
+            return showSimpleConfigPanel(player, systemId, sys?.category ?? 'Uncategorized', context);
+        }
+        if (panelId === 'configCategoryPanel') {
+            const { showConfigCategoryPanel } = await import('@ui/panels/configPanel.js');
+            return showConfigCategoryPanel(player, context);
+        }
+        if (panelId.startsWith('configSubCategoryPanel_')) {
+            const { showConfigSubCategoryPanel } = await import('@ui/panels/configPanel.js');
+            return showConfigSubCategoryPanel(player, panelId.replace('configSubCategoryPanel_', ''), context);
+        }
+        if (panelId === 'configResetPanel') {
+            const { showConfigResetPanel } = await import('@ui/panels/configPanel.js');
+            return showConfigResetPanel(player, context);
+        }
+        if (panelId === 'configTransferPanel') {
+            const { showConfigTransferPanel } = await import('@ui/panels/configPanel.js');
+            return showConfigTransferPanel(player, context);
+        }
+        if (panelId === 'configExportPanel') {
+            const { showConfigExportPanel } = await import('@ui/panels/configPanel.js');
+            return showConfigExportPanel(player, context);
+        }
+        if (panelId === 'configImportPanel') {
+            const { showConfigImportPanel } = await import('@ui/panels/configPanel.js');
+            return showConfigImportPanel(player, context);
+        }
+
         const form = await buildPanelForm(player, panelId, context);
         if (!isDefined(form)) {
             debugLog(`[UIManager] buildPanelForm returned undefined for panel '${panelId}'. Aborting.`);
