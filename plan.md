@@ -54,24 +54,28 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 ## Migration Strategy (Divided into Sessions)
 
 ### Session 1: Implement Core Builders
+
 - [ ] Create `src/core/ui/builders/` directory.
 - [ ] Implement and test `ActionFormBuilder`.
 - [ ] Implement and test `ModalFormBuilder`.
 - [ ] Implement and test `MessageFormBuilder`.
 
 ### Session 2: Refactor Core Panels
+
 - [ ] Migrate `mainPanel` to the new functional builder pattern in `src/core/ui/panels/`.
 - [ ] Migrate `adminPanel` to the new functional builder pattern.
 - [ ] Migrate `playerPanel` to the new functional builder pattern.
 - [ ] Migrate `configPanel` to the new functional builder pattern.
 
 ### Session 3: Refactor Feature Panels (Part 1)
+
 - [ ] Migrate UI panels in `src/features/auction/ui/`.
 - [ ] Migrate UI panels in `src/features/economy/ui/`.
 - [ ] Migrate UI panels in `src/features/essentials/ui/`.
 - [ ] Migrate UI panels in `src/features/games/ui/`.
 
 ### Session 4: Refactor Feature Panels (Part 2)
+
 - [ ] Migrate UI panels in `src/features/kit/ui/`.
 - [ ] Migrate UI panels in `src/features/moderation/ui/`.
 - [ ] Migrate UI panels in `src/features/shop/ui/`.
@@ -81,6 +85,7 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 - [ ] Migrate UI panels in `src/features/vote/ui/`.
 
 ### Session 5: Update Systems Registry and Remove Legacy Code
+
 - [ ] Modify `systemRegistry.ts` to accept functional callbacks for settings panels instead of mapping to string-based config schemas.
 - [ ] Modify `uiUtils.ts` to support the new builder patterns.
 - [ ] Delete `panelRegistry.ts`.
