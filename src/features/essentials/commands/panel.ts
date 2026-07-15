@@ -1,7 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { showPanel } from '@core/uiManager.js';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 const panelCommand: CustomCommand = {
@@ -12,7 +10,8 @@ const panelCommand: CustomCommand = {
     permissionNode: 'cmd.panel.member',
     execute: async (executor: CommandExecutor) => {
         if (executor instanceof mc.Player) {
-            await showPanel(executor, 'mainPanel');
+            const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
+            await showMainPanel(executor);
         }
     }
 };

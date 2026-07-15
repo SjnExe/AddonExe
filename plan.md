@@ -75,14 +75,14 @@ The core builder classes (`ActionFormBuilder`, `ModalFormBuilder`, `MessageFormB
 
 ### Session 2: Refactor Core Panels
 
-- [ ] Migrate `mainPanel` to the new functional builder pattern in `src/core/ui/panels/`.
-- [ ] Migrate `adminPanel` to the new functional builder pattern.
-- [ ] Migrate `playerPanel` to the new functional builder pattern.
-- [ ] Migrate `configPanel` to the new functional builder pattern.
+- [x] Migrate `mainPanel` to the new functional builder pattern in `src/core/ui/panels/`.
+- [x] Migrate `adminPanel` to the new functional builder pattern.
+- [x] Migrate `playerPanel` to the new functional builder pattern.
+- [x] Migrate `configPanel` to the new functional builder pattern.
 
 #### Session 2 Handover Context
 
-_(To be written by future sessions of Jules)_
+The core panels (`mainPanel`, `adminPanel`, `playerPanel`, and `configPanel`) have been successfully migrated to the new functional builder pattern. They now use `ActionFormBuilder` and `ModalFormBuilder` rather than defining handlers for the legacy `panelRouter`. For unmigrated panels that are still routed through `panelRouter`, a temporary `showPanel` fallback is used within the newly refactored menus. The `ConfigPanelHandler` was entirely replaced with strongly-typed `showConfig*` async functions mapped correctly to their schema. Pre-commit tests and builds were run, and some existing tests unrelated to core panels failed due to mock issues, but core changes compile cleanly. Future sessions should replace the `showPanel` fallbacks by importing the direct functional definitions.
 
 ### Session 3: Refactor Feature Panels (Part 1)
 

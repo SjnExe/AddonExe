@@ -1,3 +1,5 @@
+
+
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog } from '@core/logger.js';

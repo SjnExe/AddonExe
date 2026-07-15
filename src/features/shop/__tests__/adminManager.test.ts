@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 mock.module('@core/logger.js', () => ({

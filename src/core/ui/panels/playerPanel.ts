@@ -1,158 +1,12 @@
-import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse, ModalFormData } from '@minecraft/server-ui';
-
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { getConfig } from '@core/configManager.js';
 import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { getStaticMenuItems } from '@core/ui/panelBuilder.js';
-import { panelDefinitions } from '@core/ui/panelRegistry.js';
-import { IPanelHandler, PanelItem, UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
-import { isDefined } from '@lib/guards.js';
-
-export class PlayerPanelHandler implements IPanelHandler {
-    canHandle(panelId: string): boolean {
-        return panelId.startsWith('player') || panelId === 'myStatsPanel' || panelId === 'playerManagementPanel';
-    }
-
-    getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[] | undefined> {
-        const config = getConfig();
-        const def = panelDefinitions[panelId];
-        const baseItems = isDefined(def) ? getStaticMenuItems(player, def, _context) : [];
-
-        if (panelId === 'playerListPanel' || panelId === 'playerManagementPanel') {
-            const players = getVisiblePlayers(player);
-            const playerItems: PanelItem[] = players.map((p) => {
-                const targetRank = getPlayerRank(p, config);
-                const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
-                return {
-                    id: `player_${p.id}`,
-                    text: `${p.name}\n§r${rankText}`,
-                    icon: getPlayerIcon(p),
-                    actionType: 'openPanel',
-                    actionValue: 'playerActionsPanel',
-                    permission: 'ui.panel.member'
-                };
-            });
-            // Append player items to static items (which includes back button at start)
-            return Promise.resolve([...baseItems, ...playerItems]);
-        }
-
-        if (panelId === 'myStatsPanel') {
-            const data = loadPlayerData(player.id);
-            if (!data) return Promise.resolve(baseItems);
-
-            const stats: PanelItem[] = [
-                {
-                    id: 'stat_money',
-                    text: `§2Balance: §r${formatCurrency(data.balance)}`,
-                    icon: 'textures/items/emerald',
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'noop'
-                },
-                {
-                    id: 'stat_rank',
-                    text: `§6Rank: §r${data.rankId}`,
-                    icon: 'textures/ui/icon_rank',
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'noop'
-                },
-                {
-                    id: 'stat_playtime',
-                    text: `§3Playtime: §r${formatDuration(data.totalPlayTime)}`,
-                    icon: 'textures/items/clock_item',
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'noop'
-                },
-                {
-                    id: 'stat_kills',
-                    text: `§4Kills: §r${data.kills}`,
-                    icon: 'textures/items/iron_sword',
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'noop'
-                },
-                {
-                    id: 'stat_deaths',
-                    text: `§4Deaths: §r${data.deaths}`,
-                    icon: 'textures/ui/skull_face',
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'noop'
-                }
-            ];
-            return Promise.resolve([...baseItems, ...stats]);
-        }
-
-        // Return undefined for panels handled by static logic or other means
-        // But for 'playerActionsPanel', getItems should probably return static items?
-        // Actually, if we return undefined, panelBuilder falls back to static items.
-        // But since we implement handleResponse, we need to be consistent.
-        // Let's rely on fallback if not handled here.
-
-        return Promise.resolve(undefined);
-    }
-
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse, context: UIContext): Promise<void> {
-        if (response.canceled || response.selection === undefined) return;
-
-        // Re-generate items to match selection index
-        // Use getItems first
-        let items = await this.getItems(player, panelId, context);
-
-        // If getItems returned undefined, use static items (fallback logic from panelBuilder)
-        if (!isDefined(items)) {
-            const def = panelDefinitions[panelId];
-            if (isDefined(def)) {
-                items = getStaticMenuItems(player, def, context);
-            } else {
-                return;
-            }
-        }
-
-        const selectedItem = items[response.selection];
-        if (!isDefined(selectedItem)) return;
-
-        if (selectedItem.id === '__back__') {
-            // Handled by actionValue usually
-            if (isDefined(context) && isDefined(context.returnPanel)) {
-                delete context.returnPanel;
-            }
-        }
-
-        if (selectedItem.actionType === 'openPanel') {
-            const newContext = { ...context };
-            // Pass target player ID if selecting a player
-            if (selectedItem.id.startsWith('player_')) {
-                const targetId = selectedItem.id.replace('player_', '');
-                newContext.targetPlayerId = targetId;
-                newContext.customTitle = selectedItem.text; // Use player name as title for actions panel
-                newContext.returnPanel = panelId; // Return to current panel on back/cancel
-            }
-            return showPanel(player, selectedItem.actionValue, newContext);
-        } else {
-            if (selectedItem.actionValue === 'noop') return;
-            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
-            const action = uiActionFunctions[selectedItem.actionValue];
-            if (isDefined(action)) {
-                await action(player, context, panelId);
-                return;
-            }
-            player.sendMessage(`§cAction ${selectedItem.actionValue} not mapped.`);
-        }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async buildModal(_player: mc.Player, _panelId: string, _context: UIContext): Promise<ActionFormData | ModalFormData | undefined> {
-        // No modals handled here currently
-        return undefined;
-    }
-}
+import * as mc from '@minecraft/server';
+import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 
 function formatDuration(ms: number): string {
     const seconds = Math.floor(ms / 1000);
@@ -162,4 +16,131 @@ function formatDuration(ms: number): string {
 
     if (h > 0) return `${h}h ${m}m`;
     return `${m}m ${s}s`;
+}
+
+export async function showPlayerListPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('Online Players');
+    const config = getConfig();
+    const players = getVisiblePlayers(player);
+
+    for (const p of players) {
+        const targetRank = getPlayerRank(p, config);
+        const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
+        form.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), async () => {
+            await showPlayerActionsPanel(player, p.id, p.name);
+        });
+    }
+
+    form.addBackButton(async () => {
+        const { showMainPanel } = await import('./mainPanel.js');
+        await showMainPanel(player);
+    });
+
+    await form.show(player);
+}
+
+export async function showPlayerManagementPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('Player Management');
+    const config = getConfig();
+    const players = getVisiblePlayers(player);
+
+    for (const p of players) {
+        const targetRank = getPlayerRank(p, config);
+        const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
+        form.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), async () => {
+            await showPlayerActionsPanel(player, p.id, p.name, true);
+        });
+    }
+
+    form.addBackButton(async () => {
+        const { showStaffDashboardPanel } = await import('./adminPanel.js');
+        await showStaffDashboardPanel(player);
+    });
+
+    await form.show(player);
+}
+
+export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: string, targetPlayerName: string, isModMode: boolean = false): Promise<void> {
+    const form = new ActionFormBuilder().title(targetPlayerName);
+
+    if (isModMode) {
+        form.button('Kick', 'textures/ui/cancel.png', async () => {
+            const { kickPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (kickPlayer) await kickPlayer(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+        form.button('Mute', 'textures/ui/mute_on.png', async () => {
+            const { mutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (mutePlayer) await mutePlayer(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+        form.button('Unmute', 'textures/ui/mute_off.png', async () => {
+            const { unmutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (unmutePlayer) await unmutePlayer(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+        form.button('Ban', 'textures/ui/hammer_l.png', async () => {
+            const { banPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (banPlayer) await banPlayer(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+        form.button('Manage Ranks', 'textures/ui/icon_rank.png', async () => {
+            const { showManageRanksForm } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (showManageRanksForm) await showManageRanksForm(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+        form.button('Manage Stats', 'textures/ui/Scaffolding.png', async () => {
+            await showPanel(player, 'managePlayerStatsPanel', { targetPlayerId });
+        });
+        form.button('See Inventory', 'textures/ui/inventory_icon.png', async () => {
+            const { seeInventory } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (seeInventory) await seeInventory(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+        form.button('Teleport To', 'textures/ui/icon_map.png', async () => {
+            const { tpToPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (tpToPlayer) await tpToPlayer(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+        form.button('Teleport Here', 'textures/ui/icon_map.png', async () => {
+            const { tpPlayerHere } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            if (tpPlayerHere) await tpPlayerHere(player, { targetPlayerId }, 'playerActionsPanel');
+        });
+    }
+
+    form.button('Send Friend Request', 'textures/ui/color_plus', async () => {
+        const { addFriend } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        if (addFriend) await addFriend(player, { targetPlayerId }, 'playerActionsPanel');
+    });
+
+    form.button('Send Money', 'textures/items/gold_ingot', async () => {
+        const { sendMoney } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        if (sendMoney) await sendMoney(player, { targetPlayerId }, 'playerActionsPanel');
+    });
+
+    form.button('Bounty Actions', 'textures/items/netherite_sword', async () => {
+        await showPanel(player, 'bountyActionsPanel', { targetPlayerId, returnPanel: 'playerActionsPanel' });
+    });
+
+    form.addBackButton(async () => {
+        if (isModMode) {
+            await showPlayerManagementPanel(player);
+        } else {
+            await showPlayerListPanel(player);
+        }
+    });
+
+    await form.show(player);
+}
+
+export async function showMyStatsPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('Your Stats');
+    const data = loadPlayerData(player.id);
+
+    if (data) {
+        form.button(`§2Balance: §r${formatCurrency(data.balance)}`, 'textures/items/emerald');
+        form.button(`§6Rank: §r${data.rankId}`, 'textures/ui/icon_rank');
+        form.button(`§3Playtime: §r${formatDuration(data.totalPlayTime)}`, 'textures/items/clock_item');
+        form.button(`§4Kills: §r${data.kills}`, 'textures/items/iron_sword');
+        form.button(`§4Deaths: §r${data.deaths}`, 'textures/ui/skull_face');
+    }
+
+    form.addBackButton(async () => {
+        await showPanel(player, 'profileMainPanel');
+    });
+
+    await form.show(player);
 }

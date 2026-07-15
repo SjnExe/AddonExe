@@ -9,7 +9,7 @@ export function initializePlayerCache(): void {
     playerNameCache.clear();
     for (const player of mc.world.getAllPlayers()) {
         playerCache.set(player.id, player);
-        playerNameCache.set(player.name.toLowerCase(), player);
+        playerNameCache.set((player.name || "").toLowerCase(), player);
     }
 
     mc.world.afterEvents.playerSpawn.subscribe((event) => {
@@ -29,13 +29,13 @@ export function getPlayerFromCache(playerId: string): mc.Player | undefined {
 
 export function addPlayerToCache(player: mc.Player): void {
     playerCache.set(player.id, player);
-    playerNameCache.set(player.name.toLowerCase(), player);
+    playerNameCache.set((player.name || "").toLowerCase(), player);
 }
 
 export function removePlayerFromCache(playerId: string): void {
     const player = playerCache.get(playerId);
     if (player) {
-        playerNameCache.delete(player.name.toLowerCase());
+        playerNameCache.delete((player.name || "").toLowerCase());
         playerCache.delete(playerId);
     }
 }
