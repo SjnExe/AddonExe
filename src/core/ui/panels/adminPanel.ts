@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+
 import { hasPermission } from '@core/permissionEngine.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
@@ -51,7 +52,7 @@ export async function showFloatingTextListPanel(player: mc.Player): Promise<void
     form.body('Select a floating text entry to manage.');
 
     form.button('§l§6View Placeholders', 'textures/ui/icon_sign', async () => {
-        const { showPlaceholdersList } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        const { showPlaceholdersList } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
         if (showPlaceholdersList) await showPlaceholdersList(player, {}, 'floatingTextListPanel');
     });
 

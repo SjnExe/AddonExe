@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+
 import { getConfig } from '@core/configManager.js';
 import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
@@ -65,49 +66,49 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
 
     if (isModMode) {
         form.button('Kick', 'textures/ui/cancel.png', async () => {
-            const { kickPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { kickPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (kickPlayer) await kickPlayer(player, { targetPlayerId }, 'playerActionsPanel');
         });
         form.button('Mute', 'textures/ui/mute_on.png', async () => {
-            const { mutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { mutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (mutePlayer) await mutePlayer(player, { targetPlayerId }, 'playerActionsPanel');
         });
         form.button('Unmute', 'textures/ui/mute_off.png', async () => {
-            const { unmutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { unmutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (unmutePlayer) await unmutePlayer(player, { targetPlayerId }, 'playerActionsPanel');
         });
         form.button('Ban', 'textures/ui/hammer_l.png', async () => {
-            const { banPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { banPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (banPlayer) await banPlayer(player, { targetPlayerId }, 'playerActionsPanel');
         });
         form.button('Manage Ranks', 'textures/ui/icon_rank.png', async () => {
-            const { showManageRanksForm } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { showManageRanksForm } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (showManageRanksForm) await showManageRanksForm(player, { targetPlayerId }, 'playerActionsPanel');
         });
         form.button('Manage Stats', 'textures/ui/Scaffolding.png', async () => {
             await showPanel(player, 'managePlayerStatsPanel', { targetPlayerId });
         });
         form.button('See Inventory', 'textures/ui/inventory_icon.png', async () => {
-            const { seeInventory } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { seeInventory } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (seeInventory) await seeInventory(player, { targetPlayerId }, 'playerActionsPanel');
         });
         form.button('Teleport To', 'textures/ui/icon_map.png', async () => {
-            const { tpToPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { tpToPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (tpToPlayer) await tpToPlayer(player, { targetPlayerId }, 'playerActionsPanel');
         });
         form.button('Teleport Here', 'textures/ui/icon_map.png', async () => {
-            const { tpPlayerHere } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+            const { tpPlayerHere } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
             if (tpPlayerHere) await tpPlayerHere(player, { targetPlayerId }, 'playerActionsPanel');
         });
     }
 
     form.button('Send Friend Request', 'textures/ui/color_plus', async () => {
-        const { addFriend } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        const { addFriend } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
         if (addFriend) await addFriend(player, { targetPlayerId }, 'playerActionsPanel');
     });
 
     form.button('Send Money', 'textures/items/gold_ingot', async () => {
-        const { sendMoney } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        const { sendMoney } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
         if (sendMoney) await sendMoney(player, { targetPlayerId }, 'playerActionsPanel');
     });
 

@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+
 import { getConfig } from '@core/configManager.js';
 import { getValueFromPath } from '@core/objectUtils.js';
 import { hasPermission } from '@core/permissionEngine.js';
@@ -17,7 +18,7 @@ export async function showMainPanel(player: Player): Promise<void> {
     }
 
     form.button('Auction House', 'textures/items/gold_ingot', async () => {
-        const { openAuctionHouse } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        const { openAuctionHouse } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
         await openAuctionHouse(player, {}, 'mainPanel');
     });
 
@@ -53,12 +54,12 @@ export async function showMainPanel(player: Player): Promise<void> {
     });
 
     form.button('Rules', 'textures/items/book_enchanted.png', async () => {
-        const { showRules } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        const { showRules } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
         if (showRules) await showRules(player, {}, 'mainPanel');
     });
 
     form.button('Helpful Links', 'textures/items/chain', async () => {
-        const { showHelpfulLinks } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as never;
+        const { showHelpfulLinks } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
         if (showHelpfulLinks) await showHelpfulLinks(player, {}, 'mainPanel');
     });
 

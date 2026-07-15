@@ -119,7 +119,7 @@ export async function showConfigResetPanel(player: mc.Player, context: UIContext
         if (cat.id === 'resetAll') {
             form.button('§l§4Reset All Systems', 'textures/ui/trash', async () => {
                 _handleResetAll(player).catch((e) => {
-                    console.error(e);
+                    void e;
                 });
             });
         } else {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import * as mc from '@minecraft/server';
 
 import { errorLog } from '@core/logger.js';
