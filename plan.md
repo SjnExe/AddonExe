@@ -1,6 +1,5 @@
 # UI Panel Refactoring Plan
 
-
 ## Context
 
 This project is a Minecraft Bedrock scripting/addon project written in TypeScript. We use Bun for tooling (`bun format`, `bun run build`, `bun run test`). The UI architecture aims to rely on a programmatic, type-safe fluent builder pattern wrapping the `@minecraft/server-ui` API, avoiding legacy string-based registries.
@@ -70,9 +69,9 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 - [ ] Implement and test `ModalFormBuilder`.
 - [ ] Implement and test `MessageFormBuilder`.
 
-
 #### Session 1 Handover Context
-*(To be written by future sessions of Jules)*
+
+_(To be written by future sessions of Jules)_
 
 ### Session 2: Refactor Core Panels
 
@@ -81,9 +80,9 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 - [ ] Migrate `playerPanel` to the new functional builder pattern.
 - [ ] Migrate `configPanel` to the new functional builder pattern.
 
-
 #### Session 2 Handover Context
-*(To be written by future sessions of Jules)*
+
+_(To be written by future sessions of Jules)_
 
 ### Session 3: Refactor Feature Panels (Part 1)
 
@@ -92,9 +91,9 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 - [ ] Migrate UI panels in `src/features/essentials/ui/`.
 - [ ] Migrate UI panels in `src/features/games/ui/`.
 
-
 #### Session 3 Handover Context
-*(To be written by future sessions of Jules)*
+
+_(To be written by future sessions of Jules)_
 
 ### Session 4: Refactor Feature Panels (Part 2)
 
@@ -106,9 +105,9 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 - [ ] Migrate UI panels in `src/features/teleport/ui/`.
 - [ ] Migrate UI panels in `src/features/vote/ui/`.
 
-
 #### Session 4 Handover Context
-*(To be written by future sessions of Jules)*
+
+_(To be written by future sessions of Jules)_
 
 ### Session 5: Update Systems Registry and Remove Legacy Code
 
@@ -119,9 +118,9 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 - [ ] Delete `PanelRouter.ts`.
 - [ ] Remove legacy UI context types in `src/core/ui/types.ts`.
 
-
 #### Session 5 Handover Context
-*(To be written by future sessions of Jules)*
+
+_(To be written by future sessions of Jules)_
 
 ## Benefits
 
