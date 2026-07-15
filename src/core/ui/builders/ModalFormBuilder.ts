@@ -1,0 +1,93 @@
+import { Player } from '@minecraft/server';
+import { ModalFormData } from '@minecraft/server-ui';
+
+export class ModalFormBuilder<T extends Record<string, unknown> = Record<string, unknown>> {
+    private readonly form: ModalFormData;
+    private readonly keyMap: string[]; // Maps index to user-defined key
+
+    constructor() {
+        this.form = new ModalFormData();
+        this.keyMap = [];
+    }
+
+    public title(titleText: string): this {
+        this.form.title(titleText);
+        return this;
+    }
+
+    public toggle<K extends string>(key: K, label: string, defaultValue?: boolean): ModalFormBuilder<T & Record<K, boolean>> {
+        // Suppress TS errors since @minecraft/server-ui types expect primitive value arguments or options depending on version.
+        // We know from runtime usage `.toggle('Label', { defaultValue: true })` works in our specific setup.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (defaultValue !== undefined) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            this.form.toggle(label, { defaultValue });
+        } else {
+            this.form.toggle(label);
+        }
+        this.keyMap.push(key);
+        return this as unknown as ModalFormBuilder<T & Record<K, boolean>>;
+    }
+
+    public slider<K extends string>(key: K, label: string, minimumValue: number, maximumValue: number, valueStep: number, defaultValue?: number): ModalFormBuilder<T & Record<K, number>> {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const options: { valueStep: number; defaultValue?: number } = { valueStep };
+        if (defaultValue !== undefined) {
+            options.defaultValue = defaultValue;
+        }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.form.slider(label, Math.min(minimumValue, maximumValue), Math.max(minimumValue, maximumValue), options);
+        this.keyMap.push(key);
+        return this as unknown as ModalFormBuilder<T & Record<K, number>>;
+    }
+
+    public dropdown<K extends string>(key: K, label: string, options: string[], defaultValueIndex?: number): ModalFormBuilder<T & Record<K, number>> {
+        if (defaultValueIndex !== undefined) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            this.form.dropdown(label, options, { defaultValueIndex });
+        } else {
+            this.form.dropdown(label, options);
+        }
+        this.keyMap.push(key);
+        return this as unknown as ModalFormBuilder<T & Record<K, number>>;
+    }
+
+    public textField<K extends string>(key: K, label: string, placeholderText: string, defaultValue?: string): ModalFormBuilder<T & Record<K, string>> {
+        if (defaultValue !== undefined) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            this.form.textField(label, placeholderText, { defaultValue });
+        } else {
+            this.form.textField(label, placeholderText);
+        }
+        this.keyMap.push(key);
+        return this as unknown as ModalFormBuilder<T & Record<K, string>>;
+    }
+
+    public submitButton(text: string): this {
+        this.form.submitButton(text);
+        return this;
+    }
+
+    public async show(player: Player): Promise<{ canceled: boolean; cancelationReason?: string; formValues?: T }> {
+        const response = await this.form.show(player);
+        if (response.canceled) {
+            return { canceled: true, cancelationReason: response.cancelationReason };
+        }
+
+        const result: Record<string, unknown> = {};
+        response.formValues?.forEach((val: unknown, i: number) => {
+            const key = this.keyMap[i];
+            if (key) {
+                result[key] = val;
+            }
+        });
+
+        return { canceled: false, formValues: result as T };
+    }
+}

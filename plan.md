@@ -64,14 +64,14 @@ export async function showAdminPanel(player: mc.Player): Promise<void> {
 
 ### Session 1: Implement Core Builders
 
-- [ ] Create `src/core/ui/builders/` directory.
-- [ ] Implement and test `ActionFormBuilder`.
-- [ ] Implement and test `ModalFormBuilder`.
-- [ ] Implement and test `MessageFormBuilder`.
+- [x] Create `src/core/ui/builders/` directory.
+- [x] Implement and test `ActionFormBuilder`.
+- [x] Implement and test `ModalFormBuilder`.
+- [x] Implement and test `MessageFormBuilder`.
 
 #### Session 1 Handover Context
 
-_(To be written by future sessions of Jules)_
+The core builder classes (`ActionFormBuilder`, `ModalFormBuilder`, `MessageFormBuilder`) have been created in `src/core/ui/builders/` and their respective tests have been written in `__tests__/`. `bun format` and `bun test` ran successfully for these new builders. The builders wrap `@minecraft/server-ui` API allowing callback-based button mapping (`ActionFormBuilder`), type-safe mapped form responses (`ModalFormBuilder`), and simple closures for `MessageFormBuilder`.
 
 ### Session 2: Refactor Core Panels
 
