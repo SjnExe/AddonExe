@@ -1,13 +1,7 @@
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { getLeaderboard } from '@features/economy/leaderboardManager.js';
-import { BountyPanelHandler } from '@features/economy/ui/bountyPanel.js';
-import { EconomyPanelHandler } from '@features/economy/ui/panel.js';
-import { panelRouter } from '@ui/PanelRouter.js';
 
 export async function initialize(_isMigration: boolean) {
-    panelRouter.register(new EconomyPanelHandler());
-    panelRouter.register(new BountyPanelHandler());
-
     serviceLocator.registerService('economy.leaderboard', {
         getLeaderboard
     });

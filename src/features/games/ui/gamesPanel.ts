@@ -1,43 +1,64 @@
 import { showPanel } from '@core/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormResponse } from '@minecraft/server-ui';
+import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { getStaticMenuItems } from '@ui/panelBuilder.js';
-import { panelDefinitions, PanelItem, UIContext } from '@ui/panelRegistry.js';
-import { IPanelHandler } from '@ui/types.js';
+import { panelDefinitions, UIContext } from '@ui/panelRegistry.js';
 
-export class GamesPanelHandler implements IPanelHandler {
-    canHandle(panelId: string): boolean {
-        return panelId === 'gamesMainPanel' || panelId === 'wordleMainPanel';
-    }
+export async function showGamesMainPanel(player: mc.Player, context: UIContext = {}): Promise<void> {
+    const def = panelDefinitions['gamesMainPanel'];
+    if (!isDefined(def)) return;
 
-    getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
-        const items: PanelItem[] = [];
-        const def = panelDefinitions[panelId];
-        if (isDefined(def)) {
-            const staticItems = getStaticMenuItems(player, def);
-            items.push(...staticItems);
-        }
-        return Promise.resolve(items);
-    }
+    const form = new ActionFormBuilder().title(def.title).body(def.body ?? '');
+    const staticItems = getStaticMenuItems(player, def);
 
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse, context: UIContext): Promise<void> {
-        if (response.canceled || response.selection === undefined) return;
-
-        const items = await this.getItems(player, panelId, context);
-        if (response.selection >= 0 && response.selection < items.length) {
-            const item = items[response.selection];
-            if (!isDefined(item)) return;
+    for (const item of staticItems) {
+        form.button(item.text, item.icon, async () => {
             if (item.actionType === 'openPanel') {
                 return showPanel(player, item.actionValue, { ...context, page: 1 });
             }
             const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
             const action = uiActionFunctions[item.actionValue];
             if (isDefined(action)) {
-                await action(player, context, panelId);
-                return;
+                await action(player, context, 'gamesMainPanel');
+            } else {
+                player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
             }
-            player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
-        }
+        });
     }
+
+    form.addBackButton(async () => {
+        await showPanel(player, 'mainPanel', context);
+    });
+
+    await form.show(player);
+}
+
+export async function showWordleMainPanel(player: mc.Player, context: UIContext = {}): Promise<void> {
+    const def = panelDefinitions['wordleMainPanel'];
+    if (!isDefined(def)) return;
+
+    const form = new ActionFormBuilder().title(def.title).body(def.body ?? '');
+    const staticItems = getStaticMenuItems(player, def);
+
+    for (const item of staticItems) {
+        form.button(item.text, item.icon, async () => {
+            if (item.actionType === 'openPanel') {
+                return showPanel(player, item.actionValue, { ...context, page: 1 });
+            }
+            const { uiActionFunctions } = await import('@core/ui/actionRegistry.js');
+            const action = uiActionFunctions[item.actionValue];
+            if (isDefined(action)) {
+                await action(player, context, 'wordleMainPanel');
+            } else {
+                player.sendMessage(`§cAction ${item.actionValue} not mapped.`);
+            }
+        });
+    }
+
+    form.addBackButton(async () => {
+        await showGamesMainPanel(player, context);
+    });
+
+    await form.show(player);
 }
