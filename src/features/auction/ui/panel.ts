@@ -1,8 +1,9 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
 
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
-import { formatCurrency, formatTime, getTimestampFromUUIDv7, uiWait } from '@core/utils.js';
+import { formatCurrency, formatTime, getTimestampFromUUIDv7 } from '@core/utils.js';
 import { AuctionListing, buyItem, cancelListing, claimMailbox, claimMailboxItem, getListings, getListingsCount, placeBid, SortOption } from '@features/auction/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -37,24 +38,20 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
 
     const title = isNonEmptyString(searchQuery) ? `AH Search: "${searchQuery}" (${clampedPage}/${totalPages})` : `Auction House (${clampedPage}/${totalPages})`;
 
-    const form = new ActionFormData().title(title).body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
+    const form = new ActionFormBuilder().title(title).body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
 
-    const buttons: { label: string; icon?: string; action: () => Promise<void> }[] = [];
-
-    buttons.push({ label: '§eCollection Bin / Mailbox', icon: 'textures/items/minecart_chest', action: () => showMailboxUI(player) });
-    buttons.push({ label: '§bYour Listings', icon: 'textures/ui/recipe_book_icon', action: () => showYourListings(player) });
-    buttons.push({
-        label: isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search/Filter',
-        icon: 'textures/ui/magnifying_glass',
-        action: () => (isNonEmptyString(searchQuery) ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort))
-    });
-    buttons.push({ label: `§dSort: ${sortLabel}`, icon: 'textures/items/hopper', action: () => showSortUI(player, searchQuery, sort) });
+    form.button('§eCollection Bin / Mailbox', 'textures/items/minecart_chest', async () => showMailboxUI(player));
+    form.button('§bYour Listings', 'textures/ui/recipe_book_icon', async () => showYourListings(player));
+    form.button(isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass', async () =>
+        isNonEmptyString(searchQuery) ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort)
+    );
+    form.button(`§dSort: ${sortLabel}`, 'textures/items/hopper', async () => showSortUI(player, searchQuery, sort));
 
     if (clampedPage > 1) {
-        buttons.push({ label: '§c< Previous Page', action: () => showAuctionHouse(player, clampedPage - 1, searchQuery, sort) });
+        form.button('§c< Previous Page', undefined, async () => showAuctionHouse(player, clampedPage - 1, searchQuery, sort));
     }
     if (clampedPage < totalPages) {
-        buttons.push({ label: '§aNext Page >', action: () => showAuctionHouse(player, clampedPage + 1, searchQuery, sort) });
+        form.button('§aNext Page >', undefined, async () => showAuctionHouse(player, clampedPage + 1, searchQuery, sort));
     }
 
     for (const listing of listings) {
@@ -64,22 +61,10 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
         label += listing.isBid ? `§eBid: ${formatCurrency(listing.bidPrice ?? listing.price)}` : `§a${formatCurrency(listing.price)}`;
         label += ` §8By: ${listing.sellerName}`;
 
-        buttons.push({ label, action: () => showListingDetail(player, listing) });
+        form.button(label, undefined, async () => showListingDetail(player, listing));
     }
 
-    for (const btn of buttons) {
-        form.button(btn.label, btn.icon);
-    }
-
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
-    const actionResponse = response as ActionFormResponse;
-    if (actionResponse.selection === undefined) return;
-
-    const selectedAction = buttons[actionResponse.selection];
-    if (selectedAction) {
-        await selectedAction.action();
-    }
+    await form.show(player);
 }
 
 async function showListingDetail(player: mc.Player, listing: AuctionListing): Promise<void> {
@@ -100,56 +85,44 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
         details += `\n§7Durability: ${item.durability.max - item.durability.damage}/${item.durability.max}\n`;
     }
 
-    const form = new ActionFormData().title('Listing Details').body(details);
+    const form = new ActionFormBuilder().title('Listing Details').body(details);
 
     if (listing.sellerId === player.id) {
-        form.button('§4Cancel Listing (Return to Bin)');
+        form.button('§4Cancel Listing (Return to Bin)', undefined, () => {
+            const res = cancelListing(player, listing.id);
+            player.sendMessage(res.message);
+        });
     } else {
         if (listing.isBid) {
             const currentBid = listing.bidPrice ?? listing.price;
-            form.button(`§6Place Bid (Min: ${formatCurrency(currentBid + 1)})`);
-        } else {
-            form.button(`§2Buy Now for ${formatCurrency(listing.price)}`);
-        }
-    }
-    form.button('§4Back');
-
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
-    const actionResponse = response as ActionFormResponse;
-    if (actionResponse.selection === undefined) return;
-
-    if (actionResponse.selection === 0) {
-        if (listing.sellerId === player.id) {
-            const res = cancelListing(player, listing.id);
-            player.sendMessage(res.message);
-        } else {
-            if (listing.isBid) {
+            form.button(`§6Place Bid (Min: ${formatCurrency(currentBid + 1)})`, undefined, async () => {
                 await showBidUI(player, listing);
-            } else {
+            });
+        } else {
+            form.button(`§2Buy Now for ${formatCurrency(listing.price)}`, undefined, () => {
                 const res = buyItem(player, listing.id);
                 player.sendMessage(res.message);
-            }
+            });
         }
-    } else {
-        await showAuctionHouse(player);
     }
+    form.button('§4Back', undefined, async () => {
+        await showAuctionHouse(player);
+    });
+
+    await form.show(player);
 }
 
 async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<void> {
     const currentBid = listing.bidPrice ?? listing.price;
     const minBid = currentBid + 1;
 
-    const form = new ModalFormData().title('Place Bid').textField(`Enter bid amount (Min: ${minBid})`, minBid.toString());
+    const form = new ModalFormBuilder<{ bid: string }>().title('Place Bid').textField('bid', `Enter bid amount (Min: ${minBid})`, minBid.toString());
 
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
+    const response = await form.show(player);
+    if (response.canceled) return;
 
-    const modalResponse = response as ModalFormResponse;
-    if (!modalResponse.formValues) return;
-
-    const amountStr = modalResponse.formValues[0] as string;
-    const amount = Number.parseFloat(amountStr);
+    const { bid } = response.formValues!;
+    const amount = Number.parseFloat(bid);
 
     if (Number.isNaN(amount)) {
         player.sendMessage('§cInvalid number.');
@@ -161,112 +134,70 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
 }
 
 async function showSearchUI(player: mc.Player, currentSort: SortOption): Promise<void> {
-    const form = new ModalFormData().title('Search Auction House').textField('Search Query (Item/Seller)', 'Diamond Sword');
+    const form = new ModalFormBuilder<{ query: string }>().title('Search Auction House').textField('query', 'Search Query (Item/Seller)', 'Diamond Sword');
 
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
+    const response = await form.show(player);
+    if (response.canceled) return;
 
-    const modalResponse = response as ModalFormResponse;
-    if (!modalResponse.formValues) return;
-
-    const query = modalResponse.formValues[0] as string;
+    const { query } = response.formValues!;
     await showAuctionHouse(player, 1, query.trim(), currentSort);
 }
 
 async function showSortUI(player: mc.Player, searchQuery: string | undefined, currentSort: SortOption): Promise<void> {
-    const form = new ActionFormData().title('Sort Listings');
-    form.button('Newest', currentSort === SortOption.Newest ? 'textures/ui/check' : undefined);
-    form.button('Oldest', currentSort === SortOption.Oldest ? 'textures/ui/check' : undefined);
-    form.button('Price (Low to High)', currentSort === SortOption.PriceAsc ? 'textures/ui/check' : undefined);
-    form.button('Price (High to Low)', currentSort === SortOption.PriceDesc ? 'textures/ui/check' : undefined);
-    form.button('Seller Name', currentSort === SortOption.SellerAsc ? 'textures/ui/check' : undefined);
+    const form = new ActionFormBuilder().title('Sort Listings');
 
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return showAuctionHouse(player, 1, searchQuery, currentSort);
-    const selection = (response as ActionFormResponse).selection;
+    form.button('Newest', currentSort === SortOption.Newest ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.Newest));
+    form.button('Oldest', currentSort === SortOption.Oldest ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.Oldest));
+    form.button('Price (Low to High)', currentSort === SortOption.PriceAsc ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.PriceAsc));
+    form.button('Price (High to Low)', currentSort === SortOption.PriceDesc ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.PriceDesc));
+    form.button('Seller Name', currentSort === SortOption.SellerAsc ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.SellerAsc));
 
-    let newSort = SortOption.Newest;
-    if (selection === 1) newSort = SortOption.Oldest;
-    if (selection === 2) newSort = SortOption.PriceAsc;
-    if (selection === 3) newSort = SortOption.PriceDesc;
-    if (selection === 4) newSort = SortOption.SellerAsc;
-
-    await showAuctionHouse(player, 1, searchQuery, newSort);
+    const response = await form.show(player);
+    if (response.canceled) return showAuctionHouse(player, 1, searchQuery, currentSort);
 }
 
 async function showYourListings(player: mc.Player): Promise<void> {
     const listings = getListings(1, 1000, undefined, SortOption.Newest, player.id);
-    const form = new ActionFormData().title('Your Listings').body(`You have ${listings.length} active listings.`);
+    const form = new ActionFormBuilder().title('Your Listings').body(`You have ${listings.length} active listings.`);
 
-    const buttons: { label: string; action: () => Promise<void> }[] = [];
-    buttons.push({ label: '§c< Back to AH', action: () => showAuctionHouse(player) });
+    form.button('§c< Back to AH', undefined, async () => showAuctionHouse(player));
 
     for (const listing of listings) {
         let label = `§f${isNonEmptyString(listing.item.nameTag) ? listing.item.nameTag : listing.item.typeId.replace(/^minecraft:/, '')}`;
-        label += `
-§a${formatCurrency(listing.price)}`;
+        label += `\n§a${formatCurrency(listing.price)}`;
         if (listing.isBid && isDefined(listing.bidPrice)) {
             label += ` §eCurrent Bid: ${formatCurrency(listing.bidPrice)}`;
         }
-        buttons.push({ label, action: () => showListingDetail(player, listing) });
+        form.button(label, undefined, async () => showListingDetail(player, listing));
     }
 
-    for (const btn of buttons) {
-        form.button(btn.label);
-    }
-
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
-    const selection = (response as ActionFormResponse).selection;
-    if (selection === undefined) return;
-
-    const selectedAction = buttons[selection];
-    if (selectedAction) {
-        await selectedAction.action();
-    }
+    await form.show(player);
 }
 
 async function showMailboxUI(player: mc.Player): Promise<void> {
     const pData = getOrCreatePlayer(player);
     const mailbox = pData.mailbox;
 
-    const form = new ActionFormData().title('Collection Bin').body(`You have ${mailbox.length} items to claim.`);
+    const form = new ActionFormBuilder().title('Collection Bin').body(`You have ${mailbox.length} items to claim.`);
 
-    const buttons: { label: string; icon?: string; action: () => Promise<void> }[] = [];
-    buttons.push({ label: '§c< Back', action: () => showAuctionHouse(player) });
-    buttons.push({ label: '§aClaim All Items', icon: 'textures/ui/realms_green_check', action: () => claimMailboxUI(player) });
+    form.button('§c< Back', undefined, async () => showAuctionHouse(player));
+    form.button('§aClaim All Items', 'textures/ui/realms_green_check', async () => claimMailboxUI(player));
 
     for (let i = 0; i < mailbox.length; i++) {
         const item = mailbox[i];
         if (!isDefined(item)) continue;
-        const label = `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '')}
-§7x${item.amount}`;
+        const label = `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '')}\n§7x${item.amount}`;
         const itemIndex = i;
-        buttons.push({
-            label,
-            action: async () => {
-                const res = claimMailboxItem(player, itemIndex);
-                player.sendMessage(res.message);
-                await showMailboxUI(player); // Refresh
-            }
+        form.button(label, undefined, async () => {
+            const res = claimMailboxItem(player, itemIndex);
+            player.sendMessage(res.message);
+            await showMailboxUI(player); // Refresh
         });
     }
 
-    for (const btn of buttons) {
-        form.button(btn.label, btn.icon);
-    }
-
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) {
+    const response = await form.show(player);
+    if (response.canceled) {
         await showAuctionHouse(player);
-        return;
-    }
-    const selection = (response as ActionFormResponse).selection;
-    if (selection === undefined) return;
-
-    const selectedAction = buttons[selection];
-    if (selectedAction) {
-        await selectedAction.action();
     }
 }
 
