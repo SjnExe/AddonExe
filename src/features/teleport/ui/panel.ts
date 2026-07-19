@@ -1,6 +1,5 @@
 import { getConfig } from '@core/configManager.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
-import { showPanel } from '@core/uiManager.js';
 import * as tpaManager from '@features/teleport/tpaManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
@@ -28,7 +27,8 @@ export async function showTpaSettingsPanel(player: mc.Player): Promise<void> {
     });
 
     form.addBackButton(async () => {
-        await showPanel(player, 'profileMainPanel');
+        const { showMyStatsPanel } = await import('@core/ui/panels/playerPanel.js');
+        await showMyStatsPanel(player);
     });
 
     await form.show(player);

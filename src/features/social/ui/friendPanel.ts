@@ -2,7 +2,6 @@ import { getConfig } from '@core/configManager.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer, getPlayerIdByName } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { showPanel } from '@core/uiManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as friendManager from '@features/social/friendManager.js';
 import * as mc from '@minecraft/server';
@@ -24,7 +23,8 @@ export async function showFriendMainPanel(player: mc.Player): Promise<void> {
         });
 
     form.addBackButton(async () => {
-        await showPanel(player, 'mainPanel');
+        const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
+        await showMainPanel(player);
     });
 
     await form.show(player);

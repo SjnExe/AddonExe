@@ -1,8 +1,8 @@
 import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormBuilder } from '@core/ui/builders/ActionFormBuilder.js';
+import { ModalFormBuilder } from '@core/ui/builders/ModalFormBuilder.js';
 
-import { uiWait } from '@core/utils.js';
 import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/vote/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -29,47 +29,29 @@ async function handleActiveVote(player: mc.Player, activeVote: ReturnType<typeof
         body += results;
     }
 
-    const form = new ActionFormData().title('Current Vote').body(body);
+    const form = new ActionFormBuilder().title('Current Vote').body(body);
 
     if (hasVoted) {
-        form.button('§4Close');
+        form.button('§4Close', undefined, () => {});
     } else {
         for (const opt of activeVote.options) {
-            form.button(opt.text);
+            form.button(opt.text, undefined, () => {
+                if (isDefined(opt)) {
+                    const res = castVote(player, opt.id);
+                    player.sendMessage(res.message);
+                }
+            });
         }
     }
 
     if (isAdmin) {
-        form.button('§4End Vote Early');
-    }
-
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
-    const actionResponse = response as ActionFormResponse;
-    if (!isDefined(actionResponse.selection)) return;
-
-    if (hasVoted) {
-        if (isAdmin && actionResponse.selection === 1) {
+        form.button('§4End Vote Early', undefined, () => {
             endVote();
             player.sendMessage('§cVote ended manually.');
-        }
-        return;
+        });
     }
 
-    const selection = actionResponse.selection;
-    if (isAdmin && selection === activeVote.options.length) {
-        endVote();
-        player.sendMessage('§cVote ended manually.');
-        return;
-    }
-
-    if (selection < activeVote.options.length) {
-        const selectedOption = activeVote.options[selection];
-        if (isDefined(selectedOption)) {
-            const res = castVote(player, selectedOption.id);
-            player.sendMessage(res.message);
-        }
-    }
+    await form.show(player);
 }
 
 async function handleNoActiveVote(player: mc.Player, isAdmin: boolean) {
@@ -80,44 +62,35 @@ async function handleNoActiveVote(player: mc.Player, isAdmin: boolean) {
         body += `\n\n§7Last Vote: ${lastVote.question}\nStatus: Ended`;
     }
 
-    const form = new ActionFormData().title('Voting').body(body);
+    const form = new ActionFormBuilder().title('Voting').body(body);
 
     if (isAdmin) {
-        form.button('§2Create New Vote');
+        form.button('§2Create New Vote', undefined, async () => {
+            await showCreateVoteUI(player);
+        });
     } else {
-        form.button('§4Close');
+        form.button('§4Close', undefined, () => {});
     }
 
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
-    const actionResponse = response as ActionFormResponse;
-    if (!isDefined(actionResponse.selection)) return;
-
-    if (isAdmin && actionResponse.selection === 0) {
-        await showCreateVoteUI(player);
-    }
+    await form.show(player);
 }
 
 async function showCreateVoteUI(player: mc.Player) {
-    const form = new ModalFormData()
+    const form = new ModalFormBuilder<{ question: string; options: string; duration: string }>()
         .title('Create Vote')
-        .textField('Question', 'Do you like apples?')
-        .textField('Options (comma separated)', 'Yes, No, Maybe')
-        .textField('Duration (minutes, 0 for infinite)', '10');
+        .textField('question', 'Question', 'Do you like apples?')
+        .textField('options', 'Options (comma separated)', 'Yes, No, Maybe')
+        .textField('duration', 'Duration (minutes, 0 for infinite)', '10');
 
-    const response = await uiWait(player, form);
-    if (!isDefined(response) || response.canceled) return;
-    const modalResponse = response as ModalFormResponse;
-    if (!isDefined(modalResponse.formValues)) return;
+    const res = await form.show(player);
+    if (!res) return;
 
-    const [question, optionsStr, durationStr] = modalResponse.formValues as string[];
-
-    if (!isNonEmptyString(question) || !isNonEmptyString(optionsStr)) {
+    if (!isNonEmptyString(res.question) || !isNonEmptyString(res.options)) {
         player.sendMessage('§cQuestion and options are required.');
         return;
     }
 
-    const options = optionsStr
+    const options = res.options
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
@@ -126,8 +99,8 @@ async function showCreateVoteUI(player: mc.Player) {
         return;
     }
 
-    const duration = Number.parseInt(durationStr ?? '0') || 0;
+    const duration = Number.parseInt(res.duration) || 0;
     const durationSeconds = duration * 60;
 
-    createVote(player, question, options, durationSeconds);
+    createVote(player, res.question, options, durationSeconds);
 }

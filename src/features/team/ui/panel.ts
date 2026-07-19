@@ -2,7 +2,6 @@ import { getConfig } from '@core/configManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { showPanel } from '@core/uiManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as teamManager from '@features/team/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
@@ -59,7 +58,8 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
     }
 
     form.addBackButton(async () => {
-        await showPanel(player, 'mainPanel');
+        const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
+        await showMainPanel(player);
     });
 
     await form.show(player);

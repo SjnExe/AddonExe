@@ -97,17 +97,17 @@ Successfully migrated all UI panels within the `auction`, `economy`, `essentials
 
 ### Session 4: Refactor Feature Panels (Part 2)
 
-- [ ] Migrate UI panels in `src/features/kit/ui/`.
-- [ ] Migrate UI panels in `src/features/moderation/ui/`.
-- [ ] Migrate UI panels in `src/features/shop/ui/`.
-- [ ] Migrate UI panels in `src/features/social/ui/`.
-- [ ] Migrate UI panels in `src/features/team/ui/`.
-- [ ] Migrate UI panels in `src/features/teleport/ui/`.
-- [ ] Migrate UI panels in `src/features/vote/ui/`.
+- [x] Migrate UI panels in `src/features/kit/ui/`.
+- [x] Migrate UI panels in `src/features/moderation/ui/`.
+- [x] Migrate UI panels in `src/features/shop/ui/`.
+- [x] Migrate UI panels in `src/features/social/ui/`.
+- [x] Migrate UI panels in `src/features/team/ui/`.
+- [x] Migrate UI panels in `src/features/teleport/ui/`.
+- [x] Migrate UI panels in `src/features/vote/ui/`.
 
 #### Session 4 Handover Context
 
-_(To be written by future sessions of Jules)_
+Successfully replaced all legacy string-based `showPanel` routing with direct asynchronous functional imports (e.g. `showMainPanel`, `showMyStatsPanel`) within `shop`, `social`, `team`, and `teleport` UI feature files. The `vote` UI feature panel was also completely refactored to remove `ActionFormData` and `ModalFormData` in favor of the strongly-typed `ActionFormBuilder` and `ModalFormBuilder`, effectively decoupling it from the old manual index-matching logic. All changes were verified against `bun run check-types`. The next steps in Session 5 can now proceed to clean up the deprecated legacy routing and registry logic directly.
 
 ### Session 5: Update Systems Registry and Remove Legacy Code
 

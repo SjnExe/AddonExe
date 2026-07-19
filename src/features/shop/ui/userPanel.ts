@@ -1,6 +1,5 @@
 import { getShopConfig } from '@core/configurations.js';
 import { hasPermission } from '@core/permissionEngine.js';
-import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
 import { buyItem, getPlayerShopItemPrice, sellItem } from '@features/shop/manager.js';
 import { ensureItemsConfig } from '@features/shop/utils.js';
@@ -52,7 +51,8 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
     }
 
     form.addBackButton(async () => {
-        await showPanel(player, 'mainPanel');
+        const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
+        await showMainPanel(player);
     });
 
     await form.show(player);

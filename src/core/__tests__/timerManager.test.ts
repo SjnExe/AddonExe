@@ -15,8 +15,8 @@ describe('timerManager', () => {
 
         // Reset all mocks on system methods
         if ((mc.system.runInterval as any).mockClear) (mc.system.runInterval as any).mockClear();
-        if ((mc.system.runTimeout as any).mockClear) (mc.system.runTimeout as any).mockClear();
-        if ((mc.system.runJob as any).mockClear) (mc.system.runJob as any).mockClear();
+        if ((mc.system.runTimeout as any)&&(mc.system.runTimeout as any).mockClear) (mc.system.runTimeout as any).mockClear();
+        if ((mc.system.runJob as any)&&(mc.system.runJob as any).mockClear) (mc.system.runJob as any).mockClear();
         if ((mc.system.clearRun as any).mockClear) (mc.system.clearRun as any).mockClear();
         if ((mc.system as any).clearJob && (mc.system as any).clearJob.mockClear) (mc.system as any).clearJob.mockClear();
     });
