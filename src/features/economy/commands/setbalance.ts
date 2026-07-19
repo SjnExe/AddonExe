@@ -11,7 +11,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 // --- Online Commands (Selector Support) ---
 
 function handleOnlineEconomyCommand(executor: CommandExecutor, args: Record<string, unknown>, action: 'set' | 'add' | 'remove'): void {
-    if (!isFeatureActive('economy')) {
+    if (!isFeatureActive('eco')) {
         // @ts-ignore (ignoring unused var)
         sendMessage('§cThe Economy system is currently disabled globally.', executor);
         return;
@@ -118,7 +118,7 @@ const removeBalanceCommand: CustomCommand = {
 // --- Offline Commands (String Name Support) ---
 
 function handleOfflineEconomyCommand(executor: CommandExecutor, args: Record<string, unknown>, action: 'set' | 'add' | 'remove'): void {
-    if (!isFeatureActive('economy')) {
+    if (!isFeatureActive('eco')) {
         sendMessage('§cThe Economy system is currently disabled globally.', executor);
         // @ts-ignore (ignoring unused var)
         return;

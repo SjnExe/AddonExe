@@ -7,7 +7,7 @@ import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 export async function showMainPanel(player: Player): Promise<void> {
     const form = new ActionFormBuilder().title('Main Menu');
 
-    if (isFeatureActive('shop')) {
+    if (isFeatureActive('eco.shop')) {
         form.button('Shop', 'textures/ui/trade_icon', async () => {
             await showPanel(player, 'shopMainPanel');
         });
@@ -17,7 +17,7 @@ export async function showMainPanel(player: Player): Promise<void> {
         });
     }
 
-    if (isFeatureActive('auction')) {
+    if (isFeatureActive('eco.ah')) {
         form.button('Auction House', 'textures/items/gold_ingot', async () => {
             const { showAuctionHouse } = await import('@features/auction/ui/panel.js');
             await showAuctionHouse(player, 1);
@@ -28,7 +28,7 @@ export async function showMainPanel(player: Player): Promise<void> {
         });
     }
 
-    if (isFeatureActive('games')) {
+    if (isFeatureActive('game')) {
         form.button('Games', 'textures/ui/controller_icon.png', async () => {
             await showPanel(player, 'gamesMainPanel');
         });
@@ -43,7 +43,7 @@ export async function showMainPanel(player: Player): Promise<void> {
         await showPlayerListPanel(player);
     });
 
-    if (isFeatureActive('team')) {
+    if (isFeatureActive('soc.team')) {
         form.button('Team', 'textures/ui/icon_multiplayer.png', async () => {
             await showPanel(player, 'teamMainPanel');
         });
@@ -53,7 +53,7 @@ export async function showMainPanel(player: Player): Promise<void> {
         });
     }
 
-    if (isFeatureActive('social')) {
+    if (isFeatureActive('soc')) {
         form.button('Friends', 'textures/ui/icon_steve', async () => {
             await showPanel(player, 'friendMainPanel');
         });
@@ -64,7 +64,7 @@ export async function showMainPanel(player: Player): Promise<void> {
     }
 
     // Bounty depends on economy and bounties config, but let's map it roughly to economy for UI
-    if (isFeatureActive('economy')) {
+    if (isFeatureActive('eco')) {
         form.button('Bounty List', 'textures/items/netherite_sword.png', async () => {
             await showPanel(player, 'bountyListPanel');
         });

@@ -17,7 +17,7 @@ const balanceCommand: CustomCommand = {
     permissionNode: 'cmd.balance.member',
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!isFeatureActive('economy')) {
+        if (!isFeatureActive('eco')) {
             sendMessage('§cThe Economy system is currently disabled globally.', executor);
             return;
         }
@@ -62,7 +62,7 @@ const oBalanceCommand: CustomCommand = {
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!isFeatureActive('economy')) {
+        if (!isFeatureActive('eco')) {
             sendMessage('§cThe Economy system is currently disabled globally.', executor);
             return;
         }
@@ -92,7 +92,7 @@ const baltopCommand: CustomCommand = {
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         const config = getConfig();
-        if (!isFeatureActive('economy')) {
+        if (!isFeatureActive('eco')) {
             sendMessage('§cThe Economy system is currently disabled globally.', executor);
             return;
         }

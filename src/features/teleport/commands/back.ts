@@ -46,7 +46,7 @@ const backCommand: CustomCommand = {
 
         // Properly type the economy config check
 
-        const isEconomyEnabled = isFeatureActive('economy');
+        const isEconomyEnabled = isFeatureActive('eco');
 
         // Cost Check
         if (isEconomyEnabled && cost > 0 && pData.balance < cost) {

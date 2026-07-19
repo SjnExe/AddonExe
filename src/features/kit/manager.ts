@@ -137,7 +137,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     let isEconomyEnabled = false;
     try {
         // @ts-ignore (ignoring unused var)
-        isEconomyEnabled = isFeatureActive('economy');
+        isEconomyEnabled = isFeatureActive('eco');
     } catch {
         // Fallback
     }

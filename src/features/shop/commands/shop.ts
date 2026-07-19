@@ -22,7 +22,7 @@ const shopCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        if (!isFeatureActive('shop')) {
+        if (!isFeatureActive('eco.shop')) {
             // @ts-ignore (ignoring unused var)
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
@@ -40,7 +40,7 @@ const buyCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        if (!isFeatureActive('shop')) {
+        if (!isFeatureActive('eco.shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
             // @ts-ignore (ignoring unused var)
         }
@@ -58,7 +58,7 @@ const sellCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        if (!isFeatureActive('shop')) {
+        if (!isFeatureActive('eco.shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         // @ts-ignore (ignoring unused var)
@@ -77,7 +77,7 @@ const sellHandCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        if (!isFeatureActive('shop')) {
+        if (!isFeatureActive('eco.shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         const equipment = executor.getComponent(EntityComponentTypes.Equippable);
@@ -134,7 +134,7 @@ const addShopCommand: CustomCommand = {
             return;
         }
 
-        if (!isFeatureActive('shop')) {
+        if (!isFeatureActive('eco.shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
 

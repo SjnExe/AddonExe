@@ -116,7 +116,7 @@ function processTeamCreationCost(playerId: string, balance: number, cost: number
     let economyEnabled = false;
     try {
         // @ts-ignore (ignoring unused var)
-        economyEnabled = isFeatureActive('economy');
+        economyEnabled = isFeatureActive('eco');
     } catch {
         // Fallback
     }
@@ -254,7 +254,7 @@ export function deleteTeam(teamId: number): boolean {
     let economyEnabled = false;
     try {
         // @ts-ignore (ignoring unused var)
-        economyEnabled = isFeatureActive('economy');
+        economyEnabled = isFeatureActive('eco');
     } catch {
         // Fallback
     }

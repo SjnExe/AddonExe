@@ -25,7 +25,7 @@ const payCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) return;
 
         const config = getConfig();
-        if (!isFeatureActive('economy')) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
 
         const targetName = args.targets as string | undefined;
         const amountStr = args.amount as string | undefined;
@@ -80,7 +80,7 @@ const oPayCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) return;
 
         const config = getConfig();
-        if (!isFeatureActive('economy')) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
 
         const targetName = args.target as string | undefined;
         const amountStr = args.amount as string | undefined;
@@ -124,7 +124,7 @@ const payConfirmCommand: CustomCommand = {
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 
-        if (!isFeatureActive('economy')) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
 
         const pendingPayment = getPendingPayment(executor.id);
 
