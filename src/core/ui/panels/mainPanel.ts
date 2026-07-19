@@ -74,20 +74,8 @@ export async function showMainPanel(player: Player): Promise<void> {
         });
     }
 
-    form.button('Profile', 'textures/ui/profile_glyph_color', async () => {
-        await showPanel(player, 'profileMainPanel');
-    });
-
-    form.button('Server Info', 'textures/items/book_enchanted.png', async () => {
+    form.button('Info', 'textures/items/book_enchanted.png', async () => {
         await showPanel(player, 'infoPanel');
-    });
-
-    form.button('Rules', 'textures/items/book_enchanted.png', () => {
-        player.sendMessage('Rules panel not available.');
-    });
-
-    form.button('Helpful Links', 'textures/items/chain', () => {
-        player.sendMessage('Helpful links panel not available.');
     });
 
     if (hasPermission(player, 'ui.panel.mod')) {
@@ -97,6 +85,5 @@ export async function showMainPanel(player: Player): Promise<void> {
         });
     }
 
-    form.addCloseButton();
     await form.show(player);
 }

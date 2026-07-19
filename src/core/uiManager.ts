@@ -19,10 +19,29 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        if (panelId === 'infoPanel') {
+            const { showInfoPanel } = await import('@core/ui/panels/serverInfoPanel.js');
+            await showInfoPanel(player);
+            return;
+        }
+
         if (panelId === 'profileMainPanel') {
             const { showMyStatsPanel } = await import('@core/ui/panels/playerPanel.js');
             // Check if profile exists, if not, fallback to main
             await showMyStatsPanel(player);
+            return;
+        }
+
+        if (panelId === 'playerActionsPanel') {
+            const targetPlayerId = _context.targetPlayerId as string;
+            if (targetPlayerId) {
+                const { getPlayerNameById } = await import('@core/playerDataManager.js');
+                const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
+                const { showPlayerActionsPanel } = await import('@core/ui/panels/playerPanel.js');
+                await showPlayerActionsPanel(player, targetPlayerId, targetName);
+            } else {
+                player.sendMessage('§cMissing target player context.');
+            }
             return;
         }
 

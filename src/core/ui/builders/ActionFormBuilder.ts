@@ -43,11 +43,6 @@ export class ActionFormBuilder {
         return this;
     }
 
-    public addCloseButton(onClick?: () => void | Promise<void>): this {
-        this.button('§cClose', 'textures/gui/new_default/cancel', onClick);
-        return this;
-    }
-
     public async show(player: Player): Promise<ActionFormResponse> {
         const response = await this.form.show(player);
 

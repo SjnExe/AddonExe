@@ -76,14 +76,17 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
         form.button('Ban', 'textures/ui/hammer_l.png', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleBanPlayer(player, targetPlayerId));
         });
-        form.button('Manage Ranks', 'textures/ui/icon_rank.png', () => {
-            player.sendMessage('Rank management panel not available.');
+        form.button('Manage Ranks', 'textures/ui/icon_rank.png', async () => {
+            const { showRankManagementPanel } = await import('@features/ranks/ui/panel.js');
+            await showRankManagementPanel(player, targetPlayerId);
         });
-        form.button('Manage Stats', 'textures/ui/Scaffolding.png', () => {
-            player.sendMessage('Manage Player Stats panel not available.');
+        form.button('Manage Stats', 'textures/ui/Scaffolding.png', async () => {
+            const { showStatsPanel } = await import('@core/ui/panels/statsPanel.js');
+            await showStatsPanel(player, targetPlayerId);
         });
-        form.button('See Inventory', 'textures/ui/inventory_icon.png', () => {
-            player.sendMessage('Inventory panel not available.');
+        form.button('See Inventory', 'textures/ui/inventory_icon.png', async () => {
+            const { showInventoryPanel } = await import('@core/ui/panels/inventoryPanel.js');
+            await showInventoryPanel(player, targetPlayerId);
         });
         form.button('Teleport To', 'textures/ui/icon_map.png', () => {
             void import('@core/playerCache.js').then((m) => {
@@ -103,12 +106,14 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
         void import('@features/social/ui/friendPanel.js').then((m) => m.addFriendAction(player, targetPlayerId));
     });
 
-    form.button('Send Money', 'textures/items/gold_ingot', () => {
-        player.sendMessage('Send money not available.');
+    form.button('Send Money', 'textures/items/gold_ingot', async () => {
+        const { showTransferPanel } = await import('@features/economy/ui/transferPanel.js');
+        await showTransferPanel(player, targetPlayerId);
     });
 
-    form.button('Bounty Actions', 'textures/items/netherite_sword', () => {
-        player.sendMessage('Bounty panel disabled');
+    form.button('Bounty Actions', 'textures/items/netherite_sword', async () => {
+        const { showBountyPlayer } = await import('@features/economy/ui/bountyPanel.js');
+        await showBountyPlayer(player, { targetPlayerId });
     });
 
     form.addBackButton(async () => {
