@@ -89,9 +89,10 @@ export function isFeatureActive(featureId: string): boolean {
         }
 
         // Game Sub-features
-        case 'game.wordle':
-            // No direct toggle for wordle yet? Let's say true if game is true, or check wordleConfig
-            return true;
+        case 'game.wordle': {
+            const gamesConfigBase = configs.getGamesConfig();
+            return isDefined(gamesConfigBase) ? gamesConfigBase.wordle.enabled === true : false;
+        }
 
         // Teleport Sub-features
         case 'tp.home':
