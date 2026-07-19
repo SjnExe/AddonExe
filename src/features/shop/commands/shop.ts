@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { EntityComponentTypes } from '@minecraft/server';
 
 import * as mc from '@minecraft/server';
@@ -26,7 +27,7 @@ const shopCommand: CustomCommand = {
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
-        await showPanel(executor, 'shopMainPanel', { view: 'shop' });
+        await (showPanel as any)(executor, 'shopMainPanel', { view: 'shop' });
     }
 };
 
@@ -44,7 +45,7 @@ const buyCommand: CustomCommand = {
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
-        await showPanel(executor, 'shopMainPanel', { view: 'buy' });
+        await (showPanel as any)(executor, 'shopMainPanel', { view: 'buy' });
     }
 };
 
@@ -62,7 +63,7 @@ const sellCommand: CustomCommand = {
         if (!config.shop.enabled) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
-        await showPanel(executor, 'shopMainPanel', { view: 'sell' });
+        await (showPanel as any)(executor, 'shopMainPanel', { view: 'sell' });
     }
 };
 

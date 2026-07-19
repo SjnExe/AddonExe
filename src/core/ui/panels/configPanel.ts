@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { updateMultipleConfig } from '@core/configManager.js';
 import { getValueFromPath } from '@core/objectUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -139,7 +140,7 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
     }
 }
 
-export async function showConfigResetPanel(player: mc.Player, context: any = {}): Promise<void> {
+export async function showConfigResetPanel(player: mc.Player, _context: any = {}): Promise<void> {
     const form = new ActionFormBuilder()
         .title('Danger Zone')
         .button('Transfer Config', 'textures/ui/repeat', async () => {

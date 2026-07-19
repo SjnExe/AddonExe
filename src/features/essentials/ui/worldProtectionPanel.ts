@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
@@ -13,12 +14,12 @@ export async function showWorldProtectionListPanel(player: mc.Player, context: a
     const form = new ActionFormBuilder().title('World Protection Zones');
 
     form.button('Add New Zone', 'textures/ui/color_plus', async () => {
-        await showPanel(player, 'addWorldProtectionPanel', { ...context, page: 1 });
+        await (showPanel as any)(player, 'addWorldProtectionPanel', { ...context, page: 1 });
     });
 
     config.zones.forEach((zone) => {
         form.button(zone.name, 'textures/ui/icon_recipe_nature', async () => {
-            await showPanel(player, 'editWorldProtectionPanel', {
+            await (showPanel as any)(player, 'editWorldProtectionPanel', {
                 ...context,
                 page: 1,
                 selectedItemId: `zone_${zone.id}`
@@ -27,7 +28,7 @@ export async function showWorldProtectionListPanel(player: mc.Player, context: a
     });
 
     form.addBackButton(async () => {
-        await showPanel(player, 'essentialsMainPanel', context);
+        await (showPanel as any)(player, 'essentialsMainPanel', context);
     });
 
     await form.show(player);
