@@ -74,6 +74,7 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        debugLog(`[UIManager] Panel ${panelId} is not available or not implemented.`);
         player.sendMessage(`§cPanel ${panelId} is not available.`);
     } catch (error: unknown) {
         errorLog(`[UIManager] showPanel failed for panel '${String(panelId)}': ${String(error)}`);

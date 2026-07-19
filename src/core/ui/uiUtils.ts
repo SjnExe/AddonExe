@@ -4,13 +4,17 @@ import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js'
 import {
     getAuctionHouseConfig,
     getEconomyConfig,
+    getGamesConfig,
     getSidebarConfig,
     getTeamConfig,
+    getWordleConfig,
     getXrayConfig,
     saveAuctionHouseConfig,
     saveEconomyConfig,
+    saveGamesConfig,
     saveSidebarConfig,
     saveTeamConfig,
+    saveWordleConfig,
     saveXrayConfig,
     SidebarConfig
 } from '@core/configurations.js';
@@ -21,6 +25,8 @@ import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@featu
 import { xrayConfig } from '@features/anticheat/xrayConfig.js';
 import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.js';
 import { economyConfig } from '@features/economy/economyConfig.js';
+import { gamesConfig } from '@features/games/gamesConfig.js';
+import { wordleConfig } from '@features/games/wordle/wordleConfig.js';
 import ranksConfig from '@features/ranks/ranksConfig.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
@@ -32,13 +38,15 @@ type TeamConfig = typeof teamConfig;
 type RanksConfig = typeof ranksConfig;
 type ShopConfig = typeof shopConfig;
 type AuctionHouseConfig = typeof auctionHouseConfig;
+type GamesConfig = typeof gamesConfig;
+type WordleConfig = typeof wordleConfig;
 
 import { getSystemRegistry, SystemDefinition } from '@ui/systemRegistry.js';
 
 export const itemsPerPage = 8;
 
 interface ConfigHandler {
-    get: () => typeof Config | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig;
+    get: () => typeof Config | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig | GamesConfig | WordleConfig;
     save: (config: unknown) => void;
 }
 
@@ -70,6 +78,14 @@ export const configHandlers: Record<string, ConfigHandler> = {
     auctionHouse: {
         get: getAuctionHouseConfig,
         save: (config: unknown) => saveAuctionHouseConfig(config as AuctionHouseConfig)
+    },
+    games: {
+        get: getGamesConfig,
+        save: (config: unknown) => saveGamesConfig(config as GamesConfig)
+    },
+    wordle: {
+        get: getWordleConfig,
+        save: (config: unknown) => saveWordleConfig(config as WordleConfig)
     }
 };
 
