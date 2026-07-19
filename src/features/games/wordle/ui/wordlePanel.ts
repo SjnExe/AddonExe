@@ -2,16 +2,15 @@ import { getWordleConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
-import { IPanelHandler, UIContext } from '@ui/types.js';
 import { createSinglePlayerGame, createStaffHostedGame, endStaffHostedGame, formatGuess, getPlayerActiveGame, getStaffHostedGame, submitGuess } from '../wordleManager.js';
 
-export class WordlePanelHandler implements IPanelHandler {
+export class WordlePanelHandler {
     canHandle(panelId: string): boolean {
         return panelId === 'wordleSinglePlayerPanel' || panelId === 'wordleMultiplayerPanel' || panelId === 'wordleStaffGamePanel' || panelId === 'wordleSinglePlayerResultPanel';
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
-    async buildModal(player: mc.Player, panelId: string, context: UIContext): Promise<ModalFormData | ActionFormData | undefined> {
+    async buildModal(player: mc.Player, panelId: string, context: any): Promise<ModalFormData | ActionFormData | undefined> {
         if (panelId === 'wordleSinglePlayerPanel') {
             const config = getWordleConfig();
             if (!config.singlePlayer.enabled) {
@@ -85,7 +84,7 @@ export class WordlePanelHandler implements IPanelHandler {
         return undefined;
     }
 
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: any): Promise<void> {
         if (response.canceled) {
             if (panelId === 'wordleSinglePlayerPanel') {
                 // Return to menu on cancel

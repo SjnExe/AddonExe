@@ -25,7 +25,6 @@ import ranksConfig from '@features/ranks/ranksConfig.js';
 import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
 import * as mc from '@minecraft/server';
-import { PanelItem, UIContext } from '@ui/types.js';
 
 type EconomyConfig = typeof economyConfig;
 type XrayConfig = typeof xrayConfig;
@@ -97,9 +96,9 @@ export function addPaginationButtons(form: ActionFormData, page: number, totalIt
 }
 
 /**
- * Helper to add pagination items to a PanelItem array.
+ * Helper to add pagination items to a any array.
  */
-export function addPaginationItems(items: PanelItem[], page: number, totalItems: number, permission: string = 'ui.panel.member'): void {
+export function addPaginationItems(items: any[], page: number, totalItems: number, permission: string = 'ui.panel.member'): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         items.push({
@@ -124,9 +123,9 @@ export function addPaginationItems(items: PanelItem[], page: number, totalItems:
 }
 
 /**
- * Helper to add a standardized back button to a PanelItem array.
+ * Helper to add a standardized back button to a any array.
  */
-export function addBackButton(items: PanelItem[], targetPanelId: string, permission: string = 'ui.panel.member'): void {
+export function addBackButton(items: any[], targetPanelId: string, permission: string = 'ui.panel.member'): void {
     items.push({
         id: '__back__',
         text: '< Back',
@@ -205,7 +204,7 @@ export function getSystemsByCategory(player: mc.Player, category: string): Syste
     const systems = getVisibleSystems(player).filter((sys) => sys.category === category);
     return systems
         .map((sys) => ({
-            id: sys.configPanelId,
+            id: sys.id,
             title: sys.title,
             icon: sys.icon
         }))
@@ -216,7 +215,7 @@ export function getSystemsByCategory(player: mc.Player, category: string): Syste
  * Handles common selection actions like opening a panel or pagination.
  * Returns true if an action was handled, false otherwise.
  */
-export function handleCommonSelection(player: mc.Player, panelId: string, item: PanelItem, context: UIContext): boolean {
+export function handleCommonSelection(player: mc.Player, panelId: string, item: any, context: any): boolean {
     if (item.actionType === 'openPanel') {
         void showPanel(player, item.actionValue, {
             ...context,
@@ -234,7 +233,7 @@ export function handleCommonSelection(player: mc.Player, panelId: string, item: 
         return true;
     }
     if (item.actionValue === 'nextPage') {
-        void showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
+        void showPanel(player, panelId);
         return true;
     }
     return false;

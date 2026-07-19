@@ -5,11 +5,10 @@ import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
 
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/configurations.js';
-import { UIContext } from '@core/ui/types.js';
 import { showPanel } from '@core/uiManager.js';
 import { WorldProtectionZone } from '@features/essentials/worldProtectionConfig.js';
 
-export async function showWorldProtectionListPanel(player: mc.Player, context: UIContext = {}): Promise<void> {
+export async function showWorldProtectionListPanel(player: mc.Player, context: any = {}): Promise<void> {
     const config = getWorldProtectionConfig();
     const form = new ActionFormBuilder().title('World Protection Zones');
 
@@ -34,11 +33,11 @@ export async function showWorldProtectionListPanel(player: mc.Player, context: U
     await form.show(player);
 }
 
-export async function showAddWorldProtectionPanel(player: mc.Player, context: UIContext = {}): Promise<void> {
+export async function showAddWorldProtectionPanel(player: mc.Player, context: any = {}): Promise<void> {
     await handleWorldProtectionForm(player, false, context);
 }
 
-export async function showEditWorldProtectionPanel(player: mc.Player, context: UIContext): Promise<void> {
+export async function showEditWorldProtectionPanel(player: mc.Player, context: any): Promise<void> {
     await handleWorldProtectionForm(player, true, context);
 }
 
@@ -64,7 +63,7 @@ type WorldProtectionFormVals = {
     isDelete?: boolean;
 };
 
-async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, context: UIContext): Promise<void> {
+async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, context: any): Promise<void> {
     const config = getWorldProtectionConfig();
     let zone: WorldProtectionZone | undefined;
 
@@ -124,9 +123,9 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     }
 
     const response = await form.show(player);
-    if (response.canceled) return showWorldProtectionListPanel(player, context);
+    if (!response) return showWorldProtectionListPanel(player, context);
 
-    const values = response.formValues!;
+    const values = response;
     const newId = values.id.trim();
     const newName = values.name.trim();
     const dimension = dimensions[values.dimension] as string;
@@ -144,7 +143,7 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
 
     if (!newId || !newName || !pos1 || !pos2) {
         player.sendMessage('§cInvalid input. Please ensure coordinates are formatted correctly (x y z) and ID/Name are provided.');
-        return handleWorldProtectionForm(player, isEdit, context); // Basic recursive retry for now, UIContext forms values was messy
+        return handleWorldProtectionForm(player, isEdit, context); // Basic recursive retry for now, any forms values was messy
     }
 
     const minX = Math.min(pos1.x, pos2.x);

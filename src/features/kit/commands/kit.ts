@@ -5,7 +5,6 @@ import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/configManager.js';
 import { errorLog } from '@core/logger.js';
-import { showPanel } from '@core/uiManager.js';
 import { formatCooldown, uiWait } from '@core/utils.js';
 import { createKit, getAllKits } from '@features/kit/adminManager.js';
 import { addItemToKit } from '@features/kit/itemsManager.js';
@@ -202,7 +201,8 @@ const addKitCommand: CustomCommand = {
         }
 
         executor.sendMessage(`§aSuccessfully created kit '${lowerCaseKitName}'. Opening editor...`);
-        await showPanel(executor, `kitActionMenu_${lowerCaseKitName}`);
+        const { showKitActionMenu } = await import('@features/kit/ui/panel.js');
+        await showKitActionMenu(executor, lowerCaseKitName);
     }
 };
 

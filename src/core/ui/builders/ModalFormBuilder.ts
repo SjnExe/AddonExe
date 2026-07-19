@@ -1,9 +1,18 @@
 import { Player } from '@minecraft/server';
 import { ModalFormData } from '@minecraft/server-ui';
 
+interface DropdownData {
+    type: 'dropdown';
+    options: string[];
+}
+
+interface OtherData {
+    type: 'other';
+}
+
 export class ModalFormBuilder<T extends Record<string, unknown> = Record<string, unknown>> {
     private readonly form: ModalFormData;
-    private readonly keyMap: string[]; // Maps index to user-defined key
+    private readonly keyMap: { key: string; meta: DropdownData | OtherData }[];
 
     constructor() {
         this.form = new ModalFormData();
@@ -16,8 +25,6 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
     }
 
     public toggle<K extends string>(key: K, label: string, defaultValue?: boolean): ModalFormBuilder<T & Record<K, boolean>> {
-        // Suppress TS errors since @minecraft/server-ui types expect primitive value arguments or options depending on version.
-        // We know from runtime usage `.toggle('Label', { defaultValue: true })` works in our specific setup.
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (defaultValue !== undefined) {
@@ -27,7 +34,7 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         } else {
             this.form.toggle(label);
         }
-        this.keyMap.push(key);
+        this.keyMap.push({ key, meta: { type: 'other' } });
         return this as unknown as ModalFormBuilder<T & Record<K, boolean>>;
     }
 
@@ -41,11 +48,11 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.form.slider(label, Math.min(minimumValue, maximumValue), Math.max(minimumValue, maximumValue), options);
-        this.keyMap.push(key);
+        this.keyMap.push({ key, meta: { type: 'other' } });
         return this as unknown as ModalFormBuilder<T & Record<K, number>>;
     }
 
-    public dropdown<K extends string>(key: K, label: string, options: string[], defaultValueIndex?: number): ModalFormBuilder<T & Record<K, number>> {
+    public dropdown<K extends string>(key: K, label: string, options: string[], defaultValueIndex?: number): ModalFormBuilder<T & Record<K, string>> {
         if (defaultValueIndex !== undefined) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
@@ -53,8 +60,8 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         } else {
             this.form.dropdown(label, options);
         }
-        this.keyMap.push(key);
-        return this as unknown as ModalFormBuilder<T & Record<K, number>>;
+        this.keyMap.push({ key, meta: { type: 'dropdown', options } });
+        return this as unknown as ModalFormBuilder<T & Record<K, string>>;
     }
 
     public textField<K extends string>(key: K, label: string, placeholderText: string, defaultValue?: string): ModalFormBuilder<T & Record<K, string>> {
@@ -65,7 +72,7 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         } else {
             this.form.textField(label, placeholderText);
         }
-        this.keyMap.push(key);
+        this.keyMap.push({ key, meta: { type: 'other' } });
         return this as unknown as ModalFormBuilder<T & Record<K, string>>;
     }
 
@@ -74,20 +81,24 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         return this;
     }
 
-    public async show(player: Player): Promise<{ canceled: boolean; cancelationReason?: string; formValues?: T }> {
+    public async show(player: Player): Promise<T | undefined> {
         const response = await this.form.show(player);
         if (response.canceled) {
-            return { canceled: true, cancelationReason: response.cancelationReason };
+            return undefined;
         }
 
         const result: Record<string, unknown> = {};
         response.formValues?.forEach((val: unknown, i: number) => {
-            const key = this.keyMap[i];
-            if (key) {
-                result[key] = val;
+            const mapInfo = this.keyMap[i];
+            if (mapInfo) {
+                if (mapInfo.meta.type === 'dropdown' && typeof val === 'number') {
+                    result[mapInfo.key] = mapInfo.meta.options[val];
+                } else {
+                    result[mapInfo.key] = val;
+                }
             }
         });
 
-        return { canceled: false, formValues: result as T };
+        return result as T;
     }
 }
