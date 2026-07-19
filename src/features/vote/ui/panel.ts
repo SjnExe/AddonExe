@@ -1,7 +1,7 @@
 import { hasPermission } from '@core/permissionEngine.js';
-import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@core/ui/builders/ActionFormBuilder.js';
 import { ModalFormBuilder } from '@core/ui/builders/ModalFormBuilder.js';
+import * as mc from '@minecraft/server';
 
 import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/vote/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
