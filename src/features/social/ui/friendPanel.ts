@@ -176,7 +176,7 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
     const form = new ActionFormBuilder().title(`Manage ${friendName}`);
 
     if (onlineP) {
-        form.button('Teleport To', 'textures/ui/icon_map', async () => {
+        form.button('Teleport To', 'textures/ui/icon_map', () => {
             player.sendMessage(`§eRequesting teleport to ${friendName}...`);
             // Assuming TPA manager logic here or just direct tp if allowed.
             // We'll use the existing TPA system via a command execution or direct call if available.
@@ -201,6 +201,7 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
 
 // Ensure the old action is supported for backwards compat if needed, or remove.
 export async function addFriendAction(player: mc.Player, targetPlayerId: string): Promise<void> {
+    await Promise.resolve();
     const result = friendManager.sendFriendRequest(player, targetPlayerId);
     player.sendMessage(result.message);
 }

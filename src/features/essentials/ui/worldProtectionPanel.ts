@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
@@ -9,17 +8,17 @@ import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/confi
 import { showPanel } from '@core/uiManager.js';
 import { WorldProtectionZone } from '@features/essentials/worldProtectionConfig.js';
 
-export async function showWorldProtectionListPanel(player: mc.Player, context: any = {}): Promise<void> {
+export async function showWorldProtectionListPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
     const config = getWorldProtectionConfig();
     const form = new ActionFormBuilder().title('World Protection Zones');
 
     form.button('Add New Zone', 'textures/ui/color_plus', async () => {
-        await (showPanel as any)(player, 'addWorldProtectionPanel', { ...context, page: 1 });
+        await showPanel(player, 'addWorldProtectionPanel', { ...context, page: 1 });
     });
 
     config.zones.forEach((zone) => {
         form.button(zone.name, 'textures/ui/icon_recipe_nature', async () => {
-            await (showPanel as any)(player, 'editWorldProtectionPanel', {
+            await showPanel(player, 'editWorldProtectionPanel', {
                 ...context,
                 page: 1,
                 selectedItemId: `zone_${zone.id}`
@@ -28,17 +27,17 @@ export async function showWorldProtectionListPanel(player: mc.Player, context: a
     });
 
     form.addBackButton(async () => {
-        await (showPanel as any)(player, 'essentialsMainPanel', context);
+        await showPanel(player, 'essentialsMainPanel', context);
     });
 
     await form.show(player);
 }
 
-export async function showAddWorldProtectionPanel(player: mc.Player, context: any = {}): Promise<void> {
+export async function showAddWorldProtectionPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
     await handleWorldProtectionForm(player, false, context);
 }
 
-export async function showEditWorldProtectionPanel(player: mc.Player, context: any): Promise<void> {
+export async function showEditWorldProtectionPanel(player: mc.Player, context: Record<string, unknown>): Promise<void> {
     await handleWorldProtectionForm(player, true, context);
 }
 
@@ -64,12 +63,12 @@ type WorldProtectionFormVals = {
     isDelete?: boolean;
 };
 
-async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, context: any): Promise<void> {
+async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, context: Record<string, unknown>): Promise<void> {
     const config = getWorldProtectionConfig();
     let zone: WorldProtectionZone | undefined;
 
-    if (isEdit && context.selectedItemId) {
-        const zoneId = context.selectedItemId.replace('zone_', '');
+    if (isEdit && (context.selectedItemId as string)) {
+        const zoneId = (context.selectedItemId as string).replace('zone_', '');
         zone = config.zones.find((z) => z.id === zoneId);
         if (!zone) return showWorldProtectionListPanel(player, context);
     }
@@ -172,7 +171,7 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     };
 
     if (isEdit) {
-        const oldZoneId = context.selectedItemId!.replace('zone_', '');
+        const oldZoneId = (context.selectedItemId as string).replace('zone_', '');
 
         if (values.isDelete) {
             config.zones = config.zones.filter((z) => z.id !== oldZoneId);

@@ -5,7 +5,7 @@ import * as mc from '@minecraft/server';
 /**
  * Main entry point for showing a UI panel to a player.
  */
-export async function showPanel(player: mc.Player, panelId: string) {
+export async function showPanel(player: mc.Player, panelId: string, _context: Record<string, unknown> = {}) {
     try {
         const cooldown = getCooldown(player.id, 'ui_spam');
         if (cooldown > 0) return;
@@ -22,7 +22,7 @@ export async function showPanel(player: mc.Player, panelId: string) {
         if (panelId === 'profileMainPanel') {
             const { showMyStatsPanel } = await import('@core/ui/panels/playerPanel.js');
             // Check if profile exists, if not, fallback to main
-            if (showMyStatsPanel) await showMyStatsPanel(player);
+            await showMyStatsPanel(player);
             return;
         }
 

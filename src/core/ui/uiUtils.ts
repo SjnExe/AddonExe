@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { ActionFormData } from '@minecraft/server-ui';
 
 import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
@@ -99,7 +98,7 @@ export function addPaginationButtons(form: ActionFormData, page: number, totalIt
 /**
  * Helper to add pagination items to a any array.
  */
-export function addPaginationItems(items: any[], page: number, totalItems: number, permission: string = 'ui.panel.member'): void {
+export function addPaginationItems(items: Record<string, unknown>[], page: number, totalItems: number, permission: string = 'ui.panel.member'): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
         items.push({
@@ -126,7 +125,7 @@ export function addPaginationItems(items: any[], page: number, totalItems: numbe
 /**
  * Helper to add a standardized back button to a any array.
  */
-export function addBackButton(items: any[], targetPanelId: string, permission: string = 'ui.panel.member'): void {
+export function addBackButton(items: Record<string, unknown>[], targetPanelId: string, permission: string = 'ui.panel.member'): void {
     items.push({
         id: '__back__',
         text: '< Back',
@@ -216,25 +215,30 @@ export function getSystemsByCategory(player: mc.Player, category: string): Syste
  * Handles common selection actions like opening a panel or pagination.
  * Returns true if an action was handled, false otherwise.
  */
-export function handleCommonSelection(player: mc.Player, panelId: string, item: any, context: any): boolean {
-    if (item.actionType === 'openPanel') {
-        void (showPanel as any)(player, item.actionValue, {
+export function handleCommonSelection(player: mc.Player, panelId: string, item: Record<string, unknown>, context: Record<string, unknown>): boolean {
+    const actionType = item.actionType as string | undefined;
+    const actionValue = item.actionValue as string | undefined;
+    const id = item.id as string | undefined;
+
+    if (actionType === 'openPanel' && actionValue) {
+        void showPanel(player, actionValue, {
             ...context,
             page: 1,
-            selectedItemId: item.id,
-            id: item.id
+            selectedItemId: id,
+            id: id
         });
         return true;
     }
-    if (item.actionValue === 'prevPage') {
-        void (showPanel as any)(player, panelId, {
+    if (actionValue === 'prevPage') {
+        const currentPage = (context.page as number) || 1;
+        void showPanel(player, panelId, {
             ...context,
-            page: Math.max(1, (context.page as number) || 1) - 1
+            page: Math.max(1, currentPage - 1)
         });
         return true;
     }
-    if (item.actionValue === 'nextPage') {
-        void (showPanel as any)(player, panelId);
+    if (actionValue === 'nextPage') {
+        void showPanel(player, panelId);
         return true;
     }
     return false;

@@ -169,7 +169,8 @@ export async function handleMutePlayer(player: mc.Player, targetPlayerId: string
     }
 }
 
-export async function handleUnmutePlayer(player: mc.Player, targetPlayerId: string) {
+export async function handleUnmutePlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
+    await Promise.resolve();
     const punishment = punishmentManager.getPunishment(targetPlayerId, 'mute');
     if (!isDefined(punishment)) {
         player.sendMessage('§4Player is not muted.');

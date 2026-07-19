@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 import { getWordleConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
@@ -17,7 +16,7 @@ export function registerWordleCommands() {
                 executor.sendMessage('§cWordle is currently disabled.');
                 return;
             }
-            await (showPanel as any)(executor, 'wordleMainPanel', { page: 1 });
+            await showPanel(executor, 'wordleMainPanel', { page: 1 });
         }
     };
     commandManager.register(cmd);

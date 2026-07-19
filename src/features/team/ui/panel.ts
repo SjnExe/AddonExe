@@ -36,7 +36,7 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
         });
 
         if (team.home) {
-            form.button('Teleport to Home', 'textures/ui/portal', async () => {
+            form.button('Teleport to Home', 'textures/ui/portal', () => {
                 teamManager.teleportToTeamHome(player);
             });
         }

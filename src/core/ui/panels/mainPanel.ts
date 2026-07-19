@@ -1,5 +1,3 @@
-
-
 import { getConfig } from '@core/configManager.js';
 import { getValueFromPath } from '@core/objectUtils.js';
 import { hasPermission } from '@core/permissionEngine.js';
@@ -53,11 +51,11 @@ export async function showMainPanel(player: Player): Promise<void> {
         await showPanel(player, 'infoPanel');
     });
 
-    form.button('Rules', 'textures/items/book_enchanted.png', async () => {
+    form.button('Rules', 'textures/items/book_enchanted.png', () => {
         player.sendMessage('Rules panel not available.');
     });
 
-    form.button('Helpful Links', 'textures/items/chain', async () => {
+    form.button('Helpful Links', 'textures/items/chain', () => {
         player.sendMessage('Helpful links panel not available.');
     });
 

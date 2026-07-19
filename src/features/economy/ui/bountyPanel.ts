@@ -1,4 +1,3 @@
-/* eslint-disable */
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
@@ -11,7 +10,7 @@ import * as bountyManager from '@features/economy/bountyManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
-export async function showBountyListPanel(player: mc.Player, context: any = {}): Promise<void> {
+export async function showBountyListPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
     const page = (context.page as number) || 1;
     const form = new ActionFormBuilder().title('Bounties');
 
@@ -26,7 +25,7 @@ export async function showBountyListPanel(player: mc.Player, context: any = {}):
 
         for (const b of paginated) {
             form.button(`${b.name}\n${formatCurrency(b.amount)}`, 'textures/items/netherite_sword', async () => {
-                await (showPanel as any)(player, 'playerActionsPanel', {
+                await showPanel(player, 'playerActionsPanel', {
                     ...context,
                     page: 1,
                     targetPlayerId: b.playerId,
@@ -51,13 +50,13 @@ export async function showBountyListPanel(player: mc.Player, context: any = {}):
     }
 
     form.addBackButton(async () => {
-        await (showPanel as any)(player, 'economyMainPanel', context);
+        await showPanel(player, 'economyMainPanel', context);
     });
 
     await form.show(player);
 }
 
-export async function showBountyPlayer(player: mc.Player, context: any): Promise<void> {
+export async function showBountyPlayer(player: mc.Player, context: Record<string, unknown>): Promise<void> {
     const targetId = context.targetPlayerId as string;
     if (!isNonEmptyString(targetId)) return;
 
@@ -98,10 +97,10 @@ export async function showBountyPlayer(player: mc.Player, context: any): Promise
     if ((bountiesConfig?.announce ?? true) === true) {
         mc.world.sendMessage(`§6[Bounty] §r${player.name} has placed a ${formatCurrency(amount)} bounty on ${isDefined(targetData) ? targetData.name : 'Unknown'}!`);
     }
-    return (showPanel as any)(player, 'playerActionsPanel', context);
+    await showPanel(player, 'playerActionsPanel', context);
 }
 
-export async function showRemovePlayerBounty(player: mc.Player, context: any): Promise<void> {
+export async function showRemovePlayerBounty(player: mc.Player, context: Record<string, unknown>): Promise<void> {
     const targetId = context.targetPlayerId as string;
     if (!isNonEmptyString(targetId)) return;
 

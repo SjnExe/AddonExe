@@ -96,7 +96,7 @@ export function getSystemRegistry(): SystemDefinition[] {
             id: 'economy',
             title: 'Economy System',
             icon: 'textures/ui/Scaffolding',
-            showFunction: async (player) => {
+            showFunction: (player) => {
                 player.sendMessage('Economy main panel not available.');
             },
             category: 'Economy',

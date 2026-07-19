@@ -152,8 +152,7 @@ async function showSortUI(player: mc.Player, searchQuery: string | undefined, cu
     form.button('Price (High to Low)', currentSort === SortOption.PriceDesc ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.PriceDesc));
     form.button('Seller Name', currentSort === SortOption.SellerAsc ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.SellerAsc));
 
-    const response = await form.show(player);
-    if (!response) return showAuctionHouse(player, 1, searchQuery, currentSort);
+    await form.show(player);
 }
 
 async function showYourListings(player: mc.Player): Promise<void> {
@@ -195,10 +194,7 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
         });
     }
 
-    const response = await form.show(player);
-    if (!response) {
-        await showAuctionHouse(player);
-    }
+    await form.show(player);
 }
 
 async function claimMailboxUI(player: mc.Player): Promise<void> {

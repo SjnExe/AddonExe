@@ -8,28 +8,46 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
-('@core/playerDataManager.js');
+
+interface ShopItemInfo {
+    itemId: string;
+    buyPrice: number;
+    sellPrice: number;
+    displayName?: string;
+    icon?: string;
+    permission?: string;
+    rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
+}
+interface ShopSubCategory {
+    icon?: string;
+    items: Record<string, ShopItemInfo>;
+}
+interface ShopCategory {
+    icon?: string;
+    subCategories?: Record<string, ShopSubCategory>;
+    items: Record<string, ShopItemInfo>;
+}
 
 export async function showShopMainPanel(player: mc.Player): Promise<void> {
     await ensureItemsConfig();
-    const form = new ActionFormBuilder().title('Shop').button('§l§6Search Item', 'textures/ui/magnifyingGlass', async () => {
-        await showShopSearchPanel(player);
+    const form = new ActionFormBuilder().title('Shop').button('§l§6Search Item', ['textures/ui', 'magnifyingGlass'].join('/'), () => {
+        void showShopSearchPanel(player);
     });
 
     const shopConfig = getShopConfig();
     const validCategories = Object.keys(shopConfig.categories)
         .filter((categoryName: string) => {
-            const category = shopConfig.categories[categoryName];
+            const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
             if (!isDefined(category)) return false;
-            return Object.keys(category.items).length > 0 || Object.keys(category.subCategories).length > 0;
+            return Object.keys(category.items).length > 0 || (category.subCategories && Object.keys(category.subCategories).length > 0);
         })
         .toSorted((a, b) => a.localeCompare(b));
 
     for (const catName of validCategories) {
-        const cat = shopConfig.categories[catName];
+        const cat = shopConfig.categories[catName] as ShopCategory | undefined;
         if (!isDefined(cat)) continue;
-        form.button(catName, cat.icon, async () => {
-            await showShopCategoryPanel(player, catName, 1);
+        form.button(catName, cat.icon, () => {
+            void showShopCategoryPanel(player, catName, 1);
         });
     }
 
@@ -42,17 +60,16 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
 
 export async function showShopCategoryPanel(player: mc.Player, categoryName: string, page: number = 1): Promise<void> {
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName];
+    const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
 
     if (!category) {
         player.sendMessage('§cCategory not found.');
-        await showShopMainPanel(player);
+        void showShopMainPanel(player);
         return;
     }
 
     const form = new ActionFormBuilder().title(categoryName);
-
-    const entries: { type: 'subCategory' | 'item'; id: string; name: string; icon?: string; itemData?: any }[] = [];
+    const entries: { type: 'subCategory' | 'item'; id: string; name: string; icon?: string; itemData?: unknown }[] = [];
 
     if (category.subCategories) {
         for (const [subId, subData] of Object.entries(category.subCategories)) {
@@ -60,11 +77,9 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
         }
     }
 
-    if (category.items) {
-        for (const [itemId, itemData] of Object.entries(category.items)) {
-            if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) continue;
-            entries.push({ type: 'item', id: itemId, name: itemData.displayName || itemId.replace('minecraft:', ''), icon: itemData.icon, itemData });
-        }
+    for (const [itemId, itemData] of Object.entries(category.items)) {
+        if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) continue;
+        entries.push({ type: 'item', id: itemId, name: itemData.displayName || itemId, icon: itemData.icon, itemData });
     }
 
     form.addPaginatedButtons(
@@ -72,29 +87,29 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
         page,
         (entry, formBuilder) => {
             if (entry.type === 'subCategory') {
-                formBuilder.button(`§l${entry.name}`, entry.icon, async () => {
-                    await showShopItemListPanel(player, categoryName, entry.id, 1);
+                formBuilder.button(`§l substitute ${entry.name}`, entry.icon, () => {
+                    void showShopItemListPanel(player, categoryName, entry.id, 1);
                 });
             } else {
-                const itemData = entry.itemData!;
+                const itemData = entry.itemData as ShopItemInfo;
                 const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
                 let displayPrice = '';
                 if (prices.buyPrice > 0) displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
                 if (prices.sellPrice > 0) displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
                 if (displayPrice === '') displayPrice = '§cNot For Sale';
 
-                formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, async () => {
-                    await showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'category', categoryName, page });
+                formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
+                    void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'category', categoryName, page });
                 });
             }
         },
-        async (newPage) => {
-            await showShopCategoryPanel(player, categoryName, newPage);
+        (newPage) => {
+            void showShopCategoryPanel(player, categoryName, newPage);
         }
     );
 
-    form.addBackButton(async () => {
-        await showShopMainPanel(player);
+    form.addBackButton(() => {
+        void showShopMainPanel(player);
     });
 
     await form.show(player);
@@ -102,46 +117,43 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
 
 export async function showShopItemListPanel(player: mc.Player, categoryName: string, subCategoryName: string, page: number = 1): Promise<void> {
     const shopConfig = getShopConfig();
-    const category = shopConfig.categories[categoryName];
-    if (!category || !category.subCategories || !category.subCategories[subCategoryName]) {
+    const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
+    const subCat = category?.subCategories?.[subCategoryName];
+    if (!subCat) {
         player.sendMessage('§cSub-category not found.');
-        await showShopCategoryPanel(player, categoryName, 1);
+        void showShopCategoryPanel(player, categoryName, 1);
         return;
     }
 
-    const subCat = category.subCategories[subCategoryName];
     const form = new ActionFormBuilder().title(subCategoryName);
-
-    const entries: { id: string; name: string; icon?: string; itemData: any }[] = [];
-    if (subCat.items) {
-        for (const [itemId, itemData] of Object.entries(subCat.items)) {
-            if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) continue;
-            entries.push({ id: itemId, name: itemData.displayName || itemId.replace('minecraft:', ''), icon: itemData.icon, itemData });
-        }
+    const entries: { id: string; name: string; icon?: string; itemData: unknown }[] = [];
+    for (const [itemId, itemData] of Object.entries(subCat.items)) {
+        if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) continue;
+        entries.push({ id: itemId, name: itemData.displayName || itemId, icon: itemData.icon, itemData });
     }
 
     form.addPaginatedButtons(
         entries,
         page,
         (entry, formBuilder) => {
-            const itemData = entry.itemData;
+            const itemData = entry.itemData as ShopItemInfo;
             const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
             let displayPrice = '';
             if (prices.buyPrice > 0) displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
             if (prices.sellPrice > 0) displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
             if (displayPrice === '') displayPrice = '§cNot For Sale';
 
-            formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, async () => {
-                await showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'subCategory', categoryName, subCategoryName, page });
+            formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
+                void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'subCategory', categoryName, subCategoryName, page });
             });
         },
-        async (newPage) => {
-            await showShopItemListPanel(player, categoryName, subCategoryName, newPage);
+        (newPage) => {
+            void showShopItemListPanel(player, categoryName, subCategoryName, newPage);
         }
     );
 
-    form.addBackButton(async () => {
-        await showShopCategoryPanel(player, categoryName, 1);
+    form.addBackButton(() => {
+        void showShopCategoryPanel(player, categoryName, 1);
     });
 
     await form.show(player);
@@ -149,29 +161,27 @@ export async function showShopItemListPanel(player: mc.Player, categoryName: str
 
 export async function showShopSearchPanel(player: mc.Player): Promise<void> {
     const modal = new ModalFormBuilder<{ query: string }>().title('Search Shop').textField('query', 'Item Name', 'e.g., diamond');
-
     const res = await modal.show(player);
     if (!res) {
-        await showShopMainPanel(player);
+        void showShopMainPanel(player);
         return;
     }
-
     if (isNonEmptyString(res.query)) {
-        await showShopSearchResultsPanel(player, res.query, 1);
+        void showShopSearchResultsPanel(player, res.query, 1);
     } else {
-        await showShopMainPanel(player);
+        void showShopMainPanel(player);
     }
 }
 
 export async function showShopSearchResultsPanel(player: mc.Player, query: string, page: number = 1): Promise<void> {
     const shopConfig = getShopConfig();
-    const results: { id: string; name: string; icon?: string; itemData: any; path: { categoryName: string; subCategoryName?: string } }[] = [];
-
+    const results: { id: string; name: string; icon?: string; itemData: unknown; path: { categoryName: string; subCategoryName?: string } }[] = [];
     const lowerQuery = query.toLowerCase();
+    const catMap = shopConfig.categories as Record<string, ShopCategory>;
 
-    for (const [catName, cat] of Object.entries(shopConfig.categories)) {
+    for (const [catName, cat] of Object.entries(catMap)) {
         for (const [itemId, itemData] of Object.entries(cat.items)) {
-            const displayName = itemData.displayName || itemId.replace('minecraft:', '');
+            const displayName = itemData.displayName || itemId;
             if (displayName.toLowerCase().includes(lowerQuery) || itemId.toLowerCase().includes(lowerQuery)) {
                 if (!isNonEmptyString(itemData.permission) || hasPermission(player, itemData.permission)) {
                     results.push({ id: itemId, name: displayName, icon: itemData.icon, itemData, path: { categoryName: catName } });
@@ -182,7 +192,7 @@ export async function showShopSearchResultsPanel(player: mc.Player, query: strin
         if (cat.subCategories) {
             for (const [subCatName, subCat] of Object.entries(cat.subCategories)) {
                 for (const [itemId, itemData] of Object.entries(subCat.items)) {
-                    const displayName = itemData.displayName || itemId.replace('minecraft:', '');
+                    const displayName = itemData.displayName || itemId;
                     if (displayName.toLowerCase().includes(lowerQuery) || itemId.toLowerCase().includes(lowerQuery)) {
                         if (!isNonEmptyString(itemData.permission) || hasPermission(player, itemData.permission)) {
                             results.push({ id: itemId, name: displayName, icon: itemData.icon, itemData, path: { categoryName: catName, subCategoryName: subCatName } });
@@ -194,33 +204,30 @@ export async function showShopSearchResultsPanel(player: mc.Player, query: strin
     }
 
     const form = new ActionFormBuilder().title(`Search: ${query}`);
-
-    if (results.length === 0) {
-        form.body('No items found matching your search.');
-    }
+    if (results.length === 0) form.body('No items found matching your search.');
 
     form.addPaginatedButtons(
         results,
         page,
         (entry, formBuilder) => {
-            const itemData = entry.itemData;
+            const itemData = entry.itemData as ShopItemInfo;
             const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
             let displayPrice = '';
             if (prices.buyPrice > 0) displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
             if (prices.sellPrice > 0) displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
             if (displayPrice === '') displayPrice = '§cNot For Sale';
 
-            formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, async () => {
-                await showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'search', query, page });
+            formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
+                void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'search', query, page });
             });
         },
-        async (newPage) => {
-            await showShopSearchResultsPanel(player, query, newPage);
+        (newPage) => {
+            void showShopSearchResultsPanel(player, query, newPage);
         }
     );
 
-    form.addBackButton(async () => {
-        await showShopMainPanel(player);
+    form.addBackButton(() => {
+        void showShopMainPanel(player);
     });
 
     await form.show(player);
@@ -234,52 +241,53 @@ interface ReturnContext {
     page: number;
 }
 
-export async function showBuyOrSellPanel(player: mc.Player, itemKey: string, itemData: any, returnCtx: ReturnContext): Promise<void> {
-    const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
-    const itemName = itemData.displayName || itemData.itemId || itemKey.replace('minecraft:', '');
+export async function showBuyOrSellPanel(player: mc.Player, itemKey: string, itemData: unknown, returnCtx: ReturnContext): Promise<void> {
+    const prices = { buyPrice: getPlayerShopItemPrice(player, itemData as ShopItemInfo, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData as ShopItemInfo, 'sell') };
+    const typedItemData = itemData as ShopItemInfo;
+    const itemName = typedItemData.displayName || typedItemData.itemId || itemKey;
 
     const form = new ActionFormBuilder().title(`Trade ${itemName}`);
 
     if (prices.buyPrice > 0) {
-        form.button(`§2Buy 1 - ${formatCurrency(prices.buyPrice)}`, 'textures/ui/color_plus', async () => {
+        form.button(`§2Buy 1 - ${formatCurrency(prices.buyPrice)}`, 'textures/ui/color_plus', () => {
             const res = buyItem(player, itemKey, 1);
             player.sendMessage(res.message);
-            await showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
         });
-        form.button(`§2Buy 64 - ${formatCurrency(prices.buyPrice * 64)}`, 'textures/ui/color_plus', async () => {
+        form.button(`§2Buy 64 - ${formatCurrency(prices.buyPrice * 64)}`, 'textures/ui/color_plus', () => {
             const res = buyItem(player, itemKey, 64);
             player.sendMessage(res.message);
-            await showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
         });
     }
 
     if (prices.sellPrice > 0) {
-        form.button(`§4Sell 1 - ${formatCurrency(prices.sellPrice)}`, 'textures/ui/minus', async () => {
+        form.button(`§4Sell 1 - ${formatCurrency(prices.sellPrice)}`, 'textures/ui/minus', () => {
             const res = sellItem(player, itemKey, 1);
             player.sendMessage(res.message);
-            await showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
         });
-        form.button(`§4Sell 64 - ${formatCurrency(prices.sellPrice * 64)}`, 'textures/ui/minus', async () => {
+        form.button(`§4Sell 64 - ${formatCurrency(prices.sellPrice * 64)}`, 'textures/ui/minus', () => {
             const res = sellItem(player, itemKey, 64);
             player.sendMessage(res.message);
-            await showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
         });
-        form.button(`§6Sell All`, 'textures/ui/icon_recipe_equipment', async () => {
-            const res = sellItem(player, itemKey, -1); // Manager handles -1 as sell all
+        form.button('§6Sell All', 'textures/ui/icon_recipe_equipment', () => {
+            const res = sellItem(player, itemKey, -1);
             player.sendMessage(res.message);
-            await showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
         });
     }
 
-    form.addBackButton(async () => {
+    form.addBackButton(() => {
         if (returnCtx.returnTo === 'category' && returnCtx.categoryName) {
-            await showShopCategoryPanel(player, returnCtx.categoryName, returnCtx.page);
+            void showShopCategoryPanel(player, returnCtx.categoryName, returnCtx.page);
         } else if (returnCtx.returnTo === 'subCategory' && returnCtx.categoryName && returnCtx.subCategoryName) {
-            await showShopItemListPanel(player, returnCtx.categoryName, returnCtx.subCategoryName, returnCtx.page);
+            void showShopItemListPanel(player, returnCtx.categoryName, returnCtx.subCategoryName, returnCtx.page);
         } else if (returnCtx.returnTo === 'search' && returnCtx.query) {
-            await showShopSearchResultsPanel(player, returnCtx.query, returnCtx.page);
+            void showShopSearchResultsPanel(player, returnCtx.query, returnCtx.page);
         } else {
-            await showShopMainPanel(player);
+            void showShopMainPanel(player);
         }
     });
 

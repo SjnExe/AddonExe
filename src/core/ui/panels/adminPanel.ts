@@ -1,5 +1,3 @@
-
-
 import { hasPermission } from '@core/permissionEngine.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
@@ -51,7 +49,7 @@ export async function showFloatingTextListPanel(player: mc.Player): Promise<void
     const form = new ActionFormBuilder().title('Floating Text Manager');
     form.body('Select a floating text entry to manage.');
 
-    form.button('§l§6View Placeholders', 'textures/ui/icon_sign', async () => {
+    form.button('§l§6View Placeholders', 'textures/ui/icon_sign', () => {
         player.sendMessage('Placeholders list not available.');
     });
 
