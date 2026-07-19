@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+
 
 import { hasPermission } from '@core/permissionEngine.js';
 import { showPanel } from '@core/uiManager.js';
@@ -52,8 +52,7 @@ export async function showFloatingTextListPanel(player: mc.Player): Promise<void
     form.body('Select a floating text entry to manage.');
 
     form.button('§l§6View Placeholders', 'textures/ui/icon_sign', async () => {
-        const { showPlaceholdersList } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-        if (showPlaceholdersList) await showPlaceholdersList(player, {}, 'floatingTextListPanel');
+        player.sendMessage('Placeholders list not available.');
     });
 
     form.button('§l§2Create New', 'textures/ui/color_plus', async () => {
@@ -150,11 +149,11 @@ export async function showFloatingTextCreatePanel(player: mc.Player): Promise<vo
     form.textField('text', 'Text Content', 'Enter text to display');
 
     const res = await form.show(player);
-    if (res.canceled) {
+    if (!res) {
         return showFloatingTextListPanel(player);
     }
 
-    const { id, text } = res.formValues!;
+    const { id, text } = res;
     if (!isNonEmptyString(id) || id.includes(' ')) {
         player.sendMessage('§4Invalid ID.');
         return showFloatingTextCreatePanel(player);
@@ -191,11 +190,11 @@ export async function showFloatingTextEditPanel(player: mc.Player, id: string): 
     form.textField('expMins', 'Expiration (mins)', 'mins', isNumber(expiresAt) ? String(Math.round((expiresAt - Date.now()) / 60_000)) : '0');
 
     const res = await form.show(player);
-    if (res.canceled) {
+    if (!res) {
         return showFloatingTextActionPanel(player, id);
     }
 
-    const vals = res.formValues!;
+    const vals = res;
     const selectedDimension = dimensionIds[vals.dim] ?? MinecraftDimensionTypes.Overworld;
     const updatedConfig = {
         text: vals.text,

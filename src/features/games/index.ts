@@ -1,9 +1,4 @@
-import { panelRouter } from '@ui/PanelRouter.js';
-import { WordlePanelHandler } from './wordle/ui/wordlePanel.js';
-
 export async function initialize(_isMigration: boolean) {
-    panelRouter.register(new WordlePanelHandler());
-
     // Register configurations
     const { resetGamesConfig, registerConfigReset } = await import('@core/configurations.js');
     registerConfigReset('games', {

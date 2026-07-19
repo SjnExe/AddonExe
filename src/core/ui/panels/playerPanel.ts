@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+import { hasPermission } from '@core/permissionEngine.js';
+
 
 import { getConfig } from '@core/configManager.js';
 import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
@@ -49,7 +50,7 @@ export async function showPlayerManagementPanel(player: mc.Player): Promise<void
         const targetRank = getPlayerRank(p, config);
         const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
         form.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), async () => {
-            await showPlayerActionsPanel(player, p.id, p.name, true);
+            await showPlayerActionsPanel(player, p.id, p.name);
         });
     }
 
@@ -61,62 +62,63 @@ export async function showPlayerManagementPanel(player: mc.Player): Promise<void
     await form.show(player);
 }
 
-export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: string, targetPlayerName: string, isModMode: boolean = false): Promise<void> {
+export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: string, targetPlayerName: string): Promise<void> {
     const form = new ActionFormBuilder().title(targetPlayerName);
 
+    const isModMode = hasPermission(player, 'ui.panel.mod');
     if (isModMode) {
         form.button('Kick', 'textures/ui/cancel.png', async () => {
-            const { kickPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (kickPlayer) await kickPlayer(player, { targetPlayerId }, 'playerActionsPanel');
+            const { handleKickPlayer } = await import('@features/moderation/ui/panel.js');
+            await handleKickPlayer(player, targetPlayerId);
         });
         form.button('Mute', 'textures/ui/mute_on.png', async () => {
-            const { mutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (mutePlayer) await mutePlayer(player, { targetPlayerId }, 'playerActionsPanel');
+            const { handleMutePlayer } = await import('@features/moderation/ui/panel.js');
+            await handleMutePlayer(player, targetPlayerId);
         });
         form.button('Unmute', 'textures/ui/mute_off.png', async () => {
-            const { unmutePlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (unmutePlayer) await unmutePlayer(player, { targetPlayerId }, 'playerActionsPanel');
+            const { handleUnmutePlayer } = await import('@features/moderation/ui/panel.js');
+            await handleUnmutePlayer(player, targetPlayerId);
         });
         form.button('Ban', 'textures/ui/hammer_l.png', async () => {
-            const { banPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (banPlayer) await banPlayer(player, { targetPlayerId }, 'playerActionsPanel');
+            const { handleBanPlayer } = await import('@features/moderation/ui/panel.js');
+            await handleBanPlayer(player, targetPlayerId);
         });
         form.button('Manage Ranks', 'textures/ui/icon_rank.png', async () => {
-            const { showManageRanksForm } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (showManageRanksForm) await showManageRanksForm(player, { targetPlayerId }, 'playerActionsPanel');
+            player.sendMessage('Rank management panel not available.');
         });
         form.button('Manage Stats', 'textures/ui/Scaffolding.png', async () => {
-            await showPanel(player, 'managePlayerStatsPanel', { targetPlayerId });
+            player.sendMessage('Manage Player Stats panel not available.'); //
         });
         form.button('See Inventory', 'textures/ui/inventory_icon.png', async () => {
-            const { seeInventory } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (seeInventory) await seeInventory(player, { targetPlayerId }, 'playerActionsPanel');
+            player.sendMessage('Inventory panel not available.');
         });
         form.button('Teleport To', 'textures/ui/icon_map.png', async () => {
-            const { tpToPlayer } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (tpToPlayer) await tpToPlayer(player, { targetPlayerId }, 'playerActionsPanel');
+            const { getPlayerFromCache } = await import('@core/playerCache.js');
+            const target = getPlayerFromCache(targetPlayerId);
+            if (target) player.teleport(target.location, { dimension: target.dimension });
         });
         form.button('Teleport Here', 'textures/ui/icon_map.png', async () => {
-            const { tpPlayerHere } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-            if (tpPlayerHere) await tpPlayerHere(player, { targetPlayerId }, 'playerActionsPanel');
+            const { getPlayerFromCache } = await import('@core/playerCache.js');
+            const target = getPlayerFromCache(targetPlayerId);
+            if (target) target.teleport(player.location, { dimension: player.dimension });
         });
     }
 
     form.button('Send Friend Request', 'textures/ui/color_plus', async () => {
-        const { addFriend } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-        if (addFriend) await addFriend(player, { targetPlayerId }, 'playerActionsPanel');
+        const { addFriendAction } = await import('@features/social/ui/friendPanel.js');
+        await addFriendAction(player, targetPlayerId);
     });
 
     form.button('Send Money', 'textures/items/gold_ingot', async () => {
-        const { sendMoney } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-        if (sendMoney) await sendMoney(player, { targetPlayerId }, 'playerActionsPanel');
+        player.sendMessage('Send money not available.');
     });
 
     form.button('Bounty Actions', 'textures/items/netherite_sword', async () => {
-        await showPanel(player, 'bountyActionsPanel', { targetPlayerId, returnPanel: 'playerActionsPanel' });
+        player.sendMessage('Bounty panel disabled');
     });
 
     form.addBackButton(async () => {
+        const isModMode = hasPermission(player, 'ui.panel.mod');
         if (isModMode) {
             await showPlayerManagementPanel(player);
         } else {

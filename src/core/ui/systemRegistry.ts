@@ -9,7 +9,8 @@ export interface SystemDefinition {
     /** Icon path for the system button. */
     icon: string;
     /** The panel ID to open when configured. */
-    configPanelId: string;
+    showFunction?: (player: import('@minecraft/server').Player) => Promise<void> | void;
+    configPanelId?: string;
     /** The category of the system. */
     category?: string;
     /** Whether this system is hidden from the main menu. */
@@ -18,10 +19,6 @@ export interface SystemDefinition {
     isSimpleConfig: boolean;
 }
 
-/**
- * Registry of all configurable systems in the addon.
- * This unifies simple schema-based configs and complex custom UI systems.
- */
 let cachedSystemRegistry: SystemDefinition[] | undefined;
 
 export function getSystemRegistry(): SystemDefinition[] {
@@ -69,7 +66,10 @@ export function getSystemRegistry(): SystemDefinition[] {
             id: 'kits',
             title: 'Kit System',
             icon: 'textures/ui/inventory_icon',
-            configPanelId: 'kitManagementPanel',
+            showFunction: async (player) => {
+                const { showKitManagementPanel } = await import('@features/kit/ui/panel.js');
+                await showKitManagementPanel(player);
+            },
             category: 'Economy',
             isSimpleConfig: false
         },
@@ -85,7 +85,10 @@ export function getSystemRegistry(): SystemDefinition[] {
             id: 'shop',
             title: 'Shop System',
             icon: 'textures/items/emerald',
-            configPanelId: 'shopManagementPanel',
+            showFunction: async (player) => {
+                const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
+                await showShopManagementPanel(player);
+            },
             category: 'Economy',
             isSimpleConfig: false
         },
@@ -93,7 +96,9 @@ export function getSystemRegistry(): SystemDefinition[] {
             id: 'economy',
             title: 'Economy System',
             icon: 'textures/ui/Scaffolding',
-            configPanelId: 'economyPanel',
+            showFunction: async (player) => {
+                player.sendMessage('Economy main panel not available.');
+            },
             category: 'Economy',
             isSimpleConfig: false
         },
@@ -101,7 +106,10 @@ export function getSystemRegistry(): SystemDefinition[] {
             id: 'xray_ores',
             title: 'X-Ray Ores',
             icon: 'textures/blocks/diamond_ore',
-            configPanelId: 'xrayOresPanel',
+            showFunction: async (player) => {
+                const { showXrayOresPanel } = await import('@features/moderation/ui/xrayPanel.js');
+                await showXrayOresPanel(player);
+            },
             category: 'Moderation',
             hidden: true,
             isSimpleConfig: false
@@ -118,7 +126,10 @@ export function getSystemRegistry(): SystemDefinition[] {
             id: 'worldProtection',
             title: 'World Protection System',
             icon: 'textures/ui/icon_recipe_nature',
-            configPanelId: 'worldProtectionListPanel',
+            showFunction: async (player) => {
+                const { showWorldProtectionListPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
+                await showWorldProtectionListPanel(player);
+            },
             category: 'World',
             isSimpleConfig: false
         },
@@ -143,9 +154,6 @@ export function getSystemRegistry(): SystemDefinition[] {
     return cachedSystemRegistry;
 }
 
-/**
- * Helper to get a system definition by ID.
- */
 export function getSystemDefinition(id: string): SystemDefinition | undefined {
     return getSystemRegistry().find((s) => s.id === id);
 }

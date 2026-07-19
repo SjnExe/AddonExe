@@ -8,9 +8,8 @@ import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, updatePlayerData 
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { TeamData } from '@features/team/types.js';
-import { TeamPanelHandler } from '@features/team/ui/panel.js';
+
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { panelRouter } from '@ui/PanelRouter.js';
 
 interface TeleportUtilsService {
     saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;
@@ -79,8 +78,6 @@ export function initialize() {
 
         // Run loading job
         mc.system.runJob(loadTeamJob(allIds));
-
-        panelRouter.register(new TeamPanelHandler());
     } catch (error: unknown) {
         if (error instanceof Error) {
             errorLog(`[TeamManager] Failed to initialize: ${error.stack}`);

@@ -119,9 +119,9 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     const form = new ModalFormBuilder<{ bid: string }>().title('Place Bid').textField('bid', `Enter bid amount (Min: ${minBid})`, minBid.toString());
 
     const response = await form.show(player);
-    if (response.canceled) return;
+    if (!response) return;
 
-    const { bid } = response.formValues!;
+    const bid = response.bid;
     const amount = Number.parseFloat(bid);
 
     if (Number.isNaN(amount)) {
@@ -137,9 +137,9 @@ async function showSearchUI(player: mc.Player, currentSort: SortOption): Promise
     const form = new ModalFormBuilder<{ query: string }>().title('Search Auction House').textField('query', 'Search Query (Item/Seller)', 'Diamond Sword');
 
     const response = await form.show(player);
-    if (response.canceled) return;
+    if (!response) return;
 
-    const { query } = response.formValues!;
+    const query = response.query;
     await showAuctionHouse(player, 1, query.trim(), currentSort);
 }
 
@@ -153,7 +153,7 @@ async function showSortUI(player: mc.Player, searchQuery: string | undefined, cu
     form.button('Seller Name', currentSort === SortOption.SellerAsc ? 'textures/ui/check' : undefined, async () => showAuctionHouse(player, 1, searchQuery, SortOption.SellerAsc));
 
     const response = await form.show(player);
-    if (response.canceled) return showAuctionHouse(player, 1, searchQuery, currentSort);
+    if (!response) return showAuctionHouse(player, 1, searchQuery, currentSort);
 }
 
 async function showYourListings(player: mc.Player): Promise<void> {
@@ -196,7 +196,7 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
     }
 
     const response = await form.show(player);
-    if (response.canceled) {
+    if (!response) {
         await showAuctionHouse(player);
     }
 }

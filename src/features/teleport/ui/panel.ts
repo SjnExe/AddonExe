@@ -1,111 +1,67 @@
-import * as mc from '@minecraft/server';
-import { ActionFormResponse, ModalFormResponse } from '@minecraft/server-ui';
-
 import { getConfig } from '@core/configManager.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
 import * as tpaManager from '@features/teleport/tpaManager.js';
-import { isNonEmptyString } from '@lib/guards.js';
-import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { addBackButton } from '@ui/uiUtils.js';
+import * as mc from '@minecraft/server';
+import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 
-export class TeleportPanelHandler implements IPanelHandler {
-    canHandle(panelId: string): boolean {
-        return panelId === 'tpaSettingsPanel' || panelId === 'tpaBlockListPanel';
+export async function showTpaSettingsPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('TPA Settings');
+    const pData = loadPlayerData(player.id);
+    const config = getConfig();
+
+    if (!config.tpa.enabled) {
+        form.button('§4System Globally Disabled', 'textures/ui/warning_alert', async () => {
+            await showTpaSettingsPanel(player);
+        });
     }
 
-    async getItems(player: mc.Player, panelId: string, _context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
-        const items: PanelItem[] = [];
-        const pData = loadPlayerData(player.id);
+    const isEnabled = !(pData?.tpaRequestsDisabled ?? false);
+    form.button(isEnabled ? '§2Incoming Requests: Allowed' : '§4Incoming Requests: Blocked', isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
+        const newState = tpaManager.toggleTpaRequests(player);
+        player.sendMessage(`§aTPA Requests are now ${newState ? '§4Disabled' : '§2Enabled'}.`);
+        await showTpaSettingsPanel(player);
+    });
 
-        if (panelId === 'tpaSettingsPanel') {
-            addBackButton(items, 'profileMainPanel');
-            const config = getConfig();
-            if (!config.tpa.enabled) {
-                items.push({
-                    id: 'tpaDisabled',
-                    text: '§4System Globally Disabled',
-                    icon: 'textures/ui/warning_alert',
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'noop'
-                });
-            }
+    form.button('Blocked Players', 'textures/ui/icon_multiplayer', async () => {
+        await showTpaBlockListPanel(player);
+    });
 
-            const isEnabled = !(pData?.tpaRequestsDisabled ?? false);
-            items.push(
-                {
-                    id: 'toggleTpa',
-                    text: isEnabled ? '§2Incoming Requests: Allowed' : '§4Incoming Requests: Blocked',
-                    icon: isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'toggleTpa'
-                },
-                {
-                    id: 'blockList',
-                    text: 'Blocked Players',
-                    icon: 'textures/ui/icon_multiplayer',
-                    permission: 'ui.panel.member',
-                    actionType: 'openPanel',
-                    actionValue: 'tpaBlockListPanel'
-                }
-            );
-            return items;
-        }
+    form.addBackButton(async () => {
+        await showPanel(player, 'profileMainPanel');
+    });
 
-        if (panelId === 'tpaBlockListPanel') {
-            addBackButton(items, 'tpaSettingsPanel');
-            const blocked = pData?.tpaBlockedPlayerIds ?? [];
-            for (const id of blocked) {
-                const name = loadPlayerData(id)?.name ?? id;
-                items.push({
-                    id: id,
-                    text: name,
-                    permission: 'ui.panel.member',
-                    actionType: 'functionCall',
-                    actionValue: 'unblockPlayer'
-                });
-            }
-            return items;
-        }
+    await form.show(player);
+}
 
-        return items;
+export async function showTpaBlockListPanel(player: mc.Player, page: number = 1): Promise<void> {
+    const form = new ActionFormBuilder().title('Blocked Players');
+    const pData = loadPlayerData(player.id);
+    const blocked = pData?.tpaBlockedPlayerIds ?? [];
+
+    if (blocked.length === 0) {
+        form.body('You have not blocked any players.');
     }
 
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
-        const selection = (response as ActionFormResponse).selection;
-
-        if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!item) return;
-
-                if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, { ...context, page: 1 });
-                }
-
-                if (item.actionValue === 'noop') {
-                    return showPanel(player, panelId, context);
-                }
-
-                if (item.actionValue === 'toggleTpa') {
-                    const newState = tpaManager.toggleTpaRequests(player);
-                    player.sendMessage(`§aTPA Requests are now ${newState ? '§4Disabled' : '§2Enabled'}.`);
-                    return showPanel(player, 'tpaSettingsPanel', context);
-                }
-
-                if (item.actionValue === 'unblockPlayer') {
-                    const targetId = item.id;
-                    if (isNonEmptyString(targetId)) {
-                        tpaManager.unblockPlayer(player, targetId);
-                        player.sendMessage('§aPlayer unblocked.');
-                    }
-                    return showPanel(player, 'tpaBlockListPanel', context);
-                }
-            }
+    form.addPaginatedButtons(
+        blocked,
+        page,
+        (id, formBuilder) => {
+            const name = loadPlayerData(id)?.name ?? id;
+            formBuilder.button(`Unblock ${name}`, undefined, async () => {
+                tpaManager.unblockPlayer(player, id);
+                player.sendMessage(`§aPlayer unblocked.`);
+                await showTpaBlockListPanel(player, page);
+            });
+        },
+        async (newPage) => {
+            await showTpaBlockListPanel(player, newPage);
         }
-    }
+    );
+
+    form.addBackButton(async () => {
+        await showTpaSettingsPanel(player);
+    });
+
+    await form.show(player);
 }

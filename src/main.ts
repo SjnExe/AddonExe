@@ -16,7 +16,6 @@ import { cleanup as cleanupFloatingText } from '@features/essentials/floatingTex
 import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
-import { initialize as initializeUIPanels } from '@ui/panels/index.js';
 // @ts-ignore: Virtual module handled by build system
 import { loadCommands } from 'virtual:command-index';
 
@@ -94,7 +93,6 @@ export async function initializeAddon() {
 
 function initializeManagers() {
     rankManager.initialize();
-    initializeUIPanels();
 }
 
 /**

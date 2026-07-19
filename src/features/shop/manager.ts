@@ -10,7 +10,7 @@ import { formatCurrency } from '@core/utils.js';
 import { items as allItems } from '@features/shop/itemsConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-interface ItemInfo {
+export interface ItemInfo {
     itemId: string;
     displayName?: string;
     enchantment?: { id: string; level: number };

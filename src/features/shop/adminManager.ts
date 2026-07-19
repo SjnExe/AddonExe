@@ -27,7 +27,7 @@ interface ItemData {
 
 interface UpdateItemData {
     displayName: string;
-    minecraftId: string;
+    itemId: string;
     icon: string;
     buyPrice: number;
     sellPrice: number;
@@ -466,7 +466,7 @@ function updateMasterItemList(itemId: string, newData: UpdateItemData) {
     const itemsRecord = items as Record<string, ItemData>;
     if (isDefined(itemsRecord[itemId])) {
         itemsRecord[itemId].displayName = newData.displayName;
-        itemsRecord[itemId].itemId = newData.minecraftId;
+        itemsRecord[itemId].itemId = newData.itemId;
         itemsRecord[itemId].icon = newData.icon;
         if (isDefined(newData.rankOverrides)) {
             itemsRecord[itemId].rankMultiplierOverrides = newData.rankOverrides;
@@ -476,7 +476,7 @@ function updateMasterItemList(itemId: string, newData: UpdateItemData) {
     } else {
         addCustomItemToConfig(itemId, {
             displayName: newData.displayName,
-            itemId: newData.minecraftId,
+            itemId: newData.itemId,
             icon: newData.icon,
             buyPrice: newData.buyPrice,
             sellPrice: newData.sellPrice

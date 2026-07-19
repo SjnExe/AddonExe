@@ -1,163 +1,127 @@
-import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
-import * as mc from '@minecraft/server';
-import { ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
-
 import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
-import { showPanel } from '@core/uiManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { IPanelHandler, PanelItem, UIContext } from '@ui/types.js';
-import { addBackButton, addPaginationItems, getPaginatedItems } from '@ui/uiUtils.js';
+import * as mc from '@minecraft/server';
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
 
-export class XrayPanelHandler implements IPanelHandler {
-    canHandle(panelId: string): boolean {
-        return panelId === 'xrayOresPanel' || panelId === 'addXrayOrePanel' || panelId === 'editXrayOrePanel' || panelId.startsWith('editXrayOrePanel_');
-    }
+export async function showXrayOresPanel(player: mc.Player, page: number = 1): Promise<void> {
+    const form = new ActionFormBuilder().title('X-Ray Ores Config').button('§l§2+ Add Ore', 'textures/ui/color_plus', async () => {
+        await showAddXrayOrePanel(player);
+    });
 
-    async getItems(_player: mc.Player, panelId: string, context: UIContext): Promise<PanelItem[]> {
-        await Promise.resolve();
-        const items: PanelItem[] = [];
+    const config = getXrayConfig();
+    const oreKeys = Object.keys(config.monitoredOreTypes);
 
-        if (panelId === 'xrayOresPanel') {
-            addBackButton(items, 'configCategoryPanel', 'ui.panel.admin');
-            items.push({
-                id: 'addOre',
-                text: '§l§2+ Add Ore',
-                icon: 'textures/ui/color_plus',
-                permission: 'ui.panel.admin',
-                actionType: 'openPanel',
-                actionValue: 'addXrayOrePanel'
-            });
-
-            const config = getXrayConfig();
-            const oreKeys = Object.keys(config.monitoredOreTypes);
-            const paginated = getPaginatedItems(oreKeys, (context.page as number) || 1);
-
-            for (const key of paginated) {
-                const ore = config.monitoredOreTypes[key];
-                if (!isDefined(ore)) continue;
-                items.push({
-                    id: key,
-                    text: `${ore.oreName}\n${ore.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
-                    icon: 'textures/blocks/diamond_ore',
-                    permission: 'ui.panel.admin',
-                    actionType: 'openPanel',
-                    actionValue: `editXrayOrePanel_${key}`
+    form.addPaginatedButtons(
+        oreKeys,
+        page,
+        (key, formBuilder) => {
+            const ore = config.monitoredOreTypes[key];
+            if (ore) {
+                formBuilder.button(`${ore.oreName}\n${ore.enabled ? '§2[Enabled]' : '§4[Disabled]'}`, 'textures/blocks/diamond_ore', async () => {
+                    await showEditXrayOrePanel(player, key);
                 });
             }
-            addPaginationItems(items, (context.page as number) || 1, oreKeys.length, 'ui.panel.admin');
-            return items;
+        },
+        async (newPage) => {
+            await showXrayOresPanel(player, newPage);
         }
+    );
 
-        return items;
+    form.addBackButton(async () => {
+        const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
+        await showConfigCategoryPanel(player);
+    });
+
+    await form.show(player);
+}
+
+export async function showAddXrayOrePanel(player: mc.Player): Promise<void> {
+    const modal = new ModalFormBuilder<{
+        id: string;
+        name: string;
+        blockId: string;
+        dimId: string;
+        minY: string;
+        maxY: string;
+    }>()
+        .title('Add X-Ray Ore')
+        .textField('id', 'Internal ID (no spaces)', 'diamond')
+        .textField('name', 'Display Name', 'Diamond Ore')
+        .textField('blockId', 'Block ID', MinecraftBlockTypes.DiamondOre)
+        .textField('dimId', 'Dimension', MinecraftDimensionTypes.Overworld)
+        .textField('minY', 'Min Y', '-64')
+        .textField('maxY', 'Max Y', '16');
+
+    const res = await modal.show(player);
+    if (!res) {
+        await showXrayOresPanel(player, 1);
+        return;
     }
 
-    async buildModal(_player: mc.Player, panelId: string, _context: UIContext): Promise<ModalFormData | undefined> {
-        await Promise.resolve();
-        if (panelId === 'addXrayOrePanel') {
-            return new ModalFormData()
-                .title('Add X-Ray Ore')
-                .textField('Internal ID (no spaces)', 'diamond')
-                .textField('Display Name', 'Diamond Ore')
-                .textField('Block ID', MinecraftBlockTypes.DiamondOre)
-                .textField('Dimension', MinecraftDimensionTypes.Overworld)
-                .textField('Min Y', '-64')
-                .textField('Max Y', '16');
-        }
+    if (isNonEmptyString(res.id) && isNonEmptyString(res.name) && isNonEmptyString(res.blockId) && isNonEmptyString(res.minY) && isNonEmptyString(res.maxY)) {
+        const config = getXrayConfig();
+        config.monitoredOreTypes[res.id] = {
+            enabled: true,
+            oreName: res.name,
+            blocks: [
+                {
+                    blockId: res.blockId,
+                    dimensionId: isNonEmptyString(res.dimId) ? res.dimId : MinecraftDimensionTypes.Overworld,
+                    minY: Number.parseInt(res.minY) || -64,
+                    maxY: Number.parseInt(res.maxY) || 320
+                }
+            ]
+        };
+        saveXrayConfig(config);
+        player.sendMessage('§aOre added.');
+    }
+    await showXrayOresPanel(player, 1);
+}
 
-        if (panelId.startsWith('editXrayOrePanel_')) {
-            const key = panelId.replace('editXrayOrePanel_', '');
-            const config = getXrayConfig();
-            const ore = config.monitoredOreTypes[key];
-            if (!isDefined(ore)) return undefined;
-
-            // Simplify: Only edit first block definition for now in UI
-            const block = ore.blocks[0] ?? { blockId: '', dimensionId: MinecraftDimensionTypes.Overworld, minY: -64, maxY: 320 };
-
-            return new ModalFormData()
-                .title(`Edit ${ore.oreName}`)
-                .toggle('Enabled', { defaultValue: ore.enabled })
-                .textField('Display Name', 'Name', { defaultValue: ore.oreName })
-                .textField('Block ID', 'ID', { defaultValue: block.blockId })
-                .textField('Dimension', 'ID', { defaultValue: block.dimensionId })
-                .textField('Min Y', 'Y', { defaultValue: String(block.minY) })
-                .textField('Max Y', 'Y', { defaultValue: String(block.maxY) });
-        }
-        return undefined;
+export async function showEditXrayOrePanel(player: mc.Player, key: string): Promise<void> {
+    const config = getXrayConfig();
+    const ore = config.monitoredOreTypes[key];
+    if (!isDefined(ore)) {
+        await showXrayOresPanel(player, 1);
+        return;
     }
 
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: UIContext): Promise<void> {
-        const selection = (response as ActionFormResponse).selection;
-        const values = (response as ModalFormResponse).formValues;
+    const block = ore.blocks[0] ?? { blockId: '', dimensionId: MinecraftDimensionTypes.Overworld, minY: -64, maxY: 320 };
 
-        if (typeof selection === 'number') {
-            const items = await this.getItems(player, panelId, context);
-            if (selection >= 0 && selection < items.length) {
-                const item = items[selection];
-                if (!isDefined(item)) return;
-                if (item.actionType === 'openPanel') {
-                    return showPanel(player, item.actionValue, { ...context, page: 1 });
-                }
-                if (item.actionValue === 'prevPage') {
-                    return showPanel(player, panelId, {
-                        ...context,
-                        page: Math.max(1, ((context.page as number) || 1) - 1)
-                    });
-                }
-                if (item.actionValue === 'nextPage') {
-                    return showPanel(player, panelId, { ...context, page: ((context.page as number) || 1) + 1 });
-                }
-            }
-        }
+    const modal = new ModalFormBuilder<{
+        enabled: boolean;
+        name: string;
+        blockId: string;
+        dimId: string;
+        minY: string;
+        maxY: string;
+    }>()
+        .title(`Edit ${ore.oreName}`)
+        .toggle('enabled', 'Enabled', ore.enabled)
+        .textField('name', 'Display Name', 'Name', ore.oreName)
+        .textField('blockId', 'Block ID', 'ID', block.blockId)
+        .textField('dimId', 'Dimension', 'ID', block.dimensionId)
+        .textField('minY', 'Min Y', 'Y', String(block.minY))
+        .textField('maxY', 'Max Y', 'Y', String(block.maxY));
 
-        if (panelId === 'addXrayOrePanel') {
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
-            if (!isDefined(values)) return showPanel(player, 'xrayOresPanel');
-            const [id, name, blockId, dimId, minY, maxY] = values as string[];
-            if (isNonEmptyString(id) && isNonEmptyString(name) && isNonEmptyString(blockId) && isNonEmptyString(minY) && isNonEmptyString(maxY)) {
-                const config = getXrayConfig();
-                config.monitoredOreTypes[id] = {
-                    enabled: true,
-                    oreName: name,
-                    blocks: [
-                        {
-                            blockId,
-                            dimensionId: isNonEmptyString(dimId) ? dimId : MinecraftDimensionTypes.Overworld,
-                            minY: Number.parseInt(minY) || -64,
-                            maxY: Number.parseInt(maxY) || 320
-                        }
-                    ]
-                };
-                saveXrayConfig(config);
-                player.sendMessage('§aOre added.');
-            }
-            return showPanel(player, 'xrayOresPanel');
-        }
-
-        if (panelId.startsWith('editXrayOrePanel_')) {
-            const key = panelId.replace('editXrayOrePanel_', '');
-            if ((response as ModalFormResponse).canceled) return showPanel(player, 'xrayOresPanel');
-            if (isDefined(values)) {
-                const [enabled, name, blockId, dimId, minY, maxY] = values as [boolean, string, string, string, string, string];
-                const config = getXrayConfig();
-                if (isDefined(config.monitoredOreTypes[key])) {
-                    config.monitoredOreTypes[key].enabled = enabled;
-                    config.monitoredOreTypes[key].oreName = name;
-                    config.monitoredOreTypes[key].blocks[0] = {
-                        blockId,
-                        dimensionId: dimId,
-                        minY: Number.parseInt(minY),
-                        maxY: Number.parseInt(maxY)
-                    };
-                    saveXrayConfig(config);
-                    player.sendMessage('§aOre updated.');
-                }
-            }
-            // Add Delete option logic via ActionForm? Or just in Modal?
-            // Modal doesn't have buttons.
-            // I should add a "Delete" button in the Item List or a separate Action Menu.
-            // For now, simple edit.
-            return showPanel(player, 'xrayOresPanel');
-        }
+    const res = await modal.show(player);
+    if (!res) {
+        await showXrayOresPanel(player, 1);
+        return;
     }
+
+    config.monitoredOreTypes[key]!.enabled = res.enabled;
+    config.monitoredOreTypes[key]!.oreName = res.name;
+    config.monitoredOreTypes[key]!.blocks[0] = {
+        blockId: res.blockId,
+        dimensionId: res.dimId,
+        minY: Number.parseInt(res.minY) || -64,
+        maxY: Number.parseInt(res.maxY) || 320
+    };
+    saveXrayConfig(config);
+    player.sendMessage('§aOre updated.');
+
+    await showXrayOresPanel(player, 1);
 }

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+
 
 import { getConfig } from '@core/configManager.js';
 import { getValueFromPath } from '@core/objectUtils.js';
@@ -18,8 +18,8 @@ export async function showMainPanel(player: Player): Promise<void> {
     }
 
     form.button('Auction House', 'textures/items/gold_ingot', async () => {
-        const { openAuctionHouse } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-        await openAuctionHouse(player, {}, 'mainPanel');
+        const { showAuctionHouse } = await import('@features/auction/ui/panel.js');
+        await showAuctionHouse(player, 1);
     });
 
     if (getValueFromPath(config, 'games.enabled') !== false) {
@@ -54,13 +54,11 @@ export async function showMainPanel(player: Player): Promise<void> {
     });
 
     form.button('Rules', 'textures/items/book_enchanted.png', async () => {
-        const { showRules } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-        if (showRules) await showRules(player, {}, 'mainPanel');
+        player.sendMessage('Rules panel not available.');
     });
 
     form.button('Helpful Links', 'textures/items/chain', async () => {
-        const { showHelpfulLinks } = (await import('@core/ui/actionRegistry.js').then((m) => m.uiActionFunctions)) as any;
-        if (showHelpfulLinks) await showHelpfulLinks(player, {}, 'mainPanel');
+        player.sendMessage('Helpful links panel not available.');
     });
 
     if (hasPermission(player, 'ui.panel.mod')) {

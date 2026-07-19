@@ -65,4 +65,33 @@ export class ActionFormBuilder {
 
         return response;
     }
+
+    public addPaginatedButtons<T>(
+        items: T[],
+        page: number,
+        renderButton: (item: T, formBuilder: ActionFormBuilder) => void,
+        onPageChange: (newPage: number) => Promise<void> | void,
+        itemsPerPage = 10
+    ): this {
+        const totalPages = Math.ceil(items.length / itemsPerPage);
+        const currentPage = Math.max(1, Math.min(page, totalPages));
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const itemsToShow = items.slice(startIndex, startIndex + itemsPerPage);
+
+        for (const item of itemsToShow) {
+            renderButton(item, this);
+        }
+
+        if (totalPages > 1) {
+            if (currentPage > 1) {
+                this.button('§6< Previous Page', 'textures/ui/arrow_left', () => onPageChange(currentPage - 1));
+            }
+
+            if (currentPage < totalPages) {
+                this.button('§6Next Page >', 'textures/ui/arrow_right', () => onPageChange(currentPage + 1));
+            }
+        }
+        return this;
+    }
 }
