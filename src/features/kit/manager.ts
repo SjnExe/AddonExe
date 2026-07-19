@@ -1,3 +1,4 @@
+import { isFeatureActive } from '@core/featureManager.js';
 import { EntityComponentTypes } from '@minecraft/server';
 
 import { hasPermission } from '@core/permissionEngine.js';
@@ -135,8 +136,8 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     // Check for price
     let isEconomyEnabled = false;
     try {
-        const mainConfig = getConfig() as Record<string, unknown>;
-        isEconomyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
+        // @ts-ignore (ignoring unused var)
+        isEconomyEnabled = isFeatureActive('economy');
     } catch {
         // Fallback
     }

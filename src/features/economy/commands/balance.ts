@@ -1,7 +1,8 @@
+import { getConfig } from '@core/configManager.js';
+import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
 import { formatCurrency, resolveTarget } from '@core/utils.js';
@@ -16,8 +17,7 @@ const balanceCommand: CustomCommand = {
     permissionNode: 'cmd.balance.member',
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        const config = getConfig();
-        if (!config.economy.enabled) {
+        if (!isFeatureActive('economy')) {
             sendMessage('§cThe Economy system is currently disabled globally.', executor);
             return;
         }
@@ -62,8 +62,7 @@ const oBalanceCommand: CustomCommand = {
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        const config = getConfig();
-        if (!config.economy.enabled) {
+        if (!isFeatureActive('economy')) {
             sendMessage('§cThe Economy system is currently disabled globally.', executor);
             return;
         }
@@ -93,7 +92,7 @@ const baltopCommand: CustomCommand = {
     allowConsole: true,
     execute: (executor: CommandExecutor) => {
         const config = getConfig();
-        if (!config.economy.enabled) {
+        if (!isFeatureActive('economy')) {
             sendMessage('§cThe Economy system is currently disabled globally.', executor);
             return;
         }

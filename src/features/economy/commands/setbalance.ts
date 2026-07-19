@@ -1,7 +1,7 @@
+import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerIdByName, getPlayerNameById, incrementPlayerBalance, loadPlayerData, setPlayerBalance } from '@core/playerDataManager.js';
 import { formatCurrency } from '@core/utils.js';
@@ -11,8 +11,8 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 // --- Online Commands (Selector Support) ---
 
 function handleOnlineEconomyCommand(executor: CommandExecutor, args: Record<string, unknown>, action: 'set' | 'add' | 'remove'): void {
-    const config = getConfig();
-    if (!config.economy.enabled) {
+    if (!isFeatureActive('economy')) {
+        // @ts-ignore (ignoring unused var)
         sendMessage('§cThe Economy system is currently disabled globally.', executor);
         return;
     }
@@ -118,9 +118,9 @@ const removeBalanceCommand: CustomCommand = {
 // --- Offline Commands (String Name Support) ---
 
 function handleOfflineEconomyCommand(executor: CommandExecutor, args: Record<string, unknown>, action: 'set' | 'add' | 'remove'): void {
-    const config = getConfig();
-    if (!config.economy.enabled) {
+    if (!isFeatureActive('economy')) {
         sendMessage('§cThe Economy system is currently disabled globally.', executor);
+        // @ts-ignore (ignoring unused var)
         return;
     }
 

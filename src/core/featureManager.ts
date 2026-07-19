@@ -12,9 +12,16 @@ export function isFeatureActive(featureId: string): boolean {
     const feature = featureRegistry.find((f) => f.id === featureId);
     if (!isDefined(feature)) return false;
 
+    // Core features that cannot be disabled
+    const CORE_FEATURES = ['essentials', 'moderation', 'ranks', 'social', 'teleport', 'anticheat', 'test'];
+
     // Check dependencies first
     for (const dep of feature.dependencies) {
         if (!isFeatureActive(dep)) return false;
+    }
+
+    if (CORE_FEATURES.includes(featureId)) {
+        return true;
     }
 
     let mainConfig: Record<string, unknown> | undefined;
@@ -50,11 +57,6 @@ export function isFeatureActive(featureId: string): boolean {
             const teamConfig = configs.getTeamConfig();
             return isDefined(teamConfig) ? teamConfig.enabled === true : false;
         }
-        case 'social': {
-            // Friend feature might have its own enabled toggle, or it's always enabled if social is
-            return true;
-        }
-
         default:
             // Features without explicit toggles are assumed to be active.
             return true;

@@ -1,3 +1,4 @@
+import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
@@ -44,8 +45,8 @@ const backCommand: CustomCommand = {
         const cost = typeof backConfig.cost === 'string' ? parseFloat(backConfig.cost) : backConfig.cost;
 
         // Properly type the economy config check
-        const economyConfig = 'economy' in config ? (config.economy as { enabled?: boolean }) : null;
-        const isEconomyEnabled = economyConfig?.enabled === true;
+
+        const isEconomyEnabled = isFeatureActive('economy');
 
         // Cost Check
         if (isEconomyEnabled && cost > 0 && pData.balance < cost) {

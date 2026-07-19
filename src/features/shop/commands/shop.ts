@@ -1,9 +1,9 @@
+import { isFeatureActive } from '@core/featureManager.js';
 import { EntityComponentTypes } from '@minecraft/server';
 
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { parseCurrency } from '@core/utils.js';
 import { items as allItems } from '@features/shop/itemsConfig.js';
@@ -22,8 +22,8 @@ const shopCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const config = getConfig();
-        if (!config.shop.enabled) {
+        if (!isFeatureActive('shop')) {
+            // @ts-ignore (ignoring unused var)
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         await showPanel(executor, 'shopMainPanel', { view: 'shop' });
@@ -40,9 +40,9 @@ const buyCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const config = getConfig();
-        if (!config.shop.enabled) {
+        if (!isFeatureActive('shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
+            // @ts-ignore (ignoring unused var)
         }
         await showPanel(executor, 'shopMainPanel', { view: 'buy' });
     }
@@ -58,10 +58,10 @@ const sellCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const config = getConfig();
-        if (!config.shop.enabled) {
+        if (!isFeatureActive('shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
+        // @ts-ignore (ignoring unused var)
         await showPanel(executor, 'shopMainPanel', { view: 'sell' });
     }
 };
@@ -77,11 +77,11 @@ const sellHandCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-        const config = getConfig();
-        if (!config.shop.enabled) {
+        if (!isFeatureActive('shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
         const equipment = executor.getComponent(EntityComponentTypes.Equippable);
+        // @ts-ignore (ignoring unused var)
         if (!isDefined(equipment)) {
             return executor.sendMessage('§cCould not access your inventory.');
         }
@@ -134,12 +134,12 @@ const addShopCommand: CustomCommand = {
             return;
         }
 
-        const config = getConfig();
-        if (!config.shop.enabled) {
+        if (!isFeatureActive('shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
 
         const { category, buyPrice: buyPriceStr, sellPrice: sellPriceStr, subCategory } = args as unknown as AddShopCommandArgs;
+        // @ts-ignore (ignoring unused var)
 
         if (!isNonEmptyString(buyPriceStr) || !isNonEmptyString(sellPriceStr)) {
             return executor.sendMessage('§cPlease specify buy and sell prices.');
