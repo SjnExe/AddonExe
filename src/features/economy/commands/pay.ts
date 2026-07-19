@@ -1,7 +1,8 @@
+import { getConfig } from '@core/configManager.js';
+import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
 import { economyDisabled } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
@@ -24,7 +25,7 @@ const payCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) return;
 
         const config = getConfig();
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
 
         const targetName = args.targets as string | undefined;
         const amountStr = args.amount as string | undefined;
@@ -79,7 +80,7 @@ const oPayCommand: CustomCommand = {
         if (!(executor instanceof mc.Player)) return;
 
         const config = getConfig();
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
 
         const targetName = args.target as string | undefined;
         const amountStr = args.amount as string | undefined;
@@ -123,8 +124,7 @@ const payConfirmCommand: CustomCommand = {
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) return;
 
-        const config = getConfig();
-        if (!config.economy.enabled) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
 
         const pendingPayment = getPendingPayment(executor.id);
 
