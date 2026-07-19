@@ -1,28 +1,40 @@
-import { getConfig } from '@core/configManager.js';
-import { getValueFromPath } from '@core/objectUtils.js';
+import { isFeatureActive } from '@core/featureManager.js';
 import { hasPermission } from '@core/permissionEngine.js';
 import { showPanel } from '@core/uiManager.js';
 import { Player } from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 
 export async function showMainPanel(player: Player): Promise<void> {
-    const config = getConfig();
     const form = new ActionFormBuilder().title('Main Menu');
 
-    if (getValueFromPath(config, 'shop.enabled') !== false) {
+    if (isFeatureActive('eco.shop')) {
         form.button('Shop', 'textures/ui/trade_icon', async () => {
             await showPanel(player, 'shopMainPanel');
         });
+    } else {
+        form.button('Shop\n§0[§cDISABLED§0]', 'textures/ui/trade_icon', async () => {
+            await showMainPanel(player);
+        });
     }
 
-    form.button('Auction House', 'textures/items/gold_ingot', async () => {
-        const { showAuctionHouse } = await import('@features/auction/ui/panel.js');
-        await showAuctionHouse(player, 1);
-    });
+    if (isFeatureActive('eco.ah')) {
+        form.button('Auction House', 'textures/items/gold_ingot', async () => {
+            const { showAuctionHouse } = await import('@features/auction/ui/panel.js');
+            await showAuctionHouse(player, 1);
+        });
+    } else {
+        form.button('Auction House\n§0[§cDISABLED§0]', 'textures/items/gold_ingot', async () => {
+            await showMainPanel(player);
+        });
+    }
 
-    if (getValueFromPath(config, 'games.enabled') !== false) {
+    if (isFeatureActive('game')) {
         form.button('Games', 'textures/ui/controller_icon.png', async () => {
             await showPanel(player, 'gamesMainPanel');
+        });
+    } else {
+        form.button('Games\n§0[§cDISABLED§0]', 'textures/ui/controller_icon.png', async () => {
+            await showMainPanel(player);
         });
     }
 
@@ -31,17 +43,36 @@ export async function showMainPanel(player: Player): Promise<void> {
         await showPlayerListPanel(player);
     });
 
-    form.button('Team', 'textures/ui/icon_multiplayer.png', async () => {
-        await showPanel(player, 'teamMainPanel');
-    });
+    if (isFeatureActive('soc.team')) {
+        form.button('Team', 'textures/ui/icon_multiplayer.png', async () => {
+            await showPanel(player, 'teamMainPanel');
+        });
+    } else {
+        form.button('Team\n§0[§cDISABLED§0]', 'textures/ui/icon_multiplayer.png', async () => {
+            await showMainPanel(player);
+        });
+    }
 
-    form.button('Friends', 'textures/ui/icon_steve', async () => {
-        await showPanel(player, 'friendMainPanel');
-    });
+    if (isFeatureActive('soc')) {
+        form.button('Friends', 'textures/ui/icon_steve', async () => {
+            await showPanel(player, 'friendMainPanel');
+        });
+    } else {
+        form.button('Friends\n§0[§cDISABLED§0]', 'textures/ui/icon_steve', async () => {
+            await showMainPanel(player);
+        });
+    }
 
-    form.button('Bounty List', 'textures/items/netherite_sword.png', async () => {
-        await showPanel(player, 'bountyListPanel');
-    });
+    // Bounty depends on economy and bounties config, but let's map it roughly to economy for UI
+    if (isFeatureActive('eco')) {
+        form.button('Bounty List', 'textures/items/netherite_sword.png', async () => {
+            await showPanel(player, 'bountyListPanel');
+        });
+    } else {
+        form.button('Bounty List\n§0[§cDISABLED§0]', 'textures/items/netherite_sword.png', async () => {
+            await showMainPanel(player);
+        });
+    }
 
     form.button('Profile', 'textures/ui/profile_glyph_color', async () => {
         await showPanel(player, 'profileMainPanel');

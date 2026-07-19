@@ -1,3 +1,4 @@
+import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
@@ -12,7 +13,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 
 function checkBountyEnabled(executor: CommandExecutor): boolean {
     const config = getConfig();
-    if (!config.economy.enabled || config.bounties.enabled !== true) {
+    if (!isFeatureActive('eco') || config.bounties.enabled !== true) {
         if (executor instanceof mc.Player) {
             sendMessage('§cThe Bounties system is currently disabled globally.', executor);
         } else {
@@ -34,7 +35,7 @@ function sendExecutorMessage(executor: CommandExecutor, message: string) {
 function placeBounty(executor: mc.Player, targetId: string, targetName: string, amount: number) {
     const config = getConfig();
 
-    if (!config.economy.enabled) {
+    if (!isFeatureActive('eco')) {
         sendMessage('§cThe Economy system is currently disabled globally.', executor);
         return;
     }

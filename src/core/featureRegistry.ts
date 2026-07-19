@@ -13,19 +13,19 @@ export interface RawFeatureDef {
 // The raw list of features
 export const RAW_FEATURES: RawFeatureDef[] = [
     {
-        id: 'anticheat',
+        id: 'ac',
         name: 'Anti-Cheat',
         dependencies: [],
         load: () => import('@features/anticheat/index.js')
     },
     {
-        id: 'daily',
+        id: 'util.daily',
         name: 'Daily Rewards',
-        dependencies: [],
+        dependencies: ['eco'],
         load: () => import('@features/daily/index.js')
     },
     {
-        id: 'economy',
+        id: 'eco',
         name: 'Economy',
         dependencies: [],
         load: () => import('@features/economy/index.js')
@@ -37,37 +37,37 @@ export const RAW_FEATURES: RawFeatureDef[] = [
         load: () => import('@features/essentials/index.js')
     },
     {
-        id: 'kit',
+        id: 'util.kit',
         name: 'Kits',
-        dependencies: [],
+        dependencies: ['eco'],
         load: () => import('@features/kit/index.js')
     },
     {
-        id: 'moderation',
+        id: 'mod',
         name: 'Moderation',
         dependencies: [],
         load: () => import('@features/moderation/index.js')
     },
     {
-        id: 'shop',
+        id: 'eco.shop',
         name: 'Shop',
-        dependencies: ['economy'],
+        dependencies: ['eco'],
         load: () => import('@features/shop/index.js')
     },
     {
-        id: 'social',
+        id: 'soc',
         name: 'Social',
         dependencies: [],
         load: () => import('@features/social/index.js')
     },
     {
-        id: 'teleport',
+        id: 'tp',
         name: 'Teleport',
         dependencies: [],
         load: () => import('@features/teleport/index.js')
     },
     {
-        id: 'vote',
+        id: 'util.vote',
         name: 'Voting',
         dependencies: [],
         load: () => import('@features/vote/index.js')
@@ -82,27 +82,27 @@ export const RAW_FEATURES: RawFeatureDef[] = [
 
 RAW_FEATURES.push(
     {
-        id: 'games',
+        id: 'game',
         name: 'Games',
-        dependencies: ['economy'],
+        dependencies: [],
         load: () => import('@features/games/index.js')
     },
     {
-        id: 'auction',
+        id: 'eco.ah',
         name: 'Auction House',
-        dependencies: ['economy'],
+        dependencies: ['eco'],
         load: () => import('@features/auction/index.js')
     },
     {
-        id: 'sidebar',
+        id: 'util.sidebar',
         name: 'Sidebar',
         dependencies: [],
         load: () => import('@features/sidebar/index.js')
     },
     {
-        id: 'team',
+        id: 'soc.team',
         name: 'Teams',
-        dependencies: [],
+        dependencies: ['eco'],
         load: () => import('@features/team/index.js')
     }
 );

@@ -1,6 +1,6 @@
+import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
 import { getTeamConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
@@ -115,8 +115,8 @@ function saveNextTeamId() {
 function processTeamCreationCost(playerId: string, balance: number, cost: number): { success: boolean; message?: string; charged: boolean } {
     let economyEnabled = false;
     try {
-        const mainConfig = getConfig() as Record<string, unknown>;
-        economyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
+        // @ts-ignore (ignoring unused var)
+        economyEnabled = isFeatureActive('eco');
     } catch {
         // Fallback
     }
@@ -253,8 +253,8 @@ export function deleteTeam(teamId: number): boolean {
     const cost = teamConfig.creationCost;
     let economyEnabled = false;
     try {
-        const mainConfig = getConfig() as Record<string, unknown>;
-        economyEnabled = (mainConfig.economy as { enabled?: boolean }).enabled === true;
+        // @ts-ignore (ignoring unused var)
+        economyEnabled = isFeatureActive('eco');
     } catch {
         // Fallback
     }
