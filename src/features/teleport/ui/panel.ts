@@ -10,7 +10,7 @@ export async function showTpaSettingsPanel(player: mc.Player): Promise<void> {
     const config = getConfig();
 
     if (!config.tpa.enabled) {
-        form.button('§4System Globally Disabled', 'textures/ui/warning_alert', async () => {
+        form.button('§4System Globally Disabled', 'textures/ui/WarningGlyph', async () => {
             await showTpaSettingsPanel(player);
         });
     }
