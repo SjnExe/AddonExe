@@ -1,4 +1,5 @@
 import { $ } from 'bun';
+import { globSync } from 'glob';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -50,6 +51,51 @@ async function getVersionParts() {
     console.log(`[Build] Version Resolved: ${finalStr} -> [${finalParts.join(', ')}]`);
     return { versionStr: finalStr, versionArray: finalParts };
 }
+
+export const iconIndexPlugin = {
+    name: 'generate-icon-index',
+    setup(build: import('bun').PluginBuilder) {
+        build.onResolve({ filter: /^virtual:icon-index$/ }, (args) => {
+            return {
+                path: args.path,
+                namespace: 'virtual-icon-index'
+            };
+        });
+
+        build.onLoad({ filter: /.*/, namespace: 'virtual-icon-index' }, async () => {
+            console.log('[Plugin] Generating virtual icon index...');
+            const SRC_DIR = path.resolve(__dirname, '../src');
+
+            const tsFiles = globSync('**/*.ts', { cwd: SRC_DIR, absolute: true });
+            const textures = new Set<string>();
+            const regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
+
+            for (const file of tsFiles) {
+                // Skip the generated icon index itself to prevent recursive loop / duplicates
+                if (file.includes('virtual:icon-index')) continue;
+
+                try {
+                    const content = await Bun.file(file).text();
+                    let match;
+                    while ((match = regex.exec(content)) !== null) {
+                        const iconPath = match[1] || match[2] || match[3];
+                        if (iconPath) textures.add(iconPath);
+                    }
+                } catch {
+                    // Ignore read errors
+                }
+            }
+
+            const iconList = Array.from(textures);
+            console.log(`[Plugin] Found ${iconList.length} unique icon paths.`);
+
+            return {
+                contents: `export const usedIcons = ${JSON.stringify(iconList)};`,
+                loader: 'ts'
+            };
+        });
+    }
+};
 
 export const commandIndexPlugin = {
     name: 'generate-command-index',
@@ -222,7 +268,7 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
         define: {
             __IS_NIGHTLY__: String(isNightly)
         },
-        plugins: [commandIndexPlugin],
+        plugins: [commandIndexPlugin, iconIndexPlugin],
         external: [...externalModules, ...externalConfigs]
     });
 
