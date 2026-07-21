@@ -45,7 +45,7 @@ describe('Shop Admin Manager - addCategory', () => {
 
     it('should fail when category name is too long', () => {
         const longName = 'A'.repeat(33);
-        const result = addCategory(longName, 'textures/ui/folder_glyph');
+        const result = addCategory(longName, '');
 
         expect(result.success).toBe(false);
         expect(result.message).toBe('Category name is too long (max 32).');
@@ -55,7 +55,7 @@ describe('Shop Admin Manager - addCategory', () => {
 
     it('should fail when category already exists', () => {
         mockConfig.categories['Existing'] = {
-            icon: 'textures/ui/folder_glyph',
+            icon: '',
             items: {},
             subCategories: {}
         };
@@ -72,7 +72,7 @@ describe('Shop Admin Manager - addCategory', () => {
 
         expect(result.success).toBe(true);
         expect(mockConfig.categories['Blocks']).toBeDefined();
-        expect(mockConfig.categories['Blocks'].icon).toBe('textures/ui/folder_glyph');
+        expect(mockConfig.categories['Blocks'].icon).toBe('');
         expect(saveShopConfig).toHaveBeenCalledWith(mockConfig);
     });
 

@@ -149,7 +149,7 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
 export async function showConfigResetPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder()
         .title('Danger Zone')
-        .button('Transfer Config', 'textures/ui/repeat', () => {
+        .button('Transfer Config', 'textures/ui/RepeatSquare', () => {
             void showConfigTransferPanel(player);
         })
         .button('§l§4Full Factory Reset', 'textures/ui/WarningGlyph', () => {
@@ -203,7 +203,7 @@ export async function showConfigResetCategoryPanel(player: mc.Player, category: 
 export async function showConfigTransferPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder()
         .title('Transfer Configs')
-        .button('Export Config', 'textures/ui/arrow_up', () => {
+        .button('Export Config', '', () => {
             void showConfigExportPanel(player);
         })
         .button('Import Config', 'textures/ui/arrow_down', () => {
