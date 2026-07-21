@@ -145,7 +145,7 @@ export function addBackButton(items: Record<string, unknown>[], targetPanelId: s
     items.push({
         id: '__back__',
         text: '< Back',
-        icon: '',
+        icon: 'textures/gui/controls/left.png',
         permission,
         actionType: 'openPanel',
         actionValue: targetPanelId

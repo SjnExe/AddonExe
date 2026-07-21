@@ -39,7 +39,7 @@ export class ActionFormBuilder {
     }
 
     public addBackButton(onClick: () => void | Promise<void>): this {
-        this.button('§cBack', '', onClick);
+        this.button('§cBack', 'textures/gui/controls/left', onClick);
         return this;
     }
 

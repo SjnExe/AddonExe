@@ -144,7 +144,7 @@ async function extractUsedIcons(): Promise<Map<string, string[]>> {
     return usedIcons;
 }
 
-const IGNORED_TEXTURES: string[] = [];
+const IGNORED_TEXTURES: string[] = ['textures/gui/controls/left'];
 
 async function validate() {
     console.log('--- Starting Icon Validation ---');
