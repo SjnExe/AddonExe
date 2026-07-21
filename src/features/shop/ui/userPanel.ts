@@ -29,7 +29,7 @@ interface ShopCategory {
 
 export async function showShopMainPanel(player: mc.Player): Promise<void> {
     await ensureItemsConfig();
-    const form = new ActionFormBuilder().title('Shop').button('§l§6Search Item', ['textures/ui', 'magnifyingGlass'].join('/'), () => {
+    const form = new ActionFormBuilder().title('Shop').button('§l§6Search Item', 'textures/ui/magnifyingGlass', () => {
         void showShopSearchPanel(player);
     });
 

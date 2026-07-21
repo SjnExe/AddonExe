@@ -40,7 +40,7 @@ export function generateDisplayName(typeId: string): string {
  */
 export function resolveIcon(typeId: string): string {
     if (!typeId) {
-        return 'textures/ui/help_question_mark';
+        return '';
     }
 
     if (iconCache.has(typeId)) {

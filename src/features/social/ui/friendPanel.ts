@@ -12,7 +12,7 @@ export async function showFriendMainPanel(player: mc.Player): Promise<void> {
     const pData = getOrCreatePlayer(player);
     const form = new ActionFormBuilder()
         .title('Friends')
-        .button('List Friends', 'textures/ui/multiplayer', async () => {
+        .button('List Friends', 'textures/ui/multiplayer_glyph_color', async () => {
             await showFriendListPanel(player, 1);
         })
         .button('Add Friend', 'textures/ui/plus', async () => {
