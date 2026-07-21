@@ -36,7 +36,7 @@ export async function showConfigCategoryPanel(player: mc.Player, context: Record
     }
 
     if (hasPermission(player, 'ui.panel.owner')) {
-        form.button('§l§4Danger Zone', 'textures/ui/warning_alert', () => {
+        form.button('§l§4Danger Zone', 'textures/ui/WarningGlyph', () => {
             void showConfirmationDialog(player, {
                 title: 'Danger Zone',
                 body: 'Access server diagnostic parameters?',
@@ -152,7 +152,7 @@ export async function showConfigResetPanel(player: mc.Player): Promise<void> {
         .button('Transfer Config', 'textures/ui/repeat', () => {
             void showConfigTransferPanel(player);
         })
-        .button('§l§4Full Factory Reset', 'textures/ui/warning_alert', () => {
+        .button('§l§4Full Factory Reset', 'textures/ui/WarningGlyph', () => {
             void showConfirmationDialog(player, {
                 title: 'Full Factory Reset',
                 body: 'Are you absolutely sure?',

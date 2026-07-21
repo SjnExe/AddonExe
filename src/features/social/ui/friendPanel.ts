@@ -202,6 +202,18 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
 // Ensure the old action is supported for backwards compat if needed, or remove.
 export async function addFriendAction(player: mc.Player, targetPlayerId: string): Promise<void> {
     await Promise.resolve();
-    const result = friendManager.sendFriendRequest(player, targetPlayerId);
+    if (player.id === targetPlayerId) {
+        player.sendMessage('§cYou cannot be friends with yourself.');
+        return;
+    }
+
+    const { getPlayerNameById } = await import('@core/playerDataManager.js');
+    const targetName = getPlayerNameById(targetPlayerId);
+    if (!targetName) {
+        player.sendMessage('§cPlayer not found.');
+        return;
+    }
+
+    const result = friendManager.sendFriendRequest(player, targetName);
     player.sendMessage(result.message);
 }

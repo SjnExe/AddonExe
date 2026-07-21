@@ -20,13 +20,35 @@ export async function showRankManagementPanel(player: mc.Player, targetPlayerId:
     allRanks.forEach((rank) => {
         const hasRank = targetData.ranks.includes(rank.id);
         const icon = hasRank ? 'textures/ui/realms_green_check' : 'textures/ui/cancel';
-        const buttonText = `§l${rank.name}§r\n${hasRank ? '§2Click to Remove' : '§4Click to Add'}`;
+
+        // Prevent editing owner rank from UI
+        if (rank.id === 'owner') {
+            return;
+        }
+
+        // Prevent removing locked ranks like member if they already have it
+        let buttonText = `§l${rank.name}§r\n${hasRank ? '§2Click to Remove' : '§4Click to Add'}`;
+        if (hasRank && rank.locked) {
+            buttonText = `§l${rank.name}§r\n§8Cannot be removed`;
+        }
 
         form.button(buttonText, icon, async () => {
+            const { getConfig } = await import('@core/configManager.js');
+            const { getPlayerRank } = await import('@core/rankManager.js');
+            const editorRank = getPlayerRank(player, getConfig());
+
+            // Require owner rank to give/remove admin rank
+            if (rank.id === 'admin' && editorRank.id !== 'owner') {
+                player.sendMessage('§cOnly players with the Owner rank can modify the Admin rank.');
+                return;
+            }
+
             if (hasRank) {
-                // If it's their only rank, maybe prevent removal or fallback to default
+                // If it's their only rank, prevent removal
                 if (targetData.ranks.length === 1 && targetData.ranks[0] === rank.id) {
                     player.sendMessage(`§cCannot remove the player's only rank.`);
+                } else if (rank.locked) {
+                    player.sendMessage(`§cCannot remove a core system rank (${rank.name}).`);
                 } else {
                     const newRanks = targetData.ranks.filter((r) => r !== rank.id);
                     setPlayerRanks(targetPlayerId, newRanks);
