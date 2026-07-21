@@ -64,37 +64,37 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
     const isModMode = hasPermission(player, 'ui.panel.mod');
 
     if (isModMode) {
-        form.button('Kick', 'textures/ui/cancel.png', () => {
+        form.button('Kick', 'textures/ui/cancel', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleKickPlayer(player, targetPlayerId));
         });
-        form.button('Mute', 'textures/ui/mute_on.png', () => {
+        form.button('Mute', 'textures/ui/mute_on', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleMutePlayer(player, targetPlayerId));
         });
-        form.button('Unmute', 'textures/ui/mute_off.png', () => {
+        form.button('Unmute', 'textures/ui/mute_off', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleUnmutePlayer(player, targetPlayerId));
         });
-        form.button('Ban', 'textures/ui/hammer_l.png', () => {
+        form.button('Ban', 'textures/ui/hammer_l', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleBanPlayer(player, targetPlayerId));
         });
-        form.button('Manage Ranks', '', async () => {
+        form.button('Manage Ranks', 'textures/ui/permissions_op_crown', async () => {
             const { showRankManagementPanel } = await import('@features/ranks/ui/panel.js');
             await showRankManagementPanel(player, targetPlayerId);
         });
-        form.button('Manage Stats', 'textures/ui/Scaffolding.png', async () => {
+        form.button('Manage Stats', 'textures/ui/Scaffolding', async () => {
             const { showStatsPanel } = await import('@core/ui/panels/statsPanel.js');
             await showStatsPanel(player, targetPlayerId);
         });
-        form.button('See Inventory', 'textures/ui/inventory_icon.png', async () => {
+        form.button('See Inventory', 'textures/ui/inventory_icon', async () => {
             const { showInventoryPanel } = await import('@core/ui/panels/inventoryPanel.js');
             await showInventoryPanel(player, targetPlayerId);
         });
-        form.button('Teleport To', 'textures/ui/icon_map.png', () => {
+        form.button('Teleport To', 'textures/ui/icon_map', () => {
             void import('@core/playerCache.js').then((m) => {
                 const target = m.getPlayerFromCache(targetPlayerId);
                 if (target) player.teleport(target.location, { dimension: target.dimension });
             });
         });
-        form.button('Teleport Here', 'textures/ui/icon_map.png', () => {
+        form.button('Teleport Here', 'textures/ui/icon_map', () => {
             void import('@core/playerCache.js').then((m) => {
                 const target = m.getPlayerFromCache(targetPlayerId);
                 if (target) target.teleport(player.location, { dimension: player.dimension });
@@ -133,7 +133,7 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
 
     if (data) {
         form.button(`§2Balance: §r${formatCurrency(data.balance)}`, 'textures/items/emerald');
-        form.button(`§6Rank: §r${data.rankId}`, '');
+        form.button(`§6Rank: §r${data.rankId}`, 'textures/ui/permissions_op_crown');
         form.button(`${formatDuration(data.totalPlayTime)}`, 'textures/items/clock_item');
         form.button(`§4Kills: §r${data.kills}`, 'textures/items/iron_sword');
         form.button(`§4Deaths: §r${data.deaths}`, 'textures/items/skull_pottery_sherd');
