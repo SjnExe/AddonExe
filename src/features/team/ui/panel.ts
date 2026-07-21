@@ -84,7 +84,7 @@ export async function showTeamMembersPanel(player: mc.Player, page: number = 1):
             const status = isOnline ? '§aOnline' : '§cOffline';
             const role = team.ownerId === member ? '§6Owner' : '§7Member';
 
-            formBuilder.button(`${loadPlayerData(member)?.name ?? member}\n${status} §r- ${role}`, 'textures/ui/permissions_member_star.png', async () => {
+            formBuilder.button(`${loadPlayerData(member)?.name ?? member}\n${status} §r- ${role}`, 'textures/ui/permissions_member_star', async () => {
                 if (isOwner && member !== player.id) {
                     await showTeamMemberActionPanel(player, member, loadPlayerData(member)?.name ?? member);
                 } else {
@@ -185,7 +185,7 @@ export async function showTeamRequestsPanel(player: mc.Player, page: number = 1)
         (app, formBuilder) => {
             const onlineP = getPlayerFromCache(app.playerId);
             let rankText = '';
-            let icon = 'textures/ui/permissions_member_star.png';
+            let icon = 'textures/ui/permissions_member_star';
             if (onlineP) {
                 const targetRank = getPlayerRank(onlineP, getConfig());
                 rankText = targetRank.chatFormatting?.prefixText ? `§r[${targetRank.chatFormatting.prefixText}]` : `§r[${targetRank.name}]`;

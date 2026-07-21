@@ -11,11 +11,11 @@ export async function showInfoPanel(player: mc.Player): Promise<void> {
         await showPanel(player, 'profileMainPanel');
     });
 
-    form.button('Server Rules', 'textures/items/book_enchanted.png', async () => {
+    form.button('Server Rules', 'textures/items/book_enchanted', async () => {
         await showServerRulesPanel(player);
     });
 
-    form.button('Helpful Links', 'textures/items/chain.png', async () => {
+    form.button('Helpful Links', 'textures/items/chain', async () => {
         await showHelpfulLinksPanel(player);
     });
 

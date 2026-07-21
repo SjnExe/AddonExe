@@ -16,12 +16,12 @@ export async function showStaffDashboardPanel(player: mc.Player): Promise<void> 
             await showPanel(player, 'reportListPanel');
         });
 
-        form.button('Player Management', 'textures/ui/icon_multiplayer.png', async () => {
+        form.button('Player Management', 'textures/ui/icon_multiplayer', async () => {
             const { showPlayerManagementPanel } = await import('@core/ui/panels/playerPanel.js');
             await showPlayerManagementPanel(player);
         });
 
-        form.button('Moderation', 'textures/ui/hammer_l.png', async () => {
+        form.button('Moderation', 'textures/ui/hammer_l', async () => {
             await showPanel(player, 'moderationPanel');
         });
     }

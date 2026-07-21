@@ -36,7 +36,7 @@ async function showLogsMenu(player: mc.Player) {
         .title('Logs Menu')
         .button('Punishment Logs', 'textures/ui/hammer_l')
         .button('Anti-Cheat Flags', 'textures/items/diamond_sword')
-        .button('Chat Logs', '')
+        .button('Chat Logs', 'textures/ui/message')
         .button('Settings', 'textures/ui/settings_glyph_color_2x');
 
     const response = await uiWait(player, form);
