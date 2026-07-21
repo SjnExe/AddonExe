@@ -49,8 +49,8 @@ export async function showFloatingTextListPanel(player: mc.Player): Promise<void
     const form = new ActionFormBuilder().title('Floating Text Manager');
     form.body('Select a floating text entry to manage.');
 
-    form.button('§l§6View Placeholders', 'textures/ui/icon_sign', () => {
-        player.sendMessage('Placeholders list not available.');
+    form.button('§l§6View Placeholders', 'textures/ui/icon_sign', async () => {
+        await showPlaceholdersPanel(player);
     });
 
     form.button('§l§2Create New', 'textures/ui/color_plus', async () => {
@@ -206,4 +206,30 @@ export async function showFloatingTextEditPanel(player: mc.Player, id: string): 
     player.sendMessage(`§2Successfully updated floating text: ${id}`);
 
     await showFloatingTextActionPanel(player, id);
+}
+
+export async function showPlaceholdersPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('Placeholders List');
+    form.body(
+        '§bGlobal Placeholders:§r\n' +
+            '§e{online}§r - Online player count\n' +
+            '§e{max_online}§r - Max online players limit\n' +
+            '§e{top_money_X}§r - Leaderboard entry X (e.g. {top_money_1})\n\n' +
+            '§bPlayer Placeholders:§r\n' +
+            '§e{name}§r - Player name\n' +
+            '§e{rank}§r - Player rank\n' +
+            '§e{money}§r - Player balance\n' +
+            '§e{kills}§r - Player kills\n' +
+            '§e{deaths}§r - Player deaths\n' +
+            '§e{kdr}§r - Kill/Death ratio\n' +
+            '§e{streak}§r - Kill streak\n' +
+            '§e{playtime}§r - Total playtime\n' +
+            '§e{team}§r - Team name (or None)'
+    );
+
+    form.addBackButton(async () => {
+        await showFloatingTextListPanel(player);
+    });
+
+    await form.show(player);
 }
