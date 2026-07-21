@@ -250,10 +250,7 @@ export async function showShopAddItemPanel(player: mc.Player, categoryName: stri
 }
 
 export async function showAddCategoryPanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ catName: string; icon: string }>()
-        .title('Add Category')
-        .textField('catName', 'Category Name', 'e.g., Blocks')
-        .textField('icon', 'Icon Path', '');
+    const modal = new ModalFormBuilder<{ catName: string; icon: string }>().title('Add Category').textField('catName', 'Category Name', 'e.g., Blocks').textField('icon', 'Icon Path', '');
 
     const res = await modal.show(player);
     if (!res) {
@@ -271,10 +268,7 @@ export async function showAddCategoryPanel(player: mc.Player): Promise<void> {
 }
 
 export async function showAddSubCategoryPanel(player: mc.Player, categoryName: string): Promise<void> {
-    const modal = new ModalFormBuilder<{ subCatName: string; icon: string }>()
-        .title('Add Sub-Category')
-        .textField('subCatName', 'Sub-Category Name', 'e.g., Ores')
-        .textField('icon', 'Icon Path', '');
+    const modal = new ModalFormBuilder<{ subCatName: string; icon: string }>().title('Add Sub-Category').textField('subCatName', 'Sub-Category Name', 'e.g., Ores').textField('icon', 'Icon Path', '');
 
     const res = await modal.show(player);
     if (!res) {
