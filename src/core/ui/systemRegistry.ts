@@ -42,25 +42,6 @@ export function getSystemRegistry(): SystemDefinition[] {
                 if (schema.hidden === true) def.hidden = schema.hidden;
                 return def;
             }),
-
-        {
-            id: 'economyMain',
-            title: 'Economy Main Config',
-            icon: 'textures/ui/Scaffolding',
-            configPanelId: 'config_economyMain',
-            category: 'Economy',
-            hidden: true,
-            isSimpleConfig: true
-        },
-        {
-            id: 'shopSettings',
-            title: 'Shop Settings',
-            icon: 'textures/items/emerald',
-            configPanelId: 'config_shopSettings',
-            category: 'Economy',
-            hidden: true,
-            isSimpleConfig: true
-        },
         // 2. Add complex custom systems
         {
             id: 'kits',
@@ -88,16 +69,6 @@ export function getSystemRegistry(): SystemDefinition[] {
             showFunction: async (player) => {
                 const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
                 await showShopManagementPanel(player);
-            },
-            category: 'Economy',
-            isSimpleConfig: false
-        },
-        {
-            id: 'economy',
-            title: 'Economy System',
-            icon: 'textures/ui/Scaffolding',
-            showFunction: (player) => {
-                player.sendMessage('Economy main panel not available.');
             },
             category: 'Economy',
             isSimpleConfig: false
