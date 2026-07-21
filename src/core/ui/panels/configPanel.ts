@@ -203,7 +203,7 @@ export async function showConfigResetCategoryPanel(player: mc.Player, category: 
 export async function showConfigTransferPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder()
         .title('Transfer Configs')
-        .button('Export Config', '', () => {
+        .button('Export Config', 'textures/ui/structure_block_export', () => {
             void showConfigExportPanel(player);
         })
         .button('Import Config', 'textures/ui/arrow_down', () => {

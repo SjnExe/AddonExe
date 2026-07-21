@@ -38,17 +38,17 @@ export async function showMainPanel(player: Player): Promise<void> {
         });
     }
 
-    form.button('Player List', 'textures/ui/icon_steve.png', async () => {
+    form.button('Player List', 'textures/ui/icon_steve', async () => {
         const { showPlayerListPanel } = await import('@core/ui/panels/playerPanel.js');
         await showPlayerListPanel(player);
     });
 
     if (isFeatureActive('soc.team')) {
-        form.button('Team', 'textures/ui/icon_multiplayer.png', async () => {
+        form.button('Team', 'textures/ui/icon_multiplayer', async () => {
             await showPanel(player, 'teamMainPanel');
         });
     } else {
-        form.button('Team\n§0[§cDISABLED§0]', 'textures/ui/icon_multiplayer.png', async () => {
+        form.button('Team\n§0[§cDISABLED§0]', 'textures/ui/icon_multiplayer', async () => {
             await showMainPanel(player);
         });
     }
@@ -65,16 +65,16 @@ export async function showMainPanel(player: Player): Promise<void> {
 
     // Bounty depends on economy and bounties config, but let's map it roughly to economy for UI
     if (isFeatureActive('eco')) {
-        form.button('Bounty List', 'textures/items/netherite_sword.png', async () => {
+        form.button('Bounty List', 'textures/items/netherite_sword', async () => {
             await showPanel(player, 'bountyListPanel');
         });
     } else {
-        form.button('Bounty List\n§0[§cDISABLED§0]', 'textures/items/netherite_sword.png', async () => {
+        form.button('Bounty List\n§0[§cDISABLED§0]', 'textures/items/netherite_sword', async () => {
             await showMainPanel(player);
         });
     }
 
-    form.button('Info', 'textures/items/book_enchanted.png', async () => {
+    form.button('Info', 'textures/items/book_enchanted', async () => {
         await showPanel(player, 'infoPanel');
     });
 
