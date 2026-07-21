@@ -76,7 +76,7 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
         form.button('Ban', 'textures/ui/hammer_l.png', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleBanPlayer(player, targetPlayerId));
         });
-        form.button('Manage Ranks', 'textures/ui/icon_rank.png', async () => {
+        form.button('Manage Ranks', '', async () => {
             const { showRankManagementPanel } = await import('@features/ranks/ui/panel.js');
             await showRankManagementPanel(player, targetPlayerId);
         });
@@ -133,10 +133,10 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
 
     if (data) {
         form.button(`§2Balance: §r${formatCurrency(data.balance)}`, 'textures/items/emerald');
-        form.button(`§6Rank: §r${data.rankId}`, 'textures/ui/icon_rank');
+        form.button(`§6Rank: §r${data.rankId}`, '');
         form.button(`${formatDuration(data.totalPlayTime)}`, 'textures/items/clock_item');
         form.button(`§4Kills: §r${data.kills}`, 'textures/items/iron_sword');
-        form.button(`§4Deaths: §r${data.deaths}`, 'textures/ui/skull_face');
+        form.button(`§4Deaths: §r${data.deaths}`, 'textures/items/skull_pottery_sherd');
     }
 
     form.addBackButton(async () => {

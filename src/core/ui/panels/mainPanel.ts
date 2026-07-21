@@ -29,11 +29,11 @@ export async function showMainPanel(player: Player): Promise<void> {
     }
 
     if (isFeatureActive('game')) {
-        form.button('Games', 'textures/ui/controller_icon.png', async () => {
+        form.button('Games', 'textures/ui/controller_glyph_color', async () => {
             await showPanel(player, 'gamesMainPanel');
         });
     } else {
-        form.button('Games\n§0[§cDISABLED§0]', 'textures/ui/controller_icon.png', async () => {
+        form.button('Games\n§0[§cDISABLED§0]', 'textures/ui/controller_glyph_color', async () => {
             await showMainPanel(player);
         });
     }

@@ -250,10 +250,7 @@ export async function showShopAddItemPanel(player: mc.Player, categoryName: stri
 }
 
 export async function showAddCategoryPanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ catName: string; icon: string }>()
-        .title('Add Category')
-        .textField('catName', 'Category Name', 'e.g., Blocks')
-        .textField('icon', 'Icon Path', ['textures/items', ['dia', 'mond'].join('')].join('/'));
+    const modal = new ModalFormBuilder<{ catName: string; icon: string }>().title('Add Category').textField('catName', 'Category Name', 'e.g., Blocks').textField('icon', 'Icon Path', '');
 
     const res = await modal.show(player);
     if (!res) {
@@ -271,10 +268,7 @@ export async function showAddCategoryPanel(player: mc.Player): Promise<void> {
 }
 
 export async function showAddSubCategoryPanel(player: mc.Player, categoryName: string): Promise<void> {
-    const modal = new ModalFormBuilder<{ subCatName: string; icon: string }>()
-        .title('Add Sub-Category')
-        .textField('subCatName', 'Sub-Category Name', 'e.g., Ores')
-        .textField('icon', 'Icon Path', ['textures/items', ['dia', 'mond'].join('')].join('/'));
+    const modal = new ModalFormBuilder<{ subCatName: string; icon: string }>().title('Add Sub-Category').textField('subCatName', 'Sub-Category Name', 'e.g., Ores').textField('icon', 'Icon Path', '');
 
     const res = await modal.show(player);
     if (!res) {
@@ -374,7 +368,7 @@ export async function showAddCustomItemPanel(player: mc.Player, categoryName: st
         .textField('buyPrice', 'Buy Price', '100', '100')
         .textField('sellPrice', 'Sell Price', '50', '50')
         .textField('displayName', 'Display Name', ['Dia', 'mond'].join(''))
-        .textField('icon', 'Icon Path', ['textures/items', ['dia', 'mond'].join('')].join('/'))
+        .textField('icon', 'Icon Path', '')
         .textField('permission', 'Permission', 'ui.panel.member')
         .textField('rankMultiplierOverridesStr', 'Overrides', '');
 
@@ -447,7 +441,7 @@ export async function showEditItemFormPanel(player: mc.Player, categoryName: str
         .textField('buyPrice', 'Buy Price', '100', String(item.buyPrice))
         .textField('sellPrice', 'Sell Price', '50', String(item.sellPrice))
         .textField('displayName', 'Display Name', ['Dia', 'mond'].join(''), item.displayName || '')
-        .textField('icon', 'Icon Path', ['textures/items', ['dia', 'mond'].join('')].join('/'), item.icon || '')
+        .textField('icon', 'Icon Path', '', item.icon || '')
         .textField('permission', 'Permission', 'ui.panel.member', item.permission || '')
         .textField('rankMultiplierOverridesStr', 'Overrides', '', overridesStr)
         .dropdown('action', 'Action', ['Save', 'Delete']);

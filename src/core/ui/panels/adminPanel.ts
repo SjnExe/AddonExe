@@ -88,7 +88,7 @@ export async function showFloatingTextActionPanel(player: mc.Player, id: string)
         } ticks\n§7Expires: §r${isNumber(textData.expiresAt) ? new Date(textData.expiresAt).toLocaleString() : 'Never'}`
     );
 
-    form.button('Edit Config', 'textures/ui/edit', async () => {
+    form.button('Edit Config', 'textures/ui/book_edit_default', async () => {
         await showFloatingTextEditPanel(player, id);
     });
 

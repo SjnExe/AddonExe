@@ -54,7 +54,7 @@ export function addCategory(categoryName: string, icon: string): ActionResult {
     }
 
     categories[safeName] = {
-        icon: isNonEmptyString(icon) ? icon : 'textures/ui/folder_glyph',
+        icon: isNonEmptyString(icon) ? icon : '',
         items: {},
         subCategories: {}
     };
@@ -201,7 +201,7 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
     }
 
     category.subCategories[safeName] = {
-        icon: isNonEmptyString(icon) ? icon : 'textures/ui/folder_glyph',
+        icon: isNonEmptyString(icon) ? icon : '',
         items: {}
     };
 

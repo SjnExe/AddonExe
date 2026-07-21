@@ -14,7 +14,7 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder().title(team ? team.name : 'Teams');
 
     if (team) {
-        form.button(`Members (${team.members.length})`, 'textures/ui/multiplayer', async () => {
+        form.button(`Members (${team.members.length})`, 'textures/ui/multiplayer_glyph_color', async () => {
             await showTeamMembersPanel(player, 1);
         });
 
@@ -35,7 +35,7 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
         });
 
         if (team.home) {
-            form.button('Teleport to Home', 'textures/ui/portal', () => {
+            form.button('Teleport to Home', 'textures/ui/portalBg', () => {
                 teamManager.teleportToTeamHome(player);
             });
         }
@@ -146,7 +146,7 @@ export async function showTeamManagePanel(player: mc.Player): Promise<void> {
         .button(`Join Requests (${team.applications.length})`, 'textures/ui/user_icon', async () => {
             await showTeamRequestsPanel(player, 1);
         })
-        .button('Manage Home', 'textures/ui/portal', async () => {
+        .button('Manage Home', 'textures/ui/portalBg', async () => {
             await showTeamHomePanel(player);
         });
 
@@ -305,7 +305,7 @@ export async function showTeamJoinPanel(player: mc.Player): Promise<void> {
         .button('Search Team', 'textures/ui/magnifyingGlass', async () => {
             await showTeamSearchPanel(player);
         })
-        .button('Browse Teams', 'textures/ui/multiplayer', async () => {
+        .button('Browse Teams', 'textures/ui/multiplayer_glyph_color', async () => {
             await showTeamBrowserPanel(player, 1);
         });
 

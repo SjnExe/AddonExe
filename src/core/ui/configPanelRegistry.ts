@@ -111,7 +111,7 @@ export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'auctionHouse',
         title: 'Auction System',
-        icon: 'textures/ui/gold_icon',
+        icon: 'textures/items/gold_ingot',
         configSource: 'auctionHouse',
         category: 'Economy',
         settings: [
@@ -264,7 +264,7 @@ export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'warps',
         title: 'Warp System',
-        icon: 'textures/blocks/portal_placeholder',
+        icon: 'textures/blocks/portal',
         category: 'World',
         settings: [
             {
@@ -1021,7 +1021,7 @@ export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'games',
         title: 'Games Config',
-        icon: 'textures/ui/controller_icon',
+        icon: 'textures/ui/controller_glyph_color',
         configSource: 'games',
         category: 'Games',
         settings: [

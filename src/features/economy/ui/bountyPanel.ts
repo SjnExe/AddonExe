@@ -19,7 +19,7 @@ export async function showBountyListPanel(player: mc.Player, context: Record<str
     const bounties = [...allBounties.values()].toSorted((a, b) => b.amount - a.amount);
 
     if (bounties.length === 0) {
-        form.button('§8No active bounties', 'textures/ui/info_icon');
+        form.button('§8No active bounties', 'textures/ui/infobulb');
     } else {
         const paginated = getPaginatedItems(bounties, page);
 
