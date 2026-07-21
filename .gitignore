@@ -34,6 +34,7 @@ validation_report
 .eslintcache
 *.tsbuildinfo
 .prettiercache
+.cache/
 /packs/behavior/scripts/
 /packs/behavior/scripts-bds/
 /packs/behavior/manifest.json
