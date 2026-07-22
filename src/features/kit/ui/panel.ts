@@ -108,9 +108,11 @@ export async function showKitSettingsPanel(player: mc.Player, kitName: string): 
         return;
     }
 
-    const cooldown = Number.parseInt(res.cooldown) || 0;
+    const cooldownParsed = Number.parseInt(res.cooldown);
+    const cooldown = Number.isNaN(cooldownParsed) ? 0 : cooldownParsed;
     const perm = res.perm || 'ui.panel.member';
-    const price = Number.parseInt(res.price) || 0;
+    const priceParsed = Number.parseInt(res.price);
+    const price = Number.isNaN(priceParsed) ? 0 : priceParsed;
 
     kitAdminManager.updateKitSettings(kitName, {
         enabled: res.enabled,
@@ -142,8 +144,9 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
             const modal = new ModalFormBuilder<{ typeId: string; amount: string }>().title('Add Item').textField('typeId', 'Item ID', MinecraftItemTypes.Stone).textField('amount', 'Amount', '1', '1');
             const res = await modal.show(player);
             if (res) {
-                const amount = Number.parseInt(res.amount);
-                if (res.typeId && !Number.isNaN(amount)) {
+                const amountParsed = Number.parseInt(res.amount);
+                const amount = Number.isNaN(amountParsed) ? 1 : amountParsed;
+                if (res.typeId) {
                     const result = kitItemsManager.addItemToKit(kitName, { typeId: res.typeId, amount });
                     player.sendMessage(result.message);
                 }

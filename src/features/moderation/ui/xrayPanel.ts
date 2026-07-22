@@ -69,8 +69,8 @@ export async function showAddXrayOrePanel(player: mc.Player): Promise<void> {
                 {
                     blockId: res.blockId,
                     dimensionId: isNonEmptyString(res.dimId) ? res.dimId : MinecraftDimensionTypes.Overworld,
-                    minY: Number.parseInt(res.minY) || -64,
-                    maxY: Number.parseInt(res.maxY) || 320
+                    minY: Number.isNaN(Number.parseInt(res.minY)) ? -64 : Number.parseInt(res.minY),
+                    maxY: Number.isNaN(Number.parseInt(res.maxY)) ? 320 : Number.parseInt(res.maxY)
                 }
             ]
         };
@@ -117,8 +117,8 @@ export async function showEditXrayOrePanel(player: mc.Player, key: string): Prom
     config.monitoredOreTypes[key]!.blocks[0] = {
         blockId: res.blockId,
         dimensionId: res.dimId,
-        minY: Number.parseInt(res.minY) || -64,
-        maxY: Number.parseInt(res.maxY) || 320
+        minY: Number.isNaN(Number.parseInt(res.minY)) ? -64 : Number.parseInt(res.minY),
+        maxY: Number.isNaN(Number.parseInt(res.maxY)) ? 320 : Number.parseInt(res.maxY)
     };
     saveXrayConfig(config);
     player.sendMessage('§aOre updated.');

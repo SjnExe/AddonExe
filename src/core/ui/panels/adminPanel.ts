@@ -200,7 +200,7 @@ export async function showFloatingTextEditPanel(player: mc.Player, id: string): 
         text: vals.text,
         location: { x: Number.parseFloat(vals.x), y: Number.parseFloat(vals.y), z: Number.parseFloat(vals.z) },
         dimension: selectedDimension,
-        updateInterval: Number.parseInt(vals.interval) || 0,
+        updateInterval: Number.isNaN(Number.parseInt(vals.interval)) ? 0 : Number.parseInt(vals.interval),
         expiresAt: vals.useExp && Number(vals.expMins) > 0 ? Date.now() + Number(vals.expMins) * 60_000 : undefined
     };
 
