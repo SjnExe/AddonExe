@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
-import { setCooldown } from '@core/cooldownManager.js';
+import { getCooldown, setCooldown } from '@core/cooldownManager.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
@@ -28,6 +28,7 @@ interface TpaRequest {
 interface ActionResult {
     success: boolean;
     message: string;
+    autoAccepted?: boolean;
 }
 
 // In-memory request storage
@@ -83,6 +84,9 @@ function _findIncomingRequest(targetPlayerId: string, sourcePlayerName?: string,
 }
 
 export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
+    const cd = getCooldown(sourcePlayer.id, 'tpa');
+    if (cd > 0) return { success: false, message: `§cYou are on cooldown for ${cd} more seconds.` };
+
     if (outgoingRequests.has(sourcePlayer.id)) return { success: false, message: 'You already have an outgoing TPA request. Use /tpacancel to cancel it.' };
     const targetPlayerData = getOrCreatePlayer(targetPlayer);
     if (targetPlayerData.tpaRequestsDisabled) return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
@@ -128,18 +132,9 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
         if (!incomingRequests.has(targetPlayer.id)) incomingRequests.set(targetPlayer.id, []);
         incomingRequests.get(targetPlayer.id)!.push(request);
 
-        // Trigger acceptance logic immediately
-        // Note: acceptRequest expects the execution to come from the target player usually.
-        // We need to simulate it or refactor the logic.
-        // Refactoring to separate teleport logic is cleaner.
+        acceptRequest(targetPlayer, sourcePlayer.name);
 
-        // However, acceptRequest uses `startTeleportWarmup` which notifies players.
-        // Calling acceptRequest(targetPlayer, sourcePlayer.name) works.
-        mc.system.runTimeout(() => {
-            acceptRequest(targetPlayer, sourcePlayer.name);
-        }, 1);
-
-        return { success: true, message: `§aTPA request sent and auto-accepted by ${targetPlayer.name}.` };
+        return { success: true, message: `§aTPA request sent and auto-accepted by ${targetPlayer.name}.`, autoAccepted: true };
     }
 
     outgoingRequests.set(sourcePlayer.id, request);
@@ -177,6 +172,9 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
         return;
     }
 
+    // Clear the request early so it isn't purged as expired while warmup is happening
+    clearRequest(request);
+
     const config = getConfig();
     const warmupSeconds = config.tpa.teleportWarmupSeconds;
 
@@ -193,7 +191,6 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
         if (!isDefined(safeLoc)) {
             freshSource.sendMessage('§cTeleport cancelled: No safe location found near target.');
             freshTarget.sendMessage('§cTeleport cancelled: No safe location found near you.');
-            clearRequest(request);
             return;
         }
 
@@ -208,7 +205,6 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
             freshSource.sendMessage(`§a${freshTarget.name} has been teleported to you.`);
         }
         setCooldown(freshSource.id, 'tpa', config.tpa.cooldownSeconds);
-        clearRequest(request);
     };
 
     if (request.type === 'tpa') {
