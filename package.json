@@ -47,6 +47,7 @@
         "*.{json,md,yml,yaml}": "bun prettier --write --cache"
     },
     "overrides": {
+        "@hono/node-server": "latest",
         "axios": "latest",
         "react": "^18.2.0",
         "tmp": "latest",
