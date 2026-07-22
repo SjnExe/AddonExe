@@ -138,6 +138,7 @@ export function updatePlayerData(playerId: string, modificationCallback: (pData:
             pData.needsSave = true; // Mark as dirty for auto-save
         } else {
             // For offline players, save immediately and remove from cache to prevent memory leaks
+            activePlayerData.set(playerId, pData);
             savePlayerData(playerId);
             activePlayerData.delete(playerId);
         }
