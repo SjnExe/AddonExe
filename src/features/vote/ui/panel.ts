@@ -99,7 +99,8 @@ async function showCreateVoteUI(player: mc.Player) {
         return;
     }
 
-    const duration = Number.parseInt(res.duration) || 0;
+    const durationParsed = Number.parseInt(res.duration);
+    const duration = Number.isNaN(durationParsed) ? 0 : durationParsed;
     const durationSeconds = duration * 60;
 
     createVote(player, res.question, options, durationSeconds);
