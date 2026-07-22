@@ -31,6 +31,7 @@ const friendCommand: CustomCommand = {
                 executor.sendMessage(sendFriendRequest(executor, target).message);
                 break;
             }
+            case 'rm':
             case 'remove':
             case 'delete': {
                 if (!target) return executor.sendMessage('§cUsage: /friend remove <player>');
@@ -42,6 +43,7 @@ const friendCommand: CustomCommand = {
                 executor.sendMessage(acceptFriendRequest(executor, target).message);
                 break;
             }
+            case 'ls':
             case 'list': {
                 executor.sendMessage(listFriends(executor));
                 break;

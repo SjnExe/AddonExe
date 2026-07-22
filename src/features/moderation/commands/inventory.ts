@@ -1,4 +1,3 @@
-// FIXED
 import { EntityComponentTypes } from '@minecraft/server';
 
 import * as mc from '@minecraft/server';
@@ -91,17 +90,6 @@ const invseeCommand: CustomCommand = {
         } else {
             executor.sendMessage('§7Inventory is empty.');
         }
-    }
-};
-
-const ecseeCommand: CustomCommand = {
-    name: 'ecsee',
-    description: 'View the ender chest of another player.',
-    category: 'Moderation',
-    permissionNode: 'cmd.ecsee.admin',
-    parameters: [{ name: 'player', type: 'string', optional: false }],
-    execute: (executor: CommandExecutor, _params: Record<string, unknown>) => {
-        executor.sendMessage('§cEnder Chest inspection is not yet fully supported in this API version.');
     }
 };
 
@@ -216,4 +204,4 @@ const copyinvCommand: CustomCommand = {
     }
 };
 
-export default [invseeCommand, ecseeCommand, ecwipeCommand, copyinvCommand];
+export default [invseeCommand, ecwipeCommand, copyinvCommand];

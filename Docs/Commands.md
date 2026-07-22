@@ -37,6 +37,7 @@ Commands available to all players by default.
 - **/friend <add|remove|accept|list> [target]**
     - Manage your friend list. Can also be accessed via the UI by using `/friend` with no arguments.
     - _Aliases: `/frnd`, `/friends`_
+    - _Abbreviations for subcommands: `rm` for remove, `ls` for list._
 
 - **/teamchat [message]**
     - Toggles or sends a message in team chat.
@@ -177,11 +178,8 @@ Commands available to Admins and above.
     - Views a player's inventory.
 - **/xclear [target]**
     - Clears another player's inventory.
-
 - **/ecwipe [target]**
     - Clears a player's Ender Chest.
-- **/ecsee <target>**
-    - _Note: Currently unavailable due to API limitations._
 - **/copyinv <target>**
     - Copies the inventory of another player.
 - **/vanish**
@@ -242,13 +240,15 @@ Commands for high-level server management.
     - Teleports a player.
 - **/gamemode <mode> [target]**
     - Sets a player's gamemode.
-- **/rank <set|remove> <target> <rankId>**
+- **/rank <set|remove|list> <target> [rankId]**
     - Manages custom player ranks.
+    - _Abbreviations for subcommands: `rm` for remove, `ls` for list._
+- **/listranks**
+    - Lists all available server ranks.
 - **/warp [warpName]**
     - Teleports you to a specified warp, or opens a UI to select one.
 - **/addwarp <warpName> [x] [y] [z]**
     - Creates a new warp point.
-
 - **/delwarp [warpName]**
     - Deletes an existing warp point.
 
