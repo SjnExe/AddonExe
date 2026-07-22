@@ -74,6 +74,30 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        if (panelId === 'shopMainPanel') {
+            const { showShopMainPanel } = await import('@features/shop/ui/userPanel.js');
+            await showShopMainPanel(player);
+            return;
+        }
+
+        if (panelId === 'teamMainPanel') {
+            const { showTeamMainPanel } = await import('@features/team/ui/panel.js');
+            await showTeamMainPanel(player);
+            return;
+        }
+
+        if (panelId === 'friendMainPanel') {
+            const { showFriendMainPanel } = await import('@features/social/ui/friendPanel.js');
+            await showFriendMainPanel(player);
+            return;
+        }
+
+        if (panelId === 'bountyListPanel') {
+            const { showBountyListPanel } = await import('@features/economy/ui/bountyPanel.js');
+            await showBountyListPanel(player, _context);
+            return;
+        }
+
         if (panelId === 'moderationPanel') {
             const { showModerationPanel } = await import('@features/moderation/ui/panel.js');
             await showModerationPanel(player);
