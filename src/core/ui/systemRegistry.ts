@@ -28,19 +28,18 @@ export function getSystemRegistry(): SystemDefinition[] {
 
     cachedSystemRegistry = [
         // 1. Add simple schema-based systems first
-        ...configPanelSchema
-            .map((schema) => {
-                const def: SystemDefinition = {
-                    id: schema.id,
-                    title: schema.title,
-                    icon: schema.icon,
-                    configPanelId: `config_${schema.id}`,
-                    isSimpleConfig: true
-                };
-                if (isNonEmptyString(schema.category)) def.category = schema.category;
-                if (schema.hidden === true) def.hidden = schema.hidden;
-                return def;
-            }),
+        ...configPanelSchema.map((schema) => {
+            const def: SystemDefinition = {
+                id: schema.id,
+                title: schema.title,
+                icon: schema.icon,
+                configPanelId: `config_${schema.id}`,
+                isSimpleConfig: true
+            };
+            if (isNonEmptyString(schema.category)) def.category = schema.category;
+            if (schema.hidden === true) def.hidden = schema.hidden;
+            return def;
+        }),
         // 2. Add complex custom systems
         {
             id: 'kits',

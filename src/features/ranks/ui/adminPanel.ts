@@ -1,10 +1,10 @@
 import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
 import { reloadRanks } from '@core/rankManager.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
 import { RankCondition, RankDefinition } from '../ranksConfig.js';
-import { isDefined } from '@lib/guards.js';
 
 export async function showRankSystemConfigPanel(player: mc.Player): Promise<void> {
     const config = getRanksConfig();
@@ -162,9 +162,18 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
         priority: Number.isNaN(parsedPriority) ? 100 : parsedPriority,
         permissionLevel: Number.isNaN(parsedPermissionLevel) ? 10 : parsedPermissionLevel,
         nametagPrefix: response.nametagPrefix,
-        groups: response.groups.split(',').map(s => s.trim()).filter(s => s.length > 0),
-        allow: response.allow.split(',').map(s => s.trim()).filter(s => s.length > 0),
-        deny: response.deny.split(',').map(s => s.trim()).filter(s => s.length > 0),
+        groups: response.groups
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0),
+        allow: response.allow
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0),
+        deny: response.deny
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0),
         conditions: rank.conditions,
         conditionsRaw: response.conditions
     };
