@@ -120,10 +120,21 @@ export const commandIndexPlugin = {
                 const sourceFile = ts.createSourceFile('featureRegistry.ts', registryContent, ts.ScriptTarget.Latest, true);
 
                 function visit(node: import('typescript').Node) {
-                    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && node.name.text === 'id' && ts.isStringLiteral(node.initializer)) {
-                        const featureName = node.initializer.text;
-                        if (featureName === 'test' && !isNightly) return;
-                        featureDirs.push(featureName);
+                    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && node.name.text === 'load' && ts.isArrowFunction(node.initializer)) {
+                        const callExpr = node.initializer.body;
+                        if (ts.isCallExpression(callExpr) && callExpr.expression.getText() === 'import' && callExpr.arguments.length > 0) {
+                            const arg = callExpr.arguments[0];
+                            if (ts.isStringLiteral(arg)) {
+                                const match = arg.text.match(new RegExp('@features/([^/]+)/'));
+                                if (match && match[1]) {
+                                    const featureName = match[1];
+                                    if (featureName === 'test' && !isNightly) return;
+                                    if (!featureDirs.includes(featureName)) {
+                                        featureDirs.push(featureName);
+                                    }
+                                }
+                            }
+                        }
                     }
                     ts.forEachChild(node, visit);
                 }

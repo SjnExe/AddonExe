@@ -68,6 +68,18 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        if (panelId === 'reportListPanel') {
+            const { showReportListPanel } = await import('@features/moderation/ui/panel.js');
+            await showReportListPanel(player);
+            return;
+        }
+
+        if (panelId === 'moderationPanel') {
+            const { showModerationPanel } = await import('@features/moderation/ui/panel.js');
+            await showModerationPanel(player);
+            return;
+        }
+
         if (panelId === 'configCategoryPanel') {
             const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigCategoryPanel(player);
