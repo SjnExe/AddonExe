@@ -288,3 +288,22 @@ export async function handleUnmuteForm(player: mc.Player): Promise<void> {
         player.sendMessage('§4Player not found in database.');
     }
 }
+
+export async function showModerationPanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder().title('Moderation Tools');
+
+    form.button('Unban Player', 'textures/ui/refresh_light', async () => {
+        await handleUnbanForm(player);
+    });
+
+    form.button('Unmute Player', 'textures/ui/mute_off', async () => {
+        await handleUnmuteForm(player);
+    });
+
+    form.addBackButton(async () => {
+        const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
+        await showStaffDashboardPanel(player);
+    });
+
+    await form.show(player);
+}

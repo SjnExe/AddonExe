@@ -138,12 +138,12 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
     }
 
     const res = await modal.show(player);
-    if (!res) return showConfigCategoryPanel(player, { page: 1 });
+    if (!res) return showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
 
     const updates = _processFormValues(validSettings, res, config as Record<string, unknown>);
     _saveConfigUpdates(handler, configSource, updates);
     player.sendMessage('§2Configuration saved.');
-    await showConfigCategoryPanel(player, { page: 1 });
+    await showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
 }
 
 export async function showConfigResetPanel(player: mc.Player): Promise<void> {
