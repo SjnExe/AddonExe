@@ -53,16 +53,6 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
         }
 
         case 'exe:action': {
-            if (event.sourceType === mc.ScriptEventSource.Entity && event.sourceEntity instanceof mc.Player) {
-                const playerEntity = event.sourceEntity;
-                const isOp = (playerEntity as unknown as { isOp?: () => boolean }).isOp?.() ?? false;
-
-                if (!isOp) {
-                    errorLog(`[AddonExe] Unauthorized script event action attempted by ${playerEntity.name}.`);
-                    return;
-                }
-            }
-
             let payload: unknown;
             try {
                 payload = JSON.parse(event.message);

@@ -265,6 +265,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'warps',
         title: 'Warp System',
         icon: 'textures/blocks/portal',
+        configSource: 'main',
         category: 'World',
         settings: [
             {
@@ -597,6 +598,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'rtp',
         title: 'Random Teleport',
         icon: 'textures/items/ender_pearl',
+        configSource: 'main',
         category: 'World',
         settings: [
             {
@@ -635,6 +637,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'playerInfo',
         title: 'Player Info System',
         icon: 'textures/ui/icon_multiplayer',
+        configSource: 'main',
         category: 'Visuals',
         settings: [
             {
