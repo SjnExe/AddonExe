@@ -38,10 +38,14 @@ function handleTpaRequest(executor: mc.Player, args: Record<string, unknown>, ty
     const result = createRequest(executor, targetPlayer, type);
 
     if (result.success) {
-        const typeStr = type === 'tpa' ? 'TPA' : 'TPA Here';
-        const msgStr = type === 'tpa' ? 'to teleport to you' : 'for you to teleport to them';
-        sendMessage(`§a${typeStr} request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
-        sendMessage(`§a${executor.name} has requested ${msgStr}. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
+        if (result.autoAccepted) {
+            sendMessage(result.message, executor);
+        } else {
+            const typeStr = type === 'tpa' ? 'TPA' : 'TPA Here';
+            const msgStr = type === 'tpa' ? 'to teleport to you' : 'for you to teleport to them';
+            sendMessage(`§a${typeStr} request sent to ${targetPlayer.name}. They have ${config.tpa.requestTimeoutSeconds} seconds to accept.`, executor);
+            sendMessage(`§a${executor.name} has requested ${msgStr}. Type §e/tpaccept§a to accept or §e/tpadeny§a to deny.`, targetPlayer);
+        }
     } else {
         sendMessage(`§c${result.message}`, executor);
     }
