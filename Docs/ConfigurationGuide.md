@@ -20,15 +20,10 @@ Follow these steps to gain administrative control of the addon.
 ### 1. Set the Server Owner(s)
 
 - **File:** `packs/behavior/scripts/config.js`
-- **Action:** Find `ownerPlayerNames` and add your **exact** in-game name (case-sensitive).
-    ```javascript
-    // Example in packs/behavior/scripts/config.js
-    ownerPlayerNames: ['YourExactPlayerName', 'AnotherOwnerName'],
-    ```
-- **Applying Changes:** After editing `config.js`, simply run `/xreload` in-game as an Admin. A full server restart is no longer required for most config changes.
+- **Action:** Add the **exact** in-game names of all owners to the `ownerPlayerNames` array. This grants the highest permission level (0).
 - **➡️ For a summary, see the [F.A.Q.](F.A.Q.md#how-do-i-change-the-server-owner)**
 
-### 2. Set Server Admins (Optional)
+### 2. Set Server Admin(s)
 
 - **File:** `packs/behavior/scripts/config.js`
 - **Action:** The `adminTag` setting (default: `"admin"`) determines who gets the Admin rank.
