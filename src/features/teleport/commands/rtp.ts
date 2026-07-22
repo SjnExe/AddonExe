@@ -67,7 +67,7 @@ async function ensureChunkLoaded(dimension: mc.Dimension, x: number, z: number):
 
     while (!chunkLoaded && waitAttempts < maxWaitAttempts) {
         try {
-            dimension.getBlock({ x, y: 300, z });
+            dimension.getBlock({ x, y: 319, z });
             chunkLoaded = true;
         } catch {
             waitAttempts++;
@@ -202,7 +202,7 @@ function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): n
         // Fallback if API fails or method doesn't exist
     }
 
-    for (let y = 320; y >= dimension.heightRange.min; y--) {
+    for (let y = 319; y >= dimension.heightRange.min; y--) {
         try {
             const block = dimension.getBlock({ x, y, z });
             if (block && !block.isAir) {

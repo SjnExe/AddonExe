@@ -30,7 +30,9 @@ export async function showStaffDashboardPanel(player: mc.Player): Promise<void> 
         form.button('Floating Text', 'textures/ui/text_color_paintbrush', async () => {
             await showFloatingTextListPanel(player);
         });
+    }
 
+    if (hasPermission(player, 'ui.panel.owner')) {
         form.button('Configuration', 'textures/ui/settings_glyph_color_2x', async () => {
             const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigCategoryPanel(player);
