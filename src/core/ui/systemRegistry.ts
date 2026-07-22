@@ -28,20 +28,18 @@ export function getSystemRegistry(): SystemDefinition[] {
 
     cachedSystemRegistry = [
         // 1. Add simple schema-based systems first
-        ...configPanelSchema
-            .filter((s) => s.id !== 'sidebar')
-            .map((schema) => {
-                const def: SystemDefinition = {
-                    id: schema.id,
-                    title: schema.title,
-                    icon: schema.icon,
-                    configPanelId: `config_${schema.id}`,
-                    isSimpleConfig: true
-                };
-                if (isNonEmptyString(schema.category)) def.category = schema.category;
-                if (schema.hidden === true) def.hidden = schema.hidden;
-                return def;
-            }),
+        ...configPanelSchema.map((schema) => {
+            const def: SystemDefinition = {
+                id: schema.id,
+                title: schema.title,
+                icon: schema.icon,
+                configPanelId: `config_${schema.id}`,
+                isSimpleConfig: true
+            };
+            if (isNonEmptyString(schema.category)) def.category = schema.category;
+            if (schema.hidden === true) def.hidden = schema.hidden;
+            return def;
+        }),
         // 2. Add complex custom systems
         {
             id: 'kits',
@@ -58,7 +56,10 @@ export function getSystemRegistry(): SystemDefinition[] {
             id: 'ranks',
             title: 'Rank System',
             icon: 'textures/ui/permissions_member_star.png',
-            configPanelId: 'rankManagementPanel',
+            showFunction: async (player) => {
+                const { showRankSystemConfigPanel } = await import('@features/ranks/ui/adminPanel.js');
+                await showRankSystemConfigPanel(player);
+            },
             category: 'Visuals',
             isSimpleConfig: false
         },
@@ -83,14 +84,6 @@ export function getSystemRegistry(): SystemDefinition[] {
             },
             category: 'Moderation',
             hidden: true,
-            isSimpleConfig: false
-        },
-        {
-            id: 'sidebar',
-            title: 'Sidebar System',
-            icon: 'textures/items/book_writable',
-            configPanelId: 'sidebarMainPanel',
-            category: 'Visuals',
             isSimpleConfig: false
         },
         {
