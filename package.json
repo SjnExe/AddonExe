@@ -78,7 +78,7 @@
         "eslint-plugin-jsonc": "latest",
         "eslint-plugin-minecraft-linting": "latest",
         "eslint-plugin-yml": "latest",
-        "glob": "^13.0.6",
+        "glob": "latest",
         "globals": "latest",
         "jscpd": "latest",
         "lint-staged": "latest",
