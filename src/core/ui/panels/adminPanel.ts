@@ -30,6 +30,11 @@ export async function showStaffDashboardPanel(player: mc.Player): Promise<void> 
         form.button('Floating Text', 'textures/ui/text_color_paintbrush', async () => {
             await showFloatingTextListPanel(player);
         });
+
+        form.button('Shop Management', 'textures/items/emerald', async () => {
+            const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
+            await showShopManagementPanel(player);
+        });
     }
 
     if (hasPermission(player, 'ui.panel.owner')) {

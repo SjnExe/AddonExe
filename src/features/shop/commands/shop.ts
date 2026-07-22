@@ -30,9 +30,32 @@ const shopCommand: CustomCommand = {
     }
 };
 
+const tryOpenHandItemPanel = async (player: mc.Player): Promise<boolean> => {
+    const equipment = player.getComponent(EntityComponentTypes.Equippable);
+    if (!isDefined(equipment)) return false;
+
+    const item = equipment.getEquipment(mc.EquipmentSlot.Mainhand);
+    if (!isDefined(item)) return false;
+
+    const itemTypeId = item.typeId;
+    const shopItemKey = Object.keys(allItems).find((key) => {
+        const entry = (allItems as Record<string, { itemId: string }>)[key];
+        return isDefined(entry) && entry.itemId === itemTypeId;
+    });
+
+    if (isNonEmptyString(shopItemKey)) {
+        const itemData = shopManager.findShopItem(shopItemKey);
+        if (isDefined(itemData)) {
+            await showPanel(player, 'shopBuyOrSellPanel', { itemKey: shopItemKey, itemData, returnCtx: { returnTo: 'main', page: 1 } });
+            return true;
+        }
+    }
+    return false;
+};
+
 const buyCommand: CustomCommand = {
     name: 'buy',
-    description: 'Opens the shop to buy items.',
+    description: 'Opens the shop to buy items (tries hand item first).',
     category: 'Economy',
     permissionNode: 'cmd.buy.member',
     allowConsole: false,
@@ -42,16 +65,20 @@ const buyCommand: CustomCommand = {
         }
         if (!isFeatureActive('eco.shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
-            // @ts-ignore (ignoring unused var)
         }
-        await showPanel(executor, 'shopMainPanel', { view: 'buy' });
+
+        const opened = await tryOpenHandItemPanel(executor);
+        if (!opened) {
+            await showPanel(executor, 'shopMainPanel', { view: 'buy' });
+        }
     }
 };
 
 const sellCommand: CustomCommand = {
     name: 'sell',
-    description: 'Opens the shop to sell items.',
+    description: 'Opens the shop to sell items (tries hand item first).',
     category: 'Economy',
+    aliases: ['sh', 'sellhand'],
     permissionNode: 'cmd.sell.member',
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
@@ -61,52 +88,30 @@ const sellCommand: CustomCommand = {
         if (!isFeatureActive('eco.shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
-        // @ts-ignore (ignoring unused var)
-        await showPanel(executor, 'shopMainPanel', { view: 'sell' });
+
+        const opened = await tryOpenHandItemPanel(executor);
+        if (!opened) {
+            await showPanel(executor, 'shopMainPanel', { view: 'sell' });
+        }
     }
 };
 
-const sellHandCommand: CustomCommand = {
-    name: 'sellhand',
-    description: 'Sells the item currently in your main hand.',
+const shopEditCommand: CustomCommand = {
+    name: 'shopedit',
+    description: 'Opens the shop management panel.',
     category: 'Economy',
-    aliases: ['sh'],
-    permissionNode: 'cmd.sellhand.member',
+    aliases: ['editshop'],
+    permissionNode: 'cmd.shopedit.admin',
     allowConsole: false,
-    execute: (executor: CommandExecutor) => {
+    execute: async (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
         if (!isFeatureActive('eco.shop')) {
             return executor.sendMessage('§cThe Shop system is currently disabled globally.');
         }
-        const equipment = executor.getComponent(EntityComponentTypes.Equippable);
-        // @ts-ignore (ignoring unused var)
-        if (!isDefined(equipment)) {
-            return executor.sendMessage('§cCould not access your inventory.');
-        }
-        const item = equipment.getEquipment(mc.EquipmentSlot.Mainhand);
-
-        if (!isDefined(item)) {
-            return executor.sendMessage("§cYou aren't holding anything.");
-        }
-
-        if (item.maxAmount === 1) {
-            return executor.sendMessage('§cYou cannot use /sellhand for unstackable items. Please use the shop UI instead.');
-        }
-
-        const itemTypeId = item.typeId;
-        const shopItemKey = Object.keys(allItems).find((key) => {
-            const entry = (allItems as Record<string, { itemId: string }>)[key];
-            return isDefined(entry) && entry.itemId === itemTypeId;
-        });
-
-        if (!isNonEmptyString(shopItemKey)) {
-            return executor.sendMessage("§cYou can't sell this item to the shop.");
-        }
-
-        const result = shopManager.sellItem(executor, shopItemKey, item.amount);
-        executor.sendMessage(result.message);
+        const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
+        await showShopManagementPanel(executor, 1);
     }
 };
 
@@ -177,4 +182,4 @@ const addShopCommand: CustomCommand = {
     }
 };
 
-export default [shopCommand, buyCommand, sellCommand, sellHandCommand, addShopCommand];
+export default [shopCommand, buyCommand, sellCommand, shopEditCommand, addShopCommand];

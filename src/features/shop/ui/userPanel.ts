@@ -233,8 +233,8 @@ export async function showShopSearchResultsPanel(player: mc.Player, query: strin
     await form.show(player);
 }
 
-interface ReturnContext {
-    returnTo: 'category' | 'subCategory' | 'search';
+export interface ReturnContext {
+    returnTo: 'category' | 'subCategory' | 'search' | 'main';
     categoryName?: string;
     subCategoryName?: string;
     query?: string;
