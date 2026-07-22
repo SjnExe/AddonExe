@@ -1,19 +1,21 @@
-# AddonExe: Features Overview
+# AddonExe Features Overview
 
-This document provides a detailed breakdown of the features available in AddonExe. For in-depth configuration of these features, please refer to the [Configuration Guide](ConfigurationGuide.md) and for command usage, see the [Commands List](Commands.md).
+This document provides a comprehensive overview of all the features included in the AddonExe.
 
----
+## I. Core Systems & Moderation
 
-## I. Administrative & Server Management Systems
+### A. The Admin Panel (`/panel`)
 
-### A. Core Admin Tools
+The heart of the addon is the dynamic Admin Panel, accessible via the `/panel` command or a craftable item. It provides a centralized, GUI-based way to manage the server.
 
-- **Universal UI Panel:** Accessible via `/panel`. The panel item can also be crafted by any player. It provides a graphical user interface whose content and available actions dynamically adapt based on user permissions.
-    - **For Admins & Owners:**
-        - **Enhanced Player Management:** Provides lists of both online and offline players. Selecting a player opens a dedicated actions menu. This menu is now context-aware:
-            - **From the Player List (online players):** Provides player-to-player interaction options like TPA, TPAHere, and a new Bounty sub-panel for placing or removing bounties.
-            - **From the Player Management list (all players):** Provides a full suite of moderation tools, including Kick, Ban, Mute, Unmute, and the new Freeze/Unfreeze actions.
-              The UI has been updated with clearer icons and a more logical button layout to improve usability for admins.
+- **Dynamic Access:** The panel is intelligent. It checks a player's permission level and only displays buttons and actions they are authorized to perform.
+- **Main Categories:**
+    - **Edit Shop:** Opens the shop management interface to toggle items and set prices.
+    - **Config:** A categorized menu for modifying addon settings (like toggling features, setting cooldowns) live, without editing files.
+    - **Player Management:** Lists all online players. Clicking a player opens a sub-menu with actions like kick, ban, mute, freeze, and view inventory.
+        - **Note on Selectors:** Several commands (like `/balance`, `/pay`, `/tpa`, and punishment commands) support standard Minecraft selectors (e.g., `@a`, `@p`) when run from the chat. However, the UI panel operates on specific chosen players.
+    - **Social & Economy:** Provides access to the Friends UI, Team Management UI, and a new Bounty sub-panel for placing or removing bounties.
+    - **From the Player Management list (all players):** Provides a full suite of moderation tools, including Kick, Ban, Mute, Unmute, and the new Freeze/Unfreeze actions. The UI has been updated with clearer icons and a more logical button layout to improve usability for admins.
     - **For Regular Players:** Shows user-specific info like personal stats, server rules, and useful links.
 - **Comprehensive Slash Commands:** A full suite of slash commands offers granular control over all features and administrative actions. These can be run in-game or from the server console. (See [Commands List](Commands.md) for a complete reference).
 - **Persistent Player Data:** Active mutes and bans are saved using Minecraft's dynamic properties, ensuring they persist across player sessions and server restarts.
@@ -31,22 +33,23 @@ This document provides a detailed breakdown of the features available in AddonEx
     - **Description:** Issue formal warnings to players. Warnings are logged and displayed to the player.
     - **Command:** `/warn <player> <reason>`.
 
-### B. Flexible Rank System
+### C. Flexible Rank System
 
 - Define roles like Owner, Admin, and Member with specific permission levels.
 - Permissions control access to commands and addon features.
 - Customize visual chat prefixes/suffixes and nametag appearances for each rank.
 - For configuration details, see the [Configuration Guide](ConfigurationGuide.md) and [Rank System Documentation](RankSystem.md).
     - _Key Configs: `config.js`, `ranksConfig.js`_
+- **Learn more about configuring permission nodes and wildcards:** [Permissions and Wildcards in Ranks](RankSystem.md#how-permissions-work)
 
-### C. Dimension Locking
+### D. Dimension Locking
 
 - **Description:** Provides commands for admins to lock or unlock the Nether and End dimensions, preventing players from entering them.
 - **Commands:** `/netherlock [true|false]`, `/endlock [true|false]`.
 - **Admin Bypass:** A configuration option (`dimensionLock.allowAdminBypass`) allows players with admin permissions to enter locked dimensions, which is useful for moderation or server maintenance.
 - **Player Experience:** When a non-admin player attempts to enter a locked dimension, they are instantly teleported back to their previous location and receive a notification message.
 
-### D. Spawn Protection
+### E. Spawn Protection
 
 - **Description:** A comprehensive system to protect the world's spawn area from griefing.
 - **Protection Features:** Prevents unauthorized players from breaking blocks, placing blocks, opening chests, or using items within a configurable radius of the world spawn.
