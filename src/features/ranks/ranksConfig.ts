@@ -63,7 +63,6 @@ export const rankDefinitions: RankDefinition[] = [
         name: 'Admin',
         priority: 10,
         permissionLevel: 1,
-        locked: true,
         chatFormatting: {
             prefixText: '§cAdmin',
             nameColor: '§c',
@@ -165,7 +164,7 @@ export const rankDefinitions: RankDefinition[] = [
         locked: true,
         chatFormatting: defaultChatFormatting,
         nametagPrefix: '§8Member',
-        conditions: [{ type: 'default' }],
+        conditions: [],
         groups: ['default'],
         allow: [],
         deny: []
