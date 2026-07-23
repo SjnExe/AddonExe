@@ -49,8 +49,11 @@ export function isFeatureActive(featureId: string): boolean {
 
     switch (featureId) {
         // Main Branches
-        case 'eco':
+        case 'eco': {
+            // Note: `EconomyConfig` (economyConfig.ts) does not have an `enabled` flag at its root.
+            // It uses `mainConfig.economy.enabled` as the master switch.
             return mainConfig ? (mainConfig.economy as { enabled?: boolean }).enabled === true : false;
+        }
         case 'soc':
             return true; // Social base might not have a toggle, or add one if needed
         case 'tp':
@@ -65,14 +68,20 @@ export function isFeatureActive(featureId: string): boolean {
         // Economy Sub-features
         case 'eco.shop':
             return mainConfig ? (mainConfig.shop as { enabled?: boolean }).enabled === true : false;
-        case 'eco.ah':
+        case 'eco.ah': {
+            const ahConfig = configs.getAuctionHouseConfig();
+            if (isDefined(ahConfig)) return ahConfig.enabled === true;
             return mainConfig ? (mainConfig.auctionHouse as { enabled?: boolean }).enabled === true : false;
+        }
         case 'eco.bounty':
             return mainConfig ? (mainConfig.bounties as { enabled?: boolean }).enabled === true : false;
 
         // Utilities
-        case 'util.daily':
+        case 'util.daily': {
+            const dailyConfig = configs.getDailyRewardsConfig();
+            if (isDefined(dailyConfig)) return dailyConfig.enabled === true;
             return mainConfig ? (mainConfig.dailyRewards as { enabled?: boolean }).enabled === true : false;
+        }
         case 'util.vote':
             return mainConfig ? (mainConfig.voting as { enabled?: boolean }).enabled === true : false;
         case 'util.kit':
@@ -90,8 +99,9 @@ export function isFeatureActive(featureId: string): boolean {
 
         // Game Sub-features
         case 'game.wordle': {
-            const gamesConfigBase = configs.getGamesConfig();
-            return isDefined(gamesConfigBase) ? gamesConfigBase.wordle.enabled === true : false;
+            const wordleConfig = configs.getWordleConfig();
+            if (isDefined(wordleConfig)) return wordleConfig.enabled === true;
+            return false;
         }
 
         // Teleport Sub-features
@@ -106,12 +116,9 @@ export function isFeatureActive(featureId: string): boolean {
         case 'tp.back':
             return mainConfig ? (mainConfig.back as { enabled?: boolean }).enabled === true : false;
         case 'tp.spawn':
-            // spawn doesn't have an enabled toggle in config typically, but if it does, check here
             return true;
 
         default:
-            // Unknown features or those without explicit toggles are assumed to be active
-            // as long as their parents passed.
             return true;
     }
 }

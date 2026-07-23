@@ -1,5 +1,6 @@
 import { getCooldown, setCooldown } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 /**
@@ -77,6 +78,20 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
         if (panelId === 'shopMainPanel') {
             const { showShopMainPanel } = await import('@features/shop/ui/userPanel.js');
             await showShopMainPanel(player);
+            return;
+        }
+
+        if (panelId === 'shopBuyOrSellPanel') {
+            const { showBuyOrSellPanel } = await import('@features/shop/ui/userPanel.js');
+            if (isDefined(_context.itemKey) && isDefined(_context.itemData)) {
+                // @ts-ignore dynamic import ReturnContext type not trivially accessible
+                const fallbackReturn = { returnTo: 'main', page: 1 };
+                // @ts-ignore dynamic import ReturnContext type not trivially accessible
+                await showBuyOrSellPanel(player, _context.itemKey as string, _context.itemData, isDefined(_context.returnCtx) ? _context.returnCtx : fallbackReturn);
+            } else {
+                const { showShopMainPanel } = await import('@features/shop/ui/userPanel.js');
+                await showShopMainPanel(player);
+            }
             return;
         }
 

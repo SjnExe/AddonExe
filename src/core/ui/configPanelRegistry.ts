@@ -39,6 +39,51 @@ export interface ConfigCategory {
 
 export const configPanelSchema: ConfigCategory[] = [
     {
+        id: 'dailyRewards',
+        title: 'Daily Rewards',
+        icon: 'textures/items/gold_ingot',
+        configSource: 'main',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'dailyRewards.enabled',
+                label: 'Enable Daily Rewards',
+                type: 'toggle',
+                description: 'Enables or disables the daily rewards system.'
+            }
+        ]
+    },
+    {
+        id: 'voting',
+        title: 'Voting System',
+        icon: 'textures/ui/icon_recipe_item',
+        configSource: 'main',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'voting.enabled',
+                label: 'Enable Voting',
+                type: 'toggle',
+                description: 'Enables or disables the voting system.'
+            }
+        ]
+    },
+    {
+        id: 'kits_toggle',
+        title: 'Kit System Toggle',
+        icon: 'textures/ui/inventory_icon',
+        configSource: 'main',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'kits.enabled',
+                label: 'Enable Kit System',
+                type: 'toggle',
+                description: 'Enables or disables the entire Kit System.'
+            }
+        ]
+    },
+    {
         id: 'general_server',
         title: 'Server Info',
         icon: 'textures/ui/icon_book_writable',
