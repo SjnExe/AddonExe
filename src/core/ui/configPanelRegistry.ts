@@ -42,11 +42,11 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'dailyRewards',
         title: 'Daily Rewards',
         icon: 'textures/items/gold_ingot',
-        configSource: 'main',
+        configSource: 'dailyRewards',
         category: 'Economy',
         settings: [
             {
-                key: 'dailyRewards.enabled',
+                key: 'enabled',
                 label: 'Enable Daily Rewards',
                 type: 'toggle',
                 description: 'Enables or disables the daily rewards system.'
@@ -167,12 +167,6 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Enables or disables the entire auction house system.'
             },
             {
-                key: 'enabled',
-                label: 'Auction House Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire auction house system.'
-            },
-            {
                 key: 'taxRate',
                 label: 'Tax Rate (0.05 = 5%)',
                 type: 'textField',
@@ -237,6 +231,21 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Autosave Interval (s)',
                 type: 'textField',
                 description: 'How often to save player data, in seconds. Set to 0 to disable.'
+            }
+        ]
+    },
+    {
+        id: 'economyToggle',
+        title: 'Economy System Toggle',
+        icon: 'textures/items/emerald',
+        configSource: 'main',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'economy.enabled',
+                label: 'Enable Economy System',
+                type: 'toggle',
+                description: 'Enables or disables the entire Economy System.'
             }
         ]
     },
