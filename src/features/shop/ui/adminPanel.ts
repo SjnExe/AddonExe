@@ -37,10 +37,9 @@ export async function showShopManagementPanel(player: mc.Player, page: number = 
         .title('Shop Management')
         .button(isEnabled ? '§2Shop System: ENABLED' : '§4Shop System: DISABLED', isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', () => {
             const newStatus = !getConfig().shop.enabled;
-            void (updateMultipleConfig as (updates: Record<string, unknown>) => Promise<void>)({ 'shop.enabled': newStatus }).then(() => {
-                player.sendMessage(`§2Shop system ${newStatus ? 'enabled' : 'disabled'}.`);
-                void showShopManagementPanel(player, page);
-            });
+            updateMultipleConfig({ 'shop.enabled': newStatus });
+            player.sendMessage(`§2Shop system ${newStatus ? 'enabled' : 'disabled'}.`);
+            void showShopManagementPanel(player, page);
         })
         .button('§l§2+ Add Category', 'textures/ui/color_plus', () => {
             void showAddCategoryPanel(player);
