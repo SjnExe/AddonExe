@@ -42,11 +42,11 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'dailyRewards',
         title: 'Daily Rewards',
         icon: 'textures/items/gold_ingot',
-        configSource: 'main',
+        configSource: 'dailyRewards',
         category: 'Economy',
         settings: [
             {
-                key: 'dailyRewards.enabled',
+                key: 'enabled',
                 label: 'Enable Daily Rewards',
                 type: 'toggle',
                 description: 'Enables or disables the daily rewards system.'
@@ -160,12 +160,6 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'auctionHouse',
         category: 'Economy',
         settings: [
-            {
-                key: 'enabled',
-                label: 'Auction House Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire auction house system.'
-            },
             {
                 key: 'enabled',
                 label: 'Auction House Enabled',
@@ -365,30 +359,6 @@ export const configPanelSchema: ConfigCategory[] = [
         icon: 'textures/ui/chat_send',
         category: 'Chat',
         settings: [
-            {
-                key: 'chat.enabled',
-                label: 'Chat Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the chat system.'
-            },
-            {
-                key: 'chat.allowMentions',
-                label: 'Allow Mentions',
-                type: 'toggle',
-                description: 'Allows players to mention others.'
-            },
-            {
-                key: 'chat.loggingEnabled',
-                label: 'Logging Enabled',
-                type: 'toggle',
-                description: 'Enables chat logging.'
-            },
-            {
-                key: 'chat.logExpirationDays',
-                label: 'Log Expiration Days',
-                type: 'textField',
-                description: 'How long chat logs are kept.'
-            },
             {
                 key: 'chat.enabled',
                 label: 'Chat Enabled',

@@ -2,7 +2,9 @@ import { ActionFormData } from '@minecraft/server-ui';
 
 import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
 import {
+    DailyRewardsConfig,
     getAuctionHouseConfig,
+    getDailyRewardsConfig,
     getEconomyConfig,
     getGamesConfig,
     getSidebarConfig,
@@ -10,6 +12,7 @@ import {
     getWordleConfig,
     getXrayConfig,
     saveAuctionHouseConfig,
+    saveDailyRewardsConfig,
     saveEconomyConfig,
     saveGamesConfig,
     saveSidebarConfig,
@@ -46,7 +49,8 @@ import { getSystemRegistry, SystemDefinition } from '@ui/systemRegistry.js';
 export const itemsPerPage = 8;
 
 interface ConfigHandler {
-    get: () => typeof Config | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig | GamesConfig | WordleConfig;
+    get: () =>
+        typeof Config | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig | GamesConfig | WordleConfig | DailyRewardsConfig;
     save: (config: unknown) => void;
 }
 
@@ -86,6 +90,10 @@ export const configHandlers: Record<string, ConfigHandler> = {
     wordle: {
         get: getWordleConfig,
         save: (config: unknown) => saveWordleConfig(config as WordleConfig)
+    },
+    dailyRewards: {
+        get: getDailyRewardsConfig,
+        save: (config: unknown) => saveDailyRewardsConfig(config as DailyRewardsConfig)
     }
 };
 
