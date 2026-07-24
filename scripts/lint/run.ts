@@ -27,32 +27,21 @@ async function runTask(name: string, command: () => Promise<unknown>): Promise<T
 
 async function runLintingPipeline() {
     const overallStart = performance.now();
-    console.log(`⚡ Launching profiled multi-threaded linting pipeline (${isFix ? 'Fix Mode' : 'Check Mode'})...\n`);
+    console.log(`⚡ Launching profiled Bun-native linting pipeline (${isFix ? 'Fix Mode' : 'Check Mode'})...\n`);
 
-    // Oxlint Engine (Rust - native multi-threading)
     const oxlintTask = runTask('1. Oxlint Engine (Rust)', () => (isFix ? $`bun scripts/lint/oxlint.ts --fix`.quiet() : $`bun scripts/lint/oxlint.ts`.quiet()));
 
-    // Concurrent ESLint Chunk 1: src/core
-    const eslintCoreTask = runTask('2a. ESLint (src/core)', () => (isFix ? $`bun eslint src/core --fix --cache`.quiet() : $`bun eslint src/core --cache`.quiet()));
-
-    // Concurrent ESLint Chunk 2: src/features
-    const eslintFeaturesTask = runTask('2b. ESLint (src/features)', () => (isFix ? $`bun eslint src/features --fix --cache`.quiet() : $`bun eslint src/features --cache`.quiet()));
-
-    // Concurrent ESLint Chunk 3: Remaining files & scripts
-    const eslintRestTask = runTask('2c. ESLint (lib, types & scripts)', () =>
-        isFix ? $`bun eslint src/lib src/types scripts eslint.config.js --fix --cache`.quiet() : $`bun eslint src/lib src/types scripts eslint.config.js --cache`.quiet()
+    const eslintTask = runTask('2. ESLint Engine (Cache)', () =>
+        isFix ? $`bun eslint src scripts eslint.config.js --fix --cache`.quiet() : $`bun eslint src scripts eslint.config.js --cache`.quiet()
     );
 
-    // JSON Schema Validation
     const schemaTask = runTask('3. JSON Schema Validation', () => $`bun run scripts/lint/schemas.ts`.quiet());
 
-    // Icon & Texture Integrity
     const iconTask = runTask('4. Icon & Texture Integrity', () => $`bun run scripts/lint/icons.ts`.quiet());
 
-    // TypeScript Incremental Type Check
     const typeCheckTask = runTask('5. TypeScript Type Check', () => $`bun tsc --noEmit --incremental`.quiet());
 
-    const results = await Promise.all([oxlintTask, eslintCoreTask, eslintFeaturesTask, eslintRestTask, schemaTask, iconTask, typeCheckTask]);
+    const results = await Promise.all([oxlintTask, eslintTask, schemaTask, iconTask, typeCheckTask]);
 
     const totalDuration = (performance.now() - overallStart).toFixed(2);
 
