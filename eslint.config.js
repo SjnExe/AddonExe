@@ -24,7 +24,7 @@ export default tseslint.config(
     // TS Configuration (Type-Checked) - Main Source
     {
         files: ['src/**/*.ts'],
-        ignores: ['src/**/__tests__/**'], // Ignore tests in main config
+        ignores: ['src/**/__tests__/**'],
         extends: [...tseslint.configs.recommendedTypeChecked],
         languageOptions: {
             ecmaVersion: 'latest',
@@ -34,8 +34,9 @@ export default tseslint.config(
                 tsconfigRootDir: __dirname
             },
             globals: {
-                ...globals.browser,
+                ...globals.bun,
                 ...globals.node,
+                ...globals.browser,
                 ...globals.es2021,
                 system: 'readonly',
                 world: 'readonly',
@@ -52,37 +53,22 @@ export default tseslint.config(
             'minecraft-linting': minecraftLinting,
             import: importPlugin
         },
-        settings: {
-            'import/resolver': {
-                node: {
-                    extensions: ['.js', '.ts']
-                }
-            },
-            'import/core-modules': [
-                '@minecraft/server',
-                '@minecraft/server-ui',
-                '@minecraft/server-gametest',
-                '@minecraft/common',
-                '@minecraft/debug-utilities',
-                '@minecraft/gameplay-utilities',
-                '@minecraft/math',
-                '@minecraft/vanilla-data'
-            ]
-        },
         rules: {
             'minecraft-linting/avoid-unnecessary-command': 'error',
+            // Handled natively by TypeScript and Oxlint at high speed
             'import/no-unresolved': 'off',
-            'import/no-cycle': 'error',
-            'import/named': 'error',
-            'import/namespace': 'error',
-            'import/default': 'error',
-            'import/export': 'error',
+            'import/no-cycle': 'off',
+            'import/named': 'off',
+            'import/namespace': 'off',
+            'import/default': 'off',
+            'import/export': 'off',
+            'import/no-duplicates': 'error',
+
             camelcase: ['error', { properties: 'always', ignoreDestructuring: true, allow: ['^UNSAFE_'] }],
             'no-console': 'warn',
             eqeqeq: ['error', 'always'],
             'no-var': 'error',
             curly: ['error', 'all'],
-            'import/no-duplicates': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/no-var-requires': 'error',
             '@typescript-eslint/no-shadow': 'error',
@@ -136,6 +122,7 @@ export default tseslint.config(
                 tsconfigRootDir: __dirname
             },
             globals: {
+                ...globals.bun,
                 ...globals.node,
                 vi: 'readonly',
                 describe: 'readonly',
@@ -179,6 +166,12 @@ export default tseslint.config(
     {
         files: ['scripts/**/*.{js,ts}'],
         extends: [...tseslint.configs.recommended],
+        languageOptions: {
+            globals: {
+                ...globals.bun,
+                ...globals.node
+            }
+        },
         rules: {
             'no-console': 'off',
             'unicorn/no-process-exit': 'off',
