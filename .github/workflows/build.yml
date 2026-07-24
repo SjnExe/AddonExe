@@ -26,7 +26,14 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-                  cache: 'bun'
+
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
 
             - name: Cache ESLint & TS Build Artifacts
               uses: actions/cache@v6
@@ -51,7 +58,14 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-                  cache: 'bun'
+
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
 
             - run: bun install --frozen-lockfile
             - run: bun format:check
@@ -66,7 +80,14 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-                  cache: 'bun'
+
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
 
             - name: Cache TS Build Artifacts
               uses: actions/cache@v6
@@ -89,7 +110,14 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-                  cache: 'bun'
+
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
 
             - run: bun install --frozen-lockfile
             - run: bun test --isolate --parallel
@@ -107,7 +135,14 @@ jobs:
               uses: oven-sh/setup-bun@v2
               with:
                   bun-version: latest
-                  cache: 'bun'
+
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
 
             - name: Install dependencies
               run: bun install --frozen-lockfile
