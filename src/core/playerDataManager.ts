@@ -2,9 +2,9 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getEconomyConfig } from '@core/configurations.js';
-import { hasPermission } from "@core/permissionEngine.js";
 import { SerializedItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
@@ -473,7 +473,6 @@ export function getAllKnownPlayers(): { id: string; name: string }[] {
 export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
     // Optimization: Use cache
     const allPlayers = getAllPlayersFromCache();
-
 
     // Staff (Level <= 2) can see everyone
     if (hasPermission(observer, 'group.mod')) {

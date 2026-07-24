@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
 import { getAuctionHouseConfig } from '@core/configurations.js';
-import { hasPermission } from "@core/permissionEngine.js";
 import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';

@@ -16,7 +16,6 @@ interface ClearCommandArgs {
 const clearCommand: CustomCommand = {
     name: 'clear',
     slashName: 'xclear',
-    slashName: 'xclear',
     description: 'Clears the inventory of a player or yourself.',
     aliases: ['ci', 'clearinv'],
     permissionNode: 'cmd.clear.admin',

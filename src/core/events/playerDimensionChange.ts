@@ -1,7 +1,7 @@
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
+import { hasPermission } from '@core/permissionEngine.js';
 import * as mc from '@minecraft/server';
-import { hasPermission } from "@core/permissionEngine.js";
 
 import { getConfig } from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';

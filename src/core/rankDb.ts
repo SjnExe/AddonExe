@@ -111,7 +111,7 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
             finalRank = {
                 ...finalRank,
                 id: currentRank.id,
-                priority: currentRank.priority,
+                priority: currentRank.priority
             };
         }
         ranksConfig.rankDefinitions[rankIndex] = finalRank;

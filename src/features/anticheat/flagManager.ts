@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { hasPermission } from "@core/permissionEngine.js";
 import { debugLog, errorLog, warnLog } from '@core/logger.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
@@ -75,7 +75,6 @@ export function flag(player: mc.Player, checkName: string, message: string) {
 
     // Notify
     if (checkConfig.notifyStaff === true) {
-
         notifyAdmins(player, checkName, data.vl, message);
 
         if (config.consoleNotifications === true) {

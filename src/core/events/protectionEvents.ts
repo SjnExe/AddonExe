@@ -2,8 +2,8 @@ import { EntityComponentTypes } from '@minecraft/server';
 
 import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
-import { hasPermission } from "@core/permissionEngine.js";
 import { getConfig } from '@core/configManager.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getProtectionFlags } from '@core/protectionService.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';

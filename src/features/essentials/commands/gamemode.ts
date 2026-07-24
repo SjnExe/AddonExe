@@ -87,6 +87,7 @@ const mainGamemodeCommand: CustomCommand = {
     allowConsole: true,
     parameters: [
         {
+            name: 'gamemode',
             type: 'string',
             description: 'Gamemode (s, c, a, sp, or full name)',
             enumOptions: Object.keys(gamemodes)

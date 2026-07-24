@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
 import { getXrayConfig } from '@core/configurations.js';
-import { hasPermission } from "@core/permissionEngine.js";
 import { registerEvent } from '@core/events/eventManager.js';
 import { warnLog } from '@core/logger.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { setTrackedTimeout } from '@core/timerManager.js';
