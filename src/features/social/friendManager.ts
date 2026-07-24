@@ -149,7 +149,6 @@ export function listFriends(player: mc.Player): string {
     return `§aFriends: §r${names.join(', ')}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
 export async function inviteFriendToGame(player: mc.Player, _gameId: string) {
     const pData = getOrCreatePlayer(player);
     const friends = pData.friends ?? [];

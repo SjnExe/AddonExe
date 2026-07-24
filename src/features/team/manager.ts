@@ -485,7 +485,7 @@ export function denyInvite(playerId: string, teamId: number): ActionResult {
             found = true;
         }
     });
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     return { success: found, message: found ? '§aInvite denied.' : '§cInvite not found.' };
 }
 

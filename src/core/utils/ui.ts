@@ -29,7 +29,6 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
         // Small delay to let client process the state change
         await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (player.isValid) {
             player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, true);
             player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Movement, true);
