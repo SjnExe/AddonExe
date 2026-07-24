@@ -129,7 +129,7 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v7
               with:
-                  fetch-depth: 0
+                  fetch-depth: 1
 
             - name: Setup Bun
               uses: oven-sh/setup-bun@v2
@@ -211,9 +211,9 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  (cd packs && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
-                  (cd packs/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
-                  (cd packs/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+                  (cd packs && zip -r -1 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
+                  (cd packs/behavior && zip -r -1 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+                  (cd packs/resource && zip -r -1 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
             - name: Upload Raw Build Directory
               uses: actions/upload-artifact@v7
@@ -231,6 +231,7 @@ jobs:
                       AddonExe_BP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
                       AddonExe_RP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
                   retention-days: 7
+                  compression-level: 0
 
             - name: Upload Debug Symbols (Nightly only)
               if: steps.build_type.outputs.type == 'nightly'
@@ -267,6 +268,8 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
+              with:
+                  fetch-depth: 1
 
             - name: Download Build Meta
               uses: actions/download-artifact@v8

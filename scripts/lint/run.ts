@@ -31,8 +31,8 @@ async function runLintingPipeline() {
 
     const oxlintTask = runTask('1. Oxlint Engine (Rust)', () => (isFix ? $`bun scripts/lint/oxlint.ts --fix`.quiet() : $`bun scripts/lint/oxlint.ts`.quiet()));
 
-    const eslintTask = runTask('2. ESLint Engine (Cache)', () =>
-        isFix ? $`bun eslint src scripts eslint.config.js --fix --cache`.quiet() : $`bun eslint src scripts eslint.config.js --cache`.quiet()
+    const eslintTask = runTask('2. ESLint Engine (Cache Content)', () =>
+        isFix ? $`bun eslint src scripts eslint.config.js --fix --cache --cache-strategy content`.quiet() : $`bun eslint src scripts eslint.config.js --cache --cache-strategy content`.quiet()
     );
 
     const schemaTask = runTask('3. JSON Schema Validation', () => $`bun run scripts/lint/schemas.ts`.quiet());
