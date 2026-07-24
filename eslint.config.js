@@ -7,12 +7,7 @@ import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
 import oxlint from 'eslint-plugin-oxlint';
 import globals from 'globals';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default tseslint.config(
     {
@@ -30,8 +25,9 @@ export default tseslint.config(
             ecmaVersion: 'latest',
             sourceType: 'module',
             parserOptions: {
-                project: './tsconfig.json',
-                tsconfigRootDir: __dirname
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname,
+                jsDocParsingMode: 'none'
             },
             globals: {
                 ...globals.bun,
@@ -118,8 +114,9 @@ export default tseslint.config(
             ecmaVersion: 'latest',
             sourceType: 'module',
             parserOptions: {
-                project: './tsconfig.test.json',
-                tsconfigRootDir: __dirname
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname,
+                jsDocParsingMode: 'none'
             },
             globals: {
                 ...globals.bun,
