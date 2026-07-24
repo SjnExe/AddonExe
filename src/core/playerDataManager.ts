@@ -2,6 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { getEconomyConfig } from '@core/configurations.js';
+import { hasPermission } from "@core/permissionEngine.js";
 import { SerializedItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
@@ -43,7 +44,6 @@ export interface PlayerData {
     name: string;
     ranks: string[];
     rankId: string;
-    permissionLevel: number;
     homes: Record<string, HomeLocation>;
     balance: number;
     kitCooldowns: Record<string, number>;
@@ -88,7 +88,6 @@ export let isNameIdMapDirty = false;
 const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 'tpaBlockedPlayerIds'> = {
     ranks: ['member'],
     rankId: 'member',
-    permissionLevel: 1024,
     balance: 0,
     xrayNotificationsEnabled: false,
     lastDeathLocation: undefined,
@@ -334,7 +333,6 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         ...defaultPlayerData,
         ranks: config.playerDefaults.ranks,
         rankId: config.playerDefaults.rankId,
-        permissionLevel: config.playerDefaults.permissionLevel,
         balance: economyConfig.startingBalance,
         xrayNotificationsEnabled: config.playerDefaults.xrayNotificationsEnabled,
         homes: {},
@@ -475,11 +473,10 @@ export function getAllKnownPlayers(): { id: string; name: string }[] {
 export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
     // Optimization: Use cache
     const allPlayers = getAllPlayersFromCache();
-    const observerData = getPlayer(observer.id);
-    const observerLevel = (isDefined(observerData) ? observerData.permissionLevel : undefined) ?? 1024;
+
 
     // Staff (Level <= 2) can see everyone
-    if (observerLevel <= 2) {
+    if (hasPermission(observer, 'group.mod')) {
         return allPlayers;
     }
 
@@ -571,10 +568,9 @@ export function setLockState(dimension: string, isLocked: boolean) {
 
 // --- Data Modification Wrappers ---
 
-export function setPlayerRank(playerId: string, rankId: string, permissionLevel: number) {
+export function setPlayerRank(playerId: string, rankId: string) {
     updatePlayerData(playerId, (pData) => {
         pData.rankId = rankId;
-        pData.permissionLevel = permissionLevel;
     });
 }
 

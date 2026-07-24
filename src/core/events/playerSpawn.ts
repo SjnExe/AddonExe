@@ -18,11 +18,10 @@ export function handlePlayerJoin(player: mc.Player) {
     // This ensures that if a player is Owner in config or has a rank tag,
     // their internal permission data is updated immediately.
     const calculatedRank = getPlayerRank(player, config);
-    if (pData.rankId !== calculatedRank.id || pData.permissionLevel !== calculatedRank.permissionLevel) {
+    if (pData.rankId !== calculatedRank.id) {
         infoLog(`[Add-on] Syncing rank for ${player.name}: ${pData.rankId} -> ${calculatedRank.id}`);
         updatePlayerData(player.id, (d) => {
             d.rankId = calculatedRank.id;
-            d.permissionLevel = calculatedRank.permissionLevel;
         });
     }
 

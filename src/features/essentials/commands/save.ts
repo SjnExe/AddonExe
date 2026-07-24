@@ -9,6 +9,7 @@ import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'save',
+    slashName: 'xsave',
     aliases: ['xsave'],
     description: 'Manually saves all server data to disk.',
     category: 'Administration',

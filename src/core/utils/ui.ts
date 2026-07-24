@@ -1,8 +1,7 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, FormCancelationReason, MessageFormData, MessageFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { hasPermission } from "@core/permissionEngine.js";
 
-import { getConfig } from '@core/configManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
 
 /**
  * Returns an appropriate icon based on the player's permission level.
@@ -10,10 +9,8 @@ import { getPlayerRank } from '@core/rankManager.js';
  * @returns The path to the texture icon.
  */
 export function getPlayerIcon(player: mc.Player): string {
-    const config = getConfig();
-    const rank = getPlayerRank(player, config);
 
-    if (rank.permissionLevel < 1024) {
+    if (hasPermission(player, 'group.mod')) {
         return 'textures/ui/permissions_op_crown';
     }
     return 'textures/ui/permissions_member_star.png';

@@ -314,7 +314,7 @@ class CommandManager {
                     ) {
                         const executorData = getPlayer(executor.id);
                         // Level 2 (Mod) and below can see vanished players
-                        if (isDefined(executorData) && executorData.permissionLevel > 2) {
+                        if (isDefined(executorData) && !hasPermission(executor, 'group.mod')) {
                             value = (value as mc.Player[]).filter((target) => {
                                 const targetData = getPlayer(target.id);
                                 return !(isDefined(targetData) && targetData.isVanished);

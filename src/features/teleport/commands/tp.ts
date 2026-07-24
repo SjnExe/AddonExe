@@ -8,6 +8,7 @@ import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 const command: CustomCommand = {
     name: 'tp',
+    slashName: 'xtp',
     aliases: ['teleport', 'xtp'],
     description: 'Teleports a player to another player or to coordinates.',
     category: 'Moderation',

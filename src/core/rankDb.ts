@@ -102,7 +102,6 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
                 ...finalRank,
                 id: currentRank.id,
                 priority: currentRank.priority,
-                permissionLevel: currentRank.permissionLevel,
                 allow: currentRank.allow,
                 deny: currentRank.deny,
                 groups: currentRank.groups,
@@ -113,7 +112,6 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
                 ...finalRank,
                 id: currentRank.id,
                 priority: currentRank.priority,
-                permissionLevel: currentRank.permissionLevel
             };
         }
         ranksConfig.rankDefinitions[rankIndex] = finalRank;

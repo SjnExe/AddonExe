@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getAuctionHouseConfig } from '@core/configurations.js';
+import { hasPermission } from "@core/permissionEngine.js";
 import { deserializeItem, SerializedItem, serializeItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
@@ -80,7 +81,6 @@ export function createListing(player: mc.Player, item: SerializedItem, price: nu
     }
 
     // Check limits
-    const pData = getOrCreatePlayer(player);
     const myListings = [...activeListings.values()].filter((l) => l.sellerId === player.id);
     if (myListings.length >= config.maxListingsPerPlayer) {
         return { success: false, message: '§cYou have reached the maximum number of active listings.' };
@@ -88,6 +88,7 @@ export function createListing(player: mc.Player, item: SerializedItem, price: nu
 
     // Listing Fee
     if (config.listingFee > 0) {
+        const pData = getOrCreatePlayer(player);
         if (pData.balance < config.listingFee) {
             return {
                 success: false,
@@ -449,8 +450,7 @@ export function cancelListing(player: mc.Player, listingId: string): { success: 
 
     if (listing.sellerId !== player.id) {
         // Allow admins?
-        const pData = getOrCreatePlayer(player);
-        if (pData.permissionLevel > 1) {
+        if (!hasPermission(player, 'cmd.ah.admin')) {
             return { success: false, message: '§cYou do not own this listing.' };
         }
     }

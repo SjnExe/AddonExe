@@ -2,8 +2,8 @@ import { EntityComponentTypes } from '@minecraft/server';
 
 import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
+import { hasPermission } from "@core/permissionEngine.js";
 import { getConfig } from '@core/configManager.js';
-import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { getProtectionFlags } from '@core/protectionService.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -17,9 +17,8 @@ function canBypass(player: mc.Player): boolean {
     }
 
     try {
-        const pData = getOrCreatePlayer(player);
         // Owner(0), Admin(1), Mod(2) bypass
-        return pData.permissionLevel <= 2;
+        return hasPermission(player, 'group.mod');
     } catch {
         return false;
     }

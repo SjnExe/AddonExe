@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { getXrayConfig } from '@core/configurations.js';
+import { hasPermission } from "@core/permissionEngine.js";
 import { registerEvent } from '@core/events/eventManager.js';
 import { warnLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
@@ -84,9 +85,8 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
     const onlinePlayers = getAllPlayersFromCache();
     for (const onlinePlayer of onlinePlayers) {
         const pData = getOrCreatePlayer(onlinePlayer);
-        const requiredLevel = (isDefined(xrayConfig.notifications.alertPermissionLevel) ? xrayConfig.notifications.alertPermissionLevel : undefined) ?? 2;
 
-        if (isDefined(pData) && pData.permissionLevel <= requiredLevel && pData.xrayNotificationsEnabled === true) {
+        if (isDefined(pData) && hasPermission(onlinePlayer, 'group.mod') && pData.xrayNotificationsEnabled === true) {
             try {
                 onlinePlayer.sendMessage(message);
             } catch (error) {
@@ -168,9 +168,8 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
     // 3. Admin Bypass Check
     if (settings.adminBypass === true) {
         const pData = getPlayer(player.id);
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        const bypassLevel = settings.bypassPermissionLevel ?? 1;
-        if (isDefined(pData) && pData.permissionLevel <= bypassLevel) return;
+
+        if (isDefined(pData) && hasPermission(player, 'group.admin')) return;
     }
 
     // 4. Validate Location & Dimension (O(N) where N is small, usually 1 or 2 entries per block)
