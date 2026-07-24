@@ -30,6 +30,13 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
     }
 
     const itemsPerPage = 15;
+
+    if (page > 1) {
+        form.button('§6< Previous Page', 'textures/gui/newgui/UpArrow', async () => {
+            await showInventoryPanel(player, targetPlayerId, page - 1);
+        });
+    }
+
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginated = items.slice(startIndex, endIndex);
