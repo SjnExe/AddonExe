@@ -125,10 +125,10 @@ export function addPaginationButtons(form: ActionFormData, page: number, totalIt
 export function addPaginationItems(items: Record<string, unknown>[], page: number, totalItems: number, permission: string = 'ui.panel.member'): void {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     if (page > 1) {
-        items.push({
+        items.unshift({
             id: '__prev__',
             text: '< Previous Page',
-            icon: 'textures/ui/arrow_left.png',
+            icon: 'textures/gui/newgui/UpArrow.png',
             permission,
             actionType: 'functionCall',
             actionValue: 'prevPage'
@@ -138,7 +138,7 @@ export function addPaginationItems(items: Record<string, unknown>[], page: numbe
         items.push({
             id: '__next__',
             text: 'Next Page >',
-            icon: 'textures/ui/arrow_right.png',
+            icon: 'textures/gui/newgui/DownArrow.png',
             permission,
             actionType: 'functionCall',
             actionValue: 'nextPage'
@@ -153,7 +153,7 @@ export function addBackButton(items: Record<string, unknown>[], targetPanelId: s
     items.push({
         id: '__back__',
         text: '< Back',
-        icon: 'textures/gui/controls/left.png',
+        icon: 'textures/gui/newgui/LeftArrow.png',
         permission,
         actionType: 'openPanel',
         actionValue: targetPanelId
