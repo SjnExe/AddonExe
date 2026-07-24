@@ -41,11 +41,7 @@
         "watch": "bun scripts/build.ts --watch"
     },
     "lint-staged": {
-        "*.{js,ts}": [
-            "bun scripts/lint/oxlint.ts --fix",
-            "bun eslint --fix --cache",
-            "bun prettier --write --cache"
-        ],
+        "*.{js,ts}": "bun scripts/lint/staged.ts",
         "*.{json,md,yml,yaml}": "bun prettier --write --cache"
     },
     "overrides": {
