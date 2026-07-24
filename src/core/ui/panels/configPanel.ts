@@ -118,7 +118,7 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
         return showConfigCategoryPanel(player, { page: 1 });
     }
 
-    debugLog(`[UI Config] Loading config for system: ${systemId} from source: ${configSource}`);
+    debugLog(`[UI Config] Loading config for system: ${systemId} from source: ${configSource} | Page: ${_context.page ?? 1}`);
     const config = handler.get();
     const modal = new ModalFormBuilder<Record<string, unknown>>().title(schema.title);
     const validSettings: SettingSchema[] = [];
