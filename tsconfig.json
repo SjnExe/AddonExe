@@ -30,7 +30,8 @@
             "@lib/*": ["./src/lib/*"],
             "@shared-types/*": ["./src/types/*"]
         },
-        "types": ["node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/server-gametest", "@minecraft/debug-utilities", "@minecraft/vanilla-data", "@minecraft/math"]
+        "types": ["node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/server-gametest", "@minecraft/debug-utilities", "@minecraft/vanilla-data", "@minecraft/math"],
+        "assumeChangesOnlyAffectDirectDependencies": true
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "src/**/__tests__"]
