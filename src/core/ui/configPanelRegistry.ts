@@ -301,6 +301,36 @@ export const configPanelSchema: ConfigCategory[] = [
         ]
     },
     {
+        id: 'economy_toggle',
+        title: 'Economy System Toggle',
+        icon: 'textures/items/emerald',
+        configSource: 'main',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'economy.enabled',
+                label: 'Enable Economy System',
+                type: 'toggle',
+                description: 'Master switch for all economy-related features (Shop, Auction, Bounties, etc).'
+            }
+        ]
+    },
+    {
+        id: 'shop_toggle',
+        title: 'Shop System Toggle',
+        icon: 'textures/ui/trade_icon',
+        configSource: 'main',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'shop.enabled',
+                label: 'Enable Shop System',
+                type: 'toggle',
+                description: 'Enables or disables the Shop system.'
+            }
+        ]
+    },
+    {
         id: 'warps',
         title: 'Warp System',
         icon: 'textures/blocks/portal',

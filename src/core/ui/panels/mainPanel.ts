@@ -64,7 +64,7 @@ export async function showMainPanel(player: Player): Promise<void> {
     }
 
     // Bounty depends on economy and bounties config, but let's map it roughly to economy for UI
-    if (isFeatureActive('eco')) {
+    if (isFeatureActive('eco.bounty')) {
         form.button('Bounty List', 'textures/items/netherite_sword', async () => {
             await showPanel(player, 'bountyListPanel');
         });

@@ -1,4 +1,5 @@
 import { updateMultipleConfig } from '@core/configManager.js';
+import { debugLog } from '@core/logger.js';
 import { getValueFromPath } from '@core/objectUtils.js';
 import { hasPermission } from '@core/permissionEngine.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -112,10 +113,12 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
     const configSource = schema.configSource ?? 'main';
     const handler = uiConfigHandlers[configSource];
     if (!isDefined(handler)) {
+        debugLog(`[UI Config] Configuration handler not found for source: ${configSource}`);
         player.sendMessage('§cConfiguration handler not found.');
         return showConfigCategoryPanel(player, { page: 1 });
     }
 
+    debugLog(`[UI Config] Loading config for system: ${systemId} from source: ${configSource}`);
     const config = handler.get();
     const modal = new ModalFormBuilder<Record<string, unknown>>().title(schema.title);
     const validSettings: SettingSchema[] = [];
@@ -141,6 +144,7 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
     if (!res) return showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
 
     const updates = _processFormValues(validSettings, res, config as Record<string, unknown>);
+    debugLog(`[UI Config] Saving updates for source: ${configSource} - ${JSON.stringify(updates)}`);
     _saveConfigUpdates(handler, configSource, updates);
     player.sendMessage('§2Configuration saved.');
     await showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
