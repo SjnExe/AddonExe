@@ -97,7 +97,7 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
         // Verify spawn location has coordinates
         if (!isNaN(x) && !isNaN(z)) {
             // Spawn protection uses the configured dimension (or Overworld if undefined, though it defaults to Overworld)
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
             const spawnDimension = spawnLoc.dimensionId || MinecraftDimensionTypes.Overworld;
             if (dimensionId === (spawnDimension as string)) {
                 const radius = Number(spawnConfig.spawnProtection.protectionRadius) || 0;

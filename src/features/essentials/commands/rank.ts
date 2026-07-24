@@ -53,7 +53,7 @@ const rankCommand: CustomCommand = {
             }
 
             const ranks = pData.ranks;
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
             if (!ranks || ranks.length === 0) {
                 sendMessage(`§e${targetName} §7has no custom ranks.`, executor);
                 return;
@@ -102,7 +102,6 @@ const rankCommand: CustomCommand = {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         let currentRanks = [...(pData.ranks || [])];
 
         if (action === 'set') {

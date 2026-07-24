@@ -11,7 +11,7 @@ import * as mc from '@minecraft/server';
 function canBypass(player: mc.Player): boolean {
     // Check if admin bypass is allowed globally or in spawn configuration
     const config = getConfig();
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     if (config && config.spawnProtection && !config.spawnProtection.allowAdminBypass) {
         return false;
     }

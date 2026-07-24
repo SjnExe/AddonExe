@@ -81,7 +81,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
 
 export function checkItem(item: mc.ItemStack, player: mc.Player, config: ItemCheckConfig, updateItem: (item?: mc.ItemStack) => void) {
     const bannedItems = config.bannedItems;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     const MAX_ENCHANT_LEVEL = config.maxEnchantLevel ?? 5;
     let modified = false;
 

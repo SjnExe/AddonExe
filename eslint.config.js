@@ -7,31 +7,23 @@ import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
 import oxlint from 'eslint-plugin-oxlint';
 import globals from 'globals';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default tseslint.config(
     {
         ignores: ['node_modules/', 'dist/', 'package-lock.json', '.git/', 'packs/resource/font/', '.github/', 'Docs/', '**/packs/behavior/scripts/**', 'package.json']
     },
+    // Base JS configuration
     eslint.configs.recommended,
 
-    // TS Configuration (Type-Checked) - Main Source
+    // TS Configuration (Fast AST Parsing) - Main Source
     {
         files: ['src/**/*.ts'],
         ignores: ['src/**/__tests__/**'],
-        extends: [...tseslint.configs.recommendedTypeChecked],
+        extends: [...tseslint.configs.recommended],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
-            parserOptions: {
-                project: './tsconfig.json',
-                tsconfigRootDir: __dirname
-            },
             globals: {
                 ...globals.bun,
                 ...globals.node,
@@ -53,42 +45,8 @@ export default tseslint.config(
             import: importPlugin
         },
         rules: {
+            // Minecraft Domain Specific Rules
             'minecraft-linting/avoid-unnecessary-command': 'error',
-            'import/no-unresolved': 'off',
-            'import/no-cycle': 'off',
-            'import/named': 'off',
-            'import/namespace': 'off',
-            'import/default': 'off',
-            'import/export': 'off',
-            'import/no-duplicates': 'error',
-
-            camelcase: ['error', { properties: 'always', ignoreDestructuring: true, allow: ['^UNSAFE_'] }],
-            'no-console': 'warn',
-            eqeqeq: ['error', 'always'],
-            'no-var': 'error',
-            curly: ['error', 'all'],
-            '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/no-var-requires': 'error',
-            '@typescript-eslint/no-shadow': 'error',
-            '@typescript-eslint/no-floating-promises': 'error',
-            '@typescript-eslint/no-misused-promises': 'error',
-            '@typescript-eslint/no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
-            '@typescript-eslint/no-unsafe-argument': 'error',
-            '@typescript-eslint/no-unsafe-assignment': 'error',
-            '@typescript-eslint/no-unsafe-call': 'error',
-            '@typescript-eslint/no-unsafe-member-access': 'error',
-            '@typescript-eslint/no-unsafe-return': 'error',
-            '@typescript-eslint/no-unsafe-enum-comparison': 'error',
-            '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': 'allow-with-description', 'ts-nocheck': true, 'ts-check': false }],
-            '@typescript-eslint/restrict-template-expressions': 'error',
-            '@typescript-eslint/only-throw-error': 'error',
-            '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
-            '@typescript-eslint/await-thenable': 'error',
-            '@typescript-eslint/require-await': 'error',
-            '@typescript-eslint/switch-exhaustiveness-check': 'error',
-            '@typescript-eslint/prefer-readonly': 'error',
-            '@typescript-eslint/no-unnecessary-condition': 'error',
-            '@typescript-eslint/no-unnecessary-type-assertion': 'error',
             'no-restricted-syntax': [
                 'error',
                 {
@@ -104,21 +62,37 @@ export default tseslint.config(
                         'TemplateLiteral > TemplateElement:first-child[value.raw=/^minecraft:/]:not(CallExpression[callee.property.name=/^(getComponent|hasComponent|getComponentNet)$/] > TemplateLiteral > TemplateElement)',
                     message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
                 }
-            ]
+            ],
+
+            // Handled natively by TypeScript (bun tsc) and Oxlint
+            'import/no-unresolved': 'off',
+            'import/no-cycle': 'off',
+            'import/named': 'off',
+            'import/namespace': 'off',
+            'import/default': 'off',
+            'import/export': 'off',
+            'import/no-duplicates': 'error',
+
+            // Code Quality & Formatting
+            camelcase: ['error', { properties: 'always', ignoreDestructuring: true, allow: ['^UNSAFE_'] }],
+            'no-console': 'warn',
+            eqeqeq: ['error', 'always'],
+            'no-var': 'error',
+            curly: ['error', 'all'],
+            '@typescript-eslint/no-explicit-any': 'error',
+            '@typescript-eslint/no-shadow': 'error',
+            '@typescript-eslint/no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
+            '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': 'allow-with-description', 'ts-nocheck': true, 'ts-check': false }]
         }
     },
 
     // TS Configuration (Test Files)
     {
         files: ['src/**/__tests__/**/*.ts'],
-        extends: [...tseslint.configs.recommendedTypeChecked],
+        extends: [...tseslint.configs.recommended],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
-            parserOptions: {
-                project: './tsconfig.test.json',
-                tsconfigRootDir: __dirname
-            },
             globals: {
                 ...globals.bun,
                 ...globals.node,
@@ -138,17 +112,8 @@ export default tseslint.config(
         },
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-unsafe-assignment': 'off',
-            '@typescript-eslint/no-unsafe-call': 'off',
-            '@typescript-eslint/no-unsafe-member-access': 'off',
-            '@typescript-eslint/no-unsafe-return': 'off',
-            '@typescript-eslint/no-unsafe-argument': 'off',
-            '@typescript-eslint/unbound-method': 'off',
-            '@typescript-eslint/require-await': 'off',
-            '@typescript-eslint/no-floating-promises': 'off',
             'no-console': 'off',
-            'import/no-unresolved': 'off',
-            'unicorn/no-useless-undefined': 'off'
+            'import/no-unresolved': 'off'
         }
     },
 
@@ -172,8 +137,6 @@ export default tseslint.config(
         },
         rules: {
             'no-console': 'off',
-            'unicorn/no-process-exit': 'off',
-            'unicorn/prefer-top-level-await': 'off',
             '@typescript-eslint/no-explicit-any': 'off'
         }
     },

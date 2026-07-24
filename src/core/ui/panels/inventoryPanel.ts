@@ -17,7 +17,6 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
 
     const inventoryComponent = targetPlayer.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!inventoryComponent || !inventoryComponent.container) {
         player.sendMessage(`§cCannot access inventory component for ${targetName}.`);
         return showPanel(player, 'playerActionsPanel', { targetPlayerId });
