@@ -118,8 +118,8 @@ describe('PlayerDataManager - updatePlayerData', () => {
         mockStorageLoad.mockReturnValue(undefined);
 
         let callbackCalled = false;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        updatePlayerData('nonexistent', (pData: any) => {
+
+        updatePlayerData('nonexistent', (_pData: any) => {
             callbackCalled = true;
         });
 

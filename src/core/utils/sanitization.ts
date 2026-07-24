@@ -10,11 +10,13 @@ export function sanitizeString(input: string, allowColors = false): string {
 
     // Remove color codes if not allowed
     if (!allowColors) {
+        // oxlint-disable-next-line eslint/no-control-regex
         result = result.replaceAll(/§[0-9a-fklmnor]/g, '');
     }
 
     // Remove non-printable characters (basic control chars, keeping newlines/returns)
-    // eslint-disable-next-line no-control-regex
+
+    // oxlint-disable-next-line
     result = result.replaceAll(/[\u0000-\u0009\u000B\u000C\u000E-\u001F]/g, '');
 
     return result.trim();

@@ -40,7 +40,7 @@ export function evaluateGuess(guess: string, answer: string): GuessResult {
     guess = guess.toLowerCase();
     answer = answer.toLowerCase();
 
-    const pattern = new Array(guess.length).fill('-');
+    const pattern = Array.from({ length: guess.length }).fill('-');
     const answerChars: (string | null)[] = answer.split('');
     let isWin = true;
 
