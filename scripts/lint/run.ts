@@ -16,7 +16,9 @@ async function runTask(name: string, command: () => Promise<unknown>): Promise<T
         await command();
     } catch (err: any) {
         status = '❌ Failed';
-        errorDetail = err?.stderr?.toString() || err?.stdout?.toString() || String(err);
+        const stdout = err?.stdout ? err.stdout.toString() : '';
+        const stderr = err?.stderr ? err.stderr.toString() : '';
+        errorDetail = stderr || stdout || String(err);
     }
     const duration = (performance.now() - start).toFixed(2);
     if (errorDetail) {

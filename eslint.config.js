@@ -7,13 +7,17 @@ import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
 import oxlint from 'eslint-plugin-oxlint';
 import globals from 'globals';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default tseslint.config(
     {
         ignores: ['node_modules/', 'dist/', 'package-lock.json', '.git/', 'packs/resource/font/', '.github/', 'Docs/', '**/packs/behavior/scripts/**', 'package.json']
     },
-    // Base JS configuration
     eslint.configs.recommended,
 
     // TS Configuration (Type-Checked) - Main Source
@@ -25,9 +29,8 @@ export default tseslint.config(
             ecmaVersion: 'latest',
             sourceType: 'module',
             parserOptions: {
-                projectService: true,
-                tsconfigRootDir: import.meta.dirname,
-                jsDocParsingMode: 'none'
+                project: './tsconfig.json',
+                tsconfigRootDir: __dirname
             },
             globals: {
                 ...globals.bun,
@@ -51,7 +54,6 @@ export default tseslint.config(
         },
         rules: {
             'minecraft-linting/avoid-unnecessary-command': 'error',
-            // Handled natively by TypeScript and Oxlint at high speed
             'import/no-unresolved': 'off',
             'import/no-cycle': 'off',
             'import/named': 'off',
@@ -114,9 +116,8 @@ export default tseslint.config(
             ecmaVersion: 'latest',
             sourceType: 'module',
             parserOptions: {
-                projectService: true,
-                tsconfigRootDir: import.meta.dirname,
-                jsDocParsingMode: 'none'
+                project: './tsconfig.test.json',
+                tsconfigRootDir: __dirname
             },
             globals: {
                 ...globals.bun,
@@ -177,16 +178,7 @@ export default tseslint.config(
         }
     },
 
-    // JSONC configuration
     ...jsonc.configs['flat/recommended-with-jsonc'],
-    {
-        files: ['**/*.json'],
-        rules: {}
-    },
-
-    // Oxlint disables duplicate rules
     ...oxlint.configs['flat/recommended'],
-
-    // Prettier
     prettierConfig
 );
