@@ -27,10 +27,10 @@
         "format": "prettier --write --cache .",
         "format:check": "prettier --check --cache .",
         "postinstall": "bun scripts/postinstall.ts",
-        "lint": "bun scripts/oxlint.ts --fix && bun eslint src scripts eslint.config.js --fix --cache && bun run scripts/validate-schemas.ts && bun run scripts/linting/validate-icons.ts",
-        "lint:check": "bun scripts/oxlint.ts && bun eslint src scripts eslint.config.js --cache && bun run scripts/validate-schemas.ts && bun run scripts/linting/validate-icons.ts",
-        "lint:fast": "bun scripts/oxlint.ts src scripts",
-        "lint:report": "bun scripts/oxlint.ts && bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
+        "lint": "bun scripts/lint/run.ts --fix",
+        "lint:check": "bun scripts/lint/run.ts",
+        "lint:fast": "bun scripts/lint/oxlint.ts src scripts",
+        "lint:report": "bun scripts/lint/oxlint.ts && bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
         "project-info": "bun mct info",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
         "test": "bun test --isolate --parallel",
@@ -42,7 +42,7 @@
     },
     "lint-staged": {
         "*.{js,ts}": [
-            "bun scripts/oxlint.ts --fix",
+            "bun scripts/lint/oxlint.ts --fix",
             "bun eslint --fix --cache",
             "bun prettier --write --cache"
         ],

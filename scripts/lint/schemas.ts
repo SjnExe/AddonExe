@@ -1,19 +1,18 @@
 import Ajv from 'ajv';
 import fs from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
 
 async function main() {
     console.log('[Validator] Starting programmatic JSON schema validation...');
 
     const ajv = new Ajv({ strict: false, allErrors: true });
 
-    // 1. Load Schemas
-    const schemasDir = path.resolve(__dirname, '../node_modules/@minecraft/bedrock-schemas/schemas');
-    const catalogPath = path.resolve(__dirname, '../node_modules/@minecraft/bedrock-schemas/catalog.json');
+    // 1. Resolve Bedrock Schemas package root & catalog.json dynamically
+    const schemasDir = path.dirname(require.resolve('@minecraft/bedrock-schemas/package.json'));
+    const catalogPath = path.join(schemasDir, 'catalog.json');
 
     let catalog: any;
     try {
@@ -25,7 +24,7 @@ async function main() {
     }
 
     const schemas = catalog.schemas || [];
-    const validators = new Map<string, any>(); // Regex path match to compiled validator
+    const validators = new Map<string, any>();
 
     console.log(`[Validator] Loaded ${schemas.length} schemas from @minecraft/bedrock-schemas.`);
 
@@ -33,8 +32,6 @@ async function main() {
         if (!schemaDef.url || !schemaDef.fileMatch) continue;
 
         try {
-            // URL looks like "file:///home/user/.../schemas/xyz.json", we only need the "schemas/xyz.json" part
-            // Or it could be a relative path, but typically bedrock-schemas gives URL or a relative path
             const relativeSchemaPath = schemaDef.url.replace(/^.*schemas\//, '');
             const absolutePath = path.resolve(schemasDir, relativeSchemaPath);
 
@@ -42,33 +39,36 @@ async function main() {
             const schemaJson = JSON.parse(schemaContent);
             const validate = ajv.compile(schemaJson);
 
-            // fileMatch is usually an array of glob strings like: ["*.json", "data/**/*.json"]
-            // For simplicity, we create regex from them
             for (const matchPattern of schemaDef.fileMatch) {
-                // Convert basic glob to regex (very simple, assumes **/ and *.json)
                 const regexStr = matchPattern.replace(/\./g, '\\.').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
                 validators.set(`^.*${regexStr}$`, validate);
             }
         } catch {
-            // Some schemas might fail to compile or read, skip them
+            // Ignore partial compilation errors
         }
     }
 
-    // 2. Validate Files
-    const packsDir = path.resolve(__dirname, '../packs');
+    // 2. Validate files in root packs/
+    const projectRoot = process.cwd();
+    const packsDir = path.join(projectRoot, 'packs');
     let totalValidated = 0;
     let errors = 0;
 
     async function walkAndValidate(dir: string) {
-        const entries = await fs.readdir(dir, { withFileTypes: true });
+        let entries;
+        try {
+            entries = await fs.readdir(dir, { withFileTypes: true });
+        } catch {
+            return;
+        }
+
         for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
             if (entry.isDirectory()) {
                 await walkAndValidate(fullPath);
             } else if (entry.isFile() && fullPath.endsWith('.json')) {
-                const relativePath = path.relative(path.resolve(__dirname, '..'), fullPath).replace(/\\/g, '/');
+                const relativePath = path.relative(projectRoot, fullPath).replace(/\\/g, '/');
 
-                // Find matching validator
                 let validateFn = null;
                 for (const [regexStr, fn] of validators.entries()) {
                     if (new RegExp(regexStr).test(relativePath)) {
