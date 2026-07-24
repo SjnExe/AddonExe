@@ -39,7 +39,7 @@ export class ActionFormBuilder {
     }
 
     public addBackButton(onClick: () => void | Promise<void>): this {
-        this.button('§cBack', 'textures/gui/newgui/LeftArrow', onClick);
+        this.button('§cBack', 'textures/ui/arrow_left', onClick);
         return this;
     }
 
@@ -75,7 +75,7 @@ export class ActionFormBuilder {
         const itemsToShow = items.slice(startIndex, startIndex + itemsPerPage);
 
         if (totalPages > 1 && currentPage > 1) {
-            this.button('§6< Previous Page', 'textures/gui/newgui/UpArrow', () => onPageChange(currentPage - 1));
+            this.button('§6< Previous Page', 'textures/gui/controls/up', () => onPageChange(currentPage - 1));
         }
 
         for (const item of itemsToShow) {
@@ -83,7 +83,7 @@ export class ActionFormBuilder {
         }
 
         if (totalPages > 1 && currentPage < totalPages) {
-            this.button('§6Next Page >', 'textures/gui/newgui/DownArrow', () => onPageChange(currentPage + 1));
+            this.button('§6Next Page >', 'textures/gui/controls/down', () => onPageChange(currentPage + 1));
         }
         return this;
     }
