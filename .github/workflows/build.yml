@@ -16,7 +16,7 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    check:
+    lint:
         runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
@@ -46,15 +46,81 @@ jobs:
                       ${{ runner.os }}-eslint-
 
             - run: bun install --frozen-lockfile
+            - run: bun lint
 
-            - name: Check Formatting
-              run: bun format:check
+    format:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
 
-            - name: Parallel Lint & Type Check
-              run: bun lint
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
 
-            - name: Run Unit Tests
-              run: bun test --isolate --parallel
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
+
+            - run: bun install --frozen-lockfile
+            - run: bun format:check
+
+    typecheck:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
+
+            - name: Cache TS Build Artifacts
+              uses: actions/cache@v6
+              with:
+                  path: '*.tsbuildinfo'
+                  key: ${{ runner.os }}-tsc-${{ hashFiles('**/bun.lock', 'tsconfig.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-tsc-
+
+            - run: bun install --frozen-lockfile
+            - run: bun check-types
+
+    test:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Cache Bun Dependencies
+              uses: actions/cache@v6
+              with:
+                  path: ~/.bun/install/cache
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-bun-
+
+            - run: bun install --frozen-lockfile
+            - run: bun test --isolate --parallel
 
     build:
         runs-on: ubuntu-latest
@@ -193,7 +259,7 @@ jobs:
               run: bun run validate:ci
 
     release:
-        needs: [build, check]
+        needs: [build, lint, format, typecheck, test]
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
