@@ -37,6 +37,7 @@
         "test:duplication": "bun scripts/test-duplication.ts",
         "test:watch": "bun test --isolate --parallel --watch",
         "validate": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs",
+        "validate:ci": "bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs",
         "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs -o validation_report",
         "watch": "bun scripts/build.ts --watch"
     },
