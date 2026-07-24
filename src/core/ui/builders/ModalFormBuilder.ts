@@ -30,7 +30,7 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         if (defaultValue !== undefined) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            this.form.toggle(label, { defaultValue });
+            this.form.toggle(label, defaultValue as never);
         } else {
             this.form.toggle(label);
         }
@@ -47,7 +47,7 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         }
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        this.form.slider(label, Math.min(minimumValue, maximumValue), Math.max(minimumValue, maximumValue), options);
+        this.form.slider(label, Math.min(minimumValue, maximumValue), Math.max(minimumValue, maximumValue), valueStep as never, defaultValue as never);
         this.keyMap.push({ key, meta: { type: 'other' } });
         return this as unknown as ModalFormBuilder<T & Record<K, number>>;
     }
@@ -56,7 +56,7 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         if (defaultValueIndex !== undefined) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            this.form.dropdown(label, options, { defaultValueIndex });
+            this.form.dropdown(label, options, defaultValueIndex as never);
         } else {
             this.form.dropdown(label, options);
         }
@@ -68,7 +68,7 @@ export class ModalFormBuilder<T extends Record<string, unknown> = Record<string,
         if (defaultValue !== undefined) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
-            this.form.textField(label, placeholderText, { defaultValue });
+            this.form.textField(label, placeholderText, defaultValue as never);
         } else {
             this.form.textField(label, placeholderText);
         }

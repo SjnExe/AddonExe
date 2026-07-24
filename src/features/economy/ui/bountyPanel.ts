@@ -37,13 +37,8 @@ export async function showBountyListPanel(player: mc.Player, context: Record<str
         const totalItems = bounties.length;
         const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-        if (page > 1) {
-            form.button('§6< Previous Page', 'textures/ui/arrow_left', async () => {
-                await showBountyListPanel(player, { ...context, page: page - 1 });
-            });
-        }
         if (page < totalPages) {
-            form.button('§6Next Page >', 'textures/ui/arrow_right', async () => {
+            form.button('§6Next Page >', 'textures/gui/newgui/DownArrow', async () => {
                 await showBountyListPanel(player, { ...context, page: page + 1 });
             });
         }
