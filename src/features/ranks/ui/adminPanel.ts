@@ -95,7 +95,6 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
             id: draftRank.id || '',
             name: draftRank.name || '',
             priority: draftRank.priority ?? 100,
-            permissionLevel: draftRank.permissionLevel ?? 10,
             conditions: draftRank.conditions || [],
             groups: draftRank.groups || ['default'],
             allow: draftRank.allow || [],
@@ -107,7 +106,6 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
             id: '',
             name: '',
             priority: 100,
-            permissionLevel: 10,
             conditions: [],
             groups: ['default'],
             allow: [],
@@ -127,7 +125,6 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
         id: string;
         name: string;
         priority: string;
-        permissionLevel: string;
         nametagPrefix: string;
         groups: string;
         allow: string;
@@ -138,7 +135,6 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     modal.textField('id', 'Rank ID (Unique, alphanumeric)', 'e.g. custom_rank', rank.id);
     modal.textField('name', 'Display Name', 'e.g. Custom Rank', rank.name);
     modal.textField('priority', 'Priority (Lower = Higher Rank)', 'e.g. 50', String(rank.priority));
-    modal.textField('permissionLevel', 'Permission Level (0-1000)', 'e.g. 10', String(rank.permissionLevel));
     modal.textField('nametagPrefix', 'Nametag Prefix', 'e.g. §bPrefix', rank.nametagPrefix || '');
 
     modal.textField('groups', 'Groups (comma separated)', 'e.g. default,mod', rank.groups.join(','));
@@ -154,13 +150,11 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     }
 
     const parsedPriority = Number.parseInt(response.priority, 10);
-    const parsedPermissionLevel = Number.parseInt(response.permissionLevel, 10);
 
     const draftState = {
         id: response.id.trim(),
         name: response.name,
         priority: Number.isNaN(parsedPriority) ? 100 : parsedPriority,
-        permissionLevel: Number.isNaN(parsedPermissionLevel) ? 10 : parsedPermissionLevel,
         nametagPrefix: response.nametagPrefix,
         groups: response.groups
             .split(',')
@@ -202,7 +196,6 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     rank.id = newId;
     rank.name = draftState.name;
     rank.priority = draftState.priority;
-    rank.permissionLevel = draftState.permissionLevel;
     rank.nametagPrefix = draftState.nametagPrefix;
     rank.groups = draftState.groups;
     rank.allow = draftState.allow;

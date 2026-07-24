@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { debugLog, errorLog, warnLog } from '@core/logger.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
@@ -74,8 +75,7 @@ export function flag(player: mc.Player, checkName: string, message: string) {
 
     // Notify
     if (checkConfig.notifyStaff === true) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        notifyAdmins(player, checkName, data.vl, message, checkConfig.notifyPermissionLevel ?? 2);
+        notifyAdmins(player, checkName, data.vl, message);
 
         if (config.consoleNotifications === true) {
             warnLog(`§c[AC] §e${player.name} §7failed §b${checkName} §7(VL: ${data.vl}): §f${message}`);
@@ -92,10 +92,10 @@ export function flag(player: mc.Player, checkName: string, message: string) {
     }
 }
 
-function notifyAdmins(suspect: mc.Player, check: string, vl: number, info: string, minLevel: number) {
+function notifyAdmins(suspect: mc.Player, check: string, vl: number, info: string) {
     for (const admin of getAllPlayersFromCache()) {
         const pData = getPlayer(admin.id);
-        if (isDefined(pData) && pData.permissionLevel <= minLevel && !admin.hasTag('exe:ac_notify_off')) {
+        if (isDefined(pData) && hasPermission(admin, 'group.mod') && !admin.hasTag('exe:ac_notify_off')) {
             admin.sendMessage(`§c[AC] §e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
         }
     }

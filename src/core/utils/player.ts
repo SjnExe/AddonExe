@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
+import { hasPermission } from '@core/permissionEngine.js';
 import { findPlayerByName, getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -90,9 +91,7 @@ export function getSafeDisplayName(player: mc.Player, observer?: mc.Player): str
     if (isDefined(pData) && pData.isVanished) {
         // Check if observer can see vanished players
         if (observer) {
-            const obsData = getPlayer(observer.id);
-            const obsLevel = (isDefined(obsData) ? obsData.permissionLevel : undefined) ?? 1024;
-            if (obsLevel <= 2) {
+            if (hasPermission(observer, 'group.mod')) {
                 return `§7[V] ${player.name}§r`;
             }
         }

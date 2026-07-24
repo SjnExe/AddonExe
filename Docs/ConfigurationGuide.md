@@ -121,7 +121,6 @@ This file defines the entire hierarchy of roles on your server. **Requires a ser
 - **File:** `src/features/ranks/ranksConfig.ts` (in the repo) or `packs/behavior/scripts/src/features/ranks/ranksConfig.js` (compiled)
 - **Purpose:**
     - Define all available ranks (e.g., Owner, Admin, Member, custom ranks).
-    - Set the `permissionLevel` for each rank, which controls access to commands.
     - Customize the visual `chatFormatting` (prefix, name color) for each rank.
     - Set a `nametagPrefix` for each rank.
     - Define the `conditions` for how a rank is assigned (e.g., based on the `ownerPlayerNames` list, the `adminTag`, or being the default).
@@ -138,7 +137,7 @@ This file controls the layout, buttons, and actions of the `/panel` user interfa
 
 ### Kit System Configuration (Currently Deprecated)
 
-The kit system configuration logic is handled mostly by the in-game management panel. - **Purpose:** - Define a comprehensive list of all kits you want on your server. - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds`, and `permissionLevel` in this file act as the defaults for when a kit is first loaded. - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
+The kit system configuration logic is handled mostly by the in-game management panel. - **Purpose:** - Define a comprehensive list of all kits you want on your server. - For each kit, you define the `items` it contains. The `enabled` status, `cooldownSeconds` in this file act as the defaults for when a kit is first loaded. - **Note:** While you can define kits here, managing their live properties (like enabling/disabling, cooldowns, and permissions) is done in-game.
 
 - **In-Game Kit Management**
     - The live settings for kits are configured in-game by an admin. This allows for live updates without restarting the server.

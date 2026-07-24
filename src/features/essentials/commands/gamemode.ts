@@ -79,6 +79,7 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
 
 const mainGamemodeCommand: CustomCommand = {
     name: 'gamemode',
+    slashName: 'xgamemode',
     aliases: ['gm'],
     description: "Sets your or another player's gamemode.",
     category: 'Administration',
