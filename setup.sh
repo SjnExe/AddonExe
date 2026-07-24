@@ -39,4 +39,17 @@ else
 fi
 
 # Hand off to the TypeScript Setup Orchestrator
+
+# Automatically configure shell environment if missing
+BASHRC="$HOME/.bashrc"
+if ! grep -q "BUN_INSTALL" "$BASHRC" 2>/dev/null && ! grep -q "BUN_OPTIONS" "$BASHRC" 2>/dev/null; then
+    echo "" >> "$BASHRC"
+    echo "# Bun & Cargo Toolchains" >> "$BASHRC"
+    echo 'export PATH="$HOME/.bun/bin:$HOME/.cargo/bin:$PATH"' >> "$BASHRC"
+    echo 'export BUN_OPTIONS="--os=android"' >> "$BASHRC"
+fi
+
+export PATH="$HOME/.bun/bin:$HOME/.cargo/bin:$PATH"
+export BUN_OPTIONS="--os=android"
+
 bun scripts/setup.ts

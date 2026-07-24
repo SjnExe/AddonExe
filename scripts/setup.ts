@@ -12,15 +12,6 @@ async function configureSystemEnvironment() {
 
     if (isTermux) {
         console.log('📱 Termux environment detected. Toolchains were handled by setup.sh.');
-
-        const cargoBin = path.join(homeDir, '.cargo/bin/cargo');
-        const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(cargoBin);
-        const jscpdBin = path.join(homeDir, '.cargo/bin/jscpd');
-
-        if (hasCargo && !existsSync(jscpdBin)) {
-            console.log('🦀 Started installing native jscpd via Cargo for Termux support in background...');
-            return $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`.quiet();
-        }
     } else {
         console.log('💻 Standard Linux environment verified. No system-level dependencies required.');
     }
@@ -88,13 +79,13 @@ func fakeFanotifyInit(flags uint, event_f_flags uint) (int, error) {
 async function runPipeline() {
     console.log('--- Starting Architecture Setup ---');
 
-    const jscpdTask = configureSystemEnvironment();
+    await configureSystemEnvironment();
     const tscBuildTask = compilePatchedTsc();
 
     console.log('🚀 Invoking project package ecosystem installation...');
     const bunInstallTask = $`bun install`;
 
-    await Promise.all([jscpdTask, tscBuildTask, bunInstallTask]);
+    await Promise.all([tscBuildTask, bunInstallTask]);
 
     console.log('✨ System environment alignment fully operational.');
 }
