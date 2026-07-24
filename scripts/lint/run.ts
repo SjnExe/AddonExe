@@ -39,7 +39,9 @@ async function runLintingPipeline() {
 
     const iconTask = runTask('4. Icon & Texture Integrity', () => $`bun run scripts/lint/icons.ts`.quiet());
 
-    const results = await Promise.all([oxlintTask, eslintTask, schemaTask, iconTask]);
+    const typeCheckTask = runTask('5. TypeScript Type Check', () => $`bun tsc --noEmit --incremental`.quiet());
+
+    const results = await Promise.all([oxlintTask, eslintTask, schemaTask, iconTask, typeCheckTask]);
     const totalDuration = (performance.now() - overallStart).toFixed(2);
 
     console.table(results);
