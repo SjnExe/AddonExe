@@ -29,6 +29,73 @@ async function configureSystemEnvironment() {
 }
 
 async function compilePatchedTsc(): Promise<string | null> {
+
+    const hasGo = (await import { $ } from 'bun';
+import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+const isTermux = existsSync('/data/data/com.termux');
+const homeDir = os.homedir();
+
+async function configureSystemEnvironment() {
+    console.log('🔍 Analyzing system environment profile...');
+
+    if (isTermux) {
+        console.log('📱 Termux environment detected. Toolchains were handled by setup.sh.');
+
+        const cargoBin = path.join(homeDir, '.cargo/bin/cargo');
+        const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(cargoBin);
+        const jscpdBin = path.join(homeDir, '.cargo/bin/jscpd');
+
+        if (hasCargo && !existsSync(jscpdBin)) {
+            console.log('🦀 Started installing native jscpd via Cargo for Termux support in background...');
+            return $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`.quiet();
+        }
+    } else {
+        console.log('💻 Standard Linux environment verified. No system-level dependencies required.');
+    }
+
+    return Promise.resolve();
+}
+
+which go`.nothrow().quiet()).exitCode === 0;
+    if (!hasGo) {
+        console.log("📦 Go compiler engine missing. Auto-provisioning golang...");
+        await import { $ } from 'bun';
+import { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
+const isTermux = existsSync('/data/data/com.termux');
+const homeDir = os.homedir();
+
+async function configureSystemEnvironment() {
+    console.log('🔍 Analyzing system environment profile...');
+
+    if (isTermux) {
+        console.log('📱 Termux environment detected. Toolchains were handled by setup.sh.');
+
+        const cargoBin = path.join(homeDir, '.cargo/bin/cargo');
+        const hasCargo = existsSync('/data/data/com.termux/files/usr/bin/cargo') || existsSync(cargoBin);
+        const jscpdBin = path.join(homeDir, '.cargo/bin/jscpd');
+
+        if (hasCargo && !existsSync(jscpdBin)) {
+            console.log('🦀 Started installing native jscpd via Cargo for Termux support in background...');
+            return $`${existsSync(cargoBin) ? cargoBin : 'cargo'} install jscpd`.quiet();
+        }
+    } else {
+        console.log('💻 Standard Linux environment verified. No system-level dependencies required.');
+    }
+
+    return Promise.resolve();
+}
+
+pkg install -y golang`;
+    }
+  
     if (!isTermux) return null;
 
     console.log('🏗️  Preparing native TypeScript compiler engine workspace...');
