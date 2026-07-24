@@ -7,6 +7,7 @@ import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'reload',
+    slashName: 'xreload',
     aliases: ['xreload'],
     description: 'Reloads the addon configuration from the config file.',
     category: 'Administration',

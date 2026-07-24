@@ -57,7 +57,6 @@ This file contains the `rankDefinitions` array. Each object in this array is a r
 - `id` (string): A unique, lowercase identifier (e.g., "owner", "vip"). This is the ID used with the `/rank` command.
 - `name` (string): The user-friendly display name (e.g., "Owner", "VIP").
 - `priority` (number): Determines precedence. **Lower numbers are higher priority**. If a player has multiple ranks, the one with the lowest priority number determines their name tag and chat formatting.
-- `permissionLevel` (number): Determines power for targeting (e.g. kicking). **Lower numbers are more powerful** (Owner=0, Admin=1, Member=1024). A player with a lower `permissionLevel` cannot be targeted by a player with a higher `permissionLevel`.
 - `chatFormatting` (object): Controls how chat messages look.
 - `nametagPrefix` (string): The text that appears above a player's head.
 - `groups` (array): A list of permission group IDs this rank inherits.
@@ -111,7 +110,6 @@ export const rankDefinitions = [
         id: 'moderator',
         name: 'Moderator',
         priority: 30,
-        permissionLevel: 3, // Less powerful than Admin (1) but more than Member (1024)
         chatFormatting: {
             prefixText: '§8[§2Mod§8] ',
             nameColor: '§a',

@@ -94,7 +94,6 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
         id: 'fallback',
         name: 'Fallback',
         priority: 1000,
-        permissionLevel: 1024,
         groups: ['default'],
         allow: [],
         deny: [],

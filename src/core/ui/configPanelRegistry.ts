@@ -87,6 +87,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'general_server',
         title: 'Server Info',
         icon: 'textures/ui/icon_book_writable',
+        configSource: 'main',
         category: 'Server',
         settings: [
             {
@@ -113,6 +114,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'back',
         title: 'Back System',
         icon: 'textures/ui/refresh_light',
+        configSource: 'main',
         category: 'World',
         settings: [
             {
@@ -202,6 +204,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'general_gameplay',
         title: 'Gameplay Settings',
         icon: 'textures/items/iron_sword',
+        configSource: 'main',
         category: 'Gameplay',
         settings: [
             {
@@ -217,6 +220,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'general_system',
         title: 'System Settings',
         icon: 'textures/ui/settings_glyph_color_2x',
+        configSource: 'main',
         category: 'System',
         settings: [
             {
@@ -238,6 +242,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'announcements',
         title: 'Announcement System',
         icon: 'textures/ui/icon_bell',
+        configSource: 'main',
         category: 'Chat',
         settings: [
             {
@@ -361,6 +366,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'bounties',
         title: 'Bounty System',
         icon: 'textures/items/diamond_sword',
+        configSource: 'main',
         category: 'Economy',
         settings: [
             {
@@ -387,6 +393,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'chat',
         title: 'Chat Settings',
         icon: 'textures/ui/chat_send',
+        configSource: 'main',
         category: 'Chat',
         settings: [
             {
@@ -579,6 +586,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'tpa',
         title: 'TPA System',
         icon: 'textures/items/ender_pearl',
+        configSource: 'main',
         category: 'World',
         settings: [
             {
@@ -611,6 +619,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'homes',
         title: 'Home System',
         icon: 'textures/ui/icon_recipe_item',
+        configSource: 'main',
         category: 'World',
         settings: [
             {
@@ -784,6 +793,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'dimensionLock',
         title: 'Dimension Locking',
         icon: 'textures/ui/realmPortalSmall',
+        configSource: 'main',
         category: 'World',
         settings: [
             {
@@ -921,6 +931,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'restart',
         title: 'Restart Settings',
         icon: 'textures/ui/refresh_light',
+        configSource: 'main',
         category: 'Server',
         settings: [
             {
@@ -947,6 +958,7 @@ export const configPanelSchema: ConfigCategory[] = [
         id: 'reports',
         title: 'Report Settings',
         icon: 'textures/ui/WarningGlyph',
+        configSource: 'main',
         category: 'Moderation',
         settings: [
             {
