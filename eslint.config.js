@@ -3,7 +3,6 @@
 import eslint from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
-import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
 import oxlint from 'eslint-plugin-oxlint';
 import globals from 'globals';
@@ -11,12 +10,11 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
     {
-        ignores: ['node_modules/', 'dist/', 'package-lock.json', '.git/', 'packs/resource/font/', '.github/', 'Docs/', '**/packs/behavior/scripts/**', 'package.json']
+        ignores: ['node_modules/', 'dist/', 'package-lock.json', '.git/', 'packs/resource/font/', '.github/', 'Docs/', '**/packs/behavior/scripts/**', 'package.json', 'packs/**']
     },
-    // Base JS configuration
     eslint.configs.recommended,
 
-    // TS Configuration (Fast AST Parsing) - Main Source
+    // TS Configuration (Pure AST Parsing) - Main Source
     {
         files: ['src/**/*.ts'],
         ignores: ['src/**/__tests__/**'],
@@ -141,7 +139,6 @@ export default tseslint.config(
         }
     },
 
-    ...jsonc.configs['flat/recommended-with-jsonc'],
     ...oxlint.configs['flat/recommended'],
     prettierConfig
 );
