@@ -5,6 +5,7 @@ import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
 import jsonc from 'eslint-plugin-jsonc';
 import minecraftLinting from 'eslint-plugin-minecraft-linting';
+import oxlint from 'eslint-plugin-oxlint';
 import globals from 'globals';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -192,6 +193,9 @@ export default tseslint.config(
         files: ['**/*.json'],
         rules: {}
     },
+
+    // Oxlint disables duplicate rules
+    ...oxlint.configs['flat/recommended'],
 
     // Prettier
     prettierConfig

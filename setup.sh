@@ -18,7 +18,7 @@ if [ -d "/data/data/com.termux" ]; then
     pkg update -y
 
     # Install all required packages sequentially to avoid dpkg lock contention
-    pkg install -y glibc-runner rust lld attr-glibc bzip2-glibc coreutils-glibc curl-glibc findutils-glibc grep-glibc less-glibc libacl-glibc libcap-glibc libcap-ng-glibc libgmp-glibc libpam-glibc libsmartcols-glibc pcre2-glibc sed-glibc tar-glibc util-linux-glibc xz-utils-glibc
+    pkg install -y glibc-runner rust lld attr-glibc bzip2-glibc coreutils-glibc curl-glibc findutils-glibc grep-glibc less-glibc libacl-glibc libcap-glibc libcap-ng-glibc libgmp-glibc libpam-glibc libsmartcols-glibc pcre2-glibc sed-glibc tar-glibc util-linux-glibc xz-utils-glibc oxlint
 fi
 
 # Verify actual runtime execution instead of trusting path lookups

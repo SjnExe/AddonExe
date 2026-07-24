@@ -33,7 +33,7 @@ describe('Kit Items Manager', () => {
                         items: []
                     },
                     FullKit: {
-                        items: new Array(36).fill({ typeId: 'minecraft:stone', amount: 1 })
+                        items: Array.from({ length: 36 }, () => ({ typeId: 'minecraft:stone', amount: 1 }))
                     }
                 }
             }

@@ -157,7 +157,7 @@ export class WordlePanelHandler {
 function evaluatePattern(guess: string, answer: string): string {
     guess = guess.toLowerCase();
     answer = answer.toLowerCase();
-    const pattern = new Array(guess.length).fill('-');
+    const pattern = Array.from({ length: guess.length }).fill('-');
     const answerChars: (string | null)[] = answer.split('');
 
     for (let i = 0; i < guess.length; i++) {

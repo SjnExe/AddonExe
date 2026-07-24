@@ -4,7 +4,8 @@ import { showPanel } from '@core/uiManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 
-export async function showRankManagementPanel(player: mc.Player, targetPlayerId: string, page: number = 1): Promise<void> {
+// oxlint-disable-next-line oxc/only-used-in-recursion
+export async function showRankManagementPanel(player: mc.Player, targetPlayerId: string, _page: number = 1): Promise<void> {
     const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
     const form = new ActionFormBuilder().title(`Ranks: ${targetName}`);
 
@@ -59,7 +60,7 @@ export async function showRankManagementPanel(player: mc.Player, targetPlayerId:
                 setPlayerRanks(targetPlayerId, newRanks);
                 player.sendMessage(`§aAdded rank ${rank.name} to ${targetName}.`);
             }
-            await showRankManagementPanel(player, targetPlayerId, page);
+            await showRankManagementPanel(player, targetPlayerId, _page);
         });
     });
 

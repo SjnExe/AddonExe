@@ -86,7 +86,7 @@ async function main() {
         }
     };
 
-    const allDeps = { ...(pkg.devDependencies || {}), ...(pkg.dependencies || {}) };
+    const allDeps = { ...pkg.devDependencies, ...pkg.dependencies };
     const modulesToInclude = [
         '@minecraft/server',
         '@minecraft/server-ui',
