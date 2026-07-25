@@ -47,6 +47,7 @@
     "overrides": {
         "@hono/node-server": "latest",
         "axios": "latest",
+        "brace-expansion": "latest",
         "react": "^18.3.1",
         "tmp": "latest",
         "uuid": "latest",
@@ -72,6 +73,7 @@
         "glob": "latest",
         "globals": "latest",
         "jscpd": "latest",
+        "json5": "latest",
         "lint-staged": "latest",
         "oxlint": "latest",
         "prettier": "latest",
