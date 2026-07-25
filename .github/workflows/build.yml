@@ -35,15 +35,14 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-bun-
 
-            - name: Cache ESLint & TS Build Artifacts
+            - name: Cache Oxlint & TS Build Artifacts
               uses: actions/cache@v6
               with:
                   path: |
-                      .eslintcache
                       *.tsbuildinfo
-                  key: ${{ runner.os }}-eslint-${{ hashFiles('**/bun.lock', 'eslint.config.js', 'tsconfig.json') }}
+                  key: ${{ runner.os }}-oxlint-${{ hashFiles('**/bun.lock', 'oxlint.json', 'scripts/lint/minecraft-rules.js', 'tsconfig.json') }}
                   restore-keys: |
-                      ${{ runner.os }}-eslint-
+                      ${{ runner.os }}-oxlint-
 
             - run: bun install --frozen-lockfile
             - run: bun lint

@@ -28,7 +28,10 @@ export default {
                     if (!node) {
                         return null;
                     }
-                    if (node.start !== undefined) {
+                    if (typeof node.span?.start === 'number') {
+                        return node.span.start;
+                    }
+                    if (typeof node.start === 'number') {
                         return node.start;
                     }
                     if (Array.isArray(node.range)) {
