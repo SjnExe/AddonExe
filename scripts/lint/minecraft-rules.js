@@ -9,7 +9,8 @@ export default {
             create(context) {
                 return {
                     CallExpression(node) {
-                        if (node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'runCommandAsync') {
+                        const propName = node.callee?.property?.name;
+                        if (propName === 'runCommandAsync') {
                             context.report({
                                 node,
                                 message: 'runCommandAsync is deprecated. Please use native APIs.'
@@ -28,7 +29,7 @@ export default {
                     if (!arg) {
                         return;
                     }
-                    if (arg.type === 'Literal' && typeof arg.value === 'string') {
+                    if (typeof arg.value === 'string') {
                         allowedStrings.add(arg.value);
                     } else if (arg.type === 'TemplateLiteral') {
                         for (const quasi of arg.quasis || []) {
@@ -47,12 +48,10 @@ export default {
                         allowedStrings.clear();
                     },
                     CallExpression(node) {
-                        if (node.callee?.type === 'MemberExpression') {
-                            const propName = node.callee.property?.name;
-                            if (['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
-                                for (const arg of node.arguments || []) {
-                                    addAllowedString(arg);
-                                }
+                        const propName = node.callee?.property?.name;
+                        if (propName && ['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
+                            for (const arg of node.arguments || []) {
+                                addAllowedString(arg);
                             }
                         }
                     },
