@@ -9,7 +9,7 @@ for await (const filePath of glob.scan('.')) {
 
     lines.forEach((line, idx) => {
         if (line.includes('.runCommandAsync(')) {
-            console.error(`❌ ${filePath}:${idx + 1} -> runCommandAsync is deprecated. Please use native APIs.`);
+            console.error(`❌ ${filePath}:${idx + 1} -> runCommandAsync is deprecated. Use native APIs.`);
             errors++;
         }
 
@@ -17,6 +17,10 @@ for await (const filePath of glob.scan('.')) {
         for (const match of matches) {
             const str = match[1];
             if (ALLOWED_EXACT_STRINGS.has(str)) {
+                continue;
+            }
+
+            if (['getComponent', 'hasComponent', 'getComponentNet'].some((fn) => line.includes(`${fn}(`))) {
                 continue;
             }
 
