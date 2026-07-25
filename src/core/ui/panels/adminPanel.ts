@@ -32,7 +32,7 @@ export async function showStaffDashboardPanel(player: mc.Player): Promise<void> 
         });
     }
 
-    if (hasPermission(player, 'ui.panel.owner')) {
+    if (hasPermission(player, 'ui.panel.admin')) {
         form.button('Configuration', 'textures/ui/settings_glyph_color_2x', async () => {
             const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigCategoryPanel(player);
