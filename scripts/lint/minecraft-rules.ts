@@ -4,6 +4,11 @@ const ALLOWED_EXACT_STRINGS = new Set(['minecraft:', 'minecraft:script_unload'])
 let errors = 0;
 
 for await (const filePath of glob.scan('.')) {
+    // Skip test mock definitions
+    if (filePath.includes('__mocks__')) {
+        continue;
+    }
+
     const content = await Bun.file(filePath).text();
     const lines = content.split('\n');
 
