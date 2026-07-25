@@ -21,7 +21,7 @@
         "build:nightly": "bun clean && bun scripts/build.ts --nightly",
         "build:release": "bun clean && bun scripts/build.ts --release --minify",
         "check-deps": "bun scripts/check-dependencies.ts",
-        "check-types": "bun tsc --noEmit --incremental",
+        "check-types": "bun --bun tsc --noEmit --project tsconfig.json",
         "clean": "rm -rf out packs/behavior/scripts",
         "fix-project": "bun mct fix",
         "format": "prettier --write --cache .",
