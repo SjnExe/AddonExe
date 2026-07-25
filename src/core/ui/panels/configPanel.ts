@@ -9,7 +9,7 @@ import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { getSystemDefinition } from '@ui/systemRegistry.js';
-import { getPaginatedItems, getSystemsByCategory, getVisibleCategories, configHandlers as uiConfigHandlers } from '@ui/uiUtils.js';
+import { getSystemsByCategory, getVisibleCategories, itemsPerPage, configHandlers as uiConfigHandlers } from '@ui/uiUtils.js';
 
 const uiConfigHandlerKeys = Object.keys(uiConfigHandlers);
 const uiConfigHandlerEntries = Object.entries(uiConfigHandlers);
@@ -27,16 +27,9 @@ export async function showConfigCategoryPanel(player: mc.Player, context: Record
     const categories = getVisibleCategories(player);
     const form = new ActionFormBuilder().title('Server Settings');
     const page = (context.page as number) || 1;
-    const paginated = getPaginatedItems(categories, page);
 
-    for (const cat of paginated) {
-        if (!isDefined(cat)) continue;
-        form.button(cat.title, cat.icon, () => {
-            void showConfigCategoryDetailPanel(player, cat.id, { page: 1 });
-        });
-    }
-
-    if (hasPermission(player, 'ui.panel.owner')) {
+    const totalPages = Math.ceil(categories.length / itemsPerPage);
+    if (page >= totalPages && hasPermission(player, 'ui.panel.owner')) {
         form.button('§l§4Danger Zone', 'textures/ui/WarningGlyph', () => {
             void showConfirmationDialog(player, {
                 title: 'Danger Zone',
@@ -51,10 +44,17 @@ export async function showConfigCategoryPanel(player: mc.Player, context: Record
     form.addPaginatedButtons(
         categories,
         page,
-        () => {},
+        (cat, f) => {
+            if (isDefined(cat)) {
+                f.button(cat.title, cat.icon, () => {
+                    void showConfigCategoryDetailPanel(player, cat.id, { page: 1 });
+                });
+            }
+        },
         (newPage) => {
             void showConfigCategoryPanel(player, { ...context, page: newPage });
-        }
+        },
+        itemsPerPage
     );
 
     form.addBackButton(async () => {
@@ -70,29 +70,28 @@ export async function showConfigCategoryDetailPanel(player: mc.Player, category:
     const form = new ActionFormBuilder().title(title);
     const systems = getSystemsByCategory(player, category);
     const page = (context.page as number) || 1;
-    const paginated = getPaginatedItems(systems, page);
-
-    for (const sys of paginated) {
-        if (!isDefined(sys)) continue;
-        form.button(sys.title, sys.icon, () => {
-            const systemDef = getSystemDefinition(sys.id);
-            if (systemDef && systemDef.showFunction) {
-                void systemDef.showFunction(player);
-            } else if (systemDef && systemDef.isSimpleConfig) {
-                void showConfigSystemPanel(player, systemDef.id);
-            } else {
-                player.sendMessage('§cThis system configuration is not available.');
-            }
-        });
-    }
 
     form.addPaginatedButtons(
         systems,
         page,
-        () => {},
+        (sys, f) => {
+            if (isDefined(sys)) {
+                f.button(sys.title, sys.icon, () => {
+                    const systemDef = getSystemDefinition(sys.id);
+                    if (systemDef && systemDef.showFunction) {
+                        void systemDef.showFunction(player);
+                    } else if (systemDef && systemDef.isSimpleConfig) {
+                        void showConfigSystemPanel(player, systemDef.id);
+                    } else {
+                        player.sendMessage('§cThis system configuration is not available.');
+                    }
+                });
+            }
+        },
         (newPage) => {
             void showConfigCategoryDetailPanel(player, category, { ...context, page: newPage });
-        }
+        },
+        itemsPerPage
     );
 
     form.addBackButton(async () => {
