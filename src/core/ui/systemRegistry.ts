@@ -42,6 +42,18 @@ export function getSystemRegistry(): SystemDefinition[] {
         }),
         // 2. Add complex custom systems
         {
+            id: 'shop',
+            title: 'Shop System',
+            icon: 'textures/items/emerald',
+            showFunction: async (player) => {
+                const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
+                await showShopManagementPanel(player);
+            },
+            category: 'Economy',
+            isSimpleConfig: false
+        },
+
+        {
             id: 'kits',
             title: 'Kit System',
             icon: 'textures/ui/inventory_icon',
@@ -61,17 +73,6 @@ export function getSystemRegistry(): SystemDefinition[] {
                 await showRankSystemConfigPanel(player);
             },
             category: 'Visuals',
-            isSimpleConfig: false
-        },
-        {
-            id: 'shop',
-            title: 'Shop System',
-            icon: 'textures/items/emerald',
-            showFunction: async (player) => {
-                const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
-                await showShopManagementPanel(player);
-            },
-            category: 'Economy',
             isSimpleConfig: false
         },
         {
