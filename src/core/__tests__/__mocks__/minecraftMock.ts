@@ -250,7 +250,7 @@ export class ItemStack {
 export const EntityComponentTypes = {
     Inventory: EntityComponentTypes.Inventory,
     Equippable: EntityComponentTypes.Equippable,
-    EnderInventory: 'minecraft:ender_inventory',
+    EnderInventory: EntityComponentTypes.EnderInventory,
     Rideable: EntityComponentTypes.Rideable,
     Tameable: EntityComponentTypes.Tameable,
     IsTamed: EntityComponentTypes.IsTamed,

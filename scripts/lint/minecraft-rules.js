@@ -22,7 +22,7 @@ export default {
         'no-magic-minecraft-strings': {
             meta: { type: 'suggestion', docs: { description: 'Require @minecraft/vanilla-data for identifier strings' } },
             create(context) {
-                const allowedStrings = new Set(['minecraft:script_unload']);
+                const allowedStrings = new Set(['minecraft:', 'minecraft:script_unload']);
                 return {
                     Literal(node) {
                         if (typeof node.value === 'string' && node.value.startsWith('minecraft:') && !allowedStrings.has(node.value)) {
