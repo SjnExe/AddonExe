@@ -1,3 +1,4 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
@@ -57,7 +58,7 @@ describe('Back Command', () => {
     });
     player.teleport = mock();
 
-    const dimension = { id: 'minecraft:overworld' };
+    const dimension = { id: MinecraftDimensionTypes.Overworld };
     (mc.world?.getDimension as any)?.mockReturnValue?.(dimension);
 
     beforeEach(() => {
@@ -72,7 +73,7 @@ describe('Back Command', () => {
         });
         mockGetOrCreatePlayer.mockReturnValue({
             balance: 500,
-            lastLocation: { x: 0, y: 0, z: 0, dimensionId: 'minecraft:overworld' }
+            lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }
         });
     });
 
@@ -84,7 +85,7 @@ describe('Back Command', () => {
     it('should fail immediately if funds insufficient', () => {
         mockGetOrCreatePlayer.mockReturnValue({
             balance: 50,
-            lastLocation: { x: 0, y: 0, z: 0, dimensionId: 'minecraft:overworld' }
+            lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }
         });
         backCommand.execute(player, {});
         expect(mockSendMessage).toHaveBeenCalledWith(expect.stringContaining('Insufficient funds'), player);
@@ -104,7 +105,7 @@ describe('Back Command', () => {
         // Change balance to simulate dropping money
         mockGetOrCreatePlayer.mockReturnValue({
             balance: 50, // Dropped to 50 (cost 100)
-            lastLocation: { x: 0, y: 0, z: 0, dimensionId: 'minecraft:overworld' }
+            lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }
         });
 
         callback();

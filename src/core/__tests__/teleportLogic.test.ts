@@ -1,3 +1,4 @@
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const mockErrorLog = mock();
@@ -73,7 +74,7 @@ describe('startTeleportWarmup', () => {
             name: 'TestPlayer',
             isValid: true,
             location: { x: 0, y: 0, z: 0 },
-            dimension: { id: 'minecraft:overworld' },
+            dimension: { id: MinecraftDimensionTypes.Overworld },
             sendMessage: mock()
         };
 
@@ -148,7 +149,7 @@ describe('startTeleportWarmup', () => {
 
         const intervalCallback = mockRunInterval.mock.calls[0]?.[0] as () => void;
 
-        mockPlayer.dimension.id = 'minecraft:nether';
+        mockPlayer.dimension.id = MinecraftDimensionTypes.Nether;
         intervalCallback();
 
         expect(mockSetActionBarOverride).toHaveBeenCalledWith(mockPlayer, '§cTeleport canceled because you moved.', 3000);
