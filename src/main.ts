@@ -126,7 +126,9 @@ mc.system.runTimeout(() => {
             errorLog('[AddonExe] A critical error occurred during addon initialization:');
             if (error instanceof Error) {
                 errorLog(`Message: ${error.message}`);
-                if (error.stack !== undefined) errorLog(`Stack: ${error.stack}`);
+                if (error.stack !== undefined) {
+                    errorLog(`Stack: ${error.stack}`);
+                }
             } else {
                 errorLog(`Error: ${String(error)}`);
             }

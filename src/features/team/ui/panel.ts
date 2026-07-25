@@ -159,7 +159,9 @@ export async function showTeamManagePanel(player: mc.Player): Promise<void> {
 
 export async function showTeamSettingPanel(player: mc.Player): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team || team.ownerId !== player.id) return;
+    if (!team || team.ownerId !== player.id) {
+        return;
+    }
 
     const modal = new ModalFormBuilder<{ open: boolean }>().title('Team Settings').toggle('open', 'Open to Requests', !!team.open);
 
@@ -282,7 +284,9 @@ export async function showTeamCreatePanel(player: mc.Player): Promise<void> {
 
 export async function showTeamDepositPanel(player: mc.Player): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team) return;
+    if (!team) {
+        return;
+    }
 
     const modal = new ModalFormBuilder<{ amount: string }>().title('Deposit Money').textField('amount', 'Amount', '1000');
 

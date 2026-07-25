@@ -17,7 +17,9 @@ export function onConfigUpdated(callback: (config: typeof Config) => void) {
 function notifyCallbacks() {
     if (isDefined(mainConfigManager)) {
         const config = mainConfigManager.get();
-        for (const cb of updateCallbacks) cb(config);
+        for (const cb of updateCallbacks) {
+            cb(config);
+        }
     }
 }
 
@@ -86,7 +88,9 @@ export async function resetConfigSection(sectionKey: string, player?: mc.Player)
 
         for (const key in configResetCallbacks) {
             const cb = configResetCallbacks[key];
-            if (isDefined(cb)) cb(player);
+            if (isDefined(cb)) {
+                cb(player);
+            }
         }
         for (const key in configResetRegistry) {
             const entry = configResetRegistry[key];

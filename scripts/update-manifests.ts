@@ -13,7 +13,9 @@ let buildNumber = 0;
 const buildNumIndex = args.indexOf('--build-number');
 if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
     buildNumber = Number.parseInt(args[buildNumIndex + 1], 10);
-    if (isNaN(buildNumber)) buildNumber = 0;
+    if (isNaN(buildNumber)) {
+        buildNumber = 0;
+    }
 }
 
 /**
@@ -37,8 +39,12 @@ async function fetchLatestVersion(pkgName: string): Promise<string> {
  * Resolves the module version from the NPM version string.
  */
 async function resolveModuleVersion(pkgName: string, npmVersion: string): Promise<string> {
-    if (!npmVersion) return '1.0.0';
-    if (npmVersion === 'beta') return 'beta';
+    if (!npmVersion) {
+        return '1.0.0';
+    }
+    if (npmVersion === 'beta') {
+        return 'beta';
+    }
     if (npmVersion === 'latest') {
         const version = await fetchLatestVersion(pkgName);
         return version;
@@ -60,9 +66,15 @@ async function main() {
     let minor = parts[1] || 0;
     let patch = parts[2] || 0;
 
-    if (isNaN(major)) major = 0;
-    if (isNaN(minor)) minor = 0;
-    if (isNaN(patch)) patch = 0;
+    if (isNaN(major)) {
+        major = 0;
+    }
+    if (isNaN(minor)) {
+        minor = 0;
+    }
+    if (isNaN(patch)) {
+        patch = 0;
+    }
 
     let finalParts = [major, minor, patch];
     let finalStr = `${major}.${minor}.${patch}`;

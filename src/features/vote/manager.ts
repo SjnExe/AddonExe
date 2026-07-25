@@ -42,7 +42,9 @@ function saveVote() {
 }
 
 function checkVoteExpiry() {
-    if (!currentVote || currentVote.status !== 'active') return;
+    if (!currentVote || currentVote.status !== 'active') {
+        return;
+    }
 
     if (currentVote.durationSeconds > 0) {
         const expiry = currentVote.startTime + currentVote.durationSeconds * 1000;
@@ -97,7 +99,9 @@ export function castVote(player: mc.Player, optionId: number): { success: boolea
 }
 
 export function endVote() {
-    if (!currentVote || currentVote.status !== 'active') return;
+    if (!currentVote || currentVote.status !== 'active') {
+        return;
+    }
 
     currentVote.status = 'ended';
     saveVote();
@@ -118,7 +122,9 @@ export function endVote() {
 }
 
 export function getActiveVote(): ActiveVote | undefined {
-    if (currentVote && currentVote.status === 'active') return currentVote;
+    if (currentVote && currentVote.status === 'active') {
+        return currentVote;
+    }
     return undefined;
 }
 

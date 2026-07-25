@@ -21,14 +21,18 @@ mock.module('@core/playerDataManager.js', () => ({
 
 mock.module('@core/messaging.js', () => ({
     sendMessage: (msg: string, target: any) => {
-        if (target && target.sendMessage) target.sendMessage(msg);
+        if (target && target.sendMessage) {
+            target.sendMessage(msg);
+        }
     }
 }));
 
 mock.module('@core/utils.js', () => ({
     playSound: mock(),
     resolveTarget: mock((name) => {
-        if (name === 'target') return [{ name: 'Target', id: 'targetId', getComponent: mock() }];
+        if (name === 'target') {
+            return [{ name: 'Target', id: 'targetId', getComponent: mock() }];
+        }
         return [];
     })
 }));

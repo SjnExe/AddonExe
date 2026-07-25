@@ -15,7 +15,9 @@ export async function showVoteMenu(player: mc.Player) {
 }
 
 async function handleActiveVote(player: mc.Player, activeVote: ReturnType<typeof getActiveVote>, isAdmin: boolean) {
-    if (!activeVote) return; // Should be handled by caller check
+    if (!activeVote) {
+        return;
+    } // Should be handled by caller check
 
     const hasVoted = activeVote.votedPlayerIds.includes(player.id);
     let body = `§e${activeVote.question}\n§7Created by ${activeVote.creatorName}`;
@@ -83,7 +85,9 @@ async function showCreateVoteUI(player: mc.Player) {
         .textField('duration', 'Duration (minutes, 0 for infinite)', '10');
 
     const res = await form.show(player);
-    if (!res) return;
+    if (!res) {
+        return;
+    }
 
     if (!isNonEmptyString(res.question) || !isNonEmptyString(res.options)) {
         player.sendMessage('§cQuestion and options are required.');

@@ -96,7 +96,9 @@ describe('Back Command', () => {
 
         // Extract callback
         const call = mockStartTeleportWarmup.mock.calls[0];
-        if (!call) throw new Error('StartTeleportWarmup not called');
+        if (!call) {
+            throw new Error('StartTeleportWarmup not called');
+        }
         const callback = call[2] as () => void;
 
         // Change balance to simulate dropping money
@@ -116,7 +118,9 @@ describe('Back Command', () => {
         backCommand.execute(player, {});
 
         const call = mockStartTeleportWarmup.mock.calls[0];
-        if (!call) throw new Error('StartTeleportWarmup not called');
+        if (!call) {
+            throw new Error('StartTeleportWarmup not called');
+        }
         const callback = call[2] as () => void;
 
         callback();

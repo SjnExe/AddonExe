@@ -23,15 +23,21 @@ const warnCommand: CustomCommand = {
         const targets = args.player as mc.Player[];
         const reason = args.reason as string;
 
-        if (!isDefined(targets) || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targets) || targets.length === 0) {
+            return sendMessage('§cPlayer not found.', executor);
+        }
         const target = targets[0];
-        if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(target)) {
+            return sendMessage('§cPlayer not found.', executor);
+        }
 
         if (!canTarget(executor, target.id, config)) {
             return sendMessage('§cYou cannot warn a player with the same or higher rank than you.', executor);
         }
 
-        if (!isNonEmptyString(reason)) return sendMessage('§cPlease provide a reason.', executor);
+        if (!isNonEmptyString(reason)) {
+            return sendMessage('§cPlease provide a reason.', executor);
+        }
 
         // Notify Target
         target.sendMessage(`§c§lWARNING!§r\n§eYou have been warned by Staff.\n§7Reason: §f${reason}`);

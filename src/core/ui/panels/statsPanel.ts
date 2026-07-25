@@ -45,7 +45,9 @@ async function editStat(player: mc.Player, targetPlayerId: string, statType: 'ki
         .textField('newValue', `Enter new value for ${targetName}'s ${statType}:`, String(currentValue), String(currentValue));
 
     const res = await form.show(player);
-    if (!res) return showStatsPanel(player, targetPlayerId);
+    if (!res) {
+        return showStatsPanel(player, targetPlayerId);
+    }
 
     const newValue = Number(res.newValue);
     if (isNaN(newValue) || newValue < 0) {

@@ -22,7 +22,9 @@ export function getLeaderboard(): LeaderboardEntry[] {
 }
 
 function saveLeaderboardIfDirty() {
-    if (!isLeaderboardDirty) return;
+    if (!isLeaderboardDirty) {
+        return;
+    }
     try {
         mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
         isLeaderboardDirty = false;

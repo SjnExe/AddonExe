@@ -382,7 +382,9 @@ export function mergeRanks(currentUserRanks: Record<string, unknown>[], newFileR
     // Optimization: Create a map for O(1) lookups instead of O(N) findIndex
     const fileRankIndexMap = new Map<unknown, number>();
     for (const [index, r] of newFileRanks.entries()) {
-        if (isDefined(r) && isDefined(r['id'])) fileRankIndexMap.set(r['id'], index);
+        if (isDefined(r) && isDefined(r['id'])) {
+            fileRankIndexMap.set(r['id'], index);
+        }
     }
 
     return finalRanks.toSorted((a, b) => {

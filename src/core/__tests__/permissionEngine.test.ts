@@ -73,9 +73,15 @@ import { calculatePlayerMap, calculateRankMap, getPlayerRanks, hasPermission, in
 // Helper to reset baseline test environments (Main and PR 1311 specs)
 function resetToBaseDefaults() {
     mockGetPlayer.mockImplementation((id: string) => {
-        if (id === 'test-player-1') return { id: 'test-player-1', name: 'TestPlayer', ranks: ['test-rank'] };
-        if (id === 'player1') return { ranks: ['rank1', 'rank3'] };
-        if (id === 'player2') return { ranks: ['rank2'] };
+        if (id === 'test-player-1') {
+            return { id: 'test-player-1', name: 'TestPlayer', ranks: ['test-rank'] };
+        }
+        if (id === 'player1') {
+            return { ranks: ['rank1', 'rank3'] };
+        }
+        if (id === 'player2') {
+            return { ranks: ['rank2'] };
+        }
         return null;
     });
 

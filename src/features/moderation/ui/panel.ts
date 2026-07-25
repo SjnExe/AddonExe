@@ -105,7 +105,9 @@ export async function handleKickPlayer(player: mc.Player, targetPlayerId: string
     const form = new ModalFormBuilder<{ reasonRaw: string }>().title(`Kick ${targetData.name}`).textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules');
 
     const res = await form.show(player);
-    if (!res) return;
+    if (!res) {
+        return;
+    }
 
     const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
     const target = getPlayerFromCache(targetPlayerId);
@@ -139,7 +141,9 @@ export async function handleMutePlayer(player: mc.Player, targetPlayerId: string
         .textField('reasonRaw', 'Reason', 'Enter reason', 'Spam/Toxicity');
 
     const res = await form.show(player);
-    if (!res) return;
+    if (!res) {
+        return;
+    }
 
     const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
     const durationMins = Number.parseInt(res.durationStr);
@@ -201,7 +205,9 @@ export async function handleBanPlayer(player: mc.Player, targetPlayerId: string)
         .textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules');
 
     const res = await form.show(player);
-    if (!res) return;
+    if (!res) {
+        return;
+    }
 
     const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
     const durationHours = Number.parseInt(res.durationStr);
@@ -249,7 +255,9 @@ export async function handleReportPlayer(player: mc.Player, targetPlayerId: stri
     const form = new ModalFormBuilder<{ reasonRaw: string }>().title(`Report ${targetData.name}`).textField('reasonRaw', 'Reason', 'Why are you reporting this player?');
 
     const res = await form.show(player);
-    if (!res) return;
+    if (!res) {
+        return;
+    }
 
     if (!isNonEmptyString(res.reasonRaw)) {
         player.sendMessage('§4Reason is required.');
@@ -264,7 +272,9 @@ export async function handleReportPlayer(player: mc.Player, targetPlayerId: stri
 export async function handleUnbanForm(player: mc.Player): Promise<void> {
     const form = new ModalFormBuilder<{ name: string }>().title('Unban Player').textField('name', 'Player Name (exact)', 'Enter the name of the banned player');
     const res = await form.show(player);
-    if (!res) return;
+    if (!res) {
+        return;
+    }
 
     const targetId = getPlayerIdByName(res.name);
     if (isNonEmptyString(targetId)) {
@@ -278,7 +288,9 @@ export async function handleUnbanForm(player: mc.Player): Promise<void> {
 export async function handleUnmuteForm(player: mc.Player): Promise<void> {
     const form = new ModalFormBuilder<{ name: string }>().title('Unmute Player').textField('name', 'Player Name (exact)', 'Enter the name of the muted player');
     const res = await form.show(player);
-    if (!res) return;
+    if (!res) {
+        return;
+    }
 
     const targetId = getPlayerIdByName(res.name);
     if (isNonEmptyString(targetId)) {

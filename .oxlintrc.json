@@ -1,0 +1,47 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "plugins": ["typescript", "import"],
+    "jsPlugins": ["eslint-plugin-minecraft-linting", "./scripts/lint/minecraft-rules.js"],
+    "categories": {
+        "correctness": "warn"
+    },
+    "rules": {
+        "eqeqeq": "error",
+        "no-var": "error",
+        "curly": "error",
+        "no-console": "warn",
+        "typescript/no-explicit-any": "error",
+        "typescript/no-shadow": "error",
+        "typescript/no-unused-vars": ["error", { "args": "all", "argsIgnorePattern": "^_" }],
+        "typescript/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description", "ts-nocheck": true, "ts-check": false }],
+        "minecraft-linting/avoid-unnecessary-command": "error",
+        "minecraft-custom/no-deprecated-run-command": "error",
+        "minecraft-custom/no-magic-minecraft-strings": "error"
+    },
+    "ignorePatterns": ["node_modules/", "dist/", "package-lock.json", ".git/", "packs/resource/font/", ".github/", "Docs/", "**/packs/behavior/scripts/**", "package.json", "packs/**"],
+    "overrides": [
+        {
+            "files": ["scripts/**/*.{js,ts}"],
+            "rules": {
+                "no-console": "off",
+                "no-shadow": "off",
+                "typescript/no-shadow": "off",
+                "typescript/no-explicit-any": "off"
+            }
+        },
+        {
+            "files": ["src/core/logger.ts"],
+            "rules": {
+                "no-console": "off"
+            }
+        },
+        {
+            "files": ["src/**/__tests__/**/*.ts"],
+            "rules": {
+                "typescript/no-explicit-any": "off",
+                "no-console": "off",
+                "typescript/no-unused-vars": "off"
+            }
+        }
+    ]
+}

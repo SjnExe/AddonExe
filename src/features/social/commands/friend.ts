@@ -14,7 +14,9 @@ const friendCommand: CustomCommand = {
         { name: 'target', type: 'string', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const sub = ((args.subcommand as string) || '').toLowerCase();
         const target = args.target as string;
@@ -27,19 +29,25 @@ const friendCommand: CustomCommand = {
         switch (sub) {
             case 'add':
             case 'invite': {
-                if (!target) return executor.sendMessage('§cUsage: /friend add <player>');
+                if (!target) {
+                    return executor.sendMessage('§cUsage: /friend add <player>');
+                }
                 executor.sendMessage(sendFriendRequest(executor, target).message);
                 break;
             }
             case 'rm':
             case 'remove':
             case 'delete': {
-                if (!target) return executor.sendMessage('§cUsage: /friend remove <player>');
+                if (!target) {
+                    return executor.sendMessage('§cUsage: /friend remove <player>');
+                }
                 executor.sendMessage(removeFriend(executor, target).message);
                 break;
             }
             case 'accept': {
-                if (!target) return executor.sendMessage('§cUsage: /friend accept <player>');
+                if (!target) {
+                    return executor.sendMessage('§cUsage: /friend accept <player>');
+                }
                 executor.sendMessage(acceptFriendRequest(executor, target).message);
                 break;
             }

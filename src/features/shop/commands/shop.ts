@@ -32,10 +32,14 @@ const shopCommand: CustomCommand = {
 
 const tryOpenHandItemPanel = async (player: mc.Player): Promise<boolean> => {
     const equipment = player.getComponent(EntityComponentTypes.Equippable);
-    if (!isDefined(equipment)) return false;
+    if (!isDefined(equipment)) {
+        return false;
+    }
 
     const item = equipment.getEquipment(mc.EquipmentSlot.Mainhand);
-    if (!isDefined(item)) return false;
+    if (!isDefined(item)) {
+        return false;
+    }
 
     const itemTypeId = item.typeId;
     const shopItemKey = Object.keys(allItems).find((key) => {

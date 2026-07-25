@@ -10,7 +10,9 @@ export function registerWordleCommands() {
         description: 'Opens the Wordle menu.',
         permissionNode: 'command.member',
         execute: async (executor: CommandExecutor) => {
-            if (!(executor instanceof mc.Player)) return;
+            if (!(executor instanceof mc.Player)) {
+                return;
+            }
             const config = getWordleConfig();
             if (!config.enabled) {
                 executor.sendMessage('§cWordle is currently disabled.');

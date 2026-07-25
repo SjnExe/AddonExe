@@ -70,7 +70,9 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     if (isEdit && (context.selectedItemId as string)) {
         const zoneId = (context.selectedItemId as string).replace('zone_', '');
         zone = config.zones.find((z) => z.id === zoneId);
-        if (!zone) return showWorldProtectionListPanel(player, context);
+        if (!zone) {
+            return showWorldProtectionListPanel(player, context);
+        }
     }
 
     const form = new ModalFormBuilder<WorldProtectionFormVals>().title(isEdit ? `Edit Zone: ${zone?.name}` : 'Add Protection Zone');
@@ -123,7 +125,9 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     }
 
     const response = await form.show(player);
-    if (!response) return showWorldProtectionListPanel(player, context);
+    if (!response) {
+        return showWorldProtectionListPanel(player, context);
+    }
 
     const values = response;
     const newId = values.id.trim();

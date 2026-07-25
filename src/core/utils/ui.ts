@@ -20,7 +20,9 @@ export function getPlayerIcon(player: mc.Player): string {
  */
 export async function forceCloseChat(player: mc.Player): Promise<void> {
     try {
-        if (!player.isValid) return;
+        if (!player.isValid) {
+            return;
+        }
 
         // Toggle permissions to force close UI/Chat
         player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, false);

@@ -13,7 +13,9 @@ const dailyCommand: CustomCommand = {
     category: 'Economy',
     permissionNode: 'cmd.daily.member',
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getDailyRewardsConfig();
         if (!config.enabled) {

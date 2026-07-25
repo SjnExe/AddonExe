@@ -74,20 +74,30 @@ const bountyCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const targetName = args.target as string | undefined;
         const amountStr = args.amount as string | undefined;
 
-        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
-        if (!isNonEmptyString(amountStr)) return sendMessage('§cUsage: /bounty <player> <amount>', executor);
+        if (!isNonEmptyString(targetName)) {
+            return sendMessage('§cPlease specify a player.', executor);
+        }
+        if (!isNonEmptyString(amountStr)) {
+            return sendMessage('§cUsage: /bounty <player> <amount>', executor);
+        }
 
         // Resolve
         const targets = resolveTarget(targetName, executor);
         const target = targets[0];
-        if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(target)) {
+            return sendMessage('§cPlayer not found.', executor);
+        }
 
         const amount = validateCurrencyAmount(amountStr, true);
-        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        if (!isDefined(amount)) {
+            return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        }
 
         placeBounty(executor, target.id, target.name, amount);
     }
@@ -104,32 +114,50 @@ const removeBountyCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
-        if (!checkBountyEnabled(executor)) return;
+        if (!checkBountyEnabled(executor)) {
+            return;
+        }
 
         const targetName = args.target as string | undefined;
         const amountStr = args.amount as string | undefined;
 
-        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
-        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
+        if (!isNonEmptyString(targetName)) {
+            return sendMessage('§cPlease specify a player.', executor);
+        }
+        if (!isNonEmptyString(amountStr)) {
+            return sendMessage('§cPlease specify an amount.', executor);
+        }
 
         // Resolve
         const targets = resolveTarget(targetName, executor);
         const target = targets[0];
-        if (!isDefined(target)) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(target)) {
+            return sendMessage('§cPlayer not found.', executor);
+        }
 
         const amount = validateCurrencyAmount(amountStr, true);
-        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        if (!isDefined(amount)) {
+            return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        }
 
         const targetBounty = bountyManager.getBounty(target.id);
 
-        if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
+        if (!isDefined(targetBounty)) {
+            return sendMessage('§cThis player has no bounty on them.', executor);
+        }
 
-        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty (${targetBounty.amount.toFixed(2)}).`, executor);
+        if (amount > targetBounty.amount) {
+            return sendMessage(`§cAmount exceeds bounty (${targetBounty.amount.toFixed(2)}).`, executor);
+        }
 
         const pData = getOrCreatePlayer(executor);
-        if (pData.balance < amount) return sendMessage('§cYou dont have enough money.', executor);
+        if (pData.balance < amount) {
+            return sendMessage('§cYou dont have enough money.', executor);
+        }
 
         incrementPlayerBalance(executor.id, -amount);
         bountyManager.incrementBounty(target.id, -amount);
@@ -151,18 +179,28 @@ const oBountyCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const targetName = args.target as string | undefined;
         const amountStr = args.amount as string | undefined;
 
-        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
-        if (!isNonEmptyString(amountStr)) return sendMessage('§cUsage: /obounty <player> <amount>', executor);
+        if (!isNonEmptyString(targetName)) {
+            return sendMessage('§cPlease specify a player name.', executor);
+        }
+        if (!isNonEmptyString(amountStr)) {
+            return sendMessage('§cUsage: /obounty <player> <amount>', executor);
+        }
 
         const amount = validateCurrencyAmount(amountStr, true);
-        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        if (!isDefined(amount)) {
+            return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        }
 
         const targetId = getPlayerIdByName(targetName);
-        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        if (!isNonEmptyString(targetId)) {
+            return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        }
         const displayName = getPlayerNameById(targetId) ?? targetName;
 
         placeBounty(executor, targetId, displayName, amount);
@@ -181,29 +219,47 @@ const oRemoveBountyCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
-        if (!checkBountyEnabled(executor)) return;
+        if (!checkBountyEnabled(executor)) {
+            return;
+        }
 
         const targetName = args.target as string | undefined;
         const amountStr = args.amount as string | undefined;
 
-        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
-        if (!isNonEmptyString(amountStr)) return sendMessage('§cPlease specify an amount.', executor);
+        if (!isNonEmptyString(targetName)) {
+            return sendMessage('§cPlease specify a player name.', executor);
+        }
+        if (!isNonEmptyString(amountStr)) {
+            return sendMessage('§cPlease specify an amount.', executor);
+        }
 
         const amount = validateCurrencyAmount(amountStr, true);
-        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        if (!isDefined(amount)) {
+            return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        }
 
         const targetId = getPlayerIdByName(targetName);
-        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        if (!isNonEmptyString(targetId)) {
+            return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        }
         const displayName = getPlayerNameById(targetId) ?? targetName;
 
         const targetBounty = bountyManager.getBounty(targetId);
-        if (!isDefined(targetBounty)) return sendMessage('§cThis player has no bounty on them.', executor);
-        if (amount > targetBounty.amount) return sendMessage(`§cAmount exceeds bounty (${targetBounty.amount.toFixed(2)}).`, executor);
+        if (!isDefined(targetBounty)) {
+            return sendMessage('§cThis player has no bounty on them.', executor);
+        }
+        if (amount > targetBounty.amount) {
+            return sendMessage(`§cAmount exceeds bounty (${targetBounty.amount.toFixed(2)}).`, executor);
+        }
 
         const pData = getOrCreatePlayer(executor);
-        if (pData.balance < amount) return sendMessage('§cYou dont have enough money.', executor);
+        if (pData.balance < amount) {
+            return sendMessage('§cYou dont have enough money.', executor);
+        }
 
         incrementPlayerBalance(executor.id, -amount);
         bountyManager.incrementBounty(targetId, -amount);
@@ -243,7 +299,9 @@ function handleSingleBountyCheck(executor: CommandExecutor, targetName: string) 
         } else {
             // Try offline lookup if online failed
             targetId = getPlayerIdByName(targetName);
-            if (isNonEmptyString(targetId)) targetDisplayName = getPlayerNameById(targetId) ?? targetName;
+            if (isNonEmptyString(targetId)) {
+                targetDisplayName = getPlayerNameById(targetId) ?? targetName;
+            }
         }
     } else {
         targetId = getPlayerIdByName(targetName);
@@ -271,7 +329,9 @@ const listBountyCommand: CustomCommand = {
     allowConsole: true,
     parameters: [{ name: 'target', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!checkBountyEnabled(executor)) return;
+        if (!checkBountyEnabled(executor)) {
+            return;
+        }
 
         const targetName = args.target as string | undefined;
 
@@ -293,7 +353,9 @@ const oListBountyCommand: CustomCommand = {
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!checkBountyEnabled(executor)) return;
+        if (!checkBountyEnabled(executor)) {
+            return;
+        }
 
         const targetName = args.target as string | undefined;
         if (!isNonEmptyString(targetName)) {

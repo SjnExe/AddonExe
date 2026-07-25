@@ -9,7 +9,9 @@ import * as mc from '@minecraft/server';
 export async function showPanel(player: mc.Player, panelId: string, _context: Record<string, unknown> = {}) {
     try {
         const cooldown = getCooldown(player.id, 'ui_spam');
-        if (cooldown > 0) return;
+        if (cooldown > 0) {
+            return;
+        }
         setCooldown(player.id, 'ui_spam', 0.5);
 
         debugLog(`[UIManager] Routing panel '${panelId}'...`);

@@ -35,14 +35,18 @@ const alertBuffers = new Map<string, Map<string, AlertData>>();
  */
 export function refreshXrayCache(): void {
     const xrayConfig = getXrayConfig();
-    if (!isDefined(xrayConfig.monitoredOreTypes)) return;
+    if (!isDefined(xrayConfig.monitoredOreTypes)) {
+        return;
+    }
 
     oreCache.clear();
 
     // Iterate over all configured ore types
     for (const oreTypeKey in xrayConfig.monitoredOreTypes) {
         const oreType = xrayConfig.monitoredOreTypes[oreTypeKey];
-        if (!isDefined(oreType) || oreType.enabled !== true) continue;
+        if (!isDefined(oreType) || oreType.enabled !== true) {
+            continue;
+        }
 
         // Iterate over blocks defined for this ore type
         for (const blockDef of oreType.blocks) {
@@ -65,7 +69,9 @@ export function refreshXrayCache(): void {
 
 function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Vector3, count: number): void {
     const xrayConfig = getXrayConfig();
-    if (!isDefined(xrayConfig)) return;
+    if (!isDefined(xrayConfig)) {
+        return;
+    }
 
     const context = {
         playerName: player.name,
@@ -98,9 +104,13 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
 
 function flushAlert(playerId: string, oreKey: string): void {
     const playerBuffer = alertBuffers.get(playerId);
-    if (!isDefined(playerBuffer)) return;
+    if (!isDefined(playerBuffer)) {
+        return;
+    }
     const data = playerBuffer.get(oreKey);
-    if (!isDefined(data)) return;
+    if (!isDefined(data)) {
+        return;
+    }
 
     playerBuffer.delete(oreKey);
     if (playerBuffer.size === 0) {
@@ -148,28 +158,38 @@ function bufferAlert(player: mc.Player, oreType: MonitoredOreType, block: mc.Blo
 
 function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
     const { player, brokenBlockPermutation, block } = event;
-    if (!isDefined(block)) return;
+    if (!isDefined(block)) {
+        return;
+    }
 
     // Fast Config & Cache Check
     const blockId = brokenBlockPermutation.type.id;
     const cachedInfos = oreCache.get(blockId);
 
     // 1. Optimization: O(1) Check if this block is even monitored
-    if (!isDefined(cachedInfos)) return;
+    if (!isDefined(cachedInfos)) {
+        return;
+    }
 
     const xrayConfig = getXrayConfig();
     const settings = xrayConfig.settings;
 
     // 2. Gamemode Checks
     const gamemode = player.getGameMode();
-    if (settings.ignoreCreative === true && gamemode === mc.GameMode.Creative) return;
-    if (settings.ignoreSpectator === true && gamemode === mc.GameMode.Spectator) return;
+    if (settings.ignoreCreative === true && gamemode === mc.GameMode.Creative) {
+        return;
+    }
+    if (settings.ignoreSpectator === true && gamemode === mc.GameMode.Spectator) {
+        return;
+    }
 
     // 3. Admin Bypass Check
     if (settings.adminBypass === true) {
         const pData = getPlayer(player.id);
 
-        if (isDefined(pData) && hasPermission(player, 'group.admin')) return;
+        if (isDefined(pData) && hasPermission(player, 'group.admin')) {
+            return;
+        }
     }
 
     // 4. Validate Location & Dimension (O(N) where N is small, usually 1 or 2 entries per block)

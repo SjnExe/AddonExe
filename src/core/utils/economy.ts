@@ -52,7 +52,9 @@ export function parseCurrency(input: string | number): number {
     if (typeof input === 'number') {
         return input;
     }
-    if (!input || input.length === 0) return Number.NaN;
+    if (!input || input.length === 0) {
+        return Number.NaN;
+    }
 
     const normalized = input.trim().toLowerCase();
     const regex = /^([\d.]+)([kmbt]?)$/;
@@ -65,7 +67,9 @@ export function parseCurrency(input: string | number): number {
     const valueStr = match[1];
     const suffix = match[2] ?? '';
 
-    if (valueStr === undefined) return Number.NaN;
+    if (valueStr === undefined) {
+        return Number.NaN;
+    }
 
     const value = Number.parseFloat(valueStr);
 

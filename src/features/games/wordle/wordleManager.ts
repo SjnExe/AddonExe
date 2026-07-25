@@ -74,7 +74,9 @@ export function evaluateGuess(guess: string, answer: string): GuessResult {
 
 export function createSinglePlayerGame(player: mc.Player, wordLength: number = 5): WordleGame | undefined {
     const word = getRandomSolution(wordLength);
-    if (!word) return undefined;
+    if (!word) {
+        return undefined;
+    }
 
     const config = getWordleConfig();
     const game: WordleGame = {
@@ -156,8 +158,12 @@ import { incrementPlayerBalance } from '@core/playerDataManager.js';
 
 export function submitGuess(gameId: string, player: mc.Player, guess: string): GuessResult | string {
     const game = activeGames.get(gameId);
-    if (!game) return 'Game not found.';
-    if (game.status !== 'active') return 'Game is no longer active.';
+    if (!game) {
+        return 'Game not found.';
+    }
+    if (game.status !== 'active') {
+        return 'Game is no longer active.';
+    }
 
     if (guess.length !== game.word.length) {
         return `Word must be exactly ${game.word.length} letters long.`;
@@ -200,7 +206,9 @@ export function formatGuess(guess: string, pattern: string): string {
     let result = '';
     for (let i = 0; i < guess.length; i++) {
         const char = guess[i]?.toUpperCase();
-        if (!char) continue;
+        if (!char) {
+            continue;
+        }
         if (pattern[i] === 'g') {
             result += `§a${char} `;
         } else if (pattern[i] === 'y') {

@@ -37,10 +37,18 @@ function saveConfig() {
 
 export function setWorldBorder(enabled: boolean, centerX?: number, centerZ?: number, radius?: number, dimension?: string) {
     config.enabled = enabled;
-    if (isDefined(centerX)) config.centerX = centerX;
-    if (isDefined(centerZ)) config.centerZ = centerZ;
-    if (isDefined(radius)) config.radius = radius;
-    if (isDefined(dimension)) config.dimension = dimension;
+    if (isDefined(centerX)) {
+        config.centerX = centerX;
+    }
+    if (isDefined(centerZ)) {
+        config.centerZ = centerZ;
+    }
+    if (isDefined(radius)) {
+        config.radius = radius;
+    }
+    if (isDefined(dimension)) {
+        config.dimension = dimension;
+    }
     saveConfig();
 }
 
@@ -49,14 +57,18 @@ export function getWorldBorder(): WorldBorderConfig {
 }
 
 function checkWorldBorder() {
-    if (!config.enabled) return;
+    if (!config.enabled) {
+        return;
+    }
 
     try {
         const dim = mc.world.getDimension(config.dimension);
         const players = dim.getPlayers();
         for (const player of players) {
             // Ignore admins
-            if (player.hasTag('admin') || player.hasTag('owner')) continue;
+            if (player.hasTag('admin') || player.hasTag('owner')) {
+                continue;
+            }
 
             const loc = player.location;
             const dx = Math.abs(loc.x - config.centerX);

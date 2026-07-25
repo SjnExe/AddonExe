@@ -29,7 +29,9 @@ async function main() {
     console.log(`[Validator] Loaded ${schemas.length} schemas from @minecraft/bedrock-schemas.`);
 
     for (const schemaDef of schemas) {
-        if (!schemaDef.url || !schemaDef.fileMatch) continue;
+        if (!schemaDef.url || !schemaDef.fileMatch) {
+            continue;
+        }
 
         try {
             const relativeSchemaPath = schemaDef.url.replace(/^.*schemas\//, '');

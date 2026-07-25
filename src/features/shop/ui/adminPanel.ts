@@ -287,7 +287,9 @@ export async function showAddSubCategoryPanel(player: mc.Player, categoryName: s
 export async function showEditCategoryPanel(player: mc.Player, categoryName: string): Promise<void> {
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
-    if (!category) return;
+    if (!category) {
+        return;
+    }
 
     const modal = new ModalFormBuilder<{ newName: string; icon: string }>()
         .title(`Edit ${categoryName}`)
@@ -309,7 +311,9 @@ export async function showEditSubCategoryPanel(player: mc.Player, categoryName: 
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
     const subCategory = category?.subCategories?.[subCategoryName];
-    if (!subCategory) return;
+    if (!subCategory) {
+        return;
+    }
 
     const modal = new ModalFormBuilder<{ newName: string; icon: string }>()
         .title(`Edit ${subCategoryName}`)

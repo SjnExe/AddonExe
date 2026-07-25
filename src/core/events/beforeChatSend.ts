@@ -13,7 +13,9 @@ import { stripColorCodes } from '@core/utils/formatting.js';
  */
 export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     const config = getConfig();
-    if (config.chat.enabled !== true) return; // Vanilla chat if disabled
+    if (config.chat.enabled !== true) {
+        return;
+    } // Vanilla chat if disabled
 
     const player = event.sender;
     const pData = getPlayer(player.id);

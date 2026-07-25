@@ -13,7 +13,9 @@ const chatlogCommand: CustomCommand = {
     permissionNode: 'cmd.chatlog.admin',
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const logService = serviceLocator.getService<AnticheatLogsService>('anticheat.logs');
         if (logService) {
             await logService.showChatFilter(executor);

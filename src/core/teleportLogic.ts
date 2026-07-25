@@ -39,7 +39,9 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
 
     const cancel = () => {
         cleanup();
-        if (isDefined(onCancel)) onCancel();
+        if (isDefined(onCancel)) {
+            onCancel();
+        }
     };
 
     hurtListener = (event: mc.EntityHurtAfterEvent) => {

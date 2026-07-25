@@ -14,7 +14,9 @@ export function registerGuessCommand() {
         permissionNode: 'command.member',
         parameters: [{ name: 'word', type: 'string', optional: false }],
         execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-            if (!(executor instanceof mc.Player)) return;
+            if (!(executor instanceof mc.Player)) {
+                return;
+            }
             const config = getWordleConfig();
             if (!config.enabled || !config.staffHosted.enabled) {
                 executor.sendMessage('§cStaff-hosted Wordle is currently disabled.');
@@ -78,8 +80,12 @@ export function registerGuessCommand() {
             let correctCount = 0;
             let differentPlaceCount = 0;
             for (let i = 0; i < result.pattern.length; i++) {
-                if (result.pattern[i] === 'g') correctCount++;
-                if (result.pattern[i] === 'y') differentPlaceCount++;
+                if (result.pattern[i] === 'g') {
+                    correctCount++;
+                }
+                if (result.pattern[i] === 'y') {
+                    differentPlaceCount++;
+                }
             }
 
             mc.world.sendMessage(`§e[Wordle] §b${executor.name} §fguessed a word! §a${correctCount} correct§f, §e${differentPlaceCount} in different place§f.`);

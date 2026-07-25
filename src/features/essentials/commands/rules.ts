@@ -38,9 +38,13 @@ const rulesCommand: CustomCommand = {
         if (ruleNumber === undefined) {
             const messages = ['§l§a--- Server Rules ---', ...rules, '§l§a------------------'];
             if (executor instanceof mc.Player) {
-                for (const msg of messages) sendMessage(msg, executor, { raw: true });
+                for (const msg of messages) {
+                    sendMessage(msg, executor, { raw: true });
+                }
             } else {
-                for (const msg of messages) executor.sendMessage(msg);
+                for (const msg of messages) {
+                    executor.sendMessage(msg);
+                }
             }
         } else {
             // Note: rules.length is safe because rules is checked for length > 0 above
@@ -61,9 +65,13 @@ const rulesCommand: CustomCommand = {
             const ruleText = rules[ruleNumber - 1];
             const messages = ['§l§a--- Server Rules ---', ruleText ?? '', '§l§a------------------'];
             if (executor instanceof mc.Player) {
-                for (const msg of messages) sendMessage(msg, executor, { raw: true });
+                for (const msg of messages) {
+                    sendMessage(msg, executor, { raw: true });
+                }
             } else {
-                for (const msg of messages) executor.sendMessage(msg);
+                for (const msg of messages) {
+                    executor.sendMessage(msg);
+                }
             }
         }
     }

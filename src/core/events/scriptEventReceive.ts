@@ -76,7 +76,9 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
 
                 if (sourceEntity instanceof mc.Player) {
                     const pData = getPlayer(sourceEntity.id);
-                    if (!pData) return;
+                    if (!pData) {
+                        return;
+                    }
 
                     let newRanks = [...pData.ranks];
                     const targetRank = typedPayload.rank;

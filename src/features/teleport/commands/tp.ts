@@ -21,7 +21,9 @@ const command: CustomCommand = {
         { name: 'arg4', type: 'string', description: 'Z-coordinate if teleporting another player.', optional: true }
     ],
     execute: (executor, args) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const argValues = [args.arg1, args.arg2, args.arg3, args.arg4].filter((arg) => isDefined(arg)) as string[];
 
@@ -29,7 +31,9 @@ const command: CustomCommand = {
             case 1: {
                 // /tp <destinationPlayer>
                 const targetName = argValues[0];
-                if (!isNonEmptyString(targetName)) return;
+                if (!isNonEmptyString(targetName)) {
+                    return;
+                }
                 const destPlayer1 = findPlayerByName(targetName);
                 if (!isDefined(destPlayer1)) {
                     sendMessage(`§cPlayer '${targetName}' not found.`, executor);
@@ -44,7 +48,9 @@ const command: CustomCommand = {
                 // /tp <playerToMove> <destinationPlayer>
                 const p1Name = argValues[0];
                 const p2Name = argValues[1];
-                if (!isNonEmptyString(p1Name) || !isNonEmptyString(p2Name)) return;
+                if (!isNonEmptyString(p1Name) || !isNonEmptyString(p2Name)) {
+                    return;
+                }
 
                 const playerToMove = findPlayerByName(p1Name);
                 const destPlayer2 = findPlayerByName(p2Name);
@@ -79,7 +85,9 @@ const command: CustomCommand = {
             case 4: {
                 // /tp <targetPlayer> <x> <y> <z>
                 const tName = argValues[0];
-                if (!isNonEmptyString(tName)) return;
+                if (!isNonEmptyString(tName)) {
+                    return;
+                }
                 const targetPlayer = findPlayerByName(tName);
                 if (!isDefined(targetPlayer)) {
                     sendMessage(`§cPlayer '${tName}' not found.`, executor);

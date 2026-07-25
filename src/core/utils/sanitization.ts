@@ -5,7 +5,9 @@
  * @returns The sanitized string.
  */
 export function sanitizeString(input: string, allowColors = false): string {
-    if (!input) return '';
+    if (!input) {
+        return '';
+    }
     let result = input;
 
     // Remove color codes if not allowed
@@ -29,8 +31,12 @@ export function sanitizeString(input: string, allowColors = false): string {
  * @returns True if valid.
  */
 export function validateInput(input: string, maxLength = 256): boolean {
-    if (!input) return true;
-    if (input.length > maxLength) return false;
+    if (!input) {
+        return true;
+    }
+    if (input.length > maxLength) {
+        return false;
+    }
     return true;
 }
 
@@ -43,6 +49,8 @@ export function validateInput(input: string, maxLength = 256): boolean {
  * @returns The escaped string.
  */
 export function escapeCommandArg(input: string): string {
-    if (!input) return '';
+    if (!input) {
+        return '';
+    }
     return input.replaceAll('\\', '').replaceAll('"', "'").replaceAll('\n', ' ');
 }

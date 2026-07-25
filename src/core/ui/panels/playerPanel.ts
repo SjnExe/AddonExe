@@ -13,7 +13,9 @@ function formatDuration(ms: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    if (h > 0) return `${h}h ${m}m`;
+    if (h > 0) {
+        return `${h}h ${m}m`;
+    }
     return `${m}m ${s}s`;
 }
 
@@ -91,13 +93,17 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
         form.button('Teleport To', 'textures/ui/icon_map', () => {
             void import('@core/playerCache.js').then((m) => {
                 const target = m.getPlayerFromCache(targetPlayerId);
-                if (target) player.teleport(target.location, { dimension: target.dimension });
+                if (target) {
+                    player.teleport(target.location, { dimension: target.dimension });
+                }
             });
         });
         form.button('Teleport Here', 'textures/ui/icon_map', () => {
             void import('@core/playerCache.js').then((m) => {
                 const target = m.getPlayerFromCache(targetPlayerId);
-                if (target) target.teleport(player.location, { dimension: player.dimension });
+                if (target) {
+                    target.teleport(player.location, { dimension: player.dimension });
+                }
             });
         });
     }

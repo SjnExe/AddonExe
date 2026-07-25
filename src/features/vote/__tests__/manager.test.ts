@@ -88,7 +88,9 @@ describe('Vote Manager', () => {
             // Advance time significantly
             mockDateNow.mockReturnValue(2000000);
 
-            if (intervalCallback) intervalCallback();
+            if (intervalCallback) {
+                intervalCallback();
+            }
 
             expect(getActiveVote()?.status).toBe('active');
         });
@@ -100,7 +102,9 @@ describe('Vote Manager', () => {
             // Start time is 1000000, expiry is 1060000
             mockDateNow.mockReturnValue(1059999);
 
-            if (intervalCallback) intervalCallback();
+            if (intervalCallback) {
+                intervalCallback();
+            }
 
             expect(getActiveVote()?.status).toBe('active');
         });
@@ -112,7 +116,9 @@ describe('Vote Manager', () => {
             // Start time is 1000000, expiry is 1060000
             mockDateNow.mockReturnValue(1060000);
 
-            if (intervalCallback) intervalCallback();
+            if (intervalCallback) {
+                intervalCallback();
+            }
 
             expect(getActiveVote()).toBeUndefined();
             const lastVote = getLastVote();

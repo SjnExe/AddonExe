@@ -107,7 +107,9 @@ export function createListing(player: mc.Player, item: SerializedItem, price: nu
         isBid: isBid,
         duration: duration
     };
-    if (isBid) listing.bidPrice = price;
+    if (isBid) {
+        listing.bidPrice = price;
+    }
 
     activeListings.set(listing.id, listing);
     saveAuctions();
@@ -120,11 +122,17 @@ export function createListing(player: mc.Player, item: SerializedItem, price: nu
  */
 export function buyItem(buyer: mc.Player, listingId: string): { success: boolean; message: string } {
     const listing = activeListings.get(listingId);
-    if (!listing) return { success: false, message: '§cListing no longer exists.' };
+    if (!listing) {
+        return { success: false, message: '§cListing no longer exists.' };
+    }
 
-    if (listing.sellerId === buyer.id) return { success: false, message: '§cYou cannot buy your own item.' };
+    if (listing.sellerId === buyer.id) {
+        return { success: false, message: '§cYou cannot buy your own item.' };
+    }
 
-    if (listing.isBid) return { success: false, message: '§cThis is an auction, place a bid instead.' };
+    if (listing.isBid) {
+        return { success: false, message: '§cThis is an auction, place a bid instead.' };
+    }
 
     const buyerData = getOrCreatePlayer(buyer);
     if (buyerData.balance < listing.price) {
@@ -190,10 +198,16 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
  */
 export function placeBid(bidder: mc.Player, listingId: string, amount: number): { success: boolean; message: string } {
     const listing = activeListings.get(listingId);
-    if (!listing) return { success: false, message: '§cListing no longer exists.' };
-    if (!listing.isBid) return { success: false, message: '§cThis is a BIN listing.' };
+    if (!listing) {
+        return { success: false, message: '§cListing no longer exists.' };
+    }
+    if (!listing.isBid) {
+        return { success: false, message: '§cThis is a BIN listing.' };
+    }
 
-    if (listing.sellerId === bidder.id) return { success: false, message: '§cYou cannot bid on your own item.' };
+    if (listing.sellerId === bidder.id) {
+        return { success: false, message: '§cYou cannot bid on your own item.' };
+    }
 
     const bidderData = getOrCreatePlayer(bidder);
 
@@ -249,7 +263,9 @@ function* checkExpiredAuctionsJob() {
         const [id, listing] = entry;
 
         // Ensure listing still exists (Race Condition Check)
-        if (!activeListings.has(id)) continue;
+        if (!activeListings.has(id)) {
+            continue;
+        }
 
         const expiry = getTimestampFromUUIDv7(listing.id) + listing.duration * 1000;
         if (now >= expiry) {
@@ -295,7 +311,9 @@ function sendMoneyToPlayer(playerId: string, amount: number) {
 }
 
 function addItemToMailbox(playerId: string, item: SerializedItem) {
-    if (!isDefined(item)) return;
+    if (!isDefined(item)) {
+        return;
+    }
     updatePlayerData(playerId, (d) => {
         d.mailbox.push(item);
     });
@@ -316,7 +334,9 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
     }
 
     const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!isDefined(inventory) || !isDefined(inventory.container)) return { success: false, message: '§cInventory error.' };
+    if (!isDefined(inventory) || !isDefined(inventory.container)) {
+        return { success: false, message: '§cInventory error.' };
+    }
 
     let claimed = 0;
     const remainingItems: SerializedItem[] = [];
@@ -359,14 +379,18 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
     }
 
     const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
-    if (!isDefined(inventory) || !isDefined(inventory.container)) return { success: false, message: '§cInventory error.' };
+    if (!isDefined(inventory) || !isDefined(inventory.container)) {
+        return { success: false, message: '§cInventory error.' };
+    }
 
     if (inventory.container.emptySlotsCount === 0) {
         return { success: false, message: '§cInventory full.' };
     }
 
     const sItem = mailbox[index];
-    if (!isDefined(sItem)) return { success: false, message: '§cItem not found.' };
+    if (!isDefined(sItem)) {
+        return { success: false, message: '§cItem not found.' };
+    }
 
     const stack = deserializeItem(sItem);
 
@@ -398,8 +422,12 @@ export function getListings(page: number = 1, pageSize: number = 45, searchQuery
     const hasSellerId = isNonEmptyString(sellerId);
 
     for (const l of activeListings.values()) {
-        if (hasSellerId && l.sellerId !== sellerId) continue;
-        if (query && !listingMatchesQuery(l, query)) continue;
+        if (hasSellerId && l.sellerId !== sellerId) {
+            continue;
+        }
+        if (query && !listingMatchesQuery(l, query)) {
+            continue;
+        }
         all.push(l);
     }
 
@@ -432,13 +460,19 @@ export function getListings(page: number = 1, pageSize: number = 45, searchQuery
 }
 
 export function getListingsCount(searchQuery?: string, sellerId?: string): number {
-    if (!isNonEmptyString(searchQuery) && !isNonEmptyString(sellerId)) return activeListings.size;
+    if (!isNonEmptyString(searchQuery) && !isNonEmptyString(sellerId)) {
+        return activeListings.size;
+    }
     const query = isNonEmptyString(searchQuery) ? searchQuery.toLowerCase() : undefined;
     const hasSellerId = isNonEmptyString(sellerId);
     let count = 0;
     for (const l of activeListings.values()) {
-        if (hasSellerId && l.sellerId !== sellerId) continue;
-        if (query && !listingMatchesQuery(l, query)) continue;
+        if (hasSellerId && l.sellerId !== sellerId) {
+            continue;
+        }
+        if (query && !listingMatchesQuery(l, query)) {
+            continue;
+        }
         count++;
     }
     return count;
@@ -446,7 +480,9 @@ export function getListingsCount(searchQuery?: string, sellerId?: string): numbe
 
 export function cancelListing(player: mc.Player, listingId: string): { success: boolean; message: string } {
     const listing = activeListings.get(listingId);
-    if (!listing) return { success: false, message: '§cListing no longer exists.' };
+    if (!listing) {
+        return { success: false, message: '§cListing no longer exists.' };
+    }
 
     if (listing.sellerId !== player.id) {
         // Allow admins?

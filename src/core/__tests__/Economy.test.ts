@@ -172,7 +172,9 @@ describe('Economy System', () => {
             // Configure mock for p2
             mockStorageLoad.mockImplementation((key: any) => {
                 const k = key as string;
-                if (k.includes('p2')) return { balance: 100, name: 'PlayerTwo' };
+                if (k.includes('p2')) {
+                    return { balance: 100, name: 'PlayerTwo' };
+                }
                 return undefined;
             });
 

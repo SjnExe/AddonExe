@@ -23,7 +23,9 @@ const backCommand: CustomCommand = {
     category: 'Transportation',
     permissionNode: 'cmd.back',
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
         const backConfig = config.back as unknown as BackConfig | undefined;

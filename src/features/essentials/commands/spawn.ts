@@ -156,7 +156,9 @@ const setSpawnCommand: CustomCommand = {
     ],
     execute: (executor: CommandExecutor, args: SetSpawnArgs) => {
         const location = resolveSetSpawnLocation(executor, args);
-        if (!location) return;
+        if (!location) {
+            return;
+        }
 
         try {
             const config = getConfig();

@@ -33,10 +33,11 @@ export function handlePlayerJoin(player: mc.Player) {
         // Re-apply invisibility effect if player died or effect expired
         player.addEffect('invisibility', 2_000_000, { amplifier: 1, showParticles: false });
     } else {
-        if (pData.isVanished)
+        if (pData.isVanished) {
             updatePlayerData(player.id, (d) => {
                 d.isVanished = false;
             });
+        }
     }
 
     debugLog(`[Add-on] Player ${player.name} joined with rank ${pData.rankId}.`);

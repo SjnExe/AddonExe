@@ -14,18 +14,28 @@ import { isDefined } from '@lib/guards.js';
  * @param reason The reason for saving ('death' or 'teleport'). Defaults to 'teleport'.
  */
 export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport') {
-    if (!isDefined(player)) return;
+    if (!isDefined(player)) {
+        return;
+    }
 
-    if (!player.isValid) return;
+    if (!player.isValid) {
+        return;
+    }
 
     // Check if Back system is globally enabled
     const backConfig = getConfig().back as { enabled?: boolean; saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
 
-    if (!backConfig?.enabled) return;
+    if (!backConfig?.enabled) {
+        return;
+    }
 
-    if (reason === 'death' && backConfig.saveOnDeath !== true) return;
+    if (reason === 'death' && backConfig.saveOnDeath !== true) {
+        return;
+    }
 
-    if (reason === 'teleport' && backConfig.saveOnTeleport !== true) return;
+    if (reason === 'teleport' && backConfig.saveOnTeleport !== true) {
+        return;
+    }
 
     try {
         const location = {

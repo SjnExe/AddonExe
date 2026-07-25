@@ -78,7 +78,9 @@ export function findShopItem(itemId: string): ItemInfo | undefined {
 
     for (const categoryName in categories) {
         const category = categories[categoryName];
-        if (!isDefined(category)) continue;
+        if (!isDefined(category)) {
+            continue;
+        }
         if (isDefined(category.items) && isDefined(category.items[itemId])) {
             return { ...items[itemId], ...category.items[itemId], itemId: itemId };
         }
@@ -103,7 +105,9 @@ export function findShopItem(itemId: string): ItemInfo | undefined {
  */
 export function getPlayerShopItemPrice(player: mc.Player, shopItem: ItemInfo, type: 'buy' | 'sell'): number {
     const basePrice = type === 'buy' ? shopItem.buyPrice : shopItem.sellPrice;
-    if (!isDefined(basePrice) || basePrice <= 0) return basePrice ?? -1;
+    if (!isDefined(basePrice) || basePrice <= 0) {
+        return basePrice ?? -1;
+    }
 
     const ranks = getPlayerRanks(player);
     let bestMultiplier = 1;
@@ -122,9 +126,13 @@ export function getPlayerShopItemPrice(player: mc.Player, shopItem: ItemInfo, ty
 
         // We want the lowest buy price (lowest multiplier) and highest sell price (highest multiplier)
         if (type === 'buy') {
-            if (currentMultiplier < bestMultiplier) bestMultiplier = currentMultiplier;
+            if (currentMultiplier < bestMultiplier) {
+                bestMultiplier = currentMultiplier;
+            }
         } else {
-            if (currentMultiplier > bestMultiplier) bestMultiplier = currentMultiplier;
+            if (currentMultiplier > bestMultiplier) {
+                bestMultiplier = currentMultiplier;
+            }
         }
     }
 
@@ -287,7 +295,9 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
  * @returns True if the item matches and is valid for sale.
  */
 function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
-    if (item.typeId !== shopItem.itemId) return false;
+    if (item.typeId !== shopItem.itemId) {
+        return false;
+    }
 
     // Exploit Prevention: Skip damaged or enchanted items unless explicitly allowed
     const durability = item.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent;
@@ -362,7 +372,9 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     // Remove items
     let remaining = targetQuantity;
     for (let i = 0; i < inventory.size; i++) {
-        if (remaining <= 0) break;
+        if (remaining <= 0) {
+            break;
+        }
         const item = inventory.getItem(i);
         if (isDefined(item) && isValidSellItem(item, shopItem)) {
             if (item.amount <= remaining) {

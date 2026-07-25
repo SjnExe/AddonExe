@@ -22,7 +22,9 @@ const mainCommand: CustomCommand = {
         { name: 'type', type: 'string', optional: true, enumOptions: ['bin', 'bid'] }
     ],
     execute: async (executor: CommandExecutor, args: { subcommand?: string; price?: string; type?: string }) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getAuctionHouseConfig();
         if (!config.enabled) {
@@ -51,7 +53,9 @@ const mainCommand: CustomCommand = {
             const isBid = args.type?.toLowerCase() === 'bid';
 
             const inventory = executor.getComponent('inventory') as mc.EntityInventoryComponent;
-            if (!isDefined(inventory) || !isDefined(inventory.container)) return;
+            if (!isDefined(inventory) || !isDefined(inventory.container)) {
+                return;
+            }
 
             const item = inventory.container.getItem(executor.selectedSlotIndex);
             if (!isDefined(item)) {

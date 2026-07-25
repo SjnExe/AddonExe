@@ -71,11 +71,15 @@ const homeCommand: CustomCommand = {
 
         const form = new ActionFormData().title('Teleport to Home').body('Select a home to teleport to:');
 
-        for (const homeName of homeList) form.button(homeName);
+        for (const homeName of homeList) {
+            form.button(homeName);
+        }
 
         try {
             const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) return;
+            if (!isDefined(response) || response.canceled) {
+                return;
+            }
             const selection = (response as ActionFormResponse).selection;
             if (isDefined(selection)) {
                 const selectedHome = homeList[selection];
@@ -160,11 +164,15 @@ const delHomeCommand: CustomCommand = {
 
         const form = new ActionFormData().title('Delete a Home').body('Select a home to delete:');
 
-        for (const homeName of homeList) form.button(homeName);
+        for (const homeName of homeList) {
+            form.button(homeName);
+        }
 
         try {
             const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) return;
+            if (!isDefined(response) || response.canceled) {
+                return;
+            }
             const selection = (response as ActionFormResponse).selection;
             if (isDefined(selection)) {
                 const selectedHome = homeList[selection];

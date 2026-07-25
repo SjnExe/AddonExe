@@ -36,8 +36,12 @@ export function getSystemRegistry(): SystemDefinition[] {
                 configPanelId: `config_${schema.id}`,
                 isSimpleConfig: true
             };
-            if (isNonEmptyString(schema.category)) def.category = schema.category;
-            if (schema.hidden === true) def.hidden = schema.hidden;
+            if (isNonEmptyString(schema.category)) {
+                def.category = schema.category;
+            }
+            if (schema.hidden === true) {
+                def.hidden = schema.hidden;
+            }
             return def;
         }),
         // 2. Add complex custom systems

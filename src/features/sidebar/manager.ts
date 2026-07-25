@@ -75,10 +75,14 @@ function updateSidebars() {
 
     for (const player of players) {
         try {
-            if (!player.isValid) continue;
+            if (!player.isValid) {
+                continue;
+            }
 
             const pData = getPlayer(player.id);
-            if (!isDefined(pData)) continue;
+            if (!isDefined(pData)) {
+                continue;
+            }
 
             // Check if player has disabled sidebar
             if (!getSidebarVisible(player.id)) {

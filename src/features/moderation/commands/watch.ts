@@ -47,8 +47,11 @@ const watchCommand: CustomCommand = {
 
         if (!isDefined(targetId)) {
             const msg = `§cPlayer "${targetName}" has never joined this server.`;
-            if (executor instanceof mc.Player) executor.sendMessage(msg);
-            else executor.sendMessage(msg);
+            if (executor instanceof mc.Player) {
+                executor.sendMessage(msg);
+            } else {
+                executor.sendMessage(msg);
+            }
             return;
         }
 

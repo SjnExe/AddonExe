@@ -21,11 +21,15 @@ export function isFeatureActive(featureId: string): boolean {
     const parts = featureId.split('.');
     if (parts.length > 1) {
         let currentPath = parts[0];
-        if (currentPath && !isFeatureActive(currentPath)) return false;
+        if (currentPath && !isFeatureActive(currentPath)) {
+            return false;
+        }
 
         for (let i = 1; i < parts.length - 1; i++) {
             currentPath += '.' + parts[i];
-            if (currentPath && !isFeatureActive(currentPath)) return false;
+            if (currentPath && !isFeatureActive(currentPath)) {
+                return false;
+            }
         }
     }
 
@@ -36,7 +40,9 @@ export function isFeatureActive(featureId: string): boolean {
     } else {
         // Check explicit dependencies first
         for (const dep of feature.dependencies) {
-            if (!isFeatureActive(dep)) return false;
+            if (!isFeatureActive(dep)) {
+                return false;
+            }
         }
     }
 
@@ -70,7 +76,9 @@ export function isFeatureActive(featureId: string): boolean {
             return mainConfig ? (mainConfig.shop as { enabled?: boolean }).enabled === true : false;
         case 'eco.ah': {
             const ahConfig = configs.getAuctionHouseConfig();
-            if (isDefined(ahConfig)) return ahConfig.enabled === true;
+            if (isDefined(ahConfig)) {
+                return ahConfig.enabled === true;
+            }
             return mainConfig ? (mainConfig.auctionHouse as { enabled?: boolean }).enabled === true : false;
         }
         case 'eco.bounty':
@@ -79,7 +87,9 @@ export function isFeatureActive(featureId: string): boolean {
         // Utilities
         case 'util.daily': {
             const dailyConfig = configs.getDailyRewardsConfig();
-            if (isDefined(dailyConfig)) return dailyConfig.enabled === true;
+            if (isDefined(dailyConfig)) {
+                return dailyConfig.enabled === true;
+            }
             return mainConfig ? (mainConfig.dailyRewards as { enabled?: boolean }).enabled === true : false;
         }
         case 'util.vote':
@@ -100,7 +110,9 @@ export function isFeatureActive(featureId: string): boolean {
         // Game Sub-features
         case 'game.wordle': {
             const wordleConfig = configs.getWordleConfig();
-            if (isDefined(wordleConfig)) return wordleConfig.enabled === true;
+            if (isDefined(wordleConfig)) {
+                return wordleConfig.enabled === true;
+            }
             return false;
         }
 

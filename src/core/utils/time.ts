@@ -64,12 +64,22 @@ export function formatDuration(ms: number): string {
     const s = Math.floor(seconds % 60);
 
     const parts = [];
-    if (d > 0) parts.push(`${d}d`);
-    if (h > 0) parts.push(`${h}h`);
-    if (m > 0) parts.push(`${m}m`);
-    if (s > 0) parts.push(`${s}s`);
+    if (d > 0) {
+        parts.push(`${d}d`);
+    }
+    if (h > 0) {
+        parts.push(`${h}h`);
+    }
+    if (m > 0) {
+        parts.push(`${m}m`);
+    }
+    if (s > 0) {
+        parts.push(`${s}s`);
+    }
 
-    if (parts.length === 0) return '0s';
+    if (parts.length === 0) {
+        return '0s';
+    }
 
     return parts.join(' ');
 }

@@ -120,10 +120,14 @@ function* updateLoopJob() {
 
         if (textsToUpdate) {
             for (const id of textsToUpdate) {
-                if (nextUpdateTick.get(id) !== tick) continue; // rescheduled
+                if (nextUpdateTick.get(id) !== tick) {
+                    continue;
+                } // rescheduled
 
                 const textConfig = dynamicTexts.get(id);
-                if (!textConfig || !isDefined(textConfig.updateInterval)) continue;
+                if (!textConfig || !isDefined(textConfig.updateInterval)) {
+                    continue;
+                }
 
                 scheduleTextUpdate(id, now + textConfig.updateInterval);
 
@@ -134,7 +138,9 @@ function* updateLoopJob() {
                 textsByDimension.get(dim)!.push(textConfig);
 
                 checkCount++;
-                if (checkCount % 50 === 0) yield; // Yield every 50 checks
+                if (checkCount % 50 === 0) {
+                    yield;
+                } // Yield every 50 checks
             }
         }
     }
@@ -209,7 +215,9 @@ function pruneOrphanedTexts() {
             const dimension = mc.world.getDimension(dimId);
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                if (!entity.isValid) continue;
+                if (!entity.isValid) {
+                    continue;
+                }
                 let isTracked = false;
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
@@ -252,11 +260,15 @@ function spawnAllTexts() {
             // Batch query all floating texts in this dimension
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                if (!entity.isValid) continue;
+                if (!entity.isValid) {
+                    continue;
+                }
                 for (const tag of entity.getTags()) {
                     if (tag.startsWith('ft_')) {
                         const id = tag.slice(3);
-                        if (!entityMap.has(id)) entityMap.set(id, entity);
+                        if (!entityMap.has(id)) {
+                            entityMap.set(id, entity);
+                        }
                         break;
                     }
                 }
@@ -297,7 +309,9 @@ function spawnText(textConfig: FloatingTextConfig) {
             });
 
             for (const entity of entities) {
-                if (!entity.isValid) continue;
+                if (!entity.isValid) {
+                    continue;
+                }
                 entity.remove();
             }
         } catch {

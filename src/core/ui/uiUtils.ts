@@ -196,7 +196,9 @@ export function getAllSystems(): SystemDefinition[] {
  */
 export function getVisibleSystems(player: mc.Player): SystemDefinition[] {
     return getSystemRegistry().filter((sys) => {
-        if (sys.hidden === true) return false;
+        if (sys.hidden === true) {
+            return false;
+        }
         return hasPermission(player, 'ui.panel.admin');
     });
 }
@@ -208,7 +210,9 @@ export function getVisibleCategories(player: mc.Player): SystemItem[] {
     const systems = getVisibleSystems(player);
     const categories = new Set<string>();
     for (const sys of systems) {
-        if (sys.category !== undefined && sys.category.length > 0) categories.add(sys.category);
+        if (sys.category !== undefined && sys.category.length > 0) {
+            categories.add(sys.category);
+        }
     }
 
     const sortedCategories = [...categories].sort((a, b) => a.localeCompare(b));

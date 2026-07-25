@@ -47,7 +47,9 @@ export function flag(player: mc.Player, checkName: string, message: string) {
     const config = getAnticheatConfig();
     const checkConfig = (config as unknown as Record<string, BaseCheckConfig | undefined>)[checkName];
 
-    if (config.enabled !== true || !isDefined(checkConfig) || checkConfig.enabled !== true) return;
+    if (config.enabled !== true || !isDefined(checkConfig) || checkConfig.enabled !== true) {
+        return;
+    }
 
     if (!flags.has(player.id)) {
         flags.set(player.id, new Map());

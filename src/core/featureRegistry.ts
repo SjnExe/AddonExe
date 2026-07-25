@@ -147,13 +147,17 @@ function processFeatures(): ProcessedFeature[] {
     const visiting = new Set<string>();
 
     function visit(featureId: string) {
-        if (visited.has(featureId)) return;
+        if (visited.has(featureId)) {
+            return;
+        }
         if (visiting.has(featureId)) {
             throw new Error(`[ERROR] Circular dependency detected involving feature '${featureId}'.`);
         }
 
         const feature = featureMap.get(featureId);
-        if (!feature) return;
+        if (!feature) {
+            return;
+        }
 
         visiting.add(featureId);
 

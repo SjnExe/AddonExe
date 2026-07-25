@@ -9,7 +9,9 @@ const fixPlayerCommand: CustomCommand = {
     category: 'Administration',
     permissionNode: 'cmd.fixplayer.member', // Anyone can use it on themselves
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         executor.removeTag('inSpawn');
         executor.triggerEvent('exe:enable_pvp');

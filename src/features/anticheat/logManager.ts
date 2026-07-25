@@ -47,7 +47,9 @@ export function addFlagLog(playerName: string, checkName: string, vl: number, de
 
 export function addPunishmentLog(playerName: string, type: string, reason: string, adminName: string, duration?: string) {
     const log: PunishmentLog = { timestamp: Date.now(), playerName, type, reason, adminName };
-    if (isNonEmptyString(duration)) log.duration = duration;
+    if (isNonEmptyString(duration)) {
+        log.duration = duration;
+    }
     punishLogs.push(log);
 }
 

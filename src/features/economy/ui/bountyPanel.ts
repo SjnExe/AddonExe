@@ -52,17 +52,23 @@ export async function showBountyListPanel(player: mc.Player, context: Record<str
 
 export async function showBountyPlayer(player: mc.Player, context: Record<string, unknown>): Promise<void> {
     const targetId = context.targetPlayerId as string;
-    if (!isNonEmptyString(targetId)) return;
+    if (!isNonEmptyString(targetId)) {
+        return;
+    }
 
     const targetData = getPlayer(targetId);
 
     const myData = getPlayer(player.id);
-    if (!isDefined(myData)) return showBountyListPanel(player, context);
+    if (!isDefined(myData)) {
+        return showBountyListPanel(player, context);
+    }
 
     const form = new ModalFormBuilder<{ amount: string }>().title(`Set Bounty: ${isDefined(targetData) ? targetData.name : 'Unknown'}`).textField('amount', 'Enter bounty amount (e.g. 100, 2.5k)', '');
 
     const res = await form.show(player);
-    if (!res) return showBountyListPanel(player, context);
+    if (!res) {
+        return showBountyListPanel(player, context);
+    }
 
     const amountStr = res.amount;
     const amount = parseCurrency(amountStr);
@@ -96,7 +102,9 @@ export async function showBountyPlayer(player: mc.Player, context: Record<string
 
 export async function showRemovePlayerBounty(player: mc.Player, context: Record<string, unknown>): Promise<void> {
     const targetId = context.targetPlayerId as string;
-    if (!isNonEmptyString(targetId)) return;
+    if (!isNonEmptyString(targetId)) {
+        return;
+    }
 
     const targetBounty = bountyManager.getBounty(targetId);
 
@@ -108,7 +116,9 @@ export async function showRemovePlayerBounty(player: mc.Player, context: Record<
     const form = new ModalFormBuilder<{ amount: string }>().title('Remove Bounty').textField('amount', `Current Bounty: ${formatCurrency(targetBounty.amount)}`, 'Amount to pay off');
 
     const res = await form.show(player);
-    if (!res) return showBountyListPanel(player, context);
+    if (!res) {
+        return showBountyListPanel(player, context);
+    }
 
     const amountStr = res.amount;
     const amount = parseCurrency(amountStr);

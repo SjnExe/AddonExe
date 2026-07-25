@@ -127,7 +127,9 @@ function handleOfflineEconomyCommand(executor: CommandExecutor, args: Record<str
     const targetName = args.target as string | undefined;
     const amount = validateCurrencyAmount(args.amount as string, action !== 'set');
 
-    if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
+    if (!isNonEmptyString(targetName)) {
+        return sendMessage('§cPlease specify a player name.', executor);
+    }
 
     if (action === 'set' && (!isDefined(amount) || amount < 0)) {
         return sendMessage('§cInvalid amount.', executor);
@@ -137,7 +139,9 @@ function handleOfflineEconomyCommand(executor: CommandExecutor, args: Record<str
     }
 
     const targetId = getPlayerIdByName(targetName);
-    if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+    if (!isNonEmptyString(targetId)) {
+        return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+    }
 
     const displayName = getPlayerNameById(targetId) ?? targetName;
 
