@@ -1,4 +1,3 @@
-import { loadConfig } from '@core/configLoader.js';
 import { isNonEmptyString } from '@lib/guards.js';
 
 export interface Item {
@@ -22,7 +21,8 @@ export async function ensureItemsConfig() {
             // Load from user config, fallback to default structure handled by logic if needed
             // But usually configLoader handles defaults if file missing.
             // Here we assume itemsConfig.js exists or we get empty.
-            allItems = await loadConfig<Record<string, Item>>('./core/itemsConfig.js');
+            const { items } = await import('@features/shop/itemsConfig.js');
+            allItems = items as unknown as Record<string, Item>;
         } catch {
             // Ignore error, allItems remains empty
         }

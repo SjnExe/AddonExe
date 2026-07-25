@@ -39,6 +39,60 @@ export interface ConfigCategory {
 
 export const configPanelSchema: ConfigCategory[] = [
     {
+        id: 'shopSettings',
+        title: 'Shop Settings',
+        icon: 'textures/ui/trade_icon',
+        configSource: 'shop',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'ui.useCustomUI',
+                label: 'Use Custom UI',
+                type: 'toggle',
+                description: 'Enable advanced UI formats for Shop.'
+            },
+            {
+                key: 'validation.checkIllegalItems',
+                label: 'Check Illegal Items',
+                type: 'toggle',
+                description: 'Verify items are legal before purchase.'
+            }
+        ]
+    },
+    {
+        id: 'featureToggles',
+        title: 'Feature Toggles',
+        icon: 'textures/ui/settings_glyph_color_2x',
+        configSource: 'main',
+        category: 'Server & Network',
+        settings: [
+            {
+                key: 'economy.enabled',
+                label: 'Enable Economy',
+                type: 'toggle',
+                description: 'Master switch for all economy-related features (Shop, Auction, Bounties, etc).'
+            },
+            {
+                key: 'shop.enabled',
+                label: 'Enable Shop',
+                type: 'toggle',
+                description: 'Enables or disables the Shop system.'
+            },
+            {
+                key: 'kits.enabled',
+                label: 'Enable Kits',
+                type: 'toggle',
+                description: 'Enables or disables the entire Kit System.'
+            },
+            {
+                key: 'voting.enabled',
+                label: 'Enable Voting',
+                type: 'toggle',
+                description: 'Enables or disables the voting system.'
+            }
+        ]
+    },
+    {
         id: 'dailyRewards',
         title: 'Daily Rewards',
         icon: 'textures/items/gold_ingot',
@@ -53,42 +107,13 @@ export const configPanelSchema: ConfigCategory[] = [
             }
         ]
     },
-    {
-        id: 'voting',
-        title: 'Voting System',
-        icon: 'textures/ui/icon_recipe_item',
-        configSource: 'main',
-        category: 'Economy',
-        settings: [
-            {
-                key: 'voting.enabled',
-                label: 'Enable Voting',
-                type: 'toggle',
-                description: 'Enables or disables the voting system.'
-            }
-        ]
-    },
-    {
-        id: 'kits_toggle',
-        title: 'Kit System Toggle',
-        icon: 'textures/ui/inventory_icon',
-        configSource: 'main',
-        category: 'Economy',
-        settings: [
-            {
-                key: 'kits.enabled',
-                label: 'Enable Kit System',
-                type: 'toggle',
-                description: 'Enables or disables the entire Kit System.'
-            }
-        ]
-    },
+
     {
         id: 'general_server',
         title: 'Server Info',
         icon: 'textures/ui/icon_book_writable',
         configSource: 'main',
-        category: 'Server',
+        category: 'Server & Network',
         settings: [
             {
                 key: 'serverName',
@@ -115,14 +140,8 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Back System',
         icon: 'textures/ui/refresh_light',
         configSource: 'main',
-        category: 'World',
+        category: 'Teleportation & World',
         settings: [
-            {
-                key: 'back.enabled',
-                label: 'Enable Back',
-                type: 'toggle',
-                description: 'Enables or disables the /back command.'
-            },
             {
                 key: 'back.cost',
                 label: 'Cost',
@@ -205,7 +224,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Gameplay Settings',
         icon: 'textures/items/iron_sword',
         configSource: 'main',
-        category: 'Gameplay',
+        category: 'Server & Network',
         settings: [
             {
                 key: 'defaultGamemode',
@@ -221,7 +240,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'System Settings',
         icon: 'textures/ui/settings_glyph_color_2x',
         configSource: 'main',
-        category: 'System',
+        category: 'Server & Network',
         settings: [
             {
                 key: 'logLevel',
@@ -243,14 +262,8 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Announcement System',
         icon: 'textures/ui/icon_bell',
         configSource: 'main',
-        category: 'Chat',
+        category: 'Server & Network',
         settings: [
-            {
-                key: 'announcements.enabled',
-                label: 'Announcements Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the periodic announcement broadcast.'
-            },
             {
                 key: 'announcements.message',
                 label: 'Announcement Message',
@@ -305,49 +318,14 @@ export const configPanelSchema: ConfigCategory[] = [
             }
         ]
     },
-    {
-        id: 'economy_toggle',
-        title: 'Economy System Toggle',
-        icon: 'textures/items/emerald',
-        configSource: 'main',
-        category: 'Economy',
-        settings: [
-            {
-                key: 'economy.enabled',
-                label: 'Enable Economy System',
-                type: 'toggle',
-                description: 'Master switch for all economy-related features (Shop, Auction, Bounties, etc).'
-            }
-        ]
-    },
-    {
-        id: 'shop_toggle',
-        title: 'Shop System Toggle',
-        icon: 'textures/ui/trade_icon',
-        configSource: 'main',
-        category: 'Economy',
-        settings: [
-            {
-                key: 'shop.enabled',
-                label: 'Enable Shop System',
-                type: 'toggle',
-                description: 'Enables or disables the Shop system.'
-            }
-        ]
-    },
+
     {
         id: 'warps',
         title: 'Warp System',
         icon: 'textures/blocks/portal',
         configSource: 'main',
-        category: 'World',
+        category: 'Teleportation & World',
         settings: [
-            {
-                key: 'warps.enabled',
-                label: 'Warps Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire warp system.'
-            },
             {
                 key: 'warps.cooldownSeconds',
                 label: 'Cooldown (s)',
@@ -370,12 +348,6 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'Economy',
         settings: [
             {
-                key: 'bounties.enabled',
-                label: 'Bounties Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the bounty system.'
-            },
-            {
                 key: 'bounties.bountyCreditTimeoutSeconds',
                 label: 'Credit Timeout (s)',
                 type: 'textField',
@@ -394,14 +366,8 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Chat Settings',
         icon: 'textures/ui/chat_send',
         configSource: 'main',
-        category: 'Chat',
+        category: 'Server & Network',
         settings: [
-            {
-                key: 'chat.enabled',
-                label: 'Chat Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the chat system.'
-            },
             {
                 key: 'chat.allowMentions',
                 label: 'Allow Mentions',
@@ -433,7 +399,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Spawn System',
         icon: 'textures/blocks/beacon',
         configSource: 'main',
-        category: 'World',
+        category: 'Teleportation & World',
         settings: [
             {
                 key: 'spawn.syncWorldSpawn',
@@ -483,12 +449,6 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Spawn Z Coordinate',
                 type: 'textField',
                 description: 'Leave blank or set with /setspawn.'
-            },
-            {
-                key: 'spawnProtection.enabled',
-                label: 'Protection Enabled',
-                type: 'toggle',
-                description: 'Master switch for all spawn protection features.'
             },
             {
                 key: 'spawnProtection.protectionRadius',
@@ -587,14 +547,8 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'TPA System',
         icon: 'textures/items/ender_pearl',
         configSource: 'main',
-        category: 'World',
+        category: 'Teleportation & World',
         settings: [
-            {
-                key: 'tpa.enabled',
-                label: 'TPA Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire TPA system.'
-            },
             {
                 key: 'tpa.requestTimeoutSeconds',
                 label: 'Request Timeout (s)',
@@ -620,14 +574,8 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Home System',
         icon: 'textures/ui/icon_recipe_item',
         configSource: 'main',
-        category: 'World',
+        category: 'Teleportation & World',
         settings: [
-            {
-                key: 'homes.enabled',
-                label: 'Homes Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the entire home system.'
-            },
             {
                 key: 'homes.maxHomes',
                 label: 'Max Homes',
@@ -653,14 +601,8 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Random Teleport',
         icon: 'textures/items/ender_pearl',
         configSource: 'main',
-        category: 'World',
+        category: 'Teleportation & World',
         settings: [
-            {
-                key: 'rtp.enabled',
-                label: 'RTP Enabled',
-                type: 'toggle',
-                description: 'Enables or disables the /rtp command.'
-            },
             {
                 key: 'rtp.minRange',
                 label: 'Minimum Range',
@@ -692,7 +634,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Player Info System',
         icon: 'textures/ui/icon_multiplayer',
         configSource: 'main',
-        category: 'Visuals',
+        category: 'Visuals & UI',
         settings: [
             {
                 key: 'playerInfo.enableWelcomer',
@@ -743,7 +685,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'X-Ray System',
         icon: 'textures/blocks/diamond_ore',
         configSource: 'xray',
-        category: 'Moderation',
+        category: 'Moderation & Rules',
         settings: [
             {
                 key: 'settings.ignoreCreative',
@@ -794,7 +736,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Dimension Locking',
         icon: 'textures/ui/realmPortalSmall',
         configSource: 'main',
-        category: 'World',
+        category: 'Teleportation & World',
         settings: [
             {
                 key: 'dimensionLock.netherLock',
@@ -932,7 +874,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Restart Settings',
         icon: 'textures/ui/refresh_light',
         configSource: 'main',
-        category: 'Server',
+        category: 'Server & Network',
         settings: [
             {
                 key: 'restart.countdownSeconds',
@@ -959,7 +901,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Report Settings',
         icon: 'textures/ui/WarningGlyph',
         configSource: 'main',
-        category: 'Moderation',
+        category: 'Moderation & Rules',
         settings: [
             {
                 key: 'reports.resolvedReportLifetimeDays',
@@ -974,7 +916,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Sidebar System',
         icon: 'textures/items/book_writable',
         configSource: 'sidebar',
-        category: 'Visuals',
+        category: 'Visuals & UI',
         settings: [
             {
                 key: 'enabled',
@@ -1032,7 +974,7 @@ export const configPanelSchema: ConfigCategory[] = [
         title: 'Anti-Cheat System',
         icon: 'textures/items/iron_chestplate',
         configSource: 'anticheat',
-        category: 'Moderation',
+        category: 'Moderation & Rules',
         settings: [
             {
                 key: 'enabled',

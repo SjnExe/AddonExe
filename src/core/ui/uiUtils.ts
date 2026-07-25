@@ -31,7 +31,7 @@ import { economyConfig } from '@features/economy/economyConfig.js';
 import { gamesConfig } from '@features/games/gamesConfig.js';
 import { wordleConfig } from '@features/games/wordle/wordleConfig.js';
 import ranksConfig from '@features/ranks/ranksConfig.js';
-import { shopConfig } from '@features/shop/shopConfig.js';
+import { getShopConfig, saveShopConfig, shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
 import * as mc from '@minecraft/server';
 
@@ -82,6 +82,11 @@ export const configHandlers: Record<string, ConfigHandler> = {
     auctionHouse: {
         get: getAuctionHouseConfig,
         save: (config: unknown) => saveAuctionHouseConfig(config as AuctionHouseConfig)
+    },
+
+    shop: {
+        get: getShopConfig,
+        save: (config: unknown) => saveShopConfig(config as ShopConfig)
     },
     games: {
         get: getGamesConfig,
@@ -208,8 +213,8 @@ export function getVisibleCategories(player: mc.Player): SystemItem[] {
 
     const sortedCategories = [...categories].sort((a, b) => a.localeCompare(b));
 
-    // Add "Reset" category if Owner
-    if (hasPermission(player, 'ui.panel.owner')) {
+    // Add "Reset" category if Admin/Owner
+    if (hasPermission(player, 'ui.panel.admin')) {
         // Reset isn't a category in systemRegistry, it's a panel.
         // We handle Reset separately in panelBuilder.
     }
