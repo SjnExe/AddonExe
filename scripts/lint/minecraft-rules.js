@@ -22,22 +22,28 @@ export default {
         'no-magic-minecraft-strings': {
             meta: { type: 'problem', docs: { description: 'Require @minecraft/vanilla-data for identifier strings' } },
             create(context) {
-                function isComponentCall(node) {
-                    let parent = node.parent;
-                    if (parent?.type === 'TemplateLiteral') {
-                        parent = parent.parent;
-                    }
-                    if (parent?.type === 'CallExpression' && parent.callee?.type === 'MemberExpression') {
-                        const prop = parent.callee.property?.name;
-                        return ['getComponent', 'hasComponent', 'getComponentNet'].includes(prop);
-                    }
-                    return false;
-                }
+                const allowedNodes = new WeakSet();
 
                 return {
+                    CallExpression(node) {
+                        if (node.callee?.type === 'MemberExpression') {
+                            const propName = node.callee.property?.name;
+                            if (['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
+                                for (const arg of node.arguments || []) {
+                                    if (arg.type === 'Literal') {
+                                        allowedNodes.add(arg);
+                                    } else if (arg.type === 'TemplateLiteral') {
+                                        for (const quasi of arg.quasis || []) {
+                                            allowedNodes.add(quasi);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     Literal(node) {
                         if (typeof node.value === 'string' && node.value.startsWith('minecraft:')) {
-                            if (!isComponentCall(node)) {
+                            if (!allowedNodes.has(node)) {
                                 context.report({
                                     node,
                                     message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
@@ -47,7 +53,7 @@ export default {
                     },
                     TemplateElement(node) {
                         if (node.value?.raw?.startsWith('minecraft:')) {
-                            if (!isComponentCall(node)) {
+                            if (!allowedNodes.has(node)) {
                                 context.report({
                                     node,
                                     message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
