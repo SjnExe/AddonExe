@@ -8,6 +8,14 @@ const isTermux = existsSync('/data/data/com.termux');
 const homeDir = os.homedir();
 
 async function configureSystemEnvironment() {
+    // bun-node-shim: Route Node-dependent hooks/wrappers directly to Bun on Termux
+    const binDir = path.join(homeDir, '.bun/bin');
+    const nodeShimPath = path.join(binDir, 'node');
+    if (isTermux && !existsSync(nodeShimPath)) {
+        await fs.mkdir(binDir, { recursive: true });
+        await fs.symlink(process.execPath, nodeShimPath).catch(() => {});
+        console.log('🔗 Created Termux Node -> Bun compatibility symlink.');
+    }
     console.log('🔍 Analyzing system environment profile...');
 
     if (isTermux) {

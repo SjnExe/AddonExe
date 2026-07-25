@@ -22,29 +22,59 @@ export default {
         'no-magic-minecraft-strings': {
             meta: { type: 'problem', docs: { description: 'Require @minecraft/vanilla-data for identifier strings' } },
             create(context) {
-                let insideAllowedCall = 0;
+                const allowedNodes = new Set();
 
-                function isTargetMethod(node) {
-                    if (node.callee?.type === 'MemberExpression') {
-                        const propName = node.callee.property?.name;
-                        return ['getComponent', 'hasComponent', 'getComponentNet'].includes(propName);
+                function getNodeKey(node) {
+                    if (!node) {
+                        return null;
                     }
-                    return false;
+                    if (node.start !== undefined) {
+                        return node.start;
+                    }
+                    if (Array.isArray(node.range)) {
+                        return node.range[0];
+                    }
+                    if (node.loc?.start) {
+                        return `${node.loc.start.line}:${node.loc.start.column}`;
+                    }
+                    return null;
+                }
+
+                function markAllowed(arg) {
+                    const key = getNodeKey(arg);
+                    if (key !== null) {
+                        allowedNodes.add(key);
+                    }
+                    if (arg?.type === 'TemplateLiteral') {
+                        for (const quasi of arg.quasis || []) {
+                            const qKey = getNodeKey(quasi);
+                            if (qKey !== null) {
+                                allowedNodes.add(qKey);
+                            }
+                        }
+                    }
                 }
 
                 return {
-                    CallExpression(node) {
-                        if (isTargetMethod(node)) {
-                            insideAllowedCall++;
-                        }
+                    Program() {
+                        allowedNodes.clear();
                     },
-                    'CallExpression:exit'(node) {
-                        if (isTargetMethod(node)) {
-                            insideAllowedCall--;
+                    CallExpression(node) {
+                        if (node.callee?.type === 'MemberExpression') {
+                            const propName = node.callee.property?.name;
+                            if (['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
+                                for (const arg of node.arguments || []) {
+                                    markAllowed(arg);
+                                }
+                            }
                         }
                     },
                     Literal(node) {
-                        if (insideAllowedCall === 0 && typeof node.value === 'string' && node.value.startsWith('minecraft:')) {
+                        if (typeof node.value === 'string' && node.value.startsWith('minecraft:')) {
+                            const key = getNodeKey(node);
+                            if (key !== null && allowedNodes.has(key)) {
+                                return;
+                            }
                             context.report({
                                 node,
                                 message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
@@ -52,7 +82,11 @@ export default {
                         }
                     },
                     TemplateElement(node) {
-                        if (insideAllowedCall === 0 && node.value?.raw?.startsWith('minecraft:')) {
+                        if (node.value?.raw?.startsWith('minecraft:')) {
+                            const key = getNodeKey(node);
+                            if (key !== null && allowedNodes.has(key)) {
+                                return;
+                            }
                             context.report({
                                 node,
                                 message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
