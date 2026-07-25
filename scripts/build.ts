@@ -49,11 +49,11 @@ async function getVersionParts() {
     if (isNightly) {
         finalParts = [major, minor, buildNumber];
         finalStr = `${major}.${minor}.${buildNumber}`;
-        console.log(`[Build] Mode: Nightly Build`);
+        console.log('[Build] Mode: Nightly Build');
     } else if (isRelease) {
-        console.log(`[Build] Mode: Public Release`);
+        console.log('[Build] Mode: Public Release');
     } else {
-        console.log(`[Build] Mode: Local Build`);
+        console.log('[Build] Mode: Local Build');
     }
 
     console.log(`[Build] Version Resolved: ${finalStr} -> [${finalParts.join(', ')}]`);
@@ -79,7 +79,6 @@ export const iconIndexPlugin = {
             const regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
 
             for (const file of tsFiles) {
-                // Skip the generated icon index itself to prevent recursive loop / duplicates
                 if (file.includes('virtual:icon-index')) {
                     continue;
                 }
@@ -128,31 +127,16 @@ export const commandIndexPlugin = {
             try {
                 const registryTsPath = path.resolve(SRC_DIR, 'core/featureRegistry.ts');
                 const registryContent = await Bun.file(registryTsPath).text();
-                const ts = await import('typescript');
-                const sourceFile = ts.createSourceFile('featureRegistry.ts', registryContent, ts.ScriptTarget.Latest, true);
-
-                function visit(node: import('typescript').Node) {
-                    if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && node.name.text === 'load' && ts.isArrowFunction(node.initializer)) {
-                        const callExpr = node.initializer.body;
-                        if (ts.isCallExpression(callExpr) && callExpr.expression.getText() === 'import' && callExpr.arguments.length > 0) {
-                            const arg = callExpr.arguments[0];
-                            if (ts.isStringLiteral(arg)) {
-                                const match = arg.text.match(new RegExp('@features/([^/]+)/'));
-                                if (match && match[1]) {
-                                    const featureName = match[1];
-                                    if (featureName === 'test' && !isNightly) {
-                                        return;
-                                    }
-                                    if (!featureDirs.includes(featureName)) {
-                                        featureDirs.push(featureName);
-                                    }
-                                }
-                            }
-                        }
+                const featureMatches = registryContent.matchAll(/@features\/([^/'"]+)\//g);
+                for (const match of featureMatches) {
+                    const featureName = match[1];
+                    if (featureName === 'test' && !isNightly) {
+                        continue;
                     }
-                    ts.forEachChild(node, visit);
+                    if (!featureDirs.includes(featureName)) {
+                        featureDirs.push(featureName);
+                    }
                 }
-                visit(sourceFile);
             } catch (error: any) {
                 console.warn(`[Plugin] Error parsing featureRegistry.ts: ${error.message}`);
             }
@@ -222,6 +206,27 @@ export function loadCommands() {
     }
 };
 
+const bunTranspiler = new Bun.Transpiler({ loader: 'ts' });
+
+function transformConfigContent(raw: string): string {
+    let content = raw.replace(/import\s+\{[^}]*\}\s+from\s+['"]@minecraft\/vanilla-data['"];?/g, '');
+    const typeEnums = ['MinecraftItemTypes', 'MinecraftDimensionTypes', 'MinecraftBlockTypes', 'MinecraftEntityTypes', 'ItemComponentTypes', 'EntityComponentTypes'];
+    const enumRegex = new RegExp(`\\b(${typeEnums.join('|')})\\.([A-Za-z0-9_]+)\\b`, 'g');
+    const overrides: Record<string, string> = {
+        BowInfinity: 'minecraft:infinity',
+        EvocationIllager: 'minecraft:evocation_illager',
+        HardenedClay: 'minecraft:terracotta',
+        UndyedShulkerBox: 'minecraft:shulker_box'
+    };
+    return content.replace(enumRegex, (_, _typeGroup, prop) => {
+        if (overrides[prop]) {
+            return `'${overrides[prop]}'`;
+        }
+        const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
+        return `'minecraft:${snake}'`;
+    });
+}
+
 async function compileScripts(versionArray: number[], outDirSuffix: string = '') {
     console.log(`[Build] Compiling Scripts...`);
 
@@ -231,7 +236,6 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
     const featuresDir = path.join(srcDir, 'features');
     const outDir = path.resolve(__dirname, `../packs/behavior/scripts${outDirSuffix}`);
 
-    // Map main config path
     configPaths.push({
         src: path.join(srcDir, 'config.ts'),
         dest: path.join(outDir, 'config.js')
@@ -280,7 +284,7 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
     const externalConfigs = ['src/main.ts', ...allConfigEntrypoints].map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
     const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
 
-    // Pass 1: Bundle Core Engine Modules (Optimized & Minified)
+    // Pass 1: Bundle Core Engine Modules
     const coreResult = await Bun.build({
         entrypoints: coreEntrypoints,
         outdir: outDir,
@@ -307,47 +311,7 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
         process.exit(1);
     }
 
-    // Pass 2: AST-Based Translation Pass for User Configs (Preserves Comments, Spacing, and Formats cleanly)
-    const ts = await import('typescript');
-
-    const configTransformer = (context: import('typescript').TransformationContext) => {
-        return (rootNode: import('typescript').SourceFile) => {
-            function visit(node: import('typescript').Node): import('typescript').Node | undefined {
-                if (ts.isPropertyAccessExpression(node)) {
-                    if (ts.isIdentifier(node.expression)) {
-                        const expName = node.expression.text;
-                        if (['MinecraftItemTypes', 'MinecraftDimensionTypes', 'MinecraftBlockTypes', 'MinecraftEntityTypes', 'ItemComponentTypes', 'EntityComponentTypes'].includes(expName)) {
-                            const prop = node.name.text;
-                            if (prop === 'BowInfinity') {
-                                return ts.factory.createStringLiteral('minecraft:infinity');
-                            }
-                            if (prop === 'EvocationIllager') {
-                                return ts.factory.createStringLiteral('minecraft:evocation_illager');
-                            }
-                            if (prop === 'HardenedClay') {
-                                return ts.factory.createStringLiteral('minecraft:terracotta');
-                            }
-                            if (prop === 'UndyedShulkerBox') {
-                                return ts.factory.createStringLiteral('minecraft:shulker_box');
-                            }
-
-                            const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
-                            return ts.factory.createStringLiteral(`minecraft:${snake}`);
-                        }
-                    }
-                }
-                if (ts.isImportDeclaration(node)) {
-                    const moduleSpecifier = node.moduleSpecifier;
-                    if (ts.isStringLiteral(moduleSpecifier) && moduleSpecifier.text === '@minecraft/vanilla-data') {
-                        return undefined; // Remove the import
-                    }
-                }
-                return ts.visitEachChild(node, visit, context);
-            }
-            return ts.visitNode(rootNode, visit) as import('typescript').SourceFile;
-        };
-    };
-
+    // Pass 2: Fast Native Bun Transpilation for User Configs
     for (const conf of configPaths) {
         try {
             let content = await Bun.file(conf.src).text();
@@ -360,19 +324,11 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
                 }
             }
 
-            content = ts.transpileModule(content, {
-                compilerOptions: {
-                    target: ts.ScriptTarget.ESNext,
-                    module: ts.ModuleKind.ESNext,
-                    removeComments: false
-                },
-                transformers: {
-                    before: [configTransformer]
-                }
-            }).outputText;
+            content = transformConfigContent(content);
+            const jsOutput = bunTranspiler.transformSync(content);
 
             await fs.mkdir(path.dirname(conf.dest), { recursive: true });
-            await fs.writeFile(conf.dest, content, 'utf8');
+            await fs.writeFile(conf.dest, jsOutput, 'utf8');
         } catch (err: any) {
             console.error(`[Build] Failed to process configuration asset ${conf.src}: ${err.message}`);
             process.exit(1);

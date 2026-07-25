@@ -80,7 +80,7 @@
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
         "type-fest": "latest",
-        "typescript": "latest"
+        "typescript": "^7.0.2"
     },
     "trustedDependencies": [
         "bufferutil",
