@@ -22,89 +22,41 @@ export default {
         'no-magic-minecraft-strings': {
             meta: { type: 'problem', docs: { description: 'Require @minecraft/vanilla-data for identifier strings' } },
             create(context) {
-                const allowedRanges = new Set();
+                let insideAllowedCall = 0;
 
-                function getRangeKey(node) {
-                    if (!node) {
-                        return null;
-                    }
-                    if (Array.isArray(node.range)) {
-                        return node.range.join(':');
-                    }
-                    if (node.start !== undefined && node.end !== undefined) {
-                        return `${node.start}:${node.end}`;
-                    }
-                    if (node.loc) {
-                        return `${node.loc.start.line}:${node.loc.start.column}:${node.loc.end.line}:${node.loc.end.column}`;
-                    }
-                    return null;
-                }
-
-                function preScanAllowedCalls(node) {
-                    if (!node || typeof node !== 'object') {
-                        return;
-                    }
-                    if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression') {
+                function isTargetMethod(node) {
+                    if (node.callee?.type === 'MemberExpression') {
                         const propName = node.callee.property?.name;
-                        if (['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
-                            for (const arg of node.arguments || []) {
-                                const key = getRangeKey(arg);
-                                if (key) {
-                                    allowedRanges.add(key);
-                                }
-                                if (arg.type === 'TemplateLiteral') {
-                                    for (const quasi of arg.quasis || []) {
-                                        const qKey = getRangeKey(quasi);
-                                        if (qKey) {
-                                            allowedRanges.add(qKey);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        return ['getComponent', 'hasComponent', 'getComponentNet'].includes(propName);
                     }
-                    for (const k in node) {
-                        if (k === 'parent') {
-                            continue;
-                        }
-                        const child = node[k];
-                        if (Array.isArray(child)) {
-                            for (const item of child) {
-                                if (item && typeof item === 'object' && typeof item.type === 'string') {
-                                    preScanAllowedCalls(item);
-                                }
-                            }
-                        } else if (child && typeof child === 'object' && typeof child.type === 'string') {
-                            preScanAllowedCalls(child);
-                        }
-                    }
+                    return false;
                 }
 
                 return {
-                    Program(node) {
-                        allowedRanges.clear();
-                        preScanAllowedCalls(node);
+                    CallExpression(node) {
+                        if (isTargetMethod(node)) {
+                            insideAllowedCall++;
+                        }
+                    },
+                    'CallExpression:exit'(node) {
+                        if (isTargetMethod(node)) {
+                            insideAllowedCall--;
+                        }
                     },
                     Literal(node) {
-                        if (typeof node.value === 'string' && node.value.startsWith('minecraft:')) {
-                            const key = getRangeKey(node);
-                            if (!key || !allowedRanges.has(key)) {
-                                context.report({
-                                    node,
-                                    message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
-                                });
-                            }
+                        if (insideAllowedCall === 0 && typeof node.value === 'string' && node.value.startsWith('minecraft:')) {
+                            context.report({
+                                node,
+                                message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
+                            });
                         }
                     },
                     TemplateElement(node) {
-                        if (node.value?.raw?.startsWith('minecraft:')) {
-                            const key = getRangeKey(node);
-                            if (!key || !allowedRanges.has(key)) {
-                                context.report({
-                                    node,
-                                    message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
-                                });
-                            }
+                        if (insideAllowedCall === 0 && node.value?.raw?.startsWith('minecraft:')) {
+                            context.report({
+                                node,
+                                message: 'Do not use magic strings for Minecraft IDs. Use @minecraft/vanilla-data instead.'
+                            });
                         }
                     }
                 };
