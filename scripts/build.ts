@@ -17,7 +17,9 @@ let buildNumber = 0;
 const buildNumIndex = args.indexOf('--build-number');
 if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
     buildNumber = Number.parseInt(args[buildNumIndex + 1], 10);
-    if (isNaN(buildNumber)) buildNumber = 0;
+    if (isNaN(buildNumber)) {
+        buildNumber = 0;
+    }
 }
 
 const pkgPath = path.resolve(__dirname, '../package.json');
@@ -31,9 +33,15 @@ async function getVersionParts() {
     let minor = parts[1] || 0;
     let patch = parts[2] || 0;
 
-    if (isNaN(major)) major = 0;
-    if (isNaN(minor)) minor = 0;
-    if (isNaN(patch)) patch = 0;
+    if (isNaN(major)) {
+        major = 0;
+    }
+    if (isNaN(minor)) {
+        minor = 0;
+    }
+    if (isNaN(patch)) {
+        patch = 0;
+    }
 
     let finalParts = [major, minor, patch];
     let finalStr = `${major}.${minor}.${patch}`;
@@ -72,14 +80,18 @@ export const iconIndexPlugin = {
 
             for (const file of tsFiles) {
                 // Skip the generated icon index itself to prevent recursive loop / duplicates
-                if (file.includes('virtual:icon-index')) continue;
+                if (file.includes('virtual:icon-index')) {
+                    continue;
+                }
 
                 try {
                     const content = await Bun.file(file).text();
                     let match;
                     while ((match = regex.exec(content)) !== null) {
                         const iconPath = match[1] || match[2] || match[3];
-                        if (iconPath) textures.add(iconPath);
+                        if (iconPath) {
+                            textures.add(iconPath);
+                        }
                     }
                 } catch {
                     // Ignore read errors
@@ -128,7 +140,9 @@ export const commandIndexPlugin = {
                                 const match = arg.text.match(new RegExp('@features/([^/]+)/'));
                                 if (match && match[1]) {
                                     const featureName = match[1];
-                                    if (featureName === 'test' && !isNightly) return;
+                                    if (featureName === 'test' && !isNightly) {
+                                        return;
+                                    }
                                     if (!featureDirs.includes(featureName)) {
                                         featureDirs.push(featureName);
                                     }
@@ -253,7 +267,9 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
             if ((await fs.stat(fullPath)).isDirectory()) {
                 const files = await fs.readdir(fullPath);
                 for (const file of files) {
-                    if (file.endsWith('Config.ts')) allConfigEntrypoints.push(`src/features/${dir}/${file}`);
+                    if (file.endsWith('Config.ts')) {
+                        allConfigEntrypoints.push(`src/features/${dir}/${file}`);
+                    }
                 }
             }
         }
@@ -285,7 +301,9 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
 
     if (!coreResult.success) {
         console.error(`[Build] Core script compilation failed:`);
-        for (const msg of coreResult.logs) console.error(msg);
+        for (const msg of coreResult.logs) {
+            console.error(msg);
+        }
         process.exit(1);
     }
 
@@ -300,10 +318,18 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
                         const expName = node.expression.text;
                         if (['MinecraftItemTypes', 'MinecraftDimensionTypes', 'MinecraftBlockTypes', 'MinecraftEntityTypes', 'ItemComponentTypes', 'EntityComponentTypes'].includes(expName)) {
                             const prop = node.name.text;
-                            if (prop === 'BowInfinity') return ts.factory.createStringLiteral('minecraft:infinity');
-                            if (prop === 'EvocationIllager') return ts.factory.createStringLiteral('minecraft:evocation_illager');
-                            if (prop === 'HardenedClay') return ts.factory.createStringLiteral('minecraft:terracotta');
-                            if (prop === 'UndyedShulkerBox') return ts.factory.createStringLiteral('minecraft:shulker_box');
+                            if (prop === 'BowInfinity') {
+                                return ts.factory.createStringLiteral('minecraft:infinity');
+                            }
+                            if (prop === 'EvocationIllager') {
+                                return ts.factory.createStringLiteral('minecraft:evocation_illager');
+                            }
+                            if (prop === 'HardenedClay') {
+                                return ts.factory.createStringLiteral('minecraft:terracotta');
+                            }
+                            if (prop === 'UndyedShulkerBox') {
+                                return ts.factory.createStringLiteral('minecraft:shulker_box');
+                            }
 
                             const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
                             return ts.factory.createStringLiteral(`minecraft:${snake}`);
@@ -360,8 +386,12 @@ async function main() {
     console.log('--- Starting Build Pipeline ---');
 
     const updateArgs = [];
-    if (isNightly) updateArgs.push('--nightly');
-    if (buildNumber > 0) updateArgs.push('--build-number', String(buildNumber));
+    if (isNightly) {
+        updateArgs.push('--nightly');
+    }
+    if (buildNumber > 0) {
+        updateArgs.push('--build-number', String(buildNumber));
+    }
 
     await $`bun scripts/update-manifests.ts ${updateArgs}`;
 
@@ -375,7 +405,9 @@ async function main() {
         console.log('[Watch] Watching for file changes...');
         let buildTimeout: any = null;
         const debounceBuild = () => {
-            if (buildTimeout) clearTimeout(buildTimeout);
+            if (buildTimeout) {
+                clearTimeout(buildTimeout);
+            }
             buildTimeout = setTimeout(async () => {
                 console.log('[Watch] Change detected, rebuilding...');
                 try {

@@ -57,7 +57,9 @@ export class StorageManager {
             for (let i = 0; i < chunks; i++) {
                 const chunk = jsonString.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
                 mc.world.setDynamicProperty(`${this.dbName}:${i}`, chunk);
-                if (i % 2 === 0) yield; // Yield every 2 chunks
+                if (i % 2 === 0) {
+                    yield;
+                } // Yield every 2 chunks
             }
 
             // Cleanup old chunks
@@ -65,7 +67,9 @@ export class StorageManager {
             while (mc.world.getDynamicProperty(`${this.dbName}:${nextIndex}`) !== undefined) {
                 mc.world.setDynamicProperty(`${this.dbName}:${nextIndex}`, undefined); // Delete
                 nextIndex++;
-                if (nextIndex % 5 === 0) yield;
+                if (nextIndex % 5 === 0) {
+                    yield;
+                }
             }
         } catch (error) {
             errorLog(`[StorageManager] Failed to saveJob ${this.dbName}`, error);

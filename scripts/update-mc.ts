@@ -7,12 +7,16 @@ function compareVersions(v1: string, v2: string) {
     const regex = /^(\d+)\.(\d+)\.(\d+)-beta\.(\d+)\.(\d+)\.(\d+)-stable$/;
     const m1 = v1.match(regex);
     const m2 = v2.match(regex);
-    if (!m1 || !m2) return 0;
+    if (!m1 || !m2) {
+        return 0;
+    }
 
     for (let i = 1; i <= 6; i++) {
         const n1 = parseInt(m1[i], 10);
         const n2 = parseInt(m2[i], 10);
-        if (n1 !== n2) return n1 - n2;
+        if (n1 !== n2) {
+            return n1 - n2;
+        }
     }
     return 0;
 }
@@ -29,13 +33,17 @@ async function autoAlignDependencies() {
             const response = await fetch(`https://registry.npmjs.org/${pkg}`, {
                 headers: { Accept: 'application/vnd.npm.install-v1+json' }
             });
-            if (!response.ok) continue;
+            if (!response.ok) {
+                continue;
+            }
 
             const data = await response.json();
             const versions = Object.keys(data.versions || {});
 
             const betaVersions = versions.filter((v) => /^(\d+)\.(\d+)\.(\d+)-beta\.(\d+)\.(\d+)\.(\d+)-stable$/.test(v));
-            if (betaVersions.length === 0) continue;
+            if (betaVersions.length === 0) {
+                continue;
+            }
 
             betaVersions.sort(compareVersions);
             const matchedVersion = betaVersions[betaVersions.length - 1];

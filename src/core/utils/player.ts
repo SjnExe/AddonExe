@@ -8,14 +8,18 @@ import { isDefined } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
-    if (!input) return [];
+    if (!input) {
+        return [];
+    }
 
     const lowerInput = input.toLowerCase();
 
     // 1. Selector Support (@s, @p, @a, @r)
     if (input.startsWith('@')) {
         // @s: Self
-        if (lowerInput === '@s') return [executor];
+        if (lowerInput === '@s') {
+            return [executor];
+        }
 
         // @p: Nearest player (excluding self?) - Vanilla includes self usually.
         // Documentation memory says "@p excludes the executing player" in this codebase.
@@ -26,7 +30,9 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
             const allPlayers = getAllPlayersFromCache();
 
             for (const player of allPlayers) {
-                if (player.id === executor.id) continue;
+                if (player.id === executor.id) {
+                    continue;
+                }
                 // Approximate distance check (squared)
                 const distSq = Vector3Utils.distance(player.location, executor.location) ** 2;
 
@@ -39,12 +45,16 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
         }
 
         // @a: All players
-        if (lowerInput === '@a') return getAllPlayersFromCache();
+        if (lowerInput === '@a') {
+            return getAllPlayersFromCache();
+        }
 
         // @r: Random player
         if (lowerInput === '@r') {
             const all = getAllPlayersFromCache();
-            if (all.length === 0) return [];
+            if (all.length === 0) {
+                return [];
+            }
             // nosemgrep: javascript.builtins.insecure-random.insecure-random
             // Risk Accepted: Math.random() is acceptable here because this is for simple random player selection in a game context, not for cryptography.
             const random = all[Math.floor(Math.random() * all.length)];
@@ -54,18 +64,24 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 
     // 2. Exact Name Match
     const exactMatch = findPlayerByName(lowerInput);
-    if (exactMatch) return [exactMatch];
+    if (exactMatch) {
+        return [exactMatch];
+    }
 
     // 3. Quoted Name Match (handling "Name With Spaces")
     const cleanInput = input.replaceAll('"', '');
     const quotedMatch = findPlayerByName(cleanInput);
     // ensure exact case match like the previous implementation
-    if (quotedMatch && quotedMatch.name === cleanInput) return [quotedMatch];
+    if (quotedMatch && quotedMatch.name === cleanInput) {
+        return [quotedMatch];
+    }
 
     // 4. Partial Name Match
     const allPlayers = getAllPlayersFromCache();
     const partialMatches = allPlayers.filter((p) => p.name.toLowerCase().includes(lowerInput));
-    if (partialMatches.length > 0) return partialMatches;
+    if (partialMatches.length > 0) {
+        return partialMatches;
+    }
 
     return [];
 }
@@ -75,7 +91,9 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
  * @param player
  */
 export function isValidPlayer(player: mc.Player): boolean {
-    if (!isDefined(player)) return false;
+    if (!isDefined(player)) {
+        return false;
+    }
     try {
         return player.isValid;
     } catch {

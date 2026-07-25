@@ -91,7 +91,9 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
                 for (const itemDef of reward.items) {
                     try {
                         const itemStack = new mc.ItemStack(itemDef.typeId, itemDef.amount);
-                        if (isNonEmptyString(itemDef.name)) itemStack.nameTag = itemDef.name;
+                        if (isNonEmptyString(itemDef.name)) {
+                            itemStack.nameTag = itemDef.name;
+                        }
                         const leftovers = inventory.container.addItem(itemStack);
                         if (leftovers) {
                             player.dimension.spawnItem(leftovers, player.location);

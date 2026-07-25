@@ -164,8 +164,12 @@ describe('rankManager', () => {
             const executor = { id: 'adminId' } as mc.Player;
             Object.setPrototypeOf(executor, mc.Player.prototype);
             (getPlayerRanks as ReturnType<typeof mock>).mockImplementation((p: any) => {
-                if (p.id === 'adminId') return [mockRanks[0]]; // admin, priority 10
-                if (p.id === 'modId') return [mockRanks[2]]; // mod, priority 50
+                if (p.id === 'adminId') {
+                    return [mockRanks[0]];
+                } // admin, priority 10
+                if (p.id === 'modId') {
+                    return [mockRanks[2]];
+                } // mod, priority 50
                 return [];
             });
 
@@ -180,8 +184,12 @@ describe('rankManager', () => {
             const executor = { id: 'modId' } as mc.Player;
             Object.setPrototypeOf(executor, mc.Player.prototype);
             (getPlayerRanks as ReturnType<typeof mock>).mockImplementation((p: any) => {
-                if (p.id === 'adminId') return [mockRanks[0]]; // admin, priority 10
-                if (p.id === 'modId') return [mockRanks[2]]; // mod, priority 50
+                if (p.id === 'adminId') {
+                    return [mockRanks[0]];
+                } // admin, priority 10
+                if (p.id === 'modId') {
+                    return [mockRanks[2]];
+                } // mod, priority 50
                 return [];
             });
 

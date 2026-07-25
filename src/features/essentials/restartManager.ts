@@ -41,8 +41,11 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
         // Show titles
         for (const player of players) {
             let color = '§a';
-            if (secondsRemaining <= 10) color = '§c';
-            else if (secondsRemaining <= 30) color = '§e';
+            if (secondsRemaining <= 10) {
+                color = '§c';
+            } else if (secondsRemaining <= 30) {
+                color = '§e';
+            }
 
             player.onScreenDisplay.setTitle(`${color}${secondsRemaining}`);
             if (subtitle) {

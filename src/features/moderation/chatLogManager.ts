@@ -59,7 +59,9 @@ function loadTodayLogs() {
 }
 
 function saveChatLogs() {
-    if (!isDirty) return;
+    if (!isDirty) {
+        return;
+    }
     const storage = new StorageManager(`exe:logs:chat:${today}`);
     mc.system.runJob(storage.saveJob(currentDayLogs));
     isDirty = false;
@@ -67,14 +69,18 @@ function saveChatLogs() {
 
 export function addChatLog(playerName: string, message: string, rank?: string) {
     const config = getConfig();
-    if (!config.chat.loggingEnabled) return;
+    if (!config.chat.loggingEnabled) {
+        return;
+    }
 
     const log: ChatLog = {
         timestamp: Date.now(),
         playerName,
         message
     };
-    if (isNonEmptyString(rank)) log.rank = rank;
+    if (isNonEmptyString(rank)) {
+        log.rank = rank;
+    }
     currentDayLogs.push(log);
     isDirty = true;
 }
@@ -106,7 +112,9 @@ function pruneOldLogs() {
 
     for (const dateStr of availableDates) {
         const date = new Date(dateStr);
-        if (Number.isNaN(date.getTime())) continue;
+        if (Number.isNaN(date.getTime())) {
+            continue;
+        }
 
         // If the date is older than the limit
         if (now - date.getTime() > limit) {
@@ -118,7 +126,9 @@ function pruneOldLogs() {
         const storage = new StorageManager(`exe:logs:chat:${dateStr}`);
         storage.delete();
         const idx = availableDates.indexOf(dateStr);
-        if (idx !== -1) availableDates.splice(idx, 1);
+        if (idx !== -1) {
+            availableDates.splice(idx, 1);
+        }
     }
 
     if (toRemove.length > 0) {

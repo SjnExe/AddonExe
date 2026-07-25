@@ -20,7 +20,9 @@ async function configureSystemEnvironment() {
 }
 
 async function compilePatchedTsc(): Promise<string | null> {
-    if (!isTermux) return null;
+    if (!isTermux) {
+        return null;
+    }
 
     const hasGo = (await $`which go`.nothrow().quiet()).exitCode === 0;
     if (!hasGo) {

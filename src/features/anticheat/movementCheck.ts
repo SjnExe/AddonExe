@@ -23,10 +23,14 @@ export function startMovementCheckLoop() {
     // Check world border/roof/movement every few ticks
     // Using runJob to spread execution across ticks to prevent lag with many players.
     mc.system.runInterval(() => {
-        if (isChecking) return;
+        if (isChecking) {
+            return;
+        }
         try {
             const config = getAnticheatConfig();
-            if (config.enabled !== true) return;
+            if (config.enabled !== true) {
+                return;
+            }
 
             mc.system.runJob(checkPlayersGenerator(config));
         } catch (error) {
@@ -84,7 +88,9 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
 
     // Use native velocity API for robust speed check
     const velocity = player.getVelocity();
-    if (!isDefined(velocity)) return;
+    if (!isDefined(velocity)) {
+        return;
+    }
 
     // Convert blocks/tick to blocks/second (approximate)
     // We strictly check HORIZONTAL speed to avoid flagging falling players
@@ -166,7 +172,9 @@ function checkWorldBorder(
         knockbackAmount: number;
     }
 ) {
-    if (player.getGameMode() === mc.GameMode.Spectator) return;
+    if (player.getGameMode() === mc.GameMode.Spectator) {
+        return;
+    }
 
     const dimensionId = player.dimension.id;
     let radius = config.overworldRadius;
@@ -223,8 +231,12 @@ function checkWorldBorder(
 }
 
 function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
-    if (player.dimension.id !== (MinecraftDimensionTypes.Nether as string)) return;
-    if (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative) return; // Allow admins/spectators
+    if (player.dimension.id !== (MinecraftDimensionTypes.Nether as string)) {
+        return;
+    }
+    if (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative) {
+        return;
+    } // Allow admins/spectators
 
     if (player.location.y > config.maxHeight) {
         // Teleport down or kick

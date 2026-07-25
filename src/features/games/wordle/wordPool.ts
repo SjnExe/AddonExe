@@ -14,7 +14,9 @@ const SOLUTION_LIMIT = 500;
 export function isValidWord(word: string): boolean {
     const len = word.length;
     const pool = compressedWordPool[len];
-    if (!pool) return false;
+    if (!pool) {
+        return false;
+    }
 
     // In a compressed string of fixed-length words, check if it's a multiple of length
     const idx = pool.indexOf(word.toLowerCase());
@@ -23,10 +25,14 @@ export function isValidWord(word: string): boolean {
 
 export function getRandomSolution(length: number): string | undefined {
     const pool = compressedWordPool[length];
-    if (!pool) return undefined;
+    if (!pool) {
+        return undefined;
+    }
 
     const maxWordsInPool = pool.length / length;
-    if (maxWordsInPool === 0) return undefined;
+    if (maxWordsInPool === 0) {
+        return undefined;
+    }
 
     // Limit the random selection to the top SOLUTION_LIMIT words
     const limit = Math.min(maxWordsInPool, SOLUTION_LIMIT);

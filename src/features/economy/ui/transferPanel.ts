@@ -33,7 +33,9 @@ export async function showTransferPanel(player: mc.Player, targetPlayerId: strin
         .textField('amount', `Your Balance: ${formatCurrency(sourceData.balance)}\nEnter amount to send:`, 'e.g. 100, 2.5k', '');
 
     const res = await form.show(player);
-    if (!res) return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    if (!res) {
+        return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    }
 
     let amount = parseFloat(res.amount);
     if (res.amount.toLowerCase().endsWith('k')) {

@@ -55,7 +55,9 @@ async function showKitList(player: mc.Player, page: number) {
         }
 
         const selection = (response as ActionFormResponse).selection;
-        if (!isDefined(selection)) return;
+        if (!isDefined(selection)) {
+            return;
+        }
 
         if (selection >= kitsToShow.length) {
             let buttonIndex = selection - kitsToShow.length;
@@ -74,7 +76,9 @@ async function showKitList(player: mc.Player, page: number) {
 
         const selectedKitIndex = startIndex + selection;
         const selectedKit = availableKits[selectedKitIndex];
-        if (!isDefined(selectedKit)) return;
+        if (!isDefined(selectedKit)) {
+            return;
+        }
         const selectedKitName = selectedKit.name;
         const result = kitsManager.giveKit(player, selectedKitName);
         if (result.success) {

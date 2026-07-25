@@ -13,10 +13,14 @@ let isChecking = false;
 
 export function startItemCheckLoop() {
     mc.system.runInterval(() => {
-        if (isChecking) return;
+        if (isChecking) {
+            return;
+        }
         try {
             const config = getAnticheatConfig();
-            if (config.enabled !== true || config.itemCheck.enabled !== true) return;
+            if (config.enabled !== true || config.itemCheck.enabled !== true) {
+                return;
+            }
 
             mc.system.runJob(checkInventoryGenerator(config));
         } catch (error) {
@@ -51,7 +55,9 @@ interface ItemCheckConfig {
 }
 
 export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig) {
-    if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) return;
+    if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+        return;
+    }
 
     // Check Main Inventory
     const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;

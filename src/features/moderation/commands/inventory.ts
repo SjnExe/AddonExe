@@ -56,7 +56,9 @@ const invseeCommand: CustomCommand = {
         }
 
         const targetName = params.player;
-        if (typeof targetName !== 'string') return;
+        if (typeof targetName !== 'string') {
+            return;
+        }
         const targets = resolveTarget(targetName, executor);
         const targetPlayer = targets[0];
 
@@ -101,7 +103,9 @@ const ecwipeCommand: CustomCommand = {
     parameters: [{ name: 'player', type: 'string', optional: false }],
     execute: (executor: CommandExecutor, params: Record<string, unknown>) => {
         const targetName = params.player;
-        if (typeof targetName !== 'string') return;
+        if (typeof targetName !== 'string') {
+            return;
+        }
         // Manual resolve since it might be offline?
         // Current logic requires online for commands generally, but let's use resolveTarget for consistency.
         let targetNameResolved = targetName;
@@ -109,7 +113,9 @@ const ecwipeCommand: CustomCommand = {
         if (executor instanceof mc.Player) {
             const targets = resolveTarget(targetName, executor);
             const firstTarget = targets[0];
-            if (isDefined(firstTarget)) targetNameResolved = firstTarget.name;
+            if (isDefined(firstTarget)) {
+                targetNameResolved = firstTarget.name;
+            }
 
             const targetId = getPlayerIdByName(targetNameResolved);
             if (isDefined(targetId)) {
@@ -164,7 +170,9 @@ const copyinvCommand: CustomCommand = {
         }
 
         const targetName = params.player;
-        if (typeof targetName !== 'string') return;
+        if (typeof targetName !== 'string') {
+            return;
+        }
         const targets = resolveTarget(targetName, executor);
         const targetPlayer = targets[0];
 

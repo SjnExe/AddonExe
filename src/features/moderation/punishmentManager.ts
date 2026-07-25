@@ -201,7 +201,9 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
  */
 export function removePunishment(playerId: string, type: PunishmentType) {
     const record = punishments.get(playerId);
-    if (!isDefined(record)) return;
+    if (!isDefined(record)) {
+        return;
+    }
 
     let changed = false;
 

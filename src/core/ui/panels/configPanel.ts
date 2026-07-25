@@ -124,7 +124,9 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
 
     for (const setting of schema.settings) {
         const currentValue = getValueFromPath(config, setting.key);
-        if (currentValue === undefined) continue;
+        if (currentValue === undefined) {
+            continue;
+        }
 
         validSettings.push(setting);
         const displayVal = typeof currentValue === 'string' || typeof currentValue === 'number' || typeof currentValue === 'boolean' ? String(currentValue) : JSON.stringify(currentValue);
@@ -140,7 +142,9 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
     }
 
     const res = await modal.show(player);
-    if (!res) return showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
+    if (!res) {
+        return showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
+    }
 
     const updates = _processFormValues(validSettings, res, config as Record<string, unknown>);
     debugLog(`[UI Config] Saving updates for source: ${configSource} - ${JSON.stringify(updates)}`);
@@ -224,7 +228,9 @@ export async function showConfigExportPanel(player: mc.Player): Promise<void> {
         .dropdown('system', 'Select System', systemOptionsCache)
         .textField('info', 'Export Result', '', 'Click Submit');
     const res = await modal.show(player);
-    if (!res) return showConfigTransferPanel(player);
+    if (!res) {
+        return showConfigTransferPanel(player);
+    }
 
     const selectedSystem = systemOptionsCache[res.system];
     let exportData: unknown;
@@ -249,7 +255,9 @@ async function _showExportResultPanel(player: mc.Player, jsonString: string): Pr
 export async function showConfigImportPanel(player: mc.Player): Promise<void> {
     const modal = new ModalFormBuilder<{ system: number; json: string }>().title('Import Config').dropdown('system', 'Target', systemOptionsCache).textField('json', 'Paste JSON', '{}');
     const res = await modal.show(player);
-    if (!res) return showConfigTransferPanel(player);
+    if (!res) {
+        return showConfigTransferPanel(player);
+    }
 
     if (isNonEmptyString(res.json)) {
         try {
@@ -272,7 +280,9 @@ function _processFormValues(validSettings: SettingSchema[], formValues: Record<s
         } else if (setting.type === 'textField') {
             if (typeof currentValue === 'number') {
                 const parsed = Number.parseFloat(val as string);
-                if (!Number.isNaN(parsed)) val = parsed;
+                if (!Number.isNaN(parsed)) {
+                    val = parsed;
+                }
             } else if (typeof currentValue === 'boolean') {
                 val = val === 'true';
             }
@@ -296,14 +306,21 @@ function _saveConfigUpdates(
             let current = currentConfig;
             for (let i = 0; i < parts.length - 1; i++) {
                 const part = parts[i] as string;
-                if (!isDefined(current[part])) current[part] = {};
+                if (!isDefined(current[part])) {
+                    current[part] = {};
+                }
                 current = current[part] as Record<string, unknown>;
             }
             const lastPart = parts[parts.length - 1] as string;
-            if (isDefined(lastPart)) current[lastPart] = value;
+            if (isDefined(lastPart)) {
+                current[lastPart] = value;
+            }
         }
-        if (configSource === 'main') updateMultipleConfig(updates);
-        else handler.save?.(currentConfig);
+        if (configSource === 'main') {
+            updateMultipleConfig(updates);
+        } else {
+            handler.save?.(currentConfig);
+        }
     }
 }
 

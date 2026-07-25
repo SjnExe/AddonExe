@@ -6,5 +6,4 @@ if (files.length === 0) {
 }
 
 await $`bun scripts/lint/oxlint.ts --fix ${files}`.quiet();
-await $`bun eslint --fix --cache ${files}`.quiet();
 await $`bun prettier --write --cache ${files}`.quiet();

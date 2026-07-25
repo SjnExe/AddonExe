@@ -90,7 +90,9 @@ async function main() {
 
     if (errors.length > 0) {
         console.error('Dependency mismatch detected:');
-        for (const e of errors) console.error(`- ${e}`);
+        for (const e of errors) {
+            console.error(`- ${e}`);
+        }
         process.exit(1);
     } else {
         console.log('Dependency check passed.');

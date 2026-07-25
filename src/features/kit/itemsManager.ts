@@ -80,10 +80,14 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
  */
 export function addItemFromHandToKit(kitName: string, player: mc.Player): ActionResult {
     const inventory = (player.getComponent('inventory') as mc.EntityInventoryComponent).container;
-    if (!isDefined(inventory)) return { success: false, message: 'Could not access inventory.' };
+    if (!isDefined(inventory)) {
+        return { success: false, message: 'Could not access inventory.' };
+    }
 
     const item = inventory.getItem(player.selectedSlotIndex);
-    if (!isDefined(item)) return { success: false, message: 'You are not holding an item.' };
+    if (!isDefined(item)) {
+        return { success: false, message: 'You are not holding an item.' };
+    }
 
     const enchantments: EnchantmentInfo[] = [];
     const enchantComp = item.getComponent('enchantable') as mc.ItemEnchantableComponent;

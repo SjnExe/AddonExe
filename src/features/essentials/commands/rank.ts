@@ -19,8 +19,12 @@ const rankCommand: CustomCommand = {
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         let action = args.action as string;
-        if (action === 'rm') action = 'remove';
-        if (action === 'ls') action = 'list';
+        if (action === 'rm') {
+            action = 'remove';
+        }
+        if (action === 'ls') {
+            action = 'list';
+        }
 
         const targetName = args.target as string | undefined;
         const rankId = args.rank as string | undefined;
@@ -34,7 +38,9 @@ const rankCommand: CustomCommand = {
 
             if (!targetId) {
                 const targetPlayer = findPlayerByName(targetName);
-                if (targetPlayer) targetId = targetPlayer.id;
+                if (targetPlayer) {
+                    targetId = targetPlayer.id;
+                }
             }
 
             if (!targetId) {

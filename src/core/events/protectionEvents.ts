@@ -26,7 +26,9 @@ function canBypass(player: mc.Player): boolean {
 
 export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEvent) {
     const { player, block } = event;
-    if (!isDefined(player) || !isDefined(block)) return;
+    if (!isDefined(player) || !isDefined(block)) {
+        return;
+    }
 
     const flags = getProtectionFlags(block.location, player.dimension.id);
     if (flags.preventBlockBreaking) {
@@ -41,7 +43,9 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
 
 export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEvent) {
     const { player, block } = event;
-    if (!isDefined(player) || !isDefined(block)) return;
+    if (!isDefined(player) || !isDefined(block)) {
+        return;
+    }
 
     const flags = getProtectionFlags(block.location, player.dimension.id);
     if (flags.preventBlockPlacing) {
@@ -58,7 +62,9 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     // If explosion is prevented at the source, cancel it entirely
     const blocks = event.getImpactedBlocks();
     const loc = event.source?.location ?? (blocks.length > 0 ? blocks[0]!.location : undefined);
-    if (!loc) return;
+    if (!loc) {
+        return;
+    }
     const flags = getProtectionFlags(loc, event.dimension.id);
 
     // Prevent Mob Griefing logic (Creepers, Withers)
@@ -79,7 +85,9 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     const impactedBlocks = event.getImpactedBlocks();
     const allowedBlocks: mc.Block[] = [];
     for (const block of impactedBlocks) {
-        if (!isDefined(block)) continue;
+        if (!isDefined(block)) {
+            continue;
+        }
         const blockFlags = getProtectionFlags(block.location, event.dimension.id);
         if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !event.source || event.source.typeId === (MinecraftEntityTypes.Player as string))) {
             allowedBlocks.push(block);
@@ -90,7 +98,9 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
 
 export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
     const player = event.source;
-    if (!(player instanceof mc.Player)) return;
+    if (!(player instanceof mc.Player)) {
+        return;
+    }
 
     const flags = getProtectionFlags(player.location, player.dimension.id);
     if (flags.preventProjectileUsage) {
@@ -120,7 +130,9 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
 
 export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockBeforeEvent) {
     const { player, block } = event;
-    if (!isDefined(player) || !isDefined(block)) return;
+    if (!isDefined(player) || !isDefined(block)) {
+        return;
+    }
 
     const flags = getProtectionFlags(block.location, player.dimension.id);
     if (flags.preventBlockInteraction) {
@@ -135,7 +147,9 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
 
 export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntityBeforeEvent) {
     const { player, target } = event;
-    if (!isDefined(player) || !isDefined(target)) return;
+    if (!isDefined(player) || !isDefined(target)) {
+        return;
+    }
 
     const flags = getProtectionFlags(target.location, target.dimension.id);
 
@@ -164,7 +178,9 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
 
 export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
     const entity = event.entity;
-    if (entity.typeId !== (MinecraftEntityTypes.Player as string)) return;
+    if (entity.typeId !== (MinecraftEntityTypes.Player as string)) {
+        return;
+    }
     const player = entity as mc.Player;
 
     const flags = getProtectionFlags(player.location, player.dimension.id);
@@ -180,10 +196,14 @@ export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
 
 export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
     const { entity } = event;
-    if (!isDefined(entity)) return;
+    if (!isDefined(entity)) {
+        return;
+    }
     try {
         const isValid = entity.isValid;
-        if (!isValid) return;
+        if (!isValid) {
+            return;
+        }
 
         // If hostile spawning is prevented
         if (entity.typeId !== (MinecraftEntityTypes.Player as string)) {
@@ -229,11 +249,15 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
         return;
     }
 
-    if (victim.typeId !== (MinecraftEntityTypes.Player as string)) return;
+    if (victim.typeId !== (MinecraftEntityTypes.Player as string)) {
+        return;
+    }
 
     const player = victim as mc.Player;
 
-    if (!flags.preventPvP && !flags.preventHostileDamage) return;
+    if (!flags.preventPvP && !flags.preventHostileDamage) {
+        return;
+    }
 
     const damagingEntity = damageSource.damagingEntity;
 

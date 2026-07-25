@@ -190,12 +190,16 @@ function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefi
     const world = mc.world;
     for (;;) {
         const data = world.getDynamicProperty(`${shardPrefix}${i}`) as string | undefined;
-        if (!isNonEmptyString(data)) break;
+        if (!isNonEmptyString(data)) {
+            break;
+        }
         try {
             const entries = JSON.parse(data) as [string, string][];
             for (let j = 0; j < entries.length; j++) {
                 const entry = entries[j];
-                if (entry) map.set(entry[0], entry[1]);
+                if (entry) {
+                    map.set(entry[0], entry[1]);
+                }
             }
         } catch (error) {
             errorLog(`[PlayerDataManager] Failed to load shard ${shardPrefix}${i}: ${String(error)}`);
@@ -804,7 +808,9 @@ export function resetKillStreak(playerId: string) {
  */
 export function getPlayTime(playerId: string): number {
     const pData = getPlayer(playerId);
-    if (!isDefined(pData)) return 0;
+    if (!isDefined(pData)) {
+        return 0;
+    }
 
     let currentSessionTime = 0;
     const start = sessionStartTimes.get(playerId);

@@ -197,7 +197,9 @@ function findHighestSolidBlock(dimension: mc.Dimension, x: number, z: number): n
     // Attempt to use the newer getTopmostBlock API for performance
     try {
         const block = dimension.getTopmostBlock({ x, z });
-        if (block) return block.location.y;
+        if (block) {
+            return block.location.y;
+        }
     } catch {
         // Fallback if API fails or method doesn't exist
     }

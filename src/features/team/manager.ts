@@ -44,7 +44,9 @@ function* loadTeamJob(allIds: number[]) {
             errorLog(`[TeamManager] Error loading team ${id}: ${String(error)}`);
         }
         // Yield every 20 team to prevent lag
-        if (i % 20 === 0) yield;
+        if (i % 20 === 0) {
+            yield;
+        }
     }
     debugLog(`[TeamManager] Loaded ${loadedCount} team.`);
 }
@@ -210,7 +212,9 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     while (activeTeam.has(newTeamId)) {
         let maxId = 0;
         for (const id of activeTeam.keys()) {
-            if (id > maxId) maxId = id;
+            if (id > maxId) {
+                maxId = id;
+            }
         }
         newTeamId = maxId + 1;
         newTeam.id = newTeamId;
@@ -606,7 +610,9 @@ export function setTeamOpenStatus(teamId: number, isOpen: boolean): ActionResult
 
 export function leaveTeam(player: mc.Player): ActionResult {
     const team = getTeamByPlayer(player.id);
-    if (!isDefined(team)) return { success: false, message: 'You are not in a team.' };
+    if (!isDefined(team)) {
+        return { success: false, message: 'You are not in a team.' };
+    }
     if (team.ownerId === player.id) {
         return { success: false, message: 'Owner cannot leave. Delete team or transfer ownership.' };
     }

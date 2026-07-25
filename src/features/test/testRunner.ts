@@ -123,13 +123,19 @@ export async function runTests(context?: string): Promise<TestResult> {
  */
 export const assert = {
     ok(value: unknown, message?: string) {
-        if (!value) throw new Error(message || `Expected truthy, got ${String(value)}`);
+        if (!value) {
+            throw new Error(message || `Expected truthy, got ${String(value)}`);
+        }
     },
     equal<T>(actual: T, expected: T, message?: string) {
-        if (actual !== expected) throw new Error(message || `Expected ${String(expected)}, got ${String(actual)}`);
+        if (actual !== expected) {
+            throw new Error(message || `Expected ${String(expected)}, got ${String(actual)}`);
+        }
     },
     notEqual<T>(actual: T, expected: T, message?: string) {
-        if (actual === expected) throw new Error(message || `Expected not equal to ${String(expected)}`);
+        if (actual === expected) {
+            throw new Error(message || `Expected not equal to ${String(expected)}`);
+        }
     },
     throws(fn: () => void, message?: string) {
         let threw = false;
@@ -138,7 +144,9 @@ export const assert = {
         } catch {
             threw = true;
         }
-        if (!threw) throw new Error(message || `Expected function to throw`);
+        if (!threw) {
+            throw new Error(message || `Expected function to throw`);
+        }
     },
     async throwsAsync(fn: () => Promise<void>, message?: string) {
         let threw = false;
@@ -147,6 +155,8 @@ export const assert = {
         } catch {
             threw = true;
         }
-        if (!threw) throw new Error(message || `Expected async function to throw`);
+        if (!threw) {
+            throw new Error(message || `Expected async function to throw`);
+        }
     }
 };

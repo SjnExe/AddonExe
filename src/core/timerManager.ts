@@ -16,7 +16,9 @@ let masterIntervalId: number | undefined;
 let tickCount = 0;
 
 function startMasterInterval() {
-    if (masterIntervalId !== undefined) return;
+    if (masterIntervalId !== undefined) {
+        return;
+    }
     masterIntervalId = mc.system.runInterval(() => {
         tickCount++;
         for (const interval of intervals.values()) {

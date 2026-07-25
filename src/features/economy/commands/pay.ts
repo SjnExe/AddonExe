@@ -22,32 +22,54 @@ const payCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
-        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) {
+            return sendMessage(economyDisabled, executor);
+        }
 
         const targetName = args.targets as string | undefined;
         const amountStr = args.amount as string | undefined;
 
-        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
+        if (!isNonEmptyString(targetName)) {
+            return sendMessage('§cPlease specify a player.', executor);
+        }
 
         // Resolve Target
         const targets = resolveTarget(targetName, executor);
-        if (!isDefined(targets) || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
-        if (targets.length > 1) return sendMessage('§cYou can only pay one player at a time.', executor);
+        if (!isDefined(targets) || targets.length === 0) {
+            return sendMessage('§cPlayer not found.', executor);
+        }
+        if (targets.length > 1) {
+            return sendMessage('§cYou can only pay one player at a time.', executor);
+        }
 
         const targetPlayer = targets[0];
-        if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
+        if (!isDefined(targetPlayer)) {
+            return sendMessage('§cPlayer not found.', executor);
+        }
 
-        if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
+        if (targetPlayer.id === executor.id) {
+            return sendMessage('§cYou cannot pay yourself.', executor);
+        }
         const amount = validateCurrencyAmount(amountStr as string, true);
-        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        if (!isDefined(amount)) {
+            return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        }
 
         const sourceData = getPlayer(executor.id);
-        if (!isDefined(sourceData)) return sendMessage('§cCould not retrieve your data.', executor);
-        if (sourceData.balance < 0) return sendMessage('§cYou cannot transfer money while your balance is negative.', executor);
-        if (sourceData.balance < amount) return sendMessage('§cYou do not have enough money.', executor);
+        if (!isDefined(sourceData)) {
+            return sendMessage('§cCould not retrieve your data.', executor);
+        }
+        if (sourceData.balance < 0) {
+            return sendMessage('§cYou cannot transfer money while your balance is negative.', executor);
+        }
+        if (sourceData.balance < amount) {
+            return sendMessage('§cYou do not have enough money.', executor);
+        }
 
         if (amount > config.economy.paymentConfirmationThreshold) {
             createPendingPayment(executor.id, targetPlayer.id, amount);
@@ -77,27 +99,41 @@ const oPayCommand: CustomCommand = {
         { name: 'amount', type: 'string' }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
-        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) {
+            return sendMessage(economyDisabled, executor);
+        }
 
         const targetName = args.target as string | undefined;
         const amountStr = args.amount as string | undefined;
 
-        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(targetName)) {
+            return sendMessage('§cPlease specify a player name.', executor);
+        }
 
         const targetId = getPlayerIdByName(targetName);
-        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        if (!isNonEmptyString(targetId)) {
+            return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        }
         const displayName = getPlayerNameById(targetId) ?? targetName;
 
-        if (targetId === executor.id) return sendMessage('§cYou cannot pay yourself.', executor);
+        if (targetId === executor.id) {
+            return sendMessage('§cYou cannot pay yourself.', executor);
+        }
 
         const amount = validateCurrencyAmount(amountStr as string, true);
-        if (!isDefined(amount)) return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        if (!isDefined(amount)) {
+            return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
+        }
 
         const sourceData = getPlayer(executor.id);
-        if (!isDefined(sourceData) || sourceData.balance < amount) return sendMessage('§cInsufficient funds.', executor);
+        if (!isDefined(sourceData) || sourceData.balance < amount) {
+            return sendMessage('§cInsufficient funds.', executor);
+        }
 
         // Confirmation logic supports offline ID too
         if (amount > config.economy.paymentConfirmationThreshold) {
@@ -122,13 +158,19 @@ const payConfirmCommand: CustomCommand = {
     category: 'Economy',
     permissionNode: 'cmd.payconfirm.member',
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
-        if (!isFeatureActive('eco')) return sendMessage(economyDisabled, executor);
+        if (!isFeatureActive('eco')) {
+            return sendMessage(economyDisabled, executor);
+        }
 
         const pendingPayment = getPendingPayment(executor.id);
 
-        if (!isDefined(pendingPayment)) return sendMessage('§cYou have no pending payment to confirm.', executor);
+        if (!isDefined(pendingPayment)) {
+            return sendMessage('§cYou have no pending payment to confirm.', executor);
+        }
 
         const { targetPlayerId, amount } = pendingPayment;
 

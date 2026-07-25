@@ -17,7 +17,9 @@ export function initializeSpawnProtection() {
         for (const player of players) {
             try {
                 const isValid = player.isValid;
-                if (!isValid) continue;
+                if (!isValid) {
+                    continue;
+                }
 
                 const flags = getProtectionFlags(player.location, player.dimension.id);
 

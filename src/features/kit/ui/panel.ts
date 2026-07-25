@@ -82,7 +82,9 @@ export async function showKitActionMenu(player: mc.Player, kitName: string): Pro
 export async function showKitSettingsPanel(player: mc.Player, kitName: string): Promise<void> {
     const allKits = kitAdminManager.getAllKits();
     const kit = allKits[kitName];
-    if (!kit) return;
+    if (!kit) {
+        return;
+    }
 
     const modal = new ModalFormBuilder<{
         enabled: boolean;

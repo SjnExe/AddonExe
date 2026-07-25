@@ -147,7 +147,9 @@ export function denyPvP(player: mc.Player): void {
 
 function clearRequest(targetId: string, notifyRequester: boolean): void {
     const request = pvpRequests.get(targetId);
-    if (!request) return;
+    if (!request) {
+        return;
+    }
 
     const { requesterId, amount } = request;
 
@@ -168,7 +170,9 @@ function clearRequest(targetId: string, notifyRequester: boolean): void {
 
 function expireRequest(targetId: string): void {
     const request = pvpRequests.get(targetId);
-    if (!request) return;
+    if (!request) {
+        return;
+    }
 
     const { requesterId, amount } = request;
 
@@ -190,7 +194,9 @@ function expireRequest(targetId: string): void {
 
 function timeoutDuel(player1Id: string, player2Id: string): void {
     const duel = activeDuels.get(player1Id);
-    if (!duel) return;
+    if (!duel) {
+        return;
+    }
 
     const { amount } = duel;
 
@@ -205,8 +211,12 @@ function timeoutDuel(player1Id: string, player2Id: string): void {
     const p1 = getPlayerFromCache(player1Id);
     const p2 = getPlayerFromCache(player2Id);
 
-    if (p1) sendMessage('§eDuel timed out. Money refunded.', p1);
-    if (p2) sendMessage('§eDuel timed out. Money refunded.', p2);
+    if (p1) {
+        sendMessage('§eDuel timed out. Money refunded.', p1);
+    }
+    if (p2) {
+        sendMessage('§eDuel timed out. Money refunded.', p2);
+    }
 }
 
 /**
@@ -234,7 +244,9 @@ export function handlePvPDeath(victim: mc.Player, killer: mc.Player): boolean {
         sendMessage(`§cDEFEAT! §7You lost the duel and ${formatCurrency(amount)}.`, victim);
     } else {
         const victimData = getPlayer(victim.id);
-        if (!victimData) return true; // Victim data gone, can't proceed
+        if (!victimData) {
+            return true;
+        } // Victim data gone, can't proceed
 
         const stealPercent = config.defaultWinPercent;
         let winnings = Math.floor(victimData.balance * (stealPercent / 100));

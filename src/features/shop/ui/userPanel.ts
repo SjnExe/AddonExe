@@ -37,14 +37,18 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
     const validCategories = Object.keys(shopConfig.categories)
         .filter((categoryName: string) => {
             const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
-            if (!isDefined(category)) return false;
+            if (!isDefined(category)) {
+                return false;
+            }
             return Object.keys(category.items).length > 0 || (category.subCategories && Object.keys(category.subCategories).length > 0);
         })
         .toSorted((a, b) => a.localeCompare(b));
 
     for (const catName of validCategories) {
         const cat = shopConfig.categories[catName] as ShopCategory | undefined;
-        if (!isDefined(cat)) continue;
+        if (!isDefined(cat)) {
+            continue;
+        }
         form.button(catName, cat.icon, () => {
             void showShopCategoryPanel(player, catName, 1);
         });
@@ -78,7 +82,9 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
     }
 
     for (const [itemId, itemData] of Object.entries(category.items)) {
-        if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) continue;
+        if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) {
+            continue;
+        }
         entries.push({ type: 'item', id: itemId, name: itemData.displayName || itemId, icon: itemData.icon, itemData });
     }
 
@@ -94,9 +100,15 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
                 const itemData = entry.itemData as ShopItemInfo;
                 const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
                 let displayPrice = '';
-                if (prices.buyPrice > 0) displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
-                if (prices.sellPrice > 0) displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
-                if (displayPrice === '') displayPrice = '§cNot For Sale';
+                if (prices.buyPrice > 0) {
+                    displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
+                }
+                if (prices.sellPrice > 0) {
+                    displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
+                }
+                if (displayPrice === '') {
+                    displayPrice = '§cNot For Sale';
+                }
 
                 formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
                     void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'category', categoryName, page });
@@ -128,7 +140,9 @@ export async function showShopItemListPanel(player: mc.Player, categoryName: str
     const form = new ActionFormBuilder().title(subCategoryName);
     const entries: { id: string; name: string; icon?: string; itemData: unknown }[] = [];
     for (const [itemId, itemData] of Object.entries(subCat.items)) {
-        if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) continue;
+        if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) {
+            continue;
+        }
         entries.push({ id: itemId, name: itemData.displayName || itemId, icon: itemData.icon, itemData });
     }
 
@@ -139,9 +153,15 @@ export async function showShopItemListPanel(player: mc.Player, categoryName: str
             const itemData = entry.itemData as ShopItemInfo;
             const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
             let displayPrice = '';
-            if (prices.buyPrice > 0) displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
-            if (prices.sellPrice > 0) displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
-            if (displayPrice === '') displayPrice = '§cNot For Sale';
+            if (prices.buyPrice > 0) {
+                displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
+            }
+            if (prices.sellPrice > 0) {
+                displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
+            }
+            if (displayPrice === '') {
+                displayPrice = '§cNot For Sale';
+            }
 
             formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
                 void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'subCategory', categoryName, subCategoryName, page });
@@ -204,7 +224,9 @@ export async function showShopSearchResultsPanel(player: mc.Player, query: strin
     }
 
     const form = new ActionFormBuilder().title(`Search: ${query}`);
-    if (results.length === 0) form.body('No items found matching your search.');
+    if (results.length === 0) {
+        form.body('No items found matching your search.');
+    }
 
     form.addPaginatedButtons(
         results,
@@ -213,9 +235,15 @@ export async function showShopSearchResultsPanel(player: mc.Player, query: strin
             const itemData = entry.itemData as ShopItemInfo;
             const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
             let displayPrice = '';
-            if (prices.buyPrice > 0) displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
-            if (prices.sellPrice > 0) displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
-            if (displayPrice === '') displayPrice = '§cNot For Sale';
+            if (prices.buyPrice > 0) {
+                displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
+            }
+            if (prices.sellPrice > 0) {
+                displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
+            }
+            if (displayPrice === '') {
+                displayPrice = '§cNot For Sale';
+            }
 
             formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
                 void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'search', query, page });

@@ -35,15 +35,25 @@ import { parseCurrency } from '@core/utils.js';
  * @returns The parsed number or undefined if invalid.
  */
 export function validateCurrencyAmount(amountStr: string, requirePositive: boolean = true): number | undefined {
-    if (typeof amountStr !== 'string' || amountStr.trim().length === 0) return undefined;
+    if (typeof amountStr !== 'string' || amountStr.trim().length === 0) {
+        return undefined;
+    }
     const amount = parseCurrency(amountStr);
-    if (Number.isNaN(amount)) return undefined;
+    if (Number.isNaN(amount)) {
+        return undefined;
+    }
 
-    if (requirePositive && amount <= 0) return undefined;
-    if (!requirePositive && amount < 0) return undefined;
+    if (requirePositive && amount <= 0) {
+        return undefined;
+    }
+    if (!requirePositive && amount < 0) {
+        return undefined;
+    }
 
     // Strict validation for max 2 decimal places to prevent float precision exploits
-    if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) return undefined;
+    if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) {
+        return undefined;
+    }
 
     return amount;
 }

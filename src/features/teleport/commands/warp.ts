@@ -87,7 +87,9 @@ const warpCommand: CustomCommand = {
 
         try {
             const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) return;
+            if (!isDefined(response) || response.canceled) {
+                return;
+            }
 
             const selection = (response as ActionFormResponse).selection;
             if (isDefined(selection)) {
@@ -208,7 +210,9 @@ const delWarpCommand: CustomCommand = {
 
         try {
             const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) return;
+            if (!isDefined(response) || response.canceled) {
+                return;
+            }
 
             const selection = (response as ActionFormResponse).selection;
             if (isDefined(selection)) {

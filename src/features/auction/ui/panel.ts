@@ -74,7 +74,9 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
     details += `§eSeller: §f${listing.sellerName}\n`;
     details += `§eExpires in: §f${formatTime((getTimestampFromUUIDv7(listing.id) + listing.duration * 1000 - Date.now()) / 1000)}\n`;
 
-    if (item.lore && item.lore.length > 0) details += `\n§5Lore:\n§d${item.lore.join('\n')}\n`;
+    if (item.lore && item.lore.length > 0) {
+        details += `\n§5Lore:\n§d${item.lore.join('\n')}\n`;
+    }
     if (item.enchantments && item.enchantments.length > 0) {
         details += `\n§5Enchantments:\n`;
         for (const e of item.enchantments) {
@@ -119,7 +121,9 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     const form = new ModalFormBuilder<{ bid: string }>().title('Place Bid').textField('bid', `Enter bid amount (Min: ${minBid})`, minBid.toString());
 
     const response = await form.show(player);
-    if (!response) return;
+    if (!response) {
+        return;
+    }
 
     const bid = response.bid;
     const amount = Number.parseFloat(bid);
@@ -137,7 +141,9 @@ async function showSearchUI(player: mc.Player, currentSort: SortOption): Promise
     const form = new ModalFormBuilder<{ query: string }>().title('Search Auction House').textField('query', 'Search Query (Item/Seller)', 'Diamond Sword');
 
     const response = await form.show(player);
-    if (!response) return;
+    if (!response) {
+        return;
+    }
 
     const query = response.query;
     await showAuctionHouse(player, 1, query.trim(), currentSort);
@@ -184,7 +190,9 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
 
     for (let i = 0; i < mailbox.length; i++) {
         const item = mailbox[i];
-        if (!isDefined(item)) continue;
+        if (!isDefined(item)) {
+            continue;
+        }
         const label = `§f${isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '')}\n§7x${item.amount}`;
         const itemIndex = i;
         form.button(label, undefined, async () => {

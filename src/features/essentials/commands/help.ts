@@ -14,7 +14,9 @@ import { CommandExecutor, commandManager, CustomCommand } from '@commands/comman
 let categorizedCache: Map<string, CustomCommand[]> | undefined;
 
 function getCategorizedCommands(): Map<string, CustomCommand[]> {
-    if (isDefined(categorizedCache)) return categorizedCache;
+    if (isDefined(categorizedCache)) {
+        return categorizedCache;
+    }
 
     const map = new Map<string, CustomCommand[]>();
     for (const cmd of commandManager.commands.values()) {
@@ -36,9 +38,15 @@ function getSortedCategories(availableCategories: string[]): string[] {
     sorted.toSorted((a, b) => {
         const idxA = CATEGORY_ORDER.indexOf(a);
         const idxB = CATEGORY_ORDER.indexOf(b);
-        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-        if (idxA !== -1) return -1;
-        if (idxB !== -1) return 1;
+        if (idxA !== -1 && idxB !== -1) {
+            return idxA - idxB;
+        }
+        if (idxA !== -1) {
+            return -1;
+        }
+        if (idxB !== -1) {
+            return 1;
+        }
         return a.localeCompare(b);
     });
     return sorted;
@@ -98,7 +106,9 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
         return;
     }
 
-    if (!isDefined(cmd)) return;
+    if (!isDefined(cmd)) {
+        return;
+    }
 
     const slashCommand = cmd.slashName ?? cmd.name;
 
@@ -202,11 +212,15 @@ async function showUIHelp(player: mc.Player) {
 
     const form = new ActionFormData().title('§lHelp Menu').body('Select a category to view commands:');
 
-    for (const cat of sortedCats) form.button(cat);
+    for (const cat of sortedCats) {
+        form.button(cat);
+    }
 
     try {
         const response = (await uiWait(player, form)) as ActionFormResponse;
-        if (response.canceled || response.selection === undefined) return;
+        if (response.canceled || response.selection === undefined) {
+            return;
+        }
 
         const selectedCat = sortedCats[response.selection];
         if (selectedCat !== undefined) {
@@ -224,11 +238,15 @@ async function showUICategory(player: mc.Player, category: string) {
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
     form.button('§4< Back');
-    for (const c of visibleCmds) form.button(`/${c.name}`);
+    for (const c of visibleCmds) {
+        form.button(`/${c.name}`);
+    }
 
     try {
         const response = (await uiWait(player, form)) as ActionFormResponse;
-        if (response.canceled || response.selection === undefined) return;
+        if (response.canceled || response.selection === undefined) {
+            return;
+        }
 
         if (response.selection === 0) {
             return showUIHelp(player);

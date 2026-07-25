@@ -19,7 +19,9 @@ export class WordlePanelHandler {
             }
 
             let game = getPlayerActiveGame(player);
-            if (!game) game = createSinglePlayerGame(player);
+            if (!game) {
+                game = createSinglePlayerGame(player);
+            }
             if (!game) {
                 player.sendMessage('§cFailed to create Wordle game.');
                 return undefined;
@@ -130,7 +132,9 @@ export class WordlePanelHandler {
                                 let word = typeof modalRes.formValues[0] === 'string' ? modalRes.formValues[0] : '';
                                 const poolStr = typeof modalRes.formValues[1] === 'string' ? modalRes.formValues[1] : '0';
                                 let poolPrize = parseInt(poolStr, 10);
-                                if (isNaN(poolPrize)) poolPrize = 0;
+                                if (isNaN(poolPrize)) {
+                                    poolPrize = 0;
+                                }
 
                                 if (!word || word.length === 0) {
                                     const { getRandomSolution } = await import('../wordPool.js');

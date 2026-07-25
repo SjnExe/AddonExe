@@ -29,8 +29,7 @@
         "postinstall": "bun scripts/postinstall.ts",
         "lint": "bun scripts/lint/run.ts --fix",
         "lint:check": "bun scripts/lint/run.ts",
-        "lint:fast": "bun scripts/lint/oxlint.ts src scripts",
-        "lint:report": "bun scripts/lint/oxlint.ts && bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
+        "lint:report": "bun scripts/lint/oxlint.ts -f json > oxlint_report.json",
         "project-info": "bun mct info",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
         "test": "bun test --isolate --parallel",
@@ -59,7 +58,6 @@
         "uuid": "latest"
     },
     "devDependencies": {
-        "@eslint/js": "latest",
         "@minecraft/bedrock-schemas": "latest",
         "@minecraft/common": "latest",
         "@minecraft/creator-tools": "latest",
@@ -69,16 +67,8 @@
         "@minecraft/server-ui": "2.2.0-beta.1.26.33-stable",
         "@types/node": "latest",
         "@types/uuid": "latest",
-        "@typescript-eslint/eslint-plugin": "latest",
-        "@typescript-eslint/parser": "latest",
         "ajv": "latest",
-        "eslint": "latest",
-        "eslint-config-prettier": "latest",
-        "eslint-plugin-import": "latest",
-        "eslint-plugin-jsonc": "latest",
         "eslint-plugin-minecraft-linting": "latest",
-        "eslint-plugin-oxlint": "^1.75.0",
-        "eslint-plugin-yml": "latest",
         "glob": "latest",
         "globals": "latest",
         "jscpd": "latest",
@@ -88,8 +78,7 @@
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
         "type-fest": "latest",
-        "typescript": "~6.0.3",
-        "typescript-eslint": "latest"
+        "typescript": "latest"
     },
     "trustedDependencies": [
         "bufferutil",

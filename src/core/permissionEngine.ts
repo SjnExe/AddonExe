@@ -86,7 +86,9 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
     // Gather assigned ranks
     const ranks = rankIds.reduce<RankDefinition[]>((acc, id) => {
         const rank = getRankById(id);
-        if (isDefined(rank)) acc.push(rank);
+        if (isDefined(rank)) {
+            acc.push(rank);
+        }
         return acc;
     }, []);
 
@@ -112,18 +114,26 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
 }
 
 function evaluateRankConditions(player: mc.Player, rank: RankDefinition, assignedRankCount: number): boolean {
-    if (rank.conditions.length === 0) return false;
+    if (rank.conditions.length === 0) {
+        return false;
+    }
 
     for (const condition of rank.conditions) {
         if (condition.type === 'isOwner') {
             const ownerNames = getConfig().ownerPlayerNames.map((name: string) => name.trim().toLowerCase());
             const playerName = player.name.trim().toLowerCase();
-            if (!ownerNames.includes(playerName)) return false;
+            if (!ownerNames.includes(playerName)) {
+                return false;
+            }
         } else if (condition.type === 'hasTag') {
-            if (!player.hasTag(condition.value as string)) return false;
+            if (!player.hasTag(condition.value as string)) {
+                return false;
+            }
         } else if (condition.type === 'default') {
             // Evaluates true only if the player has absolutely no other ranks
-            if (assignedRankCount > 0) return false;
+            if (assignedRankCount > 0) {
+                return false;
+            }
         }
     }
     return true;
@@ -209,7 +219,9 @@ export function hasPermission(player: mc.Player, node: string): boolean {
 
     const mapEntries = Object.entries(playerMap);
     for (const [pattern, patternAllowed] of mapEntries) {
-        if (!pattern.includes('*')) continue; // Exact matches are already handled above
+        if (!pattern.includes('*')) {
+            continue;
+        } // Exact matches are already handled above
 
         if (pattern === '*') {
             // Support legacy global '*' just in case
@@ -239,19 +251,29 @@ export function hasPermission(player: mc.Player, node: string): boolean {
 }
 
 function matchPermissionSegments(pSegs: string[], nSegs: string[], pIdx: number, nIdx: number): boolean {
-    if (pIdx === pSegs.length && nIdx === nSegs.length) return true;
-    if (pIdx === pSegs.length) return false;
+    if (pIdx === pSegs.length && nIdx === nSegs.length) {
+        return true;
+    }
+    if (pIdx === pSegs.length) {
+        return false;
+    }
 
     const pSeg = pSegs[pIdx];
 
     if (pSeg === '**') {
         // ** can match 0 or more segments
-        if (matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx)) return true;
-        if (nIdx < nSegs.length && matchPermissionSegments(pSegs, nSegs, pIdx, nIdx + 1)) return true;
+        if (matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx)) {
+            return true;
+        }
+        if (nIdx < nSegs.length && matchPermissionSegments(pSegs, nSegs, pIdx, nIdx + 1)) {
+            return true;
+        }
         return false;
     } else if (pSeg === '*') {
         // * matches exactly 1 segment
-        if (nIdx < nSegs.length && matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx + 1)) return true;
+        if (nIdx < nSegs.length && matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx + 1)) {
+            return true;
+        }
         return false;
     } else {
         // Exact match

@@ -65,7 +65,9 @@ export async function showRankActionPanel(player: mc.Player, rankId: string): Pr
 export async function showRankDeleteConfirmPanel(player: mc.Player, rankId: string): Promise<void> {
     const config = getRanksConfig();
     const existingRank = config.rankDefinitions.find((r) => r.id === rankId);
-    if (!existingRank) return showRankSystemConfigPanel(player);
+    if (!existingRank) {
+        return showRankSystemConfigPanel(player);
+    }
 
     const form = new ActionFormBuilder().title(`Delete Rank: ${existingRank.name}`);
     form.body(`Are you sure you want to delete the rank '${existingRank.name}'?\nThis action cannot be undone.`);
@@ -187,7 +189,9 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     let parsedConditions: RankCondition[];
     try {
         parsedConditions = JSON.parse(response.conditions) as RankCondition[];
-        if (!Array.isArray(parsedConditions)) throw new Error('Must be an array');
+        if (!Array.isArray(parsedConditions)) {
+            throw new Error('Must be an array');
+        }
     } catch (e: unknown) {
         player.sendMessage(`§cError parsing Conditions JSON: ${e instanceof Error ? e.message : String(e)}`);
         return showRankEditorPanel(player, rankId, draftState);

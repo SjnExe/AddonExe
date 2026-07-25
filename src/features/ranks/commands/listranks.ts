@@ -22,8 +22,11 @@ const listranksCommand: CustomCommand = {
 
         if (!isDefined(ranksDef) || ranksDef.length === 0) {
             const msg = '§cNo ranks configured.';
-            if (executor instanceof mc.Player) executor.sendMessage(msg);
-            else executor.sendMessage(msg);
+            if (executor instanceof mc.Player) {
+                executor.sendMessage(msg);
+            } else {
+                executor.sendMessage(msg);
+            }
             return;
         }
 

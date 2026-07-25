@@ -68,16 +68,22 @@ const oBalanceCommand: CustomCommand = {
         }
 
         const targetName = args.target as string;
-        if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
+        if (!isNonEmptyString(targetName)) {
+            return sendMessage('§cPlease specify a player name.', executor);
+        }
 
         const targetId = getPlayerIdByName(targetName);
 
-        if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        if (!isNonEmptyString(targetId)) {
+            return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+        }
 
         const displayName = getPlayerNameById(targetId) || targetName;
         const pData = loadPlayerData(targetId);
 
-        if (!pData) return sendMessage(`§cCould not load data for ${displayName}.`, executor);
+        if (!pData) {
+            return sendMessage(`§cCould not load data for ${displayName}.`, executor);
+        }
 
         sendMessage(`§a${displayName}'s balance is: §e${formatCurrency(pData.balance)} (Offline)`, executor);
     }
@@ -101,7 +107,9 @@ const baltopCommand: CustomCommand = {
         const displayLimit = config.economy.baltopLimit;
         const topPlayers = leaderboard.slice(0, displayLimit);
 
-        if (topPlayers.length === 0) return sendMessage('§cThe leaderboard is currently empty.', executor);
+        if (topPlayers.length === 0) {
+            return sendMessage('§cThe leaderboard is currently empty.', executor);
+        }
 
         const rankColors: { [key: number]: string } = {
             1: '§4', // Dark Red

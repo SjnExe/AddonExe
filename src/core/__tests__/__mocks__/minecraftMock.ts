@@ -27,8 +27,11 @@ const _testDynamicProperties = new Map();
 export const world = {
     getDynamicProperty: mock((key) => _testDynamicProperties.get(key)),
     setDynamicProperty: mock((key, val) => {
-        if (val === undefined) _testDynamicProperties.delete(key);
-        else _testDynamicProperties.set(key, val);
+        if (val === undefined) {
+            _testDynamicProperties.delete(key);
+        } else {
+            _testDynamicProperties.set(key, val);
+        }
     }),
     getDimension: mock((dim: string) => new Dimension(dim)),
     getAllPlayers: mock(() => []),
@@ -177,10 +180,18 @@ export class ModalFormData {
     show = mock().mockImplementation(async () => {
         return {
             formValues: this._controls.map((c): string | number | boolean | undefined => {
-                if (c.type === 'toggle') return c.defaultValue ?? false;
-                if (c.type === 'textField') return c.defaultValue ?? '';
-                if (c.type === 'dropdown') return c.defaultValueIndex ?? 0;
-                if (c.type === 'slider') return c.defaultValue ?? c.min;
+                if (c.type === 'toggle') {
+                    return c.defaultValue ?? false;
+                }
+                if (c.type === 'textField') {
+                    return c.defaultValue ?? '';
+                }
+                if (c.type === 'dropdown') {
+                    return c.defaultValueIndex ?? 0;
+                }
+                if (c.type === 'slider') {
+                    return c.defaultValue ?? c.min;
+                }
                 return undefined;
             }),
             canceled: false

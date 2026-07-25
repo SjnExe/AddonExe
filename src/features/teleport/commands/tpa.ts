@@ -18,7 +18,9 @@ function handleTpaRequest(executor: mc.Player, args: Record<string, unknown>, ty
     }
 
     const targetName = args.target as string;
-    if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player.', executor);
+    if (!isNonEmptyString(targetName)) {
+        return sendMessage('§cPlease specify a player.', executor);
+    }
 
     // Block mass selectors
     if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
@@ -27,13 +29,21 @@ function handleTpaRequest(executor: mc.Player, args: Record<string, unknown>, ty
 
     const targets = resolveTarget(targetName, executor);
 
-    if (!isDefined(targets) || targets.length === 0) return sendMessage('§cPlayer not found.', executor);
-    if (targets.length > 1) return sendMessage('§cMultiple players found. Please be more specific.', executor);
+    if (!isDefined(targets) || targets.length === 0) {
+        return sendMessage('§cPlayer not found.', executor);
+    }
+    if (targets.length > 1) {
+        return sendMessage('§cMultiple players found. Please be more specific.', executor);
+    }
 
     const targetPlayer = targets[0];
-    if (!isDefined(targetPlayer)) return sendMessage('§cPlayer not found.', executor);
+    if (!isDefined(targetPlayer)) {
+        return sendMessage('§cPlayer not found.', executor);
+    }
 
-    if (targetPlayer.id === executor.id) return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
+    if (targetPlayer.id === executor.id) {
+        return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
+    }
 
     const result = createRequest(executor, targetPlayer, type);
 
@@ -68,7 +78,9 @@ function handleTpaResponse(executor: mc.Player, args: Record<string, unknown>, a
     if (isNonEmptyString(targetName)) {
         const targets = resolveTarget(targetName, executor);
         const target = targets[0];
-        if (isDefined(target)) targetName = target.name;
+        if (isDefined(target)) {
+            targetName = target.name;
+        }
     }
 
     if (action === 'accept') {
@@ -143,7 +155,9 @@ const tpaCancelCommand: CustomCommand = {
     category: 'Transportation',
     permissionNode: 'cmd.tpacancel.member',
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
         const config = getConfig();
         if (!config.tpa.enabled) {
             sendMessage('§cThe TPA system is currently disabled globally.', executor);
@@ -160,7 +174,9 @@ const tpaStatusCommand: CustomCommand = {
     category: 'Transportation',
     permissionNode: 'cmd.tpastatus.member',
     execute: (executor: CommandExecutor) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
         if (!config.tpa.enabled) {
@@ -207,7 +223,9 @@ const tpaStopCommand: CustomCommand = {
     permissionNode: 'cmd.tpastop.admin',
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
         if (!config.tpa.enabled) {
@@ -219,7 +237,9 @@ const tpaStopCommand: CustomCommand = {
 
         if (isNonEmptyString(targetStr)) {
             const targets = resolveTarget(targetStr, executor);
-            if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+            if (targets.length === 0) {
+                return sendMessage('§cPlayer not found.', executor);
+            }
 
             for (const target of targets) {
                 addTpaBlockedPlayer(executor.id, target.id);
@@ -240,7 +260,9 @@ const tpaStartCommand: CustomCommand = {
     permissionNode: 'cmd.tpastart.admin',
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        if (!(executor instanceof mc.Player)) return;
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
 
         const config = getConfig();
         if (!config.tpa.enabled) {
@@ -252,7 +274,9 @@ const tpaStartCommand: CustomCommand = {
 
         if (isNonEmptyString(targetStr)) {
             const targets = resolveTarget(targetStr, executor);
-            if (targets.length === 0) return sendMessage('§cPlayer not found.', executor);
+            if (targets.length === 0) {
+                return sendMessage('§cPlayer not found.', executor);
+            }
 
             for (const target of targets) {
                 removeTpaBlockedPlayer(executor.id, target.id);
@@ -276,10 +300,14 @@ function handleOfflineTpaBlock(executor: mc.Player, args: Record<string, unknown
 
     const targetName = args.target as string;
 
-    if (!isNonEmptyString(targetName)) return sendMessage('§cPlease specify a player name.', executor);
+    if (!isNonEmptyString(targetName)) {
+        return sendMessage('§cPlease specify a player name.', executor);
+    }
 
     const targetId = getPlayerIdByName(targetName);
-    if (!isNonEmptyString(targetId)) return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+    if (!isNonEmptyString(targetId)) {
+        return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
+    }
     const displayName = getPlayerNameById(targetId) ?? targetName;
 
     if (action === 'block') {

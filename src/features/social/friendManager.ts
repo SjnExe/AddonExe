@@ -27,7 +27,9 @@ export function isFriend(playerId1: string, playerId2: string): boolean {
  */
 export function sendFriendRequest(sender: mc.Player, targetName: string): { success: boolean; message: string } {
     const config = getFriendConfig();
-    if (!config.enabled) return { success: false, message: '§cFriend system is disabled.' };
+    if (!config.enabled) {
+        return { success: false, message: '§cFriend system is disabled.' };
+    }
 
     if (sender.name.toLowerCase() === targetName.toLowerCase()) {
         return { success: false, message: '§cYou cannot be friends with yourself.' };
@@ -59,7 +61,9 @@ export function sendFriendRequest(sender: mc.Player, targetName: string): { succ
     }
 
     updatePlayerData(targetId, (d) => {
-        if (!isDefined(d.friendRequests)) d.friendRequests = [];
+        if (!isDefined(d.friendRequests)) {
+            d.friendRequests = [];
+        }
         d.friendRequests.push({
             senderId: sender.id,
             senderName: sender.name,
@@ -87,13 +91,17 @@ export function acceptFriendRequest(player: mc.Player, senderId: string): { succ
 
     // Add to both lists
     updatePlayerData(player.id, (d) => {
-        if (!isDefined(d.friends)) d.friends = [];
+        if (!isDefined(d.friends)) {
+            d.friends = [];
+        }
         d.friends.push(senderId);
         d.friendRequests?.splice(requestIndex, 1);
     });
 
     updatePlayerData(senderId, (d) => {
-        if (!isDefined(d.friends)) d.friends = [];
+        if (!isDefined(d.friends)) {
+            d.friends = [];
+        }
         if (!d.friends.includes(player.id)) {
             d.friends.push(player.id);
         }
@@ -162,7 +170,9 @@ export async function inviteFriendToGame(player: mc.Player, _gameId: string) {
     const onlineFriends: mc.Player[] = [];
     for (const fid of friends) {
         const p = getPlayerFromCache(fid);
-        if (p) onlineFriends.push(p);
+        if (p) {
+            onlineFriends.push(p);
+        }
     }
 
     if (onlineFriends.length === 0) {
