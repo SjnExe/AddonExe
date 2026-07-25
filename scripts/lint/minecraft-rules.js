@@ -22,37 +22,21 @@ export default {
         'no-magic-minecraft-strings': {
             meta: { type: 'problem', docs: { description: 'Require @minecraft/vanilla-data for identifier strings' } },
             create(context) {
-                const allowedKeys = new Set();
+                const allowedStrings = new Set();
 
-                function getNodeKey(node) {
-                    if (!node) {
-                        return null;
-                    }
-                    if (Array.isArray(node.range)) {
-                        return `${node.range[0]}:${node.range[1]}`;
-                    }
-                    if (typeof node.start === 'number' && typeof node.end === 'number') {
-                        return `${node.start}:${node.end}`;
-                    }
-                    if (node.loc?.start) {
-                        return `${node.loc.start.line}:${node.loc.start.column}`;
-                    }
-                    return null;
-                }
-
-                function markAllowed(arg) {
+                function addAllowedString(arg) {
                     if (!arg) {
                         return;
                     }
-                    const key = getNodeKey(arg);
-                    if (key) {
-                        allowedKeys.add(key);
-                    }
-                    if (arg.type === 'TemplateLiteral') {
+                    if (arg.type === 'Literal' && typeof arg.value === 'string') {
+                        allowedStrings.add(arg.value);
+                    } else if (arg.type === 'TemplateLiteral') {
                         for (const quasi of arg.quasis || []) {
-                            const qKey = getNodeKey(quasi);
-                            if (qKey) {
-                                allowedKeys.add(qKey);
+                            if (quasi.value?.raw) {
+                                allowedStrings.add(quasi.value.raw);
+                            }
+                            if (quasi.value?.cooked) {
+                                allowedStrings.add(quasi.value.cooked);
                             }
                         }
                     }
@@ -60,22 +44,21 @@ export default {
 
                 return {
                     Program() {
-                        allowedKeys.clear();
+                        allowedStrings.clear();
                     },
                     CallExpression(node) {
                         if (node.callee?.type === 'MemberExpression') {
                             const propName = node.callee.property?.name;
                             if (['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
                                 for (const arg of node.arguments || []) {
-                                    markAllowed(arg);
+                                    addAllowedString(arg);
                                 }
                             }
                         }
                     },
                     Literal(node) {
                         if (typeof node.value === 'string' && node.value.startsWith('minecraft:')) {
-                            const key = getNodeKey(node);
-                            if (key && allowedKeys.has(key)) {
+                            if (allowedStrings.has(node.value)) {
                                 return;
                             }
                             context.report({
@@ -85,9 +68,9 @@ export default {
                         }
                     },
                     TemplateElement(node) {
-                        if (node.value?.raw?.startsWith('minecraft:')) {
-                            const key = getNodeKey(node);
-                            if (key && allowedKeys.has(key)) {
+                        const raw = node.value?.raw;
+                        if (typeof raw === 'string' && raw.startsWith('minecraft:')) {
+                            if (allowedStrings.has(raw)) {
                                 return;
                             }
                             context.report({
