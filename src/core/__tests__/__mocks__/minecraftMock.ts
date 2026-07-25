@@ -247,18 +247,20 @@ export class ItemStack {
 }
 
 // --- Component Types added for strict production-grade enum matching ---
+
+// --- Component Types for strict enum matching ---
 export const EntityComponentTypes = {
-    Inventory: EntityComponentTypes.Inventory,
-    Equippable: EntityComponentTypes.Equippable,
-    EnderInventory: EntityComponentTypes.EnderInventory,
-    Rideable: EntityComponentTypes.Rideable,
-    Tameable: EntityComponentTypes.Tameable,
-    IsTamed: EntityComponentTypes.IsTamed,
-    TypeFamily: EntityComponentTypes.TypeFamily,
-    Projectile: EntityComponentTypes.Projectile
-};
+    Inventory: 'minecraft:inventory',
+    Equippable: 'minecraft:equippable',
+    EnderInventory: 'minecraft:ender_inventory',
+    Rideable: 'minecraft:rideable',
+    Tameable: 'minecraft:tameable',
+    IsTamed: 'minecraft:is_tamed',
+    TypeFamily: 'minecraft:type_family',
+    Projectile: 'minecraft:projectile'
+} as const;
 
 export const ItemComponentTypes = {
-    Durability: ItemComponentTypes.Durability,
-    Enchantable: ItemComponentTypes.Enchantable
-};
+    Durability: 'minecraft:durability',
+    Enchantable: 'minecraft:enchantable'
+} as const;
