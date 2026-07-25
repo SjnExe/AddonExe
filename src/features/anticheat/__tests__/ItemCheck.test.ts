@@ -1,3 +1,5 @@
+import { ItemComponentTypes } from '@minecraft/server';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
@@ -27,11 +29,11 @@ describe('ItemCheck', () => {
 
     it('should flag illegal enchantments', () => {
         const item = {
-            typeId: 'minecraft:diamond_sword',
+            typeId: MinecraftItemTypes.DiamondSword,
             amount: 1,
             maxAmount: 1,
             getComponent: mock((id: string) => {
-                if (id === 'minecraft:enchantable') {
+                if (id === ItemComponentTypes.Enchantable) {
                     return {
                         getEnchantments: () => [
                             {
@@ -60,11 +62,11 @@ describe('ItemCheck', () => {
 
     it('should allow legal high-level enchants if vanilla max allows', () => {
         const item = {
-            typeId: 'minecraft:diamond_sword',
+            typeId: MinecraftItemTypes.DiamondSword,
             amount: 1,
             maxAmount: 1,
             getComponent: mock((id: string) => {
-                if (id === 'minecraft:enchantable') {
+                if (id === ItemComponentTypes.Enchantable) {
                     return {
                         getEnchantments: () => [
                             {

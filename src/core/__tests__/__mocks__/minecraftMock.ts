@@ -1,3 +1,5 @@
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
+
 import { mock } from 'bun:test';
 
 // --- @minecraft/server Mocks ---
@@ -246,17 +248,17 @@ export class ItemStack {
 
 // --- Component Types added for strict production-grade enum matching ---
 export const EntityComponentTypes = {
-    Inventory: 'minecraft:inventory',
-    Equippable: 'minecraft:equippable',
+    Inventory: EntityComponentTypes.Inventory,
+    Equippable: EntityComponentTypes.Equippable,
     EnderInventory: 'minecraft:ender_inventory',
-    Rideable: 'minecraft:rideable',
-    Tameable: 'minecraft:tameable',
-    IsTamed: 'minecraft:is_tamed',
-    TypeFamily: 'minecraft:type_family',
-    Projectile: 'minecraft:projectile'
+    Rideable: EntityComponentTypes.Rideable,
+    Tameable: EntityComponentTypes.Tameable,
+    IsTamed: EntityComponentTypes.IsTamed,
+    TypeFamily: EntityComponentTypes.TypeFamily,
+    Projectile: EntityComponentTypes.Projectile
 };
 
 export const ItemComponentTypes = {
-    Durability: 'minecraft:durability',
-    Enchantable: 'minecraft:enchantable'
+    Durability: ItemComponentTypes.Durability,
+    Enchantable: ItemComponentTypes.Enchantable
 };

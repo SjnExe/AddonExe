@@ -1,3 +1,5 @@
+import { EntityComponentTypes } from '@minecraft/server';
+
 import { getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayerNameById } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
@@ -15,7 +17,7 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
 
     const form = new ActionFormBuilder().title(`${targetName}'s Inventory`);
 
-    const inventoryComponent = targetPlayer.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
+    const inventoryComponent = targetPlayer.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
 
     if (!inventoryComponent || !inventoryComponent.container) {
         player.sendMessage(`§cCannot access inventory component for ${targetName}.`);
