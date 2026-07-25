@@ -213,8 +213,8 @@ export function getVisibleCategories(player: mc.Player): SystemItem[] {
 
     const sortedCategories = [...categories].sort((a, b) => a.localeCompare(b));
 
-    // Add "Reset" category if Owner
-    if (hasPermission(player, 'ui.panel.owner')) {
+    // Add "Reset" category if Admin/Owner
+    if (hasPermission(player, 'ui.panel.admin')) {
         // Reset isn't a category in systemRegistry, it's a panel.
         // We handle Reset separately in panelBuilder.
     }
