@@ -58,19 +58,41 @@ export default {
                     }
                 }
 
-                return {
-                    Program() {
-                        allowedNodes.clear();
-                    },
-                    CallExpression(node) {
-                        if (node.callee?.type === 'MemberExpression') {
-                            const propName = node.callee.property?.name;
-                            if (['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
-                                for (const arg of node.arguments || []) {
-                                    markAllowed(arg);
+                function walk(node, visitor) {
+                    if (!node || typeof node !== 'object') {
+                        return;
+                    }
+                    visitor(node);
+                    for (const key of Object.keys(node)) {
+                        if (key === 'parent') {
+                            continue;
+                        }
+                        const child = node[key];
+                        if (Array.isArray(child)) {
+                            for (const item of child) {
+                                if (item && typeof item === 'object' && typeof item.type === 'string') {
+                                    walk(item, visitor);
                                 }
                             }
+                        } else if (child && typeof child === 'object' && typeof child.type === 'string') {
+                            walk(child, visitor);
                         }
+                    }
+                }
+
+                return {
+                    Program(rootNode) {
+                        allowedNodes.clear();
+                        walk(rootNode, (node) => {
+                            if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression') {
+                                const propName = node.callee.property?.name;
+                                if (['getComponent', 'hasComponent', 'getComponentNet'].includes(propName)) {
+                                    for (const arg of node.arguments || []) {
+                                        markAllowed(arg);
+                                    }
+                                }
+                            }
+                        });
                     },
                     Literal(node) {
                         if (typeof node.value === 'string' && node.value.startsWith('minecraft:')) {
