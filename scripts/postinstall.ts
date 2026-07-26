@@ -1,43 +1,12 @@
 import { $ } from 'bun';
 import { existsSync } from 'node:fs';
 import fs from 'node:fs/promises';
-import os from 'node:os';
 import path from 'node:path';
 
-const homeDir = os.homedir();
 const isTermux = existsSync('/data/data/com.termux');
-const termuxBinDir = '/data/data/com.termux/files/usr/bin';
-const cargoBinDir = `${homeDir}/.cargo/bin`;
-
-const paths = [cargoBinDir, isTermux ? termuxBinDir : '', process.env.PATH].filter(Boolean);
-process.env.PATH = paths.join(path.delimiter);
+const systemBinDir = '/data/data/com.termux/files/usr/bin';
 
 async function postinstallTask() {
-    if (isTermux) {
-        const cargoExists = existsSync(path.join(termuxBinDir, 'cargo')) || existsSync(path.join(cargoBinDir, 'cargo'));
-        const jscpdExists = existsSync(path.join(cargoBinDir, 'jscpd')) || existsSync(path.join(termuxBinDir, 'jscpd'));
-
-        if (cargoExists) {
-            if (!jscpdExists) {
-                try {
-                    console.log('⚡ Termux toolchain verified: Compiling native jscpd with microarchitecture optimizations...');
-                    await $`RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -C strip=symbols" cargo install jscpd`;
-                } catch (err) {
-                    console.error('❌ Native compilation failed during execution:', err);
-                }
-            } else {
-                console.log('✅ Native jscpd binary detected in toolchain path. Skipping network registry checks.');
-            }
-
-            if (existsSync(path.join(homeDir, '.cargo/registry'))) {
-                console.log('🧹 Purging secondary cargo registry cache directories...');
-                await $`rm -rf ${homeDir}/.cargo/registry/src ${homeDir}/.cargo/registry/cache`.quiet();
-            }
-        } else {
-            console.log('\n⚠️ [Toolchain Warning]: cargo binary not found. Run "pkg install rust lld" to enable optimized jscpd support.\n');
-        }
-    }
-
     if (existsSync('.git')) {
         const hookPath = '.git/hooks/pre-commit';
         await Bun.write(hookPath, '#!/bin/sh\nbun scripts/pre-commit.ts\n');
@@ -46,29 +15,57 @@ async function postinstallTask() {
     }
 
     if (isTermux) {
-        const patchedTscPath = path.join(homeDir, '.cache/tsc-patched-bin');
-        const binLink = path.join(process.cwd(), 'node_modules/.bin/tsc');
+        // 1. Hot-swap system pre-built tsc binary into node_modules
+        const systemTsc = path.join(systemBinDir, 'tsc');
+        const binTscLink = path.join(process.cwd(), 'node_modules/.bin/tsc');
 
-        if (existsSync(patchedTscPath) && existsSync(binLink)) {
-            const realPath = await fs.realpath(binLink);
-            console.log(`🎯 Resolving ecosystem symlink target path: ${realPath}`);
-            await fs.copyFile(patchedTscPath, realPath);
-            await fs.chmod(realPath, 0o755);
-            console.log('✅ Injected Termux-compliant native tsc binary wrapper successfully.');
+        if (existsSync(systemTsc)) {
+            if (existsSync(binTscLink)) {
+                const realPath = await fs.realpath(binTscLink).catch(() => binTscLink);
+                await fs.rm(realPath, { force: true }).catch(() => {});
+                await fs.copyFile(systemTsc, realPath).catch(() => {});
+                await fs.chmod(realPath, 0o755).catch(() => {});
+            }
+            await fs.rm(binTscLink, { force: true }).catch(() => {});
+            await fs.copyFile(systemTsc, binTscLink).catch(() => {});
+            await fs.chmod(binTscLink, 0o755).catch(() => {});
+            console.log('✅ Injected system pre-built tsc binary into node_modules/.bin/tsc');
         }
-    }
 
-    // Force hot-swap the native jscpd binary into the local node_modules layout on every installation pass
-    if (isTermux) {
-        const nativeJscpdPath = path.join(homeDir, '.cargo/bin/jscpd');
-        const npmJscpdBinDir = path.join(process.cwd(), 'node_modules/jscpd-linux-arm64-gnu/bin');
-        const npmJscpdPath = path.join(npmJscpdBinDir, 'jscpd');
+        // 2. Hot-swap system pre-built jscpd binary into node_modules
+        const systemJscpd = path.join(systemBinDir, 'jscpd');
+        if (existsSync(systemJscpd)) {
+            // Overwrite node_modules/.bin/jscpd directly
+            const binJscpdLink = path.join(process.cwd(), 'node_modules/.bin/jscpd');
+            if (existsSync(binJscpdLink)) {
+                const realPath = await fs.realpath(binJscpdLink).catch(() => binJscpdLink);
+                await fs.rm(realPath, { force: true }).catch(() => {});
+                await fs.copyFile(systemJscpd, realPath).catch(() => {});
+                await fs.chmod(realPath, 0o755).catch(() => {});
+            }
+            await fs.rm(binJscpdLink, { force: true }).catch(() => {});
+            await fs.copyFile(systemJscpd, binJscpdLink).catch(() => {});
+            await fs.chmod(binJscpdLink, 0o755).catch(() => {});
 
-        if (existsSync(nativeJscpdPath)) {
+            // Overwrite node_modules/jscpd/bin/jscpd JS wrapper script
+            const pkgJscpdBin = path.join(process.cwd(), 'node_modules/jscpd/bin/jscpd');
+            if (existsSync(path.dirname(pkgJscpdBin))) {
+                await fs.rm(pkgJscpdBin, { force: true }).catch(() => {});
+                await fs.copyFile(systemJscpd, pkgJscpdBin).catch(() => {});
+                await fs.chmod(pkgJscpdBin, 0o755).catch(() => {});
+            }
+
+            // Create fake platform package structure for JS require checks
+            const npmJscpdDir = path.join(process.cwd(), 'node_modules/jscpd-linux-arm64-gnu');
+            const npmJscpdBinDir = path.join(npmJscpdDir, 'bin');
+            const npmJscpdPath = path.join(npmJscpdBinDir, 'jscpd');
+
             await fs.mkdir(npmJscpdBinDir, { recursive: true });
-            await fs.copyFile(nativeJscpdPath, npmJscpdPath);
-            await fs.chmod(npmJscpdPath, 0o755);
-            console.log('✅ Injected Termux-compliant native jscpd binary wrapper successfully.');
+            await fs.copyFile(systemJscpd, npmJscpdPath).catch(() => {});
+            await fs.chmod(npmJscpdPath, 0o755).catch(() => {});
+            await Bun.write(path.join(npmJscpdDir, 'package.json'), JSON.stringify({ name: 'jscpd-linux-arm64-gnu', version: '5.0.12' }));
+
+            console.log('✅ Injected system pre-built jscpd binary wrapper into node_modules.');
         }
     }
 }
