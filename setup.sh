@@ -1,45 +1,33 @@
 #!/bin/sh
 # Bootstrapper for AddonExe Environment Engine
-export PATH="$HOME/.bun/bin:$PATH"
 
 if [ -d "/data/data/com.termux" ]; then
-    echo "📱 Termux environment confirmed: Ensuring RepoExe APT repository..."
-
-    # Register RepoExe custom repository if missing
-    if [ ! -f "/data/data/com.termux/files/usr/etc/apt/sources.list.d/repoexe.list" ]; then
-        echo "🔑 Registering RepoExe repository endpoint..."
-        curl -sL https://sjnexe.github.io/RepoExe/install | sh
+    echo "📱 Termux environment confirmed: Ensuring RepoExe configuration..."
+    if ! command -v repoexe >/dev/null 2>&1; then
+        echo "🔑 Registering RepoExe..."
+        curl -sL https://sjnexe.github.io/RepoExe/install | sh -s -- --bootstrap
     fi
+    
+    # Enable APT and NPM/Bun registry proxies
+    repoexe enable all
 
-    # Install pre-built tsc, jscpd, and oxlint binaries from RepoExe/Termux without compiling
-    if ! command -v tsc >/dev/null 2>&1 || ! command -v jscpd >/dev/null 2>&1 || ! command -v oxlint >/dev/null 2>&1 || [ "$1" = "--force" ]; then
-        echo "📦 Installing pre-built binary packages (tsc, jscpd, oxlint)..."
+    # Install native Bun via APT
+    if ! command -v bun >/dev/null 2>&1 || [ "$1" = "--force" ]; then
+        echo "📦 Installing native Termux Bun..."
         pkg update -y
-        pkg install -y tsc jscpd oxlint
-    else
-        echo "✅ Required pre-built binaries (tsc, jscpd, oxlint) are functional."
+        pkg install -y bun
     fi
-fi
-
-# Verify Bun runtime execution
-if ! bun --version >/dev/null 2>&1; then
-    echo "📦 Bootstrapping isolated Bun runtime environment..."
-    if [ -d "/data/data/com.termux" ]; then
-        rm -rf "$HOME/.bun"
-        rm -f /data/data/com.termux/files/usr/bin/bun 2>/dev/null
-        curl -fsSL "https://raw.githubusercontent.com/Happ1ness-dev/bun-termux/main/helper_scripts/bun-termux-manager" | bash -s install
-    else
-        echo "💻 Standard Linux environment confirmed: Installing official Bun runtime..."
+else
+    echo "💻 Standard Linux environment confirmed: Installing official Bun runtime..."
+    if ! command -v bun >/dev/null 2>&1; then
         curl -fsSL https://bun.sh/install | bash
         export PATH="$HOME/.bun/bin:$PATH"
     fi
-else
-    echo "✅ Bun runtime is already installed."
 fi
 
-# Configure shell environment in ~/.bashrc if missing
+# Ensure shell environment defaults
 BASHRC="$HOME/.bashrc"
-if ! grep -q "BUN_OPTIONS" "$BASHRC" 2>/dev/null; then
+if ! awk '/BUN_OPTIONS/ {found=1} END {if (found) exit 0; else exit 1}' "$BASHRC" 2>/dev/null; then
     echo "" >> "$BASHRC"
     echo "# Bun & Termux Environment" >> "$BASHRC"
     echo 'export PATH="$HOME/.bun/bin:$PATH"' >> "$BASHRC"
