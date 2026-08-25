@@ -1,4 +1,3 @@
-import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const targetPackages = ['@minecraft/debug-utilities', '@minecraft/server', '@minecraft/server-gametest', '@minecraft/server-ui'];
@@ -25,7 +24,8 @@ async function autoAlignDependencies() {
     console.log(`🌐 Synchronizing Minecraft Ecosystem Engine configurations to match latest beta versions...`);
 
     const packageJsonPath = path.join(process.cwd(), 'package.json');
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+    const packageJsonFile = Bun.file(packageJsonPath);
+    const packageJson = await packageJsonFile.json();
     let changesMade = false;
 
     for (const pkg of targetPackages) {
