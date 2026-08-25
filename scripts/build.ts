@@ -1,5 +1,4 @@
 import { $ } from 'bun';
-import { globSync } from 'glob';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -74,7 +73,8 @@ export const iconIndexPlugin = {
             console.log('[Plugin] Generating virtual icon index...');
             const SRC_DIR = path.resolve(__dirname, '../src');
 
-            const tsFiles = globSync('**/*.ts', { cwd: SRC_DIR, absolute: true });
+            const globScanner = new Bun.Glob('**/*.ts');
+            const tsFiles = Array.from(globScanner.scanSync({ cwd: SRC_DIR, absolute: true }));
             const textures = new Set<string>();
             const regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
 
@@ -327,8 +327,7 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
             content = transformConfigContent(content);
             const jsOutput = bunTranspiler.transformSync(content);
 
-            await fs.mkdir(path.dirname(conf.dest), { recursive: true });
-            await fs.writeFile(conf.dest, jsOutput, 'utf8');
+            await Bun.write(conf.dest, jsOutput);
         } catch (err: any) {
             console.error(`[Build] Failed to process configuration asset ${conf.src}: ${err.message}`);
             process.exit(1);

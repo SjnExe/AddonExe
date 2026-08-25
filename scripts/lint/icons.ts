@@ -1,4 +1,3 @@
-import { globSync } from 'glob';
 import JSON5 from 'json5';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -100,7 +99,8 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
 
 async function getCustomTextures(): Promise<Set<string>> {
     const customTextures = new Set<string>();
-    const pngFiles = globSync('**/*.png', { cwd: RESOURCE_PACK_DIR, absolute: false });
+    const pngGlob = new Bun.Glob('**/*.png');
+    const pngFiles = Array.from(pngGlob.scanSync({ cwd: RESOURCE_PACK_DIR, absolute: false }));
 
     for (const file of pngFiles) {
         // e.g. "ui/my_icon.png" -> "textures/ui/my_icon"
@@ -115,7 +115,8 @@ async function getCustomTextures(): Promise<Set<string>> {
 }
 
 async function extractUsedIcons(): Promise<Map<string, string[]>> {
-    const tsFiles = globSync('**/*.ts', { cwd: SRC_DIR, absolute: true });
+    const tsGlob = new Bun.Glob('**/*.ts');
+    const tsFiles = Array.from(tsGlob.scanSync({ cwd: SRC_DIR, absolute: true }));
     const regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
 
     // Map of icon path to array of files it was found in
