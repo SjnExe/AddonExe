@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -191,8 +190,8 @@ async function main() {
         }
     };
 
-    await fs.writeFile(path.join(__dirname, '../packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 4));
-    await fs.writeFile(path.join(__dirname, '../packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
+    await Bun.write(path.join(__dirname, '../packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 4));
+    await Bun.write(path.join(__dirname, '../packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
 }
 
 main().catch((err) => {
