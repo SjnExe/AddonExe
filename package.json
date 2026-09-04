@@ -24,8 +24,8 @@
         "check-types": "bun --bun tsc --noEmit --project tsconfig.json",
         "clean": "rm -rf out packs/behavior/scripts",
         "fix-project": "bun mct fix",
-        "format": "prettier --write --cache .",
-        "format:check": "prettier --check --cache .",
+        "format": "bunx prettier --write --cache .",
+        "format:check": "bunx prettier --check --cache .",
         "postinstall": "bun scripts/postinstall.ts",
         "lint": "bun scripts/lint/run.ts --fix",
         "lint:check": "bun scripts/lint/run.ts",
@@ -42,13 +42,10 @@
     },
     "lint-staged": {
         "*.{js,ts}": "bun scripts/lint/staged.ts",
-        "*.{json,md,yml,yaml}": "bun prettier --write --cache"
+        "*.{json,md,yml,yaml}": "bunx prettier --write --cache"
     },
     "overrides": {
-        "@hono/node-server": "latest",
         "axios": "latest",
-        "brace-expansion": "latest",
-        "react": "^18.3.1",
         "tmp": "latest",
         "uuid": "latest",
         "ws": "latest"
@@ -56,6 +53,7 @@
     "dependencies": {
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest",
+        "is-number": "latest",
         "uuid": "latest"
     },
     "devDependencies": {
@@ -71,7 +69,7 @@
         "ajv": "latest",
         "eslint-plugin-minecraft-linting": "latest",
         "globals": "latest",
-        "jscpd": "latest",
+        "jscpd": "^4.3.0",
         "json5": "latest",
         "lint-staged": "latest",
         "oxlint": "latest",
@@ -79,7 +77,7 @@
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
         "type-fest": "latest",
-        "typescript": "latest"
+        "typescript": "^6.0.3"
     },
     "trustedDependencies": [
         "bufferutil",
