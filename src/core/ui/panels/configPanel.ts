@@ -5,6 +5,7 @@ import { hasPermission } from '@core/permissionEngine.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
@@ -119,7 +120,7 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
 
     debugLog(`[UI Config] Loading config for system: ${systemId} from source: ${configSource} | Page: ${_context.page ?? 1}`);
     const config = handler.get();
-    const modal = new ModalFormBuilder<Record<string, unknown>>().title(schema.title);
+    const modal = new CustomFormBuilder<Record<string, unknown>>(schema.title).submitButton('Save Settings');
     const validSettings: SettingSchema[] = [];
 
     for (const setting of schema.settings) {
