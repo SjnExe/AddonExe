@@ -160,7 +160,7 @@ jobs:
               shell: bash
               run: |
                   set -e
-                  BASE_VER=$(bun -e "console.log(require('./package.json').version)")
+                  BASE_VER=$(bun -e "console.log((await Bun.file('package.json').json()).version)")
 
                   MAJOR=$(echo $BASE_VER | cut -d. -f1)
                   MINOR=$(echo $BASE_VER | cut -d. -f2)
@@ -205,14 +205,6 @@ jobs:
                       echo "ARCHIVE_VERSION=${{ env.VERSION_STRING }}" >> $GITHUB_ENV
                       echo "PREFIX=Nightly" >> $GITHUB_ENV
                   fi
-
-            - name: Create Release Archives
-              shell: bash
-              run: |
-                  set -e
-                  (cd packs && zip -r -1 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
-                  (cd packs/behavior && zip -r -1 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
-                  (cd packs/resource && zip -r -1 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
 
             - name: Upload Raw Build Directory
               uses: actions/upload-artifact@v7

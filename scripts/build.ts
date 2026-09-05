@@ -1,15 +1,15 @@
 import { $ } from 'bun';
+import JSZip from 'jszip';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(import.meta.dirname, '..');
 
 const args = process.argv.slice(2);
 const isWatch = args.includes('--watch');
 const isRelease = args.includes('--release');
 const isNightly = args.includes('--nightly');
+const isZip = args.includes('--zip') || isRelease || isNightly;
 const isMinify = args.includes('--minify') || isRelease;
 
 let buildNumber = 0;
@@ -21,7 +21,7 @@ if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
     }
 }
 
-const pkgPath = path.resolve(__dirname, '../package.json');
+const pkgPath = path.resolve(ROOT_DIR, 'package.json');
 
 async function getVersionParts() {
     const pkg = await Bun.file(pkgPath).json();
@@ -71,7 +71,7 @@ export const iconIndexPlugin = {
 
         build.onLoad({ filter: /.*/, namespace: 'virtual-icon-index' }, async () => {
             console.log('[Plugin] Generating virtual icon index...');
-            const SRC_DIR = path.resolve(__dirname, '../src');
+            const SRC_DIR = path.resolve(ROOT_DIR, 'src');
 
             const globScanner = new Bun.Glob('**/*.ts');
             const tsFiles = Array.from(globScanner.scanSync({ cwd: SRC_DIR, absolute: true }));
@@ -120,7 +120,7 @@ export const commandIndexPlugin = {
 
         build.onLoad({ filter: /.*/, namespace: 'virtual-command-index' }, async () => {
             console.log('[Plugin] Generating virtual command index...');
-            const SRC_DIR = path.resolve(__dirname, '../src');
+            const SRC_DIR = path.resolve(ROOT_DIR, 'src');
             const FEATURES_DIR = path.join(SRC_DIR, 'features');
 
             const featureDirs: string[] = [];
@@ -227,14 +227,70 @@ function transformConfigContent(raw: string): string {
     });
 }
 
+async function addDirToZip(sourceDir: string, zip: JSZip, zipPrefix = '', excludeExts = ['.map']) {
+    const glob = new Bun.Glob('**/*');
+    const files = Array.from(glob.scanSync({ cwd: sourceDir, absolute: false, dot: true }));
+
+    for (const relPath of files) {
+        if (excludeExts.some((ext) => relPath.endsWith(ext))) {
+            continue;
+        }
+
+        const fullPath = path.join(sourceDir, relPath);
+        const stat = await fs.stat(fullPath);
+        if (stat.isFile()) {
+            const zipPath = zipPrefix ? `${zipPrefix}/${relPath}`.replace(/\\/g, '/') : relPath.replace(/\\/g, '/');
+            const content = await Bun.file(fullPath).arrayBuffer();
+            zip.file(zipPath, content);
+        }
+    }
+}
+
+async function createArchives(prefix: string, versionStr: string) {
+    console.log(`[Build] Creating release archives (${prefix}.${versionStr})...`);
+
+    const packsDir = path.resolve(ROOT_DIR, 'packs');
+    const behaviorDir = path.join(packsDir, 'behavior');
+    const resourceDir = path.join(packsDir, 'resource');
+
+    const mcaddonZip = new JSZip();
+    await addDirToZip(behaviorDir, mcaddonZip, 'behavior');
+    await addDirToZip(resourceDir, mcaddonZip, 'resource');
+
+    const bpZip = new JSZip();
+    await addDirToZip(behaviorDir, bpZip);
+
+    const rpZip = new JSZip();
+    await addDirToZip(resourceDir, rpZip);
+
+    const zipOptions: JSZip.JSZipGeneratorOptions<'uint8array'> = {
+        type: 'uint8array',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 9 }
+    };
+
+    const mcaddonPath = path.resolve(ROOT_DIR, `AddonExe.${prefix}.${versionStr}.mcaddon`);
+    const bpPath = path.resolve(ROOT_DIR, `AddonExe_BP.${prefix}.${versionStr}.mcpack`);
+    const rpPath = path.resolve(ROOT_DIR, `AddonExe_RP.${prefix}.${versionStr}.mcpack`);
+
+    const [mcaddonData, bpData, rpData] = await Promise.all([mcaddonZip.generateAsync(zipOptions), bpZip.generateAsync(zipOptions), rpZip.generateAsync(zipOptions)]);
+
+    await Promise.all([Bun.write(mcaddonPath, mcaddonData), Bun.write(bpPath, bpData), Bun.write(rpPath, rpData)]);
+
+    console.log(`[Build] Archives generated successfully:`);
+    console.log(`  - ${path.basename(mcaddonPath)}`);
+    console.log(`  - ${path.basename(bpPath)}`);
+    console.log(`  - ${path.basename(rpPath)}`);
+}
+
 async function compileScripts(versionArray: number[], outDirSuffix: string = '') {
     console.log(`[Build] Compiling Scripts...`);
 
     const coreEntrypoints = ['src/main.ts'];
     const configPaths: { src: string; dest: string }[] = [];
-    const srcDir = path.resolve(__dirname, '../src');
+    const srcDir = path.resolve(ROOT_DIR, 'src');
     const featuresDir = path.join(srcDir, 'features');
-    const outDir = path.resolve(__dirname, `../packs/behavior/scripts${outDirSuffix}`);
+    const outDir = path.resolve(ROOT_DIR, `packs/behavior/scripts${outDirSuffix}`);
 
     configPaths.push({
         src: path.join(srcDir, 'config.ts'),
@@ -354,6 +410,12 @@ async function main() {
 
     await compileScripts(versionArray, '');
 
+    if (isZip) {
+        const prefix = isRelease ? 'Release' : isNightly ? 'Nightly' : 'Local';
+        const { versionStr } = await getVersionParts();
+        await createArchives(prefix, versionStr);
+    }
+
     console.log('--- Build Complete ---');
 
     if (isWatch) {
@@ -387,7 +449,7 @@ async function main() {
             }
         };
 
-        watchDir(path.resolve(__dirname, '../src'));
+        watchDir(path.resolve(ROOT_DIR, 'src'));
     }
 }
 

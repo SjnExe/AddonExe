@@ -1,8 +1,7 @@
 import { $ } from 'bun';
-import { existsSync } from 'node:fs';
 
 async function postinstallTask() {
-    if (existsSync('.git')) {
+    if (await Bun.file('.git/HEAD').exists()) {
         const hookPath = '.git/hooks/pre-commit';
         await Bun.write(hookPath, '#!/bin/sh\nbun scripts/pre-commit.ts\n');
         await $`chmod +x ${hookPath}`.quiet();
