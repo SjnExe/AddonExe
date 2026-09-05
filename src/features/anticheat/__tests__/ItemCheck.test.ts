@@ -1,6 +1,6 @@
+import * as mc from '@minecraft/server';
 import { ItemComponentTypes } from '@minecraft/server';
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
-import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
