@@ -139,6 +139,217 @@ export enum FormCancelationReason {
     UserClosed = 'UserClosed'
 }
 
+export enum DataDrivenScreenClosedReason {
+    ClientClosed = 'ClientClosed',
+    ServerClosed = 'ServerClosed',
+    UserBusy = 'UserBusy'
+}
+
+export class ObservableBoolean {
+    private _data: boolean;
+    private _listeners: Set<(val: boolean) => void> = new Set();
+
+    constructor(
+        initialValue: boolean,
+        public options?: { clientWritable?: boolean }
+    ) {
+        this._data = initialValue;
+    }
+
+    getData(): boolean {
+        return this._data;
+    }
+
+    setData(value: boolean): void {
+        this._data = value;
+        for (const cb of this._listeners) {
+            cb(value);
+        }
+    }
+
+    subscribe(callback: (val: boolean) => void) {
+        this._listeners.add(callback);
+        return callback;
+    }
+
+    unsubscribe(callback: (val: boolean) => void): boolean {
+        return this._listeners.delete(callback);
+    }
+}
+
+export class ObservableNumber {
+    private _data: number;
+    private _listeners: Set<(val: number) => void> = new Set();
+
+    constructor(
+        initialValue: number,
+        public options?: { clientWritable?: boolean }
+    ) {
+        this._data = initialValue;
+    }
+
+    getData(): number {
+        return this._data;
+    }
+
+    setData(value: number): void {
+        this._data = value;
+        for (const cb of this._listeners) {
+            cb(value);
+        }
+    }
+
+    subscribe(callback: (val: number) => void) {
+        this._listeners.add(callback);
+        return callback;
+    }
+
+    unsubscribe(callback: (val: number) => void): boolean {
+        return this._listeners.delete(callback);
+    }
+}
+
+export class ObservableString {
+    private _data: string;
+    private _listeners: Set<(val: string) => void> = new Set();
+
+    constructor(
+        initialValue: string,
+        public options?: { clientWritable?: boolean }
+    ) {
+        this._data = initialValue;
+    }
+
+    getData(): string {
+        return this._data;
+    }
+
+    setData(value: string): void {
+        this._data = value;
+        for (const cb of this._listeners) {
+            cb(value);
+        }
+    }
+
+    subscribe(callback: (val: string) => void) {
+        this._listeners.add(callback);
+        return callback;
+    }
+
+    unsubscribe(callback: (val: string) => void): boolean {
+        return this._listeners.delete(callback);
+    }
+
+    async getFilteredText(_player: Player): Promise<string> {
+        return this._data;
+    }
+}
+
+export class ObservableUIRawMessage {
+    private _data: unknown;
+    private _listeners: Set<(val: unknown) => void> = new Set();
+
+    constructor(
+        initialValue: unknown,
+        public options?: { clientWritable?: boolean }
+    ) {
+        this._data = initialValue;
+    }
+
+    getData(): unknown {
+        return this._data;
+    }
+
+    setData(value: unknown): void {
+        this._data = value;
+        for (const cb of this._listeners) {
+            cb(value);
+        }
+    }
+
+    subscribe(callback: (val: unknown) => void) {
+        this._listeners.add(callback);
+        return callback;
+    }
+
+    unsubscribe(callback: (val: unknown) => void): boolean {
+        return this._listeners.delete(callback);
+    }
+}
+
+export class CustomForm {
+    player: Player;
+    title: ObservableString | string;
+    private _showing = false;
+    private _buttons: { label: unknown; onClick: () => void }[] = [];
+
+    constructor(player: Player, title: ObservableString | string) {
+        this.player = player;
+        this.title = title;
+    }
+
+    button(label: ObservableString | string, onClick: () => void): this {
+        this._buttons.push({ label, onClick });
+        return this;
+    }
+
+    closeButton(): this {
+        return this;
+    }
+
+    divider(): this {
+        return this;
+    }
+
+    dropdown(_label: ObservableString | string, _value: ObservableNumber, _items: unknown[]): this {
+        return this;
+    }
+
+    header(_text: ObservableString | string): this {
+        return this;
+    }
+
+    label(_text: ObservableString | string): this {
+        return this;
+    }
+
+    slider(_label: ObservableString | string, _value: ObservableNumber, _min: number | ObservableNumber, _max: number | ObservableNumber): this {
+        return this;
+    }
+
+    spacer(): this {
+        return this;
+    }
+
+    textField(_label: ObservableString | string, _text: ObservableString): this {
+        return this;
+    }
+
+    toggle(_label: ObservableString | string, _toggled: ObservableBoolean): this {
+        return this;
+    }
+
+    close(): void {
+        this._showing = false;
+    }
+
+    isShowing(): boolean {
+        return this._showing;
+    }
+
+    show = mock().mockImplementation(async (): Promise<DataDrivenScreenClosedReason> => {
+        this._showing = true;
+        for (const btn of this._buttons) {
+            btn.onClick();
+        }
+        return DataDrivenScreenClosedReason.ClientClosed;
+    });
+}
+
+export const uiManager = {
+    closeAllForms: mock()
+};
+
 interface Control {
     type: string;
     label: string;
