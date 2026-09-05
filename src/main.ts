@@ -19,7 +19,7 @@ import { isNonEmptyString } from '@lib/guards.js';
 // @ts-ignore: Virtual module handled by build system
 import { loadCommands } from 'virtual:command-index';
 
-const VERSION = '0.7.0'; // Current Addon Version
+const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1'; // Current Addon Version
 
 // Load Commands immediately to register slash commands during startup
 loadCommands();
