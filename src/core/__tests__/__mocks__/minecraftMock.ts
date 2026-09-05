@@ -1,5 +1,3 @@
-import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
-
 import { mock } from 'bun:test';
 
 // --- @minecraft/server Mocks ---

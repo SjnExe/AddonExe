@@ -1,5 +1,5 @@
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mocks
