@@ -155,55 +155,29 @@ jobs:
                       echo "type=nightly" >> $GITHUB_OUTPUT
                   fi
 
-            - name: Generate Dev Version (Nightly only)
-              if: steps.build_type.outputs.type == 'nightly'
-              shell: bash
-              run: |
-                  set -e
-                  BASE_VER=$(bun -e "console.log((await Bun.file('package.json').json()).version)")
-
-                  MAJOR=$(echo $BASE_VER | cut -d. -f1)
-                  MINOR=$(echo $BASE_VER | cut -d. -f2)
-                  PATCH=${{ github.run_number }}
-
-                  VERSION_STR="${MAJOR}.${MINOR}.${PATCH}"
-                  VERSION_ARR_STR="[${MAJOR}, ${MINOR}, ${PATCH}]"
-                  IS_BETA="true"
-
-                  echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
-                  echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
-                  echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
-
-                  BUILD_DATE=$(date -u)
-                  echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
-
             - name: Build TypeScript (Nightly)
               if: steps.build_type.outputs.type == 'nightly'
               run: |
-                  bun run build:nightly -- --build-number ${{ github.run_number }}
+                  bun run build:nightly -- -b ${{ github.run_number }}
               env:
-                  IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
+                  IS_BETA_RELEASE: 'true'
 
             - name: Build TypeScript (Stable)
               if: steps.build_type.outputs.type == 'stable'
               run: |
-                  bun run build:release
+                  TAG_VER="${{ github.ref_name }}"
+                  CLEAN_TAG="${TAG_VER#v}"
+                  bun run build:release -- -v "$CLEAN_TAG"
+
+            - name: Load Build Meta into GITHUB_ENV
+              run: |
+                  cat build_meta.env >> $GITHUB_ENV
 
             - name: Verify Staged Packs
               run: |
                   if [ ! -d "packs/behavior/scripts" ]; then
                     echo "Error: Scripts directory missing from behavior pack."
                     exit 1
-                  fi
-
-            - name: Set Version Variable for Archive Names
-              run: |
-                  if [[ "${{ steps.build_type.outputs.type }}" == "stable" ]]; then
-                      echo "ARCHIVE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-                      echo "PREFIX=Release" >> $GITHUB_ENV
-                  else
-                      echo "ARCHIVE_VERSION=${{ env.VERSION_STRING }}" >> $GITHUB_ENV
-                      echo "PREFIX=Nightly" >> $GITHUB_ENV
                   fi
 
             - name: Upload Raw Build Directory
@@ -231,14 +205,6 @@ jobs:
                   name: debug-symbols-nightly
                   path: packs/**/*.map
                   retention-days: 7
-
-            - name: Create build meta file
-              run: |
-                  echo "BUILD_TYPE=${{ steps.build_type.outputs.type }}" > build_meta.env
-                  echo "ARCHIVE_VERSION=${{ env.ARCHIVE_VERSION }}" >> build_meta.env
-                  echo "VERSION_STRING=${{ env.VERSION_STRING }}" >> build_meta.env
-                  echo "BUILD_DATE=${{ env.BUILD_DATE }}" >> build_meta.env
-                  echo "PREFIX=${{ env.PREFIX }}" >> build_meta.env
 
             - name: Upload build meta
               uses: actions/upload-artifact@v7
