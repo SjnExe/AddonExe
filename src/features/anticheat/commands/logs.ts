@@ -1,10 +1,11 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { uiWait } from '@core/utils.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -64,29 +65,20 @@ async function showLogsMenu(player: mc.Player) {
 // --- Punishments ---
 
 async function showPunishmentFilter(player: mc.Player) {
-    const modal = new ModalFormData().title('Filter Punishments').textField('Player Name (Optional)', 'Search...').dropdown('Type', ['All', 'Ban', 'Mute', 'Kick', 'Warn'], { defaultValueIndex: 0 });
+    const types = ['All', 'Ban', 'Mute', 'Kick', 'Warn'];
+    const form = new CustomFormBuilder<{ playerName: string; type: string }>('Filter Punishments')
+        .textField('playerName', 'Player Name (Optional)', 'Search...')
+        .dropdown('type', 'Type', types, 0)
+        .submitButton('Filter');
 
-    const res = await uiWait(player, modal);
-    if (!isDefined(res) || res.canceled) {
+    const res = await form.show(player);
+    if (!res) {
         return showLogsMenu(player);
     }
 
-    const values = (res as ModalFormResponse).formValues;
-    if (!values) {
-        return;
-    }
-
-    const nameVal = values[0];
-    const nameQuery = (typeof nameVal === 'string' ? nameVal : undefined) ?? '';
-    const typeIndex = values[1];
-
-    if (typeof typeIndex !== 'number') {
-        return;
-    }
-
-    const types = ['All', 'Ban', 'Mute', 'Kick', 'Warn'];
-    const selectedType = types[typeIndex];
-    const typeFilter = selectedType === 'All' || selectedType === undefined ? undefined : selectedType.toLowerCase();
+    const nameQuery = res.playerName ?? '';
+    const selectedType = res.type;
+    const typeFilter = !selectedType || selectedType === 'All' ? undefined : selectedType.toLowerCase();
 
     await showPunishmentLogs(player, 1, nameQuery, typeFilter);
 }
@@ -176,22 +168,16 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
 // --- Flags ---
 
 async function showFlagFilter(player: mc.Player) {
-    const modal = new ModalFormData().title('Filter Flags').textField('Player Name (Optional)', 'Search...');
+    const form = new CustomFormBuilder<{ playerName: string }>('Filter Flags')
+        .textField('playerName', 'Player Name (Optional)', 'Search...')
+        .submitButton('Filter');
 
-    const res = await uiWait(player, modal);
-    if (!isDefined(res) || res.canceled) {
+    const res = await form.show(player);
+    if (!res) {
         return showLogsMenu(player);
     }
 
-    const values = (res as ModalFormResponse).formValues;
-    if (!values) {
-        return;
-    }
-
-    const nameVal = values[0];
-    const nameQuery = (typeof nameVal === 'string' ? nameVal : undefined) ?? '';
-
-    await showFlagLogs(player, 1, nameQuery);
+    await showFlagLogs(player, 1, res.playerName ?? '');
 }
 
 async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string) {
@@ -287,39 +273,23 @@ export async function showChatFilter(player: mc.Player) {
         return showLogsMenu(player);
     }
 
-    const modal = new ModalFormData()
-        .title('Filter Chat')
-        .dropdown('Date', dates, { defaultValueIndex: 0 })
-        .textField('Player Name (Optional)', 'Search...')
-        .textField('Keyword (Optional)', 'Search message...');
+    const form = new CustomFormBuilder<{ date: string; playerName: string; keyword: string }>('Filter Chat')
+        .dropdown('date', 'Date', dates, 0)
+        .textField('playerName', 'Player Name (Optional)', 'Search...')
+        .textField('keyword', 'Keyword (Optional)', 'Search message...')
+        .submitButton('Filter');
 
-    const res = await uiWait(player, modal);
-    if (!isDefined(res) || res.canceled) {
+    const res = await form.show(player);
+    if (!res) {
         return showLogsMenu(player);
     }
 
-    const values = (res as ModalFormResponse).formValues;
-    if (!values) {
-        return;
-    }
-
-    const dateIndex = values[0];
-    const nameVal = values[1];
-    const keywordVal = values[2];
-
-    if (typeof dateIndex !== 'number') {
-        return;
-    }
-
-    const nameQuery = (typeof nameVal === 'string' ? nameVal : undefined) ?? '';
-    const keywordQuery = (typeof keywordVal === 'string' ? keywordVal : undefined) ?? '';
-
-    const date = dates[dateIndex];
+    const date = res.date;
     if (!isNonEmptyString(date)) {
         return;
     }
 
-    await showChatLogs(player, 1, date, nameQuery, keywordQuery);
+    await showChatLogs(player, 1, date, res.playerName ?? '', res.keyword ?? '');
 }
 
 async function showChatLogs(player: mc.Player, page: number, date: string, nameQuery?: string, keyword?: string) {
@@ -414,29 +384,19 @@ async function showLogSettings(player: mc.Player) {
     const config = getConfig();
     const chatConfig = config.chat;
 
-    const modal = new ModalFormData()
-        .title('Log Settings')
+    const form = new CustomFormBuilder<{ loggingEnabled: boolean; logExpirationDays: string }>('Log Settings')
+        .toggle('loggingEnabled', 'Enable Chat Logging', chatConfig.loggingEnabled)
+        .textField('logExpirationDays', 'Chat Log Expiration (Days)', '7', String(chatConfig.logExpirationDays))
+        .submitButton('Save Settings');
 
-        .toggle('Enable Chat Logging', { defaultValue: chatConfig.loggingEnabled })
-
-        .textField('Chat Log Expiration (Days)', '7', { defaultValue: String(chatConfig.logExpirationDays) });
-
-    const res = await uiWait(player, modal);
-    if (!isDefined(res) || res.canceled) {
+    const res = await form.show(player);
+    if (!res) {
         return showLogsMenu(player);
     }
 
-    const values = (res as ModalFormResponse).formValues;
-    if (!values) {
-        return;
-    }
+    const enabled = res.loggingEnabled;
+    const daysStr = res.logExpirationDays;
 
-    const enabled = values[0];
-    const daysStr = values[1];
-
-    if (typeof enabled !== 'boolean' || typeof daysStr !== 'string') {
-        return;
-    }
     let days = Number.parseInt(daysStr, 10);
     if (Number.isNaN(days) || days < 1) {
         days = 1;

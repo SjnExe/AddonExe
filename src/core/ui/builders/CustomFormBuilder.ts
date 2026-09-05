@@ -186,6 +186,7 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         form.closeButton();
 
         const closeReason = await form.show();
+        await Promise.resolve();
 
         if (closeReason === DataDrivenScreenClosedReason.UserBusy) {
             return undefined;

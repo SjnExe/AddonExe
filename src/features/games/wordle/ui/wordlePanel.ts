@@ -126,13 +126,17 @@ export class WordlePanelHandler {
                 } else {
                     mc.system.run(() => {
                         void (async () => {
-                            const modal = new ModalFormData().title('Start Staff Game').textField('Custom word:', 'word').textField('Pool Prize:', '0');
+                            const { CustomFormBuilder } = await import('@ui/builders/CustomFormBuilder.js');
+                            const modal = new CustomFormBuilder<{ word: string; poolStr: string }>('Start Staff Game')
+                                .textField('word', 'Custom word:', 'word')
+                                .textField('poolStr', 'Pool Prize:', '0')
+                                .submitButton('Start');
                             const modalRes = await modal.show(player);
-                            if (!modalRes.canceled && modalRes.formValues) {
-                                let word = typeof modalRes.formValues[0] === 'string' ? modalRes.formValues[0] : '';
-                                const poolStr = typeof modalRes.formValues[1] === 'string' ? modalRes.formValues[1] : '0';
-                                let poolPrize = parseInt(poolStr, 10);
-                                if (isNaN(poolPrize)) {
+                            if (modalRes) {
+                                let word = modalRes.word;
+                                const poolStr = modalRes.poolStr;
+                                let poolPrize = Number.parseInt(poolStr, 10);
+                                if (Number.isNaN(poolPrize)) {
                                     poolPrize = 0;
                                 }
 
