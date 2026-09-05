@@ -5,9 +5,9 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { uiWait } from '@core/utils.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 interface ChatLog {
     timestamp: number;
@@ -168,9 +168,7 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
 // --- Flags ---
 
 async function showFlagFilter(player: mc.Player) {
-    const form = new CustomFormBuilder<{ playerName: string }>('Filter Flags')
-        .textField('playerName', 'Player Name (Optional)', 'Search...')
-        .submitButton('Filter');
+    const form = new CustomFormBuilder<{ playerName: string }>('Filter Flags').textField('playerName', 'Player Name (Optional)', 'Search...').submitButton('Filter');
 
     const res = await form.show(player);
     if (!res) {
