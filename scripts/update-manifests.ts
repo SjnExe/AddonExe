@@ -1,9 +1,7 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const pkgPath = path.resolve(__dirname, '../package.json');
+const ROOT_DIR = path.resolve(import.meta.dirname, '..');
+const pkgPath = path.resolve(ROOT_DIR, 'package.json');
 
 const args = process.argv.slice(2);
 const isNightly = args.includes('--nightly');
@@ -190,8 +188,8 @@ async function main() {
         }
     };
 
-    await Bun.write(path.join(__dirname, '../packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 4));
-    await Bun.write(path.join(__dirname, '../packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
+    await Bun.write(path.join(ROOT_DIR, 'packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 4));
+    await Bun.write(path.join(ROOT_DIR, 'packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
 }
 
 main().catch((err) => {

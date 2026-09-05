@@ -1,11 +1,8 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const packageJsonPath = path.join(__dirname, '../package.json');
-const manifestJsonPath = path.join(__dirname, '../packs/behavior/manifest.json');
+const ROOT_DIR = path.resolve(import.meta.dirname, '..');
+const packageJsonPath = path.join(ROOT_DIR, 'package.json');
+const manifestJsonPath = path.join(ROOT_DIR, 'packs/behavior/manifest.json');
 
 async function main() {
     const pkgFile = Bun.file(packageJsonPath);

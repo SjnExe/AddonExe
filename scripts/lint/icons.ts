@@ -1,34 +1,23 @@
 import JSON5 from 'json5';
-import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const CACHE_DIR = path.resolve(__dirname, '../../.cache');
-const CACHE_FILE = path.join(CACHE_DIR, 'vanilla_textures.json');
-const SRC_DIR = path.resolve(__dirname, '../../src');
-const RESOURCE_PACK_DIR = path.resolve(__dirname, '../../packs/resource/textures');
-
-async function ensureCacheDir() {
-    try {
-        await fs.mkdir(CACHE_DIR, { recursive: true });
-    } catch {
-        // Ignore error
-    }
-}
+const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
+const CACHE_FILE = path.resolve(ROOT_DIR, '.cache/vanilla_textures.json');
+const SRC_DIR = path.resolve(ROOT_DIR, 'src');
+const RESOURCE_PACK_DIR = path.resolve(ROOT_DIR, 'packs/resource/textures');
 
 async function fetchVanillaTextures(): Promise<Set<string>> {
     const validTextures = new Set<string>();
 
     try {
-        const cached = await fs.readFile(CACHE_FILE, 'utf-8');
-        const data = JSON.parse(cached);
-        if (Array.isArray(data) && data.length > 0) {
-            console.log('[IconLint] Using cached vanilla textures.');
-            data.forEach((t) => validTextures.add(t));
-            return validTextures;
+        const cacheFile = Bun.file(CACHE_FILE);
+        if (await cacheFile.exists()) {
+            const data = await cacheFile.json();
+            if (Array.isArray(data) && data.length > 0) {
+                console.log('[IconLint] Using cached vanilla textures.');
+                data.forEach((t) => validTextures.add(t));
+                return validTextures;
+            }
         }
     } catch {
         // Cache missing or invalid
@@ -84,8 +73,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
             }
         }
 
-        await ensureCacheDir();
-        await fs.writeFile(CACHE_FILE, JSON.stringify(texturesToCache, null, 2), 'utf-8');
+        await Bun.write(CACHE_FILE, JSON.stringify(texturesToCache, null, 2));
 
         texturesToCache.forEach((t) => validTextures.add(t));
         console.log(`[IconLint] Cached ${validTextures.size} vanilla textures.`);
@@ -124,7 +112,7 @@ async function extractUsedIcons(): Promise<Map<string, string[]>> {
 
     for (const file of tsFiles) {
         try {
-            const content = await fs.readFile(file, 'utf-8');
+            const content = await Bun.file(file).text();
             let match;
             while ((match = regex.exec(content)) !== null) {
                 // If it ends with .png in the code, strip it for validation since Bedrock accepts both and our validator stores them without .png
