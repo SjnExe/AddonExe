@@ -1,19 +1,10 @@
 import path from 'node:path';
+import { getVersionContext, parseCliArgs } from './cli-utils.ts';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '..');
 const pkgPath = path.resolve(ROOT_DIR, 'package.json');
 
-const args = process.argv.slice(2);
-const isNightly = args.includes('--nightly');
-
-let buildNumber = 0;
-const buildNumIndex = args.indexOf('--build-number');
-if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
-    buildNumber = Number.parseInt(args[buildNumIndex + 1], 10);
-    if (isNaN(buildNumber)) {
-        buildNumber = 0;
-    }
-}
+const cliArgs = parseCliArgs(process.argv.slice(2));
 
 /**
  * Fetches the latest stable version of a package from the npm registry.
@@ -56,30 +47,12 @@ async function resolveModuleVersion(pkgName: string, npmVersion: string): Promis
 
 async function main() {
     const pkg = await Bun.file(pkgPath).json();
-    const versionStr = pkg.version || '0.0.1';
-
-    const parts = versionStr.split('.').map(Number);
-    let major = parts[0] || 0;
-    let minor = parts[1] || 0;
-    let patch = parts[2] || 0;
-
-    if (isNaN(major)) {
-        major = 0;
-    }
-    if (isNaN(minor)) {
-        minor = 0;
-    }
-    if (isNaN(patch)) {
-        patch = 0;
-    }
-
-    let finalParts = [major, minor, patch];
-    let finalStr = `${major}.${minor}.${patch}`;
-
-    if (isNightly) {
-        finalParts = [major, minor, buildNumber];
-        finalStr = `${major}.${minor}.${buildNumber}`;
-    }
+    const { versionStr: finalStr, versionArray: finalParts } = await getVersionContext(ROOT_DIR, {
+        customVersion: cliArgs.customVersion,
+        isNightly: cliArgs.isNightly,
+        buildNumber: cliArgs.buildNumber,
+        isRelease: cliArgs.isRelease
+    });
 
     console.log(`[Prebuild] Updating manifests to version ${finalStr} -> [${finalParts.join(', ')}]`);
 

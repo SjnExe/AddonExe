@@ -14,7 +14,8 @@ const command: CustomCommand = {
     parameters: [],
     execute: (executor: CommandExecutor) => {
         const config = getConfig();
-        const versionString = `v${config.version.join('.')}`;
+        const rawVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : config.version.join('.');
+        const versionString = `v${rawVersion}`;
         const message = `§7AddonExe Version: §e${versionString}`;
 
         if (executor instanceof mc.Player) {

@@ -2,61 +2,20 @@ import { $ } from 'bun';
 import JSZip from 'jszip';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { getVersionContext, parseCliArgs } from './cli-utils.ts';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '..');
 
-const args = process.argv.slice(2);
-const isWatch = args.includes('--watch');
-const isRelease = args.includes('--release');
-const isNightly = args.includes('--nightly');
-const isZip = args.includes('--zip') || isRelease || isNightly;
-const isMinify = args.includes('--minify') || isRelease;
-
-let buildNumber = 0;
-const buildNumIndex = args.indexOf('--build-number');
-if (buildNumIndex !== -1 && buildNumIndex + 1 < args.length) {
-    buildNumber = Number.parseInt(args[buildNumIndex + 1], 10);
-    if (isNaN(buildNumber)) {
-        buildNumber = 0;
-    }
-}
-
-const pkgPath = path.resolve(ROOT_DIR, 'package.json');
+const cliArgs = parseCliArgs(process.argv.slice(2));
+const { isWatch, isRelease, isNightly, isZip, isMinify, buildNumber, customVersion } = cliArgs;
 
 async function getVersionParts() {
-    const pkg = await Bun.file(pkgPath).json();
-    const versionStr = pkg.version || '0.0.1';
-
-    const parts = versionStr.split('.').map(Number);
-    let major = parts[0] || 0;
-    let minor = parts[1] || 0;
-    let patch = parts[2] || 0;
-
-    if (isNaN(major)) {
-        major = 0;
-    }
-    if (isNaN(minor)) {
-        minor = 0;
-    }
-    if (isNaN(patch)) {
-        patch = 0;
-    }
-
-    let finalParts = [major, minor, patch];
-    let finalStr = `${major}.${minor}.${patch}`;
-
-    if (isNightly) {
-        finalParts = [major, minor, buildNumber];
-        finalStr = `${major}.${minor}.${buildNumber}`;
-        console.log('[Build] Mode: Nightly Build');
-    } else if (isRelease) {
-        console.log('[Build] Mode: Public Release');
-    } else {
-        console.log('[Build] Mode: Local Build');
-    }
-
-    console.log(`[Build] Version Resolved: ${finalStr} -> [${finalParts.join(', ')}]`);
-    return { versionStr: finalStr, versionArray: finalParts };
+    return getVersionContext(ROOT_DIR, {
+        customVersion,
+        isNightly,
+        buildNumber,
+        isRelease
+    });
 }
 
 export const iconIndexPlugin = {
@@ -283,7 +242,7 @@ async function createArchives(prefix: string, versionStr: string) {
     console.log(`  - ${path.basename(rpPath)}`);
 }
 
-async function compileScripts(versionArray: number[], outDirSuffix: string = '') {
+async function compileScripts(versionArray: number[], versionStr: string, outDirSuffix: string = '') {
     console.log(`[Build] Compiling Scripts...`);
 
     const coreEntrypoints = ['src/main.ts'];
@@ -353,7 +312,8 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
         splitting: false,
         naming: '[dir]/[name].[ext]',
         define: {
-            __IS_NIGHTLY__: String(isNightly)
+            __IS_NIGHTLY__: String(isNightly),
+            __VERSION__: JSON.stringify(versionStr)
         },
         plugins: [commandIndexPlugin, iconIndexPlugin],
         external: [...externalModules, ...externalConfigs]
@@ -396,25 +356,48 @@ async function compileScripts(versionArray: number[], outDirSuffix: string = '')
 async function main() {
     console.log('--- Starting Build Pipeline ---');
 
-    const updateArgs = [];
+    const updateArgs: string[] = [];
     if (isNightly) {
-        updateArgs.push('--nightly');
+        updateArgs.push('-n');
+    }
+    if (isRelease) {
+        updateArgs.push('-r');
     }
     if (buildNumber > 0) {
-        updateArgs.push('--build-number', String(buildNumber));
+        updateArgs.push('-b', String(buildNumber));
+    }
+    if (customVersion) {
+        updateArgs.push('-v', customVersion);
     }
 
     await $`bun scripts/update-manifests.ts ${updateArgs}`;
 
-    const { versionArray } = await getVersionParts();
+    const { versionStr, versionArray } = await getVersionParts();
 
-    await compileScripts(versionArray, '');
+    if (isNightly) {
+        console.log('[Build] Mode: Nightly Build');
+    } else if (isRelease) {
+        console.log('[Build] Mode: Public Release');
+    } else {
+        console.log('[Build] Mode: Local Build');
+    }
+    console.log(`[Build] Version Resolved: ${versionStr} -> [${versionArray.join(', ')}]`);
+
+    await compileScripts(versionArray, versionStr, '');
 
     if (isZip) {
         const prefix = isRelease ? 'Release' : isNightly ? 'Nightly' : 'Local';
-        const { versionStr } = await getVersionParts();
         await createArchives(prefix, versionStr);
     }
+
+    const buildMetaContent = [
+        `BUILD_TYPE=${isRelease ? 'stable' : isNightly ? 'nightly' : 'local'}`,
+        `ARCHIVE_VERSION=${versionStr}`,
+        `VERSION_STRING=${versionStr}`,
+        `BUILD_DATE=${new Date().toUTCString()}`,
+        `PREFIX=${isRelease ? 'Release' : isNightly ? 'Nightly' : 'Local'}`
+    ].join('\n');
+    await Bun.write(path.resolve(ROOT_DIR, 'build_meta.env'), buildMetaContent);
 
     console.log('--- Build Complete ---');
 
@@ -428,7 +411,7 @@ async function main() {
             buildTimeout = setTimeout(async () => {
                 console.log('[Watch] Change detected, rebuilding...');
                 try {
-                    await compileScripts(versionArray, '');
+                    await compileScripts(versionArray, versionStr, '');
                     console.log('[Watch] Rebuild complete.');
                 } catch (e: any) {
                     console.error(`[Watch] Rebuild failed: ${e.message}`);
