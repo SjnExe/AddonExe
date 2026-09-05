@@ -2,7 +2,7 @@ import { getPlayerNameById, loadPlayerData, savePlayerData } from '@core/playerD
 import { showPanel } from '@core/uiManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showStatsPanel(player: mc.Player, targetPlayerId: string): Promise<void> {
     const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
@@ -40,9 +40,9 @@ export async function showStatsPanel(player: mc.Player, targetPlayerId: string):
 async function editStat(player: mc.Player, targetPlayerId: string, statType: 'kills' | 'deaths' | 'playtime' | 'balance', currentValue: number): Promise<void> {
     const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
 
-    const form = new ModalFormBuilder<{ newValue: string }>()
-        .title(`Edit ${statType}`)
-        .textField('newValue', `Enter new value for ${targetName}'s ${statType}:`, String(currentValue), String(currentValue));
+    const form = new CustomFormBuilder<{ newValue: string }>(`Edit ${statType}`)
+        .textField('newValue', `Enter new value for ${targetName}'s ${statType}:`, String(currentValue), String(currentValue))
+        .submitButton('Save');
 
     const res = await form.show(player);
     if (!res) {
