@@ -158,19 +158,19 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         for (const ctrl of this.controls) {
             if (ctrl.type === 'toggle' && ctrl.meta?.type === 'toggle') {
                 const initialVal = ctrl.meta.observable.getData();
-                form.toggle(ctrl.label ?? '', initialVal as never);
+                form.toggle(ctrl.label ?? '', { defaultValue: initialVal });
                 valueControls.push(ctrl);
             } else if (ctrl.type === 'slider' && ctrl.meta?.type === 'slider') {
                 const initialVal = ctrl.meta.observable.getData();
-                form.slider(ctrl.label ?? '', ctrl.meta.min, ctrl.meta.max, { valueStep: ctrl.meta.step, defaultValue: initialVal } as never);
+                form.slider(ctrl.label ?? '', ctrl.meta.min, ctrl.meta.max, { valueStep: ctrl.meta.step, defaultValue: initialVal });
                 valueControls.push(ctrl);
             } else if (ctrl.type === 'dropdown' && ctrl.meta?.type === 'dropdown') {
                 const initialIdx = ctrl.meta.observable.getData();
-                form.dropdown(ctrl.label ?? '', ctrl.meta.options, initialIdx as never);
+                form.dropdown(ctrl.label ?? '', ctrl.meta.options, { defaultValueIndex: initialIdx });
                 valueControls.push(ctrl);
             } else if (ctrl.type === 'textField' && ctrl.meta?.type === 'textField') {
                 const initialVal = ctrl.meta.observable.getData();
-                form.textField(ctrl.label ?? '', '', initialVal as never);
+                form.textField(ctrl.label ?? '', '', { defaultValue: initialVal });
                 valueControls.push(ctrl);
             } else if (ctrl.type === 'header') {
                 form.header(ctrl.label ?? '');
