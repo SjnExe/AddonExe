@@ -1,6 +1,6 @@
-import { uiWait } from '@core/utils/ui.js';
+import * as mc from '@minecraft/server';
 import { Player } from '@minecraft/server';
-import { ModalFormData, ModalFormResponse, ObservableBoolean, ObservableNumber, ObservableString } from '@minecraft/server-ui';
+import { CustomForm, DataDrivenScreenClosedReason, ObservableBoolean, ObservableNumber, ObservableString } from '@minecraft/server-ui';
 
 interface DropdownMeta {
     type: 'dropdown';
@@ -148,79 +148,59 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
     }
 
     public async show(player: Player): Promise<T | undefined> {
-        const form = new ModalFormData();
-        if (this.titleText) {
-            form.title(this.titleText);
-        }
-
-        const valueControls: ControlItem[] = [];
+        const form = new CustomForm(player, this.titleText);
+        let wasSubmitted = false;
 
         for (const ctrl of this.controls) {
             if (ctrl.type === 'toggle' && ctrl.meta?.type === 'toggle') {
-                const initialVal = ctrl.meta.observable.getData();
-                form.toggle(ctrl.label ?? '', { defaultValue: initialVal });
-                valueControls.push(ctrl);
+                form.toggle(ctrl.label ?? '', ctrl.meta.observable);
             } else if (ctrl.type === 'slider' && ctrl.meta?.type === 'slider') {
-                const initialVal = ctrl.meta.observable.getData();
-                form.slider(ctrl.label ?? '', ctrl.meta.min, ctrl.meta.max, { valueStep: ctrl.meta.step, defaultValue: initialVal });
-                valueControls.push(ctrl);
+                form.slider(ctrl.label ?? '', ctrl.meta.observable, ctrl.meta.min, ctrl.meta.max, { step: ctrl.meta.step });
             } else if (ctrl.type === 'dropdown' && ctrl.meta?.type === 'dropdown') {
-                const initialIdx = ctrl.meta.observable.getData();
-                form.dropdown(ctrl.label ?? '', ctrl.meta.options, { defaultValueIndex: initialIdx });
-                valueControls.push(ctrl);
+                const items = ctrl.meta.options.map((opt, i) => ({ label: opt, value: i }));
+                form.dropdown(ctrl.label ?? '', ctrl.meta.observable, items);
             } else if (ctrl.type === 'textField' && ctrl.meta?.type === 'textField') {
-                const initialVal = ctrl.meta.observable.getData();
-                form.textField(ctrl.label ?? '', '', { defaultValue: initialVal });
-                valueControls.push(ctrl);
+                form.textField(ctrl.label ?? '', ctrl.meta.observable);
             } else if (ctrl.type === 'header') {
                 form.header(ctrl.label ?? '');
             } else if (ctrl.type === 'label') {
                 form.label(ctrl.label ?? '');
             } else if (ctrl.type === 'divider') {
                 form.divider();
+            } else if (ctrl.type === 'spacer') {
+                form.spacer();
+            } else if (ctrl.type === 'button' && ctrl.onClick) {
+                const userOnClick = ctrl.onClick;
+                form.button(ctrl.label ?? '', () => {
+                    wasSubmitted = true;
+                    userOnClick();
+                });
             }
         }
 
         if (this.submitText) {
-            form.submitButton(this.submitText);
+            form.button(this.submitText, () => {
+                wasSubmitted = true;
+            });
         }
 
-        const res = (await uiWait(player, form)) as ModalFormResponse | undefined;
+        form.closeButton();
 
-        if (!res || res.canceled || !('formValues' in res) || !res.formValues) {
+        const closeReason = await form.show();
+
+        if (closeReason === DataDrivenScreenClosedReason.UserBusy) {
             return undefined;
         }
 
-        const result: Record<string, unknown> = {};
-        const formValues = res.formValues;
+        // Delay 1 tick for the Script Engine event loop to execute the button's onClick callback if triggered by button click
+        await new Promise<void>((resolve) => {
+            mc.system.runTimeout(() => resolve(), 1);
+        });
 
-        for (let i = 0; i < valueControls.length; i++) {
-            const ctrl = valueControls[i];
-            if (!ctrl || !ctrl.key || !ctrl.meta) {
-                continue;
-            }
-            const val = formValues[i];
-
-            if (ctrl.meta.type === 'toggle') {
-                const boolVal = typeof val === 'boolean' ? val : Boolean(val);
-                ctrl.meta.observable.setData(boolVal);
-                result[ctrl.key] = boolVal;
-            } else if (ctrl.meta.type === 'slider') {
-                const numVal = typeof val === 'number' ? val : Number(val);
-                ctrl.meta.observable.setData(numVal);
-                result[ctrl.key] = numVal;
-            } else if (ctrl.meta.type === 'textField') {
-                const strVal = typeof val === 'string' ? val : String(val ?? '');
-                ctrl.meta.observable.setData(strVal);
-                result[ctrl.key] = strVal;
-            } else if (ctrl.meta.type === 'dropdown') {
-                const idx = typeof val === 'number' ? val : 0;
-                ctrl.meta.observable.setData(idx);
-                const selectedOpt = ctrl.meta.options[idx] ?? ctrl.meta.options[0] ?? '';
-                result[ctrl.key] = selectedOpt;
-            }
+        if (this.submitText && !wasSubmitted) {
+            return undefined;
         }
 
-        return result as T;
+        return this.getValues();
     }
 }

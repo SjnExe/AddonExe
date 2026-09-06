@@ -1,38 +1,69 @@
 import { getWordleConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 import { createSinglePlayerGame, createStaffHostedGame, endStaffHostedGame, formatGuess, getPlayerActiveGame, getStaffHostedGame, submitGuess } from '../wordleManager.js';
+
+export async function showSinglePlayerWordle(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
+    const config = getWordleConfig();
+    if (!config.singlePlayer.enabled) {
+        player.sendMessage('§cSingle player Wordle is disabled.');
+        return;
+    }
+
+    let game = getPlayerActiveGame(player);
+    if (!game) {
+        game = createSinglePlayerGame(player);
+    }
+    if (!game) {
+        player.sendMessage('§cFailed to create Wordle game.');
+        return;
+    }
+
+    const history = game.guesses.length > 0 ? game.guesses.map((g: string) => formatGuess(g, evaluatePattern(g, game.word))).join('\n') : '§fNo guesses yet.';
+    const errorVal = context.error;
+    const errorMsg = typeof errorVal === 'string' ? `§c${errorVal}\n\n` : '';
+
+    const form = new CustomFormBuilder<{ guess: string }>('§l§aSingle Player Wordle')
+        .textField('guess', `${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple')
+        .submitButton('Submit Guess');
+
+    const res = await form.show(player);
+    if (!res) {
+        void showPanel(player, 'wordleMainPanel', context);
+        return;
+    }
+
+    if (isNonEmptyString(res.guess)) {
+        const guess = res.guess.trim();
+        const result = submitGuess(game.id, player, guess);
+        if (typeof result === 'string') {
+            context.error = result;
+            void showSinglePlayerWordle(player, context);
+            return;
+        } else {
+            context.error = undefined;
+            if (result.isWin) {
+                void showPanel(player, 'wordleSinglePlayerResultPanel', { ...context, win: true, word: game.word, guesses: game.guesses });
+                return;
+            } else if (getPlayerActiveGame(player) === undefined) {
+                void showPanel(player, 'wordleSinglePlayerResultPanel', { ...context, win: false, word: game.word, guesses: game.guesses });
+                return;
+            }
+        }
+    }
+    void showSinglePlayerWordle(player, context);
+}
 
 export class WordlePanelHandler {
     canHandle(panelId: string): boolean {
-        return panelId === 'wordleSinglePlayerPanel' || panelId === 'wordleMultiplayerPanel' || panelId === 'wordleStaffGamePanel' || panelId === 'wordleSinglePlayerResultPanel';
+        return panelId === 'wordleMultiplayerPanel' || panelId === 'wordleStaffGamePanel' || panelId === 'wordleSinglePlayerResultPanel';
     }
 
-    async buildModal(player: mc.Player, panelId: string, context: Record<string, unknown>): Promise<ModalFormData | ActionFormData | undefined> {
+    async buildModal(player: mc.Player, panelId: string, context: Record<string, unknown>): Promise<ActionFormData | undefined> {
         await Promise.resolve();
-        if (panelId === 'wordleSinglePlayerPanel') {
-            const config = getWordleConfig();
-            if (!config.singlePlayer.enabled) {
-                player.sendMessage('§cSingle player Wordle is disabled.');
-                return undefined;
-            }
-
-            let game = getPlayerActiveGame(player);
-            if (!game) {
-                game = createSinglePlayerGame(player);
-            }
-            if (!game) {
-                player.sendMessage('§cFailed to create Wordle game.');
-                return undefined;
-            }
-
-            const history = game.guesses.length > 0 ? game.guesses.map((g: string) => formatGuess(g, evaluatePattern(g, game.word))).join('\n') : '§fNo guesses yet.';
-            const errorVal = context.error;
-            const errorMsg = typeof errorVal === 'string' ? `§c${errorVal}\n\n` : '';
-
-            return new ModalFormData().title('§l§aSingle Player Wordle').textField(`${errorMsg}§fGuess the ${game.word.length}-letter word!\n\n${history}\n\n§fType your guess:`, 'e.g. apple');
-        }
 
         if (panelId === 'wordleSinglePlayerResultPanel') {
             const isWin = context.win === true;
@@ -75,43 +106,17 @@ export class WordlePanelHandler {
         return undefined;
     }
 
-    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse | ModalFormResponse, context: Record<string, unknown>): Promise<void> {
+    async handleResponse(player: mc.Player, panelId: string, response: ActionFormResponse, context: Record<string, unknown>): Promise<void> {
         await Promise.resolve();
         if (response.canceled) {
-            if (panelId === 'wordleSinglePlayerPanel') {
-                void showPanel(player, 'wordleMainPanel', context);
-            }
+            void showPanel(player, 'wordleMainPanel', context);
             return;
         }
 
-        if (panelId === 'wordleSinglePlayerPanel') {
-            const res = response as ModalFormResponse;
-            if (res.formValues && typeof res.formValues[0] === 'string' && res.formValues[0].trim() !== '') {
-                const guess = res.formValues[0].trim();
-                const game = getPlayerActiveGame(player);
-                if (game) {
-                    const result = submitGuess(game.id, player, guess);
-                    if (typeof result === 'string') {
-                        context.error = result;
-                        void showPanel(player, 'wordleSinglePlayerPanel', context);
-                        return;
-                    } else {
-                        context.error = undefined;
-                        if (result.isWin) {
-                            void showPanel(player, 'wordleSinglePlayerResultPanel', { ...context, win: true, word: game.word, guesses: game.guesses });
-                            return;
-                        } else if (getPlayerActiveGame(player) === undefined) {
-                            void showPanel(player, 'wordleSinglePlayerResultPanel', { ...context, win: false, word: game.word, guesses: game.guesses });
-                            return;
-                        }
-                    }
-                }
-            }
-            void showPanel(player, 'wordleSinglePlayerPanel', context);
-        } else if (panelId === 'wordleSinglePlayerResultPanel') {
+        if (panelId === 'wordleSinglePlayerResultPanel') {
             const res = response as ActionFormResponse;
             if (res.selection === 0) {
-                void showPanel(player, 'wordleSinglePlayerPanel', context);
+                void showSinglePlayerWordle(player, context);
             } else {
                 void showPanel(player, 'wordleMainPanel', context);
             }
@@ -126,7 +131,6 @@ export class WordlePanelHandler {
                 } else {
                     mc.system.run(() => {
                         void (async () => {
-                            const { CustomFormBuilder } = await import('@ui/builders/CustomFormBuilder.js');
                             const modal = new CustomFormBuilder<{ word: string; poolStr: string }>('Start Staff Game')
                                 .textField('word', 'Custom word:', 'word')
                                 .textField('poolStr', 'Pool Prize:', '0')
