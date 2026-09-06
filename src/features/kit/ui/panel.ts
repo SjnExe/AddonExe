@@ -4,7 +4,7 @@ import * as kitItemsManager from '@features/kit/itemsManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showKitManagementPanel(player: mc.Player, page: number = 1): Promise<void> {
     const mainConfig = getConfig();
@@ -19,7 +19,7 @@ export async function showKitManagementPanel(player: mc.Player, page: number = 1
             await showKitManagementPanel(player, page);
         })
         .button('§l§2+ Create New Kit', 'textures/ui/color_plus', async () => {
-            const modal = new ModalFormBuilder<{ name: string }>().title('Create Kit').textField('name', 'Kit Name', 'Enter unique name');
+            const modal = new CustomFormBuilder<{ name: string }>('Create Kit').textField('name', 'Kit Name', 'Enter unique name', '').submitButton('Create Kit');
             const res = await modal.show(player);
             if (res) {
                 if (res.name) {
@@ -86,7 +86,7 @@ export async function showKitSettingsPanel(player: mc.Player, kitName: string): 
         return;
     }
 
-    const modal = new ModalFormBuilder<{
+    const modal = new CustomFormBuilder<{
         enabled: boolean;
         name: string;
         desc: string;
@@ -94,15 +94,15 @@ export async function showKitSettingsPanel(player: mc.Player, kitName: string): 
         cooldown: string;
         perm: string;
         price: string;
-    }>()
-        .title(`Edit Kit: ${kitName}`)
+    }>(`Edit Kit: ${kitName}`)
         .toggle('enabled', 'Enabled', kit.enabled)
         .textField('name', 'Name', 'Name', kitName)
         .textField('desc', 'Description', 'Description', kit.description || '')
         .textField('icon', 'Icon', 'Icon', kit.icon || '')
         .textField('cooldown', 'Cooldown', 'Cooldown', String(kit.cooldownSeconds))
         .textField('perm', 'Permission Node', 'ui.panel.member', kit.permission)
-        .textField('price', 'Price', 'Price', String(kit.price || 0));
+        .textField('price', 'Price', 'Price', String(kit.price || 0))
+        .submitButton('Save Kit');
 
     const res = await modal.show(player);
     if (!res) {
@@ -143,7 +143,10 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
     const form = new ActionFormBuilder()
         .title(`Kit Items: ${kitName}`)
         .button('§l§2+ Add New Item (Manual)', 'textures/ui/color_plus', async () => {
-            const modal = new ModalFormBuilder<{ typeId: string; amount: string }>().title('Add Item').textField('typeId', 'Item ID', MinecraftItemTypes.Stone).textField('amount', 'Amount', '1', '1');
+            const modal = new CustomFormBuilder<{ typeId: string; amount: string }>('Add Item')
+                .textField('typeId', 'Item ID', MinecraftItemTypes.Stone, MinecraftItemTypes.Stone)
+                .textField('amount', 'Amount', '1', '1')
+                .submitButton('Add Item');
             const res = await modal.show(player);
             if (res) {
                 const amountParsed = Number.parseInt(res.amount);
