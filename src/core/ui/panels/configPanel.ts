@@ -277,12 +277,16 @@ function _processFormValues(validSettings: SettingSchema[], formValues: Record<s
         let val = formValues[setting.key];
         const currentValue = getValueFromPath(config, setting.key);
         if (setting.type === 'dropdown' && setting.options) {
-            val = setting.options[val as number];
+            if (typeof val === 'number') {
+                val = setting.options[val] ?? val;
+            }
         } else if (setting.type === 'textField') {
             if (typeof currentValue === 'number') {
                 const parsed = Number.parseFloat(val as string);
                 if (!Number.isNaN(parsed)) {
                     val = parsed;
+                } else {
+                    val = currentValue;
                 }
             } else if (typeof currentValue === 'boolean') {
                 val = val === 'true';

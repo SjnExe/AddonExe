@@ -34,7 +34,13 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
-        if (panelId === 'wordleSinglePlayerPanel' || panelId === 'wordleStaffGamePanel' || panelId === 'wordleSinglePlayerResultPanel') {
+        if (panelId === 'wordleSinglePlayerPanel') {
+            const { showSinglePlayerWordle } = await import('@features/games/wordle/ui/wordlePanel.js');
+            await showSinglePlayerWordle(player, _context);
+            return;
+        }
+
+        if (panelId === 'wordleStaffGamePanel' || panelId === 'wordleSinglePlayerResultPanel') {
             const { WordlePanelHandler } = await import('@features/games/wordle/ui/wordlePanel.js');
             const handler = new WordlePanelHandler();
             const form = await handler.buildModal(player, panelId, _context);

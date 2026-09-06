@@ -368,19 +368,31 @@ export class ModalFormData {
     title(_: string) {
         return this;
     }
-    textField(label: string, placeholder: string, defaultValue?: string) {
+    textField(label: string, placeholder: string, options?: { defaultValue?: string } | string) {
+        const defaultValue = typeof options === 'object' && options !== null ? options.defaultValue : (options as string | undefined);
         this._controls.push({ type: 'textField', label, placeholder, defaultValue });
         return this;
     }
-    dropdown(label: string, options: string[], defaultValueIndex?: number) {
-        this._controls.push({ type: 'dropdown', label, options, defaultValueIndex });
+    dropdown(label: string, optionsList: string[], options?: { defaultValueIndex?: number } | number) {
+        const defaultValueIndex = typeof options === 'object' && options !== null ? options.defaultValueIndex : (options as number | undefined);
+        this._controls.push({ type: 'dropdown', label, options: optionsList, defaultValueIndex });
         return this;
     }
-    toggle(label: string, defaultValue?: boolean) {
+    toggle(label: string, options?: { defaultValue?: boolean } | boolean) {
+        const defaultValue = typeof options === 'object' && options !== null ? options.defaultValue : (options as boolean | undefined);
         this._controls.push({ type: 'toggle', label, defaultValue });
         return this;
     }
-    slider(label: string, min: number, max: number, step: number, defaultValue?: number) {
+    slider(label: string, min: number, max: number, options?: { valueStep?: number; defaultValue?: number } | number, defaultValueParam?: number) {
+        let step = 1;
+        let defaultValue = min;
+        if (typeof options === 'object' && options !== null) {
+            step = options.valueStep ?? 1;
+            defaultValue = options.defaultValue ?? min;
+        } else if (typeof options === 'number') {
+            step = options;
+            defaultValue = defaultValueParam ?? min;
+        }
         this._controls.push({ type: 'slider', label, min, max, step, defaultValue });
         return this;
     }

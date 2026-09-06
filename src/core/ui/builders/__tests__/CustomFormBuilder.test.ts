@@ -36,4 +36,17 @@ describe('CustomFormBuilder', () => {
             query: 'Hello'
         });
     });
+
+    test('shows custom form with submitButton and returns values correctly', async () => {
+        const builder = new CustomFormBuilder('Submit Test').toggle('active', 'Active Toggle', true).dropdown('gamemode', 'Mode', ['survival', 'creative'], 0).submitButton('Save Settings');
+
+        const mockPlayer = {} as Player;
+        const res = await builder.show(mockPlayer);
+
+        expect(res).toBeDefined();
+        expect(res).toEqual({
+            active: true,
+            gamemode: 'survival'
+        });
+    });
 });

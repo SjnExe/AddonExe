@@ -40,6 +40,11 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
 
     const form = new ActionFormBuilder().title(title).body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
 
+    form.addBackButton(async () => {
+        const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
+        await showMainPanel(player);
+    });
+
     form.button('§eCollection Bin / Mailbox', 'textures/items/minecart_chest', async () => showMailboxUI(player));
     form.button('§bYour Listings', 'textures/ui/recipe_book_icon', async () => showYourListings(player));
     form.button(isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search/Filter', 'textures/ui/magnifying_glass', async () =>
