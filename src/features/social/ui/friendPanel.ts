@@ -6,7 +6,7 @@ import { getPlayerIcon } from '@core/utils/ui.js';
 import * as friendManager from '@features/social/friendManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showFriendMainPanel(player: mc.Player): Promise<void> {
     const pData = getOrCreatePlayer(player);
@@ -77,7 +77,7 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
     // Check if there are online players to avoid empty dropdown
     if (onlinePlayers.length === 0) {
         // Fallback to text field if no one else is online, or just use text field entirely for simplicity
-        const modal = new ModalFormBuilder<{ name: string }>().title('Add Friend').textField('name', 'Player Name (Exact)', 'Player Name');
+        const modal = new CustomFormBuilder<{ name: string }>('Add Friend').textField('name', 'Player Name (Exact)', 'Player Name', '').submitButton('Add Friend');
 
         const res = await modal.show(player);
         if (res && res.name) {
@@ -96,10 +96,10 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
     // Give option to select from online players or type name
     onlinePlayers.unshift('-- Type Name Below --');
 
-    const modal = new ModalFormBuilder<{ playerDropdown: string; manualName: string }>()
-        .title('Add Friend')
+    const modal = new CustomFormBuilder<{ playerDropdown: string; manualName: string }>('Add Friend')
         .dropdown('playerDropdown', 'Select Online Player', onlinePlayers)
-        .textField('manualName', 'Or Type Player Name (Exact)', 'Player Name');
+        .textField('manualName', 'Or Type Player Name (Exact)', 'Player Name', '')
+        .submitButton('Add Friend');
 
     const res = await modal.show(player);
 

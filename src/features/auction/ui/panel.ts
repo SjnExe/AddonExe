@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 import { getOrCreatePlayer } from '@core/playerDataManager.js';
 import { formatCurrency, formatTime, getTimestampFromUUIDv7 } from '@core/utils.js';
@@ -123,7 +123,7 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     const currentBid = listing.bidPrice ?? listing.price;
     const minBid = currentBid + 1;
 
-    const form = new ModalFormBuilder<{ bid: string }>().title('Place Bid').textField('bid', `Enter bid amount (Min: ${minBid})`, minBid.toString());
+    const form = new CustomFormBuilder<{ bid: string }>('Place Bid').textField('bid', `Enter bid amount (Min: ${minBid})`, '', minBid.toString()).submitButton('Place Bid');
 
     const response = await form.show(player);
     if (!response) {
@@ -143,7 +143,7 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
 }
 
 async function showSearchUI(player: mc.Player, currentSort: SortOption): Promise<void> {
-    const form = new ModalFormBuilder<{ query: string }>().title('Search Auction House').textField('query', 'Search Query (Item/Seller)', 'Diamond Sword');
+    const form = new CustomFormBuilder<{ query: string }>('Search Auction House').textField('query', 'Search Query (Item/Seller)', 'Diamond Sword', '').submitButton('Search');
 
     const response = await form.show(player);
     if (!response) {

@@ -7,7 +7,7 @@ import * as teamManager from '@features/team/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showTeamMainPanel(player: mc.Player): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
@@ -163,7 +163,7 @@ export async function showTeamSettingPanel(player: mc.Player): Promise<void> {
         return;
     }
 
-    const modal = new ModalFormBuilder<{ open: boolean }>().title('Team Settings').toggle('open', 'Open to Requests', !!team.open);
+    const modal = new CustomFormBuilder<{ open: boolean }>('Team Settings').toggle('open', 'Open to Requests', !!team.open).submitButton('Save Settings');
 
     const res = await modal.show(player);
     if (res) {
@@ -266,7 +266,7 @@ export async function showTeamHomePanel(player: mc.Player): Promise<void> {
 }
 
 export async function showTeamCreatePanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ name: string }>().title('Create Team').textField('name', 'Team Name', 'Enter team name');
+    const modal = new CustomFormBuilder<{ name: string }>('Create Team').textField('name', 'Team Name', 'Enter team name', '').submitButton('Create Team');
 
     const res = await modal.show(player);
     if (res && isNonEmptyString(res.name)) {
@@ -288,7 +288,7 @@ export async function showTeamDepositPanel(player: mc.Player): Promise<void> {
         return;
     }
 
-    const modal = new ModalFormBuilder<{ amount: string }>().title('Deposit Money').textField('amount', 'Amount', '1000');
+    const modal = new CustomFormBuilder<{ amount: string }>('Deposit Money').textField('amount', 'Amount', '1000', '1000').submitButton('Deposit');
 
     const res = await modal.show(player);
     if (res && isNonEmptyString(res.amount)) {
@@ -321,7 +321,7 @@ export async function showTeamJoinPanel(player: mc.Player): Promise<void> {
 }
 
 export async function showTeamSearchPanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ teamName: string }>().title('Search Team').textField('teamName', 'Team Name (exact)', 'Name');
+    const modal = new CustomFormBuilder<{ teamName: string }>('Search Team').textField('teamName', 'Team Name (exact)', 'Name', '').submitButton('Search');
 
     const res = await modal.show(player);
     if (res && isNonEmptyString(res.teamName)) {
