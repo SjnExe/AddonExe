@@ -1,3 +1,4 @@
+import * as mc from '@minecraft/server';
 import { Player } from '@minecraft/server';
 import { CustomForm, DataDrivenScreenClosedReason, ObservableBoolean, ObservableNumber, ObservableString } from '@minecraft/server-ui';
 
@@ -190,6 +191,11 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         if (closeReason === DataDrivenScreenClosedReason.UserBusy) {
             return undefined;
         }
+
+        // Delay 1 tick for the Script Engine event loop to execute the button's onClick callback if triggered by button click
+        await new Promise<void>((resolve) => {
+            mc.system.runTimeout(() => resolve(), 1);
+        });
 
         if (this.submitText && !wasSubmitted) {
             return undefined;

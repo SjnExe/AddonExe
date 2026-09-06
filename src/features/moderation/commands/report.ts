@@ -3,9 +3,9 @@ import * as mc from '@minecraft/server';
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
 import { showPanel } from '@core/uiManager.js';
-import { playSound, sanitizeString, uiWait } from '@core/utils.js';
+import { playSound, sanitizeString } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 import * as reportManager from '@features/moderation/reportManager.js';
 
@@ -48,20 +48,16 @@ const reportCommand: CustomCommand = {
             executor.sendMessage('§aReport submitted. Thank you for your help.');
             playSound(executor, 'random.orb');
         } else {
-            const form = new ModalFormData().title(`Report ${correctTargetName}`).textField('Reason', 'Why are you reporting this player?');
+            const form = new CustomFormBuilder<{ reasonRaw: string }>(`Report ${correctTargetName}`)
+                .textField('reasonRaw', 'Reason', 'Why are you reporting this player?')
+                .submitButton('Submit Report');
 
-            const res = await uiWait(executor, form);
-            if (isDefined(res) && !res.canceled) {
-                const values = (res as ModalFormResponse).formValues;
-                if (isDefined(values)) {
-                    const [reasonRaw] = values as [string];
-                    if (isNonEmptyString(reasonRaw)) {
-                        const reason = sanitizeString(reasonRaw, true);
-                        reportManager.createReport(executor, targetId, correctTargetName, reason);
-                        executor.sendMessage('§2Report sent successfully. Admins have been notified.');
-                        return;
-                    }
-                }
+            const res = await form.show(executor);
+            if (isDefined(res) && isNonEmptyString(res.reasonRaw)) {
+                const reason = sanitizeString(res.reasonRaw, true);
+                reportManager.createReport(executor, targetId, correctTargetName, reason);
+                executor.sendMessage('§2Report sent successfully. Admins have been notified.');
+                return;
             }
             executor.sendMessage('§4Reason is required to submit a report.');
         }
