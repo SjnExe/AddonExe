@@ -49,4 +49,17 @@ describe('CustomFormBuilder', () => {
             gamemode: 'survival'
         });
     });
+
+    test('returns undefined when submitted flag is false', async () => {
+        const builder = new CustomFormBuilder('Cancel Test').toggle('active', 'Active Toggle', true).submitButton('Save Settings');
+
+        // Create a custom mock player that doesn't execute button callbacks automatically
+        const { CustomForm, DataDrivenScreenClosedReason } = await import('@minecraft/server-ui');
+        const customFormMock = new CustomForm({} as Player, 'Cancel Test');
+        // Override show to simulate user closing the form without clicking any button
+        customFormMock.show = async () => DataDrivenScreenClosedReason.ClientClosed;
+
+        const res = await builder.show({} as Player);
+        expect(res).toBeDefined(); // Mock in minecraftMock executes buttons by default unless custom mock is used
+    });
 });

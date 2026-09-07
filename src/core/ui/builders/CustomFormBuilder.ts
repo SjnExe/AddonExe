@@ -174,13 +174,17 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
                 form.button(ctrl.label ?? '', () => {
                     wasSubmitted = true;
                     userOnClick();
+                    form.close();
                 });
             }
         }
 
-        if (this.submitText) {
-            form.button(this.submitText, () => {
+        const effectiveSubmitText = this.submitText ?? (!this.controls.some((c) => c.type === 'button') && this.controls.some((c) => c.key && c.meta) ? 'Submit' : undefined);
+
+        if (effectiveSubmitText) {
+            form.button(effectiveSubmitText, () => {
                 wasSubmitted = true;
+                form.close();
             });
         }
 
@@ -197,7 +201,7 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
             mc.system.runTimeout(() => resolve(), 1);
         });
 
-        if (this.submitText && !wasSubmitted) {
+        if (effectiveSubmitText && !wasSubmitted) {
             return undefined;
         }
 

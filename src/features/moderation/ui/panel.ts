@@ -6,7 +6,7 @@ import * as reportManager from '@features/moderation/reportManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showReportListPanel(player: mc.Player, page: number = 1): Promise<void> {
     const form = new ActionFormBuilder().title('Active Reports');
@@ -102,7 +102,7 @@ export async function handleKickPlayer(player: mc.Player, targetPlayerId: string
         return;
     }
 
-    const form = new ModalFormBuilder<{ reasonRaw: string }>().title(`Kick ${targetData.name}`).textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules');
+    const form = new CustomFormBuilder<{ reasonRaw: string }>(`Kick ${targetData.name}`).textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules').submitButton('Kick');
 
     const res = await form.show(player);
     if (!res) {
@@ -135,10 +135,10 @@ export async function handleMutePlayer(player: mc.Player, targetPlayerId: string
         return;
     }
 
-    const form = new ModalFormBuilder<{ durationStr: string; reasonRaw: string }>()
-        .title(`Mute ${targetData.name}`)
+    const form = new CustomFormBuilder<{ durationStr: string; reasonRaw: string }>(`Mute ${targetData.name}`)
         .textField('durationStr', 'Duration (minutes)', 'e.g., 60', '60')
-        .textField('reasonRaw', 'Reason', 'Enter reason', 'Spam/Toxicity');
+        .textField('reasonRaw', 'Reason', 'Enter reason', 'Spam/Toxicity')
+        .submitButton('Mute');
 
     const res = await form.show(player);
     if (!res) {
@@ -199,10 +199,10 @@ export async function handleBanPlayer(player: mc.Player, targetPlayerId: string)
         return;
     }
 
-    const form = new ModalFormBuilder<{ durationStr: string; reasonRaw: string }>()
-        .title(`Ban ${targetData.name}`)
+    const form = new CustomFormBuilder<{ durationStr: string; reasonRaw: string }>(`Ban ${targetData.name}`)
         .textField('durationStr', 'Duration (hours, 0 = permanent)', 'e.g., 24', '0')
-        .textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules');
+        .textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules')
+        .submitButton('Ban');
 
     const res = await form.show(player);
     if (!res) {
@@ -252,7 +252,7 @@ export async function handleReportPlayer(player: mc.Player, targetPlayerId: stri
         return;
     }
 
-    const form = new ModalFormBuilder<{ reasonRaw: string }>().title(`Report ${targetData.name}`).textField('reasonRaw', 'Reason', 'Why are you reporting this player?');
+    const form = new CustomFormBuilder<{ reasonRaw: string }>(`Report ${targetData.name}`).textField('reasonRaw', 'Reason', 'Why are you reporting this player?', '').submitButton('Submit Report');
 
     const res = await form.show(player);
     if (!res) {
@@ -270,7 +270,7 @@ export async function handleReportPlayer(player: mc.Player, targetPlayerId: stri
 }
 
 export async function handleUnbanForm(player: mc.Player): Promise<void> {
-    const form = new ModalFormBuilder<{ name: string }>().title('Unban Player').textField('name', 'Player Name (exact)', 'Enter the name of the banned player');
+    const form = new CustomFormBuilder<{ name: string }>('Unban Player').textField('name', 'Player Name (exact)', 'Enter the name of the banned player', '').submitButton('Unban');
     const res = await form.show(player);
     if (!res) {
         return;
@@ -286,7 +286,7 @@ export async function handleUnbanForm(player: mc.Player): Promise<void> {
 }
 
 export async function handleUnmuteForm(player: mc.Player): Promise<void> {
-    const form = new ModalFormBuilder<{ name: string }>().title('Unmute Player').textField('name', 'Player Name (exact)', 'Enter the name of the muted player');
+    const form = new CustomFormBuilder<{ name: string }>('Unmute Player').textField('name', 'Player Name (exact)', 'Enter the name of the muted player', '').submitButton('Unmute');
     const res = await form.show(player);
     if (!res) {
         return;

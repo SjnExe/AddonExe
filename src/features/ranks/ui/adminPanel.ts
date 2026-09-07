@@ -3,7 +3,7 @@ import { reloadRanks } from '@core/rankManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 import { RankCondition, RankDefinition } from '../ranksConfig.js';
 
 export async function showRankSystemConfigPanel(player: mc.Player): Promise<void> {
@@ -123,7 +123,7 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
         rank = JSON.parse(JSON.stringify(existingRank)) as RankDefinition;
     }
 
-    const modal = new ModalFormBuilder<{
+    const modal = new CustomFormBuilder<{
         id: string;
         name: string;
         priority: string;
@@ -132,7 +132,7 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
         allow: string;
         deny: string;
         conditions: string;
-    }>().title(isNew ? 'Create New Rank' : `Edit Rank: ${rank.name}`);
+    }>(isNew ? 'Create New Rank' : `Edit Rank: ${rank.name}`);
 
     modal.textField('id', 'Rank ID (Unique, alphanumeric)', 'e.g. custom_rank', rank.id);
     modal.textField('name', 'Display Name', 'e.g. Custom Rank', rank.name);
@@ -145,6 +145,7 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
 
     const conditionsJson = draftRank?.conditionsRaw ?? JSON.stringify(rank.conditions, null, 2);
     modal.textField('conditions', 'Conditions (JSON array)', '[]', conditionsJson);
+    modal.submitButton('Save Rank');
 
     const response = await modal.show(player);
     if (!response) {
