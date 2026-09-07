@@ -24,58 +24,73 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
             return;
         }
 
-        // Toggle permissions to force close UI/Chat
+        // Toggle input permissions briefly to clear chat HUD lock
         player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, false);
         player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Movement, false);
 
-        // Small delay to let client process the state change
-        await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
+        if (mc.system?.runTimeout) {
+            await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
+        }
 
         if (player.isValid) {
             player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, true);
             player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Movement, true);
         }
     } catch {
-        // Ignore errors (e.g. cheats not enabled, or permissions issue)
+        // Ignore errors (e.g. input permissions disabled or client unready)
     }
 }
 
 /**
- * Shows a form to a player, handling the 'UserBusy' case by sending a one-time message and then retrying.
+ * Shows a form to a player, handling 'UserBusy' cancelations by automatically retrying.
  * @param player The player to show the form to.
- * @param form The form to show.
- * @returns A promise that resolves with the form response, or undefined if it times out or is cancelled for other reasons.
+ * @param form The form instance to show.
+ * @returns A promise that resolves with the form response.
  */
 export async function uiWait(player: mc.Player, form: ActionFormData | ModalFormData | MessageFormData): Promise<ActionFormResponse | ModalFormResponse | MessageFormResponse> {
+    if (!player.isValid) {
+        return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } satisfies ActionFormResponse;
+    }
+
     const firstAttempt = await form.show(player);
     if (firstAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
         return firstAttempt;
     }
 
-    // Attempt to force close chat if busy
+    // Attempt to dismiss chat lock
     await forceCloseChat(player);
+
+    if (!player.isValid) {
+        return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } satisfies ActionFormResponse;
+    }
 
     const secondAttempt = await form.show(player);
     if (secondAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
         return secondAttempt;
     }
 
-    // If still busy, send the message and start retrying loop.
-    player.sendMessage('§eOpening UI... please close chat to view.§r');
+    // Notify player if chat/container is still keeping client busy
+    player.sendMessage('§eOpening UI... please close chat or inventory to view.§r');
 
-    const startTick = mc.system.currentTick;
-    while (mc.system.currentTick - startTick < 1200) {
-        // 1 minute timeout
+    const startTick = mc.system?.currentTick ?? 0;
+    while (mc.system ? mc.system.currentTick - startTick < 1200 : false) {
+        if (!player.isValid) {
+            break;
+        }
+
         const subsequentAttempt = await form.show(player);
         if (subsequentAttempt.cancelationReason !== FormCancelationReason.UserBusy) {
             return subsequentAttempt;
         }
 
-        // Add a delay to prevent tight loop and allow the client to process the close chat action
-        await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
+        if (mc.system?.runTimeout) {
+            await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
+        } else {
+            break;
+        }
     }
 
-    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } satisfies ActionFormResponse; // Timeout
+    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed } satisfies ActionFormResponse;
 }
 
 /**
