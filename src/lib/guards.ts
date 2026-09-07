@@ -29,3 +29,24 @@ export function isNumber(value: unknown): value is number {
 export function isNonEmptyString(value: unknown): value is string {
     return isString(value) && value.length > 0;
 }
+
+/**
+ * Checks if a value is a non-null object.
+ */
+export function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Checks if a value is an array.
+ */
+export function isArray<T = unknown>(value: unknown): value is T[] {
+    return Array.isArray(value);
+}
+
+/**
+ * Checks if a value is a function.
+ */
+export function isFunction(value: unknown): value is (...args: unknown[]) => unknown {
+    return typeof value === 'function';
+}

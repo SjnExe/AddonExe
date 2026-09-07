@@ -197,9 +197,11 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         }
 
         // Delay 1 tick for the Script Engine event loop to execute the button's onClick callback if triggered by button click
-        await new Promise<void>((resolve) => {
-            mc.system.runTimeout(() => resolve(), 1);
-        });
+        if (mc.system?.runTimeout) {
+            await new Promise<void>((resolve) => {
+                mc.system.runTimeout(() => resolve(), 1);
+            });
+        }
 
         if (effectiveSubmitText && !wasSubmitted) {
             return undefined;
