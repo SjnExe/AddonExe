@@ -6,7 +6,7 @@ import { ensureItemsConfig } from '@features/shop/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 interface ShopItemInfo {
     itemId: string;
@@ -180,7 +180,7 @@ export async function showShopItemListPanel(player: mc.Player, categoryName: str
 }
 
 export async function showShopSearchPanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ query: string }>().title('Search Shop').textField('query', 'Item Name', 'e.g., diamond');
+    const modal = new CustomFormBuilder<{ query: string }>('Search Shop').textField('query', 'Item Name', 'e.g., diamond', '').submitButton('Search');
     const res = await modal.show(player);
     if (!res) {
         void showShopMainPanel(player);

@@ -6,7 +6,6 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { getSystemDefinition } from '@ui/systemRegistry.js';
@@ -224,16 +223,16 @@ export async function showConfigTransferPanel(player: mc.Player): Promise<void> 
 }
 
 export async function showConfigExportPanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ system: number; info: string }>()
-        .title('Export Config')
+    const modal = new CustomFormBuilder<{ system: string; info: string }>('Export Config')
         .dropdown('system', 'Select System', systemOptionsCache)
-        .textField('info', 'Export Result', '', 'Click Submit');
+        .textField('info', 'Export Result', '', 'Click Export')
+        .submitButton('Export');
     const res = await modal.show(player);
     if (!res) {
         return showConfigTransferPanel(player);
     }
 
-    const selectedSystem = systemOptionsCache[res.system];
+    const selectedSystem = res.system;
     let exportData: unknown;
     if (selectedSystem === 'All Systems') {
         const allData: Record<string, unknown> = {};
@@ -248,13 +247,19 @@ export async function showConfigExportPanel(player: mc.Player): Promise<void> {
 }
 
 async function _showExportResultPanel(player: mc.Player, jsonString: string): Promise<void> {
-    const modal = new ModalFormBuilder<{ system: number; json: string }>().title('Export Complete').dropdown('system', 'Data Exported:', ['JSON']).textField('json', 'JSON', '', jsonString);
+    const modal = new CustomFormBuilder<{ system: string; json: string }>('Export Complete')
+        .dropdown('system', 'Data Exported:', ['JSON'])
+        .textField('json', 'JSON', '', jsonString)
+        .submitButton('Done');
     await modal.show(player);
     await showConfigTransferPanel(player);
 }
 
 export async function showConfigImportPanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ system: number; json: string }>().title('Import Config').dropdown('system', 'Target', systemOptionsCache).textField('json', 'Paste JSON', '{}');
+    const modal = new CustomFormBuilder<{ system: string; json: string }>('Import Config')
+        .dropdown('system', 'Target', systemOptionsCache)
+        .textField('json', 'Paste JSON', '{}')
+        .submitButton('Import');
     const res = await modal.show(player);
     if (!res) {
         return showConfigTransferPanel(player);

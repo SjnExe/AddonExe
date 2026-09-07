@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 import { getConfig } from '@core/configManager.js';
 import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
@@ -63,7 +63,9 @@ export async function showBountyPlayer(player: mc.Player, context: Record<string
         return showBountyListPanel(player, context);
     }
 
-    const form = new ModalFormBuilder<{ amount: string }>().title(`Set Bounty: ${isDefined(targetData) ? targetData.name : 'Unknown'}`).textField('amount', 'Enter bounty amount (e.g. 100, 2.5k)', '');
+    const form = new CustomFormBuilder<{ amount: string }>(`Set Bounty: ${isDefined(targetData) ? targetData.name : 'Unknown'}`)
+        .textField('amount', 'Enter bounty amount (e.g. 100, 2.5k)', '', '')
+        .submitButton('Set Bounty');
 
     const res = await form.show(player);
     if (!res) {
@@ -113,7 +115,9 @@ export async function showRemovePlayerBounty(player: mc.Player, context: Record<
         return showBountyListPanel(player, context);
     }
 
-    const form = new ModalFormBuilder<{ amount: string }>().title('Remove Bounty').textField('amount', `Current Bounty: ${formatCurrency(targetBounty.amount)}`, 'Amount to pay off');
+    const form = new CustomFormBuilder<{ amount: string }>('Remove Bounty')
+        .textField('amount', `Current Bounty: ${formatCurrency(targetBounty.amount)}`, 'Amount to pay off', '')
+        .submitButton('Remove Bounty');
 
     const res = await form.show(player);
     if (!res) {

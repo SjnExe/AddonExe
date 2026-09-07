@@ -3,7 +3,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showXrayOresPanel(player: mc.Player, page: number = 1): Promise<void> {
     const form = new ActionFormBuilder().title('X-Ray Ores Config').button('§l§2+ Add Ore', 'textures/ui/color_plus', async () => {
@@ -38,21 +38,21 @@ export async function showXrayOresPanel(player: mc.Player, page: number = 1): Pr
 }
 
 export async function showAddXrayOrePanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{
+    const modal = new CustomFormBuilder<{
         id: string;
         name: string;
         blockId: string;
         dimId: string;
         minY: string;
         maxY: string;
-    }>()
-        .title('Add X-Ray Ore')
-        .textField('id', 'Internal ID (no spaces)', 'diamond')
-        .textField('name', 'Display Name', 'Diamond Ore')
-        .textField('blockId', 'Block ID', MinecraftBlockTypes.DiamondOre)
-        .textField('dimId', 'Dimension', MinecraftDimensionTypes.Overworld)
-        .textField('minY', 'Min Y', '-64')
-        .textField('maxY', 'Max Y', '16');
+    }>('Add X-Ray Ore')
+        .textField('id', 'Internal ID (no spaces)', 'diamond', '')
+        .textField('name', 'Display Name', 'Diamond Ore', '')
+        .textField('blockId', 'Block ID', MinecraftBlockTypes.DiamondOre, MinecraftBlockTypes.DiamondOre)
+        .textField('dimId', 'Dimension', MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Overworld)
+        .textField('minY', 'Min Y', '-64', '-64')
+        .textField('maxY', 'Max Y', '16', '16')
+        .submitButton('Add Ore');
 
     const res = await modal.show(player);
     if (!res) {
@@ -90,21 +90,21 @@ export async function showEditXrayOrePanel(player: mc.Player, key: string): Prom
 
     const block = ore.blocks[0] ?? { blockId: '', dimensionId: MinecraftDimensionTypes.Overworld, minY: -64, maxY: 320 };
 
-    const modal = new ModalFormBuilder<{
+    const modal = new CustomFormBuilder<{
         enabled: boolean;
         name: string;
         blockId: string;
         dimId: string;
         minY: string;
         maxY: string;
-    }>()
-        .title(`Edit ${ore.oreName}`)
+    }>(`Edit ${ore.oreName}`)
         .toggle('enabled', 'Enabled', ore.enabled)
         .textField('name', 'Display Name', 'Name', ore.oreName)
         .textField('blockId', 'Block ID', 'ID', block.blockId)
         .textField('dimId', 'Dimension', 'ID', block.dimensionId)
         .textField('minY', 'Min Y', 'Y', String(block.minY))
-        .textField('maxY', 'Max Y', 'Y', String(block.maxY));
+        .textField('maxY', 'Max Y', 'Y', String(block.maxY))
+        .submitButton('Save Settings');
 
     const res = await modal.show(player);
     if (!res) {

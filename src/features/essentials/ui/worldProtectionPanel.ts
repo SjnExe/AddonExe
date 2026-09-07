@@ -2,7 +2,7 @@ import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/configurations.js';
 import { showPanel } from '@core/uiManager.js';
@@ -44,7 +44,7 @@ export async function showEditWorldProtectionPanel(player: mc.Player, context: R
 type WorldProtectionFormVals = {
     id: string;
     name: string;
-    dimension: number;
+    dimension: string;
     pos1: string;
     pos2: string;
     preventPvP: boolean;
@@ -75,7 +75,7 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
         }
     }
 
-    const form = new ModalFormBuilder<WorldProtectionFormVals>().title(isEdit ? `Edit Zone: ${zone?.name}` : 'Add Protection Zone');
+    const form = new CustomFormBuilder<WorldProtectionFormVals>(isEdit ? `Edit Zone: ${zone?.name}` : 'Add Protection Zone');
 
     form.textField('id', 'Zone ID/Name (No spaces recommended)', 'e.g., spawn_city', zone?.id ?? '');
     form.textField('name', 'Display Name', 'e.g., Spawn City', zone?.name ?? '');
@@ -123,6 +123,7 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     if (isEdit) {
         form.toggle('isDelete', '§cDelete Zone§r', false);
     }
+    form.submitButton('Save Settings');
 
     const response = await form.show(player);
     if (!response) {
@@ -132,7 +133,8 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     const values = response;
     const newId = values.id.trim();
     const newName = values.name.trim();
-    const dimension = dimensions[values.dimension] as string;
+    const selectedDim = typeof values.dimension === 'string' ? values.dimension : dimensions[values.dimension as unknown as number];
+    const dimension = selectedDim || MinecraftDimensionTypes.Overworld;
 
     const parseCoords = (str: string) => {
         const parts = str.split(/[,\s]+/).map((p) => parseFloat(p));

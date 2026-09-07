@@ -1,6 +1,6 @@
 import { hasPermission } from '@core/permissionEngine.js';
 import { ActionFormBuilder } from '@core/ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@core/ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@core/ui/builders/CustomFormBuilder.js';
 import * as mc from '@minecraft/server';
 
 import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/vote/manager.js';
@@ -78,11 +78,11 @@ async function handleNoActiveVote(player: mc.Player, isAdmin: boolean) {
 }
 
 async function showCreateVoteUI(player: mc.Player) {
-    const form = new ModalFormBuilder<{ question: string; options: string; duration: string }>()
-        .title('Create Vote')
-        .textField('question', 'Question', 'Do you like apples?')
-        .textField('options', 'Options (comma separated)', 'Yes, No, Maybe')
-        .textField('duration', 'Duration (minutes, 0 for infinite)', '10');
+    const form = new CustomFormBuilder<{ question: string; options: string; duration: string }>('Create Vote')
+        .textField('question', 'Question', 'Do you like apples?', '')
+        .textField('options', 'Options (comma separated)', 'Yes, No, Maybe', '')
+        .textField('duration', 'Duration (minutes, 0 for infinite)', '10', '10')
+        .submitButton('Create Vote');
 
     const res = await form.show(player);
     if (!res) {

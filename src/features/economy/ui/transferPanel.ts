@@ -6,7 +6,7 @@ import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showTransferPanel(player: mc.Player, targetPlayerId: string): Promise<void> {
     const config = getConfig();
@@ -28,9 +28,9 @@ export async function showTransferPanel(player: mc.Player, targetPlayerId: strin
         return showPanel(player, 'playerActionsPanel', { targetPlayerId });
     }
 
-    const form = new ModalFormBuilder<{ amount: string }>()
-        .title(`Send Money to ${targetName}`)
-        .textField('amount', `Your Balance: ${formatCurrency(sourceData.balance)}\nEnter amount to send:`, 'e.g. 100, 2.5k', '');
+    const form = new CustomFormBuilder<{ amount: string }>(`Send Money to ${targetName}`)
+        .textField('amount', `Your Balance: ${formatCurrency(sourceData.balance)}\nEnter amount to send:`, 'e.g. 100, 2.5k', '')
+        .submitButton('Send Money');
 
     const res = await form.show(player);
     if (!res) {

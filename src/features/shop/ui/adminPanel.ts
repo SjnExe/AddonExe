@@ -5,7 +5,7 @@ import { ensureItemsConfig, getAllItems } from '@features/shop/utils.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { ModalFormBuilder } from '@ui/builders/ModalFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 
 interface ShopItemInfo {
@@ -249,7 +249,10 @@ export async function showShopAddItemPanel(player: mc.Player, categoryName: stri
 }
 
 export async function showAddCategoryPanel(player: mc.Player): Promise<void> {
-    const modal = new ModalFormBuilder<{ catName: string; icon: string }>().title('Add Category').textField('catName', 'Category Name', 'e.g., Blocks').textField('icon', 'Icon Path', '');
+    const modal = new CustomFormBuilder<{ catName: string; icon: string }>('Add Category')
+        .textField('catName', 'Category Name', 'e.g., Blocks', '')
+        .textField('icon', 'Icon Path', '', '')
+        .submitButton('Add Category');
 
     const res = await modal.show(player);
     if (!res) {
@@ -267,7 +270,10 @@ export async function showAddCategoryPanel(player: mc.Player): Promise<void> {
 }
 
 export async function showAddSubCategoryPanel(player: mc.Player, categoryName: string): Promise<void> {
-    const modal = new ModalFormBuilder<{ subCatName: string; icon: string }>().title('Add Sub-Category').textField('subCatName', 'Sub-Category Name', 'e.g., Ores').textField('icon', 'Icon Path', '');
+    const modal = new CustomFormBuilder<{ subCatName: string; icon: string }>('Add Sub-Category')
+        .textField('subCatName', 'Sub-Category Name', 'e.g., Ores', '')
+        .textField('icon', 'Icon Path', '', '')
+        .submitButton('Add Sub-Category');
 
     const res = await modal.show(player);
     if (!res) {
@@ -291,10 +297,10 @@ export async function showEditCategoryPanel(player: mc.Player, categoryName: str
         return;
     }
 
-    const modal = new ModalFormBuilder<{ newName: string; icon: string }>()
-        .title(`Edit ${categoryName}`)
+    const modal = new CustomFormBuilder<{ newName: string; icon: string }>(`Edit ${categoryName}`)
         .textField('newName', 'New Name', 'New Name', categoryName)
-        .textField('icon', 'Icon Path', 'Icon Path', category.icon ?? '');
+        .textField('icon', 'Icon Path', 'Icon Path', category.icon ?? '')
+        .submitButton('Save Settings');
 
     const res = await modal.show(player);
     if (!res) {
@@ -315,10 +321,10 @@ export async function showEditSubCategoryPanel(player: mc.Player, categoryName: 
         return;
     }
 
-    const modal = new ModalFormBuilder<{ newName: string; icon: string }>()
-        .title(`Edit ${subCategoryName}`)
+    const modal = new CustomFormBuilder<{ newName: string; icon: string }>(`Edit ${subCategoryName}`)
         .textField('newName', 'New Name', 'New Name', subCategoryName)
-        .textField('icon', 'Icon Path', 'Icon Path', subCategory.icon ?? '');
+        .textField('icon', 'Icon Path', 'Icon Path', subCategory.icon ?? '')
+        .submitButton('Save Settings');
 
     const res = await modal.show(player);
     if (!res) {
@@ -357,7 +363,7 @@ export async function showAddItemFromListPanel(player: mc.Player, categoryName: 
 }
 
 export async function showAddCustomItemPanel(player: mc.Player, categoryName: string, subCategoryName: string | undefined, prefillItemId: string = ''): Promise<void> {
-    const modal = new ModalFormBuilder<{
+    const modal = new CustomFormBuilder<{
         itemId: string;
         buyPrice: string;
         sellPrice: string;
@@ -365,15 +371,15 @@ export async function showAddCustomItemPanel(player: mc.Player, categoryName: st
         icon: string;
         permission: string;
         rankMultiplierOverridesStr: string;
-    }>()
-        .title('Add Custom Item')
+    }>('Add Custom Item')
         .textField('itemId', 'Item ID', ['dia', 'mond'].join(''), prefillItemId)
         .textField('buyPrice', 'Buy Price', '100', '100')
         .textField('sellPrice', 'Sell Price', '50', '50')
-        .textField('displayName', 'Display Name', ['Dia', 'mond'].join(''))
-        .textField('icon', 'Icon Path', '')
-        .textField('permission', 'Permission', 'ui.panel.member')
-        .textField('rankMultiplierOverridesStr', 'Overrides', '');
+        .textField('displayName', 'Display Name', ['Dia', 'mond'].join(''), '')
+        .textField('icon', 'Icon Path', '', '')
+        .textField('permission', 'Permission', 'ui.panel.member', '')
+        .textField('rankMultiplierOverridesStr', 'Overrides', '', '')
+        .submitButton('Add Item');
 
     const res = await modal.show(player);
     if (!res) {
@@ -429,7 +435,7 @@ export async function showEditItemFormPanel(player: mc.Player, categoryName: str
         overridesStr = parts.join(',');
     }
 
-    const modal = new ModalFormBuilder<{
+    const modal = new CustomFormBuilder<{
         itemId: string;
         buyPrice: string;
         sellPrice: string;
@@ -438,8 +444,7 @@ export async function showEditItemFormPanel(player: mc.Player, categoryName: str
         permission: string;
         rankMultiplierOverridesStr: string;
         action: string;
-    }>()
-        .title('Edit Item')
+    }>('Edit Item')
         .textField('itemId', 'Item ID', ['dia', 'mond'].join(''), item.itemId || itemKey)
         .textField('buyPrice', 'Buy Price', '100', String(item.buyPrice))
         .textField('sellPrice', 'Sell Price', '50', String(item.sellPrice))
@@ -447,7 +452,8 @@ export async function showEditItemFormPanel(player: mc.Player, categoryName: str
         .textField('icon', 'Icon Path', '', item.icon || '')
         .textField('permission', 'Permission', 'ui.panel.member', item.permission || '')
         .textField('rankMultiplierOverridesStr', 'Overrides', '', overridesStr)
-        .dropdown('action', 'Action', ['Save', 'Delete']);
+        .dropdown('action', 'Action', ['Save', 'Delete'])
+        .submitButton('Submit');
 
     const res = await modal.show(player);
     if (!res) {
