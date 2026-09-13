@@ -199,6 +199,18 @@ async function addDirToZip(sourceDir: string, zip: JSZip, zipPrefix = '', exclud
         const stat = await fs.stat(fullPath);
         if (stat.isFile()) {
             const zipPath = zipPrefix ? `${zipPrefix}/${relPath}`.replace(/\\/g, '/') : relPath.replace(/\\/g, '/');
+
+            if (relPath.endsWith('.json')) {
+                try {
+                    const rawJsonText = await Bun.file(fullPath).text();
+                    const minifiedJson = JSON.stringify(JSON.parse(rawJsonText));
+                    zip.file(zipPath, minifiedJson);
+                    continue;
+                } catch {
+                    // Fall back to raw content if JSON parsing fails
+                }
+            }
+
             const content = await Bun.file(fullPath).arrayBuffer();
             zip.file(zipPath, content);
         }
