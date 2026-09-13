@@ -1,3 +1,4 @@
+import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { MessageFormData, MessageFormResponse } from '@minecraft/server-ui';
 
@@ -32,8 +33,8 @@ export class MessageFormBuilder {
         return this;
     }
 
-    public async show(player: Player): Promise<MessageFormResponse> {
-        const response = await this.form.show(player);
+    public async show(player: Player, options?: { wait?: boolean }): Promise<MessageFormResponse> {
+        const response = options?.wait ? ((await uiWait(player, this.form)) as MessageFormResponse) : await this.form.show(player);
 
         if (response.canceled) {
             return response;

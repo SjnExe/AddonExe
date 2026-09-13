@@ -1,3 +1,4 @@
+import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
@@ -43,8 +44,8 @@ export class ActionFormBuilder {
         return this;
     }
 
-    public async show(player: Player): Promise<ActionFormResponse> {
-        const response = await this.form.show(player);
+    public async show(player: Player, options?: { wait?: boolean }): Promise<ActionFormResponse> {
+        const response = options?.wait ? ((await uiWait(player, this.form)) as ActionFormResponse) : await this.form.show(player);
 
         if (response.canceled) {
             return response;
