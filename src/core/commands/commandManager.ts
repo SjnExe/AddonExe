@@ -300,12 +300,27 @@ class CommandManager {
                           }
                       };
 
-            // Prepare arguments
+            // Prepare and type-cast arguments
             const allParams = command.parameters ?? [];
             const parsedArgs: Record<string, unknown> = {};
             for (const [i, param] of allParams.entries()) {
                 if (isDefined(rawArgs[i]) && isDefined(param)) {
                     let value = rawArgs[i];
+                    // Type-cast numbers and booleans if provided as raw strings
+                    if (param.type === 'int') {
+                        const parsed = typeof value === 'number' ? value : Number.parseInt(String(value), 10);
+                        if (!Number.isNaN(parsed)) {
+                            value = Math.floor(parsed);
+                        }
+                    } else if (param.type === 'float') {
+                        const parsed = typeof value === 'number' ? value : Number.parseFloat(String(value));
+                        if (!Number.isNaN(parsed)) {
+                            value = parsed;
+                        }
+                    } else if (param.type === 'boolean' && typeof value === 'string') {
+                        value = value.toLowerCase() === 'true';
+                    }
+
                     // Filter vanished players for slash commands
                     if (
                         (param.type === 'player' || param.type === 'target') &&
