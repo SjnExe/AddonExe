@@ -77,7 +77,7 @@ async function autoAlignDependencies() {
     }
 
     if (changesMade) {
-        writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 4), 'utf8');
+        await Bun.write(packageJsonPath, JSON.stringify(packageJson, null, 4));
         console.log('📝 package.json updated successfully with modern target structures.');
     } else {
         console.log('✅ Local dependencies match your target version context.');
