@@ -56,7 +56,7 @@
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest",
         "is-number": "latest",
-        "jszip": "^3.10.1",
+        "jszip": "latest",
         "uuid": "latest"
     },
     "devDependencies": {
@@ -67,7 +67,7 @@
         "@minecraft/server": "2.9.0-beta.1.26.33-stable",
         "@minecraft/server-gametest": "1.0.0-beta.1.26.33-stable",
         "@minecraft/server-ui": "2.2.0-beta.1.26.33-stable",
-        "@types/jszip": "^3.4.1",
+        "@types/jszip": "latest",
         "@types/node": "latest",
         "@types/uuid": "latest",
         "ajv": "latest",
