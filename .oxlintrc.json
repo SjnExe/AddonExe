@@ -10,6 +10,7 @@
         "no-var": "error",
         "curly": "error",
         "no-console": "warn",
+        "no-unused-vars": ["error", { "args": "all", "argsIgnorePattern": "^_" }],
         "typescript/no-explicit-any": "error",
         "typescript/no-shadow": "error",
         "typescript/no-unused-vars": ["error", { "args": "all", "argsIgnorePattern": "^_" }],
