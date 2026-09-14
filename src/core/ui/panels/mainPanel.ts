@@ -29,7 +29,12 @@ export async function showHubPanel(player: Player, hubId: MenuHubId, titleText: 
 
     if (hubId !== 'main') {
         form.addBackButton(async () => {
-            await showMainPanel(player);
+            if (hubId.startsWith('staff_')) {
+                const { showStaffDashboardPanel } = await import('./adminPanel.js');
+                await showStaffDashboardPanel(player);
+            } else {
+                await showMainPanel(player);
+            }
         });
     }
 

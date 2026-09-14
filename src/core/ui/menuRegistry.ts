@@ -4,17 +4,7 @@ import { showPanel } from '@core/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
-export type MenuHubId =
-    | 'main'
-    | 'economy'
-    | 'social'
-    | 'games'
-    | 'profile'
-    | 'staff'
-    | 'staff_moderation'
-    | 'staff_player'
-    | 'staff_world'
-    | 'staff_config';
+export type MenuHubId = 'main' | 'economy' | 'social' | 'games' | 'profile' | 'staff' | 'staff_moderation' | 'staff_player' | 'staff_world' | 'staff_config';
 
 export interface MenuItem {
     id: string;
