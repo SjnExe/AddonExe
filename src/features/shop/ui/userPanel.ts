@@ -55,8 +55,8 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
     }
 
     form.addBackButton(async () => {
-        const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
-        await showMainPanel(player);
+        const { showEconomyHub } = await import('@core/ui/panels/mainPanel.js');
+        await showEconomyHub(player);
     });
 
     await form.show(player);
