@@ -70,7 +70,7 @@ export function initializeDefaultMenuItems(): void {
     // --- MAIN HUB CATEGORIES ---
     registerMenuItem({
         id: 'hub_economy',
-        title: '🛒 Economy & Commerce',
+        title: '§l§6Economy & Commerce',
         description: 'Shop, Auction House, Kits & Bounties',
         icon: 'textures/items/gold_ingot',
         hub: 'main',
@@ -80,7 +80,7 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'hub_social',
-        title: '👥 Social & Community',
+        title: '§l§bSocial & Community',
         description: 'Friends, Teams & Player List',
         icon: 'textures/ui/icon_multiplayer',
         hub: 'main',
@@ -90,7 +90,7 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'hub_games',
-        title: '🎮 Mini-Games',
+        title: '§l§aMini-Games',
         description: 'Play Wordle & Mini-Games',
         icon: 'textures/ui/controller_glyph_color',
         hub: 'main',
@@ -101,7 +101,7 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'hub_profile',
-        title: '👤 Profile & Server Info',
+        title: '§l§eProfile & Server Info',
         description: 'Your Statistics, Info & Rules',
         icon: 'textures/ui/user_icon',
         hub: 'main',
@@ -111,7 +111,7 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'hub_staff',
-        title: '🛡️ Staff Dashboard',
+        title: '§l§cStaff Dashboard',
         description: 'Moderation, Player Management & Configs',
         icon: 'textures/ui/op',
         hub: 'main',
@@ -302,7 +302,7 @@ export function initializeDefaultMenuItems(): void {
     // --- STAFF DASHBOARD HUBS ---
     registerMenuItem({
         id: 'staff_mod_hub',
-        title: '🛡️ Moderation Center',
+        title: '§l§cModeration Center',
         description: 'Reports, Sanctions & Anti-Cheat',
         icon: 'textures/ui/hammer_l',
         hub: 'staff',
@@ -313,7 +313,7 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_player_hub',
-        title: '👥 Player Management',
+        title: '§l§bPlayer Management',
         description: 'Inspect Players, Ranks, Stats & Inventories',
         icon: 'textures/ui/icon_multiplayer',
         hub: 'staff',
@@ -324,7 +324,7 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_world_hub',
-        title: '🌐 World & Essentials',
+        title: '§l§aWorld & Essentials',
         description: 'Floating Text & World Protection Zones',
         icon: 'textures/ui/icon_recipe_nature',
         hub: 'staff',
@@ -335,7 +335,7 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_config_hub',
-        title: '⚙️ Addon Configuration',
+        title: '§l§gAddon Configuration',
         description: 'Feature Toggles & System Configs',
         icon: 'textures/ui/settings_glyph_color_2x',
         hub: 'staff',
