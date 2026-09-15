@@ -1,5 +1,3 @@
-import { hasPermission } from '@core/permissionEngine.js';
-import { showPanel } from '@core/uiManager.js';
 import { formatLocation } from '@core/utils.js';
 import * as floatingTextManager from '@features/essentials/floatingTextManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
@@ -8,43 +6,26 @@ import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
+import { showHubPanel } from './mainPanel.js';
+
 export async function showStaffDashboardPanel(player: mc.Player): Promise<void> {
-    const form = new ActionFormBuilder().title('Staff Dashboard');
+    await showHubPanel(player, 'staff', 'Staff Dashboard', 'Select a staff management module:');
+}
 
-    if (hasPermission(player, 'ui.panel.mod')) {
-        form.button('Report Management', 'textures/ui/WarningGlyph', async () => {
-            await showPanel(player, 'reportListPanel');
-        });
+export async function showStaffModerationHub(player: mc.Player): Promise<void> {
+    await showHubPanel(player, 'staff_moderation', 'Moderation Center', 'Manage player reports, punishments & anti-cheat:');
+}
 
-        form.button('Player Management', 'textures/ui/icon_multiplayer', async () => {
-            const { showPlayerManagementPanel } = await import('@core/ui/panels/playerPanel.js');
-            await showPlayerManagementPanel(player);
-        });
+export async function showStaffPlayerHub(player: mc.Player): Promise<void> {
+    await showHubPanel(player, 'staff_player', 'Player Management', 'Inspect active players, manage ranks & player data:');
+}
 
-        form.button('Moderation', 'textures/ui/hammer_l', async () => {
-            await showPanel(player, 'moderationPanel');
-        });
-    }
+export async function showStaffWorldHub(player: mc.Player): Promise<void> {
+    await showHubPanel(player, 'staff_world', 'World & Essentials', 'Manage floating text holograms and world protection zones:');
+}
 
-    if (hasPermission(player, 'ui.panel.admin')) {
-        form.button('Floating Text', 'textures/ui/text_color_paintbrush', async () => {
-            await showFloatingTextListPanel(player);
-        });
-    }
-
-    if (hasPermission(player, 'ui.panel.admin')) {
-        form.button('Configuration', 'textures/ui/settings_glyph_color_2x', async () => {
-            const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
-            await showConfigCategoryPanel(player);
-        });
-    }
-
-    form.addBackButton(async () => {
-        const { showMainPanel } = await import('./mainPanel.js');
-        await showMainPanel(player);
-    });
-
-    await form.show(player);
+export async function showStaffConfigHub(player: mc.Player): Promise<void> {
+    await showHubPanel(player, 'staff_config', 'Addon Configuration', 'Configure addon systems and feature toggles:');
 }
 
 export async function showFloatingTextListPanel(player: mc.Player): Promise<void> {
