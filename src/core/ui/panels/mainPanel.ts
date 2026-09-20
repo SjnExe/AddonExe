@@ -1,89 +1,62 @@
-import { isFeatureActive } from '@core/featureManager.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { showPanel } from '@core/uiManager.js';
+import { getMenuItemsForHub, isMenuItemActive, MenuHubId } from '@core/ui/menuRegistry.js';
 import { Player } from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 
-export async function showMainPanel(player: Player): Promise<void> {
-    const form = new ActionFormBuilder().title('Main Menu');
+/**
+ * Renders a standard Ore UI category hub menu for a specific hub ID.
+ */
+export async function showHubPanel(player: Player, hubId: MenuHubId, titleText: string, bodyText?: string): Promise<void> {
+    const items = getMenuItemsForHub(hubId, player);
+    const form = new ActionFormBuilder().title(`§l§6${titleText}`);
 
-    if (isFeatureActive('eco.shop')) {
-        form.button('Shop', 'textures/ui/trade_icon', async () => {
-            await showPanel(player, 'shopMainPanel');
-        });
-    } else {
-        form.button('Shop\n§0[§cDISABLED§0]', 'textures/ui/trade_icon', async () => {
-            await showMainPanel(player);
+    if (bodyText) {
+        form.body(bodyText);
+    }
+
+    for (const item of items) {
+        const active = isMenuItemActive(item);
+        const buttonText = active ? `§l${item.title}${item.description ? `\n§r§8${item.description}` : ''}` : `§l${item.title}\n§r§0[§cDISABLED§0]`;
+
+        form.button(buttonText, item.icon, async () => {
+            if (!active) {
+                player.sendMessage(`§cThe '${item.title}' feature is currently disabled.`);
+                await showHubPanel(player, hubId, titleText, bodyText);
+                return;
+            }
+            await item.action(player);
         });
     }
 
-    if (isFeatureActive('eco.ah')) {
-        form.button('Auction House', 'textures/items/gold_ingot', async () => {
-            const { showAuctionHouse } = await import('@features/auction/ui/panel.js');
-            await showAuctionHouse(player, 1);
-        });
-    } else {
-        form.button('Auction House\n§0[§cDISABLED§0]', 'textures/items/gold_ingot', async () => {
-            await showMainPanel(player);
-        });
-    }
-
-    if (isFeatureActive('game')) {
-        form.button('Games', 'textures/ui/controller_glyph_color', async () => {
-            await showPanel(player, 'gamesMainPanel');
-        });
-    } else {
-        form.button('Games\n§0[§cDISABLED§0]', 'textures/ui/controller_glyph_color', async () => {
-            await showMainPanel(player);
-        });
-    }
-
-    form.button('Player List', 'textures/ui/icon_steve', async () => {
-        const { showPlayerListPanel } = await import('@core/ui/panels/playerPanel.js');
-        await showPlayerListPanel(player);
-    });
-
-    if (isFeatureActive('soc.team')) {
-        form.button('Team', 'textures/ui/icon_multiplayer', async () => {
-            await showPanel(player, 'teamMainPanel');
-        });
-    } else {
-        form.button('Team\n§0[§cDISABLED§0]', 'textures/ui/icon_multiplayer', async () => {
-            await showMainPanel(player);
-        });
-    }
-
-    if (isFeatureActive('soc')) {
-        form.button('Friends', 'textures/ui/icon_steve', async () => {
-            await showPanel(player, 'friendMainPanel');
-        });
-    } else {
-        form.button('Friends\n§0[§cDISABLED§0]', 'textures/ui/icon_steve', async () => {
-            await showMainPanel(player);
-        });
-    }
-
-    // Bounty depends on economy and bounties config, but let's map it roughly to economy for UI
-    if (isFeatureActive('eco.bounty')) {
-        form.button('Bounty List', 'textures/items/netherite_sword', async () => {
-            await showPanel(player, 'bountyListPanel');
-        });
-    } else {
-        form.button('Bounty List\n§0[§cDISABLED§0]', 'textures/items/netherite_sword', async () => {
-            await showMainPanel(player);
-        });
-    }
-
-    form.button('Info', 'textures/items/book_enchanted', async () => {
-        await showPanel(player, 'infoPanel');
-    });
-
-    if (hasPermission(player, 'ui.panel.mod')) {
-        form.button('Staff Dashboard', 'textures/ui/op', async () => {
-            const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
-            await showStaffDashboardPanel(player);
+    if (hubId !== 'main') {
+        form.addBackButton(async () => {
+            if (hubId.startsWith('staff_')) {
+                const { showStaffDashboardPanel } = await import('./adminPanel.js');
+                await showStaffDashboardPanel(player);
+            } else {
+                await showMainPanel(player);
+            }
         });
     }
 
     await form.show(player);
+}
+
+export async function showMainPanel(player: Player): Promise<void> {
+    await showHubPanel(player, 'main', 'Main Menu', 'Select a category to explore available options:');
+}
+
+export async function showEconomyHub(player: Player): Promise<void> {
+    await showHubPanel(player, 'economy', 'Economy & Commerce', 'Access shops, auctions, kits, bounties and transfers:');
+}
+
+export async function showSocialHub(player: Player): Promise<void> {
+    await showHubPanel(player, 'social', 'Social & Community', 'Manage friends, teams, online players and rank perks:');
+}
+
+export async function showGamesHub(player: Player): Promise<void> {
+    await showHubPanel(player, 'games', 'Mini-Games Hub', 'Select a game to play:');
+}
+
+export async function showProfileHub(player: Player): Promise<void> {
+    await showHubPanel(player, 'profile', 'Profile & Server Info', 'View your stats and server information:');
 }

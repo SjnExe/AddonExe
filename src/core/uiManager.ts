@@ -22,9 +22,57 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
-        if (panelId === 'gamesMainPanel') {
-            const { showGamesMainPanel } = await import('@features/games/ui/gamesMainPanel.js');
-            await showGamesMainPanel(player);
+        if (panelId === 'economyHub') {
+            const { showEconomyHub } = await import('@core/ui/panels/mainPanel.js');
+            await showEconomyHub(player);
+            return;
+        }
+
+        if (panelId === 'socialHub') {
+            const { showSocialHub } = await import('@core/ui/panels/mainPanel.js');
+            await showSocialHub(player);
+            return;
+        }
+
+        if (panelId === 'gamesHub' || panelId === 'gamesMainPanel') {
+            const { showGamesHub } = await import('@core/ui/panels/mainPanel.js');
+            await showGamesHub(player);
+            return;
+        }
+
+        if (panelId === 'profileHub') {
+            const { showProfileHub } = await import('@core/ui/panels/mainPanel.js');
+            await showProfileHub(player);
+            return;
+        }
+
+        if (panelId === 'staffHub') {
+            const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
+            await showStaffDashboardPanel(player);
+            return;
+        }
+
+        if (panelId === 'staffModerationHub') {
+            const { showStaffModerationHub } = await import('@core/ui/panels/adminPanel.js');
+            await showStaffModerationHub(player);
+            return;
+        }
+
+        if (panelId === 'staffPlayerHub') {
+            const { showStaffPlayerHub } = await import('@core/ui/panels/adminPanel.js');
+            await showStaffPlayerHub(player);
+            return;
+        }
+
+        if (panelId === 'staffWorldHub') {
+            const { showStaffWorldHub } = await import('@core/ui/panels/adminPanel.js');
+            await showStaffWorldHub(player);
+            return;
+        }
+
+        if (panelId === 'staffConfigHub') {
+            const { showStaffConfigHub } = await import('@core/ui/panels/adminPanel.js');
+            await showStaffConfigHub(player);
             return;
         }
 
