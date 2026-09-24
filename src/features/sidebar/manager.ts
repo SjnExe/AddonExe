@@ -27,12 +27,27 @@ interface TeamManagerService {
     getTeamByPlayer: (playerId: string) => TeamData | undefined;
 }
 
+// Action bar override tracking per player
+const actionBarOverrides = new Map<string, number>();
+
+// Sidebar objective name constant
+const SIDEBAR_OBJECTIVE_ID = 'exe_sidebar';
+
+// Tracking ticks for performance throttling
+let currentTick = 0;
 let sidebarInterval: number | undefined;
+
+// TPS calculation state
+let lastTpsTime = Date.now();
+let lastTpsTick = 0;
+let cachedTps = '20.0';
 
 export function initializeSidebar() {
     sidebarInterval = mc.system.runInterval(() => {
+        currentTick++;
+        updateTps();
         updateSidebars();
-    }, 20); // Update every second
+    }, 1);
 }
 
 export function cleanup() {
@@ -40,39 +55,77 @@ export function cleanup() {
         mc.system.clearRun(sidebarInterval);
         sidebarInterval = undefined;
     }
+    clearSidebarObjective();
 }
 
 /**
- * Forces a refresh of the sidebar.
- * Currently just a wrapper for updateSidebars, but kept for API compatibility.
+ * Forces an immediate refresh of the sidebar.
  */
 export function forceUpdate() {
-    updateSidebars();
+    updateSidebars(true);
 }
 
-function updateSidebars() {
+function updateTps() {
+    if (currentTick % 20 !== 0) {return;}
+    const now = Date.now();
+    const elapsedSeconds = (now - lastTpsTime) / 1000;
+    const ticksPassed = currentTick - lastTpsTick;
+
+    if (elapsedSeconds > 0) {
+        const calculatedTps = Math.min(20, ticksPassed / elapsedSeconds);
+        cachedTps = calculatedTps.toFixed(1);
+    }
+
+    lastTpsTime = now;
+    lastTpsTick = currentTick;
+}
+
+function clearSidebarObjective() {
+    try {
+        const scoreboard = mc.world.scoreboard;
+        scoreboard.clearObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar);
+        const obj = scoreboard.getObjective(SIDEBAR_OBJECTIVE_ID);
+        if (obj) {
+            scoreboard.removeObjective(obj);
+        }
+    } catch (error) {
+        debugLog(`Error clearing sidebar objective: ${String(error)}`);
+    }
+}
+
+function updateSidebars(force = false) {
     const config = getSidebarConfig();
 
     if ((config.enabled as boolean | undefined) !== true) {
+        clearSidebarObjective();
         return;
     }
 
-    // Use cached players to avoid engine overhead
     const players = getAllPlayersFromCache();
 
-    // Only process if at least one sub-feature is enabled
-    // Support migrating from old config format
     const c = config as Record<string, unknown>;
-    const globalInfo = c.globalInfo as { enabled?: boolean } | undefined;
-    const hud = c.hud as { enabled?: boolean } | undefined;
+    const globalInfo = (c.globalInfo as { enabled?: boolean; updateInterval?: number; title?: string; maxPlayers?: number; sidebarLines?: string[] }) || {};
+    const hud = (c.hud as { enabled?: boolean; updateInterval?: number; actionBarLines?: string[] }) || {};
 
-    const globalInfoEnabled = (globalInfo ? globalInfo.enabled : c.enabled) === true;
-    const hudEnabled = (hud ? hud.enabled : c.actionBarEnabled) === true;
+    const globalInfoEnabled = globalInfo.enabled ?? c.enabled ?? false;
+    const hudEnabled = hud.enabled ?? c.actionBarEnabled ?? false;
 
-    if (!globalInfoEnabled && !hudEnabled) {
-        return;
+    const globalInterval = Math.max(1, globalInfo.updateInterval ?? 20);
+    const hudInterval = Math.max(1, hud.updateInterval ?? 20);
+
+    const shouldUpdateGlobal = force || (globalInfoEnabled && currentTick % globalInterval === 0);
+    const shouldUpdateHud = force || (hudEnabled && currentTick % hudInterval === 0);
+
+    if (!globalInfoEnabled) {
+        clearSidebarObjective();
     }
 
+    // Process Scoreboard Sidebar (Global Info)
+    if (shouldUpdateGlobal && globalInfoEnabled) {
+        updateGlobalSidebarObjective(globalInfo, config);
+    }
+
+    // Process Action Bar HUD per player
     for (const player of players) {
         try {
             if (!player.isValid) {
@@ -84,51 +137,76 @@ function updateSidebars() {
                 continue;
             }
 
-            // Check if player has disabled sidebar
-            if (!getSidebarVisible(player.id)) {
-                if (globalInfoEnabled) {
-                    player.onScreenDisplay.setTitle(''); // Clear sidebar
-                }
-                if (hudEnabled) {
-                    player.onScreenDisplay.setActionBar(''); // Clear actionbar
-                }
+            const visible = getSidebarVisible(player.id);
+            if (!visible) {
                 continue;
             }
 
-            // Note: Currently setActionBar is used for globalInfo in the original code.
-            // If they are meant to be separate, one could use setTitle for globalInfo (scoreboard)
-            // and setActionBar for HUD. We will keep the original logic but conditionally format
-            // based on the sub-feature toggles.
-
-            if (globalInfoEnabled) {
-                const title = 'globalInfo' in config ? config.globalInfo.title : ((config as { title?: string }).title ?? '§l§6{server_name}');
-                const lines: string[] = [];
-
-                const sourceLines = 'globalInfo' in config ? config.globalInfo.sidebarLines : ((config as { sidebarLines?: string[] }).sidebarLines ?? []);
-                for (const line of sourceLines) {
-                    // Use the shared placeholder resolver
-                    const processedLine = resolveGlobalPlaceholders(line, player);
-                    lines.push(processedLine);
+            if (shouldUpdateHud && hudEnabled) {
+                // Check if action bar override is active
+                const overrideExpiry = actionBarOverrides.get(player.id);
+                if (overrideExpiry !== undefined && Date.now() < overrideExpiry) {
+                    continue; // Skip updating action bar while override message is visible
+                } else if (overrideExpiry !== undefined) {
+                    actionBarOverrides.delete(player.id);
                 }
 
-                const body = lines.join('\n');
-
-                // Usually sidebar is shown with setTitle/setSubtitle, or setActionBar.
-                // Keeping original behavior:
-                player.onScreenDisplay.setActionBar(title + '\n' + body);
-            } else if (hudEnabled) {
-                // If only HUD is enabled, display HUD lines on ActionBar
-                const lines: string[] = [];
-                const sourceLines = 'hud' in config ? config.hud.actionBarLines : ((config as { actionBarLines?: string[] }).actionBarLines ?? []);
-                for (const line of sourceLines) {
-                    const processedLine = resolveGlobalPlaceholders(line, player);
-                    lines.push(processedLine);
-                }
-                player.onScreenDisplay.setActionBar(lines.join(' '));
+                const sourceLines = hud.actionBarLines ?? ((config as { actionBarLines?: string[] }).actionBarLines ?? []);
+                const processedLines = sourceLines.map((line) => resolveGlobalPlaceholders(line, player));
+                player.onScreenDisplay.setActionBar(processedLines.join(' '));
             }
         } catch (error) {
             debugLog(`Error updating sidebar for ${player.name}: ${String(error)}`);
         }
+    }
+}
+
+function updateGlobalSidebarObjective(globalInfo: { title?: string; maxPlayers?: number; sidebarLines?: string[] }, config: unknown) {
+    try {
+        const scoreboard = mc.world.scoreboard;
+        let objective = scoreboard.getObjective(SIDEBAR_OBJECTIVE_ID);
+
+        const rawTitle = globalInfo.title ?? (config as { title?: string }).title ?? '§l§6{server_name}';
+        const title = resolveGlobalPlaceholders(rawTitle);
+
+        if (!objective) {
+            objective = scoreboard.addObjective(SIDEBAR_OBJECTIVE_ID, title);
+        } else if (objective.displayName !== title) {
+            // Re-create objective to update display name safely
+            scoreboard.clearObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar);
+            scoreboard.removeObjective(objective);
+            objective = scoreboard.addObjective(SIDEBAR_OBJECTIVE_ID, title);
+        }
+
+        // Clean existing participants to replace with updated lines
+        const existingParticipants = objective.getParticipants();
+        for (const participant of existingParticipants) {
+            objective.removeParticipant(participant);
+        }
+
+        const sourceLines = globalInfo.sidebarLines ?? (config as { sidebarLines?: string[] }).sidebarLines ?? [];
+        const lineCount = sourceLines.length;
+
+        for (let i = 0; i < lineCount; i++) {
+            const rawLine = sourceLines[i] ?? '';
+            let lineText = resolveGlobalPlaceholders(rawLine);
+
+            // Bedrock scoreboards ignore duplicate line strings.
+            // Add unique trailing zero-width whitespace/section codes if line repeats.
+            lineText = lineText + '§r'.repeat(i);
+
+            // Scores are set in descending order (e.g., lineCount down to 1) to render top-to-bottom
+            const score = lineCount - i;
+            objective.setScore(lineText, score);
+        }
+
+        // Ensure display slot is set to Sidebar
+        scoreboard.setObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar, {
+            objective: objective,
+            sortOrder: mc.ObjectiveSortOrder.Descending
+        });
+    } catch (error) {
+        debugLog(`Error updating global sidebar objective: ${String(error)}`);
     }
 }
 
@@ -139,19 +217,31 @@ function updateSidebars() {
  * @returns The text with placeholders replaced.
  */
 export function resolveGlobalPlaceholders(text: string, player?: mc.Player): string {
-    // Optimization: Use cached player count
-    let processed = text.replace('{online}', getPlayerCount().toString()).replace('{max_online}', '20');
+    const mainConfig = getConfig();
+    const sidebarConfig = getSidebarConfig();
+    const serverName = (mainConfig as { serverName?: string }).serverName || 'Minecraft Server';
+    const maxPlayers = (sidebarConfig.globalInfo?.maxPlayers ?? 20).toString();
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString('en-US', { hour12: false });
+    const formattedDate = now.toISOString().split('T')[0] ?? '';
+
+    let processed = text
+        .replace('{server_name}', serverName)
+        .replace('{online}', getPlayerCount().toString())
+        .replace('{max_online}', maxPlayers)
+        .replace('{tps}', cachedTps)
+        .replace('{time}', formattedTime)
+        .replace('{date}', formattedDate);
 
     // Leaderboard Placeholders
-    // Check if the text actually contains leaderboard placeholders before fetching
     if (processed.includes('{top_money_')) {
         const leaderboardService = serviceLocator.getService<EconomyLeaderboardService>('economy.leaderboard');
         const leaderboard = leaderboardService ? leaderboardService.getLeaderboard() : [];
         processed = processed.replaceAll(/\{top_money_(\d+)\}/g, (_match, indexStr) => {
-            const i = Number.parseInt(indexStr) - 1;
+            const i = Number.parseInt(indexStr, 10) - 1;
             if (isNumber(i) && i >= 0 && i < leaderboard.length) {
                 const entry = leaderboard[i];
-                return isDefined(entry) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
+                return isDefined(entry) && isDefined(entry.name) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
             }
             return '---';
         });
@@ -160,14 +250,13 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
     if (player) {
         const pData = getPlayer(player.id);
         if (isDefined(pData)) {
-            const mainConfig = getConfig();
             const rank = getPlayerRank(player, mainConfig);
             const teamManagerService = serviceLocator.getService<TeamManagerService>('team.manager');
             const team = teamManagerService ? teamManagerService.getTeamByPlayer(player.id) : undefined;
             const balance = pData.balance;
             const kills = pData.kills || 0;
             const deaths = pData.deaths || 0;
-            const kdr = deaths === 0 ? kills : (kills / deaths).toFixed(2);
+            const kdr = deaths === 0 ? kills.toFixed(2) : (kills / deaths).toFixed(2);
             const streak = pData.killStreak || 0;
             const playtime = formatDuration(getPlayTime(player.id));
 
@@ -181,7 +270,7 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
                 .replace('{streak}', streak.toString())
                 .replace('{playtime}', playtime);
 
-            processed = team ? processed.replace('{team}', team.name) : processed.replace('{team}', 'None');
+            processed = team ? processed.replace('{team}', team.name ?? 'None') : processed.replace('{team}', 'None');
         }
     }
 
@@ -192,6 +281,8 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
  * Sets a temporary override message on the action bar.
  * Useful for countdowns or critical alerts.
  */
-export function setActionBarOverride(player: mc.Player, message: string, _durationMs: number = 2000) {
+export function setActionBarOverride(player: mc.Player, message: string, durationMs: number = 2000) {
+    if (!player || !player.isValid) {return;}
+    actionBarOverrides.set(player.id, Date.now() + durationMs);
     player.onScreenDisplay.setActionBar(message);
 }

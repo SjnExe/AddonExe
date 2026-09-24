@@ -922,50 +922,43 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'enabled',
                 label: 'Enable Sidebar Module',
                 type: 'toggle',
-                description: 'Enables the master toggle for Sidebar module.'
+                description: 'Master switch for Sidebar and HUD module.'
             },
             {
                 key: 'globalInfo.enabled',
                 label: 'Enable Global Sidebar',
                 type: 'toggle',
-                description: 'Enables the Vanilla Sidebar (Scoreboard).'
+                description: 'Enables the Scoreboard Sidebar.'
             },
             {
                 key: 'globalInfo.title',
                 label: 'Sidebar Title',
                 type: 'textField',
-                description: 'The title displayed at the top of the sidebar. Check placeholder list.'
+                description: 'Title displayed at top of sidebar (supports placeholders like {server_name}).'
             },
             {
                 key: 'globalInfo.updateInterval',
-                label: 'Update Interval',
+                label: 'Sidebar Update Interval (ticks)',
                 type: 'textField',
-                description: 'How often the sidebar updates (in ticks, 20 = 1s).'
+                description: 'How often sidebar updates in ticks (20 = 1s).'
             },
             {
                 key: 'globalInfo.maxPlayers',
                 label: 'Max Players (Visual)',
                 type: 'textField',
-                description: 'Value for {max_players} placeholder.'
+                description: 'Value for {max_online} placeholder.'
             },
             {
                 key: 'hud.enabled',
-                label: 'Enable Personal HUD',
+                label: 'Enable Action Bar HUD',
                 type: 'toggle',
-                description: 'Enables the Personal HUD (Right-aligned, uses Title).'
-            },
-            {
-                key: 'globalInfo.opacity',
-                label: 'HUD Opacity',
-                type: 'dropdown',
-                options: ['high', 'medium', 'low', 'none'],
-                description: 'Transparency of the HUD background.'
+                description: 'Enables player HUD above action bar.'
             },
             {
                 key: 'hud.updateInterval',
-                label: 'HUD Update Rate',
+                label: 'HUD Update Interval (ticks)',
                 type: 'textField',
-                description: 'How fast the HUD updates (in ticks).'
+                description: 'How fast the HUD updates in ticks (20 = 1s).'
             }
         ]
     },

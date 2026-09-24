@@ -6,8 +6,8 @@ import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'sidebar',
-    description: 'Toggles the sidebar/HUD.',
-    aliases: ['sb'],
+    description: 'Toggles your personal sidebar and action bar HUD.',
+    aliases: ['sb', 'hud'],
     permissionNode: 'cmd.sidebar.member', // Member
     category: 'General',
     execute: (executor) => {
@@ -27,8 +27,8 @@ const command: CustomCommand = {
         if (newState) {
             player.sendMessage('§aPersonal HUD enabled.');
         } else {
-            player.sendMessage('§cPersonal HUD disabled. (Note: The server sidebar is global)');
-            player.onScreenDisplay.setTitle(''); // Clear immediately
+            player.sendMessage('§cPersonal HUD disabled.');
+            player.onScreenDisplay.setActionBar(''); // Clear action bar immediately
         }
     }
 };
