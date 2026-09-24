@@ -66,7 +66,9 @@ export function forceUpdate() {
 }
 
 function updateTps() {
-    if (currentTick % 20 !== 0) {return;}
+    if (currentTick % 20 !== 0) {
+        return;
+    }
     const now = Date.now();
     const elapsedSeconds = (now - lastTpsTime) / 1000;
     const ticksPassed = currentTick - lastTpsTick;
@@ -151,7 +153,7 @@ function updateSidebars(force = false) {
                     actionBarOverrides.delete(player.id);
                 }
 
-                const sourceLines = hud.actionBarLines ?? ((config as { actionBarLines?: string[] }).actionBarLines ?? []);
+                const sourceLines = hud.actionBarLines ?? (config as { actionBarLines?: string[] }).actionBarLines ?? [];
                 const processedLines = sourceLines.map((line) => resolveGlobalPlaceholders(line, player));
                 player.onScreenDisplay.setActionBar(processedLines.join(' '));
             }
@@ -282,7 +284,9 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
  * Useful for countdowns or critical alerts.
  */
 export function setActionBarOverride(player: mc.Player, message: string, durationMs: number = 2000) {
-    if (!player || !player.isValid) {return;}
+    if (!player || !player.isValid) {
+        return;
+    }
     actionBarOverrides.set(player.id, Date.now() + durationMs);
     player.onScreenDisplay.setActionBar(message);
 }
