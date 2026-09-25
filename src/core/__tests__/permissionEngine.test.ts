@@ -28,8 +28,7 @@ mock.module('../configurations.js', () => ({
 
 mock.module('../../config.js', () => ({
     config: {
-        playerDefaults: { rankId: 'defaultRank' },
-        ownerPlayerNames: ['owner_test']
+        playerDefaults: { rankId: 'defaultRank' }
     }
 }));
 
@@ -113,7 +112,6 @@ function resetToBaseDefaults() {
 
     mockGetAllRanks.mockReturnValue([]);
     config.playerDefaults.rankId = 'member';
-    config.ownerPlayerNames = [];
 }
 
 // Initialize setup
@@ -326,7 +324,6 @@ describe('getPlayerRanks', () => {
         mockGetRankById.mockClear();
 
         config.playerDefaults.rankId = 'defaultRank';
-        config.ownerPlayerNames = ['owner_test'];
     });
 
     it('should return assigned ranks from player data', () => {
@@ -364,10 +361,10 @@ describe('getPlayerRanks', () => {
         expect(ranks[0].id).toBe('member');
     });
 
-    it('should add condition-based ranks (isOwner)', () => {
-        mockPlayer.name = 'owner_test';
+    it('should add condition-based ranks (hasTag owner)', () => {
+        mockPlayer.hasTag = mock((tag: string) => tag === 'owner');
 
-        const ownerRank = { id: 'owner', name: 'Owner', priority: 0, conditions: [{ type: 'isOwner' }] };
+        const ownerRank = { id: 'owner', name: 'Owner', priority: 0, conditions: [{ type: 'hasTag', value: 'owner' }] };
         const memberRank = { id: 'member', name: 'Member', priority: 20, conditions: [] };
 
         mockGetPlayer.mockReturnValue({ ranks: ['member'] });

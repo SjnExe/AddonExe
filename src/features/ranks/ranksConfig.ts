@@ -51,7 +51,7 @@ export const rankDefinitions: RankDefinition[] = [
             messageColor: '§f'
         },
         nametagPrefix: '§4Owner',
-        conditions: [{ type: 'isOwner' }],
+        conditions: [{ type: 'hasTag', value: 'owner' }],
         groups: ['default', 'mod', 'admin', 'owner'],
         allow: ['*'], // Engine will handle this specifically if needed, but 'owner' bypassing is hardcoded in engine
         deny: []
