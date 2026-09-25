@@ -125,6 +125,18 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Announcement System',
                 type: 'toggle',
                 description: 'Enables or disables automated periodic broadcast messages.'
+            },
+            {
+                key: 'playerInfo.enableWelcomer',
+                label: 'Enable Welcomer',
+                type: 'toggle',
+                description: 'Sends welcome message to new players.'
+            },
+            {
+                key: 'playerInfo.customJoinLeave.enabled',
+                label: 'Enable Custom Join/Leave',
+                type: 'toggle',
+                description: 'Enables custom join and leave messages.'
             }
         ]
     },

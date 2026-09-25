@@ -347,8 +347,8 @@ export function initializeDefaultMenuItems(): void {
     // --- STAFF MODERATION SUB-ITEMS ---
     registerMenuItem({
         id: 'mod_reports',
-        title: 'Reports List',
-        description: 'View player reports',
+        title: 'Pending Reports',
+        description: 'Review and resolve player reports',
         icon: 'textures/ui/WarningGlyph',
         hub: 'staff_moderation',
         permissionNode: 'ui.panel.mod',
@@ -358,8 +358,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'mod_actions',
-        title: 'Moderation Actions',
-        description: 'Ban, Mute, Freeze, Kick & Warn',
+        title: 'Punishment Center',
+        description: 'Ban, Mute, Freeze, Kick & Warn players',
         icon: 'textures/ui/hammer_l',
         hub: 'staff_moderation',
         permissionNode: 'ui.panel.mod',
@@ -369,8 +369,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'mod_xray',
-        title: 'X-Ray Ores Config',
-        description: 'Configure monitored ores for X-Ray detection',
+        title: 'X-Ray Ores Monitored',
+        description: 'Manage ores and alert levels for X-Ray detection',
         icon: 'textures/blocks/diamond_ore',
         hub: 'staff_moderation',
         permissionNode: 'ui.panel.admin',
@@ -384,8 +384,8 @@ export function initializeDefaultMenuItems(): void {
     // --- STAFF PLAYER SUB-ITEMS ---
     registerMenuItem({
         id: 'staff_player_mgmt',
-        title: 'Player Inspector',
-        description: 'View and manage active players',
+        title: 'Active Player Inspector',
+        description: 'View player stats, inventories, teleport & sanctions',
         icon: 'textures/ui/icon_multiplayer',
         hub: 'staff_player',
         permissionNode: 'ui.panel.mod',
@@ -398,8 +398,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_rank_mgmt',
-        title: 'Rank System Manager',
-        description: 'Create, edit & delete server ranks',
+        title: 'Rank System & Permissions',
+        description: 'Create, edit & grant server ranks and permissions',
         icon: 'textures/ui/permissions_member_star',
         hub: 'staff_player',
         permissionNode: 'ui.panel.admin',
@@ -413,8 +413,8 @@ export function initializeDefaultMenuItems(): void {
     // --- STAFF WORLD SUB-ITEMS ---
     registerMenuItem({
         id: 'staff_floating_text',
-        title: 'Floating Text Manager',
-        description: 'Manage floating text holograms',
+        title: 'Floating Text Holograms',
+        description: 'Create, edit & manage holographic floating text',
         icon: 'textures/ui/text_color_paintbrush',
         hub: 'staff_world',
         permissionNode: 'ui.panel.admin',
@@ -427,8 +427,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_world_prot',
-        title: 'World Protection Zones',
-        description: 'Protect spawn & safe zones',
+        title: 'Spawn & Protection Zones',
+        description: 'Manage protected areas, PvP flags & block protection',
         icon: 'textures/ui/icon_recipe_nature',
         hub: 'staff_world',
         permissionNode: 'ui.panel.admin',
@@ -441,13 +441,27 @@ export function initializeDefaultMenuItems(): void {
 
     // --- STAFF CONFIG SUB-ITEMS ---
     registerMenuItem({
-        id: 'staff_configs',
-        title: 'System Configurations',
-        description: 'Edit module configurations',
+        id: 'staff_master_toggles',
+        title: 'Master Feature Toggles',
         icon: 'textures/ui/settings_glyph_color_2x',
+        description: 'Master switches for Economy, Shop, Kits, TPA, Sidebar, etc.',
         hub: 'staff_config',
         permissionNode: 'ui.panel.admin',
         order: 10,
+        action: async (p) => {
+            const { showConfigSystemPanel } = await import('@core/ui/panels/configPanel.js');
+            await showConfigSystemPanel(p, 'featureToggles');
+        }
+    });
+
+    registerMenuItem({
+        id: 'staff_configs',
+        title: 'Detailed System Configs',
+        description: 'Fine-tune values for all server modules',
+        icon: 'textures/ui/icon_setting',
+        hub: 'staff_config',
+        permissionNode: 'ui.panel.admin',
+        order: 20,
         action: async (p) => {
             const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigCategoryPanel(p);

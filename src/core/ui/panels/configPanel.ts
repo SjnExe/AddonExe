@@ -25,15 +25,20 @@ interface SettingSchema {
 
 export async function showConfigCategoryPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
     const categories = getVisibleCategories(player);
-    const form = new ActionFormBuilder().title('Server Settings');
+    const form = new ActionFormBuilder().title('System Configurations');
+    form.body('Select a configuration category to fine-tune server settings:');
     const page = (context.page as number) || 1;
+
+    form.button('§l§6Master Feature Toggles', 'textures/ui/settings_glyph_color_2x', () => {
+        void showConfigSystemPanel(player, 'featureToggles');
+    });
 
     const totalPages = Math.ceil(categories.length / itemsPerPage);
     if (page >= totalPages && hasPermission(player, 'ui.panel.owner')) {
-        form.button('§l§4Danger Zone', 'textures/ui/WarningGlyph', () => {
+        form.button('§l§4Danger Zone & Backup', 'textures/ui/WarningGlyph', () => {
             void showConfirmationDialog(player, {
                 title: 'Danger Zone',
-                body: 'Access server diagnostic parameters?',
+                body: 'Access server reset and config backup/restore parameters?',
                 onConfirm: async () => {
                     await showConfigResetPanel(player);
                 }
