@@ -70,25 +70,73 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'economy.enabled',
                 label: 'Enable Economy',
                 type: 'toggle',
-                description: 'Master switch for all economy-related features (Shop, Auction, Bounties, etc).'
+                description: 'Master switch for all economy features (Shop, Auction, Bounties, etc).'
             },
             {
                 key: 'shop.enabled',
-                label: 'Enable Shop',
+                label: 'Enable Shop System',
                 type: 'toggle',
                 description: 'Enables or disables the Shop system.'
             },
             {
                 key: 'kits.enabled',
-                label: 'Enable Kits',
+                label: 'Enable Kit System',
                 type: 'toggle',
                 description: 'Enables or disables the entire Kit System.'
             },
             {
                 key: 'voting.enabled',
-                label: 'Enable Voting',
+                label: 'Enable Voting System',
                 type: 'toggle',
                 description: 'Enables or disables the voting system.'
+            },
+            {
+                key: 'tpa.enabled',
+                label: 'Enable TPA System',
+                type: 'toggle',
+                description: 'Enables or disables Teleport Requests (/tpa).'
+            },
+            {
+                key: 'homes.enabled',
+                label: 'Enable Home System',
+                type: 'toggle',
+                description: 'Enables or disables Player Homes (/home, /sethome).'
+            },
+            {
+                key: 'warps.enabled',
+                label: 'Enable Warp System',
+                type: 'toggle',
+                description: 'Enables or disables Server Warps (/warp).'
+            },
+            {
+                key: 'rtp.enabled',
+                label: 'Enable Random Teleport',
+                type: 'toggle',
+                description: 'Enables or disables Random Teleportation (/rtp).'
+            },
+            {
+                key: 'back.enabled',
+                label: 'Enable Back System',
+                type: 'toggle',
+                description: 'Enables or disables /back command.'
+            },
+            {
+                key: 'announcements.enabled',
+                label: 'Enable Announcement System',
+                type: 'toggle',
+                description: 'Enables or disables automated periodic broadcast messages.'
+            },
+            {
+                key: 'playerInfo.enableWelcomer',
+                label: 'Enable Welcomer',
+                type: 'toggle',
+                description: 'Sends welcome message to new players.'
+            },
+            {
+                key: 'playerInfo.customJoinLeave.enabled',
+                label: 'Enable Custom Join/Leave',
+                type: 'toggle',
+                description: 'Enables custom join and leave messages.'
             }
         ]
     },
@@ -922,50 +970,55 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'enabled',
                 label: 'Enable Sidebar Module',
                 type: 'toggle',
-                description: 'Enables the master toggle for Sidebar module.'
+                description: 'Master switch for Sidebar and HUD module.'
             },
             {
                 key: 'globalInfo.enabled',
                 label: 'Enable Global Sidebar',
                 type: 'toggle',
-                description: 'Enables the Vanilla Sidebar (Scoreboard).'
+                description: 'Enables the Scoreboard Sidebar.'
             },
             {
                 key: 'globalInfo.title',
                 label: 'Sidebar Title',
                 type: 'textField',
-                description: 'The title displayed at the top of the sidebar. Check placeholder list.'
+                description: 'Title displayed at top of sidebar (supports placeholders like {server_name}).'
+            },
+            {
+                key: 'globalInfo.sidebarLines',
+                label: 'Sidebar Lines (Comma-Separated)',
+                type: 'textField',
+                description: 'Lines displayed on Scoreboard Sidebar. Separate lines with commas.'
             },
             {
                 key: 'globalInfo.updateInterval',
-                label: 'Update Interval',
+                label: 'Sidebar Update Interval (ticks)',
                 type: 'textField',
-                description: 'How often the sidebar updates (in ticks, 20 = 1s).'
+                description: 'How often sidebar updates in ticks (20 = 1s).'
             },
             {
                 key: 'globalInfo.maxPlayers',
                 label: 'Max Players (Visual)',
                 type: 'textField',
-                description: 'Value for {max_players} placeholder.'
+                description: 'Value for {max_online} placeholder.'
             },
             {
                 key: 'hud.enabled',
-                label: 'Enable Personal HUD',
+                label: 'Enable Action Bar HUD',
                 type: 'toggle',
-                description: 'Enables the Personal HUD (Right-aligned, uses Title).'
+                description: 'Enables player HUD above action bar.'
             },
             {
-                key: 'globalInfo.opacity',
-                label: 'HUD Opacity',
-                type: 'dropdown',
-                options: ['high', 'medium', 'low', 'none'],
-                description: 'Transparency of the HUD background.'
+                key: 'hud.actionBarLines',
+                label: 'Action Bar HUD Lines (Comma-Separated)',
+                type: 'textField',
+                description: 'Elements shown on Action Bar HUD. Separate elements with commas.'
             },
             {
                 key: 'hud.updateInterval',
-                label: 'HUD Update Rate',
+                label: 'HUD Update Interval (ticks)',
                 type: 'textField',
-                description: 'How fast the HUD updates (in ticks).'
+                description: 'How fast the HUD updates in ticks (20 = 1s).'
             }
         ]
     },
