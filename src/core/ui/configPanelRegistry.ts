@@ -937,6 +937,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Title displayed at top of sidebar (supports placeholders like {server_name}).'
             },
             {
+                key: 'globalInfo.sidebarLines',
+                label: 'Sidebar Lines (Comma-Separated)',
+                type: 'textField',
+                description: 'Lines displayed on Scoreboard Sidebar. Separate lines with commas.'
+            },
+            {
                 key: 'globalInfo.updateInterval',
                 label: 'Sidebar Update Interval (ticks)',
                 type: 'textField',
@@ -953,6 +959,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Action Bar HUD',
                 type: 'toggle',
                 description: 'Enables player HUD above action bar.'
+            },
+            {
+                key: 'hud.actionBarLines',
+                label: 'Action Bar HUD Lines (Comma-Separated)',
+                type: 'textField',
+                description: 'Elements shown on Action Bar HUD. Separate elements with commas.'
             },
             {
                 key: 'hud.updateInterval',

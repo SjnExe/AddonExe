@@ -7,7 +7,7 @@ import { CustomCommand } from '@commands/commandManager.js';
 const command: CustomCommand = {
     name: 'sidebar',
     description: 'Toggles your personal sidebar and action bar HUD.',
-    aliases: ['sb', 'hud'],
+    aliases: ['sb'],
     permissionNode: 'cmd.sidebar.member', // Member
     category: 'General',
     execute: (executor) => {

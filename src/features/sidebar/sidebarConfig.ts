@@ -1,5 +1,5 @@
 export const config = {
-    enabled: false,
+    enabled: true,
     globalInfo: {
         enabled: true,
         opacity: 'medium',

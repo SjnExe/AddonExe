@@ -129,7 +129,12 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
         }
 
         validSettings.push(setting);
-        const displayVal = typeof currentValue === 'string' || typeof currentValue === 'number' || typeof currentValue === 'boolean' ? String(currentValue) : JSON.stringify(currentValue);
+        let displayVal: string;
+        if (Array.isArray(currentValue)) {
+            displayVal = currentValue.join(', ');
+        } else {
+            displayVal = typeof currentValue === 'string' || typeof currentValue === 'number' || typeof currentValue === 'boolean' ? String(currentValue) : JSON.stringify(currentValue);
+        }
 
         if (setting.type === 'toggle') {
             modal.toggle(setting.key, setting.label, Boolean(currentValue));
@@ -286,7 +291,16 @@ function _processFormValues(validSettings: SettingSchema[], formValues: Record<s
                 val = setting.options[val] ?? val;
             }
         } else if (setting.type === 'textField') {
-            if (typeof currentValue === 'number') {
+            if (Array.isArray(currentValue)) {
+                if (typeof val === 'string') {
+                    val = val
+                        .split(',')
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 0);
+                } else {
+                    val = currentValue;
+                }
+            } else if (typeof currentValue === 'number') {
                 const parsed = Number.parseFloat(val as string);
                 if (!Number.isNaN(parsed)) {
                     val = parsed;
