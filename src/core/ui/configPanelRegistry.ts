@@ -70,25 +70,61 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'economy.enabled',
                 label: 'Enable Economy',
                 type: 'toggle',
-                description: 'Master switch for all economy-related features (Shop, Auction, Bounties, etc).'
+                description: 'Master switch for all economy features (Shop, Auction, Bounties, etc).'
             },
             {
                 key: 'shop.enabled',
-                label: 'Enable Shop',
+                label: 'Enable Shop System',
                 type: 'toggle',
                 description: 'Enables or disables the Shop system.'
             },
             {
                 key: 'kits.enabled',
-                label: 'Enable Kits',
+                label: 'Enable Kit System',
                 type: 'toggle',
                 description: 'Enables or disables the entire Kit System.'
             },
             {
                 key: 'voting.enabled',
-                label: 'Enable Voting',
+                label: 'Enable Voting System',
                 type: 'toggle',
                 description: 'Enables or disables the voting system.'
+            },
+            {
+                key: 'tpa.enabled',
+                label: 'Enable TPA System',
+                type: 'toggle',
+                description: 'Enables or disables Teleport Requests (/tpa).'
+            },
+            {
+                key: 'homes.enabled',
+                label: 'Enable Home System',
+                type: 'toggle',
+                description: 'Enables or disables Player Homes (/home, /sethome).'
+            },
+            {
+                key: 'warps.enabled',
+                label: 'Enable Warp System',
+                type: 'toggle',
+                description: 'Enables or disables Server Warps (/warp).'
+            },
+            {
+                key: 'rtp.enabled',
+                label: 'Enable Random Teleport',
+                type: 'toggle',
+                description: 'Enables or disables Random Teleportation (/rtp).'
+            },
+            {
+                key: 'back.enabled',
+                label: 'Enable Back System',
+                type: 'toggle',
+                description: 'Enables or disables /back command.'
+            },
+            {
+                key: 'announcements.enabled',
+                label: 'Enable Announcement System',
+                type: 'toggle',
+                description: 'Enables or disables automated periodic broadcast messages.'
             }
         ]
     },

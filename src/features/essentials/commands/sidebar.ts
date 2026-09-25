@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { isFeatureActive } from '@core/featureManager.js';
 import { getSidebarVisible, setSidebarVisible } from '@core/playerDataManager.js';
 
 import { CustomCommand } from '@commands/commandManager.js';
@@ -19,6 +20,12 @@ const command: CustomCommand = {
         }
 
         const player = executor;
+
+        if (!isFeatureActive('util.sidebar')) {
+            player.sendMessage('§cThe Sidebar and HUD system is currently disabled globally by the server admin.');
+            return;
+        }
+
         const current = getSidebarVisible(player.id);
         const newState = !current;
 

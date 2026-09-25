@@ -181,9 +181,9 @@ function updateGlobalSidebarObjective(globalInfo: { title?: string; maxPlayers?:
         }
 
         // Clean existing participants to replace with updated lines
-        const existingParticipants = objective.getParticipants();
-        for (const participant of existingParticipants) {
-            objective.removeParticipant(participant);
+        const existingScores = objective.getScores();
+        for (const scoreInfo of existingScores) {
+            objective.removeParticipant(scoreInfo.participant);
         }
 
         const sourceLines = globalInfo.sidebarLines ?? (config as { sidebarLines?: string[] }).sidebarLines ?? [];
