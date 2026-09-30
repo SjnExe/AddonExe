@@ -242,9 +242,7 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
         // Teleport down or kick
         // Kick is safest to force reset
         try {
-            // Check if there is space below, else just run command to kick/kill
-            // We'll teleport them down 5 blocks as a soft fix, if that fails, maybe more drastic
-            // User requested: "gets kicked"
+            // Attempt to kick the player for being above the nether roof.
             // We execute as the dimension (server context) to ensure it works even if the player is non-op.
             player.dimension.runCommand(`kick "${player.name}" Nether Roof Detected`);
         } catch {

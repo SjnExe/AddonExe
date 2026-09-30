@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
@@ -85,6 +86,84 @@ describe('MovementCheck', () => {
         intervalCallback();
 
         // expect(mockFlag).toHaveBeenCalledWith(player, "movementCheck", expect.stringContaining("Speed"));
+    });
+
+    it('should attempt kick when player is on nether roof', () => {
+        mockGetConfig.mockReturnValue({
+            enabled: true,
+            movementCheck: { enabled: false },
+            worldBorder: { enabled: false },
+            antiNetherRoof: { enabled: true, maxHeight: 127 }
+        });
+
+        startMovementCheckLoop();
+
+        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+        const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+        const player = new PlayerMock('p3', 'RoofWalker');
+        player.getGameMode = () => mc.GameMode.Survival;
+
+        const netherDimension = new DimensionMock(MinecraftDimensionTypes.Nether as string);
+        const runCommandMock = mock();
+        netherDimension.runCommand = runCommandMock;
+
+        Object.defineProperty(player, 'dimension', {
+            value: netherDimension,
+            writable: true
+        });
+
+        Object.defineProperty(player, 'location', {
+            value: { x: 0, y: 130, z: 0 },
+            writable: true
+        });
+
+        addPlayerToCache(player);
+
+        intervalCallback();
+
+        expect(runCommandMock).toHaveBeenCalledWith('kick "RoofWalker" Nether Roof Detected');
+    });
+
+    it('should fallback to teleporting player down if kick fails on nether roof', () => {
+        mockGetConfig.mockReturnValue({
+            enabled: true,
+            movementCheck: { enabled: false },
+            worldBorder: { enabled: false },
+            antiNetherRoof: { enabled: true, maxHeight: 127 }
+        });
+
+        startMovementCheckLoop();
+
+        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+        const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+        const player = new PlayerMock('p4', 'RoofWalker2');
+        player.getGameMode = () => mc.GameMode.Survival;
+
+        const netherDimension = new DimensionMock(MinecraftDimensionTypes.Nether as string);
+        netherDimension.runCommand = mock(() => {
+            throw new Error('Kick failed');
+        });
+
+        const teleportMock = mock();
+        player.teleport = teleportMock;
+
+        Object.defineProperty(player, 'dimension', {
+            value: netherDimension,
+            writable: true
+        });
+
+        Object.defineProperty(player, 'location', {
+            value: { x: 10, y: 135, z: 20 },
+            writable: true
+        });
+
+        addPlayerToCache(player);
+
+        intervalCallback();
+
+        expect(teleportMock).toHaveBeenCalledWith({ x: 10, y: 120, z: 20 }, { dimension: netherDimension });
     });
 
     it('should not flag creative players', () => {
