@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { initializeConfigManager } from '@core/configManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { initializeConfigManager } from '@core/configManager.js';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import rtpCommand from '../commands/rtp.js';
 
 describe('RTP Command Sanitization Test', () => {
