@@ -74,9 +74,7 @@ describe('restartManager', () => {
 
         // "Malicious"Name\" -> escaped to "Malicious'Name"
         // Message "Server is restarting; please rejoin shortly." -> escaped to "Server is restarting; please rejoin shortly."
-        expect(mockPlayer1.runCommand).toHaveBeenCalledWith(
-            'kick "Malicious\'Name" "Server is restarting; please rejoin shortly."'
-        );
+        expect(mockPlayer1.runCommand).toHaveBeenCalledWith('kick "Malicious\'Name" "Server is restarting; please rejoin shortly."');
         expect(mc.system.clearRun).toHaveBeenCalledWith(123);
     });
 
