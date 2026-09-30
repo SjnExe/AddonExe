@@ -180,4 +180,38 @@ describe('MovementCheck', () => {
         intervalCallback();
         expect(mockFlag).not.toHaveBeenCalled();
     });
+
+    it('should escape player name when kicking for nether roof check', () => {
+        mockGetConfig.mockReturnValue({
+            enabled: true,
+            movementCheck: { enabled: false },
+            worldBorder: { enabled: false },
+            antiNetherRoof: { enabled: true, maxHeight: 127 }
+        });
+
+        startMovementCheckLoop();
+
+        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+        const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+        const maliciousName = 'Hacker" ; say pwned "';
+        const player = new PlayerMock('p3', maliciousName);
+        player.getGameMode = () => mc.GameMode.Survival;
+        player.location = { x: 0, y: 128, z: 0 };
+
+        const mockRunCommand = mock();
+        const dimensionMock = new DimensionMock(MinecraftDimensionTypes.Nether);
+        dimensionMock.runCommand = mockRunCommand;
+
+        Object.defineProperty(player, 'dimension', {
+            value: dimensionMock,
+            writable: true
+        });
+
+        addPlayerToCache(player);
+
+        intervalCallback();
+
+        expect(mockRunCommand).toHaveBeenCalledWith('kick "Hacker\' ; say pwned \'" Nether Roof Detected');
+    });
 });
