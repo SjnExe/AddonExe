@@ -213,6 +213,26 @@ describe('Team Manager', () => {
             expect(result.success).toBe(false);
             expect(result.message).toContain('already taken');
         });
+
+        it('should avoid ID collision if persistent dynamic property already exists', () => {
+            (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation((key: string) => {
+                if (key === 'exe:team.1') {
+                    return JSON.stringify({ id: 1, name: 'ExistingTeam' });
+                }
+                if (key === 'exe:allTeamIds') {
+                    return JSON.stringify([1]);
+                }
+                return undefined;
+            });
+
+            const player1 = { id: 'player1' } as mc.Player;
+            const result = createTeam(player1, 'NewTeam');
+
+            expect(result.success).toBe(true);
+            const team = getTeamByPlayer('player1');
+            expect(team).toBeDefined();
+            expect(team?.id).toBeGreaterThan(1);
+        });
     });
 
     describe('deleteTeam', () => {
