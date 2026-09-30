@@ -3,7 +3,7 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { debugLog, infoLog } from '@core/logger.js';
 import { getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from '@core/playerDataManager.js';
-import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
+import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/timerManager.js';
 import { initializeLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -23,10 +23,7 @@ export function restartAutoSave() {
     if (autoSaveIntervalSeconds > 0) {
         const intervalTicks = autoSaveIntervalSeconds * 20; // 20 ticks/sec
         autoSaveIntervalId = setTrackedInterval(() => {
-            const wasAnythingSaved = saveAllData({ log: false }); // Don't spam logs for auto-saves
-            if (wasAnythingSaved) {
-                debugLog('[Auto-Save] Server data has been saved.');
-            }
+            setTrackedJob(saveAllDataJob({ log: false }));
         }, intervalTicks);
         debugLog(`[DataManager] Auto-save started. Interval: ${autoSaveIntervalSeconds}s`);
     } else {
@@ -86,6 +83,55 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
 }
 
 /**
+ * Generator version of saveAllData for background processing across ticks via system.runJob.
+ * Saves dirty name-to-ID map and modified player data incrementally without causing tick lag spikes.
+ * @param options
+ * @param options.log - Whether to log the save event.
+ */
+export function* saveAllDataJob(options: { log?: boolean } = {}): Generator<void, void, void> {
+    const { log = true } = options;
+    if (log) {
+        debugLog('[DataManager] Starting background data sync job...');
+    }
+
+    let anythingWasSaved = false;
+
+    if (isNameIdMapDirty === true) {
+        saveNameIdMap();
+        anythingWasSaved = true;
+        yield;
+    }
+
+    const allPlayerData = getAllPlayerData();
+    let savedPlayerCount = 0;
+    for (const [playerId, playerData] of allPlayerData.entries()) {
+        if (playerData.needsSave === true) {
+            savePlayerData(playerId);
+            savedPlayerCount++;
+            yield;
+        }
+    }
+
+    if (savedPlayerCount > 0) {
+        anythingWasSaved = true;
+        if (log) {
+            debugLog(`[DataManager] Saved data for ${savedPlayerCount} modified players.`);
+        }
+    }
+
+    for (const handler of saveDataHandlers) {
+        handler();
+    }
+    yield;
+
+    if (log && anythingWasSaved) {
+        debugLog('[DataManager] Background data sync complete.');
+    } else if (log) {
+        debugLog('[DataManager] Background data sync finished, no changes to save.');
+    }
+}
+
+/**
  * Initializes the data manager, including setting up the auto-saver.
  */
 export function initializeDataManager() {
@@ -119,6 +165,7 @@ export const dataManager = {
     initializeDataManager,
     restartAutoSave,
     saveAllData,
+    saveAllDataJob,
     registerDataLoader,
     registerDataSaver
 };
