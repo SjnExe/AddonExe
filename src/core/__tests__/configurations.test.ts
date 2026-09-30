@@ -84,10 +84,9 @@ describe('Configurations Manager', () => {
         });
     });
 
-    describe('Shop Config (using asyncLoadConfig)', () => {
+    describe('Shop Config (using bundled config)', () => {
         it('should load shop config', async () => {
             await loadShopConfig(true);
-            expect(loadConfig).toHaveBeenCalledWith('./features/shop/shopConfig.js');
             expect(createConfigManager).toHaveBeenCalledWith('exe:shopConfig:current', expect.anything(), 'Shop');
             expect(mockConfigManagerInstance.load).toHaveBeenCalledWith(true);
         });

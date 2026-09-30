@@ -1,12 +1,13 @@
 import * as mc from '@minecraft/server';
 
+import { isFeatureActive } from '@core/featureManager.js';
 import { getSidebarVisible, setSidebarVisible } from '@core/playerDataManager.js';
 
 import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'sidebar',
-    description: 'Toggles the sidebar/HUD.',
+    description: 'Toggles your personal sidebar and action bar HUD.',
     aliases: ['sb'],
     permissionNode: 'cmd.sidebar.member', // Member
     category: 'General',
@@ -19,6 +20,12 @@ const command: CustomCommand = {
         }
 
         const player = executor;
+
+        if (!isFeatureActive('util.sidebar')) {
+            player.sendMessage('§cThe Sidebar and HUD system is currently disabled globally by the server admin.');
+            return;
+        }
+
         const current = getSidebarVisible(player.id);
         const newState = !current;
 
@@ -27,8 +34,8 @@ const command: CustomCommand = {
         if (newState) {
             player.sendMessage('§aPersonal HUD enabled.');
         } else {
-            player.sendMessage('§cPersonal HUD disabled. (Note: The server sidebar is global)');
-            player.onScreenDisplay.setTitle(''); // Clear immediately
+            player.sendMessage('§cPersonal HUD disabled.');
+            player.onScreenDisplay.setActionBar(''); // Clear action bar immediately
         }
     }
 };

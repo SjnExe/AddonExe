@@ -1,11 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { loadConfig as asyncLoadConfig } from '@core/configLoader.js';
 import createConfigManager, { ConfigManager } from '@core/configManagerFactory.js';
 import { deepClone } from '@core/objectUtils.js';
 import { isDefined } from '@lib/guards.js';
-
-import type { config as Config } from '@core/../config.js';
+import defaultConfig, { type config as Config } from '../config.js';
 
 let mainConfigManager: ConfigManager<typeof Config>;
 const updateCallbacks: ((config: typeof Config) => void)[] = [];
@@ -24,8 +22,6 @@ function notifyCallbacks() {
 }
 
 export async function initializeConfigManager(isMigration: boolean) {
-    // Load external config.js (relative to the bundled script)
-    const defaultConfig = await asyncLoadConfig<typeof Config>('./config.js');
     mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
     mainConfigManager.load(isMigration);
 
@@ -114,8 +110,7 @@ export async function resetConfigSection(sectionKey: string, player?: mc.Player)
     }
 
     try {
-        const freshDefaultConfig = await asyncLoadConfig('./config.js');
-        const configRecord = freshDefaultConfig as Record<string, unknown>;
+        const configRecord = defaultConfig as Record<string, unknown>;
         if (Object.prototype.hasOwnProperty.call(configRecord, sectionKey)) {
             updateConfig(sectionKey, deepClone(configRecord[sectionKey]));
 
@@ -133,8 +128,8 @@ export async function resetConfigSection(sectionKey: string, player?: mc.Player)
         }
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return { success: false, message: `Failed to load default configuration file. Error: ${errorMessage}` };
+        return { success: false, message: `Failed to reset configuration section. Error: ${errorMessage}` };
     }
 }
 
-export { type config as Config } from '@core/../config.js';
+export { type config as Config } from '../config.js';
