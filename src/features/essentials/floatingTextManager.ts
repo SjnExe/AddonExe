@@ -208,6 +208,15 @@ function runRetrySpawnLoop() {
     retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
 }
 
+function extractFloatingTextId(tags: string[]): string | undefined {
+    for (const tag of tags) {
+        if (tag.startsWith('ft_')) {
+            return tag.slice(3);
+        }
+    }
+    return undefined;
+}
+
 function pruneOrphanedTexts() {
     const dimensions = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
     for (const dimId of dimensions) {
@@ -215,21 +224,11 @@ function pruneOrphanedTexts() {
             const dimension = mc.world.getDimension(dimId);
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                if (!entity.isValid) {
+                if (!isDefined(entity) || !entity.isValid) {
                     continue;
                 }
-                let isTracked = false;
-                for (const tag of entity.getTags()) {
-                    if (tag.startsWith('ft_')) {
-                        const id = tag.slice(3);
-                        if (floatingTexts.has(id)) {
-                            isTracked = true;
-                        }
-                        break;
-                    }
-                }
-
-                if (!isTracked) {
+                const id = extractFloatingTextId(entity.getTags());
+                if (!id || !floatingTexts.has(id)) {
                     debugLog(`[FloatingText] Removing orphaned entity at ${entity.location.x.toFixed(1)}, ${entity.location.y.toFixed(1)}, ${entity.location.z.toFixed(1)}`);
                     entity.remove();
                 }
@@ -260,17 +259,12 @@ function spawnAllTexts() {
             // Batch query all floating texts in this dimension
             const entities = dimension.getEntities({ type: 'exe:floating_text' });
             for (const entity of entities) {
-                if (!entity.isValid) {
+                if (!isDefined(entity) || !entity.isValid) {
                     continue;
                 }
-                for (const tag of entity.getTags()) {
-                    if (tag.startsWith('ft_')) {
-                        const id = tag.slice(3);
-                        if (!entityMap.has(id)) {
-                            entityMap.set(id, entity);
-                        }
-                        break;
-                    }
+                const id = extractFloatingTextId(entity.getTags());
+                if (id !== undefined && !entityMap.has(id)) {
+                    entityMap.set(id, entity);
                 }
             }
         } catch (error) {
