@@ -46,13 +46,7 @@
         "*.{js,ts}": "bun scripts/lint/staged.ts",
         "*.{json,md,yml,yaml}": "bunx prettier --write --cache"
     },
-    "overrides": {
-        "axios": "latest",
-        "react": "18.3.1",
-        "tmp": "latest",
-        "uuid": "latest",
-        "ws": "latest"
-    },
+    "overrides": {},
     "dependencies": {
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest",
@@ -62,8 +56,8 @@
         "@minecraft/bedrock-schemas": "beta",
         "@minecraft/common": "latest",
         "@minecraft/creator-tools": "latest",
-        "@minecraft/server": "2.11.0-beta.1.26.51-stable",
-        "@minecraft/server-ui": "2.3.0-beta.1.26.51-stable",
+        "@minecraft/server": "2.11.0-beta.1.26.52-stable",
+        "@minecraft/server-ui": "2.3.0-beta.1.26.52-stable",
         "@types/jszip": "latest",
         "@types/node": "latest",
         "@types/uuid": "latest",
