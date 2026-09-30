@@ -4,6 +4,7 @@ import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } fr
 
 import { errorLog } from '@core/logger.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 
 import { AnticheatConfig, getAnticheatConfig } from '@features/anticheat/configLoader.js';
@@ -244,7 +245,8 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
         try {
             // Attempt to kick the player for being above the nether roof.
             // We execute as the dimension (server context) to ensure it works even if the player is non-op.
-            player.dimension.runCommand(`kick "${player.name}" Nether Roof Detected`);
+            const safePlayerName = escapeCommandArg(player.name);
+            player.dimension.runCommand(`kick "${safePlayerName}" Nether Roof Detected`);
         } catch {
             // If kick fails, TP down
             try {
