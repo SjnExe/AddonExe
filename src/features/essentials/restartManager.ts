@@ -1,6 +1,7 @@
 import { CommandExecutor } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
 
 let restartTaskId: number | undefined;
@@ -30,7 +31,9 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
             for (const player of players) {
                 // Actually kick them using commands if possible
                 try {
-                    player.runCommand(`kick "${player.name}" ${kickMessage}`);
+                    const safePlayerName = escapeCommandArg(player.name);
+                    const safeKickMessage = escapeCommandArg(kickMessage);
+                    player.runCommand(`kick "${safePlayerName}" "${safeKickMessage}"`);
                 } catch {
                     // Ignore
                 }
