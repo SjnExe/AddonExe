@@ -165,27 +165,6 @@ export function loadCommands() {
     }
 };
 
-const bunTranspiler = new Bun.Transpiler({ loader: 'ts' });
-
-function transformConfigContent(raw: string): string {
-    let content = raw.replace(/import\s+\{[^}]*\}\s+from\s+['"]@minecraft\/vanilla-data['"];?/g, '');
-    const typeEnums = ['MinecraftItemTypes', 'MinecraftDimensionTypes', 'MinecraftBlockTypes', 'MinecraftEntityTypes', 'ItemComponentTypes', 'EntityComponentTypes'];
-    const enumRegex = new RegExp(`\\b(${typeEnums.join('|')})\\.([A-Za-z0-9_]+)\\b`, 'g');
-    const overrides: Record<string, string> = {
-        BowInfinity: 'minecraft:infinity',
-        EvocationIllager: 'minecraft:evocation_illager',
-        HardenedClay: 'minecraft:terracotta',
-        UndyedShulkerBox: 'minecraft:shulker_box'
-    };
-    return content.replace(enumRegex, (_, _typeGroup, prop) => {
-        if (overrides[prop]) {
-            return `'${overrides[prop]}'`;
-        }
-        const snake = prop.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).replace(/^_/, '');
-        return `'minecraft:${snake}'`;
-    });
-}
-
 async function addDirToZip(sourceDir: string, zip: JSZip, zipPrefix = '', excludeExts = ['.map']) {
     const glob = new Bun.Glob('**/*');
     const files = Array.from(glob.scanSync({ cwd: sourceDir, absolute: false, dot: true }));
@@ -254,64 +233,15 @@ async function createArchives(prefix: string, versionStr: string) {
     console.log(`  - ${path.basename(rpPath)}`);
 }
 
-async function compileScripts(versionArray: number[], versionStr: string, outDirSuffix: string = '') {
+async function compileScripts(_versionArray: number[], versionStr: string, outDirSuffix: string = '') {
     console.log(`[Build] Compiling Scripts...`);
 
     const coreEntrypoints = ['src/main.ts'];
-    const configPaths: { src: string; dest: string }[] = [];
-    const srcDir = path.resolve(ROOT_DIR, 'src');
-    const featuresDir = path.join(srcDir, 'features');
     const outDir = path.resolve(ROOT_DIR, `packs/behavior/scripts${outDirSuffix}`);
 
-    configPaths.push({
-        src: path.join(srcDir, 'config.ts'),
-        dest: path.join(outDir, 'config.js')
-    });
-
-    try {
-        const featureDirs = await fs.readdir(featuresDir);
-        for (const dir of featureDirs) {
-            const fullPath = path.join(featuresDir, dir);
-            const stat = await fs.stat(fullPath);
-            if (stat.isDirectory()) {
-                const files = await fs.readdir(fullPath);
-                for (const file of files) {
-                    if (file.endsWith('Config.ts')) {
-                        const outName = file.replace('.ts', '.js');
-                        configPaths.push({
-                            src: path.join(fullPath, file),
-                            dest: path.join(outDir, 'features', dir, outName)
-                        });
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        console.warn('[Build] Optional features module sweep skipped or directory unreadable.', error);
-    }
-
-    const allConfigEntrypoints = ['src/config.ts'];
-    try {
-        const featureDirs = await fs.readdir(featuresDir);
-        for (const dir of featureDirs) {
-            const fullPath = path.join(featuresDir, dir);
-            if ((await fs.stat(fullPath)).isDirectory()) {
-                const files = await fs.readdir(fullPath);
-                for (const file of files) {
-                    if (file.endsWith('Config.ts')) {
-                        allConfigEntrypoints.push(`src/features/${dir}/${file}`);
-                    }
-                }
-            }
-        }
-    } catch {
-        console.warn('[Build] Dynamic feature configuration checkpoint skipped.');
-    }
-
-    const externalConfigs = ['src/main.ts', ...allConfigEntrypoints].map((ep) => ep.replace('src/', './').replace('.ts', '.js'));
     const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
 
-    // Pass 1: Bundle Core Engine Modules
+    // Bundle Core Engine Module into main.js
     const coreResult = await Bun.build({
         entrypoints: coreEntrypoints,
         outdir: outDir,
@@ -328,7 +258,7 @@ async function compileScripts(versionArray: number[], versionStr: string, outDir
             __VERSION__: JSON.stringify(versionStr)
         },
         plugins: [commandIndexPlugin, iconIndexPlugin],
-        external: [...externalModules, ...externalConfigs]
+        external: externalModules
     });
 
     if (!coreResult.success) {
@@ -337,29 +267,6 @@ async function compileScripts(versionArray: number[], versionStr: string, outDir
             console.error(msg);
         }
         process.exit(1);
-    }
-
-    // Pass 2: Fast Native Bun Transpilation for User Configs
-    for (const conf of configPaths) {
-        try {
-            let content = await Bun.file(conf.src).text();
-
-            if (conf.src.endsWith('config.ts')) {
-                content = content.replace(/version:\s*\[\s*1\s*,\s*0\s*,\s*0\s*\]/g, `version: [${versionArray.join(', ')}]`);
-                if (process.env.IS_BETA_RELEASE === 'true') {
-                    content = content.replace(/ownerPlayerNames:\s*\[\s*'Your•Name•Here'\s*\]/g, "ownerPlayerNames: ['SjnTechMlmYT']");
-                    content = content.replace(/logLevel:\s*2/g, 'logLevel: 3');
-                }
-            }
-
-            content = transformConfigContent(content);
-            const jsOutput = bunTranspiler.transformSync(content);
-
-            await Bun.write(conf.dest, jsOutput);
-        } catch (err: any) {
-            console.error(`[Build] Failed to process configuration asset ${conf.src}: ${err.message}`);
-            process.exit(1);
-        }
     }
 
     console.log(`[Build] Scripts compiled successfully.`);

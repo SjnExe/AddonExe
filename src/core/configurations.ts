@@ -1,20 +1,19 @@
 import * as mc from '@minecraft/server';
 
-import { loadConfig as asyncLoadConfig } from '@core/configLoader.js';
 import createConfigManager, { ConfigManager } from '@core/configManagerFactory.js';
 
-import type { xrayConfig } from '@features/anticheat/xrayConfig.js';
-import type { auctionHouseConfig } from '@features/auction/auctionHouseConfig.js';
-import type { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.js';
-import type { economyConfig } from '@features/economy/economyConfig.js';
-import type { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.js';
-import type { GamesConfig } from '@features/games/gamesConfig.js';
-import type { WordleConfig } from '@features/games/wordle/wordleConfig.js';
-import type ranksConfig from '@features/ranks/ranksConfig.js';
-import type { shopConfig } from '@features/shop/shopConfig.js';
-import type { config as sidebarConfig } from '@features/sidebar/sidebarConfig.js';
-import type { friendConfig } from '@features/social/friendConfig.js';
-import type { teamConfig } from '@features/team/teamConfig.js';
+import { xrayConfig } from '@features/anticheat/xrayConfig.js';
+import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.js';
+import { dailyRewardsConfig } from '@features/daily/dailyRewardsConfig.js';
+import { economyConfig } from '@features/economy/economyConfig.js';
+import { worldProtectionConfig, type WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.js';
+import { gamesConfig, type GamesConfig } from '@features/games/gamesConfig.js';
+import { wordleConfig, type WordleConfig } from '@features/games/wordle/wordleConfig.js';
+import ranksConfig from '@features/ranks/ranksConfig.js';
+import { shopConfig } from '@features/shop/shopConfig.js';
+import { config as sidebarConfig } from '@features/sidebar/sidebarConfig.js';
+import { friendConfig } from '@features/social/friendConfig.js';
+import { teamConfig } from '@features/team/teamConfig.js';
 
 export type ShopConfig = typeof shopConfig;
 export type RanksConfig = typeof ranksConfig;
@@ -42,7 +41,6 @@ let shopConfigManager: ConfigManager<ShopConfig>,
     wordleConfigManager: ConfigManager<WordleConfig>;
 
 export const loadWorldProtectionConfig = async (isMigration: boolean) => {
-    const { worldProtectionConfig } = await import('@features/essentials/worldProtectionConfig.js');
     worldProtectionConfigManager = createConfigManager('exe:worldProtectionConfig:current', worldProtectionConfig, 'WorldProtection');
     worldProtectionConfigManager.load(isMigration);
 };
@@ -51,8 +49,7 @@ export const saveWorldProtectionConfig = (config: WorldProtectionConfig) => worl
 export const resetWorldProtectionConfig = () => worldProtectionConfigManager.reset();
 
 export const loadShopConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<ShopConfig>('./features/shop/shopConfig.js');
-    shopConfigManager = createConfigManager('exe:shopConfig:current', defaultConfig, 'Shop');
+    shopConfigManager = createConfigManager('exe:shopConfig:current', shopConfig, 'Shop');
     shopConfigManager.load(isMigration);
 };
 export const getShopConfig = (): ShopConfig => shopConfigManager.get();
@@ -60,8 +57,7 @@ export const saveShopConfig = (config: ShopConfig) => shopConfigManager.set(conf
 export const resetShopConfig = () => shopConfigManager.reset();
 
 export const loadRanksConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<RanksConfig>('./features/ranks/ranksConfig.js');
-    ranksConfigManager = createConfigManager('exe:ranksConfig', defaultConfig, 'Ranks');
+    ranksConfigManager = createConfigManager('exe:ranksConfig', ranksConfig, 'Ranks');
     ranksConfigManager.load(isMigration);
 };
 export const getRanksConfig = (): RanksConfig => ranksConfigManager.get();
@@ -69,8 +65,7 @@ export const saveRanksConfig = (config: RanksConfig) => ranksConfigManager.set(c
 export const resetRanksConfig = () => ranksConfigManager.reset();
 
 export const loadEconomyConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<EconomyConfig>('./features/economy/economyConfig.js');
-    economyConfigManager = createConfigManager('exe:economyConfig:current', defaultConfig, 'Economy');
+    economyConfigManager = createConfigManager('exe:economyConfig:current', economyConfig, 'Economy');
     economyConfigManager.load(isMigration);
 };
 export const getEconomyConfig = (): EconomyConfig => economyConfigManager.get();
@@ -78,8 +73,7 @@ export const saveEconomyConfig = (config: EconomyConfig) => economyConfigManager
 export const resetEconomyConfig = () => economyConfigManager.reset();
 
 export const loadXrayConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<XrayConfig>('./features/anticheat/xrayConfig.js');
-    xrayConfigManager = createConfigManager('exe:xrayConfig:current', defaultConfig, 'X-Ray');
+    xrayConfigManager = createConfigManager('exe:xrayConfig:current', xrayConfig, 'X-Ray');
     xrayConfigManager.load(isMigration);
 };
 export const getXrayConfig = (): XrayConfig => xrayConfigManager.get();
@@ -87,8 +81,7 @@ export const saveXrayConfig = (config: XrayConfig) => xrayConfigManager.set(conf
 export const resetXrayConfig = () => xrayConfigManager.reset();
 
 export const loadTeamConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<TeamConfig>('./features/team/teamConfig.js');
-    teamConfigManager = createConfigManager('exe:teamConfig:current', defaultConfig, 'Team');
+    teamConfigManager = createConfigManager('exe:teamConfig:current', teamConfig, 'Team');
     teamConfigManager.load(isMigration);
 };
 export const getTeamConfig = (): TeamConfig => teamConfigManager.get();
@@ -96,8 +89,7 @@ export const saveTeamConfig = (config: TeamConfig) => teamConfigManager.set(conf
 export const resetTeamConfig = () => teamConfigManager.reset();
 
 export const loadFriendConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<FriendConfig>('./features/social/friendConfig.js');
-    friendConfigManager = createConfigManager('exe:friendConfig:current', defaultConfig, 'Friends');
+    friendConfigManager = createConfigManager('exe:friendConfig:current', friendConfig, 'Friends');
     friendConfigManager.load(isMigration);
 };
 export const getFriendConfig = (): FriendConfig => friendConfigManager.get();
@@ -105,8 +97,7 @@ export const saveFriendConfig = (config: FriendConfig) => friendConfigManager.se
 export const resetFriendConfig = () => friendConfigManager.reset();
 
 export const loadSidebarConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<SidebarConfig>('./features/sidebar/sidebarConfig.js');
-    sidebarConfigManager = createConfigManager('exe:sidebarConfig:current', defaultConfig, 'Sidebar');
+    sidebarConfigManager = createConfigManager('exe:sidebarConfig:current', sidebarConfig, 'Sidebar');
     sidebarConfigManager.load(isMigration);
 };
 export const getSidebarConfig = (): SidebarConfig => sidebarConfigManager.get();
@@ -114,8 +105,7 @@ export const saveSidebarConfig = (config: SidebarConfig) => sidebarConfigManager
 export const resetSidebarConfig = () => sidebarConfigManager.reset();
 
 export const loadAuctionHouseConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<AuctionHouseConfig>('./features/auction/auctionHouseConfig.js');
-    auctionHouseConfigManager = createConfigManager('exe:auctionHouseConfig:current', defaultConfig, 'AuctionHouse');
+    auctionHouseConfigManager = createConfigManager('exe:auctionHouseConfig:current', auctionHouseConfig, 'AuctionHouse');
     auctionHouseConfigManager.load(isMigration);
 };
 export const getAuctionHouseConfig = (): AuctionHouseConfig => auctionHouseConfigManager.get();
@@ -123,8 +113,7 @@ export const saveAuctionHouseConfig = (config: AuctionHouseConfig) => auctionHou
 export const resetAuctionHouseConfig = () => auctionHouseConfigManager.reset();
 
 export const loadDailyRewardsConfig = async (isMigration: boolean) => {
-    const defaultConfig = await asyncLoadConfig<DailyRewardsConfig>('./features/daily/dailyRewardsConfig.js');
-    dailyRewardsConfigManager = createConfigManager('exe:dailyRewardsConfig:current', defaultConfig, 'DailyRewards');
+    dailyRewardsConfigManager = createConfigManager('exe:dailyRewardsConfig:current', dailyRewardsConfig, 'DailyRewards');
     dailyRewardsConfigManager.load(isMigration);
 };
 export const getDailyRewardsConfig = (): DailyRewardsConfig => dailyRewardsConfigManager.get();
@@ -132,7 +121,6 @@ export const saveDailyRewardsConfig = (config: DailyRewardsConfig) => dailyRewar
 export const resetDailyRewardsConfig = () => dailyRewardsConfigManager.reset();
 
 export const loadGamesConfig = async (isMigration: boolean) => {
-    const { gamesConfig } = await import('@features/games/gamesConfig.js');
     gamesConfigManager = createConfigManager('exe:gamesConfig:current', gamesConfig, 'Games');
     gamesConfigManager.load(isMigration);
 };
@@ -141,7 +129,6 @@ export const saveGamesConfig = (config: GamesConfig) => gamesConfigManager.set(c
 export const resetGamesConfig = () => gamesConfigManager.reset();
 
 export const loadWordleConfig = async (isMigration: boolean) => {
-    const { wordleConfig } = await import('@features/games/wordle/wordleConfig.js');
     wordleConfigManager = createConfigManager('exe:wordleConfig:current', wordleConfig, 'Wordle');
     wordleConfigManager.load(isMigration);
 };

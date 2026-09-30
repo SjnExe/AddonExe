@@ -119,13 +119,7 @@ function evaluateRankConditions(player: mc.Player, rank: RankDefinition, assigne
     }
 
     for (const condition of rank.conditions) {
-        if (condition.type === 'isOwner') {
-            const ownerNames = getConfig().ownerPlayerNames.map((name: string) => name.trim().toLowerCase());
-            const playerName = player.name.trim().toLowerCase();
-            if (!ownerNames.includes(playerName)) {
-                return false;
-            }
-        } else if (condition.type === 'hasTag') {
+        if (condition.type === 'hasTag') {
             if (!player.hasTag(condition.value as string)) {
                 return false;
             }
