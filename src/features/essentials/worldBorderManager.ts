@@ -1,6 +1,7 @@
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { errorLog } from '@core/logger.js';
+import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -61,10 +62,24 @@ function checkWorldBorder() {
         return;
     }
 
+    const players = getAllPlayersFromCache();
+    if (players.length === 0) {
+        return;
+    }
+
     try {
         const dim = mc.world.getDimension(config.dimension);
-        const players = dim.getPlayers();
+        const targetDimId = dim.id;
+
         for (const player of players) {
+            if (!player.isValid) {
+                continue;
+            }
+
+            if (player.dimension.id !== targetDimId && player.dimension.id !== config.dimension) {
+                continue;
+            }
+
             // Ignore admins
             if (player.hasTag('admin') || player.hasTag('owner')) {
                 continue;
