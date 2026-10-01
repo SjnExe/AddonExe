@@ -16,7 +16,14 @@ const mockFormatString = mock((template: string, context: any) => {
 mock.module('@core/utils.js', () => ({
     formatString: mockFormatString,
     escapeCommandArg: escapeCommandArg,
-    sanitizeString: (str: string) => str // Need this just in case as utils imports a lot of things
+    sanitizeString: (str: string) => str,
+    uiWait: mock(async () => ({ canceled: false })),
+    getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
+    getCountdownColor: mock(() => '§a'),
+    playClickSound: mock(() => {}),
+    formatCurrency: (val: number) => `$${val}`,
+    playSound: mock(),
+    resolveTarget: mock(() => [])
 }));
 
 mock.module('@core/logger.js', () => ({

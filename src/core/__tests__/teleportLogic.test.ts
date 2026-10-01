@@ -20,7 +20,11 @@ mock.module('@core/utils/sound.js', () => ({
 }));
 
 mock.module('@core/utils/ui.js', () => ({
-    getCountdownColor: mockGetCountdownColor
+    getCountdownColor: mockGetCountdownColor,
+    getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
+    forceCloseChat: mock(async () => {}),
+    uiWait: mock(async () => ({ canceled: false })),
+    playClickSound: mock(() => {})
 }));
 
 mock.module('@features/sidebar/manager.js', () => ({
