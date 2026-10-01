@@ -137,7 +137,7 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     modal.textField('id', 'Rank ID (Unique, alphanumeric)', 'e.g. custom_rank', rank.id);
     modal.textField('name', 'Display Name', 'e.g. Custom Rank', rank.name);
     modal.textField('priority', 'Priority (Lower = Higher Rank)', 'e.g. 50', String(rank.priority));
-    modal.textField('nametagPrefix', 'Nametag Prefix', 'e.g. §bPrefix', rank.nametagPrefix || '');
+    modal.textField('nametagPrefix', 'Nametag Prefix', 'e.g. §bPrefix', rank.nametagPrefix || rank.chatFormatting?.prefixText || '');
 
     modal.textField('groups', 'Groups (comma separated)', 'e.g. default,mod', rank.groups.join(','));
     modal.textField('allow', 'Allowed Permissions (comma separated)', 'e.g. cmd.fly,ui.panel.mod', rank.allow.join(','));
@@ -202,6 +202,11 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     rank.name = draftState.name;
     rank.priority = draftState.priority;
     rank.nametagPrefix = draftState.nametagPrefix;
+    if (!rank.chatFormatting) {
+        rank.chatFormatting = { prefixText: draftState.nametagPrefix };
+    } else {
+        rank.chatFormatting.prefixText = draftState.nametagPrefix;
+    }
     rank.groups = draftState.groups;
     rank.allow = draftState.allow;
     rank.deny = draftState.deny;

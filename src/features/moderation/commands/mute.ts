@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.js';
 import { soundError, soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
@@ -19,7 +18,7 @@ export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, d
         return;
     }
 
-    if (!canTarget(executor, targetPlayer.id, config)) {
+    if (!canTarget(executor, targetPlayer.id)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot mute a player with the same or higher rank than you.', executor);
             playSound(executor, soundError);
@@ -119,7 +118,7 @@ export function unmutePlayer(executor: CommandExecutor, targetName: string) {
         return;
     }
 
-    if (!canTarget(executor, targetId, config)) {
+    if (!canTarget(executor, targetId)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot unmute a player with the same or higher rank than you.', executor);
         } else {

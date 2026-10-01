@@ -1,5 +1,4 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.js';
 import { sendMessage } from '@core/messaging.js';
 import { canTarget } from '@core/rankManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
@@ -31,7 +30,7 @@ const warnCommand: CustomCommand = {
             return sendMessage('§cPlayer not found.', executor);
         }
 
-        if (!canTarget(executor, target.id, config)) {
+        if (!canTarget(executor, target.id)) {
             return sendMessage('§cYou cannot warn a player with the same or higher rank than you.', executor);
         }
 
