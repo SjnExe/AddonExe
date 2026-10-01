@@ -10,7 +10,13 @@ const mockSendMessage = mock();
 const mockStartTeleportWarmup = mock();
 
 mock.module('@core/configManager.js', () => ({
-    getConfig: mockGetConfig
+    getConfig: mockGetConfig,
+    onConfigUpdated: mock(),
+    initializeConfigManager: mock(),
+    updateConfig: mock(),
+    reloadConfig: mock(),
+    updateMultipleConfig: mock(),
+    resetConfigSection: mock()
 }));
 
 mock.module('@core/playerDataManager.js', () => ({
@@ -28,7 +34,15 @@ mock.module('@core/teleportLogic.js', () => ({
 
 mock.module('@core/utils.js', () => ({
     formatCurrency: (val: number) => `$${val}`,
-    playSound: mock()
+    playSound: mock(),
+    uiWait: mock(async () => ({ canceled: false })),
+    getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
+    getCountdownColor: mock(() => '§a'),
+    playClickSound: mock(() => {}),
+    formatString: (template: string, context: any) => template,
+    escapeCommandArg: (str: string) => str,
+    sanitizeString: (str: string) => str,
+    resolveTarget: mock(() => [])
 }));
 
 mock.module('@core/cooldownManager.js', () => ({

@@ -34,7 +34,15 @@ mock.module('@core/utils.js', () => ({
             return [{ name: 'Target', id: 'targetId', getComponent: mock() }];
         }
         return [];
-    })
+    }),
+    uiWait: mock(async () => ({ canceled: false })),
+    getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
+    getCountdownColor: mock(() => '§a'),
+    playClickSound: mock(() => {}),
+    formatCurrency: (val: number) => `$${val}`,
+    formatString: (template: string, context: any) => template,
+    escapeCommandArg: (str: string) => str,
+    sanitizeString: (str: string) => str
 }));
 
 mock.module('@features/anticheat/logManager.js', () => ({
