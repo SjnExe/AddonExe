@@ -8,20 +8,19 @@ mock.module('@core/playerDataManager.js', () => ({
     updatePlayerData: mockUpdatePlayerData,
     getPlayer: mock(),
     getOrCreatePlayer: mock(),
+    getPlayerIdByName: mock(),
     getPlayerNameById: mock(),
     getVisiblePlayers: mock()
 }));
 
 mock.module('@core/playerCache.js', () => ({
-    getPlayerFromCache: mockGetPlayerFromCache
+    getPlayerFromCache: mockGetPlayerFromCache,
+    getAllPlayersFromCache: mock(() => [])
 }));
 
 mock.module('@core/configurations.js', () => ({
-    getFriendConfig: mock()
-}));
-
-mock.module('@features/social/ui/friendPanel.js', () => ({
-    FriendPanelHandler: class {}
+    getFriendConfig: mock(),
+    getRanksConfig: mock()
 }));
 
 mock.module('@ui/PanelRouter.js', () => ({
