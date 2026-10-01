@@ -3,7 +3,6 @@ import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.js';
 import { getPlayerIdByName } from '@core/playerDataManager.js';
 import { canTarget } from '@core/rankManager.js';
 import { resolveTarget } from '@core/utils.js';
@@ -67,7 +66,7 @@ const invseeCommand: CustomCommand = {
             return;
         }
 
-        if (!canTarget(executor, targetPlayer.id, config)) {
+        if (!canTarget(executor, targetPlayer.id)) {
             executor.sendMessage('§cYou cannot view the inventory of a player with the same or higher rank than you.');
             return;
         }
@@ -119,7 +118,7 @@ const ecwipeCommand: CustomCommand = {
 
             const targetId = getPlayerIdByName(targetNameResolved);
             if (isDefined(targetId)) {
-                if (!canTarget(executor, targetId, config)) {
+                if (!canTarget(executor, targetId)) {
                     executor.sendMessage('§cYou cannot wipe the ender chest of a player with the same or higher rank than you.');
                     return;
                 }
@@ -181,7 +180,7 @@ const copyinvCommand: CustomCommand = {
             return;
         }
 
-        if (!canTarget(executor, targetPlayer.id, config)) {
+        if (!canTarget(executor, targetPlayer.id)) {
             executor.sendMessage('§cYou cannot copy the inventory of a player with the same or higher rank than you.');
             return;
         }

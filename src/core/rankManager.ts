@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 
+import { getConfig } from '@core/configManager.js';
 import { config as Config } from '@core/../config.js';
 
 import { getRanksConfig } from '@core/configurations.js';
@@ -59,7 +60,7 @@ import { loadPlayerData } from '@core/playerDataManager.js';
  * @param player
  * @param config The addon's configuration object.
  */
-export function getPlayerRank(player: mc.Player, config: typeof Config): RankDefinition {
+export function getPlayerRank(player: mc.Player, config: typeof Config = getConfig()): RankDefinition {
     const currentTick = mc.system.currentTick;
     const cached = rankCache.get(player.id);
 
@@ -112,7 +113,7 @@ export function getPlayerRank(player: mc.Player, config: typeof Config): RankDef
  * @param targetId The ID of the targeted player.
  * @param config The addon's configuration object.
  */
-export function canTarget(executor: mc.Player | CommandExecutor, targetId: string, config: typeof Config): boolean {
+export function canTarget(executor: mc.Player | CommandExecutor, targetId: string, config: typeof Config = getConfig()): boolean {
     if (!(executor instanceof mc.Player)) {
         // Console can target anyone
         return true;
@@ -188,12 +189,12 @@ export function getAllRanks(): RankDefinition[] {
  * @param player The player whose nametag should be updated.
  * @param config The addon's configuration object.
  */
-export function updatePlayerNameTag(player: mc.Player, config: typeof Config) {
+export function updatePlayerNameTag(player: mc.Player, config: typeof Config = getConfig()) {
     // Invalidate cache to force fresh calculation when explicitly updating nametags
     rankCache.delete(player.id);
 
     const rank = getPlayerRank(player, config);
-    const rankPrefix = (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? '';
+    const rankPrefix = (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? rank.nametagPrefix ?? '';
     const nameTagStyle = (isDefined(config.ranks) ? config.ranks.nameTagStyle : undefined) ?? 'above';
 
     // Hardcoded brackets: §e[§r PREFIX §e]§r
