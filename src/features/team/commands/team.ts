@@ -1,14 +1,127 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { getPlayer, getPlayerIdByName, getPlayerNameById } from '@core/playerDataManager.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { showPanel } from '@core/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 
-import { getTeamByPlayer } from '@features/team/manager.js';
+import * as teamManager from '@features/team/manager.js';
 import { teamConfig } from '@features/team/teamConfig.js';
 
 const teamChatActive = new Map<string, boolean>();
+
+const teamCommand: CustomCommand = {
+    name: 'team',
+    description: 'Manage or view your team.',
+    category: 'Social',
+    permissionNode: 'cmd.team.member',
+    aliases: ['t', 'clan', 'faction', 'guild'],
+    parameters: [
+        { name: 'subcommand', type: 'string', optional: true },
+        { name: 'target', type: 'string', optional: true }
+    ],
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+
+        const sub = ((args.subcommand as string) || '').toLowerCase();
+        const target = (args.target as string) || '';
+
+        if (!sub) {
+            void showPanel(executor, 'teamMainPanel');
+            return;
+        }
+
+        switch (sub) {
+            case 'create': {
+                if (!target) {
+                    executor.sendMessage('§cUsage: /team create <name>');
+                    return;
+                }
+                const res = teamManager.createTeam(executor, target);
+                executor.sendMessage(res.message ?? (res.success ? '§aTeam created.' : '§cFailed to create team.'));
+                break;
+            }
+            case 'leave': {
+                const res = teamManager.leaveTeam(executor);
+                executor.sendMessage(res.message ?? (res.success ? '§aLeft team.' : '§cFailed to leave team.'));
+                break;
+            }
+            case 'invite': {
+                if (!target) {
+                    executor.sendMessage('§cUsage: /team invite <player>');
+                    return;
+                }
+                const myTeam = teamManager.getTeamByPlayer(executor.id);
+                if (!myTeam) {
+                    executor.sendMessage('§cYou are not in a team.');
+                    return;
+                }
+                const targetId = getPlayerIdByName(target);
+                if (!targetId) {
+                    executor.sendMessage('§cPlayer not found.');
+                    return;
+                }
+                const res = teamManager.invitePlayer(myTeam.id, targetId);
+                executor.sendMessage(res.message ?? (res.success ? '§aInvite sent.' : '§cFailed to send invite.'));
+                break;
+            }
+            case 'join':
+            case 'apply': {
+                if (!target) {
+                    executor.sendMessage('§cUsage: /team join <teamName>');
+                    return;
+                }
+                const team = teamManager.getAllTeam().find((t) => t.name.toLowerCase() === target.toLowerCase());
+                if (!team) {
+                    executor.sendMessage('§cTeam not found.');
+                    return;
+                }
+                const res = teamManager.applyToTeam(executor, team.id);
+                executor.sendMessage(res.message ?? (res.success ? '§aApplication sent.' : '§cFailed to send application.'));
+                break;
+            }
+            case 'rm':
+            case 'remove':
+            case 'kick': {
+                if (!target) {
+                    executor.sendMessage('§cUsage: /team kick <player>');
+                    return;
+                }
+                const team = teamManager.getTeamByPlayer(executor.id);
+                if (!team || team.ownerId !== executor.id) {
+                    executor.sendMessage('§cYou must be team owner to kick members.');
+                    return;
+                }
+                const targetId = getPlayerIdByName(target);
+                if (!targetId) {
+                    executor.sendMessage('§cPlayer not found.');
+                    return;
+                }
+                const res = teamManager.kickMember(team.id, targetId);
+                executor.sendMessage(res.message ?? 'Done');
+                break;
+            }
+            case 'ls':
+            case 'list': {
+                const team = teamManager.getTeamByPlayer(executor.id);
+                if (!team) {
+                    executor.sendMessage('§cYou are not in a team.');
+                    return;
+                }
+                const members = team.members.map((m) => getPlayerNameById(m) ?? m).join(', ');
+                executor.sendMessage(`§aTeam: ${team.name} | Members: ${members}`);
+                break;
+            }
+            default: {
+                void showPanel(executor, 'teamMainPanel');
+                break;
+            }
+        }
+    }
+};
 
 export function toggleTeamChat(playerId: string): boolean {
     const current = teamChatActive.get(playerId) ?? false;
@@ -35,7 +148,7 @@ const teamChatCommand: CustomCommand = {
             return;
         }
 
-        const team = getTeamByPlayer(executor.id);
+        const team = teamManager.getTeamByPlayer(executor.id);
         if (!isDefined(team)) {
             executor.sendMessage('§cYou are not in a team.');
             return;
@@ -56,7 +169,7 @@ const hqCommand: CustomCommand = {
             return;
         }
 
-        const team = getTeamByPlayer(executor.id);
+        const team = teamManager.getTeamByPlayer(executor.id);
 
         if (!isDefined(team)) {
             executor.sendMessage('§cYou are not in a team.');
@@ -91,4 +204,4 @@ const hqCommand: CustomCommand = {
     }
 };
 
-export default [teamChatCommand, hqCommand];
+export default [teamCommand, teamChatCommand, hqCommand];

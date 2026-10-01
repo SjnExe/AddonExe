@@ -1,5 +1,9 @@
-import { addPaginationButtons, getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { addPaginationButtons, getPaginatedItems, handleCommonSelection, itemsPerPage } from '@ui/uiUtils.js';
 import { describe, expect, it, mock } from 'bun:test';
+
+mock.module('@core/uiManager.js', () => ({
+    showPanel: mock()
+}));
 
 describe('uiUtils', () => {
     describe('getPaginatedItems', () => {
@@ -70,6 +74,24 @@ describe('uiUtils', () => {
             const form = { button: mock(() => form) } as any;
             addPaginationButtons(form, 1, 0);
             expect(form.button).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('handleCommonSelection', () => {
+        it('handles nextPage correctly by incrementing page', async () => {
+            const { showPanel } = await import('@core/uiManager.js');
+            const player = {} as any;
+            const handled = handleCommonSelection(player, 'testPanel', { actionValue: 'nextPage' }, { page: 2 });
+            expect(handled).toBe(true);
+            expect(showPanel).toHaveBeenCalledWith(player, 'testPanel', { page: 3 });
+        });
+
+        it('handles prevPage correctly by decrementing page', async () => {
+            const { showPanel } = await import('@core/uiManager.js');
+            const player = {} as any;
+            const handled = handleCommonSelection(player, 'testPanel', { actionValue: 'prevPage' }, { page: 2 });
+            expect(handled).toBe(true);
+            expect(showPanel).toHaveBeenCalledWith(player, 'testPanel', { page: 1 });
         });
     });
 });

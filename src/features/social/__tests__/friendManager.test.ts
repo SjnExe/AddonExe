@@ -10,7 +10,8 @@ mock.module('@core/playerDataManager.js', () => ({
     getOrCreatePlayer: mock(),
     getPlayerIdByName: mock(),
     getPlayerNameById: mock(),
-    getVisiblePlayers: mock()
+    getVisiblePlayers: mock(),
+    loadPlayerData: mock()
 }));
 
 mock.module('@core/playerCache.js', () => ({
