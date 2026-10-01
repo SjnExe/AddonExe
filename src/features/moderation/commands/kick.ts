@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.js';
 import { soundError, soundTeleport } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -28,7 +27,7 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | 
         return;
     }
 
-    if (!canTarget(executor, targetPlayer.id, config)) {
+    if (!canTarget(executor, targetPlayer.id)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot kick a player with the same or higher rank than you.', executor);
             playSound(executor, soundError);

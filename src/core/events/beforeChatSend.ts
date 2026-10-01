@@ -3,9 +3,10 @@ import * as mc from '@minecraft/server';
 import { getConfig } from '@core/configManager.js';
 import { rawLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
-import { getPlayer } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
+import { getPunishment } from '@features/moderation/punishmentManager.js';
+import { isDefined } from '@lib/guards.js';
 
 /**
  * Handles chat messages before they are sent.
@@ -18,12 +19,14 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     } // Vanilla chat if disabled
 
     const player = event.sender;
-    const pData = getPlayer(player.id);
 
     // Mute Check
-    if (pData?.announcementsMuted === true) {
+    const mute = getPunishment(player.id, 'mute');
+    if (isDefined(mute)) {
         event.cancel = true;
-        player.sendMessage('§cYou are muted.');
+        const reason = mute.reason ? ` Reason: ${mute.reason}` : '';
+        const durationStr = mute.expires === Infinity ? 'Permanently' : `Until: ${new Date(mute.expires).toLocaleString()}`;
+        player.sendMessage(`§cYou are muted. ${durationStr}${reason}`);
         return;
     }
 

@@ -2,7 +2,6 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.js';
 import { errorLog, warnLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
@@ -19,7 +18,7 @@ export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, du
         return;
     }
 
-    if (!canTarget(executor, targetPlayer.id, config)) {
+    if (!canTarget(executor, targetPlayer.id)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot ban a player with the same or higher rank than you.', executor);
         } else {
@@ -129,7 +128,7 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
         return;
     }
 
-    if (!canTarget(executor, targetId, config)) {
+    if (!canTarget(executor, targetId)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot unban a player with the same or higher rank than you.', executor);
         } else {
@@ -166,7 +165,7 @@ export function offlineBanPlayer(executor: CommandExecutor, targetId: string, ta
         return;
     }
 
-    if (!canTarget(executor, targetId, config)) {
+    if (!canTarget(executor, targetId)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot ban a player with the same or higher rank than you.', executor);
         } else {

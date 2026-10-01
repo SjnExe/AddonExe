@@ -1,5 +1,5 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.js';
+import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData, setPlayerRanks } from '@core/playerDataManager.js';
@@ -119,7 +119,7 @@ const rankCommand: CustomCommand = {
             setPlayerRanks(targetId, currentRanks);
             sendMessage(`§aSuccessfully added rank §e${rankDef.name} §ato §e${targetName}§a.`, executor);
             if (targetPlayer) {
-                updatePlayerNameTag(targetPlayer, config);
+                updatePlayerNameTag(targetPlayer, getConfig());
                 targetPlayer.sendMessage(`§aYou have been granted the rank §e${rankDef.name}§a.`);
             }
         } else if (action === 'remove') {
@@ -131,7 +131,7 @@ const rankCommand: CustomCommand = {
             setPlayerRanks(targetId, currentRanks);
             sendMessage(`§aSuccessfully removed rank §e${rankDef.name} §afrom §e${targetName}§a.`, executor);
             if (targetPlayer) {
-                updatePlayerNameTag(targetPlayer, config);
+                updatePlayerNameTag(targetPlayer, getConfig());
                 targetPlayer.sendMessage(`§cYour rank §e${rankDef.name} §chas been removed.`);
             }
         }

@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 
-import { config } from '@core/../config.js';
 import { soundError, soundTeleport } from '@core/constants.js';
 import { sendMessage } from '@core/messaging.js';
 import { hasPermission } from '@core/permissionEngine.js';
@@ -52,7 +51,7 @@ const clearCommand: CustomCommand = {
                     return;
                 }
 
-                if (!canTarget(executor, targetPlayer.id, config)) {
+                if (!canTarget(executor, targetPlayer.id)) {
                     sendMessage('§cYou cannot clear the inventory of a player with the same or higher rank than you.', executor);
                     playSound(executor, soundError);
                     return;

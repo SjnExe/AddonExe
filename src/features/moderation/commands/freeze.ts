@@ -1,7 +1,6 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { config } from '@core/../config.js';
 import { frozenTag } from '@core/constants.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -9,7 +8,7 @@ import { canTarget } from '@core/rankManager.js';
 import { playSound } from '@core/utils.js';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-    if (!canTarget(executor, targetPlayer.id, config)) {
+    if (!canTarget(executor, targetPlayer.id)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot freeze a player with the same or higher rank than you.', executor);
         } else {
@@ -59,7 +58,7 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
 }
 
 export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-    if (!canTarget(executor, targetPlayer.id, config)) {
+    if (!canTarget(executor, targetPlayer.id)) {
         if (executor instanceof mc.Player) {
             sendMessage('§cYou cannot unfreeze a player with the same or higher rank than you.', executor);
         } else {
