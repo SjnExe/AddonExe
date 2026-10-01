@@ -18,6 +18,7 @@ mock.module('@core/playerDataManager.js', () => ({
     getPlayerIdByName: mock(),
     getPlayerNameById: mock(),
     getVisiblePlayers: mock(),
+    loadPlayerData: mock(),
     updatePlayerData: mock()
 }));
 

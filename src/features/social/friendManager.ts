@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 
 import { getFriendConfig } from '@core/configurations.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
-import { getOrCreatePlayer, getPlayer, getPlayerNameById, getVisiblePlayers, updatePlayerData } from '@core/playerDataManager.js';
+import { FriendRequest, getOrCreatePlayer, getPlayer, getPlayerIdByName, getPlayerNameById, getVisiblePlayers, loadPlayerData, updatePlayerData } from '@core/playerDataManager.js';
 
 import { isDefined } from '@lib/guards.js';
 
@@ -25,33 +25,40 @@ export function isFriend(playerId1: string, playerId2: string): boolean {
 /**
  * Sends a friend request.
  */
-export function sendFriendRequest(sender: mc.Player, targetName: string): { success: boolean; message: string } {
+export function sendFriendRequest(sender: mc.Player, targetInput: string): { success: boolean; message: string } {
     const config = getFriendConfig();
     if (!config.enabled) {
         return { success: false, message: '§cFriend system is disabled.' };
     }
 
-    if (sender.name.toLowerCase() === targetName.toLowerCase()) {
-        return { success: false, message: '§cYou cannot be friends with yourself.' };
-    }
-
     const pData = getOrCreatePlayer(sender);
-    const visible = getVisiblePlayers(sender);
-    const targetPlayer = visible.find((p) => p.name.toLowerCase() === targetName.toLowerCase());
 
-    if (!isDefined(targetPlayer)) {
+    // Resolve target player and target ID
+    let targetPlayer = getVisiblePlayers(sender).find((p) => p.name.toLowerCase() === targetInput.toLowerCase() || p.id === targetInput);
+    let targetId = targetPlayer?.id ?? (getPlayerIdByName(targetInput) || (getPlayer(targetInput) ? targetInput : undefined));
+
+    if (!targetId) {
         return { success: false, message: '§cPlayer not found.' };
     }
 
-    const targetId = targetPlayer.id;
-    const targetData = getOrCreatePlayer(targetPlayer);
+    if (!targetPlayer) {
+        targetPlayer = getPlayerFromCache(targetId);
+    }
+
+    const targetDisplayName = targetPlayer?.name ?? getPlayerNameById(targetId) ?? targetInput;
+
+    if (sender.id === targetId || sender.name.toLowerCase() === targetDisplayName.toLowerCase()) {
+        return { success: false, message: '§cYou cannot be friends with yourself.' };
+    }
+
+    const targetData = targetPlayer ? getOrCreatePlayer(targetPlayer) : loadPlayerData(targetId);
 
     // Strict boolean check for optional chaining
     if (pData.friends && pData.friends.includes(targetId)) {
         return { success: false, message: '§cYou are already friends.' };
     }
 
-    if (targetData.friendRequests && targetData.friendRequests.some((req) => req.senderId === sender.id)) {
+    if (targetData && targetData.friendRequests && targetData.friendRequests.some((req: FriendRequest) => req.senderId === sender.id)) {
         return { success: false, message: '§cYou already sent a request to this player.' };
     }
 
@@ -71,8 +78,10 @@ export function sendFriendRequest(sender: mc.Player, targetName: string): { succ
         });
     });
 
-    targetPlayer.sendMessage(`§aYou received a friend request from §e${sender.name}§a.`);
-    return { success: true, message: `§aFriend request sent to ${targetPlayer.name}.` };
+    if (targetPlayer) {
+        targetPlayer.sendMessage(`§aYou received a friend request from §e${sender.name}§a.`);
+    }
+    return { success: true, message: `§aFriend request sent to ${targetDisplayName}.` };
 }
 
 export function acceptFriendRequest(player: mc.Player, senderId: string): { success: boolean; message: string } {
@@ -126,7 +135,13 @@ export function denyFriendRequest(player: mc.Player, senderId: string): { succes
     return { success: true, message: '§cFriend request denied.' };
 }
 
-export function removeFriend(player: mc.Player, friendId: string): { success: boolean; message: string } {
+export function removeFriend(player: mc.Player, target: string): { success: boolean; message: string } {
+    let friendId = target;
+    const resolvedId = getPlayerIdByName(target);
+    if (resolvedId) {
+        friendId = resolvedId;
+    }
+
     updatePlayerData(player.id, (d) => {
         if (isDefined(d.friends)) {
             d.friends = d.friends.filter((id) => id !== friendId);

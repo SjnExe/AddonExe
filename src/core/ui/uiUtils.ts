@@ -271,7 +271,11 @@ export function handleCommonSelection(player: mc.Player, panelId: string, item: 
         return true;
     }
     if (actionValue === 'nextPage') {
-        void showPanel(player, panelId);
+        const currentPage = (context.page as number) || 1;
+        void showPanel(player, panelId, {
+            ...context,
+            page: currentPage + 1
+        });
         return true;
     }
     return false;

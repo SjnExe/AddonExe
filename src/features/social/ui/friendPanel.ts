@@ -1,6 +1,6 @@
 import { getConfig } from '@core/configManager.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
-import { getOrCreatePlayer, getPlayer, getPlayerIdByName } from '@core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
@@ -82,13 +82,8 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
 
         const res = await modal.show(player);
         if (res && res.name) {
-            const targetId = getPlayerIdByName(res.name);
-            if (targetId) {
-                const result = friendManager.sendFriendRequest(player, targetId);
-                player.sendMessage(result.message);
-            } else {
-                player.sendMessage('§cPlayer not found.');
-            }
+            const result = friendManager.sendFriendRequest(player, res.name);
+            player.sendMessage(result.message);
         }
         await showFriendMainPanel(player);
         return;
@@ -111,13 +106,8 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
         }
 
         if (targetName) {
-            const targetId = getPlayerIdByName(targetName);
-            if (targetId) {
-                const result = friendManager.sendFriendRequest(player, targetId);
-                player.sendMessage(result.message);
-            } else {
-                player.sendMessage('§cPlayer not found.');
-            }
+            const result = friendManager.sendFriendRequest(player, targetName);
+            player.sendMessage(result.message);
         }
     }
 
