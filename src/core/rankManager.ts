@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
 import { config as Config } from '@core/../config.js';
+import { getConfig } from '@core/configManager.js';
 
 import { getRanksConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
