@@ -93,7 +93,7 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
         page,
         (entry, formBuilder) => {
             if (entry.type === 'subCategory') {
-                formBuilder.button(`§l substitute ${entry.name}`, entry.icon, () => {
+                formBuilder.button(`§l📁 ${entry.name}`, entry.icon, () => {
                     void showShopItemListPanel(player, categoryName, entry.id, 1);
                 });
             } else {

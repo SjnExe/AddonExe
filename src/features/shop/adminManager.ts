@@ -399,7 +399,8 @@ export function setItem(categoryName: string, subCategoryName: string | undefine
         sellPrice: itemData.sellPrice,
         permission: itemData.permission ?? 'ui.panel.member',
         icon: itemData.icon,
-        displayName: itemData.displayName
+        displayName: itemData.displayName,
+        ...(isDefined(itemData.rankMultiplierOverrides) ? { rankMultiplierOverrides: itemData.rankMultiplierOverrides } : {})
     };
 
     saveShopConfig(config);
@@ -517,22 +518,29 @@ export function updateShopItem(categoryName: string, subCategoryName: string | u
         return { success: false, message: `Item '${itemId}' not found in shop config.` };
     }
 
-    // Update shop-specific properties
-    targetContainer.items[itemId].buyPrice = newData.buyPrice;
-    targetContainer.items[itemId].sellPrice = newData.sellPrice;
-    targetContainer.items[itemId].permission = newData.permission;
+    const targetKey = isNonEmptyString(newData.itemId) ? newData.itemId : itemId;
+    const existingItemData = targetContainer.items[itemId];
 
-    if (isDefined(newData.rankOverrides)) {
-        targetContainer.items[itemId].rankMultiplierOverrides = newData.rankOverrides;
-    } else {
-        delete targetContainer.items[itemId].rankMultiplierOverrides;
+    if (itemId !== targetKey) {
+        delete targetContainer.items[itemId];
     }
 
-    // Also update denormalized data like icon and displayName for consistency
-    targetContainer.items[itemId].icon = newData.icon;
-    targetContainer.items[itemId].displayName = newData.displayName;
+    targetContainer.items[targetKey] = {
+        ...existingItemData,
+        buyPrice: newData.buyPrice,
+        sellPrice: newData.sellPrice,
+        permission: newData.permission,
+        icon: newData.icon,
+        displayName: newData.displayName
+    };
+
+    if (isDefined(newData.rankOverrides)) {
+        targetContainer.items[targetKey].rankMultiplierOverrides = newData.rankOverrides;
+    } else {
+        delete targetContainer.items[targetKey].rankMultiplierOverrides;
+    }
 
     saveShopConfig(shopConfig);
-    debugLog(`[ShopAdminManager] Updated item '${itemId}' in shop and master list.`);
-    return { success: true, message: `Successfully updated item '${itemId}'.` };
+    debugLog(`[ShopAdminManager] Updated item '${targetKey}' in shop and master list.`);
+    return { success: true, message: `Successfully updated item '${targetKey}'.` };
 }
