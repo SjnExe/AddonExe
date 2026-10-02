@@ -313,6 +313,10 @@ function spawnText(textConfig: FloatingTextConfig) {
         }
 
         const entity = dimension.spawnEntity('exe:floating_text' as unknown as Parameters<typeof dimension.spawnEntity>[0], textConfig.location);
+        if (!isDefined(entity) || !entity.isValid) {
+            errorLog(`[FloatingText] Failed to spawn entity for ID: ${textConfig.id}`);
+            return;
+        }
         const sidebarService = serviceLocator.getService<SidebarService>('sidebar.utils');
         const resolvedText = sidebarService ? sidebarService.resolveGlobalPlaceholders(textConfig.text) : textConfig.text;
         lastResolvedText.set(textConfig.id, resolvedText);
