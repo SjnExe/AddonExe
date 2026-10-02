@@ -133,8 +133,13 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     const bid = response.bid;
     const amount = Number.parseFloat(bid);
 
-    if (Number.isNaN(amount)) {
-        player.sendMessage('§cInvalid number.');
+    if (Number.isNaN(amount) || amount <= 0) {
+        player.sendMessage('§cInvalid bid amount.');
+        return;
+    }
+
+    if (amount < minBid) {
+        player.sendMessage(`§cBid must be at least ${formatCurrency(minBid)}.`);
         return;
     }
 
