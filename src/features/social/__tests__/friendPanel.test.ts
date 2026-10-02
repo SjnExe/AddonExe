@@ -22,10 +22,16 @@ mock.module('@core/playerDataManager.js', () => ({
     updatePlayerData: mock()
 }));
 
+const mockCreateRequest = mock(() => ({ success: true, message: 'TPA request sent.' }));
+
 mock.module('@core/rankManager.js', () => ({
     getPlayerRank: mock(),
     getAllRanks: mock(() => []),
     getRankById: mock()
+}));
+
+mock.module('@features/teleport/tpaManager.js', () => ({
+    createRequest: mockCreateRequest
 }));
 
 const { showManageFriendPanel } = await import('../ui/friendPanel.js');
@@ -33,34 +39,29 @@ const { showManageFriendPanel } = await import('../ui/friendPanel.js');
 describe('friendPanel', () => {
     beforeEach(() => {
         mockGetPlayerFromCache.mockReset();
+        mockCreateRequest.mockClear();
     });
 
     describe('showManageFriendPanel', () => {
-        it('should escape double quotes and backslashes in player names when requesting teleport to prevent command injection', async () => {
-            const mockRunCommand = mock();
-            const mockDimension = {
-                runCommand: mockRunCommand
-            };
+        it('should call createRequest with player, target, and tpa type when Teleport To is used', async () => {
             const player = {
                 id: 'p1',
                 name: 'PlayerOne',
-                sendMessage: mock(),
-                dimension: mockDimension
+                sendMessage: mock()
             } as unknown as mc.Player;
 
             const friendId = 'f1';
-            const maliciousFriend = {
+            const onlineFriend = {
                 id: friendId,
-                name: 'Malicious"Friend\\Name'
+                name: 'FriendName'
             };
 
-            mockGetPlayerFromCache.mockReturnValue(maliciousFriend);
+            mockGetPlayerFromCache.mockReturnValue(onlineFriend);
 
-            await showManageFriendPanel(player, friendId, maliciousFriend.name);
+            await showManageFriendPanel(player, friendId, onlineFriend.name);
 
-            // Verify runCommand was called with escaped name:
-            // "Malicious"Friend\Name" -> "Malicious'FriendName"
-            expect(mockRunCommand).toHaveBeenCalledWith('tpa "Malicious\'FriendName"');
+            expect(mockCreateRequest).toHaveBeenCalledWith(player, onlineFriend, 'tpa');
+            expect(player.sendMessage).toHaveBeenCalledWith('TPA request sent.');
         });
     });
 });
