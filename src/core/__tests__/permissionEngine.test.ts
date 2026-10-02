@@ -38,27 +38,36 @@ mock.module('@core/configManager.js', () => ({
     getConfig: () => Config
 }));
 
+import * as realPlayerCache from '../playerCache.js';
+
 mock.module('../playerCache.js', () => ({
-    getAllPlayersFromCache: () => [{ id: 'player1' }, { id: 'player2' }]
+    ...realPlayerCache
 }));
 
 // Mock both path styles to accommodate PR 1303's path alias change
 mock.module('../playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
 mock.module('@core/playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
 
+import * as realRankManager from '../rankManager.js';
+
 mock.module('../rankManager.js', () => ({
-    getRankById: mockGetRankById,
-    getAllRanks: mockGetAllRanks
+    getRankById: (id: string) => mockGetRankById(id),
+    getAllRanks: () => mockGetAllRanks()
 }));
 mock.module('@core/rankManager.js', () => ({
-    getRankById: mockGetRankById,
-    getAllRanks: mockGetAllRanks
+    getRankById: (id: string) => mockGetRankById(id),
+    getAllRanks: () => mockGetAllRanks()
 }));
 
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
+
 mock.module('@minecraft/server', () => ({
-    system: { currentTick: 100 },
+    ...mcMock,
+    system: { ...mcMock.system, currentTick: 100 },
     world: {
+        ...mcMock.world,
         afterEvents: {
+            ...mcMock.world.afterEvents,
             playerLeave: { subscribe: () => {} }
         }
     }
@@ -71,6 +80,9 @@ import { calculatePlayerMap, calculateRankMap, getPlayerRanks, hasPermission, in
 
 // Helper to reset baseline test environments (Main and PR 1311 specs)
 function resetToBaseDefaults() {
+    realPlayerCache.addPlayerToCache({ id: 'player1', name: 'player1', isValid: true } as any);
+    realPlayerCache.addPlayerToCache({ id: 'player2', name: 'player2', isValid: true } as any);
+
     mockGetPlayer.mockImplementation((id: string) => {
         if (id === 'test-player-1') {
             return { id: 'test-player-1', name: 'TestPlayer', ranks: ['test-rank'] };

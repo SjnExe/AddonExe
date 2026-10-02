@@ -1,8 +1,7 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as mc from '@minecraft/server';
-
-import { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } from '../manager.js';
+import defaultConfig from '../../../config.js';
 
 mock.module('@core/configurations.js', () => ({
     getSidebarConfig: () => ({
@@ -27,16 +26,18 @@ mock.module('@core/configurations.js', () => ({
 
 mock.module('@core/configManager.js', () => ({
     getConfig: () => ({
+        ...defaultConfig,
         serverName: 'Test Server'
     })
 }));
 
-mock.module('@core/playerCache.js', () => ({
-    getAllPlayersFromCache: () => [],
-    getPlayerCount: () => 5
-}));
+import { initializePlayerCache } from '@core/playerCache.js';
+import * as playerCache from '@core/playerCache.js';
+
+import * as realPlayerDataManager from '@core/playerDataManager.js';
 
 mock.module('@core/playerDataManager.js', () => ({
+    ...realPlayerDataManager,
     getPlayer: () => ({
         balance: 1000,
         kills: 10,
@@ -47,13 +48,23 @@ mock.module('@core/playerDataManager.js', () => ({
     getPlayTime: () => 3600
 }));
 
+import * as realRankManager from '@core/rankManager.js';
+
 mock.module('@core/rankManager.js', () => ({
+    ...realRankManager,
     getPlayerRank: () => ({
         name: 'VIP'
     })
 }));
 
+const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } = await import('../manager.js');
+
 describe('Sidebar Manager', () => {
+    beforeEach(() => {
+        initializePlayerCache();
+        spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
+    });
+
     it('should resolve global placeholders correctly', () => {
         const text = 'Server: {server_name} | Online: {online}/{max_online}';
         const resolved = resolveGlobalPlaceholders(text);

@@ -1,13 +1,11 @@
 import * as mc from '@minecraft/server';
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
-const mockDebugLog = mock();
+import * as logger from '@core/logger.js';
+const mockDebugLog = spyOn(logger, 'debugLog');
 const mockStorageLoad = mock();
 const mockStorageSave = mock();
 
-mock.module('@core/logger.js', () => ({
-    debugLog: mockDebugLog
-}));
 
 mock.module('@core/storage/StorageManager.js', () => ({
     StorageManager: class {

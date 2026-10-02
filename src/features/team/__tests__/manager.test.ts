@@ -1,13 +1,11 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import defaultConfig from '../../../config.js';
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 
 mock.module('@minecraft/server', () => ({
-    system: { runJob: mock() },
-    world: {
-        getDynamicProperty: mock(),
-        setDynamicProperty: mock(),
-        getDimension: mock()
-    },
-    Player: class {}
+    ...mcMock,
+    system: { ...mcMock.system, runJob: mock() },
+    world: mcMock.world
 }));
 
 mock.module('@core/configManager.js', () => ({
@@ -18,16 +16,13 @@ mock.module('@core/configurations.js', () => ({
     getTeamConfig: mock()
 }));
 
-mock.module('@core/logger.js', () => ({
-    debugLog: mock(),
-    errorLog: mock()
-}));
 
-mock.module('@core/playerCache.js', () => ({
-    getPlayerFromCache: mock()
-}));
+import { initializePlayerCache } from '@core/playerCache.js';
+
+import * as realPlayerDataManager from '@core/playerDataManager.js';
 
 mock.module('@core/playerDataManager.js', () => ({
+    ...realPlayerDataManager,
     getOrCreatePlayer: mock(),
     getPlayer: mock(),
     incrementPlayerBalance: mock(),
@@ -113,6 +108,7 @@ describe('Team Manager', () => {
         });
 
         (getConfig as ReturnType<typeof mock>).mockReturnValue({
+            ...defaultConfig,
             economy: { enabled: false }
         });
 
@@ -215,6 +211,7 @@ describe('Team Manager', () => {
         });
 
         it('should avoid ID collision if persistent dynamic property already exists', () => {
+            const originalGetDynamicProperty = (mc.world.getDynamicProperty as ReturnType<typeof mock>).getMockImplementation();
             (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation((key: string) => {
                 if (key === 'exe:team.1') {
                     return JSON.stringify({ id: 1, name: 'ExistingTeam' });
@@ -225,13 +222,17 @@ describe('Team Manager', () => {
                 return undefined;
             });
 
-            const player1 = { id: 'player1' } as mc.Player;
-            const result = createTeam(player1, 'NewTeam');
+            try {
+                const player1 = { id: 'player1' } as mc.Player;
+                const result = createTeam(player1, 'NewTeam');
 
-            expect(result.success).toBe(true);
-            const team = getTeamByPlayer('player1');
-            expect(team).toBeDefined();
-            expect(team?.id).toBeGreaterThan(1);
+                expect(result.success).toBe(true);
+                const team = getTeamByPlayer('player1');
+                expect(team).toBeDefined();
+                expect(team?.id).toBeGreaterThan(1);
+            } finally {
+                (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation(originalGetDynamicProperty ?? (() => undefined));
+            }
         });
     });
 

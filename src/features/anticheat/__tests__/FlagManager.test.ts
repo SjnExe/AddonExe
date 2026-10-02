@@ -2,39 +2,21 @@ import * as mc from '@minecraft/server';
 import { describe, expect, it, mock } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
-import { escapeCommandArg } from '@core/utils.js';
-
-// Mock formatString and escapeCommandArg
-const mockFormatString = mock((template: string, context: any) => {
-    let result = template;
-    for (const key in context) {
-        result = result.replaceAll(`{${key}}`, context[key]);
-    }
-    return result;
-});
+import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
+import * as realUtils from '@core/utils.js';
 
 mock.module('@core/utils.js', () => ({
-    formatString: mockFormatString,
-    escapeCommandArg: escapeCommandArg,
-    sanitizeString: (str: string) => str,
+    ...realUtils,
     uiWait: mock(async () => ({ canceled: false })),
     getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
     getCountdownColor: mock(() => '§a'),
     playClickSound: mock(() => {}),
-    formatCurrency: (val: number) => `$${val}`,
     playSound: mock(),
     resolveTarget: mock(() => [])
 }));
 
-mock.module('@core/logger.js', () => ({
-    debugLog: mock(),
-    errorLog: mock()
-}));
 
-// Mock minimal dependencies of flagManager
-mock.module('@core/playerCache.js', () => ({
-    getAllPlayersFromCache: mock()
-}));
+import { initializePlayerCache } from '@core/playerCache.js';
 
 mock.module('@core/playerDataManager.js', () => ({
     getPlayer: mock()
@@ -49,7 +31,10 @@ mock.module('@core/storage/StorageManager.js', () => ({
     }
 }));
 
+import * as realGuards from '@lib/guards.js';
+
 mock.module('@lib/guards.js', () => ({
+    ...realGuards,
     isDefined: (val: any) => val !== undefined && val !== null
 }));
 
@@ -57,7 +42,10 @@ mock.module('@features/anticheat/anticheatConfig.js', () => ({}));
 mock.module('@features/anticheat/configLoader.js', () => ({
     getAnticheatConfig: mock()
 }));
+import * as realLogManager from '@features/anticheat/logManager.js';
+
 mock.module('@features/anticheat/logManager.js', () => ({
+    ...realLogManager,
     addFlagLog: mock()
 }));
 

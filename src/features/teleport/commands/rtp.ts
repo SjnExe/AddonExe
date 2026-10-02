@@ -23,7 +23,7 @@ const rtpCommand: CustomCommand = {
         }
 
         const config = getConfig();
-        if (!config.rtp.enabled) {
+        if (!config?.rtp?.enabled) {
             sendMessage('§cThe RTP system is currently disabled globally.', executor);
             return;
         }
@@ -33,7 +33,9 @@ const rtpCommand: CustomCommand = {
             return;
         }
 
-        await findSafeLocationAndTeleport(executor, config.rtp.minRange, config.rtp.maxRange);
+        const minRange = config.rtp.minRange ?? 1000;
+        const maxRange = config.rtp.maxRange ?? 10000;
+        await findSafeLocationAndTeleport(executor, minRange, maxRange);
     }
 };
 
@@ -82,7 +84,7 @@ function initiateTeleport(player: mc.Player, location: mc.Vector3, tickingAreaNa
             player.teleport(location);
             sendMessage('§aYou have been teleported to a random location!', player);
             const config = getConfig();
-            setCooldown(player.id, 'rtp', config.rtp.cooldownSeconds);
+            setCooldown(player.id, 'rtp', config?.rtp?.cooldownSeconds ?? 600);
         } catch (error: unknown) {
             const stack = error instanceof Error ? error.stack : String(error);
             sendMessage('§cFailed to teleport to the location. Please try again.', player);
@@ -155,7 +157,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
             const safeLoc = findSafeSpotInArea(player.dimension, centerX, centerZ, searchRadius);
 
             if (safeLoc) {
-                const warmupSeconds = getConfig().rtp.teleportWarmupSeconds;
+                const warmupSeconds = getConfig()?.rtp?.teleportWarmupSeconds ?? 10;
                 initiateTeleport(player, safeLoc, tickingAreaName, warmupSeconds);
                 keepTickingArea = true;
                 return;

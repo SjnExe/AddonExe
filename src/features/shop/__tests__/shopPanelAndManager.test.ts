@@ -9,10 +9,6 @@ mock.module('@core/configurations.js', () => ({
     saveShopConfig: mock()
 }));
 
-mock.module('@core/logger.js', () => ({
-    debugLog: mock(),
-    errorLog: mock()
-}));
 
 import { setItem, updateShopItem } from '../adminManager.js';
 import { parseRankOverrides } from '../utils.js';
