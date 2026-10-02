@@ -1,4 +1,3 @@
-import { MinecraftBlockTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 import JSON5 from 'json5';
 import path from 'node:path';
 
@@ -102,7 +101,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
                     const res = await fetch(`https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/${file}`);
                     if (res.ok) {
                         const text = await res.text();
-                        const matches = text.match(/textures\/ui\/[a-zA-Z0-9_]+/g);
+                        const matches = text.match(/textures\/ui\/[a-zA-Z0-9_\-\/]+/g);
                         if (matches) {
                             matches.forEach((m) => texturesToCache.push(m));
                         }
@@ -120,18 +119,6 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
     } catch (e) {
         console.error('[IconLint] Failed to fetch vanilla textures:', e);
         process.exit(1);
-    }
-
-    // 5. Populate texture paths directly from @minecraft/vanilla-data package
-    for (const itemTypeId of Object.values(MinecraftItemTypes)) {
-        const cleanId = itemTypeId.replace('minecraft:', '');
-        validTextures.add(`textures/items/${cleanId}`);
-        validTextures.add(`textures/item/${cleanId}`);
-    }
-    for (const blockTypeId of Object.values(MinecraftBlockTypes)) {
-        const cleanId = blockTypeId.replace('minecraft:', '');
-        validTextures.add(`textures/blocks/${cleanId}`);
-        validTextures.add(`textures/block/${cleanId}`);
     }
 
     return validTextures;
