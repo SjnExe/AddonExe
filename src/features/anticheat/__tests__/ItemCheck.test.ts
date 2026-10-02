@@ -6,8 +6,11 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 // Mocks
+import * as realFlagManager from '../flagManager.js';
+
 const mockFlag = mock();
 mock.module('../flagManager.js', () => ({
+    ...realFlagManager,
     flag: mockFlag
 }));
 

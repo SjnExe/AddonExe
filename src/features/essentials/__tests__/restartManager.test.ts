@@ -1,15 +1,13 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import defaultConfig from '../../../config.js';
+
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 
 const mockGetConfig = mock();
-const mockGetAllPlayersFromCache = mock();
 
 mock.module('@core/configManager.js', () => ({
     getConfig: mockGetConfig
-}));
-
-mock.module('@core/playerCache.js', () => ({
-    getAllPlayersFromCache: mockGetAllPlayersFromCache
 }));
 
 const { startRestart, cancelRestart } = await import('../restartManager.js');
@@ -19,6 +17,7 @@ describe('restartManager', () => {
 
     beforeEach(() => {
         mock.restore();
+        initializePlayerCache();
         intervalCallback = undefined;
 
         (mc.world.sendMessage as ReturnType<typeof mock>).mockReset();
@@ -31,6 +30,7 @@ describe('restartManager', () => {
         });
 
         mockGetConfig.mockReturnValue({
+            ...defaultConfig,
             restart: {
                 countdownSeconds: 2,
                 subtitle: 'Server maintenance',
@@ -50,7 +50,7 @@ describe('restartManager', () => {
             playSound: mock()
         };
 
-        mockGetAllPlayersFromCache.mockReturnValue([mockPlayer1]);
+        addPlayerToCache(mockPlayer1 as any);
 
         startRestart();
 

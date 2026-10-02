@@ -1,3 +1,6 @@
+import * as realUtils from '@core/utils.js';
+import { formatCurrency } from '@core/utils/economy.js';
+import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
@@ -6,17 +9,22 @@ const mockGetPlayerRank = mock();
 const mockLoadPlayerData = mock();
 const mockCanTarget = mock();
 
+import * as realRankManager from '@core/rankManager.js';
+
 mock.module('@core/rankManager.js', () => ({
+    ...realRankManager,
     getPlayerRank: mockGetPlayerRank,
-    canTarget: mockCanTarget,
-    getRankById: mock()
+    canTarget: mockCanTarget
 }));
 
+import * as realPlayerDataManager from '@core/playerDataManager.js';
+
 mock.module('@core/playerDataManager.js', () => ({
+    ...realPlayerDataManager,
     getPlayer: mock(),
     loadPlayerData: mockLoadPlayerData,
     getOrCreatePlayer: mock(),
-    getPlayerIdByName: mock(() => 'targetId')
+    getPlayerIdByName: (name: string) => (name.toLowerCase() === 'target' ? 'targetId' : undefined)
 }));
 
 mock.module('@core/messaging.js', () => ({
@@ -28,6 +36,7 @@ mock.module('@core/messaging.js', () => ({
 }));
 
 mock.module('@core/utils.js', () => ({
+    ...realUtils,
     playSound: mock(),
     resolveTarget: mock((name) => {
         if (name === 'target') {
@@ -39,13 +48,16 @@ mock.module('@core/utils.js', () => ({
     getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
     getCountdownColor: mock(() => '§a'),
     playClickSound: mock(() => {}),
-    formatCurrency: (val: number) => `$${val}`,
-    formatString: (template: string, context: any) => template,
-    escapeCommandArg: (str: string) => str,
-    sanitizeString: (str: string) => str
+    formatCurrency,
+    formatString: realUtils.formatString,
+    escapeCommandArg,
+    sanitizeString
 }));
 
+import * as realLogManager from '@features/anticheat/logManager.js';
+
 mock.module('@features/anticheat/logManager.js', () => ({
+    ...realLogManager,
     addPunishmentLog: mock()
 }));
 

@@ -1,26 +1,22 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
+
 const mockUpdatePlayerData = mock();
-const mockGetPlayerFromCache = mock();
+
+import * as realPlayerDataManager from '@core/playerDataManager.js';
 
 mock.module('@core/playerDataManager.js', () => ({
-    updatePlayerData: mockUpdatePlayerData,
-    getPlayer: mock(),
-    getOrCreatePlayer: mock(),
-    getPlayerIdByName: mock(),
-    getPlayerNameById: mock(),
-    getVisiblePlayers: mock(),
-    loadPlayerData: mock()
+    ...realPlayerDataManager,
+    updatePlayerData: mockUpdatePlayerData
 }));
 
-mock.module('@core/playerCache.js', () => ({
-    getPlayerFromCache: mockGetPlayerFromCache,
-    getAllPlayersFromCache: mock(() => [])
-}));
+import * as realConfigs from '@core/configurations.js';
 
 mock.module('@core/configurations.js', () => ({
-    getFriendConfig: mock(),
+    ...realConfigs,
+    getFriendConfig: mock(() => ({ enabled: true, maxFriends: 50 })),
     getRanksConfig: mock()
 }));
 
@@ -32,8 +28,8 @@ const { removeFriend } = await import('../friendManager.js');
 
 describe('friendManager', () => {
     beforeEach(() => {
+        initializePlayerCache();
         mockUpdatePlayerData.mockReset();
-        mockGetPlayerFromCache.mockReset();
     });
 
     describe('removeFriend', () => {
@@ -58,14 +54,13 @@ describe('friendManager', () => {
             });
 
             const exFriend = { id: 'f1', name: 'FriendOne', sendMessage: mock() } as unknown as mc.Player;
-            mockGetPlayerFromCache.mockReturnValue(exFriend);
+            addPlayerToCache(exFriend);
 
             const result = removeFriend(player, friendId);
 
             expect(result.success).toBe(true);
             expect(result.message).toBe('§aFriend removed.');
             expect(mockUpdatePlayerData).toHaveBeenCalledTimes(2);
-            expect(mockGetPlayerFromCache).toHaveBeenCalledWith('f1');
             expect(exFriend.sendMessage).toHaveBeenCalledWith(`§cPlayerOne removed you from their friends list.`);
         });
 
@@ -78,14 +73,11 @@ describe('friendManager', () => {
                 cb(data);
             });
 
-            mockGetPlayerFromCache.mockReturnValue(undefined); // Offline
-
             const result = removeFriend(player, friendId);
 
             expect(result.success).toBe(true);
             expect(result.message).toBe('§aFriend removed.');
             expect(mockUpdatePlayerData).toHaveBeenCalledTimes(2);
-            expect(mockGetPlayerFromCache).toHaveBeenCalledWith('f1');
         });
 
         it('should handle undefined friends lists safely', () => {
@@ -97,8 +89,6 @@ describe('friendManager', () => {
                 cb(data);
                 expect(data.friends).toBeUndefined();
             });
-
-            mockGetPlayerFromCache.mockReturnValue(undefined);
 
             const result = removeFriend(player, friendId);
 

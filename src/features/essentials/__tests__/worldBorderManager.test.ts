@@ -56,8 +56,8 @@ describe('worldBorderManager', () => {
     });
 
     it('should teleport players who exceed world border bounds', () => {
-        setWorldBorder(true, 0, 0, 100, 'overworld');
         initializeWorldBorder();
+        setWorldBorder(true, 0, 0, 100, MinecraftDimensionTypes.Overworld);
 
         const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
         const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
@@ -65,10 +65,10 @@ describe('worldBorderManager', () => {
         const player = new PlayerMock('p1', 'Player1');
         player.teleport = mock();
         player.sendMessage = mock();
-        player.location = { x: 150, y: 64, z: 50, dimension: new DimensionMock('overworld') };
+        player.location = { x: 150, y: 64, z: 50, dimension: new DimensionMock(MinecraftDimensionTypes.Overworld) };
 
         Object.defineProperty(player, 'dimension', {
-            value: new DimensionMock('overworld'),
+            value: new DimensionMock(MinecraftDimensionTypes.Overworld),
             writable: true
         });
 
@@ -81,18 +81,18 @@ describe('worldBorderManager', () => {
     });
 
     it('should not teleport players inside world border bounds', () => {
-        setWorldBorder(true, 0, 0, 100, 'overworld');
         initializeWorldBorder();
+        setWorldBorder(true, 0, 0, 100, MinecraftDimensionTypes.Overworld);
 
         const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
         const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
 
         const player = new PlayerMock('p1', 'Player1');
         player.teleport = mock();
-        player.location = { x: 50, y: 64, z: 50, dimension: new DimensionMock('overworld') };
+        player.location = { x: 50, y: 64, z: 50, dimension: new DimensionMock(MinecraftDimensionTypes.Overworld) };
 
         Object.defineProperty(player, 'dimension', {
-            value: new DimensionMock('overworld'),
+            value: new DimensionMock(MinecraftDimensionTypes.Overworld),
             writable: true
         });
 
@@ -104,8 +104,8 @@ describe('worldBorderManager', () => {
     });
 
     it('should ignore admin and owner tagged players', () => {
-        setWorldBorder(true, 0, 0, 100, 'overworld');
         initializeWorldBorder();
+        setWorldBorder(true, 0, 0, 100, MinecraftDimensionTypes.Overworld);
 
         const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
         const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
@@ -113,10 +113,10 @@ describe('worldBorderManager', () => {
         const adminPlayer = new PlayerMock('admin1', 'Admin');
         adminPlayer.addTag('admin');
         adminPlayer.teleport = mock();
-        adminPlayer.location = { x: 500, y: 64, z: 500, dimension: new DimensionMock('overworld') };
+        adminPlayer.location = { x: 500, y: 64, z: 500, dimension: new DimensionMock(MinecraftDimensionTypes.Overworld) };
 
         Object.defineProperty(adminPlayer, 'dimension', {
-            value: new DimensionMock('overworld'),
+            value: new DimensionMock(MinecraftDimensionTypes.Overworld),
             writable: true
         });
 
@@ -128,8 +128,8 @@ describe('worldBorderManager', () => {
     });
 
     it('benchmark: cached player retrieval is faster and allocates fewer arrays than dim.getPlayers()', () => {
-        setWorldBorder(true, 0, 0, 100, 'overworld');
         initializeWorldBorder();
+        setWorldBorder(true, 0, 0, 100, 'overworld');
 
         const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
         const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;

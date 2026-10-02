@@ -1,5 +1,6 @@
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import defaultConfig from '../../../config.js';
 
 // Mocks
 const mockGetConfig = mock();
@@ -10,11 +11,6 @@ const mockErrorLog = mock((msg) => console.log('ERROR LOG:', msg));
 mock.module('@core/configManager.js', () => ({
     getConfig: mockGetConfig,
     updateMultipleConfig: mockUpdateMultipleConfig
-}));
-
-mock.module('@core/logger.js', () => ({
-    debugLog: mockDebugLog,
-    errorLog: mockErrorLog
 }));
 
 const { addItemToKit } = await import('../itemsManager.js');
@@ -28,7 +24,9 @@ describe('Kit Items Manager', () => {
 
         // Setup default config mock
         mockGetConfig.mockReturnValue({
+            ...defaultConfig,
             kits: {
+                ...defaultConfig.kits,
                 kitDefinitions: {
                     TestKit: {
                         items: []

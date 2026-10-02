@@ -1,19 +1,16 @@
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
-const mockErrorLog = mock();
 const mockPlaySound = mock();
 const mockGetCountdownColor = mock();
-const mockSetActionBarOverride = mock();
 const mockDistance = mock();
 const mockSubscribe = mock();
 const mockUnsubscribe = mock();
 const mockRunInterval = mock();
 const mockClearRun = mock();
 
-mock.module('@core/logger.js', () => ({
-    errorLog: mockErrorLog
-}));
+import * as logger from '@core/logger.js';
+const mockErrorLog = spyOn(logger, 'errorLog');
 
 mock.module('@core/utils/sound.js', () => ({
     playSound: mockPlaySound
@@ -27,9 +24,8 @@ mock.module('@core/utils/ui.js', () => ({
     playClickSound: mock(() => {})
 }));
 
-mock.module('@features/sidebar/manager.js', () => ({
-    setActionBarOverride: mockSetActionBarOverride
-}));
+import * as sidebarManager from '@features/sidebar/manager.js';
+const mockSetActionBarOverride = spyOn(sidebarManager, 'setActionBarOverride');
 
 mock.module('@minecraft/math', () => ({
     Vector3Utils: {
@@ -37,13 +33,19 @@ mock.module('@minecraft/math', () => ({
     }
 }));
 
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
+
 mock.module('@minecraft/server', () => ({
+    ...mcMock,
     system: {
+        ...mcMock.system,
         runInterval: mockRunInterval,
         clearRun: mockClearRun
     },
     world: {
+        ...mcMock.world,
         afterEvents: {
+            ...mcMock.world.afterEvents,
             entityHurt: {
                 subscribe: mockSubscribe,
                 unsubscribe: mockUnsubscribe

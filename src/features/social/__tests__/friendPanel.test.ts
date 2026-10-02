@@ -1,33 +1,25 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import defaultConfig from '../../../config.js';
 
-const mockGetPlayerFromCache = mock();
-
-mock.module('@core/playerCache.js', () => ({
-    getPlayerFromCache: mockGetPlayerFromCache,
-    getAllPlayersFromCache: mock()
-}));
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 
 mock.module('@core/configManager.js', () => ({
-    getConfig: mock()
+    getConfig: mock(() => defaultConfig)
 }));
 
+import * as realPlayerDataManager from '@core/playerDataManager.js';
+
 mock.module('@core/playerDataManager.js', () => ({
-    getOrCreatePlayer: mock(),
-    getPlayer: mock(),
-    getPlayerIdByName: mock(),
-    getPlayerNameById: mock(),
-    getVisiblePlayers: mock(),
-    loadPlayerData: mock(),
-    updatePlayerData: mock()
+    ...realPlayerDataManager
 }));
 
 const mockCreateRequest = mock(() => ({ success: true, message: 'TPA request sent.' }));
 
+import * as realRankManager from '@core/rankManager.js';
+
 mock.module('@core/rankManager.js', () => ({
-    getPlayerRank: mock(),
-    getAllRanks: mock(() => []),
-    getRankById: mock()
+    ...realRankManager
 }));
 
 mock.module('@features/teleport/tpaManager.js', () => ({
@@ -38,7 +30,7 @@ const { showManageFriendPanel } = await import('../ui/friendPanel.js');
 
 describe('friendPanel', () => {
     beforeEach(() => {
-        mockGetPlayerFromCache.mockReset();
+        initializePlayerCache();
         mockCreateRequest.mockClear();
     });
 
@@ -56,7 +48,7 @@ describe('friendPanel', () => {
                 name: 'FriendName'
             };
 
-            mockGetPlayerFromCache.mockReturnValue(onlineFriend);
+            addPlayerToCache(onlineFriend as any);
 
             await showManageFriendPanel(player, friendId, onlineFriend.name);
 

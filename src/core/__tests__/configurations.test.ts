@@ -7,7 +7,10 @@ const mockConfigManagerInstance = {
     reset: mock()
 };
 
+import * as realFactory from '@core/configManagerFactory.js';
+
 mock.module('@core/configManagerFactory.js', () => ({
+    ...realFactory,
     default: mock(() => mockConfigManagerInstance)
 }));
 

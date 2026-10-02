@@ -1,5 +1,6 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import defaultConfig from '../../config.js';
 
 const { mockStorageSave } = {
     mockStorageSave: mock()
@@ -7,15 +8,19 @@ const { mockStorageSave } = {
 
 mock.module('../configManager.js', () => ({
     getConfig: () => ({
+        ...defaultConfig,
         data: {
+            ...defaultConfig.data,
             autoSaveIntervalSeconds: 300
         },
         economy: {
+            ...defaultConfig.economy,
             enabled: true,
             minBalance: -1000,
             maxBalance: 1_000_000
         },
         playerDefaults: {
+            ...defaultConfig.playerDefaults,
             rankId: 'member',
             permission: 'ui.panel.member',
             xrayNotificationsEnabled: false
@@ -23,24 +28,16 @@ mock.module('../configManager.js', () => ({
     })
 }));
 
+import * as realConfigs from '../configurations.js';
+
 mock.module('../configurations.js', () => ({
+    ...realConfigs,
     getEconomyConfig: () => ({
         enabled: true,
         startingBalance: 0,
         minBalance: -1000,
         maxBalance: 1_000_000
-    }),
-    getWorldProtectionConfig: mock(),
-    getShopConfig: mock(),
-    getRanksConfig: mock(),
-    getXrayConfig: mock(),
-    getTeamConfig: mock(),
-    getFriendConfig: mock(),
-    getSidebarConfig: mock(),
-    getAuctionHouseConfig: mock(),
-    getDailyRewardsConfig: mock(),
-    getGamesConfig: mock(),
-    getWordleConfig: mock()
+    })
 }));
 
 mock.module('@core/storage/StorageManager.js', () => ({
