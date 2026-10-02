@@ -1,5 +1,5 @@
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 // Shared tracking variables for dynamic test scenarios
 let rankPermissions: Record<string, string[]> = {
@@ -15,15 +15,21 @@ const mockGetAllRanks = mock(() => []);
 
 // --- MODULE MOCKS ---
 
+import * as realConfigurations from '../configurations.js';
+
+const mockGetRanksConfig = mock(() => ({
+    rankDefinitions: [],
+    permissionGroups: {
+        groupA: ['node.a', 'node.b'],
+        groupB: ['node.c'],
+        groupOverride: ['node.a'],
+        emptyGroup: []
+    }
+}));
+
 mock.module('../configurations.js', () => ({
-    getRanksConfig: () => ({
-        permissionGroups: {
-            groupA: ['node.a', 'node.b'],
-            groupB: ['node.c'],
-            groupOverride: ['node.a'],
-            emptyGroup: []
-        }
-    })
+    ...realConfigurations,
+    getRanksConfig: mockGetRanksConfig
 }));
 
 mock.module('../../config.js', () => ({
@@ -48,7 +54,18 @@ mock.module('../playerCache.js', () => ({
 mock.module('../playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
 mock.module('@core/playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
 
-import * as rankManager from '../rankManager.js';
+import * as realRankManager from '../rankManager.js';
+
+mock.module('../rankManager.js', () => ({
+    ...realRankManager,
+    getRankById: (id: string) => mockGetRankById(id),
+    getAllRanks: () => mockGetAllRanks()
+}));
+mock.module('@core/rankManager.js', () => ({
+    ...realRankManager,
+    getRankById: (id: string) => mockGetRankById(id),
+    getAllRanks: () => mockGetAllRanks()
+}));
 
 import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 
@@ -326,8 +343,6 @@ describe('getPlayerRanks', () => {
         mockGetAllRanks.mockClear();
         mockGetRankById.mockClear();
 
-        spyOn(rankManager, 'getRankById').mockImplementation((id: string) => mockGetRankById(id) as any);
-        spyOn(rankManager, 'getAllRanks').mockImplementation(() => mockGetAllRanks() as any);
 
         config.playerDefaults.rankId = 'defaultRank';
     });
