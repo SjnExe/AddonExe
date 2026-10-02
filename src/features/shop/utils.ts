@@ -39,28 +39,57 @@ export function getAllItems(): Record<string, Item> {
 
 /**
  * Parses rank override string into a record of multipliers.
- * @param overridesRaw String format "rank1=buy,sell;rank2=buy,sell"
+ * Supports formats like "rank1=buy,sell;rank2=buy,sell" or "rank1:buy:sell,rank2:buy:sell".
  */
 export function parseRankOverrides(overridesRaw: string | undefined): Record<string, { buy: number; sell: number }> | undefined {
     let parsedOverrides: Record<string, { buy: number; sell: number }> | undefined = undefined;
 
     if (isNonEmptyString(overridesRaw)) {
         parsedOverrides = {};
-        const pairs = overridesRaw.split(';');
+        const pairs = overridesRaw.includes(';') ? overridesRaw.split(';') : overridesRaw.split(',');
+
         for (const pair of pairs) {
-            const parts = pair.trim().split('=');
-            if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
-                const rankId = parts[0].trim();
-                const multiParts = parts[1].split(',');
-                if (multiParts.length === 2) {
-                    const buyM = Number.parseFloat(multiParts[0]!);
-                    const sellM = Number.parseFloat(multiParts[1]!);
-                    if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
+            const trimmed = pair.trim();
+            if (!trimmed) {
+                continue;
+            }
+
+            if (trimmed.includes('=')) {
+                const parts = trimmed.split('=');
+                if (parts.length === 2 && isNonEmptyString(parts[0]) && isNonEmptyString(parts[1])) {
+                    const rankId = parts[0].trim();
+                    const multiParts = parts[1].includes(':') ? parts[1].split(':') : parts[1].split(',');
+                    if (multiParts.length === 2) {
+                        const buyM = Number.parseFloat(multiParts[0]!.trim());
+                        const sellM = Number.parseFloat(multiParts[1]!.trim());
+                        if (!Number.isNaN(buyM) && !Number.isNaN(sellM)) {
+                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
+                        }
+                    }
+                }
+            } else if (trimmed.includes(':')) {
+                const parts = trimmed.split(':');
+                if (parts.length === 3) {
+                    const rankId = parts[0]!.trim();
+                    const buyM = Number.parseFloat(parts[1]!.trim());
+                    const sellM = Number.parseFloat(parts[2]!.trim());
+                    if (isNonEmptyString(rankId) && !Number.isNaN(buyM) && !Number.isNaN(sellM)) {
                         parsedOverrides[rankId] = { buy: buyM, sell: sellM };
+                    }
+                } else if (parts.length === 2) {
+                    const rankId = parts[0]!.trim();
+                    const multiParts = parts[1]!.split(',');
+                    if (multiParts.length === 2) {
+                        const buyM = Number.parseFloat(multiParts[0]!.trim());
+                        const sellM = Number.parseFloat(multiParts[1]!.trim());
+                        if (isNonEmptyString(rankId) && !Number.isNaN(buyM) && !Number.isNaN(sellM)) {
+                            parsedOverrides[rankId] = { buy: buyM, sell: sellM };
+                        }
                     }
                 }
             }
         }
+
         if (Object.keys(parsedOverrides).length === 0) {
             parsedOverrides = undefined;
         }

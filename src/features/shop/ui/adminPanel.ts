@@ -432,9 +432,9 @@ export async function showEditItemFormPanel(player: mc.Player, categoryName: str
     if (item.rankMultiplierOverrides) {
         const parts: string[] = [];
         for (const [rank, prices] of Object.entries(item.rankMultiplierOverrides)) {
-            parts.push(`${rank}:${prices.buy}:${prices.sell}`);
+            parts.push(`${rank}=${prices.buy},${prices.sell}`);
         }
-        overridesStr = parts.join(',');
+        overridesStr = parts.join(';');
     }
 
     const modal = new CustomFormBuilder<{

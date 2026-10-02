@@ -101,7 +101,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
                     const res = await fetch(`https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/${file}`);
                     if (res.ok) {
                         const text = await res.text();
-                        const matches = text.match(/textures\/ui\/[a-zA-Z0-9_\-\/]+/g);
+                        const matches = text.match(/textures\/ui\/[a-zA-Z0-9_\-/]+/g);
                         if (matches) {
                             matches.forEach((m) => texturesToCache.push(m));
                         }

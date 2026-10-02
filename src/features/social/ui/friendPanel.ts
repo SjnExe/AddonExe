@@ -2,9 +2,9 @@ import { getConfig } from '@core/configManager.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
-import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as friendManager from '@features/social/friendManager.js';
+import { createRequest } from '@features/teleport/tpaManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
@@ -168,13 +168,8 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
 
     if (onlineP) {
         form.button('Teleport To', 'textures/ui/icon_map', () => {
-            player.sendMessage(`§eRequesting teleport to ${friendName}...`);
-            // Assuming TPA manager logic here or just direct tp if allowed.
-            // We'll use the existing TPA system via a command execution or direct call if available.
-            const safeTargetName = escapeCommandArg(onlineP.name);
-            player.dimension.runCommand(`tpa "${safeTargetName}"`);
-            // Note: Using command as a shortcut since TPA logic might be command-based.
-            // Ideally this calls a function in teleport manager.
+            const result = createRequest(player, onlineP, 'tpa');
+            player.sendMessage(result.message);
         });
     }
 
