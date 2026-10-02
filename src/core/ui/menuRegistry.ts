@@ -258,8 +258,13 @@ export function initializeDefaultMenuItems(): void {
         featureId: 'ranks',
         order: 40,
         action: async (p) => {
-            const { showRankSystemConfigPanel } = await import('@features/ranks/ui/adminPanel.js');
-            await showRankSystemConfigPanel(p);
+            if (hasPermission(p, 'ui.panel.admin')) {
+                const { showRankSystemConfigPanel } = await import('@features/ranks/ui/adminPanel.js');
+                await showRankSystemConfigPanel(p);
+            } else {
+                const { showMyStatsPanel } = await import('@core/ui/panels/playerPanel.js');
+                await showMyStatsPanel(p);
+            }
         }
     });
 
