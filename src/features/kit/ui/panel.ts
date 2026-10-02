@@ -111,10 +111,10 @@ export async function showKitSettingsPanel(player: mc.Player, kitName: string): 
     }
 
     const cooldownParsed = Number.parseInt(res.cooldown);
-    const cooldown = Number.isNaN(cooldownParsed) ? 0 : cooldownParsed;
+    const cooldown = Number.isNaN(cooldownParsed) || cooldownParsed < 0 ? 0 : cooldownParsed;
     const perm = res.perm || 'ui.panel.member';
     const priceParsed = Number.parseInt(res.price);
-    const price = Number.isNaN(priceParsed) ? 0 : priceParsed;
+    const price = Number.isNaN(priceParsed) || priceParsed < 0 ? 0 : priceParsed;
 
     kitAdminManager.updateKitSettings(kitName, {
         enabled: res.enabled,
@@ -150,7 +150,7 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
             const res = await modal.show(player);
             if (res) {
                 const amountParsed = Number.parseInt(res.amount);
-                const amount = Number.isNaN(amountParsed) ? 1 : amountParsed;
+                const amount = Number.isNaN(amountParsed) || amountParsed <= 0 ? 1 : amountParsed;
                 if (res.typeId) {
                     const result = kitItemsManager.addItemToKit(kitName, { typeId: res.typeId, amount });
                     player.sendMessage(result.message);
