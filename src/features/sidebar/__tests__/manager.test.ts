@@ -31,31 +31,11 @@ mock.module('@core/configManager.js', () => ({
     })
 }));
 
-import { initializePlayerCache } from '@core/playerCache.js';
 import * as playerCache from '@core/playerCache.js';
+import { initializePlayerCache } from '@core/playerCache.js';
 
-import * as realPlayerDataManager from '@core/playerDataManager.js';
-
-mock.module('@core/playerDataManager.js', () => ({
-    ...realPlayerDataManager,
-    getPlayer: () => ({
-        balance: 1000,
-        kills: 10,
-        deaths: 2,
-        killStreak: 3
-    }),
-    getSidebarVisible: () => true,
-    getPlayTime: () => 3600
-}));
-
-import * as realRankManager from '@core/rankManager.js';
-
-mock.module('@core/rankManager.js', () => ({
-    ...realRankManager,
-    getPlayerRank: () => ({
-        name: 'VIP'
-    })
-}));
+import * as playerDataManager from '@core/playerDataManager.js';
+import * as rankManager from '@core/rankManager.js';
 
 const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } = await import('../manager.js');
 
@@ -63,6 +43,17 @@ describe('Sidebar Manager', () => {
     beforeEach(() => {
         initializePlayerCache();
         spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
+        spyOn(playerDataManager, 'getPlayer').mockReturnValue({
+            balance: 1000,
+            kills: 10,
+            deaths: 2,
+            killStreak: 3
+        } as any);
+        spyOn(playerDataManager, 'getSidebarVisible').mockReturnValue(true);
+        spyOn(playerDataManager, 'getPlayTime').mockReturnValue(3600);
+        spyOn(rankManager, 'getPlayerRank').mockReturnValue({
+            name: 'VIP'
+        } as any);
     });
 
     it('should resolve global placeholders correctly', () => {

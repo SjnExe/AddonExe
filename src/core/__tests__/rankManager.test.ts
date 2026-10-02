@@ -1,6 +1,6 @@
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 
 mock.module('@minecraft/server', () => ({
     ...mcMock,
@@ -19,7 +19,6 @@ mock.module('@minecraft/server', () => ({
 mock.module('@core/configurations.js', () => ({
     getRanksConfig: mock()
 }));
-
 
 mock.module('@core/permissionEngine.js', () => ({
     getPlayerRanks: mock()
@@ -57,7 +56,6 @@ mock.module('@core/rankManager.js', () => realRankManager);
 import { config as Config } from '@core/../config.js';
 import { getRanksConfig } from '@core/configurations.js';
 import { getPlayerRanks } from '@core/permissionEngine.js';
-import { findPlayerByName, getPlayerFromCache } from '@core/playerCache.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
 import * as mc from '@minecraft/server';
 import { canTarget, getAllRanks, getPlayerRank, getRankById, initialize, reloadRanks, updatePlayerNameTag } from '../rankManager.js';

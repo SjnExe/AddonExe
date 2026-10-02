@@ -6,7 +6,6 @@ const mockDebugLog = spyOn(logger, 'debugLog');
 const mockStorageLoad = mock();
 const mockStorageSave = mock();
 
-
 mock.module('@core/storage/StorageManager.js', () => ({
     StorageManager: class {
         constructor() {}

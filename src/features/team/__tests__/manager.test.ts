@@ -1,6 +1,6 @@
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import defaultConfig from '../../../config.js';
-import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 
 mock.module('@minecraft/server', () => ({
     ...mcMock,
@@ -15,9 +15,6 @@ mock.module('@core/configManager.js', () => ({
 mock.module('@core/configurations.js', () => ({
     getTeamConfig: mock()
 }));
-
-
-import { initializePlayerCache } from '@core/playerCache.js';
 
 import * as realPlayerDataManager from '@core/playerDataManager.js';
 

@@ -30,7 +30,6 @@ mock.module('@features/anticheat/configLoader.js', () => ({
     saveAnticheatConfig: mock()
 }));
 
-
 const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = await import('@core/configManager.js');
 
 describe('ConfigManager', () => {

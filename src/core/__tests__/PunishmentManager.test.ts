@@ -1,5 +1,5 @@
-import { addPunishment, getPunishment, loadPunishments, removePunishment } from '@features/moderation/punishmentManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import { addPunishment, getPunishment, loadPunishments, removePunishment } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import defaultConfig from '../../config.js';

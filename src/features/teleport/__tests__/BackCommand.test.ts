@@ -1,12 +1,12 @@
+import { loadEconomyConfig } from '@core/configurations.js';
+import * as realUtils from '@core/utils.js';
+import { formatCurrency } from '@core/utils/economy.js';
+import { formatString } from '@core/utils/formatting.js';
+import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import defaultConfig from '../../../config.js';
-import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
-import { loadEconomyConfig } from '@core/configurations.js';
-import { formatCurrency } from '@core/utils/economy.js';
-import { formatString } from '@core/utils/formatting.js';
-import * as realUtils from '@core/utils.js';
 
 // Mocks
 const mockGetConfig = mock();
@@ -58,7 +58,6 @@ mock.module('@core/utils.js', () => ({
 mock.module('@core/cooldownManager.js', () => ({
     setCooldown: mock()
 }));
-
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 

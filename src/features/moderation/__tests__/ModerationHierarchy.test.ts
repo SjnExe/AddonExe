@@ -1,8 +1,8 @@
+import * as realUtils from '@core/utils.js';
+import { formatCurrency } from '@core/utils/economy.js';
+import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
-import { formatCurrency } from '@core/utils/economy.js';
-import * as realUtils from '@core/utils.js';
 
 // --- Mocks ---
 const mockGetPlayerRank = mock();
@@ -36,6 +36,7 @@ mock.module('@core/messaging.js', () => ({
 }));
 
 mock.module('@core/utils.js', () => ({
+    ...realUtils,
     playSound: mock(),
     resolveTarget: mock((name) => {
         if (name === 'target') {

@@ -13,7 +13,6 @@ mock.module('@core/configManager.js', () => ({
     updateMultipleConfig: mockUpdateMultipleConfig
 }));
 
-
 const { addItemToKit } = await import('../itemsManager.js');
 
 describe('Kit Items Manager', () => {

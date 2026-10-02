@@ -48,16 +48,7 @@ mock.module('../playerCache.js', () => ({
 mock.module('../playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
 mock.module('@core/playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
 
-import * as realRankManager from '../rankManager.js';
-
-mock.module('../rankManager.js', () => ({
-    getRankById: (id: string) => mockGetRankById(id),
-    getAllRanks: () => mockGetAllRanks()
-}));
-mock.module('@core/rankManager.js', () => ({
-    getRankById: (id: string) => mockGetRankById(id),
-    getAllRanks: () => mockGetAllRanks()
-}));
+import * as rankManager from '../rankManager.js';
 
 import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 
@@ -334,6 +325,9 @@ describe('getPlayerRanks', () => {
         mockGetPlayer.mockClear();
         mockGetAllRanks.mockClear();
         mockGetRankById.mockClear();
+
+        spyOn(rankManager, 'getRankById').mockImplementation((id: string) => mockGetRankById(id) as any);
+        spyOn(rankManager, 'getAllRanks').mockImplementation(() => mockGetAllRanks() as any);
 
         config.playerDefaults.rankId = 'defaultRank';
     });

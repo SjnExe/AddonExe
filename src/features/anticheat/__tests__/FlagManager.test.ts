@@ -2,7 +2,6 @@ import * as mc from '@minecraft/server';
 import { describe, expect, it, mock } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
-import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
 import * as realUtils from '@core/utils.js';
 
 mock.module('@core/utils.js', () => ({
@@ -14,9 +13,6 @@ mock.module('@core/utils.js', () => ({
     playSound: mock(),
     resolveTarget: mock(() => [])
 }));
-
-
-import { initializePlayerCache } from '@core/playerCache.js';
 
 mock.module('@core/playerDataManager.js', () => ({
     getPlayer: mock()
@@ -31,6 +27,7 @@ mock.module('@core/storage/StorageManager.js', () => ({
     }
 }));
 
+import * as realLogManager from '@features/anticheat/logManager.js';
 import * as realGuards from '@lib/guards.js';
 
 mock.module('@lib/guards.js', () => ({
@@ -42,7 +39,6 @@ mock.module('@features/anticheat/anticheatConfig.js', () => ({}));
 mock.module('@features/anticheat/configLoader.js', () => ({
     getAnticheatConfig: mock()
 }));
-import * as realLogManager from '@features/anticheat/logManager.js';
 
 mock.module('@features/anticheat/logManager.js', () => ({
     ...realLogManager,
