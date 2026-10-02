@@ -751,13 +751,7 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'settings.adminBypass',
                 label: 'Admin Bypass',
                 type: 'toggle',
-                description: 'If enabled, players with high enough permission levels will not trigger X-Ray alerts.'
-            },
-            {
-                key: 'settings.bypassPermissionLevel',
-                label: 'Admin Bypass Level',
-                type: 'textField',
-                description: 'Permission level required to bypass alerts (0=Owner, 1=Admin).'
+                description: 'If enabled, admins will not trigger X-Ray alerts.'
             },
             {
                 key: 'notifications.logToConsole',
@@ -770,12 +764,6 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Alert Buffering (s)',
                 type: 'textField',
                 description: 'Groups multiple alerts into one message within this time window.'
-            },
-            {
-                key: 'notifications.alertPermissionLevel',
-                label: 'Alert Permission Level',
-                type: 'textField',
-                description: 'Minimum permission level required to receive X-ray alerts (0=Owner, 1=Admin, 2=Mod).'
             }
         ]
     },

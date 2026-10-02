@@ -8,7 +8,6 @@ export interface Violation {
 export interface BaseCheckConfig {
     enabled: boolean;
     notifyStaff: boolean;
-    notifyPermissionLevel: number;
     flagDecaySeconds: number;
     violations: Violation[];
 }
@@ -56,7 +55,6 @@ export const anticheatConfig: AnticheatConfig = {
     itemCheck: {
         enabled: false,
         notifyStaff: true,
-        notifyPermissionLevel: 2, // Mod
         flagDecaySeconds: 300,
         violations: [
             { threshold: 1, command: 'warn {player} Illegal Item detected.' },
@@ -71,7 +69,6 @@ export const anticheatConfig: AnticheatConfig = {
     movementCheck: {
         enabled: false,
         notifyStaff: true,
-        notifyPermissionLevel: 2,
         flagDecaySeconds: 60,
         violations: [
             { threshold: 10, command: 'warn {player} Moving too fast.' },
