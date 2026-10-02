@@ -1,8 +1,7 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
-mock.module('@core/logger.js', () => ({
-    debugLog: mock()
-}));
+import * as logger from '@core/logger.js';
+const debugLogSpy = spyOn(logger, 'debugLog');
 
 const mockConfig = {
     categories: {} as Record<string, any>
@@ -25,7 +24,7 @@ describe('Shop Admin Manager - addCategory', () => {
         // Clear mocks
         (getShopConfig as any).mockClear();
         (saveShopConfig as any).mockClear();
-        (debugLog as any).mockClear();
+        debugLogSpy.mockClear();
     });
 
     it('should successfully add a new category', () => {

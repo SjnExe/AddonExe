@@ -1,37 +1,35 @@
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 mock.module('@minecraft/server', () => ({
-    system: { currentTick: 0 },
+    ...mcMock,
+    system: { ...mcMock.system, currentTick: 0 },
     world: {
+        ...mcMock.world,
         afterEvents: {
+            ...mcMock.world.afterEvents,
             playerLeave: {
                 subscribe: mock()
             }
         }
-    },
-    Player: class {}
+    }
 }));
 
 mock.module('@core/configurations.js', () => ({
     getRanksConfig: mock()
 }));
 
-mock.module('@core/logger.js', () => ({
-    debugLog: mock(),
-    errorLog: mock()
-}));
-
 mock.module('@core/permissionEngine.js', () => ({
     getPlayerRanks: mock()
 }));
 
-mock.module('@core/playerCache.js', () => ({
-    findPlayerByName: mock(),
-    getPlayerFromCache: mock()
-}));
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
+
+import * as realPlayerDataManager from '@core/playerDataManager.js';
 
 mock.module('@core/playerDataManager.js', () => ({
+    ...realPlayerDataManager,
     loadPlayerData: mock()
 }));
 
@@ -50,10 +48,14 @@ mock.module('@core/../config.js', () => ({
     }
 }));
 
+import * as realRankManager from '../rankManager.js';
+
+mock.module('../rankManager.js', () => realRankManager);
+mock.module('@core/rankManager.js', () => realRankManager);
+
 import { config as Config } from '@core/../config.js';
 import { getRanksConfig } from '@core/configurations.js';
 import { getPlayerRanks } from '@core/permissionEngine.js';
-import { findPlayerByName, getPlayerFromCache } from '@core/playerCache.js';
 import { loadPlayerData } from '@core/playerDataManager.js';
 import * as mc from '@minecraft/server';
 import { canTarget, getAllRanks, getPlayerRank, getRankById, initialize, reloadRanks, updatePlayerNameTag } from '../rankManager.js';
@@ -142,6 +144,7 @@ describe('rankManager', () => {
 
     describe('canTarget', () => {
         beforeEach(() => {
+            initializePlayerCache();
             // @ts-expect-error mocking readonly
             mc.system.currentTick = 200; // Reset tick for caching isolation
             (getRanksConfig as ReturnType<typeof mock>).mockReturnValue({
@@ -175,7 +178,7 @@ describe('rankManager', () => {
 
             // Target is online and cached
             const targetPlayer = { id: 'modId' } as mc.Player;
-            (getPlayerFromCache as ReturnType<typeof mock>).mockReturnValue(targetPlayer);
+            addPlayerToCache(targetPlayer);
 
             expect(canTarget(executor, 'modId', Config)).toBe(true);
         });
@@ -194,7 +197,7 @@ describe('rankManager', () => {
             });
 
             const targetPlayer = { id: 'adminId' } as mc.Player;
-            (getPlayerFromCache as ReturnType<typeof mock>).mockReturnValue(targetPlayer);
+            addPlayerToCache(targetPlayer);
 
             expect(canTarget(executor, 'adminId', Config)).toBe(false);
         });
@@ -203,9 +206,6 @@ describe('rankManager', () => {
             const executor = { id: 'adminId' } as mc.Player;
             Object.setPrototypeOf(executor, mc.Player.prototype);
             (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([mockRanks[0]]); // Admin (10)
-
-            (getPlayerFromCache as ReturnType<typeof mock>).mockReturnValue(undefined);
-            (findPlayerByName as ReturnType<typeof mock>).mockReturnValue(undefined);
 
             // Offline player has mod rank
             (loadPlayerData as ReturnType<typeof mock>).mockReturnValue({
@@ -220,8 +220,6 @@ describe('rankManager', () => {
             Object.setPrototypeOf(executor, mc.Player.prototype);
             (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([mockRanks[2]]); // Mod (50)
 
-            (getPlayerFromCache as ReturnType<typeof mock>).mockReturnValue(undefined);
-            (findPlayerByName as ReturnType<typeof mock>).mockReturnValue(undefined);
             (loadPlayerData as ReturnType<typeof mock>).mockReturnValue(undefined);
 
             // Target falls back to default rank priority (100)

@@ -1,21 +1,25 @@
+import { StorageManager } from '@core/storage/StorageManager.js';
 import { addPunishment, getPunishment, loadPunishments, removePunishment } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import defaultConfig from '../../config.js';
 
 // Mock dependencies
 mock.module('../configManager.js', () => ({
-    getConfig: () => ({ data: { autoSaveIntervalSeconds: 30 } })
+    getConfig: () => ({ ...defaultConfig, data: { ...defaultConfig.data, autoSaveIntervalSeconds: 30 } })
 }));
 
+import * as realLogManager from '../../features/anticheat/logManager.js';
+
 mock.module('../../features/anticheat/logManager.js', () => ({
+    ...realLogManager,
     addPunishmentLog: mock()
 }));
 
 describe('PunishmentManager', () => {
     beforeEach(() => {
         mock.restore();
-        // Reset storage mock
-        (mc.world.getDynamicProperty as any).mockReturnValue(undefined);
+        new StorageManager('exe:punishments').delete();
         loadPunishments();
     });
 
@@ -57,6 +61,7 @@ describe('PunishmentManager', () => {
     });
 
     it('should migrate legacy data', () => {
+        new StorageManager('exe:punishments').delete();
         const future = Date.now() + 10_000;
         const legacyData = [
             ['pid1', { type: 'ban', expires: future, reason: 'legacy ban' }],
@@ -71,12 +76,7 @@ describe('PunishmentManager', () => {
         // StorageManager(key) -> load() -> getDynamicProperty(key).
         // It returns parsed JSON.
 
-        (mc.world.getDynamicProperty as any).mockImplementation((key: string) => {
-            if (key === 'exe:punishments') {
-                return JSON.stringify(legacyData);
-            }
-            return undefined;
-        });
+        mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
 
         loadPunishments();
 

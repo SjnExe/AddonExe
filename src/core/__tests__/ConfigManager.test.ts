@@ -17,7 +17,10 @@ mock.module('@core/configLoader.js', () => ({
     loadConfig: mockConfigLoader
 }));
 
+import * as realFactory from '@core/configManagerFactory.js';
+
 mock.module('@core/configManagerFactory.js', () => ({
+    ...realFactory,
     default: mockFactory
 }));
 
@@ -25,62 +28,6 @@ mock.module('@features/anticheat/configLoader.js', () => ({
     loadAnticheatConfig: mock(),
     getAnticheatConfig: mock(),
     saveAnticheatConfig: mock()
-}));
-
-mock.module('@core/configurations.js', () => ({
-    loadWorldProtectionConfig: mock(),
-    loadShopConfig: mock(),
-    loadRanksConfig: mock(),
-    loadEconomyConfig: mock(),
-    loadXrayConfig: mock(),
-    loadTeamConfig: mock(),
-    loadFriendConfig: mock(),
-    loadSidebarConfig: mock(),
-    loadAuctionHouseConfig: mock(),
-    loadDailyRewardsConfig: mock(),
-    loadGamesConfig: mock(),
-    loadWordleConfig: mock(),
-    getWorldProtectionConfig: mock(),
-    getShopConfig: mock(),
-    getRanksConfig: mock(),
-    getEconomyConfig: mock(),
-    getXrayConfig: mock(),
-    getTeamConfig: mock(),
-    getFriendConfig: mock(),
-    getSidebarConfig: mock(),
-    getAuctionHouseConfig: mock(),
-    getDailyRewardsConfig: mock(),
-    getGamesConfig: mock(),
-    getWordleConfig: mock(),
-    saveWorldProtectionConfig: mock(),
-    saveShopConfig: mock(),
-    saveRanksConfig: mock(),
-    saveEconomyConfig: mock(),
-    saveXrayConfig: mock(),
-    saveTeamConfig: mock(),
-    saveFriendConfig: mock(),
-    saveSidebarConfig: mock(),
-    saveAuctionHouseConfig: mock(),
-    saveDailyRewardsConfig: mock(),
-    saveGamesConfig: mock(),
-    saveWordleConfig: mock(),
-    resetWorldProtectionConfig: mock(),
-    resetShopConfig: mock(),
-    resetRanksConfig: mock(),
-    resetEconomyConfig: mock(),
-    resetXrayConfig: mock(),
-    resetTeamConfig: mock(),
-    resetFriendConfig: mock(),
-    resetSidebarConfig: mock(),
-    resetAuctionHouseConfig: mock(),
-    resetDailyRewardsConfig: mock(),
-    resetGamesConfig: mock(),
-    resetWordleConfig: mock(),
-    registerConfigReset: mock(),
-    registerConfigResetCallback: mock(),
-    reloadAllConfigs: mock(),
-    configResetRegistry: {},
-    configResetCallbacks: {}
 }));
 
 const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = await import('@core/configManager.js');

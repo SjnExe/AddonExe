@@ -2,14 +2,18 @@ import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 
 // Mocks
+import * as realFlagManager from '../flagManager.js';
+
 const mockFlag = mock();
 const mockGetConfig = mock();
 
 mock.module('../flagManager.js', () => ({
+    ...realFlagManager,
     flag: mockFlag
 }));
 
@@ -18,9 +22,12 @@ mock.module('../configLoader.js', () => ({
 }));
 
 mock.module('@minecraft/server', () => ({
+    ...mcMock,
     world: {
+        ...mcMock.world,
         getAllPlayers: mock(),
         afterEvents: {
+            ...mcMock.world.afterEvents,
             playerSpawn: { subscribe: mock(), unsubscribe: mock() },
             playerLeave: { subscribe: mock(), unsubscribe: mock() },
             entityHurt: { subscribe: mock(), unsubscribe: mock() },

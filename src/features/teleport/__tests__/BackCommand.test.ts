@@ -1,6 +1,12 @@
+import { loadEconomyConfig } from '@core/configurations.js';
+import * as realUtils from '@core/utils.js';
+import { formatCurrency } from '@core/utils/economy.js';
+import { formatString } from '@core/utils/formatting.js';
+import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import defaultConfig from '../../../config.js';
 
 // Mocks
 const mockGetConfig = mock();
@@ -19,7 +25,10 @@ mock.module('@core/configManager.js', () => ({
     resetConfigSection: mock()
 }));
 
+import * as realPlayerDataManager from '@core/playerDataManager.js';
+
 mock.module('@core/playerDataManager.js', () => ({
+    ...realPlayerDataManager,
     getOrCreatePlayer: mockGetOrCreatePlayer,
     incrementPlayerBalance: mockIncrementPlayerBalance
 }));
@@ -33,27 +42,21 @@ mock.module('@core/teleportLogic.js', () => ({
 }));
 
 mock.module('@core/utils.js', () => ({
-    formatCurrency: (val: number) => `$${val}`,
+    ...realUtils,
+    formatCurrency,
     playSound: mock(),
     uiWait: mock(async () => ({ canceled: false })),
     getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
     getCountdownColor: mock(() => '§a'),
     playClickSound: mock(() => {}),
-    formatString: (template: string, context: any) => template,
-    escapeCommandArg: (str: string) => str,
-    sanitizeString: (str: string) => str,
+    formatString,
+    escapeCommandArg,
+    sanitizeString,
     resolveTarget: mock(() => [])
 }));
 
 mock.module('@core/cooldownManager.js', () => ({
     setCooldown: mock()
-}));
-
-mock.module('@minecraft/server', () => ({
-    world: {
-        getDimension: mock(),
-        afterEvents: { entityHurt: { subscribe: mock(), unsubscribe: mock() } }
-    }
 }));
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
@@ -72,16 +75,15 @@ describe('Back Command', () => {
     });
     player.teleport = mock();
 
-    const dimension = { id: MinecraftDimensionTypes.Overworld };
-    (mc.world?.getDimension as any)?.mockReturnValue?.(dimension);
-
-    beforeEach(() => {
+    beforeEach(async () => {
+        await loadEconomyConfig(false);
         mockStartTeleportWarmup.mockClear();
         mockSendMessage.mockClear();
         mockIncrementPlayerBalance.mockClear();
         (player.teleport as any).mockClear();
 
         mockGetConfig.mockReturnValue({
+            ...defaultConfig,
             back: { enabled: true, cost: 100, teleportWarmupSeconds: 5 },
             economy: { enabled: true }
         });

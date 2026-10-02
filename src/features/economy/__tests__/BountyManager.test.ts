@@ -5,7 +5,10 @@ const mockIncrementPlayerBalance = mock();
 const mockGetPlayer = mock();
 const mockLoadPlayerData = mock();
 
+import * as realPlayerDataManager from '@core/playerDataManager.js';
+
 mock.module('@core/playerDataManager.js', () => ({
+    ...realPlayerDataManager,
     incrementPlayerBalance: mockIncrementPlayerBalance,
     getPlayer: mockGetPlayer,
     loadPlayerData: mockLoadPlayerData
