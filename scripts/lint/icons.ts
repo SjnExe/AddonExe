@@ -83,9 +83,18 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         if (!uiTexturesFound) {
             console.log('[IconLint] GitHub tree API unaccessible, extracting UI texture references from Bedrock UI JSON files...');
             const uiJsonFiles = [
-                'ui_common.json', 'settings_common.json', 'hud_screen.json', 'inventory_screen.json',
-                'pause_screen.json', 'play_screen.json', 'start_screen.json', 'server_form.json',
-                'trade_screen.json', 'anvil_screen.json', 'command_block_screen.json', 'chest_screen.json'
+                'ui_common.json',
+                'settings_common.json',
+                'hud_screen.json',
+                'inventory_screen.json',
+                'pause_screen.json',
+                'play_screen.json',
+                'start_screen.json',
+                'server_form.json',
+                'trade_screen.json',
+                'anvil_screen.json',
+                'command_block_screen.json',
+                'chest_screen.json'
             ];
             for (const file of uiJsonFiles) {
                 try {
