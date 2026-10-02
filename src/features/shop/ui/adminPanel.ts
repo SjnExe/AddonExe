@@ -1,7 +1,7 @@
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { getShopConfig } from '@core/configurations.js';
 import * as shopAdminManager from '@features/shop/adminManager.js';
-import { ensureItemsConfig, getAllItems } from '@features/shop/utils.js';
+import { ensureItemsConfig, getAllItems, parseRankOverrides } from '@features/shop/utils.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
@@ -138,7 +138,7 @@ export async function showShopAdminCategoryPanel(player: mc.Player, categoryName
         page,
         (entry, formBuilder) => {
             if (entry.type === 'subCategory') {
-                formBuilder.button(`§l substitute ${entry.name}`, entry.icon, () => {
+                formBuilder.button(`§l📁 ${entry.name}`, entry.icon, () => {
                     void showShopAdminSubCategoryActionPanel(player, categoryName, entry.id);
                 });
             } else {
@@ -391,13 +391,15 @@ export async function showAddCustomItemPanel(player: mc.Player, categoryName: st
     const sellPrice = Number.parseInt(res.sellPrice);
 
     if (isNonEmptyString(res.itemId) && !Number.isNaN(buyPrice) && !Number.isNaN(sellPrice)) {
+        const rankMultiplierOverrides = parseRankOverrides(res.rankMultiplierOverridesStr);
         shopAdminManager.setItem(categoryName, subCategoryName, res.itemId, {
             itemId: res.itemId,
             buyPrice,
             sellPrice,
             displayName: res.displayName,
             icon: res.icon,
-            permission: res.permission
+            permission: res.permission,
+            ...(rankMultiplierOverrides ? { rankMultiplierOverrides } : {})
         });
         player.sendMessage(`§2Item added: ${res.itemId}`);
         if (subCategoryName) {
@@ -473,13 +475,15 @@ export async function showEditItemFormPanel(player: mc.Player, categoryName: str
         const sellPrice = Number.parseInt(res.sellPrice);
 
         if (isNonEmptyString(res.itemId) && !Number.isNaN(buyPrice) && !Number.isNaN(sellPrice)) {
+            const rankOverrides = parseRankOverrides(res.rankMultiplierOverridesStr);
             const newItemData = {
                 itemId: res.itemId,
                 buyPrice,
                 sellPrice,
                 displayName: res.displayName,
                 icon: res.icon,
-                permission: res.permission
+                permission: res.permission,
+                ...(rankOverrides ? { rankOverrides } : {})
             };
             shopAdminManager.updateShopItem(categoryName, subCategoryName, itemKey, newItemData);
             player.sendMessage(`§2Item updated: ${res.itemId}`);
