@@ -18,12 +18,10 @@ export interface XrayConfig {
         ignoreCreative: boolean;
         ignoreSpectator: boolean;
         adminBypass: boolean;
-        bypassPermissionLevel: number;
     };
     notifications: {
         logToConsole: boolean;
         alertBufferingSeconds: number;
-        alertPermissionLevel: number;
     };
     monitoredOreTypes: Record<string, MonitoredOreType>;
 }
@@ -32,13 +30,11 @@ export const xrayConfig: XrayConfig = {
     settings: {
         ignoreCreative: true,
         ignoreSpectator: true,
-        adminBypass: true,
-        bypassPermissionLevel: 1
+        adminBypass: true
     },
     notifications: {
         logToConsole: true,
-        alertBufferingSeconds: 10,
-        alertPermissionLevel: 2
+        alertBufferingSeconds: 10
     },
     monitoredOreTypes: {
         diamond: {
