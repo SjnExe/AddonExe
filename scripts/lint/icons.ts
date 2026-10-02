@@ -61,14 +61,53 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
             listJson.forEach((t: string) => texturesToCache.push(t));
         }
 
-        // 4. Fetch UI textures from git tree
-        const treeRes = await fetch('https://api.github.com/repos/Mojang/bedrock-samples/git/trees/main?recursive=1');
-        const treeJson = await treeRes.json();
-        if (treeJson.tree) {
-            for (const node of treeJson.tree) {
-                if (node.path && node.path.startsWith('resource_pack/textures/ui/') && node.path.endsWith('.png')) {
-                    const texPath = node.path.replace('resource_pack/', '').replace('.png', '');
-                    texturesToCache.push(texPath);
+        // 4. Fetch UI textures from Git tree or extract from Bedrock UI JSON files if rate limited
+        let uiTexturesFound = false;
+        try {
+            const headers = process.env.GITHUB_TOKEN ? { Authorization: 'token ' + process.env.GITHUB_TOKEN } : {};
+            const treeRes = await fetch('https://api.github.com/repos/Mojang/bedrock-samples/git/trees/main?recursive=1', { headers });
+            const treeJson = await treeRes.json();
+            if (treeJson.tree && Array.isArray(treeJson.tree)) {
+                for (const node of treeJson.tree) {
+                    if (node.path && node.path.startsWith('resource_pack/textures/ui/') && node.path.endsWith('.png')) {
+                        const texPath = node.path.replace('resource_pack/', '').replace('.png', '');
+                        texturesToCache.push(texPath);
+                        uiTexturesFound = true;
+                    }
+                }
+            }
+        } catch {
+            // Rate limit or network error
+        }
+
+        if (!uiTexturesFound) {
+            console.log('[IconLint] GitHub tree API unaccessible, extracting UI texture references from Bedrock UI JSON files...');
+            const uiJsonFiles = [
+                'ui_common.json',
+                'settings_common.json',
+                'hud_screen.json',
+                'inventory_screen.json',
+                'pause_screen.json',
+                'play_screen.json',
+                'start_screen.json',
+                'server_form.json',
+                'trade_screen.json',
+                'anvil_screen.json',
+                'command_block_screen.json',
+                'chest_screen.json'
+            ];
+            for (const file of uiJsonFiles) {
+                try {
+                    const res = await fetch(`https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/${file}`);
+                    if (res.ok) {
+                        const text = await res.text();
+                        const matches = text.match(/textures\/ui\/[a-zA-Z0-9_\-\/]+/g);
+                        if (matches) {
+                            matches.forEach((m) => texturesToCache.push(m));
+                        }
+                    }
+                } catch {
+                    // Ignore individual fetch failure
                 }
             }
         }
