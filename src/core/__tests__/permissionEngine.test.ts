@@ -1,5 +1,5 @@
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Shared tracking variables for dynamic test scenarios
 let rankPermissions: Record<string, string[]> = {
@@ -342,7 +342,6 @@ describe('getPlayerRanks', () => {
         mockGetPlayer.mockClear();
         mockGetAllRanks.mockClear();
         mockGetRankById.mockClear();
-
 
         config.playerDefaults.rankId = 'defaultRank';
     });
