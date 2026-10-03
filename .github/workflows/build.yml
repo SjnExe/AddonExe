@@ -17,11 +17,7 @@ concurrency:
 
 jobs:
     lint:
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-26.04, ubuntu-26.04-arm]
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
             - uses: actions/checkout@v7
@@ -35,28 +31,24 @@ jobs:
               uses: actions/cache@v6
               with:
                   path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('**/bun.lock') }}
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ runner.arch }}-bun-
+                      ${{ runner.os }}-bun-
 
             - name: Cache Oxlint & TS Build Artifacts
               uses: actions/cache@v6
               with:
                   path: |
                       *.tsbuildinfo
-                  key: ${{ runner.os }}-${{ runner.arch }}-oxlint-${{ hashFiles('**/bun.lock', 'oxlint.json', 'scripts/lint/minecraft-rules.js', 'tsconfig.json') }}
+                  key: ${{ runner.os }}-oxlint-${{ hashFiles('**/bun.lock', 'oxlint.json', 'scripts/lint/minecraft-rules.js', 'tsconfig.json') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ runner.arch }}-oxlint-
+                      ${{ runner.os }}-oxlint-
 
             - run: bun install --frozen-lockfile
             - run: bun lint
 
     format:
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-26.04, ubuntu-26.04-arm]
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
             - uses: actions/checkout@v7
@@ -70,19 +62,15 @@ jobs:
               uses: actions/cache@v6
               with:
                   path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('**/bun.lock') }}
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ runner.arch }}-bun-
+                      ${{ runner.os }}-bun-
 
             - run: bun install --frozen-lockfile
             - run: bun format:check
 
     typecheck:
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-26.04, ubuntu-26.04-arm]
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
             - uses: actions/checkout@v7
@@ -96,27 +84,23 @@ jobs:
               uses: actions/cache@v6
               with:
                   path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('**/bun.lock') }}
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ runner.arch }}-bun-
+                      ${{ runner.os }}-bun-
 
             - name: Cache TS Build Artifacts
               uses: actions/cache@v6
               with:
                   path: '*.tsbuildinfo'
-                  key: ${{ runner.os }}-${{ runner.arch }}-tsc-${{ hashFiles('**/bun.lock', 'tsconfig.json') }}
+                  key: ${{ runner.os }}-tsc-${{ hashFiles('**/bun.lock', 'tsconfig.json') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ runner.arch }}-tsc-
+                      ${{ runner.os }}-tsc-
 
             - run: bun install --frozen-lockfile
             - run: bun check-types
 
     test:
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-26.04, ubuntu-26.04-arm]
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
             - uses: actions/checkout@v7
@@ -130,19 +114,15 @@ jobs:
               uses: actions/cache@v6
               with:
                   path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('**/bun.lock') }}
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ runner.arch }}-bun-
+                      ${{ runner.os }}-bun-
 
             - run: bun install --frozen-lockfile
             - run: bun test --isolate --parallel
 
     build:
-        strategy:
-            fail-fast: false
-            matrix:
-                os: [ubuntu-26.04, ubuntu-26.04-arm]
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         timeout-minutes: 30
         steps:
             - name: Checkout code
@@ -159,9 +139,9 @@ jobs:
               uses: actions/cache@v6
               with:
                   path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('**/bun.lock') }}
+                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-${{ runner.arch }}-bun-
+                      ${{ runner.os }}-bun-
 
             - name: Install dependencies
               run: bun install --frozen-lockfile
@@ -206,7 +186,6 @@ jobs:
                   name: build-dir
                   path: packs/
                   retention-days: 1
-                  overwrite: true
 
             - name: Upload Build Artifacts
               uses: actions/upload-artifact@v7
@@ -218,7 +197,6 @@ jobs:
                       AddonExe_RP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
                   retention-days: 7
                   compression-level: 0
-                  overwrite: true
 
             - name: Upload Debug Symbols (Nightly only)
               if: steps.build_type.outputs.type == 'nightly'
@@ -227,7 +205,6 @@ jobs:
                   name: debug-symbols-nightly
                   path: packs/**/*.map
                   retention-days: 7
-                  overwrite: true
 
             - name: Upload build meta
               uses: actions/upload-artifact@v7
@@ -235,14 +212,13 @@ jobs:
                   name: build-meta
                   path: build_meta.env
                   retention-days: 7
-                  overwrite: true
 
             - name: Validate build
               run: bun run validate:ci
 
     release:
         needs: [build, lint, format, typecheck, test]
-        runs-on: ubuntu-26.04-arm
+        runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
             contents: write
