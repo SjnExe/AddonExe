@@ -50,6 +50,7 @@
     "dependencies": {
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest",
+        "react": "^18",
         "uuid": "latest"
     },
     "devDependencies": {
