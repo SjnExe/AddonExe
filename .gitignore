@@ -1,42 +1,23 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Dependencies & Logs
+node_modules/
+bun-debug.log*
 
-# testing
-/coverage
-
-# production
-/build
-/dist
-/staging/
-/out
+# Build Outputs (scripts/build.ts)
+/out/
+/packs/behavior/scripts/
+build_meta.env
 *.mcpack
 *.mcaddon
 
-# misc
-.DS_Store
-build_meta.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-bun-debug.log*
-
-# Reports
-eslint_report.txt
-validation_report
-
-# Tool Caches
-.eslintcache
-*.tsbuildinfo
-.prettiercache
-.cache/
-/packs/behavior/scripts/
-/packs/behavior/scripts-bds/
+# Generated Manifests (scripts/update-manifests.ts)
 /packs/behavior/manifest.json
 /packs/resource/manifest.json
+
+# Tool Reports (scripts/lint/oxlint.ts & mct validate)
+oxlint_report.json
+validation_report/
+
+# Caches & State
+.cache/
+.prettier-cache
+*.tsbuildinfo
