@@ -2,6 +2,8 @@ import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
+export type GridColumns = 1 | 2 | 3 | 4;
+
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
     private readonly callbacks: Map<number, () => void | Promise<void>>;
@@ -13,6 +15,11 @@ export class ActionFormBuilder {
 
     public title(titleText: string): this {
         this.form.title(titleText);
+        return this;
+    }
+
+    public grid(_columns: GridColumns): this {
+        // Grid column layout is natively applied via server_form.json in resource pack
         return this;
     }
 

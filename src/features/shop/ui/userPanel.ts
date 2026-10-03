@@ -29,7 +29,7 @@ interface ShopCategory {
 
 export async function showShopMainPanel(player: mc.Player): Promise<void> {
     await ensureItemsConfig();
-    const form = new ActionFormBuilder().title('Shop').button('§l§6Search Item', 'textures/ui/magnifyingGlass', () => {
+    const form = new ActionFormBuilder().grid(3).title('Shop').button('§l§6Search Item', 'textures/ui/magnifyingGlass', () => {
         void showShopSearchPanel(player);
     });
 
@@ -72,7 +72,7 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
         return;
     }
 
-    const form = new ActionFormBuilder().title(categoryName);
+    const form = new ActionFormBuilder().grid(3).title(categoryName);
     const entries: { type: 'subCategory' | 'item'; id: string; name: string; icon?: string; itemData?: unknown }[] = [];
 
     if (category.subCategories) {
@@ -137,7 +137,7 @@ export async function showShopItemListPanel(player: mc.Player, categoryName: str
         return;
     }
 
-    const form = new ActionFormBuilder().title(subCategoryName);
+    const form = new ActionFormBuilder().grid(3).title(subCategoryName);
     const entries: { id: string; name: string; icon?: string; itemData: unknown }[] = [];
     for (const [itemId, itemData] of Object.entries(subCat.items)) {
         if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) {
