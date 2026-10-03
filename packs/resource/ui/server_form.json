@@ -9,8 +9,8 @@
     },
 
     "action_button@common.button": {
-        "size": ["100%", 32],
-        "sound": "random.click",
+        "size": ["100%", "32px"],
+        "$button_sound": "random.click",
         "$pressed_button_name": "button.form_button_click",
         "$button_content": "server_form.action_button_content"
     },
@@ -23,7 +23,7 @@
             {
                 "icon_padding": {
                     "type": "panel",
-                    "size": [28, 28],
+                    "size": ["28px", "28px"],
                     "bindings": [
                         {
                             "binding_name": "#form_button_has_texture",
@@ -35,7 +35,7 @@
                     "controls": [
                         {
                             "button_icon@server_form.item_icon": {
-                                "size": [24, 24],
+                                "size": ["24px", "24px"],
                                 "anchor_from": "center",
                                 "anchor_to": "center",
                                 "bindings": [
@@ -109,7 +109,7 @@
                         {
                             "header_panel": {
                                 "type": "panel",
-                                "size": ["100%", 28],
+                                "size": ["100%", "28px"],
                                 "controls": [
                                     {
                                         "title_label": {
@@ -156,7 +156,7 @@
                         {
                             "spacer": {
                                 "type": "panel",
-                                "size": ["100%", 6]
+                                "size": ["100%", "6px"]
                             }
                         },
                         {
