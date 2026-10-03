@@ -1,1 +1,14 @@
-# Ignore files and directories that should not be formatted
+# Dependencies & Lockfile
+node_modules/
+bun.lock
+
+# Build Outputs & Bundled Scripts
+out/
+packs/behavior/scripts/
+
+# Generated Reports
+oxlint_report.json
+validation_report/
+
+# Internal Cache
+.cache/
