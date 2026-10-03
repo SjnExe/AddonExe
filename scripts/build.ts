@@ -249,7 +249,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
         target: 'browser',
         format: 'esm',
         minify: isMinify,
-        sourcemap: isRelease ? 'none' : 'external',
+        sourcemap: process.argv.includes('--sourcemap') || cliArgs.sourcemap ? 'external' : 'none',
         drop: isRelease ? ['debugger'] : [],
         splitting: false,
         naming: '[dir]/[name].[ext]',

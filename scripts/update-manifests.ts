@@ -1,3 +1,14 @@
+function getEngineVersion(serverVersion?: string): [number, number, number] {
+    const match = serverVersion?.match(/\b(1)\.(\d+)\.(\d+)/);
+    if (!match) {
+        return [1, 26, 50];
+    }
+    const major = Number.parseInt(match[1], 10);
+    const minor = Number.parseInt(match[2], 10);
+    const patch = Number.parseInt(match[3], 10);
+    return [major, minor, Math.floor(patch / 10) * 10];
+}
+
 import path from 'node:path';
 import { getVersionContext, parseCliArgs } from './cli-utils.ts';
 
@@ -96,7 +107,7 @@ async function main() {
         version: finalParts
     });
 
-    const minEngineVersion = [1, 21, 50];
+    const minEngineVersion = getEngineVersion(allDeps['@minecraft/server']);
 
     const bpManifest = {
         format_version: 2,
