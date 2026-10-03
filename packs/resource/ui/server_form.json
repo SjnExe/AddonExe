@@ -18,7 +18,7 @@
     "action_button_content": {
         "type": "stack_panel",
         "orientation": "horizontal",
-        "size": ["100% - 8px", "100% - 4px"],
+        "size": ["100%", "100%"],
         "controls": [
             {
                 "icon_padding": {
@@ -70,7 +70,7 @@
                                 "shadow": true,
                                 "anchor_from": "left_middle",
                                 "anchor_to": "left_middle",
-                                "offset": [2, 0],
+                                "offset": ["2px", "0px"],
                                 "bindings": [
                                     {
                                         "binding_name": "#button_text",
