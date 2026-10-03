@@ -31,13 +31,13 @@ async function runLintingPipeline() {
     const overallStart = performance.now();
     console.log(`⚡ Launching profiled Bun-native linting pipeline (${isFix ? 'Fix Mode' : 'Check Mode'})...\n`);
 
-    const oxlintTask = runTask('1. Oxlint Engine (Rust + JS Plugins)', () => (isFix ? $`bun scripts/lint/oxlint.ts --fix`.quiet() : $`bun scripts/lint/oxlint.ts`.quiet()));
+    const oxlintTask = runTask('Oxlint Engine (Rust + JS Plugins)', () => (isFix ? $`bun scripts/lint/oxlint.ts --fix`.quiet() : $`bun scripts/lint/oxlint.ts`.quiet()));
 
-    const schemaTask = runTask('2. JSON Schema Validation', () => $`bun run scripts/lint/schemas.ts`.quiet());
+    const schemaTask = runTask('JSON Schema Validation', () => $`bun run scripts/lint/schemas.ts`.quiet());
 
-    const iconTask = runTask('3. Icon & Texture Integrity', () => $`bun run scripts/lint/icons.ts`.quiet());
+    const iconTask = runTask('Icon & Texture Integrity', () => $`bun run scripts/lint/icons.ts`.quiet());
 
-    const typeCheckTask = runTask('4. TypeScript Type Check', () => $`bun tsc --noEmit --incremental`.quiet());
+    const typeCheckTask = runTask('TypeScript Type Check', () => $`bun tsc --noEmit --incremental`.quiet());
 
     const results = await Promise.all([oxlintTask, schemaTask, iconTask, typeCheckTask]);
 

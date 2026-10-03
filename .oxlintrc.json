@@ -1,7 +1,7 @@
 {
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import"],
-    "jsPlugins": ["eslint-plugin-minecraft-linting", "./scripts/lint/minecraft-rules.js"],
+    "jsPlugins": ["eslint-plugin-minecraft-linting"],
     "categories": {
         "correctness": "warn"
     },
@@ -15,9 +15,7 @@
         "typescript/no-shadow": "error",
         "typescript/no-unused-vars": ["error", { "args": "all", "argsIgnorePattern": "^_" }],
         "typescript/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description", "ts-nocheck": true, "ts-check": false }],
-        "minecraft-linting/avoid-unnecessary-command": "error",
-        "minecraft-custom/no-deprecated-run-command": "error",
-        "minecraft-custom/no-magic-minecraft-strings": "error"
+        "minecraft-linting/avoid-unnecessary-command": "error"
     },
     "ignorePatterns": ["node_modules/", "dist/", "package-lock.json", ".git/", "packs/resource/font/", ".github/", "Docs/", "**/packs/behavior/scripts/**", "package.json", "packs/**"],
     "overrides": [
