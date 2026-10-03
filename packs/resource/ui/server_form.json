@@ -133,7 +133,7 @@
                         {
                             "body_panel": {
                                 "type": "panel",
-                                "size": ["100%", "auto"],
+                                "size": ["100%", "100%c"],
                                 "controls": [
                                     {
                                         "body_label": {
@@ -175,7 +175,7 @@
         "type": "grid",
         "grid_dimensions": [3, 0],
         "maximum_grid_items": 100,
-        "size": ["100%", "auto"],
+        "size": ["100%", "100%c"],
         "grid_item_template": "server_form.action_button",
         "$collection_name": "action_buttons",
         "bindings": [
