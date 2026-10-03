@@ -29,9 +29,12 @@ interface ShopCategory {
 
 export async function showShopMainPanel(player: mc.Player): Promise<void> {
     await ensureItemsConfig();
-    const form = new ActionFormBuilder().grid(3).title('Shop').button('§l§6Search Item', 'textures/ui/magnifyingGlass', () => {
-        void showShopSearchPanel(player);
-    });
+    const form = new ActionFormBuilder()
+        .grid(3)
+        .title('Shop')
+        .button('§l§6Search Item', 'textures/ui/magnifyingGlass', () => {
+            void showShopSearchPanel(player);
+        });
 
     const shopConfig = getShopConfig();
     const validCategories = Object.keys(shopConfig.categories)
