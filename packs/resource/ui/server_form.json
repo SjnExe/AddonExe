@@ -131,38 +131,10 @@
                             }
                         },
                         {
-                            "body_panel": {
-                                "type": "panel",
-                                "size": ["100%", "100%c"],
-                                "controls": [
-                                    {
-                                        "body_label": {
-                                            "type": "label",
-                                            "text": "#body_text",
-                                            "color": [0.85, 0.85, 0.85],
-                                            "shadow": true,
-                                            "anchor_from": "top_left",
-                                            "anchor_to": "top_left",
-                                            "bindings": [
-                                                {
-                                                    "binding_name": "#body_text"
-                                                }
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "spacer": {
-                                "type": "panel",
-                                "size": ["100%", "6px"]
-                            }
-                        },
-                        {
                             "scrolling_content@common.scrolling_panel": {
                                 "size": ["100%", "fill"],
-                                "$scrolling_content": "server_form.buttons_grid"
+                                "$scrolling_pane_size": ["100%", "100%c"],
+                                "$scrolling_content": "server_form.long_form_content"
                             }
                         }
                     ]
@@ -171,17 +143,58 @@
         ]
     },
 
-    "buttons_grid": {
-        "type": "grid",
-        "grid_dimensions": [2, 0],
-        "maximum_grid_items": 100,
+    "long_form_content": {
+        "type": "stack_panel",
+        "orientation": "vertical",
         "size": ["100%", "100%c"],
-        "grid_item_template": "server_form.action_button",
-        "$collection_name": "action_buttons",
-        "bindings": [
+        "controls": [
             {
-                "binding_name": "#action_button_length",
-                "binding_name_override": "#maximum_grid_items"
+                "body_panel": {
+                    "type": "panel",
+                    "size": ["100%", "100%c"],
+                    "controls": [
+                        {
+                            "body_label": {
+                                "type": "label",
+                                "text": "#body_text",
+                                "color": [0.85, 0.85, 0.85],
+                                "shadow": true,
+                                "anchor_from": "top_left",
+                                "anchor_to": "top_left",
+                                "bindings": [
+                                    {
+                                        "binding_name": "#body_text"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "spacer": {
+                    "type": "panel",
+                    "size": ["100%", "6px"]
+                }
+            },
+            {
+                "buttons_grid": {
+                    "type": "grid",
+                    "size": ["100%", "100%c"],
+                    "grid_dimensions": [2, 0],
+                    "maximum_grid_items": 100,
+                    "$collection_name": "action_buttons",
+                    "factory": {
+                        "name": "buttons_factory",
+                        "control_name": "server_form.action_button"
+                    },
+                    "bindings": [
+                        {
+                            "binding_name": "#form_button_length",
+                            "binding_name_override": "#maximum_grid_items"
+                        }
+                    ]
+                }
             }
         ]
     },
@@ -319,6 +332,7 @@
                         {
                             "scrolling_content@common.scrolling_panel": {
                                 "size": ["100%", "fill"],
+                                "$scrolling_pane_size": ["100%", "100%c"],
                                 "$scrolling_content": "server_form.custom_form_controls"
                             }
                         }
