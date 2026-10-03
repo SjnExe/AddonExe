@@ -40,7 +40,7 @@ jobs:
               with:
                   path: |
                       *.tsbuildinfo
-                  key: ${{ runner.os }}-oxlint-${{ hashFiles('**/bun.lock', 'oxlint.json', 'scripts/lint/minecraft-rules.js', 'tsconfig.json') }}
+                  key: ${{ runner.os }}-oxlint-${{ hashFiles('**/bun.lock', 'scripts/lint/minecraft-rules.ts', 'tsconfig.json') }}
                   restore-keys: |
                       ${{ runner.os }}-oxlint-
 
@@ -198,14 +198,6 @@ jobs:
                   retention-days: 7
                   compression-level: 0
 
-            - name: Upload Debug Symbols (Nightly only)
-              if: steps.build_type.outputs.type == 'nightly'
-              uses: actions/upload-artifact@v7
-              with:
-                  name: debug-symbols-nightly
-                  path: packs/**/*.map
-                  retention-days: 7
-
             - name: Upload build meta
               uses: actions/upload-artifact@v7
               with:
@@ -214,7 +206,7 @@ jobs:
                   retention-days: 7
 
             - name: Validate build
-              run: bun run validate:ci
+              run: bun run validate
 
     release:
         needs: [build, lint, format, typecheck, test]
