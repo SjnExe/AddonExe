@@ -7,6 +7,7 @@ export type GridColumns = 1 | 2 | 3 | 4;
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
     private readonly callbacks: Map<number, () => void | Promise<void>>;
+    private gridColumns: GridColumns = 2;
 
     constructor() {
         this.form = new ActionFormData();
@@ -18,9 +19,13 @@ export class ActionFormBuilder {
         return this;
     }
 
-    public grid(_columns: GridColumns): this {
-        // Grid column layout is natively applied via server_form.json in resource pack
+    public grid(columns: GridColumns): this {
+        this.gridColumns = columns;
         return this;
+    }
+
+    public getColumns(): GridColumns {
+        return this.gridColumns;
     }
 
     public body(bodyText: string): this {
