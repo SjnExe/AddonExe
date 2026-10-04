@@ -50,7 +50,7 @@
                             "binding_name": "#form_button_has_texture",
                             "binding_name_override": "#visible",
                             "binding_type": "collection",
-                            "binding_collection_name": "action_buttons"
+                            "binding_collection_name": "form_buttons"
                         }
                     ],
                     "controls": [
@@ -70,7 +70,7 @@
                                     },
                                     {
                                         "binding_type": "collection",
-                                        "binding_collection_name": "action_buttons"
+                                        "binding_collection_name": "form_buttons"
                                     }
                                 ]
                             }
@@ -96,7 +96,7 @@
                                     {
                                         "binding_name": "#form_button_text",
                                         "binding_type": "collection",
-                                        "binding_collection_name": "action_buttons"
+                                        "binding_collection_name": "form_buttons"
                                     }
                                 ]
                             }
@@ -189,9 +189,9 @@
                             "buttons_grid": {
                                 "type": "grid",
                                 "size": ["100%", "100%c"],
-                                "grid_dimensions": [2, 0],
+                                "grid_dimensions": [1, 0],
                                 "maximum_grid_items": 100,
-                                "$collection_name": "action_buttons",
+                                "$collection_name": "form_buttons",
                                 "factory": {
                                     "name": "buttons_factory",
                                     "control_name": "server_form.action_button"
