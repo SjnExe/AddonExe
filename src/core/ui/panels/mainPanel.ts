@@ -3,19 +3,19 @@ import { Player } from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 
 /**
- * Renders a standard Ore UI category hub menu for a specific hub ID.
+ * Renders a standard dark theme multi-column category hub menu for a specific hub ID.
  */
 export async function showHubPanel(player: Player, hubId: MenuHubId, titleText: string, bodyText?: string): Promise<void> {
     const items = getMenuItemsForHub(hubId, player);
-    const form = new ActionFormBuilder().title(`§l§6${titleText}`);
+    const form = new ActionFormBuilder().grid(3).title(`§l§b${titleText}`);
 
     if (bodyText) {
-        form.body(bodyText);
+        form.body(`§7${bodyText}`);
     }
 
     for (const item of items) {
         const active = isMenuItemActive(item);
-        const buttonText = active ? `§l${item.title}${item.description ? `\n§r§8${item.description}` : ''}` : `§l${item.title}\n§r§0[§cDISABLED§0]`;
+        const buttonText = active ? `§l§f${item.title}${item.description ? `\n§r§7${item.description}` : ''}` : `§l§7${item.title}\n§r§c[DISABLED]`;
 
         form.button(buttonText, item.icon, async () => {
             if (!active) {

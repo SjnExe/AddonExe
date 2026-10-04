@@ -2,9 +2,12 @@ import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
+export type GridColumns = 1 | 2 | 3 | 4;
+
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
     private readonly callbacks: Map<number, () => void | Promise<void>>;
+    private gridColumns: GridColumns = 2;
 
     constructor() {
         this.form = new ActionFormData();
@@ -14,6 +17,15 @@ export class ActionFormBuilder {
     public title(titleText: string): this {
         this.form.title(titleText);
         return this;
+    }
+
+    public grid(columns: GridColumns): this {
+        this.gridColumns = columns;
+        return this;
+    }
+
+    public getColumns(): GridColumns {
+        return this.gridColumns;
     }
 
     public body(bodyText: string): this {
