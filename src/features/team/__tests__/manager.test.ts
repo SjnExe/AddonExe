@@ -231,6 +231,48 @@ describe('Team Manager', () => {
                 (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation(originalGetDynamicProperty ?? (() => undefined));
             }
         });
+
+        it('benchmark: measures team creation performance under ID collisions', () => {
+            const numActive = 2000;
+            const extraDynamicPropertyCollisions = 500;
+            const allIds = Array.from({ length: numActive }, (_, i) => i + 1);
+
+            const originalGetDynamicProperty = (mc.world.getDynamicProperty as ReturnType<typeof mock>).getMockImplementation();
+            (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation((key: string) => {
+                if (key === 'exe:allTeamIds') {
+                    return JSON.stringify(allIds);
+                }
+                if (key.startsWith('exe:team.')) {
+                    const parts = key.split('.');
+                    const id = parseInt(parts[1], 10);
+                    if (id <= numActive + extraDynamicPropertyCollisions) {
+                        return JSON.stringify({ id, name: `Team${id}` });
+                    }
+                }
+                return undefined;
+            });
+
+            try {
+                // Populate activeTeam map up to numActive
+                for (let i = 1; i <= numActive; i++) {
+                    const p = { id: `p${i}` } as mc.Player;
+                    createTeam(p, `Team${i}`);
+                }
+
+                // Simulate nextTeamId out of sync causing collisions into extraDynamicPropertyCollisions range
+                const start = performance.now();
+                const iterations = 20;
+                for (let i = 0; i < iterations; i++) {
+                    const player = { id: `benchPlayer${i}` } as mc.Player;
+                    const res = createTeam(player, `BTeam${i}`);
+                    expect(res.success).toBe(true);
+                }
+                const elapsed = performance.now() - start;
+                console.log(`[BENCHMARK OPTIMIZED] Creating ${iterations} teams with ${extraDynamicPropertyCollisions} step collisions took ${elapsed.toFixed(2)}ms`);
+            } finally {
+                (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation(originalGetDynamicProperty ?? (() => undefined));
+            }
+        });
     });
 
     describe('deleteTeam', () => {

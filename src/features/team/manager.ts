@@ -209,7 +209,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     };
 
     // Ensure ID uniqueness (Race Condition Fix)
-    while (activeTeam.has(newTeamId) || mc.world.getDynamicProperty(`${teamPropertyPrefix}${newTeamId}`) !== undefined) {
+    if (activeTeam.has(newTeamId) || mc.world.getDynamicProperty(`${teamPropertyPrefix}${newTeamId}`) !== undefined) {
         let maxId = 0;
         for (const id of activeTeam.keys()) {
             if (id > maxId) {
@@ -230,6 +230,9 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
             }
         }
         newTeamId = Math.max(newTeamId + 1, maxId + 1);
+        while (activeTeam.has(newTeamId) || mc.world.getDynamicProperty(`${teamPropertyPrefix}${newTeamId}`) !== undefined) {
+            newTeamId++;
+        }
         newTeam.id = newTeamId;
         nextTeamId = newTeamId + 1;
     }
