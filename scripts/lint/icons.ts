@@ -81,34 +81,31 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         }
 
         if (!uiTexturesFound) {
-            console.log('[IconLint] GitHub tree API unaccessible, extracting UI texture references from Bedrock UI JSON files...');
-            const uiJsonFiles = [
-                'ui_common.json',
-                'settings_common.json',
-                'hud_screen.json',
-                'inventory_screen.json',
-                'pause_screen.json',
-                'play_screen.json',
-                'start_screen.json',
-                'server_form.json',
-                'trade_screen.json',
-                'anvil_screen.json',
-                'command_block_screen.json',
-                'chest_screen.json'
-            ];
-            for (const file of uiJsonFiles) {
-                try {
-                    const res = await fetch(`https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/${file}`);
-                    if (res.ok) {
-                        const text = await res.text();
-                        const matches = text.match(/textures\/ui\/[a-zA-Z0-9_\-/]+/g);
-                        if (matches) {
-                            matches.forEach((m) => texturesToCache.push(m));
-                        }
-                    }
-                } catch {
-                    // Ignore individual fetch failure
+            console.log('[IconLint] GitHub tree API unaccessible, extracting UI texture references from Bedrock UI JSON files via _ui_defs.json...');
+            try {
+                const defsRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/_ui_defs.json');
+                if (defsRes.ok) {
+                    const defsJson = JSON5.parse(await defsRes.text());
+                    const uiFiles: string[] = defsJson.ui_defs || [];
+                    await Promise.all(
+                        uiFiles.map(async (file) => {
+                            try {
+                                const res = await fetch(`https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/${file}`);
+                                if (res.ok) {
+                                    const text = await res.text();
+                                    const matches = text.match(/textures\/ui\/[a-zA-Z0-9_\-/]+/g);
+                                    if (matches) {
+                                        matches.forEach((m) => texturesToCache.push(m));
+                                    }
+                                }
+                            } catch {
+                                // Ignore individual fetch failure
+                            }
+                        })
+                    );
                 }
+            } catch {
+                // Fallback failed
             }
         }
 
