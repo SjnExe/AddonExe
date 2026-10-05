@@ -1,7 +1,7 @@
+import { commandManager, CustomCommand } from '@commands/commandManager.js';
 import { initializeConfigManager } from '@core/configManager.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { commandManager, CustomCommand } from '@commands/commandManager.js';
 import helpCommand from '../commands/help.js';
 
 describe('Help Command Unit Tests and Benchmark', () => {
