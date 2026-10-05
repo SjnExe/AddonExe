@@ -4,6 +4,7 @@ import { getDailyRewardsConfig } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
 import { formatDuration } from '@core/utils.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 export interface ClaimResult {
@@ -78,7 +79,7 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
 
         if (isNonEmptyString(reward.command)) {
             // Execute as server
-            const safeName = player.name.replaceAll('\\', '').replaceAll('"', '');
+            const safeName = escapeCommandArg(player.name);
             const cmd = reward.command.replaceAll('{player}', `"${safeName}"`);
             player.dimension.runCommand(cmd);
         }

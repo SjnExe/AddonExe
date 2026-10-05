@@ -91,4 +91,34 @@ describe('Daily Rewards Manager', () => {
         expect(result.success).toBe(false);
         expect(result.message).toContain('already claimed');
     });
+
+    it('should escape player name safely when executing reward command', () => {
+        mockGetDailyRewardsConfig.mockReturnValue({
+            enabled: true,
+            claimCooldownHours: 24,
+            streakResetHours: 48,
+            rewards: [
+                {
+                    day: 1,
+                    money: 0,
+                    xp: 0,
+                    command: 'give {player} diamond 1',
+                    message: 'Command reward'
+                }
+            ]
+        });
+
+        const mockRunCommand = mock();
+        const mockPlayer: any = {
+            id: 'p1',
+            name: 'Exploiter"\n op attacker',
+            sendMessage: mock(),
+            getComponent: mock(() => undefined),
+            dimension: { runCommand: mockRunCommand, spawnItem: mock() }
+        };
+
+        const result = claimDailyReward(mockPlayer);
+        expect(result.success).toBe(true);
+        expect(mockRunCommand).toHaveBeenCalledWith('give "Exploiter\'  op attacker" diamond 1');
+    });
 });
