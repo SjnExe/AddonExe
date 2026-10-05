@@ -34,8 +34,7 @@ function getCategorizedCommands(): Map<string, CustomCommand[]> {
 const CATEGORY_ORDER = ['General', 'Transportation', 'Economy', 'Moderation', 'Administration', 'PvP', 'X-Ray Detection'];
 
 function getSortedCategories(availableCategories: string[]): string[] {
-    const sorted = [...availableCategories];
-    sorted.toSorted((a, b) => {
+    return [...availableCategories].sort((a, b) => {
         const idxA = CATEGORY_ORDER.indexOf(a);
         const idxB = CATEGORY_ORDER.indexOf(b);
         if (idxA !== -1 && idxB !== -1) {
@@ -49,7 +48,6 @@ function getSortedCategories(availableCategories: string[]): string[] {
         }
         return a.localeCompare(b);
     });
-    return sorted;
 }
 
 interface HelpConfig {
@@ -147,17 +145,19 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
  */
 function showChatHelp(executor: CommandExecutor) {
     const allCategories = getCategorizedCommands();
-    const visibleCategories: string[] = [];
+    const isPlayer = executor instanceof mc.Player;
+    const visibleCategoryCmds = new Map<string, CustomCommand[]>();
 
-    // Filter categories: Only show if category contains at least one visible command
     for (const [cat, cmds] of allCategories) {
-        if (cmds.some((c) => (executor instanceof mc.Player ? hasPermission(executor, c.permissionNode) : true) && c.hidden !== true)) {
-            visibleCategories.push(cat);
+        const visibleCmds = cmds.filter((c) => (isPlayer ? hasPermission(executor, c.permissionNode) : true) && c.hidden !== true);
+        if (visibleCmds.length > 0) {
+            visibleCmds.sort((a, b) => a.name.localeCompare(b.name));
+            visibleCategoryCmds.set(cat, visibleCmds);
         }
     }
 
-    if (visibleCategories.length === 0) {
-        if (executor instanceof mc.Player) {
+    if (visibleCategoryCmds.size === 0) {
+        if (isPlayer) {
             sendMessage(noPermission, executor);
         } else {
             executor.sendMessage(noPermission);
@@ -165,16 +165,12 @@ function showChatHelp(executor: CommandExecutor) {
         return;
     }
 
-    const sortedCats = getSortedCategories(visibleCategories);
+    const sortedCats = getSortedCategories(Array.from(visibleCategoryCmds.keys()));
     let helpMessage = '§a--- Available Commands ---';
 
     for (const categoryName of sortedCats) {
-        const commands = allCategories.get(categoryName) ?? [];
-        const visibleCmds = commands
-            .filter((c) => (executor instanceof mc.Player ? hasPermission(executor, c.permissionNode) : true) && c.hidden !== true)
-            .toSorted((a, b) => a.name.localeCompare(b.name));
-
-        if (visibleCmds.length > 0) {
+        const visibleCmds = visibleCategoryCmds.get(categoryName);
+        if (isDefined(visibleCmds)) {
             helpMessage += `\n§l§e--- ${categoryName} ---§r`;
             for (const cmd of visibleCmds) {
                 const slashCommand = cmd.slashName ?? cmd.name;
@@ -183,7 +179,7 @@ function showChatHelp(executor: CommandExecutor) {
         }
     }
 
-    if (executor instanceof mc.Player) {
+    if (isPlayer) {
         sendMessage(helpMessage, executor, { raw: true });
     } else {
         executor.sendMessage(helpMessage);
@@ -233,7 +229,7 @@ async function showUIHelp(player: mc.Player) {
 
 async function showUICategory(player: mc.Player, category: string) {
     const cmds = getCategorizedCommands().get(category) ?? [];
-    const visibleCmds = cmds.filter((c) => hasPermission(player, c.permissionNode) && c.hidden !== true).toSorted((a, b) => a.name.localeCompare(b.name));
+    const visibleCmds = cmds.filter((c) => hasPermission(player, c.permissionNode) && c.hidden !== true).sort((a, b) => a.name.localeCompare(b.name));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
