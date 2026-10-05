@@ -46,6 +46,8 @@ jobs:
 
             - run: bun install --frozen-lockfile
             - run: bun lint
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     format:
         runs-on: ubuntu-latest
