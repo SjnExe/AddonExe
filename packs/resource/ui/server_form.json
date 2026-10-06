@@ -142,12 +142,7 @@
         "anchor_to": "top_middle",
         "factory": {
             "name": "buttons",
-            "control_ids": {
-                "button": "server_form.dynamic_button",
-                "label": "@server_form.dynamic_label",
-                "header": "@server_form.dynamic_header",
-                "divider": "@settings_common.option_group_section_divider"
-            }
+            "control_name": "server_form.dynamic_button"
         },
         "collection_name": "form_buttons",
         "bindings": [
