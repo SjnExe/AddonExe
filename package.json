@@ -47,7 +47,6 @@
     "dependencies": {
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest",
-        "react": "^18.3.1",
         "uuid": "latest"
     },
     "devDependencies": {
@@ -70,6 +69,7 @@
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
+        "react": "^18.3.1",
         "type-fest": "latest",
         "typescript": "^6.0.3"
     },
