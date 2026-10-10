@@ -1,44 +1,29 @@
 import * as mc from '@minecraft/server';
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
+import * as configurations from '@core/configurations.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
-
-import * as realPlayerDataManager from '@core/playerDataManager.js';
-
-const mockUpdatePlayerData = mock((id: string, cb: (data: any) => void) => {
-    realPlayerDataManager.updatePlayerData(id, cb);
-});
-
-mock.module('@core/playerDataManager.js', () => ({
-    ...realPlayerDataManager,
-    updatePlayerData: mockUpdatePlayerData
-}));
-
-import * as realConfigs from '@core/configurations.js';
-
-mock.module('@core/configurations.js', () => ({
-    ...realConfigs,
-    getFriendConfig: mock(() => ({ enabled: true, maxFriends: 50 })),
-    getRanksConfig: mock()
-}));
-
-mock.module('@ui/PanelRouter.js', () => ({
-    panelRouter: { register: mock() }
-}));
-
-const { removeFriend } = await import('../friendManager.js');
+import * as playerDataManager from '@core/playerDataManager.js';
+import { removeFriend } from '../friendManager.js';
 
 describe('friendManager', () => {
+    let updatePlayerDataSpy: any;
+    let getFriendConfigSpy: any;
+    let getAllPlayersSpy: any;
+
     beforeEach(() => {
+        getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
         initializePlayerCache();
-        mockUpdatePlayerData.mockReset();
-        mockUpdatePlayerData.mockImplementation((id: string, cb: (data: any) => void) => {
-            realPlayerDataManager.updatePlayerData(id, cb);
+        updatePlayerDataSpy = spyOn(playerDataManager, 'updatePlayerData').mockImplementation((id: string, cb: (data: any) => void) => {
+            playerDataManager.updatePlayerData(id, cb);
         });
+        getFriendConfigSpy = spyOn(configurations, 'getFriendConfig').mockReturnValue({ enabled: true, maxFriends: 50 } as any);
     });
 
     afterEach(() => {
-        mockUpdatePlayerData.mockImplementation((id: string, cb: any) => realPlayerDataManager.updatePlayerData(id, cb));
+        getAllPlayersSpy?.mockRestore();
+        updatePlayerDataSpy?.mockRestore();
+        getFriendConfigSpy?.mockRestore();
     });
 
     describe('removeFriend', () => {
@@ -46,8 +31,7 @@ describe('friendManager', () => {
             const player = { id: 'p1', name: 'PlayerOne', sendMessage: mock() } as unknown as mc.Player;
             const friendId = 'f1';
 
-            // Mock updatePlayerData to simulate the logic working
-            mockUpdatePlayerData.mockImplementation((id: string, cb: (data: any) => void) => {
+            updatePlayerDataSpy.mockImplementation((id: string, cb: (data: any) => void) => {
                 let data;
                 if (id === 'p1') {
                     data = { friends: ['f1', 'other'] };
@@ -69,7 +53,7 @@ describe('friendManager', () => {
 
             expect(result.success).toBe(true);
             expect(result.message).toBe('§aFriend removed.');
-            expect(mockUpdatePlayerData).toHaveBeenCalledTimes(2);
+            expect(updatePlayerDataSpy).toHaveBeenCalledTimes(2);
             expect(exFriend.sendMessage).toHaveBeenCalledWith(`§cPlayerOne removed you from their friends list.`);
         });
 
@@ -77,7 +61,7 @@ describe('friendManager', () => {
             const player = { id: 'p1', name: 'PlayerOne', sendMessage: mock() } as unknown as mc.Player;
             const friendId = 'f1';
 
-            mockUpdatePlayerData.mockImplementation((id: string, cb: (data: any) => void) => {
+            updatePlayerDataSpy.mockImplementation((id: string, cb: (data: any) => void) => {
                 const data = { friends: ['p1', 'f1'] };
                 cb(data);
             });
@@ -86,14 +70,14 @@ describe('friendManager', () => {
 
             expect(result.success).toBe(true);
             expect(result.message).toBe('§aFriend removed.');
-            expect(mockUpdatePlayerData).toHaveBeenCalledTimes(2);
+            expect(updatePlayerDataSpy).toHaveBeenCalledTimes(2);
         });
 
         it('should handle undefined friends lists safely', () => {
             const player = { id: 'p1', name: 'PlayerOne', sendMessage: mock() } as unknown as mc.Player;
             const friendId = 'f1';
 
-            mockUpdatePlayerData.mockImplementation((id: string, cb: (data: any) => void) => {
+            updatePlayerDataSpy.mockImplementation((id: string, cb: (data: any) => void) => {
                 const data = { friends: undefined };
                 cb(data);
                 expect(data.friends).toBeUndefined();
@@ -102,7 +86,7 @@ describe('friendManager', () => {
             const result = removeFriend(player, friendId);
 
             expect(result.success).toBe(true);
-            expect(mockUpdatePlayerData).toHaveBeenCalledTimes(2);
+            expect(updatePlayerDataSpy).toHaveBeenCalledTimes(2);
         });
     });
 });

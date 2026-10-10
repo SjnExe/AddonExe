@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
 
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
@@ -17,9 +17,16 @@ mock.module('@features/teleport/tpaManager.js', () => ({
 const { showManageFriendPanel } = await import('../ui/friendPanel.js');
 
 describe('friendPanel', () => {
+    let getAllPlayersSpy: any;
+
     beforeEach(() => {
+        getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
         initializePlayerCache();
         mockCreateRequest.mockClear();
+    });
+
+    afterEach(() => {
+        getAllPlayersSpy?.mockRestore();
     });
 
     describe('showManageFriendPanel', () => {

@@ -2,7 +2,7 @@ import { getConfig } from '@core/configManager.js';
 import { getRanksConfig } from '@core/configurations.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayer } from '@core/playerDataManager.js';
-import { getAllRanks, getRankById } from '@core/rankManager.js';
+import * as rankManager from '@core/rankManager.js';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -60,7 +60,7 @@ function getRankMap(rankId: string): Record<string, boolean> {
         return rankCache.get(rankId)!;
     }
 
-    const rank = getRankById(rankId);
+    const rank = rankManager.getRankById(rankId);
     if (!rank) {
         return Object.create(null) as Record<string, boolean>;
     }
@@ -85,7 +85,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
 
     // Gather assigned ranks
     const ranks = rankIds.reduce<RankDefinition[]>((acc, id) => {
-        const rank = getRankById(id);
+        const rank = rankManager.getRankById(id);
         if (isDefined(rank)) {
             acc.push(rank);
         }
@@ -93,7 +93,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
     }, []);
 
     // Check condition-based ranks (like isOwner, hasTag) and add them if they apply
-    const allRanks = getAllRanks();
+    const allRanks = rankManager.getAllRanks();
 
     for (const rank of allRanks) {
         if (!ranks.includes(rank) && evaluateRankConditions(player, rank, ranks.length)) {
@@ -103,7 +103,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
 
     // If absolutely no rank was assigned or conditions met, explicitly grant the configured default rank
     if (ranks.length === 0) {
-        const defaultRank = getRankById(getConfig().playerDefaults.rankId);
+        const defaultRank = rankManager.getRankById(getConfig().playerDefaults.rankId);
         if (defaultRank) {
             ranks.push(defaultRank);
         }
@@ -194,31 +194,17 @@ export function hasPermission(player: mc.Player, node: string): boolean {
     }
 
     // Check wildcards using Linux-style rules (* for 1 segment, ** for 0 or more)
-    // Because a node could match multiple patterns (e.g. `cmd.**` allowed, but `cmd.pay.**` denied),
-    // and because `calculatePlayerMap` processes higher priority ranks last (overwriting `playerMap` keys),
-    // we need to be careful. Currently, `playerMap` stores `pattern -> boolean`.
-    // We should return `false` if any matched pattern explicitly denies it. Wait, the exact rules:
-    // If a pattern matches and it's false, and there's another pattern that matches and it's true, which wins?
-    // Since we merged everything into `playerMap`, all we have are the final effective patterns for the player.
-    // Usually, explicit deny overrides allow, or longest match wins.
-    // For simplicity: If ANY matching pattern is FALSE, deny it. Otherwise if ANY matching pattern is TRUE, allow it.
-
     const nSegs = node.split('.');
     let hasMatch = false;
     let allowed = false;
-
-    // To respect specificity or order, we can check all matches.
-    // If ANY match is `false`, we explicitly return `false` (deny overrides).
-    // If NO match is `false` but AT LEAST ONE match is `true`, we return `true`.
 
     const mapEntries = Object.entries(playerMap);
     for (const [pattern, patternAllowed] of mapEntries) {
         if (!pattern.includes('*')) {
             continue;
-        } // Exact matches are already handled above
+        }
 
         if (pattern === '*') {
-            // Support legacy global '*' just in case
             if (patternAllowed === false) {
                 resolvedCache.set(node, false);
                 return false;
@@ -231,7 +217,7 @@ export function hasPermission(player: mc.Player, node: string): boolean {
         const pSegs = pattern.split('.');
         if (matchPermissionSegments(pSegs, nSegs, 0, 0)) {
             if (patternAllowed === false) {
-                resolvedCache.set(node, false); // Explicit deny wins immediately
+                resolvedCache.set(node, false);
                 return false;
             }
             hasMatch = true;
@@ -255,7 +241,6 @@ function matchPermissionSegments(pSegs: string[], nSegs: string[], pIdx: number,
     const pSeg = pSegs[pIdx];
 
     if (pSeg === '**') {
-        // ** can match 0 or more segments
         if (matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx)) {
             return true;
         }
@@ -264,13 +249,11 @@ function matchPermissionSegments(pSegs: string[], nSegs: string[], pIdx: number,
         }
         return false;
     } else if (pSeg === '*') {
-        // * matches exactly 1 segment
         if (nIdx < nSegs.length && matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx + 1)) {
             return true;
         }
         return false;
     } else {
-        // Exact match
         if (nIdx < nSegs.length && pSeg === nSegs[nIdx]) {
             return matchPermissionSegments(pSegs, nSegs, pIdx + 1, nIdx + 1);
         }

@@ -1,20 +1,17 @@
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 const { mockStorageLoad, mockStorageSave } = {
     mockStorageLoad: mock(),
     mockStorageSave: mock()
 };
 
-import * as configurations from '../configurations.js';
-
 import { initializeConfigManager } from '@core/configManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { spyOn } from 'bun:test';
+import * as configurations from '../configurations.js';
 
-const { cleanupPlayerDataManager, getOrCreatePlayer, updatePlayerData, getPlayer } = await import('@core/playerDataManager.js');
+const { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } = await import('@core/playerDataManager.js');
 
-// Helper to mock a player
 const mockPlayer = (id: string, name: string) =>
     ({
         id,
@@ -28,11 +25,11 @@ const mockPlayer = (id: string, name: string) =>
 describe('PlayerDataManager - updatePlayerData', () => {
     let loadSpy: any;
     let saveSpy: any;
+    let econConfigSpy: any;
 
     beforeEach(async () => {
-        mock.restore();
         await initializeConfigManager(false);
-        spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+        econConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
             enabled: true,
             startingBalance: 0,
             minBalance: -1000,
@@ -41,13 +38,20 @@ describe('PlayerDataManager - updatePlayerData', () => {
         cleanupPlayerDataManager();
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
-        mockStorageLoad.mockReturnValue(undefined);
+        mockStorageLoad.mockImplementation(() => undefined);
         loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
             return mockStorageLoad(this.dbName);
         });
         saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
             return mockStorageSave(this.dbName, data);
         });
+    });
+
+    afterEach(() => {
+        cleanupPlayerDataManager();
+        econConfigSpy?.mockRestore();
+        loadSpy?.mockRestore();
+        saveSpy?.mockRestore();
     });
 
     it('should update an online player data and mark it as needsSave', () => {
@@ -75,7 +79,6 @@ describe('PlayerDataManager - updatePlayerData', () => {
             pData.kills = 5;
         });
 
-        // Since p2 is offline, it shouldn't be in the cache anymore after update
         const cachedPData = getPlayer('p2');
         expect(cachedPData).toBeUndefined();
 
@@ -90,8 +93,6 @@ describe('PlayerDataManager - updatePlayerData', () => {
     });
 
     it('should handle player not found', () => {
-        mockStorageLoad.mockReturnValue(undefined);
-
         let callbackCalled = false;
 
         updatePlayerData('nonexistent', (_pData: any) => {

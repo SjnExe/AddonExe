@@ -5,7 +5,11 @@ import { getConfig } from '@core/configManager.js';
 
 import { getRanksConfig } from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
+
+import { CommandExecutor } from '@commands/commandManager.js';
+import * as permissionEngine from '@core/permissionEngine.js';
 import { findPlayerByName, getPlayerFromCache } from '@core/playerCache.js';
+import * as playerDataManager from '@core/playerDataManager.js';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -50,10 +54,6 @@ export function initialize() {
     debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
 }
 
-import { CommandExecutor } from '@commands/commandManager.js';
-import { getPlayerRanks } from '@core/permissionEngine.js';
-import { loadPlayerData } from '@core/playerDataManager.js';
-
 /**
  * Gets the highest priority rank for a given player.
  * Uses the permission engine to fetch all active ranks and returns the one with the lowest priority number.
@@ -68,7 +68,7 @@ export function getPlayerRank(player: mc.Player, config: typeof Config = getConf
         return cached.rank;
     }
 
-    const ranks = getPlayerRanks(player);
+    const ranks = permissionEngine.getPlayerRanks(player);
     let highestRank: RankDefinition | undefined = undefined;
 
     for (const rank of ranks) {
@@ -136,7 +136,7 @@ export function canTarget(executor: mc.Player | CommandExecutor, targetId: strin
         targetRankPriority = targetRank.priority;
     } else {
         // Target is offline, try to load data
-        const targetData = loadPlayerData(targetId);
+        const targetData = playerDataManager.loadPlayerData(targetId);
         if (targetData && targetData.ranks.length > 0) {
             let highestOfflinePriority = 1000;
             for (const rankId of targetData.ranks) {

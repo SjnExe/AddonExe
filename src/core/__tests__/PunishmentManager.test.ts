@@ -4,7 +4,6 @@ import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import defaultConfig from '../../config.js';
 
-// Mock dependencies
 mock.module('../configManager.js', () => ({
     getConfig: () => ({ ...defaultConfig, data: { ...defaultConfig.data, autoSaveIntervalSeconds: 30 } })
 }));
@@ -18,7 +17,6 @@ mock.module('../../features/anticheat/logManager.js', () => ({
 
 describe('PunishmentManager', () => {
     beforeEach(() => {
-        mock.restore();
         new StorageManager('exe:punishments').delete();
         loadPunishments();
     });
@@ -67,14 +65,6 @@ describe('PunishmentManager', () => {
             ['pid1', { type: 'ban', expires: future, reason: 'legacy ban' }],
             ['pid2', { type: 'mute', expires: future, reason: 'legacy mute' }]
         ];
-
-        // Mock StorageManager to return legacy data
-        // We can't mock StorageManager constructor directly easily without complex mocks.
-        // But StorageManager calls mc.world.getDynamicProperty.
-        // StorageManager logic: loads keys.
-        // If we assume PunishmentManager uses a specific key 'exe:punishments'.
-        // StorageManager(key) -> load() -> getDynamicProperty(key).
-        // It returns parsed JSON.
 
         mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
 

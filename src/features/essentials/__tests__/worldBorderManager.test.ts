@@ -9,7 +9,6 @@ describe('worldBorderManager', () => {
     let intervalCallback: () => void;
 
     beforeEach(() => {
-        mock.restore();
         (mc.world?.getAllPlayers as any)?.mockReturnValue?.([]);
         initializePlayerCache();
 
@@ -18,7 +17,6 @@ describe('worldBorderManager', () => {
             return 1;
         });
 
-        // Reset world border to default disabled
         setWorldBorder(false, 0, 0, 1000, 'overworld');
     });
 
@@ -134,7 +132,6 @@ describe('worldBorderManager', () => {
         const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
         const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
 
-        // Populate player cache with 50 test players
         for (let i = 0; i < 50; i++) {
             const player = new PlayerMock(`p_${i}`, `Player_${i}`);
             player.location = { x: 10, y: 64, z: 10, dimension: new DimensionMock('overworld') };
@@ -145,7 +142,6 @@ describe('worldBorderManager', () => {
             addPlayerToCache(player);
         }
 
-        // Benchmark checkWorldBorder running with cache
         const iterations = 1000;
         const startCached = performance.now();
         for (let i = 0; i < iterations; i++) {
@@ -153,7 +149,6 @@ describe('worldBorderManager', () => {
         }
         const cachedTimeMs = performance.now() - startCached;
 
-        // Verify that running 1000 iterations finishes quickly (under 50ms)
         expect(cachedTimeMs).toBeLessThan(100);
     });
 });
