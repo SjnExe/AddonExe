@@ -4,11 +4,8 @@ import defaultConfig from '../../../config.js';
 
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 
-const mockGetConfig = mock();
-
-mock.module('@core/configManager.js', () => ({
-    getConfig: mockGetConfig
-}));
+import * as configManager from '@core/configManager.js';
+import { spyOn } from 'bun:test';
 
 const { startRestart, cancelRestart } = await import('../restartManager.js');
 
@@ -17,6 +14,7 @@ describe('restartManager', () => {
 
     beforeEach(() => {
         mock.restore();
+        cancelRestart();
         initializePlayerCache();
         intervalCallback = undefined;
 
@@ -29,14 +27,14 @@ describe('restartManager', () => {
             return 123 as any;
         });
 
-        mockGetConfig.mockReturnValue({
+        spyOn(configManager, 'getConfig').mockReturnValue({
             ...defaultConfig,
             restart: {
                 countdownSeconds: 2,
                 subtitle: 'Server maintenance',
                 kickMessage: 'Server is restarting; please rejoin shortly.'
             }
-        });
+        } as any);
     });
 
     it('should start countdown and trigger escaped kick commands when countdown reaches 0', () => {

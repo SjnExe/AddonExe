@@ -110,6 +110,8 @@ export function cleanupTimers(): void {
     debugLog(`[TimerManager] Clearing ${intervals.size} intervals, ${timeoutIds.size} timeouts, and ${jobIds.size} jobs.`);
 
     intervals.clear();
+    nextIntervalId = 1;
+    tickCount = 0;
     if (masterIntervalId !== undefined) {
         mc.system.clearRun(masterIntervalId);
         masterIntervalId = undefined;

@@ -1,75 +1,50 @@
-import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
-mock.module('@minecraft/server', () => ({
-    ...mcMock,
-    system: { ...mcMock.system, currentTick: 0 },
-    world: {
-        ...mcMock.world,
-        afterEvents: {
-            ...mcMock.world.afterEvents,
-            playerLeave: {
-                subscribe: mock()
-            }
-        }
-    }
-}));
+import * as configManager from '@core/configManager.js';
+import * as configurations from '@core/configurations.js';
 
-mock.module('@core/configurations.js', () => ({
-    getRanksConfig: mock()
-}));
-
-mock.module('@core/permissionEngine.js', () => ({
-    getPlayerRanks: mock()
-}));
-
+import * as permissionEngine from '@core/permissionEngine.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
+import * as playerDataManager from '@core/playerDataManager.js';
 
-import * as realPlayerDataManager from '@core/playerDataManager.js';
-
-mock.module('@core/playerDataManager.js', () => ({
-    ...realPlayerDataManager,
-    loadPlayerData: mock()
-}));
-
-mock.module('@commands/commandManager.js', () => ({
-    CommandExecutor: class {}
-}));
-
-mock.module('@core/../config.js', () => ({
-    config: {
-        playerDefaults: {
-            rankId: 'default'
-        },
-        ranks: {
-            nameTagStyle: 'above'
-        }
-    }
-}));
-
-import * as realRankManager from '../rankManager.js';
-
-mock.module('../rankManager.js', () => realRankManager);
-mock.module('@core/rankManager.js', () => realRankManager);
+const mockGetPlayerRanks = mock();
+const mockLoadPlayerData = mock();
 
 import { config as Config } from '@core/../config.js';
-import { getRanksConfig } from '@core/configurations.js';
-import { getPlayerRanks } from '@core/permissionEngine.js';
-import { loadPlayerData } from '@core/playerDataManager.js';
 import * as mc from '@minecraft/server';
 import { canTarget, getAllRanks, getPlayerRank, getRankById, initialize, reloadRanks, updatePlayerNameTag } from '../rankManager.js';
 
 describe('rankManager', () => {
     const mockRanks: RankDefinition[] = [{ id: 'admin', priority: 10 } as RankDefinition, { id: 'default', priority: 100 } as RankDefinition, { id: 'mod', priority: 50 } as RankDefinition];
 
+    let getConfigSpy: any;
+    let getRanksConfigSpy: any;
+    let getPlayerRanksSpy: any;
+    let loadPlayerDataSpy: any;
+
     beforeEach(() => {
-        mock.restore();
+        Config.playerDefaults.rankId = 'default';
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue(Config as any);
+        getRanksConfigSpy = spyOn(configurations, 'getRanksConfig').mockReturnValue({
+            rankDefinitions: mockRanks
+        } as any);
+        getPlayerRanksSpy = spyOn(permissionEngine, 'getPlayerRanks').mockImplementation(mockGetPlayerRanks as any);
+        loadPlayerDataSpy = spyOn(playerDataManager, 'loadPlayerData').mockImplementation(mockLoadPlayerData as any);
+        mockGetPlayerRanks.mockReset();
+        mockLoadPlayerData.mockReset();
+        mockGetPlayerRanks.mockReturnValue([]);
+        mockLoadPlayerData.mockReturnValue(undefined);
         // @ts-expect-error mocking readonly
         mc.system.currentTick = 0;
-        (getRanksConfig as ReturnType<typeof mock>).mockReturnValue({
-            rankDefinitions: mockRanks
-        });
+        reloadRanks();
+    });
+
+    afterEach(() => {
+        getConfigSpy?.mockRestore();
+        getRanksConfigSpy?.mockRestore();
+        getPlayerRanksSpy?.mockRestore();
+        loadPlayerDataSpy?.mockRestore();
     });
 
     describe('reloadRanks', () => {
@@ -93,7 +68,7 @@ describe('rankManager', () => {
         it('should return highest priority rank for player', () => {
             reloadRanks(); // Initialize internal sortedRanks
             const player = { id: 'player1' } as mc.Player;
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([
+            mockGetPlayerRanks.mockReturnValue([
                 mockRanks[1], // default (priority 100)
                 mockRanks[0] // admin (priority 10)
             ]);
@@ -104,7 +79,7 @@ describe('rankManager', () => {
 
         it('should return cached rank if within 20 ticks', () => {
             const player = { id: 'player2' } as mc.Player;
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([mockRanks[0]]);
+            mockGetPlayerRanks.mockReturnValue([mockRanks[0]]);
 
             // @ts-expect-error mocking readonly
             mc.system.currentTick = 100;
@@ -112,7 +87,7 @@ describe('rankManager', () => {
 
             // @ts-expect-error mocking readonly
             mc.system.currentTick = 110; // Within 20 ticks
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([mockRanks[1]]); // Change mock to see if cache is used
+            mockGetPlayerRanks.mockReturnValue([mockRanks[1]]); // Change mock to see if cache is used
             const rank2 = getPlayerRank(player, Config);
 
             expect(rank1).toEqual(mockRanks[0]);
@@ -121,7 +96,7 @@ describe('rankManager', () => {
 
         it('should fallback to default configured rank if no ranks found', () => {
             const player = { id: 'player3' } as mc.Player;
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([]);
+            mockGetPlayerRanks.mockReturnValue([]);
 
             const rank = getPlayerRank(player, Config);
             expect(rank).toEqual(mockRanks[1]); // default rank is mockRanks[1]
@@ -129,16 +104,22 @@ describe('rankManager', () => {
 
         it('should fallback to minimal safe fallback if default rank is missing', () => {
             const player = { id: 'player4' } as mc.Player;
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([]);
-            (getRanksConfig as ReturnType<typeof mock>).mockReturnValue({
+            mockGetPlayerRanks.mockReturnValue([]);
+            getRanksConfigSpy.mockReturnValue({
                 rankDefinitions: [mockRanks[0], mockRanks[2]] // Remove 'default' rank
-            });
+            } as any);
             // Also need to clear the cached map that might have 'default'
             reloadRanks();
 
             const rank = getPlayerRank(player, Config);
             expect(rank.id).toBe('fallback');
             expect(rank.priority).toBe(1000);
+
+            // Restore ranks config mock and reload for subsequent tests
+            getRanksConfigSpy.mockReturnValue({
+                rankDefinitions: mockRanks
+            } as any);
+            reloadRanks();
         });
     });
 
@@ -147,9 +128,10 @@ describe('rankManager', () => {
             initializePlayerCache();
             // @ts-expect-error mocking readonly
             mc.system.currentTick = 200; // Reset tick for caching isolation
-            (getRanksConfig as ReturnType<typeof mock>).mockReturnValue({
+            getRanksConfigSpy.mockReturnValue({
                 rankDefinitions: mockRanks
-            });
+            } as any);
+            reloadRanks();
         });
 
         it('should allow console to target anyone', () => {
@@ -166,7 +148,7 @@ describe('rankManager', () => {
         it('should allow higher priority (lower number) to target lower priority', () => {
             const executor = { id: 'adminId' } as mc.Player;
             Object.setPrototypeOf(executor, mc.Player.prototype);
-            (getPlayerRanks as ReturnType<typeof mock>).mockImplementation((p: any) => {
+            mockGetPlayerRanks.mockImplementation((p: any) => {
                 if (p.id === 'adminId') {
                     return [mockRanks[0]];
                 } // admin, priority 10
@@ -177,7 +159,7 @@ describe('rankManager', () => {
             });
 
             // Target is online and cached
-            const targetPlayer = { id: 'modId' } as mc.Player;
+            const targetPlayer = { id: 'modId', name: 'modId', isValid: true } as mc.Player;
             addPlayerToCache(targetPlayer);
 
             expect(canTarget(executor, 'modId', Config)).toBe(true);
@@ -186,7 +168,7 @@ describe('rankManager', () => {
         it('should deny lower priority (higher number) targeting higher priority', () => {
             const executor = { id: 'modId' } as mc.Player;
             Object.setPrototypeOf(executor, mc.Player.prototype);
-            (getPlayerRanks as ReturnType<typeof mock>).mockImplementation((p: any) => {
+            mockGetPlayerRanks.mockImplementation((p: any) => {
                 if (p.id === 'adminId') {
                     return [mockRanks[0]];
                 } // admin, priority 10
@@ -196,7 +178,7 @@ describe('rankManager', () => {
                 return [];
             });
 
-            const targetPlayer = { id: 'adminId' } as mc.Player;
+            const targetPlayer = { id: 'adminId', name: 'adminId', isValid: true } as mc.Player;
             addPlayerToCache(targetPlayer);
 
             expect(canTarget(executor, 'adminId', Config)).toBe(false);
@@ -205,10 +187,10 @@ describe('rankManager', () => {
         it('should resolve target rank for offline players via data manager', () => {
             const executor = { id: 'adminId' } as mc.Player;
             Object.setPrototypeOf(executor, mc.Player.prototype);
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([mockRanks[0]]); // Admin (10)
+            mockGetPlayerRanks.mockReturnValue([mockRanks[0]]); // Admin (10)
 
             // Offline player has mod rank
-            (loadPlayerData as ReturnType<typeof mock>).mockReturnValue({
+            mockLoadPlayerData.mockReturnValue({
                 ranks: ['mod'] // mod is priority 50
             });
 
@@ -218,9 +200,9 @@ describe('rankManager', () => {
         it('should fallback for offline players with no data', () => {
             const executor = { id: 'modId' } as mc.Player;
             Object.setPrototypeOf(executor, mc.Player.prototype);
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([mockRanks[2]]); // Mod (50)
+            mockGetPlayerRanks.mockReturnValue([mockRanks[2]]); // Mod (50)
 
-            (loadPlayerData as ReturnType<typeof mock>).mockReturnValue(undefined);
+            mockLoadPlayerData.mockReturnValue(undefined);
 
             // Target falls back to default rank priority (100)
             // Mod (50) < Default (100), so mod can target
@@ -248,8 +230,14 @@ describe('rankManager', () => {
         let player: mc.Player;
 
         beforeEach(() => {
+            if (!Config.ranks) {
+                (Config as any).ranks = { nameTagStyle: 'above' };
+            }
+            if (!Config.playerDefaults) {
+                (Config as any).playerDefaults = { rankId: 'default' };
+            }
             player = { id: 'player1', name: 'PlayerName', nameTag: 'PlayerName' } as mc.Player;
-            (getPlayerRanks as ReturnType<typeof mock>).mockReturnValue([mockRanks[0]]); // Admin
+            mockGetPlayerRanks.mockReturnValue([mockRanks[0]]); // Admin
             // Admin doesn't have chatFormatting defined in mockRanks initially, let's update it for these tests
             mockRanks[0].chatFormatting = { prefixText: 'ADMIN', nameColor: '§7', messageColor: '§r' };
 

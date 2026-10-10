@@ -1,11 +1,13 @@
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 
-const mockUpdatePlayerData = mock();
-
 import * as realPlayerDataManager from '@core/playerDataManager.js';
+
+const mockUpdatePlayerData = mock((id: string, cb: (data: any) => void) => {
+    realPlayerDataManager.updatePlayerData(id, cb);
+});
 
 mock.module('@core/playerDataManager.js', () => ({
     ...realPlayerDataManager,
@@ -30,6 +32,13 @@ describe('friendManager', () => {
     beforeEach(() => {
         initializePlayerCache();
         mockUpdatePlayerData.mockReset();
+        mockUpdatePlayerData.mockImplementation((id: string, cb: (data: any) => void) => {
+            realPlayerDataManager.updatePlayerData(id, cb);
+        });
+    });
+
+    afterEach(() => {
+        mockUpdatePlayerData.mockImplementation((id: string, cb: any) => realPlayerDataManager.updatePlayerData(id, cb));
     });
 
     describe('removeFriend', () => {

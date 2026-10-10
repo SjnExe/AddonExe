@@ -10,37 +10,9 @@ const { mockStorageLoad, mockStorageSave } = {
 };
 
 // Define mocks using unstable_mockModule
-mock.module('../configManager.js', () => ({
-    getConfig: () => ({
-        ...defaultConfig,
-        economy: {
-            ...defaultConfig.economy,
-            enabled: true,
-            minBalance: -1000,
-            maxBalance: 1_000_000,
-            paymentConfirmationThreshold: 1000,
-            paymentConfirmationTimeout: 30
-        },
-        playerDefaults: {
-            ...defaultConfig.playerDefaults,
-            rankId: 'member',
-            permission: 'ui.panel.member',
-            xrayNotificationsEnabled: false
-        }
-    })
-}));
-
-import * as realConfigs from '../configurations.js';
-
-mock.module('../configurations.js', () => ({
-    ...realConfigs,
-    getEconomyConfig: () => ({
-        enabled: true,
-        startingBalance: 0,
-        minBalance: -1000,
-        maxBalance: 1_000_000
-    })
-}));
+import { spyOn } from 'bun:test';
+import * as configManager from '../configManager.js';
+import * as configurations from '../configurations.js';
 
 mock.module('../leaderboardManager.js', () => ({
     updateAndSaveLeaderboard: mock()
@@ -63,14 +35,37 @@ const mockPlayer = (id: string, name: string) =>
 describe('Economy System', () => {
     beforeEach(() => {
         mock.restore();
+        spyOn(configManager, 'getConfig').mockReturnValue({
+            ...defaultConfig,
+            economy: {
+                ...defaultConfig.economy,
+                enabled: true,
+                minBalance: -1000,
+                maxBalance: 1_000_000,
+                paymentConfirmationThreshold: 1000,
+                paymentConfirmationTimeout: 30
+            },
+            playerDefaults: {
+                ...defaultConfig.playerDefaults,
+                rankId: 'member',
+                permission: 'ui.panel.member',
+                xrayNotificationsEnabled: false
+            }
+        } as any);
+
+        spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+            enabled: true,
+            startingBalance: 0,
+            minBalance: -1000,
+            maxBalance: 1_000_000
+        } as any);
+
         cleanupPlayerDataManager();
 
         // Reset storage mocks
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
-
-        // Setup dynamic property mocks
-        (mc.world.getDynamicProperty as any).mockReturnValue(undefined);
+        mockStorageLoad.mockReturnValue(undefined);
     });
 
     describe('Transfer Logic', () => {

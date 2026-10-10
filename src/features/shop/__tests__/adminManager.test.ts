@@ -1,20 +1,18 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as logger from '@core/logger.js';
 const debugLogSpy = spyOn(logger, 'debugLog');
+
+import * as configurations from '@core/configurations.js';
+import { debugLog } from '@core/logger.js';
+import { addCategory } from '../adminManager.js';
 
 const mockConfig = {
     categories: {} as Record<string, any>
 };
 
-mock.module('@core/configurations.js', () => ({
-    getShopConfig: mock(() => mockConfig),
-    saveShopConfig: mock()
-}));
-
-import { getShopConfig, saveShopConfig } from '@core/configurations.js';
-import { debugLog } from '@core/logger.js';
-import { addCategory } from '../adminManager.js';
+const mockGetShopConfig = spyOn(configurations, 'getShopConfig').mockImplementation(() => mockConfig as any);
+const mockSaveShopConfig = spyOn(configurations, 'saveShopConfig').mockImplementation(() => undefined as any);
 
 describe('Shop Admin Manager - addCategory', () => {
     beforeEach(() => {
@@ -22,8 +20,8 @@ describe('Shop Admin Manager - addCategory', () => {
         mockConfig.categories = {};
 
         // Clear mocks
-        (getShopConfig as any).mockClear();
-        (saveShopConfig as any).mockClear();
+        mockGetShopConfig.mockClear();
+        mockSaveShopConfig.mockClear();
         debugLogSpy.mockClear();
     });
 
@@ -38,7 +36,7 @@ describe('Shop Admin Manager - addCategory', () => {
         expect(mockConfig.categories['Weapons'].items).toEqual({});
         expect(mockConfig.categories['Weapons'].subCategories).toEqual({});
 
-        expect(saveShopConfig).toHaveBeenCalledWith(mockConfig);
+        expect(mockSaveShopConfig).toHaveBeenCalledWith(mockConfig);
         expect(debugLog).toHaveBeenCalledWith('[ShopAdminManager] Added new category: Weapons');
     });
 
@@ -49,7 +47,7 @@ describe('Shop Admin Manager - addCategory', () => {
         expect(result.success).toBe(false);
         expect(result.message).toBe('Category name is too long (max 32).');
         expect(Object.keys(mockConfig.categories).length).toBe(0);
-        expect(saveShopConfig).not.toHaveBeenCalled();
+        expect(mockSaveShopConfig).not.toHaveBeenCalled();
     });
 
     it('should fail when category already exists', () => {
@@ -63,7 +61,7 @@ describe('Shop Admin Manager - addCategory', () => {
 
         expect(result.success).toBe(false);
         expect(result.message).toBe("A category with the name 'Existing' already exists.");
-        expect(saveShopConfig).not.toHaveBeenCalled();
+        expect(mockSaveShopConfig).not.toHaveBeenCalled();
     });
 
     it('should fall back to default icon when icon is empty', () => {
@@ -72,7 +70,7 @@ describe('Shop Admin Manager - addCategory', () => {
         expect(result.success).toBe(true);
         expect(mockConfig.categories['Blocks']).toBeDefined();
         expect(mockConfig.categories['Blocks'].icon).toBe('');
-        expect(saveShopConfig).toHaveBeenCalledWith(mockConfig);
+        expect(mockSaveShopConfig).toHaveBeenCalledWith(mockConfig);
     });
 
     it('should keep color codes in category name as sanitizeString(allowColors=true) is used', () => {

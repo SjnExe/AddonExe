@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Mocks
+import * as realPlayerDataManager from '@core/playerDataManager.js';
+
 const mockIncrementPlayerBalance = mock();
 const mockGetPlayer = mock();
 const mockLoadPlayerData = mock();
-
-import * as realPlayerDataManager from '@core/playerDataManager.js';
 
 mock.module('@core/playerDataManager.js', () => ({
     ...realPlayerDataManager,
@@ -20,7 +20,10 @@ const { placeBounty, getBounty } = await import('@features/economy/bountyManager
 
 describe('BountyManager', () => {
     beforeEach(() => {
-        mock.restore();
+        mockIncrementPlayerBalance.mockReset();
+        mockGetPlayer.mockReset();
+        mockLoadPlayerData.mockReset();
+
         mockStorageLoad.mockReturnValue([]);
     });
 

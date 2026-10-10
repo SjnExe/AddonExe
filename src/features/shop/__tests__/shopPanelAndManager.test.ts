@@ -1,13 +1,14 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+
+import * as configurations from '@core/configurations.js';
+import { spyOn } from 'bun:test';
 
 const mockConfig = {
     categories: {} as Record<string, any>
 };
 
-mock.module('@core/configurations.js', () => ({
-    getShopConfig: mock(() => mockConfig),
-    saveShopConfig: mock()
-}));
+spyOn(configurations, 'getShopConfig').mockImplementation(() => mockConfig as any);
+spyOn(configurations, 'saveShopConfig').mockImplementation(() => undefined as any);
 
 import { setItem, updateShopItem } from '../adminManager.js';
 import { parseRankOverrides } from '../utils.js';
