@@ -54,8 +54,8 @@
     "long_form@common_dialogs.main_panel_no_buttons": {
         "$title_panel": "common_dialogs.standard_title_label",
         "$title_size": ["100% - 14px", 10],
-        "size": [280, "100% - 24px"],
-        "max_size": [280, 230],
+        "size": [310, "100% - 20px"],
+        "max_size": [310, 240],
         "$text_name": "#title_text",
         "$title_text_binding_type": "none",
         "$child_control": "server_form.long_form_panel",
@@ -134,34 +134,82 @@
     },
 
     "long_form_dynamic_buttons_panel": {
-        "type": "stack_panel",
-        "size": ["100% - 4px", "100%c"],
-        "offset": [2, 0],
-        "orientation": "vertical",
-        "anchor_from": "top_middle",
-        "anchor_to": "top_middle",
+        "type": "grid",
+        "size": ["100%", "100%c"],
+        "grid_dimensions": [6, 0],
+        "grid_rescaling_type": "horizontal",
+        "grid_item_template": "server_form.adaptive_button_slot",
         "factory": {
             "name": "buttons",
-            "control_name": "server_form.dynamic_button"
+            "control_name": "server_form.adaptive_button_slot"
         },
         "collection_name": "form_buttons",
         "bindings": [
             {
-                "binding_name": "#form_button_contents",
-                "binding_name_override": "#collection_length"
+                "binding_name": "#form_button_length",
+                "binding_name_override": "#maximum_grid_items"
             }
         ]
     },
 
-    "dynamic_button": {
+    "adaptive_button_slot": {
+        "type": "panel",
+        "size": ["100%", "100%c"],
+        "controls": [
+            {
+                "grid_3_col_button@server_form.button_tile_card": {
+                    "bindings": [
+                        {
+                            "binding_name": "#title_text"
+                        },
+                        {
+                            "binding_type": "view",
+                            "source_property_name": "(not ((#title_text - '§3') = #title_text))",
+                            "target_property_name": "#visible"
+                        }
+                    ]
+                }
+            },
+            {
+                "grid_2_col_button@server_form.button_wide_card": {
+                    "bindings": [
+                        {
+                            "binding_name": "#title_text"
+                        },
+                        {
+                            "binding_type": "view",
+                            "source_property_name": "(((#title_text - '§3') = #title_text) and ((#title_text - '§1') = #title_text))",
+                            "target_property_name": "#visible"
+                        }
+                    ]
+                }
+            },
+            {
+                "grid_1_col_button@server_form.button_full_banner": {
+                    "bindings": [
+                        {
+                            "binding_name": "#title_text"
+                        },
+                        {
+                            "binding_type": "view",
+                            "source_property_name": "(not ((#title_text - '§1') = #title_text))",
+                            "target_property_name": "#visible"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+
+    "button_full_banner": {
         "type": "stack_panel",
-        "size": ["100%", 36],
+        "size": ["100% - 2px", 32],
         "orientation": "horizontal",
         "controls": [
             {
-                "panel_name": {
+                "icon_panel": {
                     "type": "panel",
-                    "size": [34, "100%c"],
+                    "size": [30, 30],
                     "bindings": [
                         {
                             "binding_type": "view",
@@ -176,7 +224,7 @@
                             "image": {
                                 "type": "image",
                                 "layer": 2,
-                                "size": [28, 28],
+                                "size": [24, 24],
                                 "anchor_from": "center",
                                 "anchor_to": "center",
                                 "bindings": [
@@ -199,18 +247,71 @@
                                     }
                                 ]
                             }
-                        },
+                        }
+                    ]
+                }
+            },
+            {
+                "form_button@common_buttons.light_text_button": {
+                    "$pressed_button_name": "button.form_button_click",
+                    "size": ["fill", "100%"],
+                    "$button_text": "#form_button_text",
+                    "$button_text_binding_type": "collection",
+                    "$button_text_grid_collection_name": "form_buttons",
+                    "$button_text_max_size": ["100%", 20],
+                    "bindings": [
                         {
-                            "progress@progress.progress_loading_bars": {
-                                "size": [26, 4],
+                            "binding_type": "collection_details",
+                            "binding_collection_name": "form_buttons"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+
+    "button_wide_card": {
+        "type": "stack_panel",
+        "size": ["50% - 2px", 36],
+        "orientation": "horizontal",
+        "controls": [
+            {
+                "icon_panel": {
+                    "type": "panel",
+                    "size": [32, 32],
+                    "bindings": [
+                        {
+                            "binding_type": "view",
+                            "source_control_name": "image",
+                            "resolve_sibling_scope": true,
+                            "source_property_name": "(not (#texture = ''))",
+                            "target_property_name": "#visible"
+                        }
+                    ],
+                    "controls": [
+                        {
+                            "image": {
+                                "type": "image",
+                                "layer": 2,
+                                "size": [24, 24],
                                 "anchor_from": "center",
                                 "anchor_to": "center",
                                 "bindings": [
                                     {
+                                        "binding_name": "#form_button_texture",
+                                        "binding_name_override": "#texture",
+                                        "binding_type": "collection",
+                                        "binding_collection_name": "form_buttons"
+                                    },
+                                    {
+                                        "binding_name": "#form_button_texture_file_system",
+                                        "binding_name_override": "#texture_file_system",
+                                        "binding_type": "collection",
+                                        "binding_collection_name": "form_buttons"
+                                    },
+                                    {
                                         "binding_type": "view",
-                                        "source_control_name": "image",
-                                        "resolve_sibling_scope": true,
-                                        "source_property_name": "(#texture = 'loading')",
+                                        "source_property_name": "(not ((#texture = '') or (#texture = 'loading')))",
                                         "target_property_name": "#visible"
                                     }
                                 ]
@@ -222,8 +323,6 @@
             {
                 "form_button@common_buttons.light_text_button": {
                     "$pressed_button_name": "button.form_button_click",
-                    "anchor_from": "left_middle",
-                    "anchor_to": "left_middle",
                     "size": ["fill", "100%"],
                     "$button_text": "#form_button_text",
                     "$button_text_binding_type": "collection",
@@ -238,6 +337,102 @@
                 }
             }
         ]
+    },
+
+    "button_tile_card": {
+        "type": "panel",
+        "size": ["33.33% - 2px", 48],
+        "controls": [
+            {
+                "form_button@common_buttons.light_text_button": {
+                    "$pressed_button_name": "button.form_button_click",
+                    "size": ["100%", "100%"],
+                    "$button_text": "",
+                    "bindings": [
+                        {
+                            "binding_type": "collection_details",
+                            "binding_collection_name": "form_buttons"
+                        }
+                    ]
+                }
+            },
+            {
+                "content_stack": {
+                    "type": "stack_panel",
+                    "orientation": "vertical",
+                    "size": ["100%", "100%"],
+                    "controls": [
+                        {
+                            "icon_container": {
+                                "type": "panel",
+                                "size": ["100%", 28],
+                                "controls": [
+                                    {
+                                        "image": {
+                                            "type": "image",
+                                            "layer": 3,
+                                            "size": [22, 22],
+                                            "anchor_from": "center",
+                                            "anchor_to": "center",
+                                            "bindings": [
+                                                {
+                                                    "binding_name": "#form_button_texture",
+                                                    "binding_name_override": "#texture",
+                                                    "binding_type": "collection",
+                                                    "binding_collection_name": "form_buttons"
+                                                },
+                                                {
+                                                    "binding_name": "#form_button_texture_file_system",
+                                                    "binding_name_override": "#texture_file_system",
+                                                    "binding_type": "collection",
+                                                    "binding_collection_name": "form_buttons"
+                                                },
+                                                {
+                                                    "binding_type": "view",
+                                                    "source_property_name": "(not ((#texture = '') or (#texture = 'loading')))",
+                                                    "target_property_name": "#visible"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "label_container": {
+                                "type": "panel",
+                                "size": ["100%", "fill"],
+                                "controls": [
+                                    {
+                                        "label": {
+                                            "type": "label",
+                                            "layer": 3,
+                                            "color": "$main_header_text_color",
+                                            "size": ["100% - 4px", "default"],
+                                            "anchor_from": "top_middle",
+                                            "anchor_to": "top_middle",
+                                            "text": "#form_button_text",
+                                            "bindings": [
+                                                {
+                                                    "binding_name": "#form_button_text",
+                                                    "binding_type": "collection",
+                                                    "binding_collection_name": "form_buttons"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+
+    "dynamic_button": {
+        "type": "panel",
+        "size": ["100%", 32]
     },
 
     "dynamic_label@settings_common.option_group_spaced_label": {},
