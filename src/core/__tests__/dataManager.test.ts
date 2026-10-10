@@ -1,6 +1,5 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import defaultConfig from '../../config.js';
 
 const { mockStorageSave } = {
     mockStorageSave: mock()

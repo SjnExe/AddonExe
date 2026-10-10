@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 
 import * as configurations from '@core/configurations.js';
 import { spyOn } from 'bun:test';

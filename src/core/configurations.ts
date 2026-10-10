@@ -239,18 +239,18 @@ export function registerConfigResetCallback(key: string, callback: (player?: mc.
 }
 
 export function _clearConfigManagersForTest() {
-    worldProtectionConfigManager = undefined as any;
-    shopConfigManager = undefined as any;
-    ranksConfigManager = undefined as any;
-    economyConfigManager = undefined as any;
-    xrayConfigManager = undefined as any;
-    teamConfigManager = undefined as any;
-    friendConfigManager = undefined as any;
-    sidebarConfigManager = undefined as any;
-    auctionHouseConfigManager = undefined as any;
-    dailyRewardsConfigManager = undefined as any;
-    gamesConfigManager = undefined as any;
-    wordleConfigManager = undefined as any;
+    worldProtectionConfigManager = undefined as unknown as ConfigManager<WorldProtectionConfig>;
+    shopConfigManager = undefined as unknown as ConfigManager<ShopConfig>;
+    ranksConfigManager = undefined as unknown as ConfigManager<RanksConfig>;
+    economyConfigManager = undefined as unknown as ConfigManager<EconomyConfig>;
+    xrayConfigManager = undefined as unknown as ConfigManager<XrayConfig>;
+    teamConfigManager = undefined as unknown as ConfigManager<TeamConfig>;
+    friendConfigManager = undefined as unknown as ConfigManager<FriendConfig>;
+    sidebarConfigManager = undefined as unknown as ConfigManager<SidebarConfig>;
+    auctionHouseConfigManager = undefined as unknown as ConfigManager<AuctionHouseConfig>;
+    dailyRewardsConfigManager = undefined as unknown as ConfigManager<DailyRewardsConfig>;
+    gamesConfigManager = undefined as unknown as ConfigManager<GamesConfig>;
+    wordleConfigManager = undefined as unknown as ConfigManager<WordleConfig>;
 }
 
 export async function reloadAllConfigs() {

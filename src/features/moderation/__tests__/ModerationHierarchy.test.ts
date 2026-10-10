@@ -4,8 +4,8 @@ import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
-import * as realRankManager from '@core/rankManager.js';
 import * as realPlayerDataManager from '@core/playerDataManager.js';
+import * as realRankManager from '@core/rankManager.js';
 
 // --- Mocks ---
 const mockGetPlayerRank = mock((...args: any[]) => realRankManager.getPlayerRank(args[0], args[1]));

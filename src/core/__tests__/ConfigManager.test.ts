@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, it, mock, spyOn } from 'bun:test';
 
 const mockConfigLoader = mock();
 const mockConfigManagerInstance = {
@@ -18,25 +18,35 @@ mock.module('@core/configLoader.js', () => ({
 }));
 
 import * as factoryModule from '@core/configManagerFactory.js';
-import { spyOn } from 'bun:test';
-
-mock.module('@features/anticheat/configLoader.js', () => ({
-    loadAnticheatConfig: mock(),
-    getAnticheatConfig: mock(),
-    saveAnticheatConfig: mock()
-}));
+import * as anticheatConfigLoader from '@features/anticheat/configLoader.js';
 
 const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = await import('@core/configManager.js');
 
 describe('ConfigManager', () => {
-    beforeEach(() => {
-        mock.restore();
-        spyOn(factoryModule, 'default').mockImplementation(mockFactory as any);
+    let loadAnticheatSpy: any;
+    let getAnticheatSpy: any;
+    let saveAnticheatSpy: any;
+    let factorySpy: any;
+
+    beforeEach(async () => {
+        factorySpy = spyOn(factoryModule, 'default').mockImplementation(mockFactory as any);
+        loadAnticheatSpy = spyOn(anticheatConfigLoader, 'loadAnticheatConfig').mockImplementation(() => {});
+        getAnticheatSpy = spyOn(anticheatConfigLoader, 'getAnticheatConfig').mockReturnValue({} as any);
+        saveAnticheatSpy = spyOn(anticheatConfigLoader, 'saveAnticheatConfig').mockImplementation(() => {});
+
         mockConfigManagerInstance.load.mockClear();
         mockConfigManagerInstance.get.mockClear();
         mockConfigManagerInstance.update.mockClear();
         mockFactory.mockClear();
         mockConfigLoader.mockClear();
+        await initializeConfigManager(false);
+    });
+
+    afterEach(() => {
+        factorySpy?.mockRestore();
+        loadAnticheatSpy?.mockRestore();
+        getAnticheatSpy?.mockRestore();
+        saveAnticheatSpy?.mockRestore();
     });
 
     it('initializeConfigManager should load config and create manager', async () => {

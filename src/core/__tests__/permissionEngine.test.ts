@@ -44,16 +44,16 @@ mock.module('@core/configManager.js', () => ({
     getConfig: () => Config
 }));
 
+import { spyOn } from 'bun:test';
 import * as realPlayerCache from '../playerCache.js';
 import * as playerDataManager from '../playerDataManager.js';
 import * as rankManager from '../rankManager.js';
-import { spyOn } from 'bun:test';
 
 // --- IMPORTS AFTER MOCKS ---
 import * as mc from '@minecraft/server';
-(mc.system as any).currentTick = 100;
 import { config } from '../../config.js';
 import { calculatePlayerMap, calculateRankMap, getPlayerRanks, hasPermission, invalidateAllRankCaches, invalidateRankCache } from '../permissionEngine.js';
+(mc.system as any).currentTick = 100;
 
 // Helper to reset baseline test environments (Main and PR 1311 specs)
 function resetToBaseDefaults() {

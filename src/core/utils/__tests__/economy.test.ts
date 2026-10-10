@@ -1,5 +1,5 @@
-import { describe, expect, it, spyOn } from 'bun:test';
 import * as configurations from '@core/configurations.js';
+import { describe, expect, it, spyOn } from 'bun:test';
 
 spyOn(configurations, 'getEconomyConfig').mockReturnValue({
     currencySymbol: '$'

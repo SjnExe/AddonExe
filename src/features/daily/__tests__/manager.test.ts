@@ -30,24 +30,30 @@ describe('Daily Rewards Manager', () => {
         mockIncrementPlayerBalance.mockReset();
         mockUpdatePlayerData.mockReset();
 
-        mockGetDailyRewardsConfig.mockImplementation(() => ({
-            enabled: true,
-            claimCooldownHours: 24,
-            streakResetHours: 48,
-            rewards: [
-                {
-                    day: 1,
-                    money: 100,
-                    xp: 0,
-                    message: 'Day 1 reward'
-                }
-            ]
-        }) as any);
+        mockGetDailyRewardsConfig.mockImplementation(
+            () =>
+                ({
+                    enabled: true,
+                    claimCooldownHours: 24,
+                    streakResetHours: 48,
+                    rewards: [
+                        {
+                            day: 1,
+                            money: 100,
+                            xp: 0,
+                            message: 'Day 1 reward'
+                        }
+                    ]
+                }) as any
+        );
 
-        mockGetOrCreatePlayer.mockImplementation(() => ({
-            lastDailyClaim: 0,
-            dailyStreak: 0
-        }) as any);
+        mockGetOrCreatePlayer.mockImplementation(
+            () =>
+                ({
+                    lastDailyClaim: 0,
+                    dailyStreak: 0
+                }) as any
+        );
 
         mockUpdatePlayerData.mockImplementation((_id: string, cb: (d: any) => void) => {
             const data = { lastDailyClaim: 0, dailyStreak: 0 };

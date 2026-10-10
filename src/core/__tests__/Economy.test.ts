@@ -10,9 +10,9 @@ const { mockStorageLoad, mockStorageSave } = {
 };
 
 // Define mocks using unstable_mockModule
+import { spyOn } from 'bun:test';
 import * as configManager from '../configManager.js';
 import * as configurations from '../configurations.js';
-import { spyOn } from 'bun:test';
 
 mock.module('../leaderboardManager.js', () => ({
     updateAndSaveLeaderboard: mock()

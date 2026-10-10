@@ -20,7 +20,6 @@ import { spyOn } from 'bun:test';
 const mockGetOrCreatePlayer = spyOn(playerDataManager, 'getOrCreatePlayer');
 const mockIncrementPlayerBalance = spyOn(playerDataManager, 'incrementPlayerBalance');
 
-
 mock.module('@core/messaging.js', () => ({
     sendMessage: mockSendMessage
 }));

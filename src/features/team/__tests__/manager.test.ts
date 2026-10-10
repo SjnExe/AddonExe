@@ -25,7 +25,7 @@ mock.module('@ui/PanelRouter.js', () => ({
 
 import { getConfig } from '@core/configManager.js';
 import { getTeamConfig } from '@core/configurations.js';
-import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
+import { incrementPlayerBalance } from '@core/playerDataManager.js';
 import * as mc from '@minecraft/server';
 import {
     acceptApplication,

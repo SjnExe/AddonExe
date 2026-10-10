@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as logger from '@core/logger.js';
 const debugLogSpy = spyOn(logger, 'debugLog');

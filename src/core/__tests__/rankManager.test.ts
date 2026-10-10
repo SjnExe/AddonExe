@@ -1,12 +1,12 @@
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
-import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 import * as configManager from '@core/configManager.js';
 import * as configurations from '@core/configurations.js';
+
 import * as permissionEngine from '@core/permissionEngine.js';
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 import * as playerDataManager from '@core/playerDataManager.js';
-import { spyOn } from 'bun:test';
 
 const mockGetPlayerRanks = mock();
 const mockLoadPlayerData = mock();
@@ -18,14 +18,19 @@ import { canTarget, getAllRanks, getPlayerRank, getRankById, initialize, reloadR
 describe('rankManager', () => {
     const mockRanks: RankDefinition[] = [{ id: 'admin', priority: 10 } as RankDefinition, { id: 'default', priority: 100 } as RankDefinition, { id: 'mod', priority: 50 } as RankDefinition];
 
+    let getConfigSpy: any;
+    let getRanksConfigSpy: any;
+    let getPlayerRanksSpy: any;
+    let loadPlayerDataSpy: any;
+
     beforeEach(() => {
-        mock.restore();
-        spyOn(configManager, 'getConfig').mockReturnValue(Config as any);
-        spyOn(configurations, 'getRanksConfig').mockReturnValue({
+        Config.playerDefaults.rankId = 'default';
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue(Config as any);
+        getRanksConfigSpy = spyOn(configurations, 'getRanksConfig').mockReturnValue({
             rankDefinitions: mockRanks
         } as any);
-        spyOn(permissionEngine, 'getPlayerRanks').mockImplementation(mockGetPlayerRanks as any);
-        spyOn(playerDataManager, 'loadPlayerData').mockImplementation(mockLoadPlayerData as any);
+        getPlayerRanksSpy = spyOn(permissionEngine, 'getPlayerRanks').mockImplementation(mockGetPlayerRanks as any);
+        loadPlayerDataSpy = spyOn(playerDataManager, 'loadPlayerData').mockImplementation(mockLoadPlayerData as any);
         mockGetPlayerRanks.mockReset();
         mockLoadPlayerData.mockReset();
         mockGetPlayerRanks.mockReturnValue([]);
@@ -33,6 +38,13 @@ describe('rankManager', () => {
         // @ts-expect-error mocking readonly
         mc.system.currentTick = 0;
         reloadRanks();
+    });
+
+    afterEach(() => {
+        getConfigSpy?.mockRestore();
+        getRanksConfigSpy?.mockRestore();
+        getPlayerRanksSpy?.mockRestore();
+        loadPlayerDataSpy?.mockRestore();
     });
 
     describe('reloadRanks', () => {
@@ -93,7 +105,7 @@ describe('rankManager', () => {
         it('should fallback to minimal safe fallback if default rank is missing', () => {
             const player = { id: 'player4' } as mc.Player;
             mockGetPlayerRanks.mockReturnValue([]);
-            spyOn(configurations, 'getRanksConfig').mockReturnValue({
+            getRanksConfigSpy.mockReturnValue({
                 rankDefinitions: [mockRanks[0], mockRanks[2]] // Remove 'default' rank
             } as any);
             // Also need to clear the cached map that might have 'default'
@@ -104,7 +116,7 @@ describe('rankManager', () => {
             expect(rank.priority).toBe(1000);
 
             // Restore ranks config mock and reload for subsequent tests
-            spyOn(configurations, 'getRanksConfig').mockReturnValue({
+            getRanksConfigSpy.mockReturnValue({
                 rankDefinitions: mockRanks
             } as any);
             reloadRanks();
@@ -116,7 +128,7 @@ describe('rankManager', () => {
             initializePlayerCache();
             // @ts-expect-error mocking readonly
             mc.system.currentTick = 200; // Reset tick for caching isolation
-            spyOn(configurations, 'getRanksConfig').mockReturnValue({
+            getRanksConfigSpy.mockReturnValue({
                 rankDefinitions: mockRanks
             } as any);
             reloadRanks();
