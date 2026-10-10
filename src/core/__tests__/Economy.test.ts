@@ -1,27 +1,19 @@
+import { StorageManager } from '@core/storage/StorageManager.js';
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../config.js';
-
-// Create mock functions outside
 
 const { mockStorageLoad, mockStorageSave } = {
     mockStorageLoad: mock(),
     mockStorageSave: mock()
 };
 
-// Define mocks using unstable_mockModule
-import { spyOn } from 'bun:test';
+import * as leaderboardManager from '../../features/economy/leaderboardManager.js';
 import * as configManager from '../configManager.js';
 import * as configurations from '../configurations.js';
 
-mock.module('../leaderboardManager.js', () => ({
-    updateAndSaveLeaderboard: mock()
-}));
-
-// Import module under test
 const { cleanupPlayerDataManager, createPendingPayment, getBalance, getOrCreatePlayer, getPendingPayment, incrementPlayerBalance, transfer } = await import('@core/playerDataManager.js');
 
-// Helper to mock a player
 const mockPlayer = (id: string, name: string) =>
     ({
         id,
@@ -33,9 +25,14 @@ const mockPlayer = (id: string, name: string) =>
     }) as unknown as mc.Player;
 
 describe('Economy System', () => {
+    let getConfigSpy: any;
+    let getEconomyConfigSpy: any;
+    let leaderboardSpy: any;
+    let loadSpy: any;
+    let saveSpy: any;
+
     beforeEach(() => {
-        mock.restore();
-        spyOn(configManager, 'getConfig').mockReturnValue({
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
             ...defaultConfig,
             economy: {
                 ...defaultConfig.economy,
@@ -53,19 +50,36 @@ describe('Economy System', () => {
             }
         } as any);
 
-        spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+        getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
             enabled: true,
             startingBalance: 0,
             minBalance: -1000,
             maxBalance: 1_000_000
         } as any);
 
+        leaderboardSpy = spyOn(leaderboardManager, 'updateAndSaveLeaderboard').mockImplementation(() => {});
+
         cleanupPlayerDataManager();
 
-        // Reset storage mocks
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
         mockStorageLoad.mockReturnValue(undefined);
+
+        loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
+            return mockStorageLoad(this.dbName);
+        });
+        saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
+            return mockStorageSave(this.dbName, data);
+        });
+    });
+
+    afterEach(() => {
+        cleanupPlayerDataManager();
+        getConfigSpy?.mockRestore();
+        getEconomyConfigSpy?.mockRestore();
+        leaderboardSpy?.mockRestore();
+        loadSpy?.mockRestore();
+        saveSpy?.mockRestore();
     });
 
     describe('Transfer Logic', () => {
@@ -80,8 +94,8 @@ describe('Economy System', () => {
 
             const result = transfer('p1', 'p2', 200);
 
-            expect(result.success).toBe(result.success);
-            expect(getBalance('p1')).toBe(getBalance('p1'));
+            expect(result.success).toBe(true);
+            expect(getBalance('p1')).toBe(300);
             expect(getBalance('p2')).toBe(300);
         });
 
@@ -119,7 +133,6 @@ describe('Economy System', () => {
             getOrCreatePlayer(p1);
             incrementPlayerBalance('p1', 500);
 
-            // Configure mock for p2
             mockStorageLoad.mockImplementation((key: any) => {
                 const k = key as string;
                 if (k.includes('p2')) {
@@ -130,11 +143,8 @@ describe('Economy System', () => {
 
             const result = transfer('p1', 'p2', 200);
 
-            expect(result.success).toBe(result.success);
-            expect(getBalance('p1')).toBe(getBalance('p1'));
-
-            // Should have saved target data
-            // // expect(mockStorageSave).toHaveBeenCalled();
+            expect(result.success).toBe(true);
+            expect(getBalance('p1')).toBe(300);
         });
 
         it('should prevent transfer if target would exceed max balance', () => {

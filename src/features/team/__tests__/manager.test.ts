@@ -1,27 +1,10 @@
 import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
 
 import * as configManager from '@core/configManager.js';
 import * as configurations from '@core/configurations.js';
-
 import * as realPlayerDataManager from '@core/playerDataManager.js';
-
-mock.module('@core/services/serviceLocator.js', () => ({
-    serviceLocator: {
-        getService: mock()
-    }
-}));
-
-mock.module('@core/teleportLogic.js', () => ({
-    startTeleportWarmup: mock()
-}));
-
-mock.module('@ui/PanelRouter.js', () => ({
-    panelRouter: {
-        register: mock()
-    }
-}));
 
 import { getConfig } from '@core/configManager.js';
 import { getTeamConfig } from '@core/configurations.js';
@@ -48,6 +31,14 @@ import {
 describe('Team Manager', () => {
     let mockPlayers: Record<string, any> = {};
 
+    let runJobSpy: any;
+    let getTeamConfigSpy: any;
+    let getConfigSpy: any;
+    let getOrCreatePlayerSpy: any;
+    let getPlayerSpy: any;
+    let incrementPlayerBalanceSpy: any;
+    let updatePlayerDataSpy: any;
+
     function getMockPlayer(id: string) {
         if (!mockPlayers[id]) {
             mockPlayers[id] = {
@@ -55,15 +46,17 @@ describe('Team Manager', () => {
                 name: `Player_${id}`,
                 balance: 100,
                 teamId: undefined,
-                pendingInvites: []
+                pendingInvites: [],
+                sendMessage: mock()
             };
         }
         return mockPlayers[id];
     }
 
     beforeEach(() => {
-        mock.restore();
-        spyOn(mc.system, 'runJob');
+        runJobSpy = spyOn(mc.system, 'runJob');
+
+        mockPlayers = {};
 
         // Clean up active teams from previous tests
         const allTeams = getAllTeam();
@@ -71,9 +64,7 @@ describe('Team Manager', () => {
             deleteTeam(team.id);
         }
 
-        mockPlayers = {};
-
-        spyOn(configurations, 'getTeamConfig').mockReturnValue({
+        getTeamConfigSpy = spyOn(configurations, 'getTeamConfig').mockReturnValue({
             enabled: true,
             nameMinLength: 3,
             nameMaxLength: 16,
@@ -86,23 +77,33 @@ describe('Team Manager', () => {
             teleportWarmupSeconds: 3
         } as any);
 
-        spyOn(configManager, 'getConfig').mockReturnValue({
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
             ...defaultConfig,
             economy: { enabled: false }
         } as any);
 
-        spyOn(realPlayerDataManager, 'getOrCreatePlayer').mockImplementation((p: any) => getMockPlayer(p.id) as any);
-        spyOn(realPlayerDataManager, 'getPlayer').mockImplementation((id: string) => getMockPlayer(id) as any);
-        spyOn(realPlayerDataManager, 'incrementPlayerBalance');
-        spyOn(realPlayerDataManager, 'updatePlayerData').mockImplementation((id: string, cb: (data: any) => void) => {
+        getOrCreatePlayerSpy = spyOn(realPlayerDataManager, 'getOrCreatePlayer').mockImplementation((p: any) => getMockPlayer(p.id) as any);
+        getPlayerSpy = spyOn(realPlayerDataManager, 'getPlayer').mockImplementation((id: string) => getMockPlayer(id) as any);
+        incrementPlayerBalanceSpy = spyOn(realPlayerDataManager, 'incrementPlayerBalance');
+        updatePlayerDataSpy = spyOn(realPlayerDataManager, 'updatePlayerData').mockImplementation((id: string, cb: (data: any) => void) => {
             cb(getMockPlayer(id));
         });
+    });
+
+    afterEach(() => {
+        runJobSpy?.mockRestore();
+        getTeamConfigSpy?.mockRestore();
+        getConfigSpy?.mockRestore();
+        getOrCreatePlayerSpy?.mockRestore();
+        getPlayerSpy?.mockRestore();
+        incrementPlayerBalanceSpy?.mockRestore();
+        updatePlayerDataSpy?.mockRestore();
     });
 
     describe('createTeam', () => {
         it('should fail if team system is disabled', () => {
             (getTeamConfig as ReturnType<typeof mock>).mockReturnValue({ enabled: false });
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             const result = createTeam(player, 'MyTeam');
             expect(result.success).toBe(false);
             expect(result.message).toContain('disabled');
@@ -110,14 +111,14 @@ describe('Team Manager', () => {
 
         it('should fail if player is already in a team', () => {
             getMockPlayer('player1').teamId = 1;
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             const result = createTeam(player, 'MyTeam');
             expect(result.success).toBe(false);
             expect(result.message).toContain('already in a team');
         });
 
         it('should fail with invalid name', () => {
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
 
             // Too short
             let result = createTeam(player, 'ab');
@@ -145,7 +146,7 @@ describe('Team Manager', () => {
             });
             getMockPlayer('player1').balance = 40;
 
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             const result = createTeam(player, 'MyTeam');
             expect(result.success).toBe(false);
             expect(result.message).toContain('Insufficient funds');
@@ -164,7 +165,7 @@ describe('Team Manager', () => {
             });
             getMockPlayer('player1').balance = 100;
 
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             const result = createTeam(player, 'MyTeam');
 
             expect(result.success).toBe(true);
@@ -178,10 +179,10 @@ describe('Team Manager', () => {
         });
 
         it('should fail if team name already exists', () => {
-            const player1 = { id: 'player1' } as mc.Player;
+            const player1 = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             createTeam(player1, 'MyTeam');
 
-            const player2 = { id: 'player2' } as mc.Player;
+            const player2 = { id: 'player2', sendMessage: mock() } as unknown as mc.Player;
             getMockPlayer('player2').teamId = undefined; // mock next player isn't in team
             const result = createTeam(player2, 'myteam'); // duplicate name, different case
 
@@ -202,7 +203,7 @@ describe('Team Manager', () => {
             });
 
             try {
-                const player1 = { id: 'player1' } as mc.Player;
+                const player1 = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
                 const result = createTeam(player1, 'NewTeam');
 
                 expect(result.success).toBe(true);
@@ -241,7 +242,7 @@ describe('Team Manager', () => {
             try {
                 // Populate activeTeam map up to numActive
                 for (let i = 1; i <= numActive; i++) {
-                    const p = { id: `p${i}` } as mc.Player;
+                    const p = { id: `p${i}`, sendMessage: mock() } as unknown as mc.Player;
                     createTeam(p, `Team${i}`);
                 }
 
@@ -249,7 +250,7 @@ describe('Team Manager', () => {
                 const start = performance.now();
                 const iterations = 20;
                 for (let i = 0; i < iterations; i++) {
-                    const player = { id: `benchPlayer${i}` } as mc.Player;
+                    const player = { id: `benchPlayer${i}`, sendMessage: mock() } as unknown as mc.Player;
                     const res = createTeam(player, `BTeam${i}`);
                     expect(res.success).toBe(true);
                 }
@@ -278,7 +279,7 @@ describe('Team Manager', () => {
                 economy: { enabled: true }
             });
 
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             createTeam(player, 'MyTeam');
 
             const team = getTeamByPlayer('player1');
@@ -301,7 +302,7 @@ describe('Team Manager', () => {
         let teamId: number;
 
         beforeEach(() => {
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             createTeam(player, 'MyTeam');
             teamId = getTeamByPlayer('player1')!.id;
 
@@ -350,7 +351,7 @@ describe('Team Manager', () => {
         let teamId: number;
 
         beforeEach(() => {
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             createTeam(player, 'MyTeam');
             teamId = getTeamByPlayer('player1')!.id;
         });
@@ -364,7 +365,7 @@ describe('Team Manager', () => {
 
         it('acceptInvite should add player to team', () => {
             getMockPlayer('player2').pendingInvites = [{ teamId, timestamp: Date.now() }];
-            const player2 = { id: 'player2' } as mc.Player;
+            const player2 = { id: 'player2', sendMessage: mock() } as unknown as mc.Player;
 
             const result = acceptInvite(player2, teamId);
             expect(result.success).toBe(true);
@@ -387,13 +388,13 @@ describe('Team Manager', () => {
         let teamId: number;
 
         beforeEach(() => {
-            const player = { id: 'player1' } as mc.Player;
+            const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
             createTeam(player, 'MyTeam');
             teamId = getTeamByPlayer('player1')!.id;
         });
 
         it('applyToTeam should add application to team', () => {
-            const player2 = { id: 'player2', name: 'PlayerTwo' } as mc.Player;
+            const player2 = { id: 'player2', name: 'PlayerTwo', sendMessage: mock() } as unknown as mc.Player;
             const result = applyToTeam(player2, teamId);
 
             expect(result.success).toBe(true);
@@ -406,7 +407,7 @@ describe('Team Manager', () => {
             const team = getTeam(teamId)!;
             team.open = false;
 
-            const player2 = { id: 'player2', name: 'PlayerTwo' } as mc.Player;
+            const player2 = { id: 'player2', name: 'PlayerTwo', sendMessage: mock() } as unknown as mc.Player;
             const result = applyToTeam(player2, teamId);
             expect(result.success).toBe(false);
         });

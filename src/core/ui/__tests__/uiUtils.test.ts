@@ -1,11 +1,18 @@
+import * as uiManager from '@core/uiManager.js';
 import { addPaginationButtons, getPaginatedItems, handleCommonSelection, itemsPerPage } from '@ui/uiUtils.js';
-import { describe, expect, it, mock } from 'bun:test';
-
-mock.module('@core/uiManager.js', () => ({
-    showPanel: mock()
-}));
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 describe('uiUtils', () => {
+    let showPanelSpy: any;
+
+    beforeEach(() => {
+        showPanelSpy = spyOn(uiManager, 'showPanel').mockImplementation(() => Promise.resolve());
+    });
+
+    afterEach(() => {
+        showPanelSpy?.mockRestore();
+    });
+
     describe('getPaginatedItems', () => {
         it('returns the correct items for the first page', () => {
             const items = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -78,20 +85,18 @@ describe('uiUtils', () => {
     });
 
     describe('handleCommonSelection', () => {
-        it('handles nextPage correctly by incrementing page', async () => {
-            const { showPanel } = await import('@core/uiManager.js');
+        it('handles nextPage correctly by incrementing page', () => {
             const player = {} as any;
             const handled = handleCommonSelection(player, 'testPanel', { actionValue: 'nextPage' }, { page: 2 });
             expect(handled).toBe(true);
-            expect(showPanel).toHaveBeenCalledWith(player, 'testPanel', { page: 3 });
+            expect(showPanelSpy).toHaveBeenCalledWith(player, 'testPanel', { page: 3 });
         });
 
-        it('handles prevPage correctly by decrementing page', async () => {
-            const { showPanel } = await import('@core/uiManager.js');
+        it('handles prevPage correctly by decrementing page', () => {
             const player = {} as any;
             const handled = handleCommonSelection(player, 'testPanel', { actionValue: 'prevPage' }, { page: 2 });
             expect(handled).toBe(true);
-            expect(showPanel).toHaveBeenCalledWith(player, 'testPanel', { page: 1 });
+            expect(showPanelSpy).toHaveBeenCalledWith(player, 'testPanel', { page: 1 });
         });
     });
 });

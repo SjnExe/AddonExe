@@ -46,6 +46,16 @@ describe('startTeleportWarmup', () => {
         subscribeSpy = spyOn(mc.world.afterEvents.entityHurt, 'subscribe');
         unsubscribeSpy = spyOn(mc.world.afterEvents.entityHurt, 'unsubscribe');
 
+        errorLogSpy.mockClear();
+        setActionBarOverrideSpy.mockClear();
+        playSoundSpy.mockClear();
+        getCountdownColorSpy.mockClear();
+        distanceSpy.mockClear();
+        runIntervalSpy.mockClear();
+        clearRunSpy.mockClear();
+        subscribeSpy.mockClear();
+        unsubscribeSpy.mockClear();
+
         onWarmupComplete = mock();
         onCancel = mock();
 

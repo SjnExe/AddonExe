@@ -1,58 +1,27 @@
+import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import * as configManager from '@core/configManager.js';
 import { loadEconomyConfig } from '@core/configurations.js';
-import * as realUtils from '@core/utils.js';
-import { formatCurrency } from '@core/utils/economy.js';
-import { formatString } from '@core/utils/formatting.js';
-import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
+import * as cooldownManager from '@core/cooldownManager.js';
+import * as messaging from '@core/messaging.js';
+import * as playerDataManager from '@core/playerDataManager.js';
+import * as teleportLogicModule from '@core/teleportLogic.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
-
-// Mocks
-const mockGetConfig = mock();
-const mockSendMessage = mock();
-const mockStartTeleportWarmup = mock();
-
-import * as playerDataManager from '@core/playerDataManager.js';
-import { spyOn } from 'bun:test';
-
-const mockGetOrCreatePlayer = spyOn(playerDataManager, 'getOrCreatePlayer');
-const mockIncrementPlayerBalance = spyOn(playerDataManager, 'incrementPlayerBalance');
-
-mock.module('@core/messaging.js', () => ({
-    sendMessage: mockSendMessage
-}));
-
-mock.module('@core/teleportLogic.js', () => ({
-    startTeleportWarmup: mockStartTeleportWarmup
-}));
-
-mock.module('@core/utils.js', () => ({
-    ...realUtils,
-    formatCurrency,
-    playSound: mock(),
-    uiWait: mock(async () => ({ canceled: false })),
-    getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
-    getCountdownColor: mock(() => '§a'),
-    playClickSound: mock(() => {}),
-    formatString,
-    escapeCommandArg,
-    sanitizeString,
-    resolveTarget: mock(() => [])
-}));
-
-mock.module('@core/cooldownManager.js', () => ({
-    setCooldown: mock()
-}));
-
-import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 
 // Import command
 const { default: backCommands } = await import('../commands/back.js');
 const backCommand = backCommands[0]!;
 
 describe('Back Command', () => {
+    let sendMessageSpy: any;
+    let startTeleportWarmupSpy: any;
+    let getOrCreatePlayerSpy: any;
+    let incrementPlayerBalanceSpy: any;
+    let setCooldownSpy: any;
+    let getConfigSpy: any;
+
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
     const player = new PlayerMock('p1', 'TestPlayer');
     player.sendMessage = mock();
@@ -64,64 +33,76 @@ describe('Back Command', () => {
 
     beforeEach(async () => {
         await loadEconomyConfig(false);
-        mockStartTeleportWarmup.mockClear();
-        mockSendMessage.mockClear();
-        mockIncrementPlayerBalance.mockClear();
-        (player.teleport as any).mockClear();
+        (player.sendMessage as ReturnType<typeof mock>).mockClear();
+        (player.teleport as ReturnType<typeof mock>).mockClear();
 
-        spyOn(configManager, 'getConfig').mockReturnValue({
+        sendMessageSpy = spyOn(messaging, 'sendMessage').mockImplementation(() => {});
+        startTeleportWarmupSpy = spyOn(teleportLogicModule, 'startTeleportWarmup').mockImplementation(() => {});
+        getOrCreatePlayerSpy = spyOn(playerDataManager, 'getOrCreatePlayer').mockReturnValue({
+            balance: 500,
+            lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }
+        } as any);
+        incrementPlayerBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(() => {});
+        setCooldownSpy = spyOn(cooldownManager, 'setCooldown').mockImplementation(() => {});
+
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
             ...defaultConfig,
             back: { enabled: true, cost: 100, teleportWarmupSeconds: 5 },
             economy: { enabled: true }
         } as any);
-        mockGetOrCreatePlayer.mockReturnValue({
-            balance: 500,
-            lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }
-        });
+    });
+
+    afterEach(() => {
+        sendMessageSpy?.mockRestore();
+        startTeleportWarmupSpy?.mockRestore();
+        getOrCreatePlayerSpy?.mockRestore();
+        incrementPlayerBalanceSpy?.mockRestore();
+        setCooldownSpy?.mockRestore();
+        getConfigSpy?.mockRestore();
     });
 
     it('should schedule warmup if funds sufficient', () => {
         backCommand.execute(player, {});
-        expect(mockStartTeleportWarmup).toHaveBeenCalledWith(player, 5, expect.any(Function), 'previous location');
+        expect(startTeleportWarmupSpy).toHaveBeenCalledWith(player, 5, expect.any(Function), 'previous location');
     });
 
     it('should fail immediately if funds insufficient', () => {
-        mockGetOrCreatePlayer.mockReturnValue({
+        getOrCreatePlayerSpy.mockReturnValue({
             balance: 50,
             lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }
         });
         backCommand.execute(player, {});
-        expect(mockSendMessage).toHaveBeenCalledWith(expect.stringContaining('Insufficient funds'), player);
-        expect(mockStartTeleportWarmup).not.toHaveBeenCalled();
+        expect(sendMessageSpy).toHaveBeenCalledWith(expect.stringContaining('Insufficient funds'), player);
+        expect(startTeleportWarmupSpy).not.toHaveBeenCalled();
     });
 
     it('should re-check funds after warmup (exploit prevention)', () => {
         backCommand.execute(player, {});
 
         // Extract callback
-        const call = mockStartTeleportWarmup.mock.calls[0];
+        const call = startTeleportWarmupSpy.mock.calls[0];
         if (!call) {
             throw new Error('StartTeleportWarmup not called');
         }
         const callback = call[2] as () => void;
 
         // Change balance to simulate dropping money
-        mockGetOrCreatePlayer.mockReturnValue({
+        getOrCreatePlayerSpy.mockReturnValue({
             balance: 50, // Dropped to 50 (cost 100)
             lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }
         });
 
         callback();
 
-        expect(mockSendMessage).toHaveBeenCalledWith(expect.stringContaining('Teleport cancelled'), player);
-        expect(mockIncrementPlayerBalance).not.toHaveBeenCalled();
+        expect(sendMessageSpy).toHaveBeenCalledWith(expect.stringContaining('Teleport cancelled'), player);
+        expect(incrementPlayerBalanceSpy).not.toHaveBeenCalled();
         expect(player.teleport).not.toHaveBeenCalled();
     });
 
     it('should deduct money and teleport if funds sufficient after warmup', () => {
         backCommand.execute(player, {});
 
-        const call = mockStartTeleportWarmup.mock.calls[0];
+        const call = startTeleportWarmupSpy.mock.calls[0];
         if (!call) {
             throw new Error('StartTeleportWarmup not called');
         }
@@ -129,7 +110,6 @@ describe('Back Command', () => {
 
         callback();
 
-        expect(1).toBe(1); // Mocks changed signature
         expect(player.teleport).toHaveBeenCalled();
     });
 });
