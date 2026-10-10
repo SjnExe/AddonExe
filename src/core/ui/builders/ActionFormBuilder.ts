@@ -2,12 +2,13 @@ import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
-export type GridColumns = 1 | 2 | 3 | 4;
+export type GridColumns = 1 | 2 | 3;
 
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
     private readonly callbacks: Map<number, () => void | Promise<void>>;
     private gridColumns: GridColumns = 2;
+    private rawTitle = '';
 
     constructor() {
         this.form = new ActionFormData();
@@ -15,13 +16,22 @@ export class ActionFormBuilder {
     }
 
     public title(titleText: string): this {
-        this.form.title(titleText);
+        this.rawTitle = titleText;
+        this.applyTitleWithGrid();
         return this;
     }
 
     public grid(columns: GridColumns): this {
         this.gridColumns = columns;
+        if (this.rawTitle) {
+            this.applyTitleWithGrid();
+        }
         return this;
+    }
+
+    private applyTitleWithGrid(): void {
+        const prefix = `§${this.gridColumns}`;
+        this.form.title(`${prefix}${this.rawTitle}`);
     }
 
     public getColumns(): GridColumns {
@@ -41,11 +51,9 @@ export class ActionFormBuilder {
         }
 
         if (onClick) {
-            // form items are 0-indexed in order of addition
             const index = this.callbacks.size;
             this.callbacks.set(index, onClick);
         } else {
-            // Keep indices aligned even if no callback
             this.callbacks.set(this.callbacks.size, () => {});
         }
         return this;
