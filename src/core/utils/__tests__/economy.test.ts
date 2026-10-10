@@ -1,10 +1,9 @@
-import { describe, expect, it, mock } from 'bun:test';
+import * as configurations from '@core/configurations.js';
+import { describe, expect, it, spyOn } from 'bun:test';
 
-mock.module('@core/configurations.js', () => ({
-    getEconomyConfig: () => ({
-        currencySymbol: '$'
-    })
-}));
+spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+    currencySymbol: '$'
+} as any);
 
 const { formatCurrency, parseCurrency } = await import('../economy.ts');
 

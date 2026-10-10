@@ -8,19 +8,7 @@ mock.module('@core/configManager.js', () => ({
     getConfig: mock(() => defaultConfig)
 }));
 
-import * as realPlayerDataManager from '@core/playerDataManager.js';
-
-mock.module('@core/playerDataManager.js', () => ({
-    ...realPlayerDataManager
-}));
-
 const mockCreateRequest = mock(() => ({ success: true, message: 'TPA request sent.' }));
-
-import * as realRankManager from '@core/rankManager.js';
-
-mock.module('@core/rankManager.js', () => ({
-    ...realRankManager
-}));
 
 mock.module('@features/teleport/tpaManager.js', () => ({
     createRequest: mockCreateRequest

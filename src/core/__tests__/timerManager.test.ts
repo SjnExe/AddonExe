@@ -13,7 +13,13 @@ describe('timerManager', () => {
         // Reset the timer manager state by clearing all tracked timers
         cleanupTimers();
 
-        // Reset all mocks on system methods
+        // Reset system mocks
+        (mc.system.runInterval as ReturnType<typeof mock>).mockImplementation(() => 1);
+        (mc.system.runTimeout as ReturnType<typeof mock>).mockImplementation((cb: () => void) => {
+            cb();
+            return 1;
+        });
+
         if ((mc.system.runInterval as any).mockClear) {
             (mc.system.runInterval as any).mockClear();
         }

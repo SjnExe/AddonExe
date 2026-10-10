@@ -8,19 +8,19 @@ const mockUpdateMultipleConfig = mock();
 const mockDebugLog = mock();
 const mockErrorLog = mock((msg) => console.log('ERROR LOG:', msg));
 
-mock.module('@core/configManager.js', () => ({
-    getConfig: mockGetConfig,
-    updateMultipleConfig: mockUpdateMultipleConfig
-}));
+import * as configManager from '@core/configManager.js';
+import { spyOn } from 'bun:test';
 
 const { addItemToKit } = await import('../itemsManager.js');
 
 describe('Kit Items Manager', () => {
     beforeEach(() => {
-        mockGetConfig.mockClear();
-        mockUpdateMultipleConfig.mockClear();
-        mockDebugLog.mockClear();
-        mockErrorLog.mockClear();
+        spyOn(configManager, 'getConfig').mockImplementation(mockGetConfig as any);
+        spyOn(configManager, 'updateMultipleConfig').mockImplementation(mockUpdateMultipleConfig as any);
+        mockGetConfig.mockReset();
+        mockUpdateMultipleConfig.mockReset();
+        mockDebugLog.mockReset();
+        mockErrorLog.mockReset();
 
         // Setup default config mock
         mockGetConfig.mockReturnValue({

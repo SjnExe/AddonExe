@@ -18,15 +18,6 @@ mock.module('@core/playerDataManager.js', () => ({
     getPlayer: mock()
 }));
 
-mock.module('@core/storage/StorageManager.js', () => ({
-    StorageManager: class {
-        load() {
-            return undefined;
-        }
-        save() {}
-    }
-}));
-
 import * as realLogManager from '@features/anticheat/logManager.js';
 import * as realGuards from '@lib/guards.js';
 

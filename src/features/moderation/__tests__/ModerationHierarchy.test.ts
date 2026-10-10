@@ -4,12 +4,13 @@ import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
-// --- Mocks ---
-const mockGetPlayerRank = mock();
-const mockLoadPlayerData = mock();
-const mockCanTarget = mock();
-
+import * as realPlayerDataManager from '@core/playerDataManager.js';
 import * as realRankManager from '@core/rankManager.js';
+
+// --- Mocks ---
+const mockGetPlayerRank = mock((...args: any[]) => realRankManager.getPlayerRank(args[0], args[1]));
+const mockCanTarget = mock((...args: any[]) => realRankManager.canTarget(args[0], args[1], args[2]));
+const mockLoadPlayerData = mock(() => undefined);
 
 mock.module('@core/rankManager.js', () => ({
     ...realRankManager,
@@ -17,13 +18,9 @@ mock.module('@core/rankManager.js', () => ({
     canTarget: mockCanTarget
 }));
 
-import * as realPlayerDataManager from '@core/playerDataManager.js';
-
 mock.module('@core/playerDataManager.js', () => ({
     ...realPlayerDataManager,
-    getPlayer: mock(),
     loadPlayerData: mockLoadPlayerData,
-    getOrCreatePlayer: mock(),
     getPlayerIdByName: (name: string) => (name.toLowerCase() === 'target' ? 'targetId' : undefined)
 }));
 
@@ -105,8 +102,13 @@ describe('Moderation Hierarchy', () => {
     target.getComponent = mock();
 
     beforeEach(() => {
-        mock.restore();
+        mockGetPlayerRank.mockReset();
         mockCanTarget.mockReset();
+        mockLoadPlayerData.mockReset();
+        mockGetPlayerRank.mockImplementation((...args: any[]) => realRankManager.getPlayerRank(args[0], args[1]));
+        mockCanTarget.mockImplementation((...args: any[]) => realRankManager.canTarget(args[0], args[1], args[2]));
+        mockLoadPlayerData.mockReturnValue(undefined);
+        (executor.sendMessage as ReturnType<typeof mock>).mockReset();
     });
 
     describe('Warn Command', () => {

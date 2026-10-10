@@ -1,53 +1,16 @@
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import defaultConfig from '../../config.js';
 
 const { mockStorageLoad, mockStorageSave } = {
     mockStorageLoad: mock(),
     mockStorageSave: mock()
 };
 
-mock.module('../configManager.js', () => ({
-    getConfig: () => ({
-        ...defaultConfig,
-        economy: {
-            ...defaultConfig.economy,
-            enabled: true,
-            minBalance: -1000,
-            maxBalance: 1_000_000
-        },
-        playerDefaults: {
-            ...defaultConfig.playerDefaults,
-            rankId: 'member',
-            permission: 'ui.panel.member',
-            xrayNotificationsEnabled: false
-        }
-    })
-}));
+import * as configurations from '../configurations.js';
 
-import * as realConfigs from '../configurations.js';
-
-mock.module('../configurations.js', () => ({
-    ...realConfigs,
-    getEconomyConfig: () => ({
-        enabled: true,
-        startingBalance: 0,
-        minBalance: -1000,
-        maxBalance: 1_000_000
-    })
-}));
-
-mock.module('@core/storage/StorageManager.js', () => ({
-    StorageManager: class {
-        constructor(private key: string) {}
-        load() {
-            return mockStorageLoad(this.key);
-        }
-        save(data: any) {
-            mockStorageSave(this.key, data);
-        }
-    }
-}));
+import { initializeConfigManager } from '@core/configManager.js';
+import { StorageManager } from '@core/storage/StorageManager.js';
+import { spyOn } from 'bun:test';
 
 const { cleanupPlayerDataManager, getOrCreatePlayer, updatePlayerData, getPlayer } = await import('@core/playerDataManager.js');
 
@@ -63,12 +26,28 @@ const mockPlayer = (id: string, name: string) =>
     }) as unknown as mc.Player;
 
 describe('PlayerDataManager - updatePlayerData', () => {
-    beforeEach(() => {
+    let loadSpy: any;
+    let saveSpy: any;
+
+    beforeEach(async () => {
         mock.restore();
+        await initializeConfigManager(false);
+        spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+            enabled: true,
+            startingBalance: 0,
+            minBalance: -1000,
+            maxBalance: 1_000_000
+        } as any);
         cleanupPlayerDataManager();
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
-        (mc.world.getDynamicProperty as any).mockReturnValue(undefined);
+        mockStorageLoad.mockReturnValue(undefined);
+        loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
+            return mockStorageLoad(this.dbName);
+        });
+        saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
+            return mockStorageSave(this.dbName, data);
+        });
     });
 
     it('should update an online player data and mark it as needsSave', () => {

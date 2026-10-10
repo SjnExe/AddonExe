@@ -2,13 +2,14 @@ import { commandManager, CustomCommand } from '@commands/commandManager.js';
 import { initializeConfigManager } from '@core/configManager.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it } from 'bun:test';
-import helpCommand from '../commands/help.js';
+import helpCommand, { clearCategorizedCache } from '../commands/help.js';
 
 describe('Help Command Unit Tests and Benchmark', () => {
     beforeEach(async () => {
         await initializeConfigManager(false);
         commandManager.commands.clear();
         commandManager.aliases.clear();
+        clearCategorizedCache();
         commandManager.register(helpCommand);
     });
 
