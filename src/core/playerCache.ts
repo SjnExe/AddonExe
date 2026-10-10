@@ -3,24 +3,34 @@ import * as mc from '@minecraft/server';
 const playerCache = new Map<string, mc.Player>();
 const playerNameCache = new Map<string, mc.Player>();
 
+let isInitialized = false;
+
 export function initializePlayerCache(): void {
     // Clear cache first to ensure no stale data on re-init
     playerCache.clear();
     playerNameCache.clear();
-    for (const player of mc.world.getAllPlayers()) {
+    for (const player of mc.world.getAllPlayers?.() ?? []) {
         playerCache.set(player.id, player);
         playerNameCache.set((player.name || '').toLowerCase(), player);
     }
 
-    mc.world.afterEvents.playerSpawn.subscribe((event) => {
-        const { player } = event;
-        addPlayerToCache(player);
-    });
+    if (!isInitialized) {
+        isInitialized = true;
+        mc.world.afterEvents.playerSpawn.subscribe((event) => {
+            const { player } = event;
+            addPlayerToCache(player);
+        });
 
-    mc.world.afterEvents.playerLeave.subscribe((event) => {
-        const { playerId } = event;
-        removePlayerFromCache(playerId);
-    });
+        mc.world.afterEvents.playerLeave.subscribe((event) => {
+            const { playerId } = event;
+            removePlayerFromCache(playerId);
+        });
+    }
+}
+
+export function clearPlayerCache(): void {
+    playerCache.clear();
+    playerNameCache.clear();
 }
 
 export function getPlayerFromCache(playerId: string): mc.Player | undefined {
