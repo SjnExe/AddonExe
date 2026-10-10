@@ -17,6 +17,11 @@ interface PlayerMovementState {
 const movementStates = new Map<string, PlayerMovementState>();
 let isChecking = false;
 
+export function _resetMovementCheckForTest() {
+    movementStates.clear();
+    isChecking = false;
+}
+
 // Slippery blocks that allow faster movement
 const ICE_BLOCKS = new Set<string>([MinecraftBlockTypes.Ice, MinecraftBlockTypes.PackedIce, MinecraftBlockTypes.BlueIce, MinecraftBlockTypes.Slime, MinecraftBlockTypes.FrostedIce]);
 
@@ -76,7 +81,7 @@ interface MovementCheckConfig {
 }
 
 function checkMovement(player: mc.Player, config: MovementCheckConfig) {
-    if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+    if (typeof player.getGameMode === 'function' && (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator)) {
         movementStates.delete(player.id);
         return;
     }
@@ -88,7 +93,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     }
 
     // Use native velocity API for robust speed check
-    const velocity = player.getVelocity();
+    const velocity = typeof player.getVelocity === 'function' ? player.getVelocity() : undefined;
     if (!isDefined(velocity)) {
         return;
     }
@@ -109,7 +114,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         limit = config.maxSpeedElytra;
     } else {
         // Check for Speed Effect
-        const speedEffect = player.getEffect(MinecraftEffectTypes.Speed);
+        const speedEffect = typeof player.getEffect === 'function' ? player.getEffect(MinecraftEffectTypes.Speed) : undefined;
         if (isDefined(speedEffect)) {
             // Speed 1 = +20%, Speed 2 = +40%
             const amplifier = speedEffect.amplifier + 1;
@@ -173,7 +178,7 @@ function checkWorldBorder(
         knockbackAmount: number;
     }
 ) {
-    if (player.getGameMode() === mc.GameMode.Spectator) {
+    if (typeof player.getGameMode === 'function' && player.getGameMode() === mc.GameMode.Spectator) {
         return;
     }
 
@@ -235,7 +240,7 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
     if (player.dimension.id !== (MinecraftDimensionTypes.Nether as string)) {
         return;
     }
-    if (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative) {
+    if (typeof player.getGameMode === 'function' && (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative)) {
         return;
     } // Allow admins/spectators
 

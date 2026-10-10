@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Ensure clearJob is mocked because it's missing in the global mock
 if (!(mc.system as any).clearJob) {
@@ -14,9 +14,12 @@ describe('timerManager', () => {
         cleanupTimers();
 
         // Reset system mocks
-        (mc.system.runInterval as ReturnType<typeof mock>).mockImplementation(() => 1);
+        (mc.system.runInterval as ReturnType<typeof mock>).mockImplementation((cb?: () => void) => {
+            if (cb) cb();
+            return 1;
+        });
         (mc.system.runTimeout as ReturnType<typeof mock>).mockImplementation((cb: () => void) => {
-            cb();
+            if (cb) cb();
             return 1;
         });
 
@@ -35,6 +38,17 @@ describe('timerManager', () => {
         if ((mc.system as any).clearJob && (mc.system as any).clearJob.mockClear) {
             (mc.system as any).clearJob.mockClear();
         }
+    });
+
+    afterEach(() => {
+        (mc.system.runInterval as ReturnType<typeof mock>).mockImplementation((cb?: () => void) => {
+            if (cb) cb();
+            return 1;
+        });
+        (mc.system.runTimeout as ReturnType<typeof mock>).mockImplementation((cb: () => void) => {
+            if (cb) cb();
+            return 1;
+        });
     });
 
     describe('setTrackedInterval()', () => {
