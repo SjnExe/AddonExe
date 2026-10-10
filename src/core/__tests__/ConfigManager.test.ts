@@ -1,7 +1,7 @@
 import * as configLoaderModule from '@core/configLoader.js';
 import * as factoryModule from '@core/configManagerFactory.js';
 import * as anticheatConfigLoader from '@features/anticheat/configLoader.js';
-import { afterEach, beforeEach, describe, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 const mockConfigManagerInstance = {
     load: mock(),
@@ -38,12 +38,15 @@ describe('ConfigManager', () => {
         await initializeConfigManager(false);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         factorySpy?.mockRestore();
         loadConfigSpy?.mockRestore();
         loadAnticheatSpy?.mockRestore();
         getAnticheatSpy?.mockRestore();
         saveAnticheatSpy?.mockRestore();
+
+        // Restore real mainConfigManager instance so subsequent test files receive a real config manager
+        await initializeConfigManager(false);
     });
 
     it('initializeConfigManager should load config and create manager', async () => {
@@ -57,7 +60,7 @@ describe('ConfigManager', () => {
         const mockConfig = { test: true };
         mockConfigManagerInstance.get.mockReturnValue(mockConfig);
 
-        getConfig();
+        expect(getConfig()).toBe(mockConfig as any);
     });
 
     it('updateConfig should update manager and notify listeners', () => {

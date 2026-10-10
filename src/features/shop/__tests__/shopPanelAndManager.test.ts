@@ -1,20 +1,21 @@
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as configurations from '@core/configurations.js';
-import { spyOn } from 'bun:test';
+import { setItem, updateShopItem } from '../adminManager.js';
+import { parseRankOverrides } from '../utils.js';
 
 const mockConfig = {
     categories: {} as Record<string, any>
 };
 
-spyOn(configurations, 'getShopConfig').mockImplementation(() => mockConfig as any);
-spyOn(configurations, 'saveShopConfig').mockImplementation(() => undefined as any);
-
-import { setItem, updateShopItem } from '../adminManager.js';
-import { parseRankOverrides } from '../utils.js';
-
 describe('Shop Admin Manager & Utils - Key Updates and Overrides', () => {
+    let getShopConfigSpy: any;
+    let saveShopConfigSpy: any;
+
     beforeEach(() => {
+        getShopConfigSpy = spyOn(configurations, 'getShopConfig').mockImplementation(() => mockConfig as any);
+        saveShopConfigSpy = spyOn(configurations, 'saveShopConfig').mockImplementation(() => undefined as any);
+
         mockConfig.categories = {
             Tools: {
                 icon: 'textures/items/diamond_sword',
@@ -30,6 +31,11 @@ describe('Shop Admin Manager & Utils - Key Updates and Overrides', () => {
                 subCategories: {}
             }
         };
+    });
+
+    afterEach(() => {
+        getShopConfigSpy?.mockRestore();
+        saveShopConfigSpy?.mockRestore();
     });
 
     it('should parse rank override string correctly', () => {

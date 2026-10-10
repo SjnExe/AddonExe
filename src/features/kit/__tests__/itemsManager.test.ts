@@ -1,6 +1,8 @@
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
+
+import * as configManager from '@core/configManager.js';
 
 // Mocks
 const mockGetConfig = mock();
@@ -8,15 +10,16 @@ const mockUpdateMultipleConfig = mock();
 const mockDebugLog = mock();
 const mockErrorLog = mock((msg) => console.log('ERROR LOG:', msg));
 
-import * as configManager from '@core/configManager.js';
-import { spyOn } from 'bun:test';
-
 const { addItemToKit } = await import('../itemsManager.js');
 
 describe('Kit Items Manager', () => {
+    let getConfigSpy: any;
+    let updateMultipleConfigSpy: any;
+
     beforeEach(() => {
-        spyOn(configManager, 'getConfig').mockImplementation(mockGetConfig as any);
-        spyOn(configManager, 'updateMultipleConfig').mockImplementation(mockUpdateMultipleConfig as any);
+        getConfigSpy = spyOn(configManager, 'getConfig').mockImplementation(mockGetConfig as any);
+        updateMultipleConfigSpy = spyOn(configManager, 'updateMultipleConfig').mockImplementation(mockUpdateMultipleConfig as any);
+
         mockGetConfig.mockReset();
         mockUpdateMultipleConfig.mockReset();
         mockDebugLog.mockReset();
@@ -37,6 +40,11 @@ describe('Kit Items Manager', () => {
                 }
             }
         });
+    });
+
+    afterEach(() => {
+        getConfigSpy?.mockRestore();
+        updateMultipleConfigSpy?.mockRestore();
     });
 
     describe('addItemToKit', () => {

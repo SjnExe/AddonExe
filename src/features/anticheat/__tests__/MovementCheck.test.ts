@@ -3,11 +3,11 @@ import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
-import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
+import { addPlayerToCache, clearPlayerCache } from '@core/playerCache.js';
 
 import * as configLoader from '../configLoader.js';
 import * as flagManager from '../flagManager.js';
-import { startMovementCheckLoop } from '../movementCheck.js';
+import { _resetMovementCheckForTest, startMovementCheckLoop } from '../movementCheck.js';
 
 describe('MovementCheck', () => {
     let intervalCallback: () => void;
@@ -16,6 +16,8 @@ describe('MovementCheck', () => {
     let getAllPlayersSpy: any;
 
     beforeEach(() => {
+        _resetMovementCheckForTest();
+        clearPlayerCache();
         flagSpy = spyOn(flagManager, 'flag').mockImplementation(() => {});
         getAnticheatConfigSpy = spyOn(configLoader, 'getAnticheatConfig').mockReturnValue({
             enabled: true,
@@ -25,7 +27,6 @@ describe('MovementCheck', () => {
         } as any);
 
         getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
-        initializePlayerCache();
 
         // Capture interval callback
         (mc.system.runInterval as any).mockImplementation((cb: () => void) => {
@@ -35,6 +36,8 @@ describe('MovementCheck', () => {
     });
 
     afterEach(() => {
+        _resetMovementCheckForTest();
+        clearPlayerCache();
         flagSpy?.mockRestore();
         getAnticheatConfigSpy?.mockRestore();
         getAllPlayersSpy?.mockRestore();
@@ -78,6 +81,8 @@ describe('MovementCheck', () => {
 
         const player = new PlayerMock('p3', 'RoofWalker');
         player.getGameMode = () => mc.GameMode.Survival;
+        player.getVelocity = () => ({ x: 0, y: 0, z: 0 });
+        player.getEffect = () => undefined;
 
         const netherDimension = new DimensionMock(MinecraftDimensionTypes.Nether as string);
         const runCommandMock = mock();
@@ -115,6 +120,8 @@ describe('MovementCheck', () => {
 
         const player = new PlayerMock('p4', 'RoofWalker2');
         player.getGameMode = () => mc.GameMode.Survival;
+        player.getVelocity = () => ({ x: 0, y: 0, z: 0 });
+        player.getEffect = () => undefined;
 
         const netherDimension = new DimensionMock(MinecraftDimensionTypes.Nether as string);
         netherDimension.runCommand = mock(() => {
@@ -149,6 +156,7 @@ describe('MovementCheck', () => {
         const player = new PlayerMock('p2', 'Creative');
         player.getGameMode = () => mc.GameMode.Survival;
         player.getVelocity = () => ({ x: 100, y: 0, z: 0 });
+        player.getEffect = () => undefined;
 
         addPlayerToCache(player);
 
@@ -171,6 +179,8 @@ describe('MovementCheck', () => {
         const maliciousName = 'Hacker" ; say pwned "';
         const player = new PlayerMock('p3', maliciousName);
         player.getGameMode = () => mc.GameMode.Survival;
+        player.getVelocity = () => ({ x: 0, y: 0, z: 0 });
+        player.getEffect = () => undefined;
         player.location = { x: 0, y: 128, z: 0 };
 
         const mockRunCommand = mock();

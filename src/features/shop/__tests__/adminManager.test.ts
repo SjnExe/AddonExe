@@ -1,9 +1,7 @@
-import { beforeEach, describe, expect, it, spyOn } from 'bun:test';
-
-import * as logger from '@core/logger.js';
-const debugLogSpy = spyOn(logger, 'debugLog');
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as configurations from '@core/configurations.js';
+import * as logger from '@core/logger.js';
 import { debugLog } from '@core/logger.js';
 import { addCategory } from '../adminManager.js';
 
@@ -11,18 +9,24 @@ const mockConfig = {
     categories: {} as Record<string, any>
 };
 
-const mockGetShopConfig = spyOn(configurations, 'getShopConfig').mockImplementation(() => mockConfig as any);
-const mockSaveShopConfig = spyOn(configurations, 'saveShopConfig').mockImplementation(() => undefined as any);
-
 describe('Shop Admin Manager - addCategory', () => {
+    let debugLogSpy: any;
+    let mockGetShopConfig: any;
+    let mockSaveShopConfig: any;
+
     beforeEach(() => {
+        debugLogSpy = spyOn(logger, 'debugLog');
+        mockGetShopConfig = spyOn(configurations, 'getShopConfig').mockImplementation(() => mockConfig as any);
+        mockSaveShopConfig = spyOn(configurations, 'saveShopConfig').mockImplementation(() => undefined as any);
+
         // Reset config state
         mockConfig.categories = {};
+    });
 
-        // Clear mocks
-        mockGetShopConfig.mockClear();
-        mockSaveShopConfig.mockClear();
-        debugLogSpy.mockClear();
+    afterEach(() => {
+        debugLogSpy?.mockRestore();
+        mockGetShopConfig?.mockRestore();
+        mockSaveShopConfig?.mockRestore();
     });
 
     it('should successfully add a new category', () => {
