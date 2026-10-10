@@ -22,7 +22,7 @@ async function main() {
     }
 
     const schemas = catalog.schemas || [];
-    const validators = new Map<string, any>();
+    const validators: { glob: Bun.Glob; validate: any }[] = [];
 
     console.log(`[Validator] Loaded ${schemas.length} schemas from @minecraft/bedrock-schemas.`);
 
@@ -32,15 +32,16 @@ async function main() {
         }
 
         try {
-            const relativeSchemaPath = schemaDef.url.replace(/^.*schemas\//, '');
-            const absolutePath = path.resolve(schemasDir, relativeSchemaPath);
+            const absolutePath = path.resolve(schemasDir, schemaDef.url);
 
             const schemaJson = await Bun.file(absolutePath).json();
             const validate = ajv.compile(schemaJson);
 
             for (const matchPattern of schemaDef.fileMatch) {
-                const regexStr = matchPattern.replace(/\./g, '\\.').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*');
-                validators.set(`^.*${regexStr}$`, validate);
+                validators.push({
+                    glob: new Bun.Glob(matchPattern),
+                    validate
+                });
             }
         } catch {
             // Ignore partial compilation errors
@@ -60,9 +61,9 @@ async function main() {
         const relativePath = path.relative(projectRoot, fullPath).replace(/\\/g, '/');
 
         let validateFn = null;
-        for (const [regexStr, fn] of validators.entries()) {
-            if (new RegExp(regexStr).test(relativePath)) {
-                validateFn = fn;
+        for (const { glob, validate } of validators) {
+            if (glob.match(relativePath)) {
+                validateFn = validate;
                 break;
             }
         }
