@@ -1,21 +1,21 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
-const mockGetDailyRewardsConfig = mock();
-const mockGetOrCreatePlayer = mock();
-const mockIncrementPlayerBalance = mock();
-const mockUpdatePlayerData = mock();
+import * as realConfigs from '@core/configurations.js';
+import * as realPlayerDataManager from '@core/playerDataManager.js';
 
-const actualConfigs = await import('@core/configurations.js');
-const actualPlayerData = await import('@core/playerDataManager.js');
+const mockGetDailyRewardsConfig = mock((...args: any[]) => realConfigs.getDailyRewardsConfig());
+const mockGetOrCreatePlayer = mock((player: any) => realPlayerDataManager.getOrCreatePlayer(player));
+const mockIncrementPlayerBalance = mock((id: string, amount: number) => realPlayerDataManager.incrementPlayerBalance(id, amount));
+const mockUpdatePlayerData = mock((id: string, cb: any) => realPlayerDataManager.updatePlayerData(id, cb));
 
 mock.module('@core/configurations.js', () => ({
-    ...actualConfigs,
+    ...realConfigs,
     getDailyRewardsConfig: mockGetDailyRewardsConfig,
     getEconomyConfig: () => ({ startingBalance: 0, minBalance: 0, maxBalance: 1_000_000, currencySymbol: '$' })
 }));
 
 mock.module('@core/playerDataManager.js', () => ({
-    ...actualPlayerData,
+    ...realPlayerDataManager,
     getOrCreatePlayer: mockGetOrCreatePlayer,
     incrementPlayerBalance: mockIncrementPlayerBalance,
     updatePlayerData: mockUpdatePlayerData
@@ -25,12 +25,12 @@ const { claimDailyReward } = await import('../manager.js');
 
 describe('Daily Rewards Manager', () => {
     beforeEach(() => {
-        mockGetDailyRewardsConfig.mockClear();
-        mockGetOrCreatePlayer.mockClear();
-        mockIncrementPlayerBalance.mockClear();
-        mockUpdatePlayerData.mockClear();
+        mockGetDailyRewardsConfig.mockReset();
+        mockGetOrCreatePlayer.mockReset();
+        mockIncrementPlayerBalance.mockReset();
+        mockUpdatePlayerData.mockReset();
 
-        mockGetDailyRewardsConfig.mockReturnValue({
+        mockGetDailyRewardsConfig.mockImplementation(() => ({
             enabled: true,
             claimCooldownHours: 24,
             streakResetHours: 48,
@@ -42,12 +42,12 @@ describe('Daily Rewards Manager', () => {
                     message: 'Day 1 reward'
                 }
             ]
-        });
+        }) as any);
 
-        mockGetOrCreatePlayer.mockReturnValue({
+        mockGetOrCreatePlayer.mockImplementation(() => ({
             lastDailyClaim: 0,
             dailyStreak: 0
-        });
+        }) as any);
 
         mockUpdatePlayerData.mockImplementation((_id: string, cb: (d: any) => void) => {
             const data = { lastDailyClaim: 0, dailyStreak: 0 };

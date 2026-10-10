@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
@@ -21,21 +21,6 @@ mock.module('../configLoader.js', () => ({
     getAnticheatConfig: mockGetConfig
 }));
 
-mock.module('@minecraft/server', () => ({
-    ...mcMock,
-    world: {
-        ...mcMock.world,
-        getAllPlayers: mock(),
-        afterEvents: {
-            ...mcMock.world.afterEvents,
-            playerSpawn: { subscribe: mock(), unsubscribe: mock() },
-            playerLeave: { subscribe: mock(), unsubscribe: mock() },
-            entityHurt: { subscribe: mock(), unsubscribe: mock() },
-            entityDie: { subscribe: mock(), unsubscribe: mock() }
-        }
-    }
-}));
-
 const { startMovementCheckLoop } = await import('../movementCheck.js');
 
 describe('MovementCheck', () => {
@@ -44,6 +29,7 @@ describe('MovementCheck', () => {
     beforeEach(() => {
         mock.restore();
         mockFlag.mockClear();
+        spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
         // Initialize cache
         (mc.world?.getAllPlayers as any)?.mockReturnValue?.([]);
         initializePlayerCache();

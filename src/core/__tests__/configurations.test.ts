@@ -7,12 +7,8 @@ const mockConfigManagerInstance = {
     reset: mock()
 };
 
-import * as realFactory from '@core/configManagerFactory.js';
-
-mock.module('@core/configManagerFactory.js', () => ({
-    ...realFactory,
-    default: mock(() => mockConfigManagerInstance)
-}));
+import * as factoryModule from '@core/configManagerFactory.js';
+import { spyOn } from 'bun:test';
 
 mock.module('@core/configLoader.js', () => ({
     loadConfig: mock(() => Promise.resolve({}))
@@ -31,6 +27,7 @@ mock.module('@features/games/wordle/wordleConfig.js', () => ({
 }));
 
 import {
+    _clearConfigManagersForTest,
     configResetCallbacks,
     configResetRegistry,
     getGamesConfig,
@@ -54,11 +51,13 @@ import createConfigManager from '@core/configManagerFactory.js';
 
 describe('Configurations Manager', () => {
     beforeEach(() => {
+        mock.restore();
+        spyOn(factoryModule, 'default').mockReturnValue(mockConfigManagerInstance as any);
+        _clearConfigManagersForTest();
         mockConfigManagerInstance.load.mockClear();
         mockConfigManagerInstance.get.mockClear();
         mockConfigManagerInstance.set.mockClear();
         mockConfigManagerInstance.reset.mockClear();
-        (createConfigManager as any).mockClear();
         (loadConfig as any).mockClear();
     });
 

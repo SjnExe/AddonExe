@@ -1,3 +1,4 @@
+import * as configManager from '@core/configManager.js';
 import { loadEconomyConfig } from '@core/configurations.js';
 import * as realUtils from '@core/utils.js';
 import { formatCurrency } from '@core/utils/economy.js';
@@ -10,28 +11,15 @@ import defaultConfig from '../../../config.js';
 
 // Mocks
 const mockGetConfig = mock();
-const mockGetOrCreatePlayer = mock();
-const mockIncrementPlayerBalance = mock();
 const mockSendMessage = mock();
 const mockStartTeleportWarmup = mock();
 
-mock.module('@core/configManager.js', () => ({
-    getConfig: mockGetConfig,
-    onConfigUpdated: mock(),
-    initializeConfigManager: mock(),
-    updateConfig: mock(),
-    reloadConfig: mock(),
-    updateMultipleConfig: mock(),
-    resetConfigSection: mock()
-}));
+import * as playerDataManager from '@core/playerDataManager.js';
+import { spyOn } from 'bun:test';
 
-import * as realPlayerDataManager from '@core/playerDataManager.js';
+const mockGetOrCreatePlayer = spyOn(playerDataManager, 'getOrCreatePlayer');
+const mockIncrementPlayerBalance = spyOn(playerDataManager, 'incrementPlayerBalance');
 
-mock.module('@core/playerDataManager.js', () => ({
-    ...realPlayerDataManager,
-    getOrCreatePlayer: mockGetOrCreatePlayer,
-    incrementPlayerBalance: mockIncrementPlayerBalance
-}));
 
 mock.module('@core/messaging.js', () => ({
     sendMessage: mockSendMessage
@@ -82,11 +70,11 @@ describe('Back Command', () => {
         mockIncrementPlayerBalance.mockClear();
         (player.teleport as any).mockClear();
 
-        mockGetConfig.mockReturnValue({
+        spyOn(configManager, 'getConfig').mockReturnValue({
             ...defaultConfig,
             back: { enabled: true, cost: 100, teleportWarmupSeconds: 5 },
             economy: { enabled: true }
-        });
+        } as any);
         mockGetOrCreatePlayer.mockReturnValue({
             balance: 500,
             lastLocation: { x: 0, y: 0, z: 0, dimensionId: MinecraftDimensionTypes.Overworld }

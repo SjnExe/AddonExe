@@ -1,30 +1,11 @@
 import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
 
-mock.module('@minecraft/server', () => ({
-    ...mcMock,
-    system: { ...mcMock.system, runJob: mock() },
-    world: mcMock.world
-}));
-
-mock.module('@core/configManager.js', () => ({
-    getConfig: mock()
-}));
-
-mock.module('@core/configurations.js', () => ({
-    getTeamConfig: mock()
-}));
+import * as configManager from '@core/configManager.js';
+import * as configurations from '@core/configurations.js';
 
 import * as realPlayerDataManager from '@core/playerDataManager.js';
-
-mock.module('@core/playerDataManager.js', () => ({
-    ...realPlayerDataManager,
-    getOrCreatePlayer: mock(),
-    getPlayer: mock(),
-    incrementPlayerBalance: mock(),
-    updatePlayerData: mock()
-}));
 
 mock.module('@core/services/serviceLocator.js', () => ({
     serviceLocator: {
@@ -82,6 +63,7 @@ describe('Team Manager', () => {
 
     beforeEach(() => {
         mock.restore();
+        spyOn(mc.system, 'runJob');
 
         // Clean up active teams from previous tests
         const allTeams = getAllTeam();
@@ -91,7 +73,7 @@ describe('Team Manager', () => {
 
         mockPlayers = {};
 
-        (getTeamConfig as ReturnType<typeof mock>).mockReturnValue({
+        spyOn(configurations, 'getTeamConfig').mockReturnValue({
             enabled: true,
             nameMinLength: 3,
             nameMaxLength: 16,
@@ -102,17 +84,17 @@ describe('Team Manager', () => {
             maxPlayerInvites: 5,
             maxApplications: 5,
             teleportWarmupSeconds: 3
-        });
+        } as any);
 
-        (getConfig as ReturnType<typeof mock>).mockReturnValue({
+        spyOn(configManager, 'getConfig').mockReturnValue({
             ...defaultConfig,
             economy: { enabled: false }
-        });
+        } as any);
 
-        (getOrCreatePlayer as ReturnType<typeof mock>).mockImplementation((p: any) => getMockPlayer(p.id));
-        (getPlayer as ReturnType<typeof mock>).mockImplementation((id: string) => getMockPlayer(id));
-
-        (updatePlayerData as ReturnType<typeof mock>).mockImplementation((id: string, cb: (data: any) => void) => {
+        spyOn(realPlayerDataManager, 'getOrCreatePlayer').mockImplementation((p: any) => getMockPlayer(p.id) as any);
+        spyOn(realPlayerDataManager, 'getPlayer').mockImplementation((id: string) => getMockPlayer(id) as any);
+        spyOn(realPlayerDataManager, 'incrementPlayerBalance');
+        spyOn(realPlayerDataManager, 'updatePlayerData').mockImplementation((id: string, cb: (data: any) => void) => {
             cb(getMockPlayer(id));
         });
     });
@@ -228,7 +210,11 @@ describe('Team Manager', () => {
                 expect(team).toBeDefined();
                 expect(team?.id).toBeGreaterThan(1);
             } finally {
-                (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation(originalGetDynamicProperty ?? (() => undefined));
+                if (originalGetDynamicProperty) {
+                    (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation(originalGetDynamicProperty);
+                } else {
+                    (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation((key: string) => (mcMock.world.getDynamicProperty as any)(key));
+                }
             }
         });
 
@@ -270,7 +256,11 @@ describe('Team Manager', () => {
                 const elapsed = performance.now() - start;
                 console.log(`[BENCHMARK OPTIMIZED] Creating ${iterations} teams with ${extraDynamicPropertyCollisions} step collisions took ${elapsed.toFixed(2)}ms`);
             } finally {
-                (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation(originalGetDynamicProperty ?? (() => undefined));
+                if (originalGetDynamicProperty) {
+                    (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation(originalGetDynamicProperty);
+                } else {
+                    (mc.world.getDynamicProperty as ReturnType<typeof mock>).mockImplementation((key: string) => (mcMock.world.getDynamicProperty as any)(key));
+                }
             }
         });
     });

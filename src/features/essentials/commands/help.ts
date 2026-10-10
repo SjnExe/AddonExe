@@ -13,6 +13,10 @@ import { CommandExecutor, commandManager, CustomCommand } from '@commands/comman
 // Cache for categorized commands
 let categorizedCache: Map<string, CustomCommand[]> | undefined;
 
+export function clearCategorizedCache(): void {
+    categorizedCache = undefined;
+}
+
 function getCategorizedCommands(): Map<string, CustomCommand[]> {
     if (isDefined(categorizedCache)) {
         return categorizedCache;

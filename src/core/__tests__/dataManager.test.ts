@@ -6,51 +6,11 @@ const { mockStorageSave } = {
     mockStorageSave: mock()
 };
 
-mock.module('../configManager.js', () => ({
-    getConfig: () => ({
-        ...defaultConfig,
-        data: {
-            ...defaultConfig.data,
-            autoSaveIntervalSeconds: 300
-        },
-        economy: {
-            ...defaultConfig.economy,
-            enabled: true,
-            minBalance: -1000,
-            maxBalance: 1_000_000
-        },
-        playerDefaults: {
-            ...defaultConfig.playerDefaults,
-            rankId: 'member',
-            permission: 'ui.panel.member',
-            xrayNotificationsEnabled: false
-        }
-    })
-}));
+import { initializeConfigManager } from '../configManager.js';
+import * as configurations from '../configurations.js';
 
-import * as realConfigs from '../configurations.js';
-
-mock.module('../configurations.js', () => ({
-    ...realConfigs,
-    getEconomyConfig: () => ({
-        enabled: true,
-        startingBalance: 0,
-        minBalance: -1000,
-        maxBalance: 1_000_000
-    })
-}));
-
-mock.module('@core/storage/StorageManager.js', () => ({
-    StorageManager: class {
-        constructor(private key: string) {}
-        load() {
-            return undefined;
-        }
-        save(data: any) {
-            mockStorageSave(this.key, data);
-        }
-    }
-}));
+import { StorageManager } from '@core/storage/StorageManager.js';
+import { spyOn } from 'bun:test';
 
 const { cleanupPlayerDataManager, getOrCreatePlayer, updatePlayerData, getPlayer } = await import('@core/playerDataManager.js');
 const { saveAllData, saveAllDataJob } = await import('@core/dataManager.js');
@@ -66,10 +26,21 @@ const mockPlayer = (id: string, name: string) =>
     }) as unknown as mc.Player;
 
 describe('DataManager - saveAllData & saveAllDataJob', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
+        mock.restore();
+        await initializeConfigManager(false);
+        spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+            enabled: true,
+            startingBalance: 0,
+            minBalance: -1000,
+            maxBalance: 1_000_000
+        } as any);
         cleanupPlayerDataManager();
         mockStorageSave.mockReset();
-        (mc.world.getDynamicProperty as any).mockReturnValue(undefined);
+        spyOn(StorageManager.prototype, 'load').mockReturnValue(undefined);
+        spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
+            return mockStorageSave(this.dbName, data);
+        });
     });
 
     it('saveAllData should save dirty player data synchronously', () => {

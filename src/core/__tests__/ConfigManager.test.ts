@@ -17,12 +17,8 @@ mock.module('@core/configLoader.js', () => ({
     loadConfig: mockConfigLoader
 }));
 
-import * as realFactory from '@core/configManagerFactory.js';
-
-mock.module('@core/configManagerFactory.js', () => ({
-    ...realFactory,
-    default: mockFactory
-}));
+import * as factoryModule from '@core/configManagerFactory.js';
+import { spyOn } from 'bun:test';
 
 mock.module('@features/anticheat/configLoader.js', () => ({
     loadAnticheatConfig: mock(),
@@ -34,6 +30,8 @@ const { initializeConfigManager, getConfig, updateConfig, onConfigUpdated } = aw
 
 describe('ConfigManager', () => {
     beforeEach(() => {
+        mock.restore();
+        spyOn(factoryModule, 'default').mockImplementation(mockFactory as any);
         mockConfigManagerInstance.load.mockClear();
         mockConfigManagerInstance.get.mockClear();
         mockConfigManagerInstance.update.mockClear();

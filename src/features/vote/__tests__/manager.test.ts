@@ -2,17 +2,14 @@ import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as logger from '@core/logger.js';
-const mockDebugLog = spyOn(logger, 'debugLog');
+import { StorageManager } from '@core/storage/StorageManager.js';
+
 const mockStorageLoad = mock();
 const mockStorageSave = mock();
 
-mock.module('@core/storage/StorageManager.js', () => ({
-    StorageManager: class {
-        constructor() {}
-        load = mockStorageLoad;
-        save = mockStorageSave;
-    }
-}));
+let debugLogSpy: any;
+let loadSpy: any;
+let saveSpy: any;
 
 // Mock the system and world methods manually on the imported module
 // Since it's imported, mc.world and mc.system are accessible and we can attach mocks
@@ -35,7 +32,11 @@ describe('Vote Manager', () => {
     let originalWorldSendMessage: any;
 
     beforeEach(() => {
-        mockDebugLog.mockReset();
+        debugLogSpy = spyOn(logger, 'debugLog');
+        loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(() => mockStorageLoad());
+        saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation((data: any) => mockStorageSave(data));
+
+        debugLogSpy.mockReset();
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
         mockSystemRunInterval.mockClear();
@@ -59,6 +60,9 @@ describe('Vote Manager', () => {
         global.Date.now = originalDateNow;
         (mc.system as any).runInterval = originalSystemRunInterval;
         (mc.world as any).sendMessage = originalWorldSendMessage;
+        debugLogSpy?.mockRestore();
+        loadSpy?.mockRestore();
+        saveSpy?.mockRestore();
     });
 
     describe('checkVoteExpiry (via interval or initialization)', () => {
@@ -132,7 +136,7 @@ describe('Vote Manager', () => {
             initializeVoting();
 
             expect(mockStorageLoad).toHaveBeenCalled();
-            expect(mockDebugLog).toHaveBeenCalledWith('[Voting] Loaded active vote.');
+            expect(debugLogSpy).toHaveBeenCalledWith('[Voting] Loaded active vote.');
             expect(mockSystemRunInterval).toHaveBeenCalled();
             expect(getActiveVote()).toEqual(activeVote as any);
         });
@@ -142,7 +146,7 @@ describe('Vote Manager', () => {
 
             initializeVoting();
 
-            expect(mockDebugLog).not.toHaveBeenCalled();
+            expect(debugLogSpy).not.toHaveBeenCalled();
             expect(mockSystemRunInterval).toHaveBeenCalled();
             expect(getActiveVote()).toBeUndefined();
         });

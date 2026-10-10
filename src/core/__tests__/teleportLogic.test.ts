@@ -4,55 +4,22 @@ import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 const mockPlaySound = mock();
 const mockGetCountdownColor = mock();
 const mockDistance = mock();
-const mockSubscribe = mock();
-const mockUnsubscribe = mock();
-const mockRunInterval = mock();
-const mockClearRun = mock();
+let mockSubscribe: any;
+let mockUnsubscribe: any;
+let mockRunInterval: any;
+let mockClearRun: any;
 
 import * as logger from '@core/logger.js';
 const mockErrorLog = spyOn(logger, 'errorLog');
 
-mock.module('@core/utils/sound.js', () => ({
-    playSound: mockPlaySound
-}));
-
-mock.module('@core/utils/ui.js', () => ({
-    getCountdownColor: mockGetCountdownColor,
-    getPlayerIcon: mock(() => 'textures/ui/permissions_member_star.png'),
-    forceCloseChat: mock(async () => {}),
-    uiWait: mock(async () => ({ canceled: false })),
-    playClickSound: mock(() => {})
-}));
-
+import * as soundUtils from '@core/utils/sound.js';
+import * as uiUtils from '@core/utils/ui.js';
+import { Vector3Utils } from '@minecraft/math';
 import * as sidebarManager from '@features/sidebar/manager.js';
+
 const mockSetActionBarOverride = spyOn(sidebarManager, 'setActionBarOverride');
 
-mock.module('@minecraft/math', () => ({
-    Vector3Utils: {
-        distance: mockDistance
-    }
-}));
-
-import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
-
-mock.module('@minecraft/server', () => ({
-    ...mcMock,
-    system: {
-        ...mcMock.system,
-        runInterval: mockRunInterval,
-        clearRun: mockClearRun
-    },
-    world: {
-        ...mcMock.world,
-        afterEvents: {
-            ...mcMock.world.afterEvents,
-            entityHurt: {
-                subscribe: mockSubscribe,
-                unsubscribe: mockUnsubscribe
-            }
-        }
-    }
-}));
+import * as mc from '@minecraft/server';
 
 const { startTeleportWarmup } = await import('../teleportLogic.js');
 
@@ -67,10 +34,15 @@ describe('startTeleportWarmup', () => {
         mockGetCountdownColor.mockReset();
         mockSetActionBarOverride.mockReset();
         mockDistance.mockReset();
-        mockSubscribe.mockReset();
-        mockUnsubscribe.mockReset();
-        mockRunInterval.mockReset();
-        mockClearRun.mockReset();
+
+        spyOn(soundUtils, 'playSound').mockImplementation(mockPlaySound as any);
+        spyOn(uiUtils, 'getCountdownColor').mockImplementation(mockGetCountdownColor as any);
+        spyOn(Vector3Utils, 'distance').mockImplementation(mockDistance as any);
+
+        mockRunInterval = spyOn(mc.system, 'runInterval').mockReturnValue(1 as any);
+        mockClearRun = spyOn(mc.system, 'clearRun');
+        mockSubscribe = spyOn(mc.world.afterEvents.entityHurt, 'subscribe');
+        mockUnsubscribe = spyOn(mc.world.afterEvents.entityHurt, 'unsubscribe');
 
         onWarmupComplete = mock();
         onCancel = mock();

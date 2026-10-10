@@ -24,6 +24,11 @@ export class BlockVolume {
 
 // Stateful Dynamic Property Store
 const _testDynamicProperties = new Map();
+
+export function _clearTestDynamicProperties(): void {
+    _testDynamicProperties.clear();
+}
+
 export const world = {
     getDynamicProperty: mock((key) => _testDynamicProperties.get(key)),
     setDynamicProperty: mock((key, val) => {
@@ -36,10 +41,11 @@ export const world = {
     getDimension: mock((dim: string) => new Dimension(dim)),
     getAllPlayers: mock(() => []),
     afterEvents: {
-        playerSpawn: { subscribe: mock() },
-        playerLeave: { subscribe: mock() },
-        entityDie: { subscribe: mock() },
-        chatSend: { subscribe: mock() }
+        playerSpawn: { subscribe: mock(), unsubscribe: mock() },
+        playerLeave: { subscribe: mock(), unsubscribe: mock() },
+        entityDie: { subscribe: mock(), unsubscribe: mock() },
+        chatSend: { subscribe: mock(), unsubscribe: mock() },
+        entityHurt: { subscribe: mock(), unsubscribe: mock() }
     },
     beforeEvents: {
         chatSend: { subscribe: mock() },

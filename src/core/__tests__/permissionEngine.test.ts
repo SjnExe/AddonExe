@@ -1,5 +1,5 @@
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // Shared tracking variables for dynamic test scenarios
 let rankPermissions: Record<string, string[]> = {
@@ -45,44 +45,13 @@ mock.module('@core/configManager.js', () => ({
 }));
 
 import * as realPlayerCache from '../playerCache.js';
-
-mock.module('../playerCache.js', () => ({
-    ...realPlayerCache
-}));
-
-// Mock both path styles to accommodate PR 1303's path alias change
-mock.module('../playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
-mock.module('@core/playerDataManager.js', () => ({ getPlayer: mockGetPlayer }));
-
-import * as realRankManager from '../rankManager.js';
-
-mock.module('../rankManager.js', () => ({
-    ...realRankManager,
-    getRankById: (id: string) => mockGetRankById(id),
-    getAllRanks: () => mockGetAllRanks()
-}));
-mock.module('@core/rankManager.js', () => ({
-    ...realRankManager,
-    getRankById: (id: string) => mockGetRankById(id),
-    getAllRanks: () => mockGetAllRanks()
-}));
-
-import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
-
-mock.module('@minecraft/server', () => ({
-    ...mcMock,
-    system: { ...mcMock.system, currentTick: 100 },
-    world: {
-        ...mcMock.world,
-        afterEvents: {
-            ...mcMock.world.afterEvents,
-            playerLeave: { subscribe: () => {} }
-        }
-    }
-}));
+import * as playerDataManager from '../playerDataManager.js';
+import * as rankManager from '../rankManager.js';
+import { spyOn } from 'bun:test';
 
 // --- IMPORTS AFTER MOCKS ---
 import * as mc from '@minecraft/server';
+(mc.system as any).currentTick = 100;
 import { config } from '../../config.js';
 import { calculatePlayerMap, calculateRankMap, getPlayerRanks, hasPermission, invalidateAllRankCaches, invalidateRankCache } from '../permissionEngine.js';
 
@@ -140,6 +109,17 @@ resetToBaseDefaults();
 // --- TEST SUITES ---
 
 describe('calculateRankMap', () => {
+    beforeEach(() => {
+        mock.restore();
+        spyOn(rankManager, 'getRankById').mockImplementation((id: string) => mockGetRankById(id) as any);
+        spyOn(rankManager, 'getAllRanks').mockImplementation(() => mockGetAllRanks() as any);
+        spyOn(playerDataManager, 'getPlayer').mockImplementation(mockGetPlayer as any);
+        resetToBaseDefaults();
+    });
+
+    afterEach(() => {
+        mock.restore();
+    });
     it('should merge permissions from multiple groups', () => {
         const rank = {
             id: 'test',
@@ -281,6 +261,10 @@ describe('calculateRankMap', () => {
 
 describe('calculatePlayerMap', () => {
     beforeEach(() => {
+        mock.restore();
+        spyOn(rankManager, 'getRankById').mockImplementation((id: string) => mockGetRankById(id) as any);
+        spyOn(rankManager, 'getAllRanks').mockImplementation(() => mockGetAllRanks() as any);
+        spyOn(playerDataManager, 'getPlayer').mockImplementation(mockGetPlayer as any);
         resetToBaseDefaults();
     });
 
@@ -333,6 +317,10 @@ describe('getPlayerRanks', () => {
     let mockPlayer: any;
 
     beforeEach(() => {
+        mock.restore();
+        spyOn(rankManager, 'getRankById').mockImplementation((id: string) => mockGetRankById(id) as any);
+        spyOn(rankManager, 'getAllRanks').mockImplementation(() => mockGetAllRanks() as any);
+        spyOn(playerDataManager, 'getPlayer').mockImplementation(mockGetPlayer as any);
         mockPlayer = {
             id: '123',
             name: 'test_player',
@@ -439,6 +427,10 @@ describe('getPlayerRanks', () => {
 
 describe('invalidateRankCache', () => {
     beforeEach(() => {
+        mock.restore();
+        spyOn(rankManager, 'getRankById').mockImplementation((id: string) => mockGetRankById(id) as any);
+        spyOn(rankManager, 'getAllRanks').mockImplementation(() => mockGetAllRanks() as any);
+        spyOn(playerDataManager, 'getPlayer').mockImplementation(mockGetPlayer as any);
         resetToBaseDefaults();
     });
 
