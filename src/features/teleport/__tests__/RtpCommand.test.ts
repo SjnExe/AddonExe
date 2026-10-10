@@ -1,13 +1,26 @@
-import { initializeConfigManager } from '@core/configManager.js';
+import * as configManager from '@core/configManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import defaultConfig from '../../../config.js';
 import rtpCommand from '../commands/rtp.js';
 
 describe('RTP Command Sanitization Test', () => {
-    beforeEach(async () => {
-        mock.restore();
-        await initializeConfigManager(false);
+    let getConfigSpy: any;
+
+    beforeEach(() => {
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+            ...defaultConfig,
+            rtp: {
+                enabled: true,
+                minRange: 100,
+                maxRange: 500
+            }
+        } as any);
+    });
+
+    afterEach(() => {
+        getConfigSpy?.mockRestore();
     });
 
     it('should sanitize tickingarea name in createTickingArea fallback to prevent command injection', async () => {
@@ -20,12 +33,10 @@ describe('RTP Command Sanitization Test', () => {
             heightRange: { min: -64, max: 319 }
         } as unknown as mc.Dimension;
 
-        // Force tickingAreaManager.createTickingArea to throw so it falls back to runCommand
         const createTickingAreaMock = mock(() => {
             throw new Error('API createTickingArea failed');
         });
 
-        // Save original tickingAreaManager if present
         const originalTickingAreaManager = mc.world.tickingAreaManager;
         (mc.world as unknown as { tickingAreaManager: unknown }).tickingAreaManager = {
             createTickingArea: createTickingAreaMock,
@@ -33,24 +44,21 @@ describe('RTP Command Sanitization Test', () => {
         };
 
         const mockPlayer = new mc.Player('p123"; say injected command; "', 'TestPlayer');
+        Object.setPrototypeOf(mockPlayer, mc.Player.prototype);
         mockPlayer.dimension = mockDimension;
 
-        // Execute rtp command
         await rtpCommand.execute(mockPlayer);
 
-        // Verify runCommand was called in fallback and the quote/injection characters were properly escaped
         expect(mockRunCommand).toHaveBeenCalled();
         const runCommandCall = mockRunCommand.mock.calls.find((call) => typeof call[0] === 'string' && call[0].startsWith('tickingarea add'));
         expect(runCommandCall).toBeDefined();
 
         if (runCommandCall) {
             const commandStr = runCommandCall[0] as string;
-            // Should replace double quotes with single quotes and avoid command injection breakout
             expect(commandStr).not.toContain('p123"; say injected command; "');
             expect(commandStr).toContain("rtp_p123'; say injected command; '");
         }
 
-        // Cleanup
         (mc.world as unknown as { tickingAreaManager: unknown }).tickingAreaManager = originalTickingAreaManager;
     });
 });

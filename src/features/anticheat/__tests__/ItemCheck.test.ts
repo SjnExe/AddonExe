@@ -1,33 +1,25 @@
 import * as mc from '@minecraft/server';
 import { ItemComponentTypes } from '@minecraft/server';
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
-
-// Mocks
-import * as realFlagManager from '../flagManager.js';
-
-const mockFlag = mock();
-mock.module('../flagManager.js', () => ({
-    ...realFlagManager,
-    flag: mockFlag
-}));
-
-mock.module('../configLoader.js', () => ({
-    getAnticheatConfig: mock()
-}));
-
-const { checkItem } = await import('../itemCheck.js');
+import * as flagManager from '../flagManager.js';
+import { checkItem } from '../itemCheck.js';
 
 describe('ItemCheck', () => {
+    let flagSpy: any;
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
     const player = new PlayerMock('p1', 'Cheater');
     const updateItem = mock();
 
     beforeEach(() => {
-        mockFlag.mockClear();
+        flagSpy = spyOn(flagManager, 'flag').mockImplementation(() => {});
         updateItem.mockClear();
+    });
+
+    afterEach(() => {
+        flagSpy?.mockRestore();
     });
 
     it('should flag illegal enchantments', () => {
@@ -59,7 +51,7 @@ describe('ItemCheck', () => {
 
         checkItem(item, player, config, updateItem);
 
-        expect(mockFlag).toHaveBeenCalledWith(player, 'itemCheck', expect.stringContaining('Illegal Enchant'));
+        expect(flagSpy).toHaveBeenCalledWith(player, 'itemCheck', expect.stringContaining('Illegal Enchant'));
         expect(updateItem).toHaveBeenCalled(); // Removed
     });
 
@@ -92,6 +84,6 @@ describe('ItemCheck', () => {
 
         checkItem(item, player, config, updateItem);
 
-        expect(mockFlag).not.toHaveBeenCalled();
+        expect(flagSpy).not.toHaveBeenCalled();
     });
 });

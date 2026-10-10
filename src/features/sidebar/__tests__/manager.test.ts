@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as mc from '@minecraft/server';
 import defaultConfig from '../../../config.js';
@@ -40,20 +40,37 @@ import * as rankManager from '@core/rankManager.js';
 const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } = await import('../manager.js');
 
 describe('Sidebar Manager', () => {
+    let getAllPlayersSpy: any;
+    let getPlayerCountSpy: any;
+    let getPlayerSpy: any;
+    let getSidebarVisibleSpy: any;
+    let getPlayTimeSpy: any;
+    let getPlayerRankSpy: any;
+
     beforeEach(() => {
+        getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
         initializePlayerCache();
-        spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
-        spyOn(playerDataManager, 'getPlayer').mockReturnValue({
+        getPlayerCountSpy = spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
+        getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockReturnValue({
             balance: 1000,
             kills: 10,
             deaths: 2,
             killStreak: 3
         } as any);
-        spyOn(playerDataManager, 'getSidebarVisible').mockReturnValue(true);
-        spyOn(playerDataManager, 'getPlayTime').mockReturnValue(3600);
-        spyOn(rankManager, 'getPlayerRank').mockReturnValue({
+        getSidebarVisibleSpy = spyOn(playerDataManager, 'getSidebarVisible').mockReturnValue(true);
+        getPlayTimeSpy = spyOn(playerDataManager, 'getPlayTime').mockReturnValue(3600);
+        getPlayerRankSpy = spyOn(rankManager, 'getPlayerRank').mockReturnValue({
             name: 'VIP'
         } as any);
+    });
+
+    afterEach(() => {
+        getAllPlayersSpy?.mockRestore();
+        getPlayerCountSpy?.mockRestore();
+        getPlayerSpy?.mockRestore();
+        getSidebarVisibleSpy?.mockRestore();
+        getPlayTimeSpy?.mockRestore();
+        getPlayerRankSpy?.mockRestore();
     });
 
     it('should resolve global placeholders correctly', () => {

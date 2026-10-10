@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 const mockConfigManagerInstance = {
     load: mock(),
@@ -7,24 +7,8 @@ const mockConfigManagerInstance = {
     reset: mock()
 };
 
+import * as configLoader from '@core/configLoader.js';
 import * as factoryModule from '@core/configManagerFactory.js';
-import { spyOn } from 'bun:test';
-
-mock.module('@core/configLoader.js', () => ({
-    loadConfig: mock(() => Promise.resolve({}))
-}));
-
-mock.module('@features/essentials/worldProtectionConfig.js', () => ({
-    worldProtectionConfig: {}
-}));
-
-mock.module('@features/games/gamesConfig.js', () => ({
-    gamesConfig: {}
-}));
-
-mock.module('@features/games/wordle/wordleConfig.js', () => ({
-    wordleConfig: {}
-}));
 
 import {
     _clearConfigManagersForTest,
@@ -46,19 +30,25 @@ import {
     saveWorldProtectionConfig
 } from '@core/configurations.js';
 
-import { loadConfig } from '@core/configLoader.js';
 import createConfigManager from '@core/configManagerFactory.js';
 
 describe('Configurations Manager', () => {
+    let factorySpy: any;
+    let loadConfigSpy: any;
+
     beforeEach(() => {
-        mock.restore();
-        spyOn(factoryModule, 'default').mockReturnValue(mockConfigManagerInstance as any);
+        factorySpy = spyOn(factoryModule, 'default').mockReturnValue(mockConfigManagerInstance as any);
+        loadConfigSpy = spyOn(configLoader, 'loadConfig').mockImplementation(() => Promise.resolve({} as any));
         _clearConfigManagersForTest();
-        mockConfigManagerInstance.load.mockClear();
-        mockConfigManagerInstance.get.mockClear();
-        mockConfigManagerInstance.set.mockClear();
-        mockConfigManagerInstance.reset.mockClear();
-        (loadConfig as any).mockClear();
+        mockConfigManagerInstance.load.mockReset();
+        mockConfigManagerInstance.get.mockReset();
+        mockConfigManagerInstance.set.mockReset();
+        mockConfigManagerInstance.reset.mockReset();
+    });
+
+    afterEach(() => {
+        factorySpy?.mockRestore();
+        loadConfigSpy?.mockRestore();
     });
 
     describe('World Protection Config', () => {

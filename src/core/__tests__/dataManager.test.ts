@@ -1,18 +1,16 @@
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
-const { mockStorageSave } = {
-    mockStorageSave: mock()
-};
+const mockStorageSave = mock();
+const mockStorageLoad = mock();
 
 import { initializeConfigManager } from '../configManager.js';
 import * as configurations from '../configurations.js';
 
 import { StorageManager } from '@core/storage/StorageManager.js';
-import { spyOn } from 'bun:test';
 
-const { cleanupPlayerDataManager, getOrCreatePlayer, updatePlayerData, getPlayer } = await import('@core/playerDataManager.js');
-const { saveAllData, saveAllDataJob } = await import('@core/dataManager.js');
+import { saveAllData, saveAllDataJob } from '@core/dataManager.js';
+import { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } from '@core/playerDataManager.js';
 
 const mockPlayer = (id: string, name: string) =>
     ({
@@ -25,21 +23,35 @@ const mockPlayer = (id: string, name: string) =>
     }) as unknown as mc.Player;
 
 describe('DataManager - saveAllData & saveAllDataJob', () => {
+    let getEconomyConfigSpy: any;
+    let loadSpy: any;
+    let saveSpy: any;
+
     beforeEach(async () => {
-        mock.restore();
+        cleanupPlayerDataManager();
         await initializeConfigManager(false);
-        spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+        getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
             enabled: true,
             startingBalance: 0,
             minBalance: -1000,
             maxBalance: 1_000_000
         } as any);
-        cleanupPlayerDataManager();
         mockStorageSave.mockReset();
-        spyOn(StorageManager.prototype, 'load').mockReturnValue(undefined);
-        spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
+        mockStorageLoad.mockReset();
+        mockStorageLoad.mockImplementation(() => undefined);
+        loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
+            return mockStorageLoad(this.dbName);
+        });
+        saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
             return mockStorageSave(this.dbName, data);
         });
+    });
+
+    afterEach(() => {
+        cleanupPlayerDataManager();
+        getEconomyConfigSpy?.mockRestore();
+        loadSpy?.mockRestore();
+        saveSpy?.mockRestore();
     });
 
     it('saveAllData should save dirty player data synchronously', () => {
@@ -77,7 +89,6 @@ describe('DataManager - saveAllData & saveAllDataJob', () => {
 
         const job = saveAllDataJob({ log: false });
 
-        // Run the generator to completion
         let result = job.next();
         let steps = 0;
         while (!result.done) {

@@ -1,19 +1,18 @@
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
 
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 
 import * as configManager from '@core/configManager.js';
-import { spyOn } from 'bun:test';
 
 const { startRestart, cancelRestart } = await import('../restartManager.js');
 
 describe('restartManager', () => {
     let intervalCallback: (() => void) | undefined;
+    let getConfigSpy: any;
 
     beforeEach(() => {
-        mock.restore();
         cancelRestart();
         initializePlayerCache();
         intervalCallback = undefined;
@@ -27,7 +26,7 @@ describe('restartManager', () => {
             return 123 as any;
         });
 
-        spyOn(configManager, 'getConfig').mockReturnValue({
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
             ...defaultConfig,
             restart: {
                 countdownSeconds: 2,
@@ -35,6 +34,11 @@ describe('restartManager', () => {
                 kickMessage: 'Server is restarting; please rejoin shortly.'
             }
         } as any);
+    });
+
+    afterEach(() => {
+        cancelRestart();
+        getConfigSpy?.mockRestore();
     });
 
     it('should start countdown and trigger escaped kick commands when countdown reaches 0', () => {
@@ -70,8 +74,6 @@ describe('restartManager', () => {
         // Tick 3 (secondsRemaining = 0) -> kick executed
         intervalCallback!();
 
-        // "Malicious"Name\" -> escaped to "Malicious'Name"
-        // Message "Server is restarting; please rejoin shortly." -> escaped to "Server is restarting; please rejoin shortly."
         expect(mockPlayer1.runCommand).toHaveBeenCalledWith('kick "Malicious\'Name" "Server is restarting; please rejoin shortly."');
         expect(mc.system.clearRun).toHaveBeenCalledWith(123);
     });

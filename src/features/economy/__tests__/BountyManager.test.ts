@@ -1,43 +1,36 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
-// Mocks
-import * as realPlayerDataManager from '@core/playerDataManager.js';
-
-const mockIncrementPlayerBalance = mock();
-const mockGetPlayer = mock();
-const mockLoadPlayerData = mock();
-
-mock.module('@core/playerDataManager.js', () => ({
-    ...realPlayerDataManager,
-    incrementPlayerBalance: mockIncrementPlayerBalance,
-    getPlayer: mockGetPlayer,
-    loadPlayerData: mockLoadPlayerData
-}));
-
-const mockStorageLoad = mock();
-
-const { placeBounty, getBounty } = await import('@features/economy/bountyManager.js');
+import * as playerDataManager from '@core/playerDataManager.js';
+import { getBounty, placeBounty } from '@features/economy/bountyManager.js';
 
 describe('BountyManager', () => {
-    beforeEach(() => {
-        mockIncrementPlayerBalance.mockReset();
-        mockGetPlayer.mockReset();
-        mockLoadPlayerData.mockReset();
+    let incrementPlayerBalanceSpy: any;
+    let getPlayerSpy: any;
+    let loadPlayerDataSpy: any;
 
-        mockStorageLoad.mockReturnValue([]);
+    beforeEach(() => {
+        incrementPlayerBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(() => {});
+        getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockReturnValue(undefined);
+        loadPlayerDataSpy = spyOn(playerDataManager, 'loadPlayerData').mockReturnValue(undefined);
+    });
+
+    afterEach(() => {
+        incrementPlayerBalanceSpy?.mockRestore();
+        getPlayerSpy?.mockRestore();
+        loadPlayerDataSpy?.mockRestore();
     });
 
     it('should place a bounty safely', () => {
         const source = { id: 'p1', name: 'Source', balance: 1000 };
         const target = { id: 'p2', name: 'Target' };
 
-        mockGetPlayer.mockReturnValue(source);
-        mockLoadPlayerData.mockReturnValue(target);
+        getPlayerSpy.mockReturnValue(source);
+        loadPlayerDataSpy.mockReturnValue(target);
 
         const result = placeBounty('p1', 'p2', 100);
 
         expect(result.success).toBe(true);
-        expect(mockIncrementPlayerBalance).toHaveBeenCalledWith('p1', -100);
+        expect(incrementPlayerBalanceSpy).toHaveBeenCalledWith('p1', -100);
 
         const bounty = getBounty('p2');
         expect(bounty).toBeDefined();
@@ -52,7 +45,7 @@ describe('BountyManager', () => {
 
     it('should reject insufficient funds', () => {
         const source = { id: 'p1', name: 'Source', balance: 50 };
-        mockGetPlayer.mockReturnValue(source);
+        getPlayerSpy.mockReturnValue(source);
 
         const result = placeBounty('p1', 'p2', 100);
         expect(result.success).toBe(false);
