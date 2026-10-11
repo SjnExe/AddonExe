@@ -2,26 +2,26 @@ import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
 
-import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
-
 import * as configManager from '@core/configManager.js';
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 
 const { startRestart, cancelRestart } = await import('../restartManager.js');
 
 describe('restartManager', () => {
     let intervalCallback: (() => void) | undefined;
     let getConfigSpy: any;
+    let runIntervalSpy: any;
+    let clearRunSpy: any;
+    let sendMessageSpy: any;
 
     beforeEach(() => {
         cancelRestart();
         initializePlayerCache();
         intervalCallback = undefined;
 
-        (mc.world.sendMessage as ReturnType<typeof mock>).mockReset();
-        (mc.system.runInterval as ReturnType<typeof mock>).mockReset();
-        (mc.system.clearRun as ReturnType<typeof mock>).mockReset();
-
-        (mc.system.runInterval as ReturnType<typeof mock>).mockImplementation((cb: () => void) => {
+        sendMessageSpy = spyOn(mc.world, 'sendMessage').mockImplementation(() => {});
+        clearRunSpy = spyOn(mc.system, 'clearRun').mockImplementation(() => {});
+        runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
             intervalCallback = cb;
             return 123 as any;
         });
@@ -38,6 +38,9 @@ describe('restartManager', () => {
 
     afterEach(() => {
         cancelRestart();
+        sendMessageSpy?.mockRestore();
+        clearRunSpy?.mockRestore();
+        runIntervalSpy?.mockRestore();
         getConfigSpy?.mockRestore();
     });
 
@@ -56,8 +59,8 @@ describe('restartManager', () => {
 
         startRestart();
 
-        expect(mc.world.sendMessage).toHaveBeenCalledWith(expect.stringContaining('Server restart initiated'));
-        expect(mc.system.runInterval).toHaveBeenCalled();
+        expect(sendMessageSpy).toHaveBeenCalledWith(expect.stringContaining('Server restart initiated'));
+        expect(runIntervalSpy).toHaveBeenCalled();
 
         expect(intervalCallback).toBeDefined();
 
@@ -75,7 +78,7 @@ describe('restartManager', () => {
         intervalCallback!();
 
         expect(mockPlayer1.runCommand).toHaveBeenCalledWith('kick "Malicious\'Name" "Server is restarting; please rejoin shortly."');
-        expect(mc.system.clearRun).toHaveBeenCalledWith(123);
+        expect(clearRunSpy).toHaveBeenCalledWith(123);
     });
 
     it('should prevent starting multiple restarts simultaneously', () => {
@@ -93,7 +96,7 @@ describe('restartManager', () => {
         startRestart();
         cancelRestart();
 
-        expect(mc.system.clearRun).toHaveBeenCalledWith(123);
-        expect(mc.world.sendMessage).toHaveBeenCalledWith('§aServer restart has been cancelled.');
+        expect(clearRunSpy).toHaveBeenCalledWith(123);
+        expect(sendMessageSpy).toHaveBeenCalledWith('§aServer restart has been cancelled.');
     });
 });

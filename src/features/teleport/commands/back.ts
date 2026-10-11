@@ -2,12 +2,12 @@ import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
-import { setCooldown } from '@core/cooldownManager.js';
+import * as configManager from '@core/configManager.js';
+import * as cooldownManager from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { getOrCreatePlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
+import * as messaging from '@core/messaging.js';
+import * as playerDataManager from '@core/playerDataManager.js';
+import * as teleportLogicModule from '@core/teleportLogic.js';
 import { formatCurrency, playSound } from '@core/utils.js';
 
 interface BackConfig {
@@ -27,20 +27,20 @@ const backCommand: CustomCommand = {
             return;
         }
 
-        const config = getConfig();
+        const config = configManager.getConfig();
         const backConfig = config.back as unknown as BackConfig | undefined;
 
         // Check global feature toggle first
         if (!backConfig || !backConfig.enabled) {
-            sendMessage('§cThe Back system is currently disabled globally.', executor);
+            messaging.sendMessage('§cThe Back system is currently disabled globally.', executor);
             return;
         }
 
-        const pData = getOrCreatePlayer(executor);
+        const pData = playerDataManager.getOrCreatePlayer(executor);
         const lastLocation = pData.lastLocation;
 
         if (!lastLocation) {
-            sendMessage('§cYou have nowhere to go back to.', executor);
+            messaging.sendMessage('§cYou have nowhere to go back to.', executor);
             return;
         }
 
@@ -52,7 +52,7 @@ const backCommand: CustomCommand = {
 
         // Cost Check
         if (isEconomyEnabled && cost > 0 && pData.balance < cost) {
-            sendMessage(`§cInsufficient funds. Cost: ${formatCurrency(cost)}`, executor);
+            messaging.sendMessage(`§cInsufficient funds. Cost: ${formatCurrency(cost)}`, executor);
             return;
         }
 
@@ -62,28 +62,28 @@ const backCommand: CustomCommand = {
             try {
                 // Deduct cost (Re-check funds to prevent bypass)
                 if (isEconomyEnabled && cost > 0) {
-                    const currentData = getOrCreatePlayer(executor);
+                    const currentData = playerDataManager.getOrCreatePlayer(executor);
                     if (currentData.balance < cost) {
-                        sendMessage(`§cTeleport cancelled. Insufficient funds.`, executor);
+                        messaging.sendMessage(`§cTeleport cancelled. Insufficient funds.`, executor);
                         return;
                     }
-                    incrementPlayerBalance(executor.id, -cost);
+                    playerDataManager.incrementPlayerBalance(executor.id, -cost);
                 }
 
                 const dimension = mc.world.getDimension(lastLocation.dimensionId);
                 executor.teleport(lastLocation, { dimension: dimension });
-                sendMessage('§aTeleported back to previous location.', executor);
+                messaging.sendMessage('§aTeleported back to previous location.', executor);
                 playSound(executor, 'random.orb');
-                setCooldown(executor.id, 'back', backConfig.cooldownSeconds);
+                cooldownManager.setCooldown(executor.id, 'back', backConfig.cooldownSeconds);
             } catch (error: unknown) {
-                sendMessage('§cFailed to teleport back. Dimension might be unloaded.', executor);
+                messaging.sendMessage('§cFailed to teleport back. Dimension might be unloaded.', executor);
                 if (error instanceof Error) {
                     errorLog(`[/back] Teleport error: ${error.message}`);
                 }
             }
         };
 
-        startTeleportWarmup(executor, warmupSeconds, teleportLogic, 'previous location');
+        teleportLogicModule.startTeleportWarmup(executor, warmupSeconds, teleportLogic, 'previous location');
     }
 };
 

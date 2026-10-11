@@ -1,41 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
-import * as mc from '@minecraft/server';
-import defaultConfig from '../../../config.js';
-
-mock.module('@core/configurations.js', () => ({
-    getSidebarConfig: () => ({
-        enabled: true,
-        globalInfo: {
-            enabled: true,
-            title: '§l§6{server_name}',
-            updateInterval: 20,
-            maxPlayers: 20,
-            sidebarLines: ['§fPlayers: {online}/{max_online}', '§fTPS: {tps}']
-        },
-        hud: {
-            enabled: true,
-            updateInterval: 20,
-            actionBarLines: ['Money: {money}']
-        }
-    }),
-    getEconomyConfig: () => ({
-        currencySymbol: '$'
-    })
-}));
-
-mock.module('@core/configManager.js', () => ({
-    getConfig: () => ({
-        ...defaultConfig,
-        serverName: 'Test Server'
-    })
-}));
-
+import * as configManager from '@core/configManager.js';
+import * as configurations from '@core/configurations.js';
 import * as playerCache from '@core/playerCache.js';
 import { initializePlayerCache } from '@core/playerCache.js';
-
 import * as playerDataManager from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
+import * as mc from '@minecraft/server';
+import defaultConfig from '../../../config.js';
 
 const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } = await import('../manager.js');
 
@@ -46,8 +18,36 @@ describe('Sidebar Manager', () => {
     let getSidebarVisibleSpy: any;
     let getPlayTimeSpy: any;
     let getPlayerRankSpy: any;
+    let getSidebarConfigSpy: any;
+    let getEconomyConfigSpy: any;
+    let getConfigSpy: any;
 
     beforeEach(() => {
+        getSidebarConfigSpy = spyOn(configurations, 'getSidebarConfig').mockReturnValue({
+            enabled: true,
+            globalInfo: {
+                enabled: true,
+                title: '§l§6{server_name}',
+                updateInterval: 20,
+                maxPlayers: 20,
+                sidebarLines: ['§fPlayers: {online}/{max_online}', '§fTPS: {tps}']
+            },
+            hud: {
+                enabled: true,
+                updateInterval: 20,
+                actionBarLines: ['Money: {money}']
+            }
+        } as any);
+
+        getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+            currencySymbol: '$'
+        } as any);
+
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+            ...defaultConfig,
+            serverName: 'Test Server'
+        } as any);
+
         getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
         initializePlayerCache();
         getPlayerCountSpy = spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
@@ -65,6 +65,9 @@ describe('Sidebar Manager', () => {
     });
 
     afterEach(() => {
+        getSidebarConfigSpy?.mockRestore();
+        getEconomyConfigSpy?.mockRestore();
+        getConfigSpy?.mockRestore();
         getAllPlayersSpy?.mockRestore();
         getPlayerCountSpy?.mockRestore();
         getPlayerSpy?.mockRestore();

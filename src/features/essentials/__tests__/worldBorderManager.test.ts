@@ -2,22 +2,29 @@ import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import { getWorldBorder, initializeWorldBorder, setWorldBorder } from '../worldBorderManager.js';
 
 describe('worldBorderManager', () => {
     let intervalCallback: () => void;
+    let getAllPlayersSpy: any;
+    let runIntervalSpy: any;
 
     beforeEach(() => {
-        (mc.world?.getAllPlayers as any)?.mockReturnValue?.([]);
+        getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
         initializePlayerCache();
 
-        (mc.system.runInterval as any).mockImplementation((cb: () => void) => {
+        runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
             intervalCallback = cb;
             return 1;
         });
 
         setWorldBorder(false, 0, 0, 1000, 'overworld');
+    });
+
+    afterEach(() => {
+        getAllPlayersSpy?.mockRestore();
+        runIntervalSpy?.mockRestore();
     });
 
     it('should set and get world border configuration correctly', () => {
@@ -33,7 +40,7 @@ describe('worldBorderManager', () => {
 
     it('should initialize world border interval callback', () => {
         initializeWorldBorder();
-        expect(mc.system.runInterval).toHaveBeenCalled();
+        expect(runIntervalSpy).toHaveBeenCalled();
         expect(intervalCallback).toBeDefined();
     });
 

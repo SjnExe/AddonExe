@@ -1,5 +1,5 @@
 import { CommandExecutor } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
+import * as configManager from '@core/configManager.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import * as mc from '@minecraft/server';
@@ -14,7 +14,7 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
         return;
     }
 
-    const config = getConfig();
+    const config = configManager.getConfig();
     let secondsRemaining = config.restart.countdownSeconds;
     const subtitle = config.restart.subtitle;
     const kickMessage = config.restart.kickMessage;

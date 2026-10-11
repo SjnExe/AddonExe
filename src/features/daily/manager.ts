@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { getDailyRewardsConfig } from '@core/configurations.js';
+import * as configurations from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
-import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
+import * as playerDataManager from '@core/playerDataManager.js';
 import { formatDuration } from '@core/utils.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
@@ -13,13 +13,13 @@ export interface ClaimResult {
 }
 
 export function claimDailyReward(player: mc.Player): ClaimResult {
-    const config = getDailyRewardsConfig();
+    const config = configurations.getDailyRewardsConfig();
 
     if (!config.enabled) {
         return { success: false, message: '§cDaily rewards are disabled.' };
     }
 
-    const pData = getOrCreatePlayer(player);
+    const pData = playerDataManager.getOrCreatePlayer(player);
     const now = Date.now();
     const lastClaim = pData.lastDailyClaim || 0;
     const timeSince = now - lastClaim;
@@ -64,13 +64,13 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
     // Grant Reward
     try {
         // Update Data first to prevent claim loop on crash
-        updatePlayerData(player.id, (d) => {
+        playerDataManager.updatePlayerData(player.id, (d) => {
             d.lastDailyClaim = now;
             d.dailyStreak = streak;
         });
 
         if (isNumber(reward.money) && reward.money > 0) {
-            incrementPlayerBalance(player.id, reward.money);
+            playerDataManager.incrementPlayerBalance(player.id, reward.money);
         }
 
         if (isNumber(reward.xp) && reward.xp > 0) {
@@ -116,8 +116,8 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
 }
 
 export function getNextRewardInfo(player: mc.Player): string {
-    const config = getDailyRewardsConfig();
-    const pData = getOrCreatePlayer(player);
+    const config = configurations.getDailyRewardsConfig();
+    const pData = playerDataManager.getOrCreatePlayer(player);
     const now = Date.now();
     const lastClaim = pData.lastDailyClaim || 0;
     const timeSince = now - lastClaim;

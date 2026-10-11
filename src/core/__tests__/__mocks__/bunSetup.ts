@@ -16,7 +16,16 @@ import { _clearTestDynamicProperties } from './minecraftMock.ts';
 beforeEach(async () => {
     _clearTestDynamicProperties();
     try {
+        const { clearPlayerCache } = await import('@core/playerCache.js');
+        const { cleanupPlayerDataManager } = await import('@core/playerDataManager.js');
+        const { invalidateAllRankCaches } = await import('@core/permissionEngine.js');
+        const { cleanupTimers } = await import('@core/timerManager.js');
         const { clearCategorizedCache } = await import('@features/essentials/commands/help.js');
+
+        clearPlayerCache();
+        cleanupPlayerDataManager();
+        invalidateAllRankCaches();
+        cleanupTimers();
         clearCategorizedCache();
     } catch {
         // Ignore if initial load

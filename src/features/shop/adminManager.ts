@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { getShopConfig, saveShopConfig } from '@core/configurations.js';
+import * as configurations from '@core/configurations.js';
 import { debugLog } from '@core/logger.js';
 import { generateDisplayName, resolveIcon, sanitizeString, validateInput } from '@core/utils.js';
 import { items } from '@features/shop/itemsConfig.js';
@@ -47,7 +47,7 @@ export function addCategory(categoryName: string, icon: string): ActionResult {
     }
     const safeName = sanitizeString(categoryName, true);
 
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     if (isDefined(categories[safeName])) {
         return { success: false, message: `A category with the name '${safeName}' already exists.` };
@@ -59,7 +59,7 @@ export function addCategory(categoryName: string, icon: string): ActionResult {
         subCategories: {}
     };
 
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Added new category: ${categoryName}`);
     return { success: true, message: `Successfully added category '${categoryName}'.` };
 }
@@ -73,7 +73,7 @@ export function addCategory(categoryName: string, icon: string): ActionResult {
  * @returns The result of the operation.
  */
 export function editSubCategory(categoryName: string, oldSubCategoryName: string, newSubCategoryName: string, newIcon: string): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
     if (!isDefined(category)) {
@@ -97,7 +97,7 @@ export function editSubCategory(categoryName: string, oldSubCategoryName: string
         delete category.subCategories[oldSubCategoryName];
     }
 
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Edited subcategory '${oldSubCategoryName}' to '${newSubCategoryName}' in '${categoryName}'.`);
     return { success: true, message: `Successfully edited subcategory '${newSubCategoryName}'.` };
 }
@@ -110,7 +110,7 @@ export function editSubCategory(categoryName: string, oldSubCategoryName: string
  * @returns The result of the operation.
  */
 export function editCategory(oldCategoryName: string, newCategoryName: string, newIcon: string): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     if (!isDefined(categories[oldCategoryName])) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
@@ -127,7 +127,7 @@ export function editCategory(oldCategoryName: string, newCategoryName: string, n
         delete categories[oldCategoryName];
     }
 
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Edited category '${oldCategoryName}' to '${newCategoryName}'.`);
     return { success: true, message: `Successfully edited category '${newCategoryName}'.` };
 }
@@ -139,7 +139,7 @@ export function editCategory(oldCategoryName: string, newCategoryName: string, n
  * @returns The result of the operation.
  */
 export function renameCategory(oldCategoryName: string, newCategoryName: string): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     if (!isDefined(categories[oldCategoryName])) {
         return { success: false, message: `Category '${oldCategoryName}' not found.` };
@@ -151,7 +151,7 @@ export function renameCategory(oldCategoryName: string, newCategoryName: string)
     categories[newCategoryName] = categories[oldCategoryName];
     delete categories[oldCategoryName];
 
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Renamed category from '${oldCategoryName}' to '${newCategoryName}'.`);
     return { success: true, message: `Successfully renamed category to '${newCategoryName}'.` };
 }
@@ -162,14 +162,14 @@ export function renameCategory(oldCategoryName: string, newCategoryName: string)
  * @returns The result of the operation.
  */
 export function deleteCategory(categoryName: string): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     if (!isDefined(categories[categoryName])) {
         return { success: false, message: `Category '${categoryName}' not found.` };
     }
 
     delete categories[categoryName];
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Deleted category: ${categoryName}`);
     return { success: true, message: `Successfully deleted category '${categoryName}'.` };
 }
@@ -187,7 +187,7 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
     }
     const safeName = sanitizeString(subCategoryName, true);
 
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
     if (!isDefined(category)) {
@@ -205,7 +205,7 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
         items: {}
     };
 
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Added new subcategory '${subCategoryName}' to '${categoryName}'.`);
     return { success: true, message: `Successfully added subcategory '${subCategoryName}'.` };
 }
@@ -218,7 +218,7 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
  * @returns The result of the operation.
  */
 export function renameSubCategory(categoryName: string, oldSubCategoryName: string, newSubCategoryName: string): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
     if (!isDefined(category)) {
@@ -237,7 +237,7 @@ export function renameSubCategory(categoryName: string, oldSubCategoryName: stri
     category.subCategories[newSubCategoryName] = category.subCategories[oldSubCategoryName];
     delete category.subCategories[oldSubCategoryName];
 
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Renamed subcategory from '${oldSubCategoryName}' to '${newSubCategoryName}' in '${categoryName}'.`);
     return { success: true, message: `Successfully renamed subcategory to '${newSubCategoryName}'.` };
 }
@@ -249,7 +249,7 @@ export function renameSubCategory(categoryName: string, oldSubCategoryName: stri
  * @returns The result of the operation.
  */
 export function deleteSubCategory(categoryName: string, subCategoryName: string): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
     if (!isDefined(category)) {
@@ -260,14 +260,14 @@ export function deleteSubCategory(categoryName: string, subCategoryName: string)
     }
 
     delete category.subCategories[subCategoryName];
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Deleted subcategory '${subCategoryName}' from '${categoryName}'.`);
     return { success: true, message: `Successfully deleted subcategory '${subCategoryName}'.` };
 }
 
 function generateUniqueItemId(baseId: string): string {
     const allExistingIds = new Set(Object.keys(items));
-    const shopConfig = getShopConfig();
+    const shopConfig = configurations.getShopConfig();
     if (isDefined(shopConfig) && isDefined(shopConfig.categories)) {
         for (const category of Object.values(shopConfig.categories)) {
             if (isDefined(category.items)) {
@@ -378,7 +378,7 @@ export function addShopItemFromHand(itemStack: mc.ItemStack, categoryName: strin
  * @returns The result of the operation.
  */
 export function setItem(categoryName: string, subCategoryName: string | undefined, itemId: string, itemData: ItemData): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
     if (!isDefined(category)) {
@@ -403,7 +403,7 @@ export function setItem(categoryName: string, subCategoryName: string | undefine
         ...(isDefined(itemData.rankMultiplierOverrides) ? { rankMultiplierOverrides: itemData.rankMultiplierOverrides } : {})
     };
 
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Set item '${itemId}' in '${categoryName}/${subCategoryName ?? ''}'.`);
     return { success: true, message: `Successfully set item '${itemId}'.` };
 }
@@ -437,7 +437,7 @@ export function addCustomItemToConfig(itemId: string, itemData: ItemData): Actio
  * @returns The result of the operation.
  */
 export function removeItem(categoryName: string, subCategoryName: string | undefined, itemId: string): ActionResult {
-    const config = getShopConfig();
+    const config = configurations.getShopConfig();
     const categories = config.categories;
     const category = categories[categoryName];
     if (!isDefined(category)) {
@@ -458,7 +458,7 @@ export function removeItem(categoryName: string, subCategoryName: string | undef
     }
 
     delete targetContainer.items[itemId];
-    saveShopConfig(config);
+    configurations.saveShopConfig(config);
     debugLog(`[ShopAdminManager] Removed item '${itemId}' from '${categoryName}/${subCategoryName ?? ''}'.`);
     return { success: true, message: `Successfully removed item '${itemId}'.` };
 }
@@ -498,7 +498,7 @@ export function updateShopItem(categoryName: string, subCategoryName: string | u
     updateMasterItemList(itemId, newData);
 
     // 2. Update the shop-specific configuration (shop.json)
-    const shopConfig = getShopConfig();
+    const shopConfig = configurations.getShopConfig();
     const categories = shopConfig.categories;
     const category = categories[categoryName];
     if (!isDefined(category)) {
@@ -540,7 +540,7 @@ export function updateShopItem(categoryName: string, subCategoryName: string | u
         delete targetContainer.items[targetKey].rankMultiplierOverrides;
     }
 
-    saveShopConfig(shopConfig);
+    configurations.saveShopConfig(shopConfig);
     debugLog(`[ShopAdminManager] Updated item '${targetKey}' in shop and master list.`);
     return { success: true, message: `Successfully updated item '${targetKey}'.` };
 }
