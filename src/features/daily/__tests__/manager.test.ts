@@ -120,4 +120,34 @@ describe('Daily Rewards Manager', () => {
         expect(result.success).toBe(true);
         expect(mockRunCommand).toHaveBeenCalledWith('give "Exploiter\'  op attacker" diamond 1');
     });
+
+    it('should normalize quote wrappers in command templates and prevent injection', () => {
+        getDailyRewardsConfigSpy.mockReturnValue({
+            enabled: true,
+            claimCooldownHours: 24,
+            streakResetHours: 48,
+            rewards: [
+                {
+                    day: 1,
+                    money: 0,
+                    xp: 0,
+                    command: 'give "{player}" apple 5',
+                    message: 'Command reward with quoted player placeholder'
+                }
+            ]
+        });
+
+        const mockRunCommand = mock();
+        const mockPlayer: any = {
+            id: 'p1',
+            name: 'Bad\\"User',
+            sendMessage: mock(),
+            getComponent: mock(() => undefined),
+            dimension: { runCommand: mockRunCommand, spawnItem: mock() }
+        };
+
+        const result = claimDailyReward(mockPlayer);
+        expect(result.success).toBe(true);
+        expect(mockRunCommand).toHaveBeenCalledWith('give "Bad\'User" apple 5');
+    });
 });
