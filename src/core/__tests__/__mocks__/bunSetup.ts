@@ -11,10 +11,10 @@ mock.module('@minecraft/common', () => ({
     InvalidArgumentErrorType: { Duplicate: 'Duplicate', Empty: 'Empty', InvalidType: 'InvalidType', Unknown: 'Unknown', Unspecified: 'Unspecified', UnsupportedValue: 'UnsupportedValue' }
 }));
 
-import { _clearTestDynamicProperties } from './minecraftMock.ts';
+import { _resetMinecraftMocks } from './minecraftMock.ts';
 
 beforeEach(async () => {
-    _clearTestDynamicProperties();
+    _resetMinecraftMocks();
     try {
         const { clearPlayerCache } = await import('@core/playerCache.js');
         const { cleanupPlayerDataManager } = await import('@core/playerDataManager.js');

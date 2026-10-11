@@ -29,6 +29,50 @@ export function _clearTestDynamicProperties(): void {
     _testDynamicProperties.clear();
 }
 
+export function _resetMinecraftMocks(): void {
+    _clearTestDynamicProperties();
+
+    world.getDynamicProperty.mockImplementation((key: string) => _testDynamicProperties.get(key));
+    world.setDynamicProperty.mockImplementation((key: string, val: unknown) => {
+        if (val === undefined) {
+            _testDynamicProperties.delete(key);
+        } else {
+            _testDynamicProperties.set(key, val);
+        }
+    });
+    world.getDimension.mockImplementation((dim: string) => new Dimension(dim));
+    world.getAllPlayers.mockImplementation(() => []);
+    world.sendMessage.mockImplementation(() => {});
+
+    system.run.mockImplementation((callback: () => void) => {
+        if (callback) {
+            callback();
+        }
+        return 0;
+    });
+    system.runInterval.mockImplementation(() => 1);
+    system.runTimeout.mockImplementation((cb: () => void) => {
+        if (cb) {
+            cb();
+        }
+        return 1;
+    });
+    system.runJob.mockImplementation((generator: Generator) => {
+        if (generator && typeof generator.next === 'function') {
+            let result = generator.next();
+            while (!result.done) {
+                result = generator.next();
+            }
+        }
+        return 0;
+    });
+    system.clearRun.mockImplementation(() => {});
+    if ((system as any).clearJob) {
+        (system as any).clearJob.mockImplementation(() => {});
+    }
+    system.currentTick = 0;
+}
+
 export const world = {
     getDynamicProperty: mock((key) => _testDynamicProperties.get(key)),
     setDynamicProperty: mock((key, val) => {
