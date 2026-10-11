@@ -21,7 +21,7 @@
         "build:nightly": "bun clean && bun scripts/build.ts --nightly",
         "build:release": "bun clean && bun scripts/build.ts --release --minify",
         "check-deps": "bun scripts/check-dependencies.ts",
-        "check-types": "bun tsc --noEmit --project tsconfig.json",
+        "check-types": "bun check",
         "clean": "rm -rf out packs/behavior/scripts",
         "format": "bunx prettier --write --cache .",
         "format:check": "bunx prettier --check --cache .",
@@ -55,6 +55,7 @@
         "@minecraft/creator-tools": "latest",
         "@minecraft/server": "2.11.0-beta.1.26.52-stable",
         "@minecraft/server-ui": "2.3.0-beta.1.26.52-stable",
+        "@types/bun": "^1.4.2",
         "@types/jszip": "latest",
         "@types/node": "latest",
         "@types/uuid": "latest",
@@ -70,8 +71,7 @@
         "prettier-plugin-organize-imports": "latest",
         "prettier-plugin-packagejson": "latest",
         "react": "^18.3.1",
-        "type-fest": "latest",
-        "typescript": "^6.0.3"
+        "type-fest": "latest"
     },
     "trustedDependencies": [
         "bufferutil",
