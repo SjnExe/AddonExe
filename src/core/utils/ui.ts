@@ -28,7 +28,7 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
         player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, false);
         player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Movement, false);
 
-        if (mc.system?.runTimeout) {
+        if (mc.system && typeof mc.system.runTimeout === 'function') {
             await new Promise<void>((resolve) => mc.system.runTimeout(() => resolve(), 2));
         }
 
@@ -83,7 +83,7 @@ export async function uiWait(player: mc.Player, form: ActionFormData | ModalForm
             return subsequentAttempt;
         }
 
-        if (mc.system?.runTimeout) {
+        if (mc.system && typeof mc.system.runTimeout === 'function') {
             await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 10));
         } else {
             break;

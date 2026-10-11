@@ -20,8 +20,9 @@ describe('RTP Command Sanitization Test', () => {
             }
         } as any);
 
-        runTimeoutSpy = spyOn(mc.system, 'runTimeout').mockImplementation((cb: () => void) => {
-            if (cb) {
+        runTimeoutSpy = spyOn(mc.system, 'runTimeout').mockImplementation((...args: any[]) => {
+            const cb = args[0];
+            if (typeof cb === 'function') {
                 cb();
             }
             return 1;
