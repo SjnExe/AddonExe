@@ -45,12 +45,16 @@ export function _resetMinecraftMocks(): void {
     world.sendMessage.mockImplementation(() => {});
 
     system.run.mockImplementation((callback: () => void) => {
-        if (callback) {callback();}
+        if (callback) {
+            callback();
+        }
         return 0;
     });
     system.runInterval.mockImplementation(() => 1);
     system.runTimeout.mockImplementation((cb: () => void) => {
-        if (cb) {cb();}
+        if (cb) {
+            cb();
+        }
         return 1;
     });
     system.runJob.mockImplementation((generator: Generator) => {
