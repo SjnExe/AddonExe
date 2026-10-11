@@ -275,7 +275,7 @@
 
     "button_wide_card": {
         "type": "stack_panel",
-        "size": ["50% - 2px", 36],
+        "size": ["100% - 2px", 36],
         "orientation": "horizontal",
         "controls": [
             {
@@ -344,7 +344,7 @@
 
     "button_tile_card": {
         "type": "panel",
-        "size": ["33.33% - 2px", 48],
+        "size": ["100% - 2px", 40],
         "controls": [
             {
                 "form_button@common_buttons.light_text_button": {
@@ -436,7 +436,12 @@
     "dynamic_button": {
         "type": "stack_panel",
         "orientation": "horizontal",
-        "size": ["100%", 32]
+        "size": ["100%", "100%c"],
+        "controls": [
+            {
+                "adaptive_button_slot@server_form.adaptive_button_slot": {}
+            }
+        ]
     },
 
     "dynamic_label@settings_common.option_group_spaced_label": {},
