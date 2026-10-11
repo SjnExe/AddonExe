@@ -2,7 +2,7 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./dist/tests",
-        "types": ["vitest/globals", "node"],
+        "types": ["bun", "node"],
         "noEmit": true,
         "isolatedModules": true
     },
