@@ -80,6 +80,19 @@ async function main() {
                     }
                     errors++;
                 }
+
+                // Enhanced Bedrock UI validation for UI JSON files
+                if (relativePath.includes('/ui/')) {
+                    const uiErrors = validateUiJson(relativePath, json);
+                    if (uiErrors.length > 0) {
+                        console.error(`[Validator] UI structure error in ${relativePath}:`);
+                        for (const err of uiErrors) {
+                            console.error(`  - ${err}`);
+                        }
+                        errors++;
+                    }
+                }
+
                 totalValidated++;
             } catch (e: any) {
                 console.error(`[Validator] Failed to read/parse ${relativePath}: ${e.message}`);
@@ -95,6 +108,41 @@ async function main() {
     } else {
         console.log(`[Validator] All JSON files passed schema validation.`);
     }
+}
+
+function validateUiJson(relativePath: string, json: any): string[] {
+    const uiErrors: string[] = [];
+
+    function checkControl(keyPath: string, obj: any) {
+        if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+            return;
+        }
+
+        // Rule 1: 'grid' controls cannot have 'orientation'
+        if (obj.type === 'grid' && 'orientation' in obj) {
+            uiErrors.push(`${keyPath}: Control of type 'grid' cannot have 'orientation' property.`);
+        }
+
+        // Rule 2: Specific dynamic controls expected by Bedrock C++ UI engine
+        if (keyPath.endsWith('long_form_dynamic_buttons_panel')) {
+            if (obj.type && obj.type !== 'stack_panel') {
+                uiErrors.push(`${keyPath}: 'long_form_dynamic_buttons_panel' must be of type 'stack_panel' (found '${obj.type}').`);
+            }
+            if (obj.factory && !obj.factory.control_ids) {
+                uiErrors.push(`${keyPath}: 'long_form_dynamic_buttons_panel.factory' must specify 'control_ids' for Bedrock engine dynamic button mapping.`);
+            }
+        }
+
+        // Recursively check child objects and controls
+        for (const [key, val] of Object.entries(obj)) {
+            if (val && typeof val === 'object') {
+                checkControl(`${keyPath}.${key}`, val);
+            }
+        }
+    }
+
+    checkControl(relativePath, json);
+    return uiErrors;
 }
 
 main().catch((err) => {
