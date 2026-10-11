@@ -162,3 +162,10 @@ export function placeBounty(sourcePlayerId: string, targetPlayerId: string, amou
 
     return { success: true, message: `Placed bounty of $${amount} on ${targetData.name}.` };
 }
+
+/**
+ * Resets active bounties in-memory cache for unit tests.
+ */
+export function _clearBountiesForTest(): void {
+    activeBounties.clear();
+}

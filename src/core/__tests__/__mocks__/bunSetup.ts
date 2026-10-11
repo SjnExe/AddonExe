@@ -21,12 +21,14 @@ beforeEach(async () => {
         const { invalidateAllRankCaches } = await import('@core/permissionEngine.js');
         const { cleanupTimers } = await import('@core/timerManager.js');
         const { clearCategorizedCache } = await import('@features/essentials/commands/help.js');
+        const { _clearBountiesForTest } = await import('@features/economy/bountyManager.js');
 
         clearPlayerCache();
         cleanupPlayerDataManager();
         invalidateAllRankCaches();
         cleanupTimers();
         clearCategorizedCache();
+        _clearBountiesForTest();
     } catch {
         // Ignore if initial load
     }
