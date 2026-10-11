@@ -15,7 +15,7 @@
         "@minecraft/creator-tools": "latest",
         "@minecraft/server": "2.11.0-beta.1.26.52-stable",
         "@minecraft/server-ui": "2.3.0-beta.1.26.52-stable",
-        "@types/bun": "^1.4.2",
+        "@types/bun": "latest",
         "@types/jszip": "latest",
         "@types/node": "latest",
         "@types/uuid": "latest",
