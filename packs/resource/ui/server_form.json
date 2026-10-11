@@ -134,20 +134,23 @@
     },
 
     "long_form_dynamic_buttons_panel": {
-        "type": "grid",
+        "type": "stack_panel",
+        "orientation": "vertical",
         "size": ["100%", "100%c"],
-        "grid_dimensions": [6, 0],
-        "grid_rescaling_type": "horizontal",
-        "grid_item_template": "server_form.adaptive_button_slot",
         "factory": {
             "name": "buttons",
-            "control_name": "server_form.adaptive_button_slot"
+            "control_ids": {
+                "button": "server_form.dynamic_button",
+                "label": "@server_form.dynamic_label",
+                "header": "@server_form.dynamic_header",
+                "divider": "@settings_common.option_group_section_divider"
+            }
         },
         "collection_name": "form_buttons",
         "bindings": [
             {
-                "binding_name": "#form_button_length",
-                "binding_name_override": "#maximum_grid_items"
+                "binding_name": "#form_button_contents",
+                "binding_name_override": "#collection_length"
             }
         ]
     },
@@ -431,7 +434,8 @@
     },
 
     "dynamic_button": {
-        "type": "panel",
+        "type": "stack_panel",
+        "orientation": "horizontal",
         "size": ["100%", 32]
     },
 
