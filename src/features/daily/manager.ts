@@ -80,9 +80,7 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
         if (isNonEmptyString(reward.command)) {
             // Execute as server
             const safeName = escapeCommandArg(player.name);
-            const normalizedCmd = reward.command
-                .replaceAll('"{player}"', '{player}')
-                .replaceAll("'{player}'", '{player}');
+            const normalizedCmd = reward.command.replaceAll('"{player}"', '{player}').replaceAll("'{player}'", '{player}');
             const cmd = normalizedCmd.replaceAll('{player}', `"${safeName}"`);
             player.dimension.runCommand(cmd);
         }
