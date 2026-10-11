@@ -30,6 +30,9 @@ function getCategorizedCommands(): Map<string, CustomCommand[]> {
         }
         map.get(cat)!.push(cmd);
     }
+    for (const cmds of map.values()) {
+        cmds.sort((a, b) => a.name.localeCompare(b.name));
+    }
     categorizedCache = map;
     return map;
 }
@@ -150,37 +153,43 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
 function showChatHelp(executor: CommandExecutor) {
     const allCategories = getCategorizedCommands();
     const isPlayer = executor instanceof mc.Player;
-    const visibleCategoryCmds = new Map<string, CustomCommand[]>();
+    const sortedCats = getSortedCategories(Array.from(allCategories.keys()));
 
-    for (const [cat, cmds] of allCategories) {
-        const visibleCmds = cmds.filter((c) => (isPlayer ? hasPermission(executor, c.permissionNode) : true) && c.hidden !== true);
-        if (visibleCmds.length > 0) {
-            visibleCmds.sort((a, b) => a.name.localeCompare(b.name));
-            visibleCategoryCmds.set(cat, visibleCmds);
+    let helpMessage = '§a--- Available Commands ---';
+    let hasAnyCommands = false;
+
+    for (const categoryName of sortedCats) {
+        const cmds = allCategories.get(categoryName);
+        if (!isDefined(cmds)) {
+            continue;
+        }
+
+        let categoryHeaderAdded = false;
+        for (const cmd of cmds) {
+            if (cmd.hidden === true) {
+                continue;
+            }
+            if (isPlayer && !hasPermission(executor, cmd.permissionNode)) {
+                continue;
+            }
+
+            if (!categoryHeaderAdded) {
+                helpMessage += `\n§l§e--- ${categoryName} ---§r`;
+                categoryHeaderAdded = true;
+                hasAnyCommands = true;
+            }
+            const slashCommand = cmd.slashName ?? cmd.name;
+            helpMessage += `\n §b/${slashCommand}§r: ${cmd.description}`;
         }
     }
 
-    if (visibleCategoryCmds.size === 0) {
+    if (!hasAnyCommands) {
         if (isPlayer) {
             sendMessage(noPermission, executor);
         } else {
             executor.sendMessage(noPermission);
         }
         return;
-    }
-
-    const sortedCats = getSortedCategories(Array.from(visibleCategoryCmds.keys()));
-    let helpMessage = '§a--- Available Commands ---';
-
-    for (const categoryName of sortedCats) {
-        const visibleCmds = visibleCategoryCmds.get(categoryName);
-        if (isDefined(visibleCmds)) {
-            helpMessage += `\n§l§e--- ${categoryName} ---§r`;
-            for (const cmd of visibleCmds) {
-                const slashCommand = cmd.slashName ?? cmd.name;
-                helpMessage += `\n §b/${slashCommand}§r: ${cmd.description}`;
-            }
-        }
     }
 
     if (isPlayer) {
@@ -233,7 +242,7 @@ async function showUIHelp(player: mc.Player) {
 
 async function showUICategory(player: mc.Player, category: string) {
     const cmds = getCategorizedCommands().get(category) ?? [];
-    const visibleCmds = cmds.filter((c) => hasPermission(player, c.permissionNode) && c.hidden !== true).sort((a, b) => a.name.localeCompare(b.name));
+    const visibleCmds = cmds.filter((c) => c.hidden !== true && hasPermission(player, c.permissionNode));
 
     const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
 
