@@ -7,6 +7,8 @@ import rtpCommand from '../commands/rtp.js';
 
 describe('RTP Command Sanitization Test', () => {
     let getConfigSpy: any;
+    let runTimeoutSpy: any;
+    let originalTickingAreaManager: any;
 
     beforeEach(() => {
         getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
@@ -17,10 +19,23 @@ describe('RTP Command Sanitization Test', () => {
                 maxRange: 500
             }
         } as any);
+
+        runTimeoutSpy = spyOn(mc.system, 'runTimeout').mockImplementation((cb: () => void) => {
+            if (cb) {
+                cb();
+            }
+            return 1;
+        });
+
+        originalTickingAreaManager = mc.world.tickingAreaManager;
     });
 
     afterEach(() => {
+        if (originalTickingAreaManager) {
+            (mc.world as unknown as { tickingAreaManager: unknown }).tickingAreaManager = originalTickingAreaManager;
+        }
         getConfigSpy?.mockRestore();
+        runTimeoutSpy?.mockRestore();
     });
 
     it('should sanitize tickingarea name in createTickingArea fallback to prevent command injection', async () => {
@@ -37,7 +52,6 @@ describe('RTP Command Sanitization Test', () => {
             throw new Error('API createTickingArea failed');
         });
 
-        const originalTickingAreaManager = mc.world.tickingAreaManager;
         (mc.world as unknown as { tickingAreaManager: unknown }).tickingAreaManager = {
             createTickingArea: createTickingAreaMock,
             removeTickingArea: mock(() => {})
@@ -58,7 +72,5 @@ describe('RTP Command Sanitization Test', () => {
             expect(commandStr).not.toContain('p123"; say injected command; "');
             expect(commandStr).toContain("rtp_p123'; say injected command; '");
         }
-
-        (mc.world as unknown as { tickingAreaManager: unknown }).tickingAreaManager = originalTickingAreaManager;
     });
 });

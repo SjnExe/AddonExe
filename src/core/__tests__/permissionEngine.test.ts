@@ -12,6 +12,8 @@ const mockGetPlayer = mock(() => null);
 const mockGetRankById = mock(() => null);
 const mockGetAllRanks = mock(() => []);
 
+import { config as Config } from '../../config.js';
+import * as configManager from '../configManager.js';
 import * as realConfigurations from '../configurations.js';
 
 const mockGetRanksConfig = mock(() => ({
@@ -22,23 +24,6 @@ const mockGetRanksConfig = mock(() => ({
         groupOverride: ['node.a'],
         emptyGroup: []
     }
-}));
-
-mock.module('../configurations.js', () => ({
-    ...realConfigurations,
-    getRanksConfig: mockGetRanksConfig
-}));
-
-mock.module('../../config.js', () => ({
-    config: {
-        playerDefaults: { rankId: 'defaultRank' }
-    }
-}));
-
-import { config as Config } from '../../config.js';
-
-mock.module('@core/configManager.js', () => ({
-    getConfig: () => Config
 }));
 
 import * as realPlayerCache from '../playerCache.js';
@@ -103,8 +88,12 @@ describe('permissionEngine', () => {
     let getRankByIdSpy: any;
     let getAllRanksSpy: any;
     let getPlayerSpy: any;
+    let getRanksConfigSpy: any;
+    let getConfigSpy: any;
 
     beforeEach(() => {
+        getRanksConfigSpy = spyOn(realConfigurations, 'getRanksConfig').mockImplementation(mockGetRanksConfig as any);
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue(Config as any);
         getRankByIdSpy = spyOn(rankManager, 'getRankById').mockImplementation((id: string) => mockGetRankById(id) as any);
         getAllRanksSpy = spyOn(rankManager, 'getAllRanks').mockImplementation(() => mockGetAllRanks() as any);
         getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockImplementation(mockGetPlayer as any);
@@ -112,6 +101,8 @@ describe('permissionEngine', () => {
     });
 
     afterEach(() => {
+        getRanksConfigSpy?.mockRestore();
+        getConfigSpy?.mockRestore();
         getRankByIdSpy?.mockRestore();
         getAllRanksSpy?.mockRestore();
         getPlayerSpy?.mockRestore();

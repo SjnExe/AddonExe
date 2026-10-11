@@ -1,7 +1,7 @@
-import { getConfig } from '@core/configManager.js';
-import { getRanksConfig } from '@core/configurations.js';
+import * as configManager from '@core/configManager.js';
+import * as configurations from '@core/configurations.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import * as playerDataManager from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { RankDefinition } from '@features/ranks/ranksConfig.js';
 import { isDefined } from '@lib/guards.js';
@@ -18,7 +18,7 @@ export function calculateRankMap(rank: RankDefinition): Record<string, boolean> 
 
     // 1. Process groups
     for (const group of rank.groups) {
-        const groupNodes = getRanksConfig().permissionGroups[group];
+        const groupNodes = configurations.getRanksConfig().permissionGroups[group];
         if (groupNodes) {
             for (const node of groupNodes) {
                 map[node] = true;
@@ -43,7 +43,7 @@ export function invalidateRankCache(rankId: string) {
     rankCache.delete(rankId);
     // Remove from player cache any player holding this rank
     for (const player of getAllPlayersFromCache()) {
-        const pData = getPlayer(player.id);
+        const pData = playerDataManager.getPlayer(player.id);
         if (pData && pData.ranks.includes(rankId)) {
             playerMapCache.delete(player.id);
         }
@@ -71,13 +71,13 @@ function getRankMap(rankId: string): Record<string, boolean> {
 }
 
 export function getPlayerRanks(player: mc.Player): RankDefinition[] {
-    const pData = getPlayer(player.id);
+    const pData = playerDataManager.getPlayer(player.id);
 
-    // Fallback logic, ensuring we match `getConfig().playerDefaults.rankId` or the hardcoded default 'member' if all else fails
+    // Fallback logic, ensuring we match `configManager.getConfig().playerDefaults.rankId` or the hardcoded default 'member' if all else fails
     let rankIds = pData?.ranks;
     if (!rankIds || rankIds.length === 0) {
-        if (getConfig().playerDefaults.rankId) {
-            rankIds = [getConfig().playerDefaults.rankId];
+        if (configManager.getConfig().playerDefaults.rankId) {
+            rankIds = [configManager.getConfig().playerDefaults.rankId];
         } else {
             rankIds = ['member'];
         }
@@ -103,7 +103,7 @@ export function getPlayerRanks(player: mc.Player): RankDefinition[] {
 
     // If absolutely no rank was assigned or conditions met, explicitly grant the configured default rank
     if (ranks.length === 0) {
-        const defaultRank = rankManager.getRankById(getConfig().playerDefaults.rankId);
+        const defaultRank = rankManager.getRankById(configManager.getConfig().playerDefaults.rankId);
         if (defaultRank) {
             ranks.push(defaultRank);
         }
