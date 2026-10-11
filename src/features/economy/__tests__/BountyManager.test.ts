@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as playerDataManager from '@core/playerDataManager.js';
-import { getBounty, placeBounty } from '@features/economy/bountyManager.js';
+import { _clearBountiesForTest, getBounty, placeBounty } from '@features/economy/bountyManager.js';
 
 describe('BountyManager', () => {
     let incrementPlayerBalanceSpy: any;
@@ -9,6 +9,7 @@ describe('BountyManager', () => {
     let loadPlayerDataSpy: any;
 
     beforeEach(() => {
+        _clearBountiesForTest();
         incrementPlayerBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(() => {});
         getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockReturnValue(undefined);
         loadPlayerDataSpy = spyOn(playerDataManager, 'loadPlayerData').mockReturnValue(undefined);
