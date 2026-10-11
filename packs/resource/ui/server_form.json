@@ -54,8 +54,8 @@
     "long_form@common_dialogs.main_panel_no_buttons": {
         "$title_panel": "common_dialogs.standard_title_label",
         "$title_size": ["100% - 14px", 10],
-        "size": ["100% - 24px", "100% - 20px"],
-        "max_size": ["100% - 24px", "100% - 20px"],
+        "$title_max_size": ["100% - 14px", 10],
+        "size": [310, 240],
         "$text_name": "#title_text",
         "$title_text_binding_type": "none",
         "$child_control": "server_form.long_form_panel",
@@ -434,8 +434,7 @@
     },
 
     "dynamic_button": {
-        "type": "stack_panel",
-        "orientation": "horizontal",
+        "type": "panel",
         "size": ["100%", "100%c"],
         "controls": [
             {
@@ -452,8 +451,7 @@
         "$title_panel": "common_dialogs.standard_title_label",
         "$title_size": ["100% - 15px", 10],
         "$title_max_size": ["100% - 15px", 10],
-        "size": ["100% - 24px", "100% - 24px"],
-        "max_size": ["100% - 24px", "100% - 24px"],
+        "size": [310, 240],
         "$text_name": "#title_text",
         "$title_text_binding_type": "none",
         "$child_control": "server_form.modal_form_panel",
@@ -517,8 +515,7 @@
         "$title_panel": "common_dialogs.standard_title_label",
         "$title_size": ["100% - 15px", 10],
         "$title_max_size": ["100% - 15px", 10],
-        "size": ["100% - 24px", "100% - 24px"],
-        "max_size": ["100% - 24px", "100% - 24px"],
+        "size": [310, 240],
         "$text_name": "#title_text",
         "$title_text_binding_type": "none",
         "$child_control": "server_form.custom_form_panel",
