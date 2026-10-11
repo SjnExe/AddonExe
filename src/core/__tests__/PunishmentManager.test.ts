@@ -1,24 +1,29 @@
+import * as configManager from '@core/configManager.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
+import * as logManager from '@features/anticheat/logManager.js';
 import { addPunishment, getPunishment, loadPunishments, removePunishment } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 import defaultConfig from '../../config.js';
 
-mock.module('../configManager.js', () => ({
-    getConfig: () => ({ ...defaultConfig, data: { ...defaultConfig.data, autoSaveIntervalSeconds: 30 } })
-}));
-
-import * as realLogManager from '../../features/anticheat/logManager.js';
-
-mock.module('../../features/anticheat/logManager.js', () => ({
-    ...realLogManager,
-    addPunishmentLog: mock()
-}));
-
 describe('PunishmentManager', () => {
+    let getConfigSpy: any;
+    let addPunishmentLogSpy: any;
+
     beforeEach(() => {
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+            ...defaultConfig,
+            data: { ...defaultConfig.data, autoSaveIntervalSeconds: 30 }
+        } as any);
+        addPunishmentLogSpy = spyOn(logManager, 'addPunishmentLog').mockImplementation(() => undefined);
+
         new StorageManager('exe:punishments').delete();
         loadPunishments();
+    });
+
+    afterEach(() => {
+        getConfigSpy?.mockRestore();
+        addPunishmentLogSpy?.mockRestore();
     });
 
     it('should add and retrieve a ban', () => {

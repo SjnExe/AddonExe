@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import * as configManager from '@core/configManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { Kit } from '@features/kit/adminManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -32,7 +32,7 @@ interface ActionResult {
  * @returns The result of the operation.
  */
 export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult {
-    const config = getConfig();
+    const config = configManager.getConfig();
     const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
@@ -59,7 +59,7 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
         }
 
         kit.items.push(itemInfo);
-        updateMultipleConfig({
+        configManager.updateMultipleConfig({
             'kits.kitDefinitions': kitDefinitions
         });
         debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
@@ -116,7 +116,7 @@ export function addItemFromHandToKit(kitName: string, player: mc.Player): Action
  * @returns The result of the operation.
  */
 export function removeItemFromKit(kitName: string, itemIndex: number): ActionResult {
-    const config = getConfig();
+    const config = configManager.getConfig();
     const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
@@ -129,7 +129,7 @@ export function removeItemFromKit(kitName: string, itemIndex: number): ActionRes
     }
 
     kit.items.splice(itemIndex, 1);
-    updateMultipleConfig({
+    configManager.updateMultipleConfig({
         'kits.kitDefinitions': kitDefinitions
     });
     debugLog(`[KitItemsManager] Removed item at index ${itemIndex} from kit ${kitName}`);
@@ -144,7 +144,7 @@ export function removeItemFromKit(kitName: string, itemIndex: number): ActionRes
  * @returns The result of the operation.
  */
 export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo: ItemInfo): ActionResult {
-    const config = getConfig();
+    const config = configManager.getConfig();
     const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
     const kit = kitDefinitions[kitName];
 
@@ -171,7 +171,7 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
         }
 
         kit.items[itemIndex] = newItemInfo;
-        updateMultipleConfig({
+        configManager.updateMultipleConfig({
             'kits.kitDefinitions': kitDefinitions
         });
         debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);

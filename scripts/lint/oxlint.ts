@@ -8,9 +8,13 @@ if (customCheck.exitCode !== 0) {
 
 // 2. Run oxlint binary
 const termuxBin = '/data/data/com.termux/files/usr/bin/oxlint';
-const bin = (await Bun.file(termuxBin).exists()) ? termuxBin : 'oxlint';
-
 const args = process.argv.slice(2);
-const result = await $`${bin} ${args}`.nothrow();
+
+let result;
+if (await Bun.file(termuxBin).exists()) {
+    result = await $`${termuxBin} ${args}`.nothrow();
+} else {
+    result = await $`bunx oxlint ${args}`.nothrow();
+}
 
 process.exit(result.exitCode);

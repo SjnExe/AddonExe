@@ -1,10 +1,10 @@
 import { isFeatureActive } from '@core/featureManager.js';
 import * as mc from '@minecraft/server';
 
-import { getTeamConfig } from '@core/configurations.js';
+import * as configurations from '@core/configurations.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { getPlayerFromCache } from '@core/playerCache.js';
-import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/playerDataManager.js';
+import * as playerDataManager from '@core/playerDataManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { TeamData } from '@features/team/types.js';
@@ -128,7 +128,7 @@ function processTeamCreationCost(playerId: string, balance: number, cost: number
             return { success: false, message: `§cInsufficient funds. Cost: ${cost}`, charged: false };
         }
         // Deduct money first
-        incrementPlayerBalance(playerId, -cost);
+        playerDataManager.incrementPlayerBalance(playerId, -cost);
         return { success: true, charged: true };
     }
 
@@ -136,7 +136,7 @@ function processTeamCreationCost(playerId: string, balance: number, cost: number
 }
 
 function validateTeamName(name: string): ActionResult | null {
-    const teamConfig = getTeamConfig();
+    const teamConfig = configurations.getTeamConfig();
     if (name.length < teamConfig.nameMinLength || name.length > teamConfig.nameMaxLength) {
         return {
             success: false,
@@ -174,7 +174,7 @@ function validateTeamName(name: string): ActionResult | null {
  * @returns The result of the operation.
  */
 export function createTeam(player: mc.Player, name: string): ActionResult {
-    const teamConfig = getTeamConfig();
+    const teamConfig = configurations.getTeamConfig();
     if (!teamConfig.enabled) {
         return { success: false, message: '§cTeam system is disabled.' };
     }
@@ -184,7 +184,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         return validationResult;
     }
 
-    const pData = getOrCreatePlayer(player);
+    const pData = playerDataManager.getOrCreatePlayer(player);
     if (isDefined(pData.teamId)) {
         return { success: false, message: '§cYou are already in a team.' };
     }
@@ -248,7 +248,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     } catch (error) {
         // Rollback
         if (costResult.charged) {
-            incrementPlayerBalance(player.id, teamConfig.creationCost);
+            playerDataManager.incrementPlayerBalance(player.id, teamConfig.creationCost);
         }
         activeTeam.delete(newTeamId);
         errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(error)}`);
@@ -269,7 +269,7 @@ export function deleteTeam(teamId: number): boolean {
         return false;
     }
 
-    const teamConfig = getTeamConfig();
+    const teamConfig = configurations.getTeamConfig();
     const cost = teamConfig.creationCost;
     let economyEnabled = false;
     try {
@@ -281,7 +281,7 @@ export function deleteTeam(teamId: number): boolean {
 
     if (economyEnabled && cost > 0 && isDefined(team.ownerId)) {
         // Refund if applicable
-        incrementPlayerBalance(team.ownerId, cost);
+        playerDataManager.incrementPlayerBalance(team.ownerId, cost);
     }
 
     // Remove all members
@@ -311,7 +311,7 @@ export function getAllTeam(): TeamData[] {
 }
 
 export function getPlayerTeamId(playerId: string): number | undefined {
-    const pData = getPlayer(playerId);
+    const pData = playerDataManager.getPlayer(playerId);
     return pData?.teamId ?? undefined;
 }
 
@@ -326,7 +326,7 @@ export function getTeamByPlayer(playerId: string): TeamData | undefined {
  * @param teamId The team ID or undefined to remove.
  */
 export function setPlayerTeam(playerId: string, teamId: number | undefined) {
-    updatePlayerData(playerId, (data) => {
+    playerDataManager.updatePlayerData(playerId, (data) => {
         data.teamId = teamId;
     });
 }
@@ -405,7 +405,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
         return { success: false };
     }
 
-    const teamConfig = getTeamConfig();
+    const teamConfig = configurations.getTeamConfig();
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
     }
@@ -413,7 +413,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
     let success = false;
     let msg = '';
 
-    updatePlayerData(targetId, (data) => {
+    playerDataManager.updatePlayerData(targetId, (data) => {
         if (isDefined(data.teamId)) {
             msg = '§cPlayer is already in a team.';
             return;
@@ -454,7 +454,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
 }
 
 export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
-    const pData = getOrCreatePlayer(player);
+    const pData = playerDataManager.getOrCreatePlayer(player);
     if (isDefined(pData.teamId)) {
         return { success: false, message: '§cYou are already in a team.' };
     }
@@ -467,7 +467,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
     const team = activeTeam.get(teamId);
     if (!isDefined(team)) {
         // Clean up invalid invite
-        updatePlayerData(player.id, (d) => {
+        playerDataManager.updatePlayerData(player.id, (d) => {
             if (isDefined(d.pendingInvites)) {
                 d.pendingInvites.splice(inviteIndex, 1);
             }
@@ -475,7 +475,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
         return { success: false, message: '§cTeam no longer exists.' };
     }
 
-    const teamConfig = getTeamConfig();
+    const teamConfig = configurations.getTeamConfig();
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
     }
@@ -485,7 +485,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
     saveTeam(teamId);
 
     // Update player
-    updatePlayerData(player.id, (d) => {
+    playerDataManager.updatePlayerData(player.id, (d) => {
         d.teamId = teamId;
         d.pendingInvites = []; // Clear all invites on join
     });
@@ -495,7 +495,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
 
 export function denyInvite(playerId: string, teamId: number): ActionResult {
     let found = false;
-    updatePlayerData(playerId, (d) => {
+    playerDataManager.updatePlayerData(playerId, (d) => {
         if (!isDefined(d.pendingInvites)) {
             return;
         }
@@ -518,8 +518,8 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
         return { success: false, message: '§cTeam not found.' };
     }
 
-    const teamConfig = getTeamConfig();
-    const pData = getOrCreatePlayer(player);
+    const teamConfig = configurations.getTeamConfig();
+    const pData = playerDataManager.getOrCreatePlayer(player);
     if (isDefined(pData.teamId)) {
         return { success: false, message: '§cYou are already in a team.' };
     }
@@ -558,7 +558,7 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
         return { success: false, message: 'Team error.' };
     }
 
-    const teamConfig = getTeamConfig();
+    const teamConfig = configurations.getTeamConfig();
     if (team.members.length >= teamConfig.maxMembers) {
         return { success: false, message: '§cTeam is full.' };
     }
@@ -568,7 +568,7 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
         return { success: false, message: 'Application not found.' };
     }
 
-    const pData = getPlayer(playerId);
+    const pData = playerDataManager.getPlayer(playerId);
 
     // Add member
     team.members.push(playerId);
@@ -652,12 +652,12 @@ export function depositToTeam(player: mc.Player, amount: number): ActionResult {
         return { success: false, message: '§cYou are not in a team.' };
     }
 
-    const pData = getPlayer(player.id);
+    const pData = playerDataManager.getPlayer(player.id);
     if (!isDefined(pData) || pData.balance < amount) {
         return { success: false, message: '§cInsufficient funds.' };
     }
 
-    incrementPlayerBalance(player.id, -amount);
+    playerDataManager.incrementPlayerBalance(player.id, -amount);
     team.balance += amount;
     saveTeam(team.id);
 
@@ -672,7 +672,7 @@ export function teleportToTeamHome(player: mc.Player): void {
     }
 
     const { x, y, z, dimensionId } = team.home;
-    const teamConfig = getTeamConfig();
+    const teamConfig = configurations.getTeamConfig();
     const warmup = teamConfig.teleportWarmupSeconds;
 
     startTeleportWarmup(

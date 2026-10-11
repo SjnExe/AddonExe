@@ -10,28 +10,24 @@ const mockStorageSave = mock();
 let debugLogSpy: any;
 let loadSpy: any;
 let saveSpy: any;
+let runIntervalSpy: any;
+let sendMessageSpy: any;
 
-// Mock the system and world methods manually on the imported module
-// Since it's imported, mc.world and mc.system are accessible and we can attach mocks
 let intervalCallback: (() => void) | undefined;
-const mockSystemRunInterval = mock().mockImplementation((cb: () => void) => {
-    intervalCallback = cb;
-    return 1 as any;
-});
-const mockWorldSendMessage = mock().mockImplementation(() => {});
-
-(mc.system as any).runInterval = mockSystemRunInterval;
-(mc.world as any).sendMessage = mockWorldSendMessage;
 
 const { initializeVoting, createVote, castVote, endVote, getActiveVote, getLastVote } = await import('../manager.js');
 
 describe('Vote Manager', () => {
     let mockDateNow: ReturnType<typeof mock>;
     let originalDateNow: any;
-    let originalSystemRunInterval: any;
-    let originalWorldSendMessage: any;
 
     beforeEach(() => {
+        runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
+            intervalCallback = cb;
+            return 1 as any;
+        });
+        sendMessageSpy = spyOn(mc.world, 'sendMessage').mockImplementation(() => {});
+
         debugLogSpy = spyOn(logger, 'debugLog');
         loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(() => mockStorageLoad());
         saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation((data: any) => mockStorageSave(data));
@@ -39,12 +35,7 @@ describe('Vote Manager', () => {
         debugLogSpy.mockReset();
         mockStorageLoad.mockReset();
         mockStorageSave.mockReset();
-        mockSystemRunInterval.mockClear();
         intervalCallback = undefined;
-        mockWorldSendMessage.mockClear();
-
-        originalSystemRunInterval = (mc.system as any).runInterval;
-        originalWorldSendMessage = (mc.world as any).sendMessage;
 
         mockStorageLoad.mockReturnValue(undefined);
         initializeVoting();
@@ -58,8 +49,8 @@ describe('Vote Manager', () => {
     afterEach(() => {
         // Reset Date.now to original
         global.Date.now = originalDateNow;
-        (mc.system as any).runInterval = originalSystemRunInterval;
-        (mc.world as any).sendMessage = originalWorldSendMessage;
+        runIntervalSpy?.mockRestore();
+        sendMessageSpy?.mockRestore();
         debugLogSpy?.mockRestore();
         loadSpy?.mockRestore();
         saveSpy?.mockRestore();
@@ -79,7 +70,7 @@ describe('Vote Manager', () => {
             expect(getActiveVote()).toBeUndefined();
             const lastVote = getLastVote();
             expect(lastVote?.status).toBe('ended');
-            expect(mockWorldSendMessage).toHaveBeenCalled(); // Results broadcasted
+            expect(sendMessageSpy).toHaveBeenCalled(); // Results broadcasted
         });
 
         it('should not end vote if durationSeconds is 0', () => {
@@ -124,7 +115,7 @@ describe('Vote Manager', () => {
             expect(getActiveVote()).toBeUndefined();
             const lastVote = getLastVote();
             expect(lastVote?.status).toBe('ended');
-            expect(mockWorldSendMessage).toHaveBeenCalled(); // Results broadcasted
+            expect(sendMessageSpy).toHaveBeenCalled(); // Results broadcasted
         });
     });
 
@@ -137,7 +128,7 @@ describe('Vote Manager', () => {
 
             expect(mockStorageLoad).toHaveBeenCalled();
             expect(debugLogSpy).toHaveBeenCalledWith('[Voting] Loaded active vote.');
-            expect(mockSystemRunInterval).toHaveBeenCalled();
+            expect(runIntervalSpy).toHaveBeenCalled();
             expect(getActiveVote()).toEqual(activeVote as any);
         });
 
@@ -147,7 +138,7 @@ describe('Vote Manager', () => {
             initializeVoting();
 
             expect(debugLogSpy).not.toHaveBeenCalled();
-            expect(mockSystemRunInterval).toHaveBeenCalled();
+            expect(runIntervalSpy).toHaveBeenCalled();
             expect(getActiveVote()).toBeUndefined();
         });
     });
@@ -171,7 +162,7 @@ describe('Vote Manager', () => {
             expect(activeVote?.options[1]).toEqual({ id: 1, text: 'Blue', count: 0 });
 
             expect(mockStorageSave).toHaveBeenCalledWith(activeVote);
-            expect(mockWorldSendMessage).toHaveBeenCalledWith(`§a§lNew Vote Started!§r\n§eFavorite Color?\n§7Type §f/vote§7 to participate.`);
+            expect(sendMessageSpy).toHaveBeenCalledWith(`§a§lNew Vote Started!§r\n§eFavorite Color?\n§7Type §f/vote§7 to participate.`);
         });
     });
 
@@ -234,7 +225,7 @@ describe('Vote Manager', () => {
             endVote();
 
             expect(mockStorageSave).not.toHaveBeenCalled();
-            expect(mockWorldSendMessage).not.toHaveBeenCalled();
+            expect(sendMessageSpy).not.toHaveBeenCalled();
         });
 
         it('should update status, save, and broadcast results', () => {
@@ -250,7 +241,6 @@ describe('Vote Manager', () => {
             castVote(p3, 0);
 
             mockStorageSave.mockReset();
-            mockWorldSendMessage.mockClear();
 
             endVote();
 
@@ -261,17 +251,16 @@ describe('Vote Manager', () => {
 
             expect(mockStorageSave).toHaveBeenCalledWith(lastVote);
 
-            expect(mockWorldSendMessage).toHaveBeenCalledWith(`§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt2: §a2 §7(66.7%)\n§7- §fOpt1: §a1 §7(33.3%)\n`);
+            expect(sendMessageSpy).toHaveBeenCalledWith(`§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt2: §a2 §7(66.7%)\n§7- §fOpt1: §a1 §7(33.3%)\n`);
         });
 
         it('should handle zero votes correctly', () => {
             const creator = { name: 'Creator' } as mc.Player;
             createVote(creator, 'Test Question', ['Opt1'], 0);
 
-            mockWorldSendMessage.mockClear();
             endVote();
 
-            expect(mockWorldSendMessage).toHaveBeenCalledWith(`§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt1: §a0 §7(0.0%)\n`);
+            expect(sendMessageSpy).toHaveBeenCalledWith(`§a§lVote Ended!§r\n§eTest Question\n§fResults:\n§7- §fOpt1: §a0 §7(0.0%)\n`);
         });
     });
 

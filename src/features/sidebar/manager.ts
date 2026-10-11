@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { getSidebarConfig } from '@core/configurations.js';
+import * as configManager from '@core/configManager.js';
+import * as configurations from '@core/configurations.js';
 import { debugLog } from '@core/logger.js';
 import { getAllPlayersFromCache, getPlayerCount } from '@core/playerCache.js';
-import { getPlayTime, getPlayer, getSidebarVisible } from '@core/playerDataManager.js';
+import * as playerDataManager from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { formatCurrency, formatDuration } from '@core/utils.js';
@@ -96,7 +96,7 @@ function clearSidebarObjective() {
 }
 
 function updateSidebars(force = false) {
-    const config = getSidebarConfig();
+    const config = configurations.getSidebarConfig();
 
     if ((config.enabled as boolean | undefined) !== true) {
         clearSidebarObjective();
@@ -134,12 +134,12 @@ function updateSidebars(force = false) {
                 continue;
             }
 
-            const pData = getPlayer(player.id);
+            const pData = playerDataManager.getPlayer(player.id);
             if (!isDefined(pData)) {
                 continue;
             }
 
-            const visible = getSidebarVisible(player.id);
+            const visible = playerDataManager.getSidebarVisible(player.id);
             if (!visible) {
                 continue;
             }
@@ -219,8 +219,8 @@ function updateGlobalSidebarObjective(globalInfo: { title?: string; maxPlayers?:
  * @returns The text with placeholders replaced.
  */
 export function resolveGlobalPlaceholders(text: string, player?: mc.Player): string {
-    const mainConfig = getConfig();
-    const sidebarConfig = getSidebarConfig();
+    const mainConfig = configManager.getConfig();
+    const sidebarConfig = configurations.getSidebarConfig();
     const serverName = (mainConfig as { serverName?: string }).serverName || 'Minecraft Server';
     const maxPlayers = (sidebarConfig.globalInfo?.maxPlayers ?? 20).toString();
     const now = new Date();
@@ -250,7 +250,7 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
     }
 
     if (player) {
-        const pData = getPlayer(player.id);
+        const pData = playerDataManager.getPlayer(player.id);
         if (isDefined(pData)) {
             const rank = getPlayerRank(player, mainConfig);
             const teamManagerService = serviceLocator.getService<TeamManagerService>('team.manager');
@@ -260,7 +260,7 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
             const deaths = pData.deaths || 0;
             const kdr = deaths === 0 ? kills.toFixed(2) : (kills / deaths).toFixed(2);
             const streak = pData.killStreak || 0;
-            const playtime = formatDuration(getPlayTime(player.id));
+            const playtime = formatDuration(playerDataManager.getPlayTime(player.id));
 
             processed = processed
                 .replace('{name}', player.name)

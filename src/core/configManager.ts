@@ -1,6 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import createConfigManager, { ConfigManager } from '@core/configManagerFactory.js';
+import * as factoryModule from '@core/configManagerFactory.js';
+import { ConfigManager } from '@core/configManagerFactory.js';
 import { deepClone } from '@core/objectUtils.js';
 import { isDefined } from '@lib/guards.js';
 import defaultConfig, { type config as Config } from '../config.js';
@@ -22,7 +23,7 @@ function notifyCallbacks() {
 }
 
 export async function initializeConfigManager(isMigration: boolean) {
-    mainConfigManager = createConfigManager('exe:config:current', defaultConfig, 'Main');
+    mainConfigManager = factoryModule.default('exe:config:current', defaultConfig, 'Main');
     mainConfigManager.load(isMigration);
 
     const configs = await import('@core/configurations.js');

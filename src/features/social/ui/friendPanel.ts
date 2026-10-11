@@ -1,10 +1,10 @@
-import { getConfig } from '@core/configManager.js';
+import * as configManager from '@core/configManager.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as friendManager from '@features/social/friendManager.js';
-import { createRequest } from '@features/teleport/tpaManager.js';
+import * as tpaManager from '@features/teleport/tpaManager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
@@ -34,7 +34,7 @@ export async function showFriendMainPanel(player: mc.Player): Promise<void> {
 export async function showFriendListPanel(player: mc.Player, page: number = 1): Promise<void> {
     const pData = getOrCreatePlayer(player);
     const friends = pData.friends ?? [];
-    const config = getConfig();
+    const config = configManager.getConfig();
 
     const form = new ActionFormBuilder().title('Friend List');
 
@@ -168,7 +168,7 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
 
     if (onlineP) {
         form.button('Teleport To', 'textures/ui/icon_map', () => {
-            const result = createRequest(player, onlineP, 'tpa');
+            const result = tpaManager.createRequest(player, onlineP, 'tpa');
             player.sendMessage(result.message);
         });
     }
