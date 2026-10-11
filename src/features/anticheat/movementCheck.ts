@@ -7,8 +7,8 @@ import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 
-import * as configLoader from '@features/anticheat/configLoader.js';
 import type { AnticheatConfig } from '@features/anticheat/configLoader.js';
+import * as configLoader from '@features/anticheat/configLoader.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 
 interface PlayerMovementState {
