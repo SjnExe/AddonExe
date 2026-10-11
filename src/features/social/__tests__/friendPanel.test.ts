@@ -1,31 +1,27 @@
+import * as configManager from '@core/configManager.js';
+import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
+import * as tpaManager from '@features/teleport/tpaManager.js';
 import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
-
-import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
-
-mock.module('@core/configManager.js', () => ({
-    getConfig: mock(() => defaultConfig)
-}));
-
-const mockCreateRequest = mock(() => ({ success: true, message: 'TPA request sent.' }));
-
-mock.module('@features/teleport/tpaManager.js', () => ({
-    createRequest: mockCreateRequest
-}));
 
 const { showManageFriendPanel } = await import('../ui/friendPanel.js');
 
 describe('friendPanel', () => {
     let getAllPlayersSpy: any;
+    let getConfigSpy: any;
+    let createRequestSpy: any;
 
     beforeEach(() => {
+        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue(defaultConfig as any);
+        createRequestSpy = spyOn(tpaManager, 'createRequest').mockReturnValue({ success: true, message: 'TPA request sent.' });
         getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
         initializePlayerCache();
-        mockCreateRequest.mockClear();
     });
 
     afterEach(() => {
+        getConfigSpy?.mockRestore();
+        createRequestSpy?.mockRestore();
         getAllPlayersSpy?.mockRestore();
     });
 
@@ -47,7 +43,7 @@ describe('friendPanel', () => {
 
             await showManageFriendPanel(player, friendId, onlineFriend.name);
 
-            expect(mockCreateRequest).toHaveBeenCalledWith(player, onlineFriend, 'tpa');
+            expect(createRequestSpy).toHaveBeenCalledWith(player, onlineFriend, 'tpa');
             expect(player.sendMessage).toHaveBeenCalledWith('TPA request sent.');
         });
     });

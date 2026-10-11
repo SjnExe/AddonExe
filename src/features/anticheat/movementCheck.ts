@@ -7,8 +7,9 @@ import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 
-import { AnticheatConfig, getAnticheatConfig } from '@features/anticheat/configLoader.js';
-import { flag } from '@features/anticheat/flagManager.js';
+import * as configLoader from '@features/anticheat/configLoader.js';
+import type { AnticheatConfig } from '@features/anticheat/configLoader.js';
+import * as flagManager from '@features/anticheat/flagManager.js';
 
 interface PlayerMovementState {
     violationLevel: number; // Token bucket
@@ -33,7 +34,7 @@ export function startMovementCheckLoop() {
             return;
         }
         try {
-            const config = getAnticheatConfig();
+            const config = configLoader.getAnticheatConfig();
             if (config.enabled !== true) {
                 return;
             }
@@ -53,16 +54,20 @@ function* checkPlayersGenerator(config: AnticheatConfig) {
         for (const player of players) {
             // Process one player per tick/slice
 
-            if (player.isValid) {
-                // Run checks
-                if (config.movementCheck.enabled === true) {
-                    checkMovement(player, config.movementCheck);
-                }
-                if (config.worldBorder.enabled === true) {
-                    checkWorldBorder(player, config.worldBorder);
-                }
-                if (config.antiNetherRoof.enabled === true) {
-                    checkNetherRoof(player, config.antiNetherRoof);
+            if (player && player.isValid) {
+                try {
+                    // Run checks
+                    if (config.movementCheck.enabled === true) {
+                        checkMovement(player, config.movementCheck);
+                    }
+                    if (config.worldBorder.enabled === true) {
+                        checkWorldBorder(player, config.worldBorder);
+                    }
+                    if (config.antiNetherRoof.enabled === true) {
+                        checkNetherRoof(player, config.antiNetherRoof);
+                    }
+                } catch (error) {
+                    errorLog('Anticheat Player Check Error', error);
                 }
             }
             yield;
@@ -81,6 +86,9 @@ interface MovementCheckConfig {
 }
 
 function checkMovement(player: mc.Player, config: MovementCheckConfig) {
+    if (!player.dimension || !player.location) {
+        return;
+    }
     if (typeof player.getGameMode === 'function' && (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator)) {
         movementStates.delete(player.id);
         return;
@@ -161,7 +169,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     const FLAGGING_THRESHOLD = 20;
 
     if (state.violationLevel > FLAGGING_THRESHOLD) {
-        flag(player, 'movementCheck', `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`);
+        flagManager.flag(player, 'movementCheck', `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`);
         // Clamp VL to prevent infinite buildup
         state.violationLevel = Math.min(state.violationLevel, 50);
     }
@@ -178,6 +186,9 @@ function checkWorldBorder(
         knockbackAmount: number;
     }
 ) {
+    if (!player.dimension || !player.location) {
+        return;
+    }
     if (typeof player.getGameMode === 'function' && player.getGameMode() === mc.GameMode.Spectator) {
         return;
     }
@@ -237,6 +248,9 @@ function checkWorldBorder(
 }
 
 function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
+    if (!player.dimension || !player.location) {
+        return;
+    }
     if (player.dimension.id !== (MinecraftDimensionTypes.Nether as string)) {
         return;
     }

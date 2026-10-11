@@ -5,15 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:te
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { addPlayerToCache, clearPlayerCache } from '@core/playerCache.js';
 
-import * as configLoader from '../configLoader.js';
-import * as flagManager from '../flagManager.js';
-import { _resetMovementCheckForTest, startMovementCheckLoop } from '../movementCheck.js';
+import * as configLoader from '@features/anticheat/configLoader.js';
+import * as flagManager from '@features/anticheat/flagManager.js';
+import { _resetMovementCheckForTest, startMovementCheckLoop } from '@features/anticheat/movementCheck.js';
 
 describe('MovementCheck', () => {
     let intervalCallback: () => void;
     let getAnticheatConfigSpy: any;
     let flagSpy: any;
     let getAllPlayersSpy: any;
+    let runIntervalSpy: any;
+    let runJobSpy: any;
 
     beforeEach(() => {
         _resetMovementCheckForTest();
@@ -29,9 +31,17 @@ describe('MovementCheck', () => {
         getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
 
         // Capture interval callback
-        (mc.system.runInterval as any).mockImplementation((cb: () => void) => {
+        runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
             intervalCallback = cb;
             return 1;
+        });
+
+        runJobSpy = spyOn(mc.system, 'runJob').mockImplementation((generator: Generator) => {
+            let result = generator.next();
+            while (!result.done) {
+                result = generator.next();
+            }
+            return 0 as any;
         });
     });
 
@@ -41,6 +51,8 @@ describe('MovementCheck', () => {
         flagSpy?.mockRestore();
         getAnticheatConfigSpy?.mockRestore();
         getAllPlayersSpy?.mockRestore();
+        runIntervalSpy?.mockRestore();
+        runJobSpy?.mockRestore();
     });
 
     it('should flag player exceeding speed limit', () => {

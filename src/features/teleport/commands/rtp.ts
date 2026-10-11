@@ -2,7 +2,7 @@ import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
+import * as configManager from '@core/configManager.js';
 import { setCooldown } from '@core/cooldownManager.js';
 import { debugLog, errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
@@ -22,7 +22,7 @@ const rtpCommand: CustomCommand = {
             return;
         }
 
-        const config = getConfig();
+        const config = configManager.getConfig();
         if (!config?.rtp?.enabled) {
             sendMessage('§cThe RTP system is currently disabled globally.', executor);
             return;
@@ -83,7 +83,7 @@ function initiateTeleport(player: mc.Player, location: mc.Vector3, tickingAreaNa
             saveLastLocation(player);
             player.teleport(location);
             sendMessage('§aYou have been teleported to a random location!', player);
-            const config = getConfig();
+            const config = configManager.getConfig();
             setCooldown(player.id, 'rtp', config?.rtp?.cooldownSeconds ?? 600);
         } catch (error: unknown) {
             const stack = error instanceof Error ? error.stack : String(error);
@@ -157,7 +157,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, minRange: number, 
             const safeLoc = findSafeSpotInArea(player.dimension, centerX, centerZ, searchRadius);
 
             if (safeLoc) {
-                const warmupSeconds = getConfig()?.rtp?.teleportWarmupSeconds ?? 10;
+                const warmupSeconds = configManager.getConfig()?.rtp?.teleportWarmupSeconds ?? 10;
                 initiateTeleport(player, safeLoc, tickingAreaName, warmupSeconds);
                 keepTickingArea = true;
                 return;
