@@ -194,7 +194,7 @@ export async function showFloatingTextEditPanel(player: mc.Player, id: string): 
 }
 
 export async function showPlaceholdersPanel(player: mc.Player): Promise<void> {
-    const form = new ActionFormBuilder().title('Placeholders List');
+    const form = new ActionFormBuilder().grid(1).title('Placeholders List');
     form.body(
         '§bGlobal Placeholders:§r\n' +
             '§e{online}§r - Online player count\n' +
