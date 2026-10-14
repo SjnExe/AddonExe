@@ -1,4 +1,5 @@
 import { $ } from 'bun';
+import { validateMinecraftRules } from './minecraft-rules.ts';
 
 interface TaskResult {
     Task: string;
@@ -31,7 +32,16 @@ async function runLintingPipeline() {
     const overallStart = performance.now();
     console.log(`⚡ Launching profiled Bun-native linting pipeline (${isFix ? 'Fix Mode' : 'Check Mode'})...\n`);
 
-    const oxlintTask = runTask('Oxlint Engine (Rust + JS Plugins)', () => (isFix ? $`bun scripts/lint/oxlint.ts --fix`.quiet() : $`bun scripts/lint/oxlint.ts`.quiet()));
+    const mcRulesTask = runTask('Minecraft Custom Rules', async () => {
+        const errors = await validateMinecraftRules();
+        if (errors > 0) {
+            throw new Error(`Found ${errors} Minecraft rule violation(s).`);
+        }
+    });
+
+    const oxlintTask = runTask('Oxlint Engine (Rust + JS Plugins)', () =>
+        isFix ? $`bun scripts/lint/oxlint.ts --skip-custom-rules --fix`.quiet() : $`bun scripts/lint/oxlint.ts --skip-custom-rules`.quiet()
+    );
 
     const schemaTask = runTask('JSON Schema Validation', () => $`bun run scripts/lint/schemas.ts`.quiet());
 
@@ -39,7 +49,7 @@ async function runLintingPipeline() {
 
     const typeCheckTask = runTask('TypeScript Type Check', () => $`bun check`.quiet());
 
-    const results = await Promise.all([oxlintTask, schemaTask, iconTask, typeCheckTask]);
+    const results = await Promise.all([mcRulesTask, oxlintTask, schemaTask, iconTask, typeCheckTask]);
 
     const totalDuration = (performance.now() - overallStart).toFixed(2);
 

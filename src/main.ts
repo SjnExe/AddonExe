@@ -16,7 +16,6 @@ import { cleanup as cleanupFloatingText } from '@features/essentials/floatingTex
 import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
-// @ts-ignore: Virtual module handled by build system
 import { loadCommands } from 'virtual:command-index';
 
 const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1'; // Current Addon Version

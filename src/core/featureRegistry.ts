@@ -107,7 +107,6 @@ RAW_FEATURES.push(
     }
 );
 
-// @ts-ignore - __IS_NIGHTLY__ is injected via esbuild
 if (typeof __IS_NIGHTLY__ !== 'undefined' && __IS_NIGHTLY__) {
     RAW_FEATURES.push({
         id: 'test',

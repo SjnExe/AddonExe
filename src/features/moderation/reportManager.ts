@@ -5,7 +5,7 @@ import { debugLog, errorLog } from '@core/logger.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { getTimestampFromUUIDv7 } from '@core/utils.js';
 import { isDefined } from '@lib/guards.js';
-import { v7 as generateUUIDv7 } from 'uuid';
+import { generateUUIDv7 } from '@lib/uuid.js';
 
 const storage = new StorageManager('exe:reports');
 

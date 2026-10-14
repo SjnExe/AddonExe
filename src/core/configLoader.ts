@@ -12,33 +12,7 @@ import { errorLog } from '@core/logger.js';
  */
 export async function loadConfig<T>(modulePath: string, suppressError = false): Promise<T> {
     try {
-        // If we are in vitest context, try to resolve from .ts instead of .js
-        let finalPath = modulePath;
-        if (typeof process !== 'undefined' && process.env.BUN_ENV === 'test') {
-            const pathParts = modulePath.split('/');
-            const filename = pathParts.pop();
-            if (filename) {
-                const basename = filename.replace('.js', '');
-                const relativeToCore = pathParts.join('/');
-                const tryTs = `${relativeToCore}/${basename}.ts`;
-
-                try {
-                    await import(tryTs);
-                    finalPath = tryTs;
-                } catch {
-                    // If it fails, maybe it needs a path relative to root or src
-                    try {
-                        const tryRootTs = `../${relativeToCore.replace('./', '')}/${basename}.ts`;
-                        await import(tryRootTs);
-                        finalPath = tryRootTs;
-                    } catch {
-                        finalPath = modulePath; // let it fail natively if we can't find it
-                    }
-                }
-            }
-        }
-
-        const module = (await import(finalPath)) as Record<string, unknown>;
+        const module = (await import(modulePath)) as Record<string, unknown>;
 
         if (module.default) {
             return module.default as T;

@@ -1,20 +1,18 @@
 import { $ } from 'bun';
+import { validateMinecraftRules } from './minecraft-rules.ts';
 
-// 1. Run Bun-native custom rule validator first (guaranteed 100% platform parity)
-const customCheck = await $`bun scripts/lint/minecraft-rules.ts`.nothrow();
-if (customCheck.exitCode !== 0) {
-    process.exit(customCheck.exitCode);
+const rawArgs = process.argv.slice(2);
+const skipCustomRules = rawArgs.includes('--skip-custom-rules');
+const args = rawArgs.filter((a) => a !== '--skip-custom-rules');
+
+if (!skipCustomRules) {
+    const customErrors = await validateMinecraftRules();
+    if (customErrors > 0) {
+        process.exit(1);
+    }
 }
 
-// 2. Run oxlint binary
 const termuxBin = '/data/data/com.termux/files/usr/bin/oxlint';
-const args = process.argv.slice(2);
-
-let result;
-if (await Bun.file(termuxBin).exists()) {
-    result = await $`${termuxBin} ${args}`.nothrow();
-} else {
-    result = await $`bunx oxlint ${args}`.nothrow();
-}
+const result = (await Bun.file(termuxBin).exists()) ? await $`${termuxBin} ${args}`.nothrow() : await $`bunx oxlint ${args}`.nothrow();
 
 process.exit(result.exitCode);

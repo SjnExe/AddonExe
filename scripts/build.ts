@@ -165,34 +165,40 @@ export function loadCommands() {
     }
 };
 
-async function addDirToZip(sourceDir: string, zip: JSZip, zipPrefix = '', excludeExts = ['.map']) {
+async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Promise<Map<string, string | ArrayBuffer>> {
+    const entries = new Map<string, string | ArrayBuffer>();
     const glob = new Bun.Glob('**/*');
-    const files = Array.from(glob.scanSync({ cwd: sourceDir, absolute: false, dot: true }));
+    const files = Array.from(glob.scanSync({ cwd: sourceDir, absolute: false, dot: true, onlyFiles: true }));
 
-    for (const relPath of files) {
-        if (excludeExts.some((ext) => relPath.endsWith(ext))) {
-            continue;
-        }
-
-        const fullPath = path.join(sourceDir, relPath);
-        const stat = await fs.stat(fullPath);
-        if (stat.isFile()) {
-            const zipPath = zipPrefix ? `${zipPrefix}/${relPath}`.replace(/\\/g, '/') : relPath.replace(/\\/g, '/');
+    await Promise.all(
+        files.map(async (relPath) => {
+            if (excludeExts.some((ext) => relPath.endsWith(ext))) {
+                return;
+            }
+            const fullPath = path.join(sourceDir, relPath);
+            const normalizedPath = relPath.replace(/\\/g, '/');
 
             if (relPath.endsWith('.json')) {
                 try {
                     const rawJsonText = await Bun.file(fullPath).text();
-                    const minifiedJson = JSON.stringify(JSON.parse(rawJsonText));
-                    zip.file(zipPath, minifiedJson);
-                    continue;
+                    entries.set(normalizedPath, JSON.stringify(JSON.parse(rawJsonText)));
+                    return;
                 } catch {
                     // Fall back to raw content if JSON parsing fails
                 }
             }
 
-            const content = await Bun.file(fullPath).arrayBuffer();
-            zip.file(zipPath, content);
-        }
+            entries.set(normalizedPath, await Bun.file(fullPath).arrayBuffer());
+        })
+    );
+
+    return entries;
+}
+
+function populateZipFromEntries(entries: Map<string, string | ArrayBuffer>, zip: JSZip, zipPrefix = '') {
+    for (const [relPath, content] of entries) {
+        const zipPath = zipPrefix ? `${zipPrefix}/${relPath}` : relPath;
+        zip.file(zipPath, content);
     }
 }
 
@@ -203,15 +209,17 @@ async function createArchives(prefix: string, versionStr: string) {
     const behaviorDir = path.join(packsDir, 'behavior');
     const resourceDir = path.join(packsDir, 'resource');
 
+    const [bpEntries, rpEntries] = await Promise.all([collectPackFiles(behaviorDir), collectPackFiles(resourceDir)]);
+
     const mcaddonZip = new JSZip();
-    await addDirToZip(behaviorDir, mcaddonZip, 'behavior');
-    await addDirToZip(resourceDir, mcaddonZip, 'resource');
+    populateZipFromEntries(bpEntries, mcaddonZip, 'behavior');
+    populateZipFromEntries(rpEntries, mcaddonZip, 'resource');
 
     const bpZip = new JSZip();
-    await addDirToZip(behaviorDir, bpZip);
+    populateZipFromEntries(bpEntries, bpZip);
 
     const rpZip = new JSZip();
-    await addDirToZip(resourceDir, rpZip);
+    populateZipFromEntries(rpEntries, rpZip);
 
     const zipOptions: JSZip.JSZipGeneratorOptions<'uint8array'> = {
         type: 'uint8array',

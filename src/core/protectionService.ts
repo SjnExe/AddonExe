@@ -99,7 +99,7 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
             // Spawn protection uses the configured dimension (or Overworld if undefined, though it defaults to Overworld)
 
             const spawnDimension = spawnLoc.dimensionId || MinecraftDimensionTypes.Overworld;
-            if (dimensionId === (spawnDimension as string)) {
+            if (dimensionId === spawnDimension) {
                 const radius = Number(spawnConfig.spawnProtection.protectionRadius) || 0;
 
                 // Construct Bounding Box for Spawn Protection (infinite Y axis realistically bounded by world limits)

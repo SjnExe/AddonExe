@@ -21,7 +21,7 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
 
     let killer: mc.Player | undefined;
 
-    if (damagingEntity && damagingEntity.typeId === (MinecraftEntityTypes.Player as string)) {
+    if (damagingEntity && damagingEntity.typeId === MinecraftEntityTypes.Player) {
         killer = damagingEntity as mc.Player;
     } else {
         // Indirect kill (Void, etc.)
@@ -37,10 +37,10 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     }
 
     // Handle Player Death (Stat updates)
-    if (deadEntity.typeId === (MinecraftEntityTypes.Player as string)) {
+    if (deadEntity.typeId === MinecraftEntityTypes.Player) {
         const victim = deadEntity as mc.Player;
         // KDR Death: Only count if killed by another player (PvP)
-        if (killer && killer.isValid && killer.typeId === (MinecraftEntityTypes.Player as string)) {
+        if (killer && killer.isValid && killer.typeId === MinecraftEntityTypes.Player) {
             incrementDeathCount(victim.id);
         }
         resetKillStreak(victim.id);
@@ -53,14 +53,14 @@ mc.world.afterEvents.entityDie.subscribe((event: mc.EntityDieAfterEvent) => {
     }
 
     // KDR Kill & Streak: Only count if victim was a player (PvP)
-    if (deadEntity.typeId === (MinecraftEntityTypes.Player as string)) {
+    if (deadEntity.typeId === MinecraftEntityTypes.Player) {
         incrementKillCount(killer.id);
         incrementKillStreak(killer.id);
     }
 
     const economyConfig = getEconomyConfig();
 
-    if (deadEntity.typeId === (MinecraftEntityTypes.Player as string)) {
+    if (deadEntity.typeId === MinecraftEntityTypes.Player) {
         const victim = deadEntity as mc.Player;
 
         if (handlePvPDeath(victim, killer) === true) {

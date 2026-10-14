@@ -45,7 +45,6 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
 
     for (const data of paginated) {
         if (data.item) {
-            // eslint-disable-next-line no-restricted-syntax
             const displayName = data.item.typeId.replace('minecraft:', '');
             form.button(`Slot ${data.slot}: ${displayName} x${data.item.amount}`, 'textures/ui/inventory_icon', () => {
                 // Future expansion: Edit item
