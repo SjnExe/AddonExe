@@ -27,8 +27,8 @@ export async function showTpaSettingsPanel(player: mc.Player): Promise<void> {
     });
 
     form.addBackButton(async () => {
-        const { showMyStatsPanel } = await import('@core/ui/panels/playerPanel.js');
-        await showMyStatsPanel(player);
+        const { showProfileHub } = await import('@core/ui/panels/mainPanel.js');
+        await showProfileHub(player);
     });
 
     await form.show(player);

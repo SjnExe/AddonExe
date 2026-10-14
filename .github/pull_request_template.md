@@ -1,41 +1,32 @@
 ---
 name: Pull Request
-about: Propose changes to the AddonExe
-title: 'Brief description of changes (e.g., Fix: Resolve fly detection false positive)'
+about: Propose changes to AddonExe
+title: 'Brief description of changes (e.g., fix(ui): resolve server form layout)'
 ---
 
 **Description of Changes:**
 
 <!--
-Provide a detailed description of the changes introduced by this PR.
-What problem does it solve? How does it solve it?
-What are the key modifications?
-Link to any related issues here, e.g., "Fixes #123".
+Describe what problem this PR solves and list the key modifications.
+Link related issues, e.g., "Fixes #123".
 -->
 
 **How Has This Been Tested?**
 
 <!--
-Please describe the tests that you ran to verify your changes.
-Provide instructions so we can reproduce.
+Describe the unit tests and in-game checks run to verify these changes.
 -->
 
 **Screenshots / Video (for UI or visual changes):**
 
-<!--
-If your PR changes the UI or adds visual features, please include screenshots or a video recording here.
--->
-
 **Checklist:**
 
-- [ ] I have read the **CONTRIBUTING.md** document.
-- [ ] My code follows the project's coding style and guidelines.
-- [ ] I have performed a self-review of my own code.
-- [ ] I have commented my code where necessary.
-- [ ] I have made corresponding changes to the documentation if needed.
-- [ ] My changes do not generate new ESLint warnings or errors.
-- [ ] I have tested my changes thoroughly.
+- [ ] I have read [CONTRIBUTING.md](CONTRIBUTING.md).
+- [ ] My code follows [Dev/CodingStyle.md](../Dev/CodingStyle.md) and [Dev/StandardizationGuidelines.md](../Dev/StandardizationGuidelines.md).
+- [ ] `bun run lint:check` passes with zero errors.
+- [ ] `bun test` passes all unit tests.
+- [ ] I have updated relevant documentation in `Docs/` or `Dev/` if needed.
 
 ---
 
-By submitting this pull request, you agree to license your contribution under the project's [MIT License](https://github.com/SjnExe/AddonExe/blob/exe/LICENSE).
+By submitting this pull request, you agree to license your contribution under the project's [MIT License](https://github.com/SjnExe/AddonExe/blob/main/LICENSE).

@@ -146,7 +146,7 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
     }
 
     form.addBackButton(async () => {
-        await showPanel(player, 'profileMainPanel');
+        await showPanel(player, 'profileHub');
     });
 
     await form.show(player);

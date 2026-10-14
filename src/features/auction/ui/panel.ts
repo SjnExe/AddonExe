@@ -7,7 +7,7 @@ import { formatCurrency, formatTime, getTimestampFromUUIDv7 } from '@core/utils.
 import { AuctionListing, buyItem, cancelListing, claimMailbox, claimMailboxItem, getListings, getListingsCount, placeBid, SortOption } from '@features/auction/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-const LISTINGS_PER_PAGE = 45;
+const LISTINGS_PER_PAGE = 10;
 
 export async function showAuctionHouse(player: mc.Player, page: number = 1, searchQuery?: string, sort: SortOption = SortOption.Newest): Promise<void> {
     const totalListings = getListingsCount(searchQuery);
@@ -41,8 +41,8 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
     const form = new ActionFormBuilder().title(title).body(`Total Items: ${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
 
     form.addBackButton(async () => {
-        const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
-        await showMainPanel(player);
+        const { showEconomyHub } = await import('@core/ui/panels/mainPanel.js');
+        await showEconomyHub(player);
     });
 
     form.button('§eCollection Bin / Mailbox', 'textures/items/minecart_chest', async () => showMailboxUI(player));
@@ -92,7 +92,7 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
         details += `\n§7Durability: ${item.durability.max - item.durability.damage}/${item.durability.max}\n`;
     }
 
-    const form = new ActionFormBuilder().title('Listing Details').body(details);
+    const form = new ActionFormBuilder().grid(1).title('Listing Details').body(details);
 
     if (listing.sellerId === player.id) {
         form.button('§4Cancel Listing (Return to Bin)', undefined, () => {

@@ -1,265 +1,139 @@
-# AddonExe Commands
+# AddonExe Commands Reference
 
-Commands in AddonExe are primarily run using native slash commands, which support autocomplete in-game.
+All commands in AddonExe are registered as native Minecraft slash commands with in-game autocomplete.
 
 > [!IMPORTANT]
-> **Using Commands from the Server Console**
-> All slash commands can also be executed directly from the server console (e.g., in Bedrock Dedicated Server).
->
-> - **Commands are run with a `/` prefix,** just like in-game (e.g., `/xhelp`).
-> - **Specify the target player:** For commands that normally affect the person running them (like `/home` or `/clear`), you must specify the target player's name. For example: `/home "Steve" "my-base"` or `/clear "Steve"`.
+> **Using Commands from the Server Console (BDS)**
+> Commands marked with Console support can be run directly from the Bedrock Dedicated Server terminal. When targeting a player from the console, always pass the player's name.
 
 > [!NOTE]
-> **Slash Commands**
+> **Command Prefixes & Syntax**
 >
-> - These are native Minecraft commands registered by the addon.
-> - They support in-game argument suggestions and validation.
-> - **Arguments with spaces MUST be enclosed in double quotes.** For example: `/ban "Player Name" "Griefing the server"`.
->
-> **Other Important Notes:**
->
-> - To use slash commands, you must **enable cheats** in your world settings.
-> - Some commands have an `x` prefix (e.g., `/xhelp`) to avoid conflicts with built-in Minecraft commands.
-> - The `exe:` namespace can be used as a fallback for non-'x' commands if other addons have conflicting command names (e.g. `/exe:status`).
-> - Angle brackets `< >` denote required parameters. Square brackets `[ ]` denote optional parameters.
+> - Commands that conflict with vanilla Minecraft commands use an `x` prefix: `/xhelp`, `/xclear`, `/xgamemode`, `/xkick`, `/xreload`, `/xsave`.
+> - Multi-word arguments containing spaces should be enclosed in double quotes (e.g., `/ban "Player Name" 7d "Griefing spawn"`).
+> - `<param>` indicates a required parameter; `[param]` indicates an optional parameter.
 
 ---
 
-## Member Commands
+## Member Commands (`**.member`)
 
-Commands available to all players by default.
+### General & Info
 
-### General
+- **`/panel`** (Aliases: `/ui`, `/menu`) — Opens the main AddonExe dark-mode UI panel.
+- **`/xhelp [command|ui|chat]`** (Aliases: `/?`, `/h`, `/cmds`, `/commands`) — Displays available commands or detailed help for a specific command.
+- **`/rules [ruleNumber]`** (Alias: `/rule`) — Displays the server rules.
+- **`/links`** (Aliases: `/link`, `/websites`) — Displays Discord and community links.
+- **`/version`** (Alias: `/ver`) — Displays the active AddonExe version.
+- **`/sidebar`** (Alias: `/sb`) — Toggles your personal Scoreboard Sidebar and Action Bar HUD.
+- **`/fixplayer`** — Resets your player state if stuck in spawn protection or frozen flags.
+- **`/vote`** — Opens the active server poll / voting menu.
 
-- **/team**
-    - Opens the team panel.
+### Teleportation & Homes
 
-- **/friend <add|remove|accept|list> [target]**
-    - Manage your friend list. Can also be accessed via the UI by using `/friend` with no arguments.
-    - _Aliases: `/frnd`, `/friends`_
-    - _Abbreviations for subcommands: `rm` for remove, `ls` for list._
+- **`/spawn`** (Aliases: `/lobby`, `/hub`) — Teleports you to the server spawn point.
+- **`/rtp`** — Teleports you to a random safe location in the Overworld.
+- **`/back`** — Teleports you back to your last saved death or pre-teleport location.
+- **`/deathcoords`** — Displays the coordinates of your most recent death.
+- **`/sethome [homeName]`** — Sets a personal home at your current location.
+- **`/home [homeName]`** — Teleports you to a saved home (or opens the Homes UI).
+- **`/delhome <homeName>`** — Deletes a saved home.
+- **`/homes`** — Lists all of your saved homes.
+- **`/warp [warpName]`** — Teleports you to a server warp (or opens the Warps UI).
 
-- **/teamchat [message]**
-    - Toggles or sends a message in team chat.
+### Teleport Requests (TPA)
 
-- **/xhelp [command]**
-    - Shows a list of available commands or help for a specific command.
+- **`/tpa <target>`** — Requests to teleport to another player.
+- **`/tpahere <target>`** — Requests another player to teleport to you.
+- **`/tpaccept`** — Accepts an incoming TPA request.
+- **`/tpadeny`** — Denies an incoming TPA request.
+- **`/tpacancel`** — Cancels your outgoing TPA request.
+- **`/tpastatus`** — Shows your active incoming/outgoing TPA requests.
+- **`/tpastop [targets]`** / **`/otpastop <target>`** — Blocks TPA requests from specific players (or toggles all requests).
+- **`/tpastart [targets]`** / **`/otpastart <target>`** — Unblocks TPA requests from specific players (or enables all requests).
 
-- **/panel**
-    - Opens the main UI panel.
+### Economy, Shop, Auction House & Kits
 
-- **/rules [ruleNumber]**
-    - Displays the server rules.
+- **`/balance [targets]`** (Aliases: `/bal`, `/money`, `/cash`) — Checks your or another online player's balance.
+- **`/baltop`** (Aliases: `/topbal`, `/leaderboard`, `/richlist`) — Displays the wealthiest players on the server.
+- **`/pay <target> <amount>`** (Aliases: `/givemoney`, `/transfer`) — Sends money to another player.
+- **`/payconfirm`** (Alias: `/confirmpay`) — Confirms a pending high-value payment.
+- **`/shop`** — Opens the 3-column Server Shop UI.
+- **`/buy`** / **`/sell`** — Opens the shop item trade menu (or inspects held item).
+- **`/sellhand`** — Quickly sells the stackable item in your main hand.
+- **`/ah [sell|search|help] [price|query] [bin|bid]`** (Alias: `/auction`) — Opens the Auction House UI or lists the item in your hand.
+- **`/kit [kitName]`** — Opens the Kits menu or claims a specific kit.
+- **`/daily`** (Alias: `/reward`) — Claims your daily login reward.
+- **`/bounty <target> <amount>`** (Aliases: `/setbounty`, `/addbounty`) — Places a bounty on a player.
+- **`/listbounty [target]`** (Aliases: `/bounties`, `/bountylist`, `/hitlist`) — Lists active bounties.
+- **`/removebounty <target> <amount>`** (Aliases: `/rbounty`, `/delbounty`) — Pays to reduce or remove a bounty.
 
-- **/status**
-    - Displays the current server status.
+### Social, PvP & Mini-Games
 
-- **/version**
-    - Displays the current version of the addon.
-
-- **/deathcoords**
-    - Shows your last death coordinates.
-
-- **/spawn**
-    - Teleports you to the world spawn.
-
-- **/rtp**
-    - Teleports you to a random safe location in the world.
-
-- **/kit [kitName]**
-    - Lists available kits or claims a specific kit.
-
-### TPA System
-
-- **/tpa <target>**
-    - Sends a teleport request to another player.
-- **/tpahere <target>**
-    - Requests another player to teleport to you.
-- **/tpaccept**
-    - Accepts an incoming teleport request.
-- **/tpadeny**
-    - Denies an incoming teleport request.
-- **/tpacancel**
-    - Cancels your outgoing teleport request.
-- **/tpastatus**
-    - Checks the status of your TPA requests.
-- **/tpastop [targets]**
-    - Blocks specific players or disables all TPA requests.
-- **/tpastart [targets]**
-    - Unblocks specific players or enables all TPA requests.
-- **/otpastop <target>**
-    - Blocks an offline player from sending TPA requests.
-- **/otpastart <target>**
-    - Unblocks an offline player.
-
-### Home System
-
-- **/sethome [homeName]**
-    - Sets a home at your current location.
-- **/home [homeName]**
-    - Teleports you to a set home.
-- **/delhome <homeName>**
-    - Deletes a home.
-- **/homes**
-    - Lists all of your set homes.
-
-### Economy System
-
-- **/balance [targets]**
-    - Shows your or another player's balance. Supports selectors (e.g. `@a`).
-- **/obalance <target>**
-    - Shows an offline player's balance.
-- **/baltop**
-    - Shows the players with the highest balances on the server.
-- **/pay <target> <amount>**
-    - Pays another player from your balance.
-- **/opay <target> <amount>**
-    - Pays an offline player.
-- **/payconfirm**
-    - Confirms a pending high-value payment.
-
-### Bounty System
-
-- **/bounty <target> <amount>**
-    - Places a bounty on a player.
-- **/obounty <target> <amount>**
-    - Places a bounty on an offline player.
-- **/listbounty [target]**
-    - Lists active bounties.
-- **/olistbounty <target>**
-    - Lists bounties for an offline player.
-- **/removebounty <amount> [target]**
-    - Removes a portion of a bounty from a player.
-- **/oremovebounty <amount> <target>**
-    - Removes a portion of a bounty from an offline player.
-
-### Shop System
-
-- **/shop**
-    - Opens the main shop interface.
-- **/buy**
-    - Opens the shop interface filtered to only show buyable items.
-- **/sell**
-    - Opens the shop interface filtered to only show sellable items.
-- **/sellhand**
-    - Sells the item currently in your main hand.
+- **`/friend [add|remove|accept|deny|list] [target]`** (Aliases: `/frnd`, `/friends`) — Opens the Friends UI or manages friends via chat.
+- **`/team`** — Opens the Teams / Guilds management UI.
+- **`/teamchat [message]`** (Alias: `/tc`) — Sends a message to your team or toggles team chat mode.
+- **`/pvp <target|accept|deny> [amount]`** — Challenges a player to a PvP duel with an optional money wager.
+- **`/wordle`** (Alias: `/wrd`) — Opens the Wordle mini-game menu.
+- **`/guess <word>`** (Alias: `/gs`) — Submits a word guess in an active staff-hosted Wordle game.
+- **`/report [target] [reason]`** — Submits a player report to server staff.
 
 ---
 
-## Moderation Commands
+## Moderator Commands (`**.mod`)
 
-Commands available to Admins and above.
-
-### Player Punishment
-
-- **/ban <target> [duration] [reason]**
-    - Bans an online player.
-- **/oban <target> [duration] [reason]**
-    - Bans a player who is currently offline.
-    - _Alias: `/offlineban`_
-- **/unban <target>**
-    - Unbans a player, allowing them to rejoin.
-- **/kick <target> [reason]**
-    - Kicks a player from the server.
-- **/mute <target> [duration] [reason]**
-    - Mutes a player in chat.
-- **/unmute <target>**
-    - Unmutes a player.
-- **/freeze <target>**
-    - Freezes a player, preventing them from moving or looking around.
-- **/unfreeze <target>**
-    - Unfreezes a player, allowing them to move and look around again.
-- **/warn <target> <reason>**
-    - Issues a formal warning to a player.
-
-### Player Management
-
-- **/invsee <target> [page]**
-    - Views a player's inventory.
-- **/xclear [target]**
-    - Clears another player's inventory.
-- **/ecwipe [target]**
-    - Clears a player's Ender Chest.
-- **/copyinv <target>**
-    - Copies the inventory of another player.
-- **/vanish**
-    - Toggles your visibility to other players.
-
-### Server Moderation
-
-- **/report <target>**
-    - Reports a player for misconduct.
-- **/reports**
-    - Views the list of active reports.
-- **/clearreports**
-    - Clears all player-submitted reports.
-- **/clearchat**
-    - Clears the chat for all players.
-- **/xraynotify**
-    - Toggles X-ray detection notifications for yourself.
-- **/logs**
-    - Opens the main logs menu (Punishments, Flags, Chat).
-- **/chatlog**
-    - Opens the chat log viewer directly.
+- **`/xkick <target> [reason]`** (Alias: `/boot`) — Kicks an online player from the server.
+- **`/mute <target> [duration] [reason]`** (Alias: `/silence`) — Temporarily or permanently mutes a player.
+- **`/unmute <target>`** (Alias: `/um`) — Unmutes a muted player.
+- **`/warn <player> <reason>`** — Issues a logged warning to a player.
+- **`/freeze <target>`** / **`/unfreeze <target>`** — Immobilizes or releases a player by locking movement and camera input permissions.
+- **`/vanish`** (Alias: `/v`) — Toggles full staff vanish (invisibility + hidden from pause screen player list).
+- **`/invsee <player>`** — Displays a player's inventory, hotbar, armor, and offhand contents.
+- **`/watch <target>`** / **`/listwatched`** — Toggles or lists players on the staff watchlist.
+- **`/notify`** — Toggles Anti-Cheat violation alerts for yourself (or console).
+- **`/xraynotify`** (Alias: `/xray`) — Toggles X-Ray mining notifications for yourself (or console).
 
 ---
 
-## Administration Commands
+## Administrator & Owner Commands (`**.admin` / `**.owner`)
 
-Commands for high-level server management.
+### Punishments, Logs & Inventories
 
-### Core Management
+- **`/ban <target> [duration] [reason]`** — Bans an online player (supports durations like `30m`, `24h`, `7d`, or `perm`).
+- **`/offlineban <target> [duration] [reason]`** (Alias: `/oban`) — Bans an offline player by name.
+- **`/unban <target>`** (Alias: `/pardon`) — Unbans a banned player.
+- **`/reports`** / **`/clearreports`** — Opens the active reports UI or clears all reports.
+- **`/logs`** — Opens the unified Punishment, Anti-Cheat Flag, and Chat Logs UI.
+- **`/chatlog`** — Opens the filterable Chat Log viewer directly.
+- **`/clearchat`** (Alias: `/cc`) — Clears the in-game chat for all players.
+- **`/xclear [target]`** (Aliases: `/ci`, `/clearinv`) — Clears your or another player's inventory.
+- **`/copyinv <player>`** — Copies another player's inventory into yours.
+- **`/ecwipe <player>`** — Wipes a player's Ender Chest (supports online and offline players).
 
-- **/xreload**
-    - Reloads the addon's internal configuration state. Does **not** reload file changes from disk.
+### Economy & Rank Administration
 
-- **/debug [true|false]**
-    - Toggles the script debug logging mode.
-- **/save**
-    - Manually triggers the data saving process.
-- **/restart**
-    - Initiates the server restart sequence.
+- **`/setbalance <targets> <amount>`** / **`/osetbalance <target> <amount>`** — Sets online or offline player balances.
+- **`/addbalance <targets> <amount>`** / **`/oaddbalance <target> <amount>`** — Adds money to online or offline players.
+- **`/removebalance <targets> <amount>`** / **`/oremovebalance <target> <amount>`** — Removes money from online or offline players.
+- **`/obalance <target>`** / **`/opay <target> <amount>`** — Checks balance or pays an offline player.
+- **`/obounty <target> <amount>`** / **`/oremovebounty <target> <amount>`** / **`/olistbounty <target>`** — Offline bounty management.
+- **`/rank <set|remove|list> <target> [rankId]`** — Grants, revokes, or lists a player's ranks.
+- **`/listranks`** — Lists all configured ranks, IDs, and priorities.
+- **`/addkit [kitName]`** — Creates a new kit directly from your current inventory and opens the Kit Editor UI.
 
-### Player & World
+### World, Teleport & Server Control
 
-- **/setbalance <targets> <amount>**
-    - Sets a player's (or players') balance. Supports selectors.
-- **/osetbalance <target> <amount>**
-    - Sets an offline player's balance.
-- **/addbalance <targets> <amount>**
-    - Adds to a player's balance.
-- **/oaddbalance <target> <amount>**
-    - Adds to an offline player's balance.
-- **/removebalance <targets> <amount>**
-    - Removes from a player's balance.
-- **/oremovebalance <target> <amount>**
-    - Removes from an offline player's balance.
-- **/setspawn [x] [y] [z]**
-    - Sets the world's default spawn point.
-- **/tp <target> [destination]**
-    - Teleports a player.
-- **/gamemode <mode> [target]**
-    - Sets a player's gamemode.
-- **/rank <set|remove|list> <target> [rankId]**
-    - Manages custom player ranks.
-    - _Abbreviations for subcommands: `rm` for remove, `ls` for list._
-- **/listranks**
-    - Lists all available server ranks.
-- **/warp [warpName]**
-    - Teleports you to a specified warp, or opens a UI to select one.
-- **/addwarp <warpName> [x] [y] [z]**
-    - Creates a new warp point.
-- **/delwarp [warpName]**
-    - Deletes an existing warp point.
-
-### World Management
-
-- **/netherlock [true|false]**
-    - Toggles or sets the lock for the Nether dimension.
-- **/endlock [true|false]**
-    - Toggles or sets the lock for the End dimension.
-
-### Utilities
-
-- **/chattoconsole**
-    - Toggles sending player chat messages to the console.
+- **`/xgamemode <s|c|a|sp> [targets]`** (Aliases: `/gm`, plus `/gms`, `/gmc`, `/gma`, `/gmsp`) — Changes player gamemode.
+- **`/tp <target> [destination]`** — Teleports yourself or a target player.
+- **`/setspawn [x] [y] [z]`** — Sets the server spawn point and updates spawn protection.
+- **`/addwarp <warpName> [x] [y] [z]`** (Alias: `/setwarp`) / **`/delwarp [warpName]`** — Creates or deletes server warps.
+- **`/worldborder <on|off|set|info> [radius] [x] [z]`** (Alias: `/wb`) — Configures and toggles the world border.
+- **`/netherlock [true|false]`** / **`/endlock [true|false]`** — Locks or unlocks the Nether and End dimensions.
+- **`/floatingtext <create|delete|list|tp> <id> [text]`** — Manages floating text holograms.
+- **`/announce <message>`** — Broadcasts a server-wide announcement.
+- **`/chattoconsole [true|false]`** (Alias: `/ctc`) — Toggles printing player chat to the server console.
+- **`/xreload`** — Reloads and priority-merges configuration changes from disk and refreshes player ranks.
+- **`/xsave`** — Manually flushes all cached world and player data to dynamic properties.
+- **`/restart`** — Starts a countdown and kicks players for a scheduled server restart.
+- **`/newui [testOption]`** — Opens the UI test panel.
+- **`/status`** _(Owner)_ — Shows current player count and server tick status.
+- **`/debug`** _(Owner)_ — Shows tick count, active timers, intervals, and jobs.

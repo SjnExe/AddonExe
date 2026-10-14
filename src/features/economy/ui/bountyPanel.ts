@@ -44,7 +44,7 @@ export async function showBountyListPanel(player: mc.Player, context: Record<str
     }
 
     form.addBackButton(async () => {
-        await showPanel(player, 'mainPanel', context);
+        await showPanel(player, 'economyHub', context);
     });
 
     await form.show(player);

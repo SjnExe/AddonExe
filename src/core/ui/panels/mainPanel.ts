@@ -7,7 +7,7 @@ import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
  */
 export async function showHubPanel(player: Player, hubId: MenuHubId, titleText: string, bodyText?: string): Promise<void> {
     const items = getMenuItemsForHub(hubId, player);
-    const form = new ActionFormBuilder().grid(3).title(`§l§b${titleText}`);
+    const form = new ActionFormBuilder().grid(2).title(`§l§b${titleText}`);
 
     if (bodyText) {
         form.body(`§7${bodyText}`);
@@ -15,7 +15,7 @@ export async function showHubPanel(player: Player, hubId: MenuHubId, titleText: 
 
     for (const item of items) {
         const active = isMenuItemActive(item);
-        const buttonText = active ? `§l§f${item.title}${item.description ? `\n§r§7${item.description}` : ''}` : `§l§7${item.title}\n§r§c[DISABLED]`;
+        const buttonText = active ? `§l§f${item.title}${item.description ? `\n§r§f${item.description}` : ''}` : `§l§7${item.title}\n§r§c[DISABLED]`;
 
         form.button(buttonText, item.icon, async () => {
             if (!active) {

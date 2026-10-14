@@ -295,13 +295,42 @@ export function initializeDefaultMenuItems(): void {
     });
 
     registerMenuItem({
-        id: 'profile_info',
-        title: 'Server Info & Rules',
-        description: 'Server information, links and rules',
+        id: 'profile_rules',
+        title: 'Server Rules',
+        description: 'Read official server rules & guidelines',
         icon: 'textures/items/book_enchanted',
         hub: 'profile',
         order: 20,
-        action: async (p) => showPanel(p, 'infoPanel')
+        action: async (p) => {
+            const { showServerRulesPanel } = await import('@core/ui/panels/serverInfoPanel.js');
+            await showServerRulesPanel(p);
+        }
+    });
+
+    registerMenuItem({
+        id: 'profile_links',
+        title: 'Helpful Links & Discord',
+        description: 'Discord, website & community links',
+        icon: 'textures/items/chain',
+        hub: 'profile',
+        order: 30,
+        action: async (p) => {
+            const { showHelpfulLinksPanel } = await import('@core/ui/panels/serverInfoPanel.js');
+            await showHelpfulLinksPanel(p);
+        }
+    });
+
+    registerMenuItem({
+        id: 'profile_tpa',
+        title: 'TPA & Privacy Settings',
+        description: 'Toggle teleport requests & blocked players',
+        icon: 'textures/items/ender_pearl',
+        hub: 'profile',
+        order: 40,
+        action: async (p) => {
+            const { showTpaSettingsPanel } = await import('@features/teleport/ui/panel.js');
+            await showTpaSettingsPanel(p);
+        }
     });
 
     // --- STAFF DASHBOARD HUBS ---
@@ -470,6 +499,34 @@ export function initializeDefaultMenuItems(): void {
         action: async (p) => {
             const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigCategoryPanel(p);
+        }
+    });
+
+    registerMenuItem({
+        id: 'staff_shop_admin',
+        title: 'Shop Editor',
+        description: 'Add/edit shop categories, items & prices',
+        icon: 'textures/ui/trade_icon',
+        hub: 'staff_config',
+        permissionNode: 'ui.panel.admin',
+        order: 30,
+        action: async (p) => {
+            const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
+            await showShopManagementPanel(p);
+        }
+    });
+
+    registerMenuItem({
+        id: 'staff_kit_admin',
+        title: 'Kit Editor',
+        description: 'Create & edit starter and rank kits',
+        icon: 'textures/ui/inventory_icon',
+        hub: 'staff_config',
+        permissionNode: 'ui.panel.admin',
+        order: 40,
+        action: async (p) => {
+            const { showKitManagementPanel } = await import('@features/kit/ui/panel.js');
+            await showKitManagementPanel(p);
         }
     });
 }

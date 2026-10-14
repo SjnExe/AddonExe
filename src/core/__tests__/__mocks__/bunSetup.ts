@@ -1,3 +1,45 @@
+// Suppress expected addon logger output during unit tests
+const _shouldSuppress = (args: unknown[]): boolean => {
+    const first = typeof args[0] === 'string' ? args[0] : '';
+    return (
+        first.includes('[DEBUG]') ||
+        first.includes('[PlayerDataManager]') ||
+        first.includes('[TimerManager]') ||
+        first.includes('[MigrationManager]') ||
+        first.includes('[RankManager]') ||
+        first.includes('[DataManager]')
+    );
+};
+
+const _origLog = console.log.bind(console);
+const _origWarn = console.warn.bind(console);
+const _origError = console.error.bind(console);
+
+console.log = (...args: unknown[]) => {
+    if (!_shouldSuppress(args)) {
+        _origLog(...args);
+    }
+};
+console.warn = (...args: unknown[]) => {
+    if (!_shouldSuppress(args)) {
+        _origWarn(...args);
+    }
+};
+console.error = (...args: unknown[]) => {
+    if (!_shouldSuppress(args)) {
+        _origError(...args);
+    }
+};
+
+// Suppress [DEBUG] stdout spam during unit test cleanup
+const _origConsoleLog = console.log.bind(console);
+console.log = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].includes('[DEBUG]')) {
+        return;
+    }
+    _origConsoleLog(...args);
+};
+
 import { beforeEach, mock } from 'bun:test';
 
 // Global Minecraft Engine API Mocks
