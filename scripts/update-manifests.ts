@@ -22,6 +22,17 @@ const cliArgs = parseCliArgs(process.argv.slice(2));
  */
 async function fetchLatestVersion(pkgName: string): Promise<string> {
     try {
+        const localPkg = Bun.file(path.join(ROOT_DIR, 'node_modules', pkgName, 'package.json'));
+        if (await localPkg.exists()) {
+            const localData = await localPkg.json();
+            if (localData.version) {
+                return localData.version;
+            }
+        }
+    } catch {
+        // Fallback to npm registry
+    }
+    try {
         const response = await fetch(`https://registry.npmjs.org/${pkgName}`);
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);

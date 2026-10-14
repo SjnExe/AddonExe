@@ -9,7 +9,7 @@ import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@co
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatCurrency, getTimestampFromUUIDv7 } from '@core/utils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { v7 as generateUUIDv7 } from 'uuid';
+import { generateUUIDv7 } from '@lib/uuid.js';
 
 export interface AuctionListing {
     id: string; // Unique ID (UUID)

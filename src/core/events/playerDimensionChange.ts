@@ -14,9 +14,9 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
     const config = getConfig();
 
     let dimensionId: 'nether' | 'end' | undefined;
-    if (toDimension.id === (MinecraftDimensionTypes.Nether as string)) {
+    if (toDimension.id === MinecraftDimensionTypes.Nether) {
         dimensionId = 'nether';
-    } else if (toDimension.id === (MinecraftDimensionTypes.TheEnd as string)) {
+    } else if (toDimension.id === MinecraftDimensionTypes.TheEnd) {
         dimensionId = 'end';
     } else {
         return;

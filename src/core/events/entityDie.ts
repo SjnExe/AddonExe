@@ -17,7 +17,7 @@ export const eventName = 'entityDie';
 function handleEntityDie(event: mc.EntityDieAfterEvent) {
     try {
         const { deadEntity } = event;
-        if (deadEntity.typeId !== (MinecraftEntityTypes.Player as string)) {
+        if (deadEntity.typeId !== MinecraftEntityTypes.Player) {
             return;
         }
 

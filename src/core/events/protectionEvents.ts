@@ -68,7 +68,7 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     const flags = getProtectionFlags(loc, event.dimension.id);
 
     // Prevent Mob Griefing logic (Creepers, Withers)
-    if (flags.preventMobGriefing && event.source && event.source.typeId !== (MinecraftEntityTypes.Player as string)) {
+    if (flags.preventMobGriefing && event.source && event.source.typeId !== MinecraftEntityTypes.Player) {
         // Prevent block damage from mob explosions
         event.setImpactedBlocks([]);
         return;
@@ -89,7 +89,7 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
             continue;
         }
         const blockFlags = getProtectionFlags(block.location, event.dimension.id);
-        if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !event.source || event.source.typeId === (MinecraftEntityTypes.Player as string))) {
+        if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !event.source || event.source.typeId === MinecraftEntityTypes.Player)) {
             allowedBlocks.push(block);
         }
     }
@@ -158,7 +158,7 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
         // Let's allow interaction with players, tameables (wolves, cats, parrots),
         // rideables (horses, donkeys, mules, pigs with saddle, striders)
 
-        if (target.typeId !== (MinecraftEntityTypes.Player as string)) {
+        if (target.typeId !== MinecraftEntityTypes.Player) {
             // Allow interactions if it can be tamed or ridden (pets/mounts)
             const canRide = target.hasComponent(EntityComponentTypes.Rideable);
             const canTame = target.hasComponent(EntityComponentTypes.Tameable);
@@ -178,7 +178,7 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
 
 export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
     const entity = event.entity;
-    if (entity.typeId !== (MinecraftEntityTypes.Player as string)) {
+    if (entity.typeId !== MinecraftEntityTypes.Player) {
         return;
     }
     const player = entity as mc.Player;
@@ -206,7 +206,7 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
         }
 
         // If hostile spawning is prevented
-        if (entity.typeId !== (MinecraftEntityTypes.Player as string)) {
+        if (entity.typeId !== MinecraftEntityTypes.Player) {
             const familyTypes = entity.getComponent(EntityComponentTypes.TypeFamily);
             if (familyTypes?.hasTypeFamily('monster')) {
                 const flags = getProtectionFlags(entity.location, entity.dimension.id);
@@ -249,7 +249,7 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
         return;
     }
 
-    if (victim.typeId !== (MinecraftEntityTypes.Player as string)) {
+    if (victim.typeId !== MinecraftEntityTypes.Player) {
         return;
     }
 
@@ -267,7 +267,7 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
 
     // PvP Protection
     if (flags.preventPvP) {
-        if (attacker && attacker.typeId === (MinecraftEntityTypes.Player as string) && attacker.id !== player.id) {
+        if (attacker && attacker.typeId === MinecraftEntityTypes.Player && attacker.id !== player.id) {
             event.cancel = true;
             return;
         }
@@ -276,7 +276,7 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     // Hostile Damage Protection
     if (flags.preventHostileDamage) {
         // Direct damage from non-player entities
-        if (attacker && attacker.typeId !== (MinecraftEntityTypes.Player as string)) {
+        if (attacker && attacker.typeId !== MinecraftEntityTypes.Player) {
             const familyTypes = attacker.getComponent(EntityComponentTypes.TypeFamily);
             if (familyTypes?.hasTypeFamily('monster') || familyTypes?.hasTypeFamily('mob')) {
                 event.cancel = true;

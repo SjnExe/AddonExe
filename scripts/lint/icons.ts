@@ -1,4 +1,3 @@
-import JSON5 from 'json5';
 import path from 'node:path';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
@@ -30,7 +29,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         // 1. Fetch item textures
         const itemRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/item_texture.json');
         const itemText = await itemRes.text();
-        const itemJson = JSON5.parse(itemText);
+        const itemJson = Bun.JSON5.parse(itemText) as any;
         for (const key in itemJson.texture_data) {
             const tex = itemJson.texture_data[key].textures;
             if (Array.isArray(tex)) {
@@ -43,7 +42,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         // 2. Fetch terrain textures
         const terrainRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/terrain_texture.json');
         const terrainText = await terrainRes.text();
-        const terrainJson = JSON5.parse(terrainText);
+        const terrainJson = Bun.JSON5.parse(terrainText) as any;
         for (const key in terrainJson.texture_data) {
             const tex = terrainJson.texture_data[key].textures;
             if (Array.isArray(tex)) {
@@ -56,7 +55,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         // 3. Fetch texture list
         const listRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/texture_list.json');
         const listText = await listRes.text();
-        const listJson = JSON5.parse(listText);
+        const listJson = Bun.JSON5.parse(listText) as any;
         if (Array.isArray(listJson)) {
             listJson.forEach((t: string) => texturesToCache.push(t));
         }
@@ -85,7 +84,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
             try {
                 const defsRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/_ui_defs.json');
                 if (defsRes.ok) {
-                    const defsJson = JSON5.parse(await defsRes.text());
+                    const defsJson = Bun.JSON5.parse(await defsRes.text()) as any;
                     const uiFiles: string[] = defsJson.ui_defs || [];
                     await Promise.all(
                         uiFiles.map(async (file) => {
@@ -169,7 +168,7 @@ async function extractUsedIcons(): Promise<Map<string, string[]>> {
     return usedIcons;
 }
 
-const IGNORED_TEXTURES: string[] = [
+const IGNORED_TEXTURES = new Set<string>([
     'textures/blocks/angler_pottery_pattern',
     'textures/blocks/archer_pottery_pattern',
     'textures/blocks/arms_up_pottery_pattern',
@@ -1667,7 +1666,7 @@ const IGNORED_TEXTURES: string[] = [
     'textures/ui/proton_lowdetail',
     'textures/ui/render_dragon',
     'textures/ui/white_slider_progress'
-];
+]);
 
 async function validate() {
     console.log('--- Starting Icon Validation ---');
@@ -1682,7 +1681,7 @@ async function validate() {
             continue;
         }
 
-        if (!vanillaTextures.has(icon) && !customTextures.has(icon) && !IGNORED_TEXTURES.includes(icon)) {
+        if (!vanillaTextures.has(icon) && !customTextures.has(icon) && !IGNORED_TEXTURES.has(icon)) {
             console.error(`\x1b[31m[Error] Invalid texture path:\x1b[0m ${icon}`);
             console.error(`  Found in:`);
             const uniqueFiles = Array.from(new Set(files));

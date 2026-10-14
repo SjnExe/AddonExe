@@ -10,11 +10,32 @@
         "no-var": "error",
         "curly": "error",
         "no-console": "warn",
-        "no-unused-vars": ["error", { "args": "all", "argsIgnorePattern": "^_" }],
+        "no-unused-vars": [
+            "error",
+            {
+                "args": "all",
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
         "typescript/no-explicit-any": "error",
         "typescript/no-shadow": "error",
-        "typescript/no-unused-vars": ["error", { "args": "all", "argsIgnorePattern": "^_" }],
-        "typescript/ban-ts-comment": ["error", { "ts-ignore": "allow-with-description", "ts-nocheck": true, "ts-check": false }],
+        "typescript/no-unused-vars": [
+            "error",
+            {
+                "args": "all",
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
+        "typescript/ban-ts-comment": [
+            "error",
+            {
+                "ts-ignore": "allow-with-description",
+                "ts-nocheck": true,
+                "ts-check": false
+            }
+        ],
         "minecraft-linting/avoid-unnecessary-command": "error"
     },
     "ignorePatterns": ["node_modules/", "dist/", "package-lock.json", ".git/", "packs/resource/font/", ".github/", "Docs/", "**/packs/behavior/scripts/**", "package.json", "packs/**"],
