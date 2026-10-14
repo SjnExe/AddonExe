@@ -27,7 +27,7 @@ export async function showWorldProtectionListPanel(player: mc.Player, context: R
     });
 
     form.addBackButton(async () => {
-        await showPanel(player, 'essentialsMainPanel', context);
+        await showPanel(player, 'staffWorldHub', context);
     });
 
     await form.show(player);

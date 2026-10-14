@@ -1,46 +1,38 @@
 # Coding Style Guidelines
 
-This document outlines coding style conventions to be followed for this project to ensure consistency, readability, and maintainability. Adherence to these guidelines is expected for all contributions.
+This document outlines the coding style conventions enforced across **AddonExe** by Oxlint, custom AST rules (`scripts/lint/minecraft-rules.ts`), and Prettier.
 
-## Naming Conventions
+## 1. Naming Conventions
 
-The general rule for all project-specific JavaScript identifiers (variables, function names, object properties, etc.) is that **any code style is allowed, but not snake_case**.
+- **No `snake_case` in TypeScript:** Project-specific identifiers (variables, functions, parameters, class properties) **must not** use `snake_case` or `UPPER_SNAKE_CASE`.
+    - Use `camelCase` for variables, functions, methods, and constants (e.g., `maxListingsPerPlayer`, `floatingTextId`).
+    - Use `PascalCase` for classes, interfaces, type aliases, and enums (e.g., `ActionFormBuilder`, `CustomCommand`).
+- **Exceptions for Minecraft & External Schemas:**
+    - Native Minecraft identifiers (e.g., `'slow_falling'`, `'exe:floating_text'`, `'random.orb'`) and JSON UI properties must preserve their required format.
+    - Prefer `@minecraft/vanilla-data` enums (`MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftDimensionTypes`) over raw `'minecraft:*'` strings.
 
-The use of `snake_case` (e.g., `my_variable`) or `UPPER_SNAKE_CASE` (e.g., `MY_CONSTANT`) is disallowed to maintain a consistent style across the codebase.
+## 2. Formatting (Prettier)
 
-### Exception for Minecraft Identifiers
+- **Indentation:** 4 spaces (no tabs).
+- **Quotes:** Single quotes (`'`) for TypeScript strings; double quotes (`"`) for JSON.
+- **Semicolons:** Required at the end of all statements.
+- **Braces:** Always use curly braces `{}` for control flow blocks (`if`, `for`, `while`), even for single-line statements.
+- **Formatting Command:** Format only modified files using `bunx prettier --write --cache <files>`.
 
-- When interacting with native Minecraft APIs, it is necessary to use the case style defined by the game itself.
-- Many Minecraft identifiers (e.g., item IDs, entity type IDs, effect types) use **`snake_case`**.
-- When using these identifiers as string literals, their original `snake_case` format **MUST** be preserved.
-- **Example:** `player.addEffect('slow_falling', ...)` is correct; `player.addEffect('slowFalling', ...)` would fail.
+## 3. Type Safety & Guards
 
-## Command System Conventions
+- Avoid `any` and unsafe type assertions.
+- Use helper guards from `@lib/guards.js` (`isDefined`, `isNonEmptyString`, `isNumber`) to satisfy strict null/boolean checks.
+- Always use strict equality (`===`, `!==`).
 
-### Command Naming
+## 4. Command Conventions
 
-- User-facing commands typed in chat **MUST** be lowercase (e.g., `/gmc`, `/xhelp`).
-- The internal registration name of a command (in its definition file) **SHOULD** be descriptive and clear (e.g., `ban`, `kick`, `mute`).
+- Slash command names and aliases must be lowercase.
+- Commands that conflict with vanilla Bedrock commands use an `x` prefix via `slashName` (e.g., `xhelp`, `xclear`, `xgamemode`, `xkick`, `xreload`, `xsave`).
+- Every command must define a `permissionNode` following `cmd.<name>.<tier>` (e.g., `cmd.ban.admin`, `cmd.kick.mod`, `cmd.spawn.member`).
 
-## JSDoc and Comments
+## 5. Logging
 
-- **JSDoc:** The `require-jsdoc` linting rule is disabled. However, if you choose to write JSDoc comments, you **SHOULD** follow a compact style. Multi-line comments (`/** ... */`) should only be used when necessary.
-- **Clarity:** There should be no unnecessary comments or empty lines. Code should be as self-documenting as possible.
-
-## General Formatting
-
-- **Indentation:** Use 4 spaces for indentation.
-- **Brace Style:** Follow the existing brace style (One True Brace Style).
-- **Readability:** Aim for clarity and readability in all code.
-- For more detailed rules, refer to `Dev/StandardizationGuidelines.md`.
-
-## Logging
-
-- **Purpose:** Logging is crucial for diagnosing issues and understanding behavior. Logs **SHOULD** be clear, concise, and informative.
-- **Performance:** Expensive operations to gather data for logs **MUST** be conditional on a check like `if (config.enableDebugLogging || pData?.isWatched)`.
-- **Tooling:**
-    - Use `playerUtils.debugLog()` for development messages.
-    - Use `logManager.addLog()` for persistent, structured action and error logging.
-    - Use `playerUtils.notifyAdmins()` for important real-time notifications to staff.
-    - Use `playerUtils.warnPlayer()` for direct warnings to players.
-- For detailed implementation, see the **Debugging and Logging** section in the main `README.md` or `AGENTS.md`.
+- Use `debugLog`, `infoLog`, `warnLog`, and `errorLog` from `@core/logger.js`.
+- Verbosity is controlled via `config.logLevel` (`0` = ERROR, `1` = WARN, `2` = INFO, `3` = DEBUG).
+- For persistent moderation/flag records, use `src/features/anticheat/logManager.ts` and `src/features/moderation/chatLogManager.ts`.

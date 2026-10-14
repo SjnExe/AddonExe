@@ -1,67 +1,37 @@
-# Addon Development Resources
+# AddonExe Developer Guide
 
-This folder contains useful resources, documentation links, and potentially helper scripts for the development and debugging of this Minecraft Bedrock Edition addon.
+This directory contains technical documentation and architectural references for developing **AddonExe**.
 
-## Official Minecraft Bedrock Creator Documentation
+## Official Minecraft Bedrock Creator References
 
-The primary hub for all official Bedrock addon development documentation is:
+- [Minecraft Creator Documentation (Bedrock)](https://learn.microsoft.com/en-us/minecraft/creator/?view=minecraft-bedrock-stable)
+- [@minecraft/server API Reference](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/minecraft-server?view=minecraft-bedrock-stable)
+- [@minecraft/server-ui API Reference](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server-ui/minecraft-server-ui?view=minecraft-bedrock-stable)
 
-- **[Minecraft Creator Documentation (Bedrock)](https://learn.microsoft.com/en-us/minecraft/creator/?view=minecraft-bedrock-stable)**
+## Codebase Architecture
 
-### Scripting APIs (`@minecraft/server`)
+- **`src/`**: All TypeScript source code (compiled to `packs/behavior/scripts/`).
+    - **`src/config.ts`**: Primary configuration defaults and feature switches.
+    - **`src/core/`**: Core managers, command registration, storage, permission engine, and UI builders/panels.
+    - **`src/features/`**: Modular feature packages (`anticheat`, `auction`, `daily`, `economy`, `essentials`, `games`, `kit`, `moderation`, `ranks`, `shop`, `sidebar`, `social`, `team`, `teleport`, `test`, `vote`).
+- **`packs/behavior/`**: Behavior Pack entities, items, recipes, loot tables, and `functions/owner.mcfunction`.
+- **`packs/resource/`**: Resource Pack custom dark-mode UI (`ui/server_form.json`), HUD, scoreboard, and pause screen overrides.
+- **`scripts/`**: Bun build, manifest generation, schema validation, and Oxlint scripts.
 
-- **Overview & Getting Started:**
-    - [Introduction to Scripting](https://learn.microsoft.com/en-us/minecraft/creator/documents/scripting/introduction?view=minecraft-bedrock-stable)
-    - [Scripting API Reference (Main Page)](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/?view=minecraft-bedrock-stable)
-- **Core World & Event Handling:**
-    - [World Class (world, events)](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/world?view=minecraft-bedrock-stable)
-    - [WorldBeforeEvents Class](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/worldbeforeevents?view=minecraft-bedrock-stable)
-    - [WorldAfterEvents Class](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server/worldafterevents?view=minecraft-bedrock-stable)
-- **User Interface (Server-Side):**
-    - [@minecraft/server-ui Module](https://learn.microsoft.com/en-us/minecraft/creator/scriptapi/minecraft/server-ui/minecraft-server-ui?view=minecraft-bedrock-stable)
+## Build & Versioning Workflow
 
-## Target Minecraft Version
+`package.json` is the single source of truth for the addon version.
 
-The addon currently targets Minecraft Bedrock version 1.21.110 and newer. Please ensure development and testing align with this version.
+- **Local Build:** `bun run build` compiles TypeScript and updates `packs/*/manifest.json`.
+- **Packaged Archive:** `bun scripts/build.ts --zip` generates `.mcaddon` and `.mcpack` archives.
+- **Nightly Build:** `bun run build:nightly` injects the nightly test suite and appends the CI run number.
+- **Release Build:** `bun run build:release` minifies output for production releases.
+- **Update Minecraft Beta Dependencies:** `bun run mc-update`.
 
-## Codebase Architecture Overview
+## Developer Documentation Index
 
-The AddonExe is structured to be modular and configurable.
-
-- **`src/`**: The root for all source code (TypeScript). This is compiled to `packs/behavior/scripts/`.
-    - **`config.default.ts`**: The template configuration. Developers should copy this to `src/config.ts` for local customization.
-    - **`core/`**: Houses the central manager modules that form the backbone of the addon (e.g., `playerDataManager.ts`, `rankManager.ts`).
-    - **`modules/`**: Contains feature-specific logic, separated from the core managers (e.g., commands).
-
-## Versioning & Release Workflow
-
-The project uses a structured versioning system where `package.json` is the single source of truth.
-
-- **Source of Truth:** The version in `package.json` controls the version of the generated addon.
-- **Manifest Templates:** The `manifest.json` files in `packs/` are generated from `manifest.template.json` during the build. Do not edit `manifest.json` directly as it is git-ignored and will be overwritten.
-- **Build Modes:**
-    - **Local Build:** `bun run build` uses the exact version from `package.json`.
-    - **Public Release:** Triggered by tagging a commit with `vX.Y.Z`. Enforces `Patch = 0` (e.g., `1.2.0`).
-    - **Nightly Build:** Triggered by pushes to the `Dev` branch. Uses `Major.Minor` from `package.json` + GitHub Run Number as the patch (e.g., `0.7.124`).
-
-## TypeScript Development
-
-The codebase uses **TypeScript** for robustness and maintainability.
-
-- **Source Directory:** All behavior pack scripts are located in `src/`.
-- **Compilation:** Run `bun run build` to compile the TypeScript source into JavaScript in `packs/behavior/scripts/`. This command also auto-generates the `manifest.json` files.
-- **Local Configuration:**
-    - The repository contains `src/config.default.ts` as the template.
-    - **Action:** Create a copy named `src/config.ts`. This file is git-ignored.
-    - Use `src/config.ts` to customize your local development environment. The build process will prioritize it.
-
-## Performance Profiling
-
-To help identify potential bottlenecks, the addon includes a basic performance profiling feature.
-
-- **Enable:** Set `enablePerformanceProfiling: true` in your config.
-- **Logging:** When enabled, aggregated performance data will be logged to the content log.
-
-## Important Workflow Notes for AI Assistants
-
-For detailed guidelines, project-specific conventions, and workflow instructions tailored for AI assistants (like Jules) working on this codebase, please refer to the main **[agents.md](../../agents.md)** file located in the root of the repository.
+- [Agent & Contributor Technical Guide](../AGENTS.md)
+- [Coding Style Guidelines](CodingStyle.md)
+- [Standardization Guidelines](StandardizationGuidelines.md)
+- [Configuration Loading & Merging Explained](ConfigurationExplanation.md)
+- [Minecraft Bedrock Text Formatting Codes](MinecraftTextFormatting.md)

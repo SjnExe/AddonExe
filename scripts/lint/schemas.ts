@@ -125,7 +125,7 @@ function validateUiJson(relativePath: string, json: any): string[] {
 
         // Rule 2: Specific dynamic controls expected by Bedrock C++ UI engine
         if (keyPath.endsWith('long_form_dynamic_buttons_panel')) {
-            if (obj.type && obj.type !== 'stack_panel') {
+            if (obj.type && obj.type !== 'stack_panel' && obj.type !== 'panel') {
                 uiErrors.push(`${keyPath}: 'long_form_dynamic_buttons_panel' must be of type 'stack_panel' (found '${obj.type}').`);
             }
             if (obj.factory && !obj.factory.control_ids) {

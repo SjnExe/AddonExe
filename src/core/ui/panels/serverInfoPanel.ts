@@ -40,7 +40,7 @@ export async function showServerRulesPanel(player: mc.Player): Promise<void> {
     }
 
     form.addBackButton(async () => {
-        await showInfoPanel(player);
+        await showPanel(player, 'profileHub');
     });
 
     await form.show(player);
@@ -59,7 +59,7 @@ export async function showHelpfulLinksPanel(player: mc.Player): Promise<void> {
     }
 
     form.addBackButton(async () => {
-        await showInfoPanel(player);
+        await showPanel(player, 'profileHub');
     });
 
     await form.show(player);
