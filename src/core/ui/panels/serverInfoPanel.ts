@@ -30,7 +30,7 @@ export async function showServerRulesPanel(player: mc.Player): Promise<void> {
     const config = getConfig();
     const rules = config.serverInfo.rules;
 
-    const form = new ActionFormBuilder().title('Server Rules');
+    const form = new ActionFormBuilder().grid(1).title('Server Rules');
 
     if (rules.length === 0) {
         form.body('No rules have been set by the server administrator.');
@@ -49,7 +49,7 @@ export async function showServerRulesPanel(player: mc.Player): Promise<void> {
 export async function showHelpfulLinksPanel(player: mc.Player): Promise<void> {
     const links = getHelpfulLinks();
 
-    const form = new ActionFormBuilder().title('Helpful Links');
+    const form = new ActionFormBuilder().grid(1).title('Helpful Links');
 
     if (links.length === 0) {
         form.body('No helpful links have been provided.');
