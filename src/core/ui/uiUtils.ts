@@ -3,21 +3,30 @@ import { ActionFormData } from '@minecraft/server-ui';
 import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
 import {
     DailyRewardsConfig,
+    FriendConfig,
     getAuctionHouseConfig,
     getDailyRewardsConfig,
     getEconomyConfig,
+    getFriendConfig,
     getGamesConfig,
+    getRanksConfig,
+    getShopConfig,
     getSidebarConfig,
     getTeamConfig,
     getWordleConfig,
+    getWorldProtectionConfig,
     getXrayConfig,
     saveAuctionHouseConfig,
     saveDailyRewardsConfig,
     saveEconomyConfig,
+    saveFriendConfig,
     saveGamesConfig,
+    saveRanksConfig,
+    saveShopConfig,
     saveSidebarConfig,
     saveTeamConfig,
     saveWordleConfig,
+    saveWorldProtectionConfig,
     saveXrayConfig,
     SidebarConfig
 } from '@core/configurations.js';
@@ -28,10 +37,11 @@ import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@featu
 import { xrayConfig } from '@features/anticheat/xrayConfig.js';
 import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.js';
 import { economyConfig } from '@features/economy/economyConfig.js';
+import { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.js';
 import { gamesConfig } from '@features/games/gamesConfig.js';
 import { wordleConfig } from '@features/games/wordle/wordleConfig.js';
 import ranksConfig from '@features/ranks/ranksConfig.js';
-import { getShopConfig, saveShopConfig, shopConfig } from '@features/shop/shopConfig.js';
+import { shopConfig } from '@features/shop/shopConfig.js';
 import { teamConfig } from '@features/team/teamConfig.js';
 import * as mc from '@minecraft/server';
 
@@ -50,7 +60,20 @@ export const itemsPerPage = 8;
 
 interface ConfigHandler {
     get: () =>
-        typeof Config | EconomyConfig | XrayConfig | TeamConfig | RanksConfig | ShopConfig | SidebarConfig | AnticheatConfig | AuctionHouseConfig | GamesConfig | WordleConfig | DailyRewardsConfig;
+        | typeof Config
+        | EconomyConfig
+        | XrayConfig
+        | TeamConfig
+        | RanksConfig
+        | ShopConfig
+        | SidebarConfig
+        | AnticheatConfig
+        | AuctionHouseConfig
+        | GamesConfig
+        | WordleConfig
+        | DailyRewardsConfig
+        | FriendConfig
+        | WorldProtectionConfig;
     save: (config: unknown) => void;
 }
 
@@ -99,6 +122,18 @@ export const configHandlers: Record<string, ConfigHandler> = {
     dailyRewards: {
         get: getDailyRewardsConfig,
         save: (config: unknown) => saveDailyRewardsConfig(config as DailyRewardsConfig)
+    },
+    friend: {
+        get: getFriendConfig,
+        save: (config: unknown) => saveFriendConfig(config as FriendConfig)
+    },
+    ranks: {
+        get: getRanksConfig,
+        save: (config: unknown) => saveRanksConfig(config as RanksConfig)
+    },
+    worldProtection: {
+        get: getWorldProtectionConfig,
+        save: (config: unknown) => saveWorldProtectionConfig(config as WorldProtectionConfig)
     }
 };
 
@@ -174,13 +209,18 @@ export interface SystemItem {
 
 export const categoryIcons: Record<string, string> = {
     Server: 'textures/ui/icon_book_writable',
+    'Server & Network': 'textures/ui/icon_book_writable',
     Gameplay: 'textures/items/iron_sword',
     System: 'textures/ui/settings_glyph_color_2x',
     Economy: 'textures/items/emerald',
     Moderation: 'textures/ui/WarningGlyph',
+    'Moderation & Rules': 'textures/ui/WarningGlyph',
     World: 'textures/blocks/beacon',
+    'Teleportation & World': 'textures/blocks/beacon',
     Visuals: 'textures/items/book_writable',
+    'Visuals & UI': 'textures/items/book_writable',
     Social: 'textures/ui/icon_multiplayer',
+    Games: 'textures/ui/controller_glyph_color',
     Chat: 'textures/ui/chat_send'
 };
 

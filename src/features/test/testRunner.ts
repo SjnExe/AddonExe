@@ -12,11 +12,23 @@ export interface TestSuite {
     tests: TestCase[];
 }
 
+export interface SuiteRunSummary {
+    suiteName: string;
+    passed: number;
+    failed: number;
+    durationMs: number;
+}
+
+export interface TestResult {
+    passed: number;
+    failed: number;
+    durationMs: number;
+    suites: SuiteRunSummary[];
+    errors: { testName: string; error: unknown }[];
+}
+
 const testSuites: Map<string, TestSuite> = new Map();
 
-/**
- * Register a new test suite with a specific context name.
- */
 export function registerSuite(name: string): TestSuite {
     if (testSuites.has(name)) {
         return testSuites.get(name)!;
@@ -26,26 +38,21 @@ export function registerSuite(name: string): TestSuite {
     return suite;
 }
 
-/**
- * Add a test to a suite.
- */
+export function getRegisteredSuiteNames(): string[] {
+    return Array.from(testSuites.keys());
+}
+
 export function addTest(suiteName: string, testName: string, fn: TestFunction) {
     const suite = registerSuite(suiteName);
-    suite.tests.push({ name: testName, fn });
+    if (!suite.tests.some((t) => t.name === testName)) {
+        suite.tests.push({ name: testName, fn });
+    }
 }
 
-export interface TestResult {
-    passed: number;
-    failed: number;
-    errors: { testName: string; error: unknown }[];
-}
-
-/**
- * Runs a specific suite and returns the result.
- */
 export async function runSuite(suite: TestSuite): Promise<TestResult> {
+    const startMs = Date.now();
     infoLog(`[TestRunner] Starting suite: '${suite.name}' (${suite.tests.length} tests)`);
-    const result: TestResult = { passed: 0, failed: 0, errors: [] };
+    const result: TestResult = { passed: 0, failed: 0, durationMs: 0, suites: [], errors: [] };
 
     for (const test of suite.tests) {
         debugLog(`[TestRunner] Running test: ${suite.name} > ${test.name}`);
@@ -56,22 +63,27 @@ export async function runSuite(suite: TestSuite): Promise<TestResult> {
         } catch (e: unknown) {
             result.failed++;
             result.errors.push({ testName: `${suite.name} > ${test.name}`, error: e });
-            errorLog(`[TestRunner] FAIL: ${test.name}`, e);
+            errorLog(`[TestRunner] FAIL: ${suite.name} > ${test.name}`, e);
         }
     }
 
+    result.durationMs = Date.now() - startMs;
+    result.suites.push({
+        suiteName: suite.name,
+        passed: result.passed,
+        failed: result.failed,
+        durationMs: result.durationMs
+    });
     return result;
 }
 
-/**
- * Runs one or all suites. Returns a combined TestResult.
- */
 export async function runTests(context?: string): Promise<TestResult> {
-    const combinedResult: TestResult = { passed: 0, failed: 0, errors: [] };
+    const overallStart = Date.now();
+    const combinedResult: TestResult = { passed: 0, failed: 0, durationMs: 0, suites: [], errors: [] };
 
     let suitesToRun: TestSuite[] = [];
 
-    if (context) {
+    if (context && context !== 'all') {
         const suite = testSuites.get(context);
         if (!suite) {
             warnLog(`[TestRunner] Test suite '${context}' not found.`);
@@ -83,7 +95,7 @@ export async function runTests(context?: string): Promise<TestResult> {
     }
 
     if (suitesToRun.length === 0) {
-        warnLog(`[TestRunner] No test suites registered to run.`);
+        warnLog('[TestRunner] No test suites registered to run.');
         return combinedResult;
     }
 
@@ -91,36 +103,35 @@ export async function runTests(context?: string): Promise<TestResult> {
         const result = await runSuite(suite);
         combinedResult.passed += result.passed;
         combinedResult.failed += result.failed;
+        combinedResult.suites.push(...result.suites);
         combinedResult.errors.push(...result.errors);
     }
 
-    // Summary
+    combinedResult.durationMs = Date.now() - overallStart;
+
     const total = combinedResult.passed + combinedResult.failed;
-    const summaryHeader = `\n========== TEST RUN SUMMARY ==========`;
-    const summaryBody = `Total: ${total} | Passed: ${combinedResult.passed} | Failed: ${combinedResult.failed}`;
+    const summaryHeader = '\n========== TEST RUN SUMMARY ==========';
+    const summaryBody = `Total: ${total} | Passed: ${combinedResult.passed} | Failed: ${combinedResult.failed} | Time: ${combinedResult.durationMs}ms`;
 
     if (combinedResult.failed > 0) {
         errorLog(summaryHeader);
         errorLog(summaryBody);
-        errorLog(`Failures:`);
+        errorLog('Failures:');
         for (const err of combinedResult.errors) {
             const errStr = err.error instanceof Error ? err.error.message : String(err.error);
             errorLog(` - [${err.testName}]: ${errStr}`);
         }
-        errorLog(`======================================\n`);
+        errorLog('======================================\n');
     } else {
         infoLog(summaryHeader);
         infoLog(summaryBody);
-        infoLog(`All tests passed successfully!`);
-        infoLog(`======================================\n`);
+        infoLog('All tests passed successfully!');
+        infoLog('======================================\n');
     }
 
     return combinedResult;
 }
 
-/**
- * Assertion utility functions
- */
 export const assert = {
     ok(value: unknown, message?: string) {
         if (!value) {
@@ -130,6 +141,13 @@ export const assert = {
     equal<T>(actual: T, expected: T, message?: string) {
         if (actual !== expected) {
             throw new Error(message || `Expected ${String(expected)}, got ${String(actual)}`);
+        }
+    },
+    deepEqual(actual: unknown, expected: unknown, message?: string) {
+        const aJson = JSON.stringify(actual);
+        const eJson = JSON.stringify(expected);
+        if (aJson !== eJson) {
+            throw new Error(message || `Expected ${eJson}, got ${aJson}`);
         }
     },
     notEqual<T>(actual: T, expected: T, message?: string) {
@@ -145,7 +163,7 @@ export const assert = {
             threw = true;
         }
         if (!threw) {
-            throw new Error(message || `Expected function to throw`);
+            throw new Error(message || 'Expected function to throw');
         }
     },
     async throwsAsync(fn: () => Promise<void>, message?: string) {
@@ -156,7 +174,7 @@ export const assert = {
             threw = true;
         }
         if (!threw) {
-            throw new Error(message || `Expected async function to throw`);
+            throw new Error(message || 'Expected async function to throw');
         }
     }
 };

@@ -18,6 +18,9 @@ export async function showKitManagementPanel(player: mc.Player, page: number = 1
             player.sendMessage(`§2Kit system ${newStatus ? 'enabled' : 'disabled'}.`);
             await showKitManagementPanel(player, page);
         })
+        .button('§l§6Starter Kit Settings', 'textures/items/stone_sword', async () => {
+            await showStarterKitSettingsPanel(player, page);
+        })
         .button('§l§2+ Create New Kit', 'textures/ui/color_plus', async () => {
             const modal = new CustomFormBuilder<{ name: string }>('Create Kit').textField('name', 'Kit Name', 'Enter unique name', '').submitButton('Create Kit');
             const res = await modal.show(player);
@@ -197,4 +200,44 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
     });
 
     await form.show(player);
+}
+
+export async function showStarterKitSettingsPanel(player: mc.Player, returnPage: number = 1): Promise<void> {
+    const mainConfig = getConfig();
+    const allKits = kitAdminManager.getAllKits();
+    const kitNames = Object.keys(allKits);
+    const currentKitName = mainConfig.kits.starterKit.kitName || 'starter';
+
+    if (kitNames.length > 0) {
+        const defaultIdx = Math.max(0, kitNames.indexOf(currentKitName));
+        const modal = new CustomFormBuilder<{ enabled: boolean; kitName: string }>('Starter Kit Settings')
+            .toggle('enabled', 'Give Starter Kit on First Join', mainConfig.kits.starterKit.enabled)
+            .dropdown('kitName', 'Select Starter Kit', kitNames, defaultIdx)
+            .submitButton('Save Settings');
+
+        const res = await modal.show(player);
+        if (res) {
+            updateMultipleConfig({
+                'kits.starterKit.enabled': res.enabled,
+                'kits.starterKit.kitName': res.kitName || currentKitName
+            });
+            player.sendMessage('§2Starter kit settings updated.');
+        }
+    } else {
+        const modal = new CustomFormBuilder<{ enabled: boolean; kitName: string }>('Starter Kit Settings')
+            .toggle('enabled', 'Give Starter Kit on First Join', mainConfig.kits.starterKit.enabled)
+            .textField('kitName', 'Starter Kit Name', 'starter', currentKitName)
+            .submitButton('Save Settings');
+
+        const res = await modal.show(player);
+        if (res) {
+            updateMultipleConfig({
+                'kits.starterKit.enabled': res.enabled,
+                'kits.starterKit.kitName': res.kitName.trim() || 'starter'
+            });
+            player.sendMessage('§2Starter kit settings updated.');
+        }
+    }
+
+    await showKitManagementPanel(player, returnPage);
 }

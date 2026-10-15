@@ -53,6 +53,32 @@ mock.module('@minecraft/common', () => ({
     InvalidArgumentErrorType: { Duplicate: 'Duplicate', Empty: 'Empty', InvalidType: 'InvalidType', Unknown: 'Unknown', Unspecified: 'Unspecified', UnsupportedValue: 'UnsupportedValue' }
 }));
 
+mock.module('virtual:icon-index', () => ({
+    usedIcons: ['textures/ui/color_plus', 'textures/items/diamond']
+}));
+
+mock.module('virtual:command-index', () => ({
+    loadCommands: async () => {
+        const glob = new Bun.Glob('src/features/**/commands/*.ts');
+        const { commandManager } = await import('@core/commands/commandManager.js');
+        for (const file of glob.scanSync('.')) {
+            if (file.endsWith('index.ts')) {
+                continue;
+            }
+            const mod = await import(`../../../../${file}`);
+            if (mod.default) {
+                if (Array.isArray(mod.default)) {
+                    for (const c of mod.default) {
+                        commandManager.register(c);
+                    }
+                } else {
+                    commandManager.register(mod.default);
+                }
+            }
+        }
+    }
+}));
+
 import { _resetMinecraftMocks } from './minecraftMock.ts';
 
 beforeEach(async () => {

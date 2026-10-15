@@ -473,6 +473,20 @@ export function initializeDefaultMenuItems(): void {
         }
     });
 
+    registerMenuItem({
+        id: 'staff_warps_mgmt',
+        title: 'Server Warps Manager',
+        description: 'Create, edit, teleport to & delete server warps',
+        icon: 'textures/blocks/portal',
+        hub: 'staff_world',
+        permissionNode: 'ui.panel.admin',
+        order: 30,
+        action: async (p) => {
+            const { showWarpsAdminPanel } = await import('@features/teleport/ui/warpAdminPanel.js');
+            await showWarpsAdminPanel(p);
+        }
+    });
+
     // --- STAFF CONFIG SUB-ITEMS ---
     registerMenuItem({
         id: 'staff_master_toggles',

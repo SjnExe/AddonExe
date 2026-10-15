@@ -138,7 +138,7 @@ export async function showShopAdminCategoryPanel(player: mc.Player, categoryName
         page,
         (entry, formBuilder) => {
             if (entry.type === 'subCategory') {
-                formBuilder.button(`§l📁 ${entry.name}`, entry.icon, () => {
+                formBuilder.button(`§l§6[Dir] §r§l${entry.name}`, entry.icon, () => {
                     void showShopAdminSubCategoryActionPanel(player, categoryName, entry.id);
                 });
             } else {
@@ -483,7 +483,7 @@ export async function showEditItemFormPanel(player: mc.Player, categoryName: str
                 displayName: res.displayName,
                 icon: res.icon,
                 permission: res.permission,
-                ...(rankOverrides ? { rankOverrides } : {})
+                ...(rankOverrides ? { rankMultiplierOverrides: rankOverrides } : {})
             };
             shopAdminManager.updateShopItem(categoryName, subCategoryName, itemKey, newItemData);
             player.sendMessage(`§2Item updated: ${res.itemId}`);

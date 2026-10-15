@@ -1,4 +1,4 @@
-import { updateMultipleConfig } from '@core/configManager.js';
+import { resetConfigSection, updateMultipleConfig } from '@core/configManager.js';
 import { debugLog } from '@core/logger.js';
 import { getValueFromPath } from '@core/objectUtils.js';
 import { hasPermission } from '@core/permissionEngine.js';
@@ -114,28 +114,35 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
         return showConfigCategoryPanel(player, { page: 1 });
     }
 
-    const configSource = schema.configSource ?? 'main';
-    const handler = uiConfigHandlers[configSource];
-    if (!isDefined(handler)) {
-        debugLog(`[UI Config] Configuration handler not found for source: ${configSource}`);
+    const defaultSource = schema.configSource ?? 'main';
+    const defaultHandler = uiConfigHandlers[defaultSource];
+    if (!isDefined(defaultHandler)) {
+        debugLog(`[UI Config] Configuration handler not found for source: ${defaultSource}`);
         player.sendMessage('§cConfiguration handler not found.');
         return showConfigCategoryPanel(player, { page: 1 });
     }
 
-    debugLog(`[UI Config] Loading config for system: ${systemId} from source: ${configSource} | Page: ${_context.page ?? 1}`);
-    const config = handler.get();
+    debugLog(`[UI Config] Loading config for system: ${systemId} from source: ${defaultSource} | Page: ${_context.page ?? 1}`);
     const modal = new CustomFormBuilder<Record<string, unknown>>(schema.title).submitButton('Save Settings');
     const validSettings: SettingSchema[] = [];
 
     for (const setting of schema.settings) {
+        const source = setting.configSource ?? defaultSource;
+        const handler = uiConfigHandlers[source];
+        if (!isDefined(handler)) {
+            continue;
+        }
+        const config = handler.get();
         const currentValue = getValueFromPath(config, setting.key);
-        if (currentValue === undefined) {
+        if (currentValue === undefined && !setting.key.startsWith('spawn.spawnLocation.')) {
             continue;
         }
 
-        validSettings.push(setting);
+        validSettings.push({ ...setting, configSource: source });
         let displayVal: string;
-        if (Array.isArray(currentValue)) {
+        if (currentValue === undefined) {
+            displayVal = '';
+        } else if (Array.isArray(currentValue)) {
             displayVal = currentValue.join(', ');
         } else {
             displayVal = typeof currentValue === 'string' || typeof currentValue === 'number' || typeof currentValue === 'boolean' ? String(currentValue) : JSON.stringify(currentValue);
@@ -146,7 +153,10 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
         } else if (setting.type === 'textField') {
             modal.textField(setting.key, setting.label, '', displayVal);
         } else if (setting.options) {
-            const idx = setting.options.indexOf(displayVal);
+            let idx = setting.options.indexOf(displayVal);
+            if (idx === -1 && typeof currentValue === 'number') {
+                idx = setting.options.findIndex((opt) => opt.startsWith(`${currentValue}:`));
+            }
             modal.dropdown(setting.key, setting.label, setting.options, Math.max(0, idx));
         }
     }
@@ -156,9 +166,26 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
         return showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
     }
 
-    const updates = _processFormValues(validSettings, res, config as Record<string, unknown>);
-    debugLog(`[UI Config] Saving updates for source: ${configSource} - ${JSON.stringify(updates)}`);
-    _saveConfigUpdates(handler, configSource, updates);
+    const updatesBySource: Record<string, SettingSchema[]> = {};
+    for (const s of validSettings) {
+        const src = s.configSource ?? defaultSource;
+        if (!updatesBySource[src]) {
+            updatesBySource[src] = [];
+        }
+        updatesBySource[src]!.push(s);
+    }
+
+    for (const [src, settingsForSource] of Object.entries(updatesBySource)) {
+        const handler = uiConfigHandlers[src];
+        if (!isDefined(handler)) {
+            continue;
+        }
+        const srcConfig = handler.get() as Record<string, unknown>;
+        const updates = _processFormValues(settingsForSource, res, srcConfig);
+        debugLog(`[UI Config] Saving updates for source: ${src} - ${JSON.stringify(updates)}`);
+        _saveConfigUpdates(handler, src, updates);
+    }
+
     player.sendMessage('§2Configuration saved.');
     await showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
 }
@@ -172,10 +199,10 @@ export async function showConfigResetPanel(player: mc.Player): Promise<void> {
         .button('§l§4Full Factory Reset', 'textures/ui/WarningGlyph', () => {
             void showConfirmationDialog(player, {
                 title: 'Full Factory Reset',
-                body: 'Are you absolutely sure?',
-                onConfirm: () => {
-                    player.sendMessage('§aFull Factory Reset complete.');
-                    return Promise.resolve();
+                body: 'Are you absolutely sure you want to reset ALL configurations to default?',
+                onConfirm: async () => {
+                    const res = await resetConfigSection('all', player);
+                    player.sendMessage(res.success ? `§a${res.message}` : `§c${res.message}`);
                 }
             });
         });
@@ -204,9 +231,9 @@ export async function showConfigResetCategoryPanel(player: mc.Player, category: 
             void showConfirmationDialog(player, {
                 title: `Reset ${sys.title}`,
                 body: 'Are you sure?',
-                onConfirm: () => {
-                    player.sendMessage(`§aReset ${sys.title}.`);
-                    return Promise.resolve();
+                onConfirm: async () => {
+                    const res = await resetConfigSection(sys.id, player);
+                    player.sendMessage(res.success ? `§aReset ${sys.title}.` : `§c${res.message}`);
                 }
             });
         });
@@ -277,7 +304,16 @@ export async function showConfigImportPanel(player: mc.Player): Promise<void> {
 
     if (isNonEmptyString(res.json)) {
         try {
-            JSON.parse(res.json);
+            const parsed = JSON.parse(res.json) as Record<string, unknown>;
+            if (res.system === 'All Systems') {
+                for (const [key, handler] of uiConfigHandlerEntries) {
+                    if (isDefined(parsed[key]) && typeof parsed[key] === 'object') {
+                        handler.save(parsed[key]);
+                    }
+                }
+            } else if (res.system && uiConfigHandlers[res.system]) {
+                uiConfigHandlers[res.system]!.save(parsed);
+            }
             player.sendMessage('§aImport completed.');
         } catch {
             player.sendMessage('§4Invalid JSON format.');
@@ -295,6 +331,12 @@ function _processFormValues(validSettings: SettingSchema[], formValues: Record<s
             if (typeof val === 'number') {
                 val = setting.options[val] ?? val;
             }
+            if (typeof currentValue === 'number' && typeof val === 'string') {
+                const parsedInt = Number.parseInt(val, 10);
+                if (!Number.isNaN(parsedInt)) {
+                    val = parsedInt;
+                }
+            }
         } else if (setting.type === 'textField') {
             if (Array.isArray(currentValue)) {
                 if (typeof val === 'string') {
@@ -305,12 +347,16 @@ function _processFormValues(validSettings: SettingSchema[], formValues: Record<s
                 } else {
                     val = currentValue;
                 }
-            } else if (typeof currentValue === 'number') {
-                const parsed = Number.parseFloat(val as string);
-                if (!Number.isNaN(parsed)) {
-                    val = parsed;
+            } else if (typeof currentValue === 'number' || setting.key.startsWith('spawn.spawnLocation.')) {
+                if (setting.key.startsWith('spawn.spawnLocation.') && typeof val === 'string' && val.trim() === '') {
+                    val = undefined;
                 } else {
-                    val = currentValue;
+                    const parsed = Number.parseFloat(val as string);
+                    if (!Number.isNaN(parsed)) {
+                        val = parsed;
+                    } else {
+                        val = currentValue;
+                    }
                 }
             } else if (typeof currentValue === 'boolean') {
                 val = val === 'true';
@@ -328,6 +374,8 @@ function _saveConfigUpdates(
 ) {
     if (handler.updateMultiple) {
         handler.updateMultiple(updates);
+    } else if (configSource === 'main') {
+        updateMultipleConfig(updates);
     } else {
         const currentConfig = handler.get() as Record<string, unknown>;
         for (const [key, value] of Object.entries(updates)) {
@@ -345,21 +393,20 @@ function _saveConfigUpdates(
                 current[lastPart] = value;
             }
         }
-        if (configSource === 'main') {
-            updateMultipleConfig(updates);
-        } else {
-            handler.save?.(currentConfig);
-        }
+        handler.save?.(currentConfig);
     }
 }
 
 async function _handleResetCategory(player: mc.Player, category: string): Promise<void> {
     await showConfirmationDialog(player, {
         title: `Reset ${category}`,
-        body: 'Reset all?',
-        onConfirm: () => {
+        body: 'Reset all systems in this category?',
+        onConfirm: async () => {
+            const systems = getSystemsByCategory(player, category);
+            for (const sys of systems) {
+                await resetConfigSection(sys.id, player);
+            }
             player.sendMessage('§aCategory reset complete.');
-            return Promise.resolve();
         }
     });
 }

@@ -8,7 +8,7 @@ export function registerWordleCommands() {
         name: 'wordle',
         aliases: ['wrd'],
         description: 'Opens the Wordle menu.',
-        permissionNode: 'command.member',
+        permissionNode: 'cmd.wordle.member',
         execute: async (executor: CommandExecutor) => {
             if (!(executor instanceof mc.Player)) {
                 return;

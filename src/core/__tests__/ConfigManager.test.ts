@@ -54,6 +54,8 @@ describe('ConfigManager', () => {
         loadConfigSpy.mockResolvedValue(defaultConfig);
 
         await initializeConfigManager(false);
+        expect(mockFactory).toHaveBeenCalled();
+        expect(mockConfigManagerInstance.load).toHaveBeenCalledWith(false);
     });
 
     it('getConfig should return config from manager', () => {
@@ -71,5 +73,7 @@ describe('ConfigManager', () => {
         mockConfigManagerInstance.get.mockReturnValue(mockConfig);
 
         updateConfig('key', 'value');
+        expect(mockConfigManagerInstance.update).toHaveBeenCalledWith('key', 'value');
+        expect(callback).toHaveBeenCalledWith(mockConfig);
     });
 });

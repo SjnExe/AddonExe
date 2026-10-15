@@ -175,6 +175,18 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        if (panelId === 'addWorldProtectionPanel') {
+            const { showAddWorldProtectionPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
+            await showAddWorldProtectionPanel(player, _context);
+            return;
+        }
+
+        if (panelId === 'editWorldProtectionPanel') {
+            const { showEditWorldProtectionPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
+            await showEditWorldProtectionPanel(player, _context);
+            return;
+        }
+
         if (panelId === 'configCategoryPanel') {
             const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigCategoryPanel(player);

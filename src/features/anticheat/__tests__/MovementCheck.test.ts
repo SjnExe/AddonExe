@@ -76,6 +76,7 @@ describe('MovementCheck', () => {
         intervalCallback();
         intervalCallback();
         intervalCallback();
+        expect(flagSpy).toHaveBeenCalled();
     });
 
     it('should attempt kick when player is on nether roof', () => {
@@ -166,13 +167,14 @@ describe('MovementCheck', () => {
         const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
 
         const player = new PlayerMock('p2', 'Creative');
-        player.getGameMode = () => mc.GameMode.Survival;
+        player.getGameMode = () => mc.GameMode.Creative;
         player.getVelocity = () => ({ x: 100, y: 0, z: 0 });
         player.getEffect = () => undefined;
 
         addPlayerToCache(player);
 
         intervalCallback();
+        expect(flagSpy).not.toHaveBeenCalled();
     });
 
     it('should escape player name when kicking for nether roof check', () => {

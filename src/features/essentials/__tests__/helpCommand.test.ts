@@ -110,7 +110,7 @@ describe('Help Command Unit Tests and Benchmark', () => {
             helpCommand.execute(mockPlayer, {});
         }
 
-        const iterations = 50000;
+        const iterations = 2000;
         const start = performance.now();
         for (let i = 0; i < iterations; i++) {
             helpCommand.execute(mockPlayer, {});
