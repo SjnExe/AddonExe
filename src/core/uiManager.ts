@@ -76,6 +76,12 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        if (panelId === 'ticTacToeMainPanel') {
+            const { showTicTacToeMenu } = await import('@features/games/tictactoe/ui/ticTacToePanel.js');
+            await showTicTacToeMenu(player);
+            return;
+        }
+
         if (panelId === 'wordleMainPanel') {
             const { showWordleMainPanel } = await import('@features/games/wordle/ui/wordleMainPanel.js');
             await showWordleMainPanel(player);

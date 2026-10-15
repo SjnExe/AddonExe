@@ -171,6 +171,10 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
             const result = tpaManager.createRequest(player, onlineP, 'tpa');
             player.sendMessage(result.message);
         });
+        form.button('Invite to Game (Tic-Tac-Toe)', 'textures/ui/controller_glyph_color', async () => {
+            const { showInviteFriendToGameModal } = await import('@features/games/tictactoe/ui/ticTacToePanel.js');
+            await showInviteFriendToGameModal(player, 'tictactoe', friendId);
+        });
     }
 
     form.button('Remove Friend', 'textures/ui/trash', async () => {

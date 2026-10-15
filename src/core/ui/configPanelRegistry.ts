@@ -1504,6 +1504,36 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Wordle Module',
                 type: 'toggle',
                 description: 'Enables the Wordle mini-game module.'
+            },
+            {
+                key: 'ticTacToe.enabled',
+                label: 'Enable Tic-Tac-Toe Module',
+                type: 'toggle',
+                description: 'Enables the multiplayer Tic-Tac-Toe mini-game.'
+            },
+            {
+                key: 'ticTacToe.requireFriends',
+                label: 'Require Friends for Game Invites',
+                type: 'toggle',
+                description: 'Players must be friends to send game invitations.'
+            },
+            {
+                key: 'ticTacToe.inviteTimeoutSeconds',
+                label: 'Game Invite Timeout (s)',
+                type: 'textField',
+                description: 'Seconds before a game invitation expires.'
+            },
+            {
+                key: 'ticTacToe.turnTimeoutSeconds',
+                label: 'Tic-Tac-Toe Turn Timeout (s)',
+                type: 'textField',
+                description: 'Seconds allowed per turn before forfeiting.'
+            },
+            {
+                key: 'ticTacToe.allowWagers',
+                label: 'Allow Money Wagers',
+                type: 'toggle',
+                description: 'Allow players to wager money on multiplayer matches.'
             }
         ]
     },

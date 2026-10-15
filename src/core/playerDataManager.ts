@@ -53,6 +53,8 @@ export interface PlayerData {
     deathNotificationSent: boolean;
     tpaRequestsDisabled: boolean;
     tpaBlockedPlayerIds: string[];
+    gameInvitesDisabled?: boolean;
+    gameInviteBlockedPlayerIds?: string[];
     announcementsMuted: boolean;
     teamId: number | undefined;
     teamSettings: { autoTpAccept: boolean };
@@ -95,6 +97,8 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     lastLocation: undefined,
     deathNotificationSent: true,
     tpaRequestsDisabled: false,
+    gameInvitesDisabled: false,
+    gameInviteBlockedPlayerIds: [],
     announcementsMuted: false,
     teamId: undefined,
     teamSettings: { autoTpAccept: false },

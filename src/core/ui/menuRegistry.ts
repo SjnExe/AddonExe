@@ -270,6 +270,17 @@ export function initializeDefaultMenuItems(): void {
 
     // --- GAMES HUB ITEMS ---
     registerMenuItem({
+        id: 'games_tictactoe',
+        title: 'Tic-Tac-Toe (2P)',
+        description: 'Challenge a friend to a 3x3 match',
+        icon: 'textures/ui/controller_glyph_color',
+        hub: 'games',
+        featureId: 'game.tictactoe',
+        order: 5,
+        action: async (p) => showPanel(p, 'ticTacToeMainPanel')
+    });
+
+    registerMenuItem({
         id: 'games_wordle',
         title: 'Wordle Game',
         description: 'Guess the secret word',
