@@ -42,6 +42,13 @@ export function getSystemRegistry(): SystemDefinition[] {
             if (schema.hidden === true) {
                 def.hidden = schema.hidden;
             }
+            if (schema.id === 'sidebar') {
+                def.isSimpleConfig = false;
+                def.showFunction = async (player) => {
+                    const { showSidebarAdminPanel } = await import('@features/sidebar/ui/adminPanel.js');
+                    await showSidebarAdminPanel(player);
+                };
+            }
             return def;
         }),
         // 2. Add complex custom systems
