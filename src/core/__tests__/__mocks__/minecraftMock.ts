@@ -87,17 +87,24 @@ export const world = {
     afterEvents: {
         playerSpawn: { subscribe: mock(), unsubscribe: mock() },
         playerLeave: { subscribe: mock(), unsubscribe: mock() },
+        playerDimensionChange: { subscribe: mock(), unsubscribe: mock() },
+        playerBreakBlock: { subscribe: mock(), unsubscribe: mock() },
         entityDie: { subscribe: mock(), unsubscribe: mock() },
+        entitySpawn: { subscribe: mock(), unsubscribe: mock() },
+        itemUse: { subscribe: mock(), unsubscribe: mock() },
         chatSend: { subscribe: mock(), unsubscribe: mock() },
         entityHurt: { subscribe: mock(), unsubscribe: mock() }
     },
     beforeEvents: {
-        chatSend: { subscribe: mock() },
-        playerInteractWithEntity: { subscribe: mock() },
-        playerInteractWithBlock: { subscribe: mock() },
-        itemUse: { subscribe: mock() },
-        playerBreakBlock: { subscribe: mock() },
-        playerPlaceBlock: { subscribe: mock() }
+        chatSend: { subscribe: mock(), unsubscribe: mock() },
+        explosion: { subscribe: mock(), unsubscribe: mock() },
+        entityHurt: { subscribe: mock(), unsubscribe: mock() },
+        entityItemPickup: { subscribe: mock(), unsubscribe: mock() },
+        playerInteractWithEntity: { subscribe: mock(), unsubscribe: mock() },
+        playerInteractWithBlock: { subscribe: mock(), unsubscribe: mock() },
+        itemUse: { subscribe: mock(), unsubscribe: mock() },
+        playerBreakBlock: { subscribe: mock(), unsubscribe: mock() },
+        playerPlaceBlock: { subscribe: mock(), unsubscribe: mock() }
     },
     sendMessage: mock()
 };
@@ -122,10 +129,13 @@ export const system = {
     }),
     clearRun: mock(),
     currentTick: 0,
+    afterEvents: {
+        scriptEventReceive: { subscribe: mock(), unsubscribe: mock() }
+    },
     beforeEvents: {
-        startup: { subscribe: mock() },
-        shutdown: { subscribe: mock() },
-        watchdogTerminate: { subscribe: mock() }
+        startup: { subscribe: mock(), unsubscribe: mock() },
+        shutdown: { subscribe: mock(), unsubscribe: mock() },
+        watchdogTerminate: { subscribe: mock(), unsubscribe: mock() }
     }
 };
 

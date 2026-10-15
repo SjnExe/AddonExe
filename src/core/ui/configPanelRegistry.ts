@@ -18,6 +18,8 @@ export interface ConfigSetting {
     options?: string[];
     /** A short description of the setting, shown as a tooltip or help text. */
     description?: string;
+    /** Optional override for the config source of this specific setting. */
+    configSource?: string;
 }
 
 export interface ConfigCategory {
@@ -39,27 +41,6 @@ export interface ConfigCategory {
 
 export const configPanelSchema: ConfigCategory[] = [
     {
-        id: 'shopSettings',
-        title: 'Shop Settings',
-        icon: 'textures/ui/trade_icon',
-        configSource: 'shop',
-        category: 'Economy',
-        settings: [
-            {
-                key: 'ui.useCustomUI',
-                label: 'Use Custom UI',
-                type: 'toggle',
-                description: 'Enable advanced UI formats for Shop.'
-            },
-            {
-                key: 'validation.checkIllegalItems',
-                label: 'Check Illegal Items',
-                type: 'toggle',
-                description: 'Verify items are legal before purchase.'
-            }
-        ]
-    },
-    {
         id: 'featureToggles',
         title: 'Feature Toggles',
         icon: 'textures/ui/settings_glyph_color_2x',
@@ -79,16 +60,46 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Enables or disables the Shop system.'
             },
             {
+                key: 'auctionHouse.enabled',
+                label: 'Enable Auction House',
+                type: 'toggle',
+                description: 'Enables or disables the Auction House system.'
+            },
+            {
+                key: 'bounties.enabled',
+                label: 'Enable Bounty System',
+                type: 'toggle',
+                description: 'Enables or disables player bounties.'
+            },
+            {
+                key: 'dailyRewards.enabled',
+                label: 'Enable Daily Rewards',
+                type: 'toggle',
+                description: 'Enables or disables daily login rewards.'
+            },
+            {
                 key: 'kits.enabled',
                 label: 'Enable Kit System',
                 type: 'toggle',
                 description: 'Enables or disables the entire Kit System.'
             },
             {
+                key: 'kits.starterKit.enabled',
+                label: 'Enable Starter Kit on First Join',
+                type: 'toggle',
+                description: 'Automatically gives the starter kit to new players.'
+            },
+            {
                 key: 'voting.enabled',
                 label: 'Enable Voting System',
                 type: 'toggle',
                 description: 'Enables or disables the voting system.'
+            },
+            {
+                key: 'spawnProtection.enabled',
+                label: 'Enable Spawn Protection',
+                type: 'toggle',
+                description: 'Enables or disables radius-based spawn protection.'
             },
             {
                 key: 'tpa.enabled',
@@ -121,6 +132,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Enables or disables /back command.'
             },
             {
+                key: 'chat.enabled',
+                label: 'Enable Custom Chat Formatting',
+                type: 'toggle',
+                description: 'Enables rank chat formatting, mute checks, and mentions.'
+            },
+            {
                 key: 'announcements.enabled',
                 label: 'Enable Announcement System',
                 type: 'toggle',
@@ -137,6 +154,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Custom Join/Leave',
                 type: 'toggle',
                 description: 'Enables custom join and leave messages.'
+            },
+            {
+                key: 'exeGlobalNotificationsDefaultOn',
+                label: 'Global Staff Notifications Default On',
+                type: 'toggle',
+                description: 'Whether staff notifications are enabled by default.'
             }
         ]
     },
@@ -152,10 +175,21 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Daily Rewards',
                 type: 'toggle',
                 description: 'Enables or disables the daily rewards system.'
+            },
+            {
+                key: 'claimCooldownHours',
+                label: 'Claim Cooldown (Hours)',
+                type: 'textField',
+                description: 'Hours between daily reward claims (default 24).'
+            },
+            {
+                key: 'streakResetHours',
+                label: 'Streak Reset Window (Hours)',
+                type: 'textField',
+                description: 'Hours before an unclaimed daily streak resets (default 48).'
             }
         ]
     },
-
     {
         id: 'general_server',
         title: 'Server Info',
@@ -190,6 +224,12 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'main',
         category: 'Teleportation & World',
         settings: [
+            {
+                key: 'back.enabled',
+                label: 'Enable Back System',
+                type: 'toggle',
+                description: 'Enables or disables /back.'
+            },
             {
                 key: 'back.cost',
                 label: 'Cost',
@@ -264,12 +304,18 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Allow Bidding',
                 type: 'toggle',
                 description: 'If disabled, only Buy It Now (BIN) is allowed.'
+            },
+            {
+                key: 'blockedItemIds',
+                label: 'Blocked Item IDs (Comma-Separated)',
+                type: 'textField',
+                description: 'Item type IDs that cannot be listed on the Auction House.'
             }
         ]
     },
     {
         id: 'general_gameplay',
-        title: 'Gameplay Settings',
+        title: 'Gameplay & Starter Kit',
         icon: 'textures/items/iron_sword',
         configSource: 'main',
         category: 'Server & Network',
@@ -280,6 +326,25 @@ export const configPanelSchema: ConfigCategory[] = [
                 type: 'dropdown',
                 options: ['survival', 'creative', 'adventure', 'spectator'],
                 description: 'The default gamemode for new players.'
+            },
+            {
+                key: 'helpSystem.defaultMode',
+                label: 'Default /xhelp Mode',
+                type: 'dropdown',
+                options: ['chat', 'ui'],
+                description: 'Whether /xhelp opens in chat or UI by default.'
+            },
+            {
+                key: 'kits.starterKit.enabled',
+                label: 'Enable Starter Kit',
+                type: 'toggle',
+                description: 'Give starter kit to new players on first join.'
+            },
+            {
+                key: 'kits.starterKit.kitName',
+                label: 'Starter Kit Name',
+                type: 'textField',
+                description: 'Name of the kit given to new players.'
             }
         ]
     },
@@ -302,6 +367,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Autosave Interval (s)',
                 type: 'textField',
                 description: 'How often to save player data, in seconds. Set to 0 to disable.'
+            },
+            {
+                key: 'exeGlobalNotificationsDefaultOn',
+                label: 'Global Notifications Default On',
+                type: 'toggle',
+                description: 'Default state for global notifications.'
             }
         ]
     },
@@ -313,6 +384,12 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'Server & Network',
         settings: [
             {
+                key: 'announcements.enabled',
+                label: 'Enable Announcements',
+                type: 'toggle',
+                description: 'Enables or disables periodic announcements.'
+            },
+            {
                 key: 'announcements.message',
                 label: 'Announcement Message',
                 type: 'textField',
@@ -322,7 +399,7 @@ export const configPanelSchema: ConfigCategory[] = [
                 key: 'announcements.interval',
                 label: 'Interval (seconds)',
                 type: 'textField',
-                description: 'How often the message is broadcast, in seconds. A reload is required for changes to take effect.'
+                description: 'How often the message is broadcast, in seconds.'
             }
         ]
     },
@@ -332,8 +409,14 @@ export const configPanelSchema: ConfigCategory[] = [
         icon: 'textures/ui/Scaffolding',
         configSource: 'economy',
         category: 'Economy',
-        hidden: true,
         settings: [
+            {
+                key: 'economy.enabled',
+                label: 'Enable Economy',
+                type: 'toggle',
+                configSource: 'main',
+                description: 'Master switch for Economy.'
+            },
             {
                 key: 'currencySymbol',
                 label: 'Currency Symbol',
@@ -359,6 +442,27 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'The maximum balance a player can have.'
             },
             {
+                key: 'economy.baltopLimit',
+                label: 'Baltop Leaderboard Size',
+                type: 'textField',
+                configSource: 'main',
+                description: 'Number of top players displayed in /baltop.'
+            },
+            {
+                key: 'economy.paymentConfirmationThreshold',
+                label: 'Payment Confirm Threshold',
+                type: 'textField',
+                configSource: 'main',
+                description: 'Payments above this amount require /payconfirm.'
+            },
+            {
+                key: 'economy.paymentConfirmationTimeout',
+                label: 'Payment Confirm Timeout (s)',
+                type: 'textField',
+                configSource: 'main',
+                description: 'Seconds to confirm a large payment before expiry.'
+            },
+            {
                 key: 'logToConsole',
                 label: 'Log Transactions',
                 type: 'toggle',
@@ -366,7 +470,6 @@ export const configPanelSchema: ConfigCategory[] = [
             }
         ]
     },
-
     {
         id: 'warps',
         title: 'Warp System',
@@ -374,6 +477,12 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'main',
         category: 'Teleportation & World',
         settings: [
+            {
+                key: 'warps.enabled',
+                label: 'Enable Warps',
+                type: 'toggle',
+                description: 'Enables or disables /warp.'
+            },
             {
                 key: 'warps.cooldownSeconds',
                 label: 'Cooldown (s)',
@@ -396,6 +505,12 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'Economy',
         settings: [
             {
+                key: 'bounties.enabled',
+                label: 'Enable Bounties',
+                type: 'toggle',
+                description: 'Enables or disables player bounties.'
+            },
+            {
                 key: 'bounties.bountyCreditTimeoutSeconds',
                 label: 'Credit Timeout (s)',
                 type: 'textField',
@@ -417,16 +532,22 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'Server & Network',
         settings: [
             {
-                key: 'chat.allowMentions',
-                label: 'Allow Mentions',
+                key: 'chat.enabled',
+                label: 'Enable Custom Chat',
                 type: 'toggle',
-                description: 'Allows players to mention others.'
+                description: 'Enables rank chat formatting and mute enforcement.'
+            },
+            {
+                key: 'chat.allowMentions',
+                label: 'Allow @Mentions',
+                type: 'toggle',
+                description: 'Allows players to ping others with @Name.'
             },
             {
                 key: 'chat.loggingEnabled',
                 label: 'Logging Enabled',
                 type: 'toggle',
-                description: 'Enables chat logging.'
+                description: 'Enables in-game chat history logging.'
             },
             {
                 key: 'chat.logExpirationDays',
@@ -497,6 +618,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Spawn Z Coordinate',
                 type: 'textField',
                 description: 'Leave blank or set with /setspawn.'
+            },
+            {
+                key: 'spawnProtection.enabled',
+                label: 'Enable Spawn Protection',
+                type: 'toggle',
+                description: 'Enables radius-based protection around spawn.'
             },
             {
                 key: 'spawnProtection.protectionRadius',
@@ -598,6 +725,12 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'Teleportation & World',
         settings: [
             {
+                key: 'tpa.enabled',
+                label: 'Enable TPA',
+                type: 'toggle',
+                description: 'Enables or disables /tpa.'
+            },
+            {
                 key: 'tpa.requestTimeoutSeconds',
                 label: 'Request Timeout (s)',
                 type: 'textField',
@@ -624,6 +757,12 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'main',
         category: 'Teleportation & World',
         settings: [
+            {
+                key: 'homes.enabled',
+                label: 'Enable Homes',
+                type: 'toggle',
+                description: 'Enables or disables player homes.'
+            },
             {
                 key: 'homes.maxHomes',
                 label: 'Max Homes',
@@ -652,6 +791,12 @@ export const configPanelSchema: ConfigCategory[] = [
         category: 'Teleportation & World',
         settings: [
             {
+                key: 'rtp.enabled',
+                label: 'Enable RTP',
+                type: 'toggle',
+                description: 'Enables or disables /rtp.'
+            },
+            {
                 key: 'rtp.minRange',
                 label: 'Minimum Range',
                 type: 'textField',
@@ -679,7 +824,7 @@ export const configPanelSchema: ConfigCategory[] = [
     },
     {
         id: 'playerInfo',
-        title: 'Player Info System',
+        title: 'Player Info & Defaults',
         icon: 'textures/ui/icon_multiplayer',
         configSource: 'main',
         category: 'Visuals & UI',
@@ -709,6 +854,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Tells players their coordinates upon respawning after death.'
             },
             {
+                key: 'playerInfo.deathCoordsMessage',
+                label: 'Death Coords Message',
+                type: 'textField',
+                description: 'Message format for death coordinates ({x}, {y}, {z}, {dimensionId}).'
+            },
+            {
                 key: 'playerInfo.customJoinLeave.enabled',
                 label: 'Custom Join/Leave',
                 type: 'toggle',
@@ -725,6 +876,120 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Leave Message',
                 type: 'textField',
                 description: 'Use {playerName} for the player name.'
+            },
+            {
+                key: 'ranks.nameTagStyle',
+                label: 'Nametag Rank Style',
+                type: 'dropdown',
+                options: ['above', 'before', 'after', 'under'],
+                description: 'Where the rank prefix appears relative to the player name.'
+            },
+            {
+                key: 'playerDefaults.rankId',
+                label: 'Default Primary Rank ID',
+                type: 'textField',
+                description: 'Default rank ID for new players (e.g. member).'
+            },
+            {
+                key: 'playerDefaults.ranks',
+                label: 'Default Ranks (Comma-Separated)',
+                type: 'textField',
+                description: 'Initial rank list for new players.'
+            },
+            {
+                key: 'playerDefaults.xrayNotificationsEnabled',
+                label: 'Default X-Ray Alerts On',
+                type: 'toggle',
+                description: 'Whether staff have X-Ray notifications enabled by default.'
+            }
+        ]
+    },
+    {
+        id: 'soundEvents',
+        title: 'Sound Events',
+        icon: 'textures/ui/sound_glyph_color_2x',
+        configSource: 'main',
+        category: 'Visuals & UI',
+        settings: [
+            {
+                key: 'soundEvents.tpaRequestReceived.enabled',
+                label: 'TPA Received Sound Enabled',
+                type: 'toggle'
+            },
+            {
+                key: 'soundEvents.tpaRequestReceived.soundId',
+                label: 'TPA Sound ID',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.tpaRequestReceived.volume',
+                label: 'TPA Sound Volume',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.tpaRequestReceived.pitch',
+                label: 'TPA Sound Pitch',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.adminNotificationReceived.enabled',
+                label: 'Admin Alert Sound Enabled',
+                type: 'toggle'
+            },
+            {
+                key: 'soundEvents.adminNotificationReceived.soundId',
+                label: 'Admin Alert Sound ID',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.adminNotificationReceived.volume',
+                label: 'Admin Alert Volume',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.adminNotificationReceived.pitch',
+                label: 'Admin Alert Pitch',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.playerWarningReceived.enabled',
+                label: 'Player Warning Sound Enabled',
+                type: 'toggle'
+            },
+            {
+                key: 'soundEvents.playerWarningReceived.soundId',
+                label: 'Player Warning Sound ID',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.playerWarningReceived.volume',
+                label: 'Player Warning Volume',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.playerWarningReceived.pitch',
+                label: 'Player Warning Pitch',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.commandError.enabled',
+                label: 'Command Error Sound Enabled',
+                type: 'toggle'
+            },
+            {
+                key: 'soundEvents.commandError.soundId',
+                label: 'Command Error Sound ID',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.commandError.volume',
+                label: 'Command Error Volume',
+                type: 'textField'
+            },
+            {
+                key: 'soundEvents.commandError.pitch',
+                label: 'Command Error Pitch',
+                type: 'textField'
             }
         ]
     },
@@ -795,6 +1060,33 @@ export const configPanelSchema: ConfigCategory[] = [
         ]
     },
     {
+        id: 'friends',
+        title: 'Friend System',
+        icon: 'textures/ui/icon_steve',
+        configSource: 'friend',
+        category: 'Social',
+        settings: [
+            {
+                key: 'enabled',
+                label: 'Enable Friend System',
+                type: 'toggle',
+                description: 'Enables or disables the friend system.'
+            },
+            {
+                key: 'maxFriends',
+                label: 'Max Friends per Player',
+                type: 'textField',
+                description: 'Maximum number of friends a player can have.'
+            },
+            {
+                key: 'requestExpirySeconds',
+                label: 'Request Expiry (s)',
+                type: 'textField',
+                description: 'How long a friend request stays valid in seconds.'
+            }
+        ]
+    },
+    {
         id: 'team',
         title: 'Team System',
         icon: 'textures/ui/icon_multiplayer',
@@ -820,6 +1112,30 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'The maximum number of members a team can have.'
             },
             {
+                key: 'maxTeamInvites',
+                label: 'Max Outgoing Team Invites',
+                type: 'textField',
+                description: 'Max pending invites a team can send.'
+            },
+            {
+                key: 'maxPlayerInvites',
+                label: 'Max Incoming Player Invites',
+                type: 'textField',
+                description: 'Max pending invites a player can hold.'
+            },
+            {
+                key: 'maxApplications',
+                label: 'Max Team Applications',
+                type: 'textField',
+                description: 'Max pending join applications per team.'
+            },
+            {
+                key: 'requestExpirySeconds',
+                label: 'Invite/Application Expiry (s)',
+                type: 'textField',
+                description: 'Seconds before pending invites/applications expire.'
+            },
+            {
                 key: 'nameMinLength',
                 label: 'Min Name Length',
                 type: 'textField',
@@ -830,6 +1146,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Max Name Length',
                 type: 'textField',
                 description: 'Maximum length of a team name.'
+            },
+            {
+                key: 'nameBlacklist',
+                label: 'Blacklisted Names (Comma-Separated)',
+                type: 'textField',
+                description: 'Reserved words disallowed in team names.'
             },
             {
                 key: 'teleportWarmupSeconds',
@@ -967,6 +1289,13 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Enables the Scoreboard Sidebar.'
             },
             {
+                key: 'globalInfo.opacity',
+                label: 'Sidebar Opacity',
+                type: 'dropdown',
+                options: ['low', 'medium', 'high'],
+                description: 'Visual opacity preset for sidebar.'
+            },
+            {
                 key: 'globalInfo.title',
                 label: 'Sidebar Title',
                 type: 'textField',
@@ -1042,10 +1371,22 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Notify staff when illegal items are found.'
             },
             {
+                key: 'itemCheck.flagDecaySeconds',
+                label: 'Item Flag Decay (s)',
+                type: 'textField',
+                description: 'Seconds before item violation flags decay.'
+            },
+            {
                 key: 'itemCheck.illegalEnchantments',
                 label: 'Check Enchants',
                 type: 'toggle',
-                description: 'Detects enchantments above vanilla limits.'
+                description: 'Detects enchantments above max level.'
+            },
+            {
+                key: 'itemCheck.maxEnchantLevel',
+                label: 'Max Enchantment Level',
+                type: 'textField',
+                description: 'Maximum allowed enchantment level (default 5).'
             },
             {
                 key: 'itemCheck.removeIllegalItems',
@@ -1054,10 +1395,94 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Automatically deletes detected illegal items.'
             },
             {
+                key: 'itemCheck.bannedItems',
+                label: 'Banned Items (Comma-Separated)',
+                type: 'textField',
+                description: 'Item IDs prohibited in player inventories.'
+            },
+            {
                 key: 'movementCheck.enabled',
                 label: 'Movement Check Enabled',
                 type: 'toggle',
-                description: 'Detects speed and fly hacks (experimental).'
+                description: 'Detects speed and fly hacks.'
+            },
+            {
+                key: 'movementCheck.notifyStaff',
+                label: 'Movement Check Alerts',
+                type: 'toggle',
+                description: 'Notify staff when movement anomalies are detected.'
+            },
+            {
+                key: 'movementCheck.flagDecaySeconds',
+                label: 'Movement Flag Decay (s)',
+                type: 'textField',
+                description: 'Seconds before movement violation flags decay.'
+            },
+            {
+                key: 'movementCheck.maxSpeed',
+                label: 'Max Walk/Sprint Speed',
+                type: 'textField',
+                description: 'Base speed limit.'
+            },
+            {
+                key: 'movementCheck.maxSpeedIce',
+                label: 'Max Ice/Slime Speed',
+                type: 'textField',
+                description: 'Speed allowance on ice or slime.'
+            },
+            {
+                key: 'movementCheck.maxSpeedElytra',
+                label: 'Max Elytra Speed',
+                type: 'textField',
+                description: 'Speed allowance while gliding.'
+            },
+            {
+                key: 'movementCheck.flightDetection',
+                label: 'Enable Flight Detection',
+                type: 'toggle',
+                description: 'Detects unauthorized flight.'
+            },
+            {
+                key: 'worldBorder.enabled',
+                label: 'Enable World Border',
+                type: 'toggle',
+                description: 'Enables world border enforcement.'
+            },
+            {
+                key: 'worldBorder.overworldRadius',
+                label: 'Overworld Border Radius',
+                type: 'textField',
+                description: 'Radius in blocks for Overworld.'
+            },
+            {
+                key: 'worldBorder.endRadius',
+                label: 'End Border Radius',
+                type: 'textField',
+                description: 'Radius in blocks for The End.'
+            },
+            {
+                key: 'worldBorder.netherRadiusRatio',
+                label: 'Nether Radius Ratio',
+                type: 'textField',
+                description: 'Divisor for Nether border radius (default 8).'
+            },
+            {
+                key: 'worldBorder.knockbackAmount',
+                label: 'Border Knockback Distance',
+                type: 'textField',
+                description: 'Blocks pushed back when hitting border.'
+            },
+            {
+                key: 'antiNetherRoof.enabled',
+                label: 'Prevent Nether Roof',
+                type: 'toggle',
+                description: 'Prevents players from going above the Nether bedrock roof.'
+            },
+            {
+                key: 'antiNetherRoof.maxHeight',
+                label: 'Nether Max Height (Y)',
+                type: 'textField',
+                description: 'Maximum allowed Y coordinate in the Nether (default 128).'
             }
         ]
     },
@@ -1073,6 +1498,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Games System',
                 type: 'toggle',
                 description: 'Master switch for all games.'
+            },
+            {
+                key: 'wordle.enabled',
+                label: 'Enable Wordle Module',
+                type: 'toggle',
+                description: 'Enables the Wordle mini-game module.'
             }
         ]
     },
@@ -1096,10 +1527,40 @@ export const configPanelSchema: ConfigCategory[] = [
                 description: 'Enable or disable single player Wordle.'
             },
             {
+                key: 'singlePlayer.cost',
+                label: 'Single Player Entry Cost',
+                type: 'textField',
+                description: 'Cost to start a single player Wordle game.'
+            },
+            {
+                key: 'singlePlayer.reward',
+                label: 'Single Player Win Reward',
+                type: 'textField',
+                description: 'Money reward for winning single player Wordle.'
+            },
+            {
+                key: 'singlePlayer.defaultLimit',
+                label: 'Single Player Max Guesses',
+                type: 'textField',
+                description: 'Max guesses allowed in single player (default 6).'
+            },
+            {
                 key: 'multiplayer.enabled',
                 label: 'Enable Multiplayer',
                 type: 'toggle',
                 description: 'Enable or disable multiplayer Wordle.'
+            },
+            {
+                key: 'multiplayer.defaultLimit',
+                label: 'Multiplayer Max Guesses',
+                type: 'textField',
+                description: 'Max guesses allowed in multiplayer.'
+            },
+            {
+                key: 'multiplayer.timeLimitSeconds',
+                label: 'Multiplayer Time Limit (s)',
+                type: 'textField',
+                description: 'Time limit in seconds for multiplayer games.'
             },
             {
                 key: 'staffHosted.enabled',
@@ -1112,6 +1573,24 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Staff Hosted Tax %',
                 type: 'textField',
                 description: 'Tax percentage for staff hosted prize pools.'
+            },
+            {
+                key: 'staffHosted.unlimitedAutoStart',
+                label: 'Staff Hosted Auto-Start',
+                type: 'toggle',
+                description: 'Automatically start new rounds.'
+            },
+            {
+                key: 'staffHosted.defaultCost',
+                label: 'Staff Hosted Default Cost',
+                type: 'textField',
+                description: 'Default entry cost for staff hosted games.'
+            },
+            {
+                key: 'staffHosted.defaultTimeLimitSeconds',
+                label: 'Staff Hosted Time Limit (s)',
+                type: 'textField',
+                description: 'Default time limit in seconds for staff hosted games.'
             }
         ]
     }

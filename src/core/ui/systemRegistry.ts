@@ -76,7 +76,7 @@ export function getSystemRegistry(): SystemDefinition[] {
                 const { showRankSystemConfigPanel } = await import('@features/ranks/ui/adminPanel.js');
                 await showRankSystemConfigPanel(player);
             },
-            category: 'Visuals',
+            category: 'Visuals & UI',
             isSimpleConfig: false
         },
         {
@@ -87,8 +87,7 @@ export function getSystemRegistry(): SystemDefinition[] {
                 const { showXrayOresPanel } = await import('@features/moderation/ui/xrayPanel.js');
                 await showXrayOresPanel(player);
             },
-            category: 'Moderation',
-            hidden: true,
+            category: 'Moderation & Rules',
             isSimpleConfig: false
         },
         {
@@ -99,7 +98,62 @@ export function getSystemRegistry(): SystemDefinition[] {
                 const { showWorldProtectionListPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
                 await showWorldProtectionListPanel(player);
             },
-            category: 'World',
+            category: 'Teleportation & World',
+            isSimpleConfig: false
+        },
+        {
+            id: 'warps_manager',
+            title: 'Warps Manager',
+            icon: 'textures/blocks/portal',
+            showFunction: async (player) => {
+                const { showWarpsAdminPanel } = await import('@features/teleport/ui/warpAdminPanel.js');
+                await showWarpsAdminPanel(player);
+            },
+            category: 'Teleportation & World',
+            isSimpleConfig: false
+        },
+        {
+            id: 'rules_and_links',
+            title: 'Rules & Helpful Links Editor',
+            icon: 'textures/items/book_enchanted',
+            showFunction: async (player) => {
+                const { showRulesAndLinksConfigHub } = await import('@core/ui/panels/serverInfoPanel.js');
+                await showRulesAndLinksConfigHub(player);
+            },
+            category: 'Server & Network',
+            isSimpleConfig: false
+        },
+        {
+            id: 'daily_rewards_editor',
+            title: 'Daily Rewards Tier Editor',
+            icon: 'textures/ui/gift_square',
+            showFunction: async (player) => {
+                const { showDailyRewardsAdminPanel } = await import('@features/daily/ui/adminPanel.js');
+                await showDailyRewardsAdminPanel(player);
+            },
+            category: 'Economy',
+            isSimpleConfig: false
+        },
+        {
+            id: 'mob_money_editor',
+            title: 'Mob Money Rewards Editor',
+            icon: 'textures/items/iron_sword',
+            showFunction: async (player) => {
+                const { showMobMoneyPanel } = await import('@features/economy/ui/mobMoneyPanel.js');
+                await showMobMoneyPanel(player);
+            },
+            category: 'Economy',
+            isSimpleConfig: false
+        },
+        {
+            id: 'anticheat_rules',
+            title: 'Anti-Cheat Violations & Border Center',
+            icon: 'textures/items/iron_chestplate',
+            showFunction: async (player) => {
+                const { showAnticheatAdvancedPanel } = await import('@features/anticheat/ui/adminPanel.js');
+                await showAnticheatAdvancedPanel(player);
+            },
+            category: 'Moderation & Rules',
             isSimpleConfig: false
         }
     ];

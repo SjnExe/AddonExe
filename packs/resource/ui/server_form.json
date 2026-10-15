@@ -104,7 +104,7 @@
                                 "anchor_to": "right_middle",
                                 "layer": 5,
                                 "$pressed_button_name": "button.menu_exit",
-                                "$button_text": "§c✕"
+                                "$button_text": "§cX"
                             }
                         }
                     ]

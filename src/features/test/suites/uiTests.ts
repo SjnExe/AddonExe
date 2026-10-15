@@ -1,33 +1,58 @@
 import { ActionFormBuilder } from '@core/ui/builders/ActionFormBuilder.js';
 import { CustomFormBuilder } from '@core/ui/builders/CustomFormBuilder.js';
 import { MessageFormBuilder } from '@core/ui/builders/MessageFormBuilder.js';
+import { getMenuItemsForHub } from '@core/ui/menuRegistry.js';
+import { getSystemRegistry } from '@core/ui/systemRegistry.js';
+import * as mc from '@minecraft/server';
+import { usedIcons } from 'virtual:icon-index';
 import { addTest, assert } from '../testRunner.js';
 
 export function registerUiTests(): void {
-    addTest('ui', 'ActionFormBuilder creates forms with title, body, and grid buttons', () => {
-        const builder = new ActionFormBuilder()
+    addTest('ui', 'ActionFormBuilder sets grid columns (1, 2, 3) and buttons accurately', () => {
+        const builder1 = new ActionFormBuilder().grid(1).title('Reader');
+        assert.equal(builder1.getColumns(), 1, 'Grid should be 1 column');
+
+        const builder2 = new ActionFormBuilder().title('Default Hub');
+        assert.equal(builder2.getColumns(), 2, 'Default grid should be 2 columns');
+
+        const builder3 = new ActionFormBuilder()
             .grid(3)
-            .title('Server Menu')
-            .body('Select an option')
+            .title('Shop Grid')
+            .body('Select an item')
             .button('Home', 'textures/ui/magnifyingGlass', () => {})
             .button('Shop', 'textures/ui/color_plus', () => {});
-
-        assert.ok(builder, 'ActionFormBuilder instance should be created');
+        assert.equal(builder3.getColumns(), 3, 'Grid should be 3 columns');
     });
 
-    addTest('ui', 'CustomFormBuilder creates form with inputs', () => {
-        const builder = new CustomFormBuilder('Test Custom Form').textField('name', 'Player Name', 'e.g. Steve').toggle('enabled', 'Enable Feature', true).slider('amount', 'Count', 1, 100, 1, 10);
+    addTest('ui', 'CustomFormBuilder stores and retrieves reactive Observable values', () => {
+        const builder = new CustomFormBuilder<{ name: string; enabled: boolean; count: number; mode: string }>('Test Custom Form')
+            .textField('name', 'Player Name', 'e.g. Steve', 'Alex')
+            .toggle('enabled', 'Enable Feature', true)
+            .slider('count', 'Count', 1, 100, 1, 25)
+            .dropdown('mode', 'Gamemode', ['survival', 'creative'], 1);
 
-        assert.ok(builder, 'CustomFormBuilder instance should be created');
+        const values = builder.getValues();
+        assert.equal(values.name, 'Alex', 'textField default value should match');
+        assert.equal(values.enabled, true, 'toggle default value should match');
+        assert.equal(values.count, 25, 'slider default value should match');
+        assert.equal(values.mode, 'creative', 'dropdown selected option should match');
     });
 
-    addTest('ui', 'MessageFormBuilder creates confirmation form with buttons', () => {
-        const builder = new MessageFormBuilder()
+    addTest('ui', 'MessageFormBuilder and System/Menu Registries are populated', () => {
+        const msgBuilder = new MessageFormBuilder()
             .title('Confirm Action')
-            .body('Are you sure you want to proceed?')
-            .button1('Yes, proceed', () => {})
-            .button2('Cancel', () => {});
+            .body('Are you sure?')
+            .button1('Yes', () => {})
+            .button2('No', () => {});
+        assert.ok(msgBuilder, 'MessageFormBuilder should be created');
 
-        assert.ok(builder, 'MessageFormBuilder instance should be created');
+        const systems = getSystemRegistry();
+        assert.ok(systems.length >= 20, `Expected at least 20 systems in systemRegistry, found ${systems.length}`);
+
+        const fakeOwner = { id: 'owner_test', name: 'Owner', hasTag: (t: string) => t === 'owner' } as unknown as mc.Player;
+        const mainItems = getMenuItemsForHub('main', fakeOwner);
+        assert.equal(mainItems.length, 5, 'Main hub should have 5 category hubs for staff/owner');
+
+        assert.ok(Array.isArray(usedIcons) && usedIcons.length > 0, 'virtual:icon-index should export non-empty usedIcons array');
     });
 }

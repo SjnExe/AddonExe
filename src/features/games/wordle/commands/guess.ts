@@ -11,7 +11,7 @@ export function registerGuessCommand() {
         name: 'guess',
         aliases: ['gs'],
         description: 'Guess the word for the global staff-hosted Wordle game.',
-        permissionNode: 'command.member',
+        permissionNode: 'cmd.guess.member',
         parameters: [{ name: 'word', type: 'string', optional: false }],
         execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
             if (!(executor instanceof mc.Player)) {
