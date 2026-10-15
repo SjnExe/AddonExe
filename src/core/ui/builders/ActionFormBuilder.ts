@@ -2,7 +2,7 @@ import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
-export type GridColumns = 1 | 2 | 3;
+export type GridColumns = 1 | 2 | 3 | 4;
 
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
@@ -30,8 +30,20 @@ export class ActionFormBuilder {
     }
 
     private applyTitleWithGrid(): void {
-        const prefix = `§${this.gridColumns}`;
-        this.form.title(`${prefix}${this.rawTitle}`);
+        const buttonCount = Math.max(1, this.callbacks.size);
+        if (this.gridColumns === 1) {
+            this.form.title(`§1§r${this.rawTitle}`);
+            return;
+        }
+        if (this.gridColumns === 4) {
+            this.form.title(`§4§r${this.rawTitle}`);
+            return;
+        }
+        const maxRows = this.gridColumns === 2 ? 20 : 15;
+        const rows = Math.max(1, Math.min(maxRows, Math.ceil(buttonCount / this.gridColumns)));
+        const tens = Math.floor(rows / 10);
+        const ones = rows % 10;
+        this.form.title(`§${this.gridColumns}§${tens}§${ones}§r${this.rawTitle}`);
     }
 
     public getColumns(): GridColumns {
@@ -56,6 +68,9 @@ export class ActionFormBuilder {
         } else {
             this.callbacks.set(this.callbacks.size, () => {});
         }
+        if (this.rawTitle) {
+            this.applyTitleWithGrid();
+        }
         return this;
     }
 
@@ -65,6 +80,9 @@ export class ActionFormBuilder {
     }
 
     public async show(player: Player, options?: { wait?: boolean }): Promise<ActionFormResponse> {
+        if (this.rawTitle) {
+            this.applyTitleWithGrid();
+        }
         const response = options?.wait ? ((await uiWait(player, this.form)) as ActionFormResponse) : await this.form.show(player);
 
         if (response.canceled) {

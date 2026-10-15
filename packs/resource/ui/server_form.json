@@ -218,32 +218,551 @@
             },
             {
                 "wrapping_panel": {
-                    "type": "panel",
+                    "type": "stack_panel",
+                    "orientation": "vertical",
                     "size": ["100%", "100%c"],
                     "controls": [
                         {
-                            "grid_3_panel@server_form.grid_3_buttons_panel": {
+                            "grid_4_wrapper": {
+                                "type": "panel",
+                                "size": ["100%", 142],
                                 "bindings": [
                                     {
                                         "binding_name": "#title_text"
                                     },
                                     {
                                         "binding_type": "view",
-                                        "source_property_name": "(not ((#title_text - '§3') = #title_text))",
+                                        "source_property_name": "(not ((#title_text - '§4§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ],
+                                "controls": [
+                                    {
+                                        "grid_4_panel@server_form.grid_4_buttons_panel": {}
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r1@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 3,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§1§r') = #title_text))",
                                         "target_property_name": "#visible"
                                     }
                                 ]
                             }
                         },
                         {
-                            "grid_2_panel@server_form.grid_2_buttons_panel": {
+                            "grid_3_r2@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 6,
                                 "bindings": [
                                     {
                                         "binding_name": "#title_text"
                                     },
                                     {
                                         "binding_type": "view",
-                                        "source_property_name": "(((#title_text - '§3') = #title_text) and ((#title_text - '§1') = #title_text))",
+                                        "source_property_name": "(not ((#title_text - '§3§0§2§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r3@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 9,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§3§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r4@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 12,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§4§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r5@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 15,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§5§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r6@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 18,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§6§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r7@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 21,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§7§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r8@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 24,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§8§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r9@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 27,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§0§9§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r10@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 30,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§1§0§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r11@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 33,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§1§1§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r12@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 36,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§1§2§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r13@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 39,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§1§3§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r14@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 42,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§1§4§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_3_r15@server_form.grid_3_buttons_panel": {
+                                "maximum_grid_items": 45,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§3§1§5§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r1@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 2,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§1§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r2@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 4,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§2§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r3@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 6,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§3§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r4@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 8,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§4§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r5@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 10,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§5§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r6@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 12,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§6§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r7@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 14,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§7§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r8@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 16,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§8§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r9@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 18,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§0§9§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r10@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 20,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§0§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r11@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 22,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§1§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r12@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 24,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§2§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r13@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 26,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§3§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r14@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 28,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§4§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r15@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 30,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§5§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r16@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 32,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§6§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r17@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 34,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§7§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r18@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 36,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§8§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r19@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 38,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§1§9§r') = #title_text))",
+                                        "target_property_name": "#visible"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "grid_2_r20@server_form.grid_2_buttons_panel": {
+                                "maximum_grid_items": 40,
+                                "bindings": [
+                                    {
+                                        "binding_name": "#title_text"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(not ((#title_text - '§2§2§0§r') = #title_text))",
                                         "target_property_name": "#visible"
                                     }
                                 ]
@@ -253,11 +772,15 @@
                             "long_form_dynamic_buttons_panel@server_form.long_form_dynamic_buttons_panel": {
                                 "bindings": [
                                     {
+                                        "binding_name": "#form_button_contents",
+                                        "binding_name_override": "#collection_length"
+                                    },
+                                    {
                                         "binding_name": "#title_text"
                                     },
                                     {
                                         "binding_type": "view",
-                                        "source_property_name": "(((#title_text - '§3') = #title_text) and (not ((#title_text - '§1') = #title_text)))",
+                                        "source_property_name": "(((#title_text - '§2§') = #title_text) and ((#title_text - '§3§') = #title_text) and ((#title_text - '§4§r') = #title_text))",
                                         "target_property_name": "#visible"
                                     }
                                 ]
@@ -316,7 +839,7 @@
         ]
     },
     "button_tile_card": {
-        "type": "stack_panel",
+        "type": "panel",
         "size": ["33.33%", "100%c"],
         "controls": [
             {
@@ -419,11 +942,10 @@
                     ]
                 }
             }
-        ],
-        "orientation": "vertical"
+        ]
     },
     "button_wide_card": {
-        "type": "stack_panel",
+        "type": "panel",
         "size": ["50%", "100%c"],
         "controls": [
             {
@@ -526,8 +1048,7 @@
                     ]
                 }
             }
-        ],
-        "orientation": "vertical"
+        ]
     },
     "button_full_banner": {
         "type": "panel",
@@ -988,6 +1509,55 @@
                 "binding_name": "#custom_text",
                 "binding_type": "collection",
                 "binding_collection_name": "custom_form"
+            }
+        ]
+    },
+    "grid_4_buttons_panel": {
+        "type": "grid",
+        "size": [138, 138],
+        "anchor_from": "center",
+        "anchor_to": "center",
+        "grid_item_template": "server_form.button_ttt_square",
+        "grid_rescaling_type": "horizontal",
+        "maximum_grid_items": 9,
+        "collection_name": "form_buttons"
+    },
+    "button_ttt_square": {
+        "type": "panel",
+        "size": [46, 46],
+        "controls": [
+            {
+                "square_border": {
+                    "type": "image",
+                    "texture": "textures/ui/Black",
+                    "alpha": 0.75,
+                    "size": [44, 44],
+                    "anchor_from": "center",
+                    "anchor_to": "center",
+                    "layer": 1,
+                    "controls": [
+                        {
+                            "form_button@common_buttons.dark_text_button": {
+                                "$pressed_button_name": "button.form_button_click",
+                                "size": [42, 42],
+                                "anchor_from": "center",
+                                "anchor_to": "center",
+                                "layer": 2,
+                                "$button_text": "#form_button_text",
+                                "$font_size": "large",
+                                "$button_text_binding_type": "collection",
+                                "$button_text_grid_collection_name": "form_buttons",
+                                "$button_text_max_size": [40, 40],
+                                "bindings": [
+                                    {
+                                        "binding_type": "collection_details",
+                                        "binding_collection_name": "form_buttons"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
             }
         ]
     }

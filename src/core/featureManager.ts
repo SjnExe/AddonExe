@@ -108,6 +108,10 @@ export function isFeatureActive(featureId: string): boolean {
         }
 
         // Game Sub-features
+        case 'game.tictactoe': {
+            const gCfg = configs.getGamesConfig();
+            return isDefined(gCfg) ? gCfg.enabled === true && gCfg.ticTacToe?.enabled !== false : false;
+        }
         case 'game.wordle': {
             const wordleConfig = configs.getWordleConfig();
             if (isDefined(wordleConfig)) {

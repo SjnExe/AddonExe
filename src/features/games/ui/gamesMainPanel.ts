@@ -6,6 +6,16 @@ import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 export async function showGamesMainPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder().title('Games');
 
+    if (isFeatureActive('game.tictactoe')) {
+        form.button('Tic-Tac-Toe (2P)', 'textures/ui/controller_glyph_color', async () => {
+            await showPanel(player, 'ticTacToeMainPanel');
+        });
+    } else {
+        form.button('Tic-Tac-Toe\n§0[§cDISABLED§0]', 'textures/ui/controller_glyph_color', async () => {
+            await showGamesMainPanel(player);
+        });
+    }
+
     if (isFeatureActive('game.wordle')) {
         form.button('Wordle', 'textures/ui/icon_recipe_item', async () => {
             await showPanel(player, 'wordleMainPanel', { page: 1 });

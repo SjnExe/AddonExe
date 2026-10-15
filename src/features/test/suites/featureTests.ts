@@ -10,6 +10,7 @@ import { StorageManager } from '@core/storage/StorageManager.js';
 import { getAnticheatConfig } from '@features/anticheat/configLoader.js';
 import { getPunishmentLogs } from '@features/anticheat/logManager.js';
 import { getBounty, incrementBounty, removeBounty } from '@features/economy/bountyManager.js';
+import { evaluateTicTacToeBoard } from '@features/games/tictactoe/ticTacToeManager.js';
 import { addPunishment, getPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
 import { parseRankOverrides } from '@features/shop/utils.js';
 import * as mc from '@minecraft/server';
@@ -172,5 +173,18 @@ export function registerFeatureTests() {
         assert.equal(parsed!['vip']?.buy, 0.8, 'VIP buy multiplier should be 0.8');
         assert.equal(parsed!['vip']?.sell, 1.2, 'VIP sell multiplier should be 1.2');
         assert.equal(parsed!['donator']?.buy, 0.9, 'Donator buy multiplier should be 0.9');
+    });
+
+    addTest(SUITE_NAME, 'Tic-Tac-Toe 3x3 evaluator detects rows, diagonals, and draws accurately', () => {
+        const winRow = evaluateTicTacToeBoard(['X', 'X', 'X', 'O', 'O', '', '', '', '']);
+        assert.equal(winRow.winner, 'X', 'Should detect top row X win');
+        assert.deepEqual(winRow.winningLine, [0, 1, 2], 'Winning line should be [0, 1, 2]');
+
+        const winDiag = evaluateTicTacToeBoard(['O', 'X', 'X', '', 'O', 'X', '', '', 'O']);
+        assert.equal(winDiag.winner, 'O', 'Should detect diagonal O win');
+
+        const drawBoard = evaluateTicTacToeBoard(['X', 'O', 'X', 'X', 'O', 'O', 'O', 'X', 'X']);
+        assert.equal(drawBoard.winner, undefined, 'Draw board should have no winner');
+        assert.equal(drawBoard.isDraw, true, 'Should detect draw when all 9 squares are filled');
     });
 }
