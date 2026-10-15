@@ -62,6 +62,7 @@ export interface PlayerData {
     killStreak: number;
     totalPlayTime: number; // Stored in milliseconds
     sidebarVisible: boolean;
+    sidebarLayout?: 'default' | 'right' | 'left' | 'bottom';
     mailbox: SerializedItem[];
     lastDailyClaim: number;
     dailyStreak: number;
@@ -102,7 +103,8 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     deaths: 0,
     killStreak: 0,
     totalPlayTime: 0,
-    sidebarVisible: false,
+    sidebarVisible: true,
+    sidebarLayout: 'default',
     mailbox: [],
     lastDailyClaim: 0,
     dailyStreak: 0,
@@ -349,7 +351,8 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
         deaths: 0,
         killStreak: 0,
         totalPlayTime: 0,
-        sidebarVisible: false,
+        sidebarVisible: true,
+        sidebarLayout: 'default',
         mailbox: [],
         lastDailyClaim: 0,
         dailyStreak: 0,
@@ -830,4 +833,15 @@ export function setSidebarVisible(playerId: string, visible: boolean) {
 export function getSidebarVisible(playerId: string): boolean {
     const pData = getPlayer(playerId);
     return (isDefined(pData) ? pData.sidebarVisible : undefined) ?? false;
+}
+
+export function setSidebarLayout(playerId: string, layout: 'default' | 'right' | 'left' | 'bottom') {
+    updatePlayerData(playerId, (pData) => {
+        pData.sidebarLayout = layout;
+    });
+}
+
+export function getSidebarLayout(playerId: string): 'default' | 'right' | 'left' | 'bottom' {
+    const pData = getPlayer(playerId);
+    return (isDefined(pData) ? pData.sidebarLayout : undefined) ?? 'default';
 }

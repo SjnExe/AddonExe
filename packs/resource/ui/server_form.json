@@ -273,7 +273,7 @@
         "size": ["100%", "100%c"],
         "grid_item_template": "server_form.button_tile_card",
         "grid_rescaling_type": "horizontal",
-        "maximum_grid_items": 45,
+        "maximum_grid_items": 30,
         "collection_name": "form_buttons"
     },
     "grid_2_buttons_panel": {
@@ -281,7 +281,7 @@
         "size": ["100%", "100%c"],
         "grid_item_template": "server_form.button_wide_card",
         "grid_rescaling_type": "horizontal",
-        "maximum_grid_items": 40,
+        "maximum_grid_items": 28,
         "collection_name": "form_buttons"
     },
     "long_form_dynamic_buttons_panel": {
@@ -316,7 +316,7 @@
         ]
     },
     "button_tile_card": {
-        "type": "panel",
+        "type": "stack_panel",
         "size": ["33.33%", "100%c"],
         "controls": [
             {
@@ -419,10 +419,11 @@
                     ]
                 }
             }
-        ]
+        ],
+        "orientation": "vertical"
     },
     "button_wide_card": {
-        "type": "panel",
+        "type": "stack_panel",
         "size": ["50%", "100%c"],
         "controls": [
             {
@@ -525,7 +526,8 @@
                     ]
                 }
             }
-        ]
+        ],
+        "orientation": "vertical"
     },
     "button_full_banner": {
         "type": "panel",

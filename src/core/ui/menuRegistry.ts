@@ -321,6 +321,20 @@ export function initializeDefaultMenuItems(): void {
     });
 
     registerMenuItem({
+        id: 'profile_hud',
+        title: 'HUD & Sidebar Settings',
+        description: 'Toggle HUD or switch between Right, Left & Bottom layouts',
+        icon: 'textures/items/book_writable',
+        hub: 'profile',
+        featureId: 'util.sidebar',
+        order: 35,
+        action: async (p) => {
+            const { showPlayerSidebarSettingsPanel } = await import('@features/sidebar/ui/adminPanel.js');
+            await showPlayerSidebarSettingsPanel(p);
+        }
+    });
+
+    registerMenuItem({
         id: 'profile_tpa',
         title: 'TPA & Privacy Settings',
         description: 'Toggle teleport requests & blocked players',

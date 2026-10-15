@@ -2,6 +2,7 @@ import { CommandExecutor } from '@commands/commandManager.js';
 import * as configManager from '@core/configManager.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { setActionBarOverride } from '@features/sidebar/manager.js';
 import * as mc from '@minecraft/server';
 
 let restartTaskId: number | undefined;
@@ -51,6 +52,7 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
             }
 
             player.onScreenDisplay.setTitle(`${color}${secondsRemaining}`);
+            setActionBarOverride(player, `§c§l⚠ Server Restarting in ${color}${secondsRemaining}s §c§l⚠`, 1200);
             if (subtitle) {
                 player.onScreenDisplay.updateSubtitle(subtitle);
             }

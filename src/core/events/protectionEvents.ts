@@ -5,6 +5,7 @@ import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-dat
 import { getConfig } from '@core/configManager.js';
 import { hasPermission } from '@core/permissionEngine.js';
 import { getProtectionFlags } from '@core/protectionService.js';
+import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -35,7 +36,7 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
         if (!canBypass(player)) {
             event.cancel = true;
             mc.system.run(() => {
-                player.onScreenDisplay.setActionBar('§cYou cannot break blocks here.');
+                setActionBarOverride(player, '§cYou cannot break blocks here.', 2500);
             });
         }
     }
@@ -52,7 +53,7 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
         if (!canBypass(player)) {
             event.cancel = true;
             mc.system.run(() => {
-                player.onScreenDisplay.setActionBar('§cYou cannot place blocks here.');
+                setActionBarOverride(player, '§cYou cannot place blocks here.', 2500);
             });
         }
     }
@@ -121,7 +122,7 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
             if (!canBypass(player)) {
                 event.cancel = true;
                 mc.system.run(() => {
-                    player.onScreenDisplay.setActionBar('§cYou cannot use projectiles here.');
+                    setActionBarOverride(player, '§cYou cannot use projectiles here.', 2500);
                 });
             }
         }
@@ -139,7 +140,7 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
         if (!canBypass(player)) {
             event.cancel = true;
             mc.system.run(() => {
-                player.onScreenDisplay.setActionBar('§cYou cannot interact with blocks here.');
+                setActionBarOverride(player, '§cYou cannot interact with blocks here.', 2500);
             });
         }
     }
@@ -168,7 +169,7 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
                 if (!canBypass(player)) {
                     event.cancel = true;
                     mc.system.run(() => {
-                        player.onScreenDisplay.setActionBar('§cYou cannot interact with entities here.');
+                        setActionBarOverride(player, '§cYou cannot interact with entities here.', 2500);
                     });
                 }
             }
@@ -188,7 +189,7 @@ export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
         if (!canBypass(player)) {
             event.cancel = true;
             mc.system.run(() => {
-                player.onScreenDisplay.setActionBar('§cYou cannot pick up items here.');
+                setActionBarOverride(player, '§cYou cannot pick up items here.', 2500);
             });
         }
     }

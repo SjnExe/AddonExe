@@ -1,16 +1,29 @@
+export type SidebarLayoutMode = 'right' | 'left' | 'bottom' | 'dual';
+
 export const config = {
-    enabled: false,
+    enabled: true,
+    defaultLayout: 'right' as SidebarLayoutMode,
+    themePreset: 'modernDark',
+    showAlertBannerInSidebar: true,
     globalInfo: {
-        enabled: true,
+        enabled: false,
         opacity: 'medium',
-        title: '§l§6{server_name}',
+        title: '§l§b{server_name}',
         updateInterval: 20,
         maxPlayers: 20,
-        sidebarLines: ['§7----------------', '§fPlayers: §a{online}§7/§a{max_online}', '§fTPS: §a{tps}', '§fTime: §b{time}', '§fDate: §7{date}', '§7----------------']
+        sidebarLines: [
+            '§l§b{server_name} §r§8({online}/{max_online})',
+            '§7Player: §f{name} §8[§e{rank}§8]',
+            '§7Balance: §a{money} §8| §7Team: §d{team}',
+            '§7Combat: §c{kills}K §7/ §4{deaths}D §8(§b{kdr}§8)',
+            '§7TPS: {tps_colored}'
+        ]
     },
     hud: {
         enabled: true,
         updateInterval: 20,
-        actionBarLines: ['§gMoney: {money}', '§7|', '§cK: {kills} §7/ §4D: {deaths} §7(§b{kdr}§7)', '§7|', '§eRank: {rank}']
+        actionBarLines: ['§a{money}', '§8|', '§cK: {kills} §7/ §4D: {deaths} §8(§b{kdr}§8)', '§8|', '§e{rank}']
     }
 };
+
+export default config;
