@@ -315,6 +315,33 @@ export function getPlayerTeamId(playerId: string): number | undefined {
     return pData?.teamId ?? undefined;
 }
 
+export function isTeamAdminOrOwner(team: TeamData, playerId: string): boolean {
+    return team.ownerId === playerId || team.admins.includes(playerId);
+}
+
+export function broadcastTeamMessage(teamId: number, message: string): void {
+    const team = activeTeam.get(teamId);
+    if (!isDefined(team)) {
+        return;
+    }
+    for (const memberId of team.members) {
+        const member = getPlayerFromCache(memberId);
+        if (isDefined(member)) {
+            member.sendMessage(message);
+        }
+    }
+}
+
+export function toggleTeamAutoTpAccept(player: mc.Player): boolean {
+    let nextState = false;
+    playerDataManager.updatePlayerData(player.id, (d) => {
+        const current = d.teamSettings?.autoTpAccept ?? false;
+        nextState = !current;
+        d.teamSettings = { autoTpAccept: nextState };
+    });
+    return nextState;
+}
+
 export function getTeamByPlayer(playerId: string): TeamData | undefined {
     const teamId = getPlayerTeamId(playerId);
     return isDefined(teamId) ? activeTeam.get(teamId) : undefined;
@@ -482,7 +509,9 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
 
     // Add to team
     team.members.push(player.id);
+    team.applications = team.applications.filter((app) => app.playerId !== player.id);
     saveTeam(teamId);
+    broadcastTeamMessage(teamId, `§b[Team] §e${player.name} §ajoined the team!`);
 
     // Update player
     playerDataManager.updatePlayerData(player.id, (d) => {
@@ -574,6 +603,7 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
     team.members.push(playerId);
     team.applications.splice(appIndex, 1);
     saveTeam(teamId);
+    broadcastTeamMessage(teamId, `§b[Team] §e${isDefined(pData) ? pData.name : 'A new member'} §ajoined the team!`);
 
     // Update player
     setPlayerTeam(playerId, teamId);
@@ -662,6 +692,27 @@ export function depositToTeam(player: mc.Player, amount: number): ActionResult {
     saveTeam(team.id);
 
     return { success: true, message: `§aDeposited $${amount} to the team.` };
+}
+
+export function withdrawFromTeam(player: mc.Player, amount: number): ActionResult {
+    if (Number.isNaN(amount) || amount <= 0) {
+        return { success: false, message: '§cInvalid amount.' };
+    }
+    const rounded = Math.floor(amount * 100) / 100;
+    const team = getTeamByPlayer(player.id);
+    if (!isDefined(team)) {
+        return { success: false, message: '§cYou are not in a team.' };
+    }
+    if (team.ownerId !== player.id) {
+        return { success: false, message: '§cOnly the team owner can withdraw from the team bank.' };
+    }
+    if (team.balance < rounded) {
+        return { success: false, message: '§cInsufficient team bank funds.' };
+    }
+    team.balance = Number.parseFloat((team.balance - rounded).toFixed(2));
+    saveTeam(team.id);
+    playerDataManager.incrementPlayerBalance(player.id, rounded);
+    return { success: true, message: `§aWithdrew ${rounded} from the team bank.` };
 }
 
 export function teleportToTeamHome(player: mc.Player): void {

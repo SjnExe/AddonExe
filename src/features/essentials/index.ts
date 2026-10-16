@@ -1,7 +1,9 @@
+import { initialize as initializeFloatingText } from '@features/essentials/floatingTextManager.js';
 import { initializeWorldBorder } from '@features/essentials/worldBorderManager.js';
 
 export async function initialize(_isMigration: boolean) {
     initializeWorldBorder();
+    initializeFloatingText();
 
     // Register configurations
     const { resetWorldProtectionConfig, registerConfigReset } = await import('@core/configurations.js');

@@ -1,8 +1,9 @@
 import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
+import { loadCooldowns } from '@core/cooldownManager.js';
 import { debugLog, infoLog } from '@core/logger.js';
-import { getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from '@core/playerDataManager.js';
+import { clearExpiredPayments, getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from '@core/playerDataManager.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/timerManager.js';
 import { initializeLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -23,6 +24,7 @@ export function restartAutoSave() {
     if (autoSaveIntervalSeconds > 0) {
         const intervalTicks = autoSaveIntervalSeconds * 20; // 20 ticks/sec
         autoSaveIntervalId = setTrackedInterval(() => {
+            clearExpiredPayments();
             setTrackedJob(saveAllDataJob({ log: false }));
         }, intervalTicks);
         debugLog(`[DataManager] Auto-save started. Interval: ${autoSaveIntervalSeconds}s`);
@@ -147,6 +149,7 @@ export function initializeDataManager() {
 
 export function loadPersistentData() {
     loadNameIdMap();
+    loadCooldowns();
     initializeLeaderboard();
     for (const handler of loadDataHandlers) {
         handler();

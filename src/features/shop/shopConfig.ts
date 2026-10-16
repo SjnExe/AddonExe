@@ -240,14 +240,3 @@ export const shopConfig: ShopConfig = {
 };
 
 export default shopConfig;
-
-let cachedShopConfig: typeof shopConfig = shopConfig;
-
-export function getShopConfig() {
-    return cachedShopConfig;
-}
-
-export function saveShopConfig(newConfig: typeof shopConfig) {
-    cachedShopConfig = newConfig;
-    // You would typically persist this here.
-}

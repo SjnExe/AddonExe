@@ -5,6 +5,7 @@ import { sendMessage } from '@core/messaging.js';
 import { canTarget } from '@core/rankManager.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { handleGameModeInventorySwap } from '@features/moderation/staffInventoryManager.js';
 
 // --- Gamemode Definitions ---
 
@@ -59,6 +60,8 @@ function setGamemode(executor: CommandExecutor, gamemode: string, targets?: mc.P
         }
 
         try {
+            const prevMode = targetPlayer.getGameMode();
+            handleGameModeInventorySwap(targetPlayer, gameModeValue, prevMode);
             targetPlayer.setGameMode(gameModeValue);
             sendMessage(`§aYour gamemode was set to §e${gamemodeName}§a by §e${announcer}§a.`, targetPlayer);
             successCount++;

@@ -19,7 +19,6 @@ export const auctionHouseConfig: AuctionHouseConfig = {
     allowBidding: true,
     blockedItemIds: [
         MinecraftItemTypes.UndyedShulkerBox,
-        MinecraftItemTypes.UndyedShulkerBox,
         MinecraftItemTypes.WhiteShulkerBox,
         MinecraftItemTypes.OrangeShulkerBox,
         MinecraftItemTypes.MagentaShulkerBox,

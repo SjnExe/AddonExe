@@ -220,7 +220,7 @@ const tpaStopCommand: CustomCommand = {
     aliases: ['tpstop', 'tpablock', 'tpblock'],
     description: 'Disables TPA requests or blocks specific players.',
     category: 'Transportation',
-    permissionNode: 'cmd.tpastop.admin',
+    permissionNode: 'cmd.tpastop.member',
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
@@ -257,7 +257,7 @@ const tpaStartCommand: CustomCommand = {
     aliases: ['tpstart', 'tpaunblock', 'tpunblock'],
     description: 'Enables TPA requests or unblocks specific players.',
     category: 'Transportation',
-    permissionNode: 'cmd.tpastart.admin',
+    permissionNode: 'cmd.tpastart.member',
     parameters: [{ name: 'targets', type: 'string', optional: true }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
@@ -324,7 +324,7 @@ const oTpaStopCommand: CustomCommand = {
     aliases: ['offlinetpastop', 'otpablock'],
     description: 'Blocks an offline player from sending TPA requests.',
     category: 'Transportation',
-    permissionNode: 'cmd.otpastop.admin',
+    permissionNode: 'cmd.otpastop.member',
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -339,7 +339,7 @@ const oTpaStartCommand: CustomCommand = {
     aliases: ['offlinetpastart', 'otpaunblock'],
     description: 'Unblocks an offline player from sending TPA requests.',
     category: 'Transportation',
-    permissionNode: 'cmd.otpastart.admin',
+    permissionNode: 'cmd.otpastart.member',
     hidden: true,
     parameters: [{ name: 'target', type: 'string' }],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {

@@ -1,32 +1,43 @@
 import { getConfig } from '@core/configManager.js';
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { loadPlayerData } from '@core/playerDataManager.js';
+import { getTeamConfig } from '@core/configurations.js';
+import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
+import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
+import { formatCurrency } from '@core/utils.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as teamManager from '@features/team/manager.js';
-import { isNonEmptyString } from '@lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { showConfirmationDialog } from '@ui/components.js';
 
 export async function showTeamMainPanel(player: mc.Player): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
+    const pData = getOrCreatePlayer(player);
+    const teamCfg = getTeamConfig();
     const form = new ActionFormBuilder().title(team ? team.name : 'Teams');
 
     if (team) {
-        form.button(`Members (${team.members.length})`, 'textures/ui/multiplayer_glyph_color', async () => {
+        const isStaff = teamManager.isTeamAdminOrOwner(team, player.id);
+        const isOwner = team.ownerId === player.id;
+        const autoTp = pData.teamSettings?.autoTpAccept ?? false;
+        const roleLabel = isOwner ? '§6Owner' : isStaff ? '§bAdmin' : '§7Member';
+
+        form.body(
+            [
+                `§7Role: ${roleLabel} §8| §7Members: §f${team.members.length}/${teamCfg.maxMembers}`,
+                `§7Team Bank: §a${formatCurrency(team.balance)} §8| §7Status: ${team.open ? '§aOpen' : '§cInvite Only'}`
+            ].join('\n')
+        );
+
+        form.button(`Members (${team.members.length}/${teamCfg.maxMembers})`, 'textures/ui/multiplayer_glyph_color', async () => {
             await showTeamMembersPanel(player, 1);
         });
 
-        form.button('Leave Team', 'textures/ui/cancel', async () => {
-            const res = teamManager.leaveTeam(player);
-            player.sendMessage(res.message ?? (res.success ? 'Success' : 'Failed'));
-            await showTeamMainPanel(player);
-        });
-
-        if (team.ownerId === player.id) {
-            form.button('Manage Team', 'textures/ui/settings_glyph_color_2x', async () => {
-                await showTeamManagePanel(player);
+        if (team.home) {
+            form.button('Teleport to Team Home', 'textures/ui/portalBg', () => {
+                teamManager.teleportToTeamHome(player);
             });
         }
 
@@ -34,14 +45,35 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
             await showTeamDepositPanel(player);
         });
 
-        if (team.home) {
-            form.button('Teleport to Home', 'textures/ui/portalBg', () => {
-                teamManager.teleportToTeamHome(player);
+        if (isOwner && team.balance > 0) {
+            form.button('Withdraw Money', 'textures/items/emerald', async () => {
+                await showTeamWithdrawPanel(player);
+            });
+        }
+
+        if (isStaff) {
+            form.button('Manage Team', 'textures/ui/settings_glyph_color_2x', async () => {
+                await showTeamManagePanel(player);
+            });
+        }
+
+        form.button(autoTp ? '§2Auto-Accept Team TPA: ON' : '§7Auto-Accept Team TPA: OFF', autoTp ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
+            const next = teamManager.toggleTeamAutoTpAccept(player);
+            player.sendMessage(`§aTeam Auto-TPA Accept is now ${next ? '§2ENABLED' : '§cDISABLED'}§a.`);
+            await showTeamMainPanel(player);
+        });
+
+        if (!isOwner) {
+            form.button('§cLeave Team', 'textures/ui/cancel', async () => {
+                const res = teamManager.leaveTeam(player);
+                player.sendMessage(res.message ?? (res.success ? '§aLeft team.' : '§cFailed'));
+                await showTeamMainPanel(player);
             });
         }
     } else {
-        const pData = loadPlayerData(player.id);
-        const invites = pData?.pendingInvites ?? [];
+        const invites = pData.pendingInvites ?? [];
+        form.body(`§7Creation Cost: §6${formatCurrency(teamCfg.creationCost)} §8| §7Pending Invites: §e${invites.length}`);
+
         form.button('Create Team', 'textures/ui/color_plus', async () => {
             await showTeamCreatePanel(player);
         });
@@ -72,21 +104,21 @@ export async function showTeamMembersPanel(player: mc.Player, page: number = 1):
         return;
     }
 
-    const form = new ActionFormBuilder().title('Members');
-
-    const isOwner = team.ownerId === player.id;
+    const form = new ActionFormBuilder().title('Team Members');
+    const canManage = teamManager.isTeamAdminOrOwner(team, player.id);
 
     form.addPaginatedButtons(
         team.members,
         page,
-        (member, formBuilder) => {
-            const isOnline = getPlayerFromCache(member) !== undefined;
+        (memberId, formBuilder) => {
+            const isOnline = getPlayerFromCache(memberId) !== undefined;
             const status = isOnline ? '§aOnline' : '§cOffline';
-            const role = team.ownerId === member ? '§6Owner' : '§7Member';
+            const role = team.ownerId === memberId ? '§6Owner' : team.admins.includes(memberId) ? '§bAdmin' : '§7Member';
+            const displayName = getPlayerNameById(memberId) ?? loadPlayerData(memberId)?.name ?? memberId;
 
-            formBuilder.button(`${loadPlayerData(member)?.name ?? member}\n${status} §r- ${role}`, 'textures/ui/permissions_member_star', async () => {
-                if (isOwner && member !== player.id) {
-                    await showTeamMemberActionPanel(player, member, loadPlayerData(member)?.name ?? member);
+            formBuilder.button(`${displayName}\n${status} §r- ${role}`, 'textures/ui/permissions_member_star', async () => {
+                if (canManage && memberId !== player.id && memberId !== team.ownerId) {
+                    await showTeamMemberActionPanel(player, memberId, displayName);
                 } else {
                     await showTeamMembersPanel(player, page);
                 }
@@ -106,23 +138,54 @@ export async function showTeamMembersPanel(player: mc.Player, page: number = 1):
 
 export async function showTeamMemberActionPanel(player: mc.Player, targetId: string, targetName: string): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team || team.ownerId !== player.id) {
+    if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
         await showTeamMembersPanel(player, 1);
         return;
     }
 
-    const form = new ActionFormBuilder()
-        .title(`Manage ${targetName}`)
-        .button('Kick Member', 'textures/ui/cancel', async () => {
-            const res = teamManager.kickMember(team.id, targetId);
-            player.sendMessage(res.message ?? 'Done');
-            await showTeamMembersPanel(player, 1);
-        })
-        .button('Transfer Ownership', 'textures/ui/op', async () => {
-            const res = teamManager.transferOwnership(team.id, targetId);
-            player.sendMessage(res.message ?? 'Done');
-            await showTeamMainPanel(player);
+    const isOwner = team.ownerId === player.id;
+    const isTargetAdmin = team.admins.includes(targetId);
+
+    const form = new ActionFormBuilder().title(`Manage ${targetName}`);
+
+    if (isOwner) {
+        if (isTargetAdmin) {
+            form.button('Demote to Member', 'textures/ui/minus', async () => {
+                const res = teamManager.demoteMember(team.id, targetId);
+                player.sendMessage(res.message ?? '§aDemoted member.');
+                await showTeamMembersPanel(player, 1);
+            });
+        } else {
+            form.button('Promote to Team Admin', 'textures/ui/color_plus', async () => {
+                const res = teamManager.promoteMember(team.id, targetId);
+                player.sendMessage(res.message ?? '§aPromoted member.');
+                await showTeamMembersPanel(player, 1);
+            });
+        }
+
+        form.button('Transfer Ownership', 'textures/ui/op', async () => {
+            await showConfirmationDialog(player, {
+                title: 'Transfer Team Ownership',
+                body: `Are you sure you want to transfer ownership of ${team.name}§r to ${targetName}?`,
+                onConfirm: async () => {
+                    const res = teamManager.transferOwnership(team.id, targetId);
+                    player.sendMessage(res.message ?? '§aOwnership transferred.');
+                    await showTeamMainPanel(player);
+                },
+                onCancel: async () => {
+                    await showTeamMemberActionPanel(player, targetId, targetName);
+                }
+            });
         });
+    }
+
+    if (isOwner || !isTargetAdmin) {
+        form.button('§cKick Member', 'textures/ui/cancel', async () => {
+            const res = teamManager.kickMember(team.id, targetId);
+            player.sendMessage(res.message ?? '§aMember kicked.');
+            await showTeamMembersPanel(player, 1);
+        });
+    }
 
     form.addBackButton(async () => {
         await showTeamMembersPanel(player, 1);
@@ -133,22 +196,45 @@ export async function showTeamMemberActionPanel(player: mc.Player, targetId: str
 
 export async function showTeamManagePanel(player: mc.Player): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team || team.ownerId !== player.id) {
+    if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
         await showTeamMainPanel(player);
         return;
     }
 
+    const isOwner = team.ownerId === player.id;
+
     const form = new ActionFormBuilder()
         .title('Manage Team')
-        .button('Settings', 'textures/ui/settings_glyph_color_2x', async () => {
-            await showTeamSettingPanel(player);
+        .button('Invite Player', 'textures/ui/color_plus', async () => {
+            await showTeamInvitePlayerModal(player);
         })
         .button(`Join Requests (${team.applications.length})`, 'textures/ui/user_icon', async () => {
             await showTeamRequestsPanel(player, 1);
         })
-        .button('Manage Home', 'textures/ui/portalBg', async () => {
+        .button('Manage Team Home', 'textures/ui/portalBg', async () => {
             await showTeamHomePanel(player);
+        })
+        .button('Team Settings', 'textures/ui/settings_glyph_color_2x', async () => {
+            await showTeamSettingPanel(player);
         });
+
+    if (isOwner) {
+        form.button('§4Disband Team', 'textures/ui/trash', async () => {
+            await showConfirmationDialog(player, {
+                title: 'Disband Team',
+                body: `Are you sure you want to permanently delete team '${team.name}§r'?`,
+                confirmButtonText: '§4Disband',
+                onConfirm: async () => {
+                    teamManager.deleteTeam(team.id);
+                    player.sendMessage('§aTeam disbanded.');
+                    await showTeamMainPanel(player);
+                },
+                onCancel: async () => {
+                    await showTeamManagePanel(player);
+                }
+            });
+        });
+    }
 
     form.addBackButton(async () => {
         await showTeamMainPanel(player);
@@ -157,29 +243,71 @@ export async function showTeamManagePanel(player: mc.Player): Promise<void> {
     await form.show(player);
 }
 
-export async function showTeamSettingPanel(player: mc.Player): Promise<void> {
+export async function showTeamInvitePlayerModal(player: mc.Player): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team || team.ownerId !== player.id) {
+    if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
+        await showTeamMainPanel(player);
         return;
     }
 
-    const modal = new CustomFormBuilder<{ open: boolean }>('Team Settings').toggle('open', 'Open to Requests', !!team.open).submitButton('Save Settings');
+    const onlineCandidates = getAllPlayersFromCache()
+        .filter((p) => !team.members.includes(p.id))
+        .map((p) => p.name);
+
+    onlineCandidates.unshift('-- Type Name Below --');
+
+    const modal = new CustomFormBuilder<{ dropdownName: string; manualName: string }>('Invite Player to Team')
+        .dropdown('dropdownName', 'Select Online Player', onlineCandidates, 0)
+        .textField('manualName', 'Or Type Player Name', 'Player Name', '')
+        .submitButton('Send Invite');
 
     const res = await modal.show(player);
     if (res) {
-        teamManager.setTeamOpenStatus(team.id, res.open);
+        const chosen = isNonEmptyString(res.manualName.trim()) ? res.manualName.trim() : res.dropdownName !== '-- Type Name Below --' ? res.dropdownName : '';
+        if (isNonEmptyString(chosen)) {
+            const targetId = getPlayerIdByName(chosen);
+            if (!isNonEmptyString(targetId)) {
+                player.sendMessage('§cPlayer not found.');
+            } else {
+                const inviteRes = teamManager.invitePlayer(team.id, targetId);
+                player.sendMessage(inviteRes.message ?? (inviteRes.success ? '§aInvite sent.' : '§cFailed to invite.'));
+            }
+        }
+    }
+
+    await showTeamManagePanel(player);
+}
+
+export async function showTeamSettingPanel(player: mc.Player): Promise<void> {
+    const team = teamManager.getTeamByPlayer(player.id);
+    if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
+        return;
+    }
+
+    const modal = new CustomFormBuilder<{ open: boolean }>('Team Settings').toggle('open', 'Open to Join Applications', !!team.open).submitButton('Save Settings');
+
+    const res = await modal.show(player);
+    if (res) {
+        const updateRes = teamManager.setTeamOpenStatus(team.id, res.open);
+        if (updateRes.message) {
+            player.sendMessage(updateRes.message);
+        }
     }
     await showTeamManagePanel(player);
 }
 
 export async function showTeamRequestsPanel(player: mc.Player, page: number = 1): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team || team.ownerId !== player.id) {
+    if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
         await showTeamManagePanel(player);
         return;
     }
 
     const form = new ActionFormBuilder().title('Join Requests');
+
+    if (team.applications.length === 0) {
+        form.body('No pending join applications.');
+    }
 
     form.addPaginatedButtons(
         team.applications,
@@ -212,7 +340,7 @@ export async function showTeamRequestsPanel(player: mc.Player, page: number = 1)
 
 export async function showTeamRequestActionPanel(player: mc.Player, targetId: string, targetName: string): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team || team.ownerId !== player.id) {
+    if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
         await showTeamRequestsPanel(player, 1);
         return;
     }
@@ -239,12 +367,12 @@ export async function showTeamRequestActionPanel(player: mc.Player, targetId: st
 
 export async function showTeamHomePanel(player: mc.Player): Promise<void> {
     const team = teamManager.getTeamByPlayer(player.id);
-    if (!team || team.ownerId !== player.id) {
+    if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
         await showTeamManagePanel(player);
         return;
     }
 
-    const form = new ActionFormBuilder().title('Manage Home').button('Set Home Here', 'textures/ui/plus', async () => {
+    const form = new ActionFormBuilder().title('Manage Team Home').button('Set Home Here', 'textures/ui/plus', async () => {
         const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
         player.sendMessage(res.message ?? 'Done');
         await showTeamHomePanel(player);
@@ -270,7 +398,7 @@ export async function showTeamCreatePanel(player: mc.Player): Promise<void> {
 
     const res = await modal.show(player);
     if (res && isNonEmptyString(res.name)) {
-        const result = teamManager.createTeam(player, res.name);
+        const result = teamManager.createTeam(player, res.name.trim());
         player.sendMessage(result.message ?? 'Done');
         if (result.success) {
             await showTeamMainPanel(player);
@@ -303,13 +431,32 @@ export async function showTeamDepositPanel(player: mc.Player): Promise<void> {
     await showTeamMainPanel(player);
 }
 
+export async function showTeamWithdrawPanel(player: mc.Player): Promise<void> {
+    const team = teamManager.getTeamByPlayer(player.id);
+    if (!team || team.ownerId !== player.id) {
+        return;
+    }
+
+    const modal = new CustomFormBuilder<{ amount: string }>(`Withdraw (Bank: ${formatCurrency(team.balance)})`)
+        .textField('amount', 'Amount to Withdraw', '100', String(team.balance))
+        .submitButton('Withdraw');
+
+    const res = await modal.show(player);
+    if (res && isNonEmptyString(res.amount)) {
+        const amount = Number.parseFloat(res.amount);
+        const withdrawRes = teamManager.withdrawFromTeam(player, amount);
+        player.sendMessage(withdrawRes.message ?? (withdrawRes.success ? '§aWithdrawal successful.' : '§cWithdrawal failed.'));
+    }
+    await showTeamMainPanel(player);
+}
+
 export async function showTeamJoinPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder()
         .title('Join Team')
         .button('Search Team', 'textures/ui/magnifyingGlass', async () => {
             await showTeamSearchPanel(player);
         })
-        .button('Browse Teams', 'textures/ui/multiplayer_glyph_color', async () => {
+        .button('Browse Open Teams', 'textures/ui/multiplayer_glyph_color', async () => {
             await showTeamBrowserPanel(player, 1);
         });
 
@@ -326,7 +473,7 @@ export async function showTeamSearchPanel(player: mc.Player): Promise<void> {
     const res = await modal.show(player);
     if (res && isNonEmptyString(res.teamName)) {
         const allTeams = teamManager.getAllTeam();
-        const lowerTeamName = res.teamName.toLowerCase();
+        const lowerTeamName = res.teamName.trim().toLowerCase();
         const foundTeam = allTeams.find((t) => t.name.toLowerCase() === lowerTeamName);
 
         if (foundTeam) {
@@ -345,6 +492,10 @@ export async function showTeamSearchPanel(player: mc.Player): Promise<void> {
 export async function showTeamBrowserPanel(player: mc.Player, page: number = 1): Promise<void> {
     const allTeams = teamManager.getAllTeam().filter((t) => t.open);
     const form = new ActionFormBuilder().title('Open Teams');
+
+    if (allTeams.length === 0) {
+        form.body('There are currently no open teams.');
+    }
 
     form.addPaginatedButtons(
         allTeams,
@@ -377,8 +528,10 @@ export async function showTeamInvitesPanel(player: mc.Player, page: number = 1):
         invites,
         page,
         (invite, formBuilder) => {
-            formBuilder.button(`Invite from Team ID: ${invite.teamId}\nClick to Manage`, 'textures/ui/invite_base', async () => {
-                await showTeamInviteActionPanel(player, invite.teamId);
+            const liveTeam = teamManager.getTeam(invite.teamId);
+            const labelName = isDefined(liveTeam) ? liveTeam.name : invite.teamName || `Team #${invite.teamId}`;
+            formBuilder.button(`${labelName}\n§7Click to Accept or Deny`, 'textures/ui/invite_base', async () => {
+                await showTeamInviteActionPanel(player, invite.teamId, labelName);
             });
         },
         async (newPage) => {
@@ -393,9 +546,9 @@ export async function showTeamInvitesPanel(player: mc.Player, page: number = 1):
     await form.show(player);
 }
 
-export async function showTeamInviteActionPanel(player: mc.Player, teamId: number): Promise<void> {
+export async function showTeamInviteActionPanel(player: mc.Player, teamId: number, teamName: string = 'Team'): Promise<void> {
     const form = new ActionFormBuilder()
-        .title('Manage Invite')
+        .title(`Invite: ${teamName}`)
         .button('Accept', 'textures/ui/realms_green_check', async () => {
             const res = teamManager.acceptInvite(player, teamId);
             player.sendMessage(res.message ?? 'Done');

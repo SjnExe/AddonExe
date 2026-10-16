@@ -1,6 +1,10 @@
 import { reloadConfig } from '@core/configManager.js';
+import { reloadAllConfigs } from '@core/configurations.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
+import { reloadRanks } from '@core/rankManager.js';
+import { refreshXrayCache } from '@features/anticheat/xrayDetection.js';
+import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { updateAllPlayerRanks } from '../../../main.js';
 
 import { CustomCommand } from '@commands/commandManager.js';
@@ -18,12 +22,16 @@ const command: CustomCommand = {
         try {
             sendMessage('§eReloading configuration...');
 
-            // This function contains the new priority-merge logic
+            // Reload main and all feature configurations with priority-merge logic
             reloadConfig();
+            void reloadAllConfigs();
+            reloadRanks();
+            refreshXrayCache();
+            restartAnnouncer();
 
             sendMessage('§aConfiguration reloaded successfully.');
 
-            // This is required to make nametag changes apply immediately
+            // Refresh online player nametags immediately
             updateAllPlayerRanks();
 
             sendMessage('§aAll online player ranks have been re-evaluated.');

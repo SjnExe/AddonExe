@@ -1,95 +1,12 @@
+import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 
-import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
-
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
-import { errorLog } from '@core/logger.js';
-import { formatCooldown, uiWait } from '@core/utils.js';
 import { createKit, getAllKits } from '@features/kit/adminManager.js';
 import { addItemToKit } from '@features/kit/itemsManager.js';
 import * as kitsManager from '@features/kit/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-
-import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-
-const KITS_PER_PAGE = 8;
-
-async function showKitList(player: mc.Player, page: number) {
-    const availableKits = kitsManager.listKits(player);
-    if (availableKits.length === 0) {
-        player.sendMessage('§cThere are no kits available for you.');
-        return;
-    }
-
-    const totalPages = Math.ceil(availableKits.length / KITS_PER_PAGE);
-    page = Math.max(1, Math.min(page, totalPages));
-
-    const startIndex = (page - 1) * KITS_PER_PAGE;
-    const kitsToShow = availableKits.slice(startIndex, startIndex + KITS_PER_PAGE);
-
-    const form = new ActionFormData().title(`Available Kits (Page ${page}/${totalPages})`).body('Select a kit to claim:');
-
-    for (const kit of kitsToShow) {
-        let buttonText = kit.name;
-        if (kit.price > 0) {
-            buttonText += ` - $${kit.price}`;
-        }
-        if (kit.cooldown > 0) {
-            buttonText += ` - Cooldown: ${formatCooldown(kit.cooldown)}`;
-        }
-        form.button(buttonText, kit.icon || 'textures/ui/inventory_icon');
-    }
-
-    if (page > 1) {
-        form.button('§6< Previous Page');
-    }
-    if (page < totalPages) {
-        form.button('§6Next Page >');
-    }
-
-    try {
-        const response = await uiWait(player, form);
-        if (!isDefined(response) || response.canceled) {
-            return;
-        }
-
-        const selection = (response as ActionFormResponse).selection;
-        if (!isDefined(selection)) {
-            return;
-        }
-
-        if (selection >= kitsToShow.length) {
-            let buttonIndex = selection - kitsToShow.length;
-            if (page > 1) {
-                if (buttonIndex === 0) {
-                    await showKitList(player, page - 1);
-                    return;
-                }
-                buttonIndex--;
-            }
-            if (page < totalPages && buttonIndex === 0) {
-                await showKitList(player, page + 1);
-            }
-            return;
-        }
-
-        const selectedKitIndex = startIndex + selection;
-        const selectedKit = availableKits[selectedKitIndex];
-        if (!isDefined(selectedKit)) {
-            return;
-        }
-        const selectedKitName = selectedKit.name;
-        const result = kitsManager.giveKit(player, selectedKitName);
-        if (result.success) {
-            player.sendMessage(`§a${result.message}`);
-        } else {
-            player.sendMessage(`§c${result.message}`);
-        }
-    } catch (error) {
-        errorLog(`[Kit UI] Error showing form: ${String(error)}`);
-    }
-}
 
 interface KitCommandArgs {
     kitName?: string;
@@ -105,7 +22,6 @@ const kitCommand: CustomCommand = {
             name: 'kitName',
             type: 'string',
             optional: true,
-            // Provide suggestions for kit names based on currently loaded kits
             enumOptions: () => {
                 try {
                     return Object.keys(getAllKits());
@@ -128,7 +44,8 @@ const kitCommand: CustomCommand = {
         const kitName = args.kitName;
 
         if (!isNonEmptyString(kitName)) {
-            await showKitList(executor, 1);
+            const { showKitClaimPanel } = await import('@features/kit/ui/panel.js');
+            await showKitClaimPanel(executor, 1);
             return;
         }
 
@@ -146,7 +63,7 @@ const addKitCommand: CustomCommand = {
     name: 'addkit',
     description: 'Create a new kit from your inventory and open the editor.',
     category: 'Economy',
-    permissionNode: 'cmd.addkit.admin', // Admins only
+    permissionNode: 'cmd.addkit.admin',
     allowConsole: false,
     parameters: [{ name: 'kitName', type: 'string', optional: true }],
     execute: async (executor: CommandExecutor, args: KitCommandArgs) => {

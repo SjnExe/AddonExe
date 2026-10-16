@@ -69,8 +69,8 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 
 ### Social, PvP & Mini-Games
 
-- **`/friend [add|remove|accept|deny|list] [target]`** (Aliases: `/frnd`, `/friends`) — Opens the Friends UI or manages friends via chat.
-- **`/team`** — Opens the Teams / Guilds management UI.
+- **`/friend [add|remove|accept|deny|list|requests|autotp] [target]`** (Aliases: `/frnd`, `/friends`) — Opens the Friends UI or manages friends via chat.
+- **`/team [create|leave|invite|join|kick|promote|demote|sethome|delhome|disband|list|autotp] [target]`** — Opens the Teams / Guilds UI or manages your team.
 - **`/teamchat [message]`** (Alias: `/tc`) — Sends a message to your team or toggles team chat mode.
 - **`/pvp <target|accept|deny> [amount]`** — Challenges a player to a PvP duel with an optional money wager.
 - **`/wordle`** (Alias: `/wrd`) — Opens the Wordle mini-game menu.
@@ -87,6 +87,8 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/warn <player> <reason>`** — Issues a logged warning to a player.
 - **`/freeze <target>`** / **`/unfreeze <target>`** — Immobilizes or releases a player by locking movement and camera input permissions.
 - **`/vanish`** (Alias: `/v`) — Toggles full staff vanish (invisibility + hidden from pause screen player list).
+- **`/staffchat [message]`** (Alias: `/sc`) — Sends a message to online staff or toggles Staff Chat mode.
+- **`/staffinv [toggle|staff|survival|auto|status]`** (Aliases: `/sinv`, `/staffmode`) — Swaps between your Survival and Staff inventories without losing items, or toggles auto-swap on gamemode change.
 - **`/invsee <player>`** — Displays a player's inventory, hotbar, armor, and offhand contents.
 - **`/watch <target>`** / **`/listwatched`** — Toggles or lists players on the staff watchlist.
 - **`/notify`** — Toggles Anti-Cheat violation alerts for yourself (or console).

@@ -254,5 +254,25 @@ export function _clearConfigManagersForTest() {
 }
 
 export async function reloadAllConfigs() {
-    // This function is a placeholder for potential future use.
+    const managers = [
+        worldProtectionConfigManager,
+        shopConfigManager,
+        ranksConfigManager,
+        economyConfigManager,
+        xrayConfigManager,
+        teamConfigManager,
+        friendConfigManager,
+        sidebarConfigManager,
+        auctionHouseConfigManager,
+        dailyRewardsConfigManager,
+        gamesConfigManager,
+        wordleConfigManager
+    ];
+    for (const mgr of managers) {
+        if (mgr) {
+            mgr.reload();
+        }
+    }
+    const { loadAnticheatConfig } = await import('@features/anticheat/configLoader.js');
+    loadAnticheatConfig(false);
 }

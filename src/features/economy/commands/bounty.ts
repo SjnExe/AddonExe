@@ -108,7 +108,7 @@ const removeBountyCommand: CustomCommand = {
     aliases: ['rbounty', 'delbounty', '-bounty'],
     description: 'Removes a bounty from a player using your money.',
     category: 'Economy',
-    permissionNode: 'cmd.removebounty',
+    permissionNode: 'cmd.removebounty.member',
     parameters: [
         { name: 'target', type: 'string' },
         { name: 'amount', type: 'string' }
