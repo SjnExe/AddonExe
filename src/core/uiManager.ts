@@ -118,6 +118,12 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        if (panelId === 'playerListPanel') {
+            const { showPlayerListPanel } = await import('@core/ui/panels/playerPanel.js');
+            await showPlayerListPanel(player);
+            return;
+        }
+
         if (panelId === 'playerActionsPanel') {
             const targetPlayerId = _context.targetPlayerId as string;
             if (targetPlayerId) {

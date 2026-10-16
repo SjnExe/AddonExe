@@ -70,6 +70,8 @@ export interface PlayerData {
     dailyStreak: number;
     starterKitClaimed: boolean;
     isVanished: boolean;
+    staffInventoryMode?: 'survival' | 'staff';
+    staffAutoSwapInventory?: boolean;
     friends?: string[];
     friendRequests?: FriendRequest[];
     friendSettings?: { autoTpAccept: boolean };

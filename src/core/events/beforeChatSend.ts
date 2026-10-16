@@ -2,23 +2,37 @@ import * as mc from '@minecraft/server';
 
 import { getConfig } from '@core/configManager.js';
 import { rawLog } from '@core/logger.js';
-import { getPlayerFromCache } from '@core/playerCache.js';
+import { hasPermission } from '@core/permissionEngine.js';
+import { findPlayerByName, getPlayerFromCache } from '@core/playerCache.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
+import { addChatLog } from '@features/moderation/chatLogManager.js';
+import { isStaffChatEnabled, sendStaffChatMessage, setStaffChatState } from '@features/moderation/commands/staffchat.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
+import { isTeamChatEnabled, sendTeamChatMessage } from '@features/team/commands/team.js';
 import { isDefined } from '@lib/guards.js';
 
 /**
  * Handles chat messages before they are sent.
- * Manages chat formatting, muting, and ranks.
+ * Manages chat formatting, muting, staff chat, team chat, logging, and mentions.
  */
 export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     const config = getConfig();
     if (config.chat.enabled !== true) {
         return;
-    } // Vanilla chat if disabled
+    }
 
     const player = event.sender;
+
+    // Staff Chat Routing (Staff can use staff chat even if global chat has restrictions)
+    if (isStaffChatEnabled(player.id)) {
+        if (hasPermission(player, 'cmd.staffchat.mod') || hasPermission(player, 'group.mod')) {
+            event.cancel = true;
+            sendStaffChatMessage(player, event.message);
+            return;
+        }
+        setStaffChatState(player.id, false);
+    }
 
     // Mute Check
     const mute = getPunishment(player.id, 'mute');
@@ -30,11 +44,26 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
         return;
     }
 
-    // Apply Rank Formatting
     const rank = getPlayerRank(player, config);
+
+    // Team Chat Routing
+    if (isTeamChatEnabled(player.id)) {
+        if (sendTeamChatMessage(player, event.message)) {
+            event.cancel = true;
+            addChatLog(player.name, `[TeamChat] ${event.message}`, rank.name);
+            if (config.chat.logToConsole === true) {
+                rawLog(`[TeamChat] ${player.name}: ${stripColorCodes(event.message)}`);
+            }
+            return;
+        }
+    }
+
+    addChatLog(player.name, event.message, rank.name);
+
+    // Apply Rank Formatting
     const chatFormatting = rank.chatFormatting;
     if (chatFormatting) {
-        event.cancel = true; // Cancel default broadcast
+        event.cancel = true;
         const prefix = chatFormatting.prefixText ? `§e[§r${chatFormatting.prefixText}§e]§r ` : '';
         const nameColor = chatFormatting.nameColor || '§7';
         const msgColor = chatFormatting.messageColor || '§f';
@@ -42,15 +71,11 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
 
         mc.world.sendMessage(formattedMessage);
 
-        // Chat to Console
         if (config.chat.logToConsole === true) {
             rawLog(stripColorCodes(formattedMessage));
         }
-    } else {
-        // Fallback Chat to Console if no custom formatting
-        if (config.chat.logToConsole === true) {
-            rawLog(`[CHAT] ${player.name}: ${event.message}`);
-        }
+    } else if (config.chat.logToConsole === true) {
+        rawLog(`[CHAT] ${player.name}: ${event.message}`);
     }
 
     // Mentions
@@ -58,11 +83,9 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
         const words = event.message.split(' ');
         for (const word of words) {
             if (word.startsWith('@') && word.length > 1) {
-                const name = word.slice(1);
-                // Optimization: Use cached lookup
-                // Try exact match first
-                const target = getPlayerFromCache(name); // ID unlikely
-                if (target) {
+                const cleanName = word.slice(1).replaceAll(/[^a-zA-Z0-9_ -]/g, '');
+                const target = findPlayerByName(cleanName) ?? getPlayerFromCache(cleanName);
+                if (isDefined(target)) {
                     target.playSound('random.orb');
                     target.sendMessage(`§e${player.name} mentioned you!`);
                 }

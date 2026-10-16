@@ -1,7 +1,8 @@
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { getTeamByPlayer } from '@features/team/manager.js';
+import { getTeamByPlayer, initialize as initializeTeams } from '@features/team/manager.js';
 
 export async function initialize(_isMigration: boolean) {
+    initializeTeams();
     serviceLocator.registerService('team.manager', {
         getTeamByPlayer
     });

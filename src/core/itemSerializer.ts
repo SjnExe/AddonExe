@@ -103,13 +103,13 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
 
 export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined {
     try {
-        const itemType = mc.ItemTypes.get(data.typeId);
+        const itemType = isDefined(mc.ItemTypes) && typeof mc.ItemTypes.get === 'function' ? mc.ItemTypes.get(data.typeId) : data.typeId;
         if (!isDefined(itemType)) {
             errorLog(`[ItemSerializer] Unknown item type: ${data.typeId}`);
             return undefined;
         }
 
-        const itemStack = new mc.ItemStack(itemType, data.amount);
+        const itemStack = new mc.ItemStack(itemType as mc.ItemType | string, data.amount);
 
         if (isNonEmptyString(data.nameTag)) {
             itemStack.nameTag = data.nameTag;

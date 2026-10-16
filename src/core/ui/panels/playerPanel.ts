@@ -1,10 +1,15 @@
 import { getConfig } from '@core/configManager.js';
+import { frozenTag } from '@core/constants.js';
 import { hasPermission } from '@core/permissionEngine.js';
+import { getPlayerFromCache } from '@core/playerCache.js';
 import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { showPanel } from '@core/uiManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
+import { getBounty } from '@features/economy/bountyManager.js';
+import { saveLastLocation } from '@features/teleport/utils.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 
@@ -19,18 +24,25 @@ function formatDuration(ms: number): string {
     return `${m}m ${s}s`;
 }
 
-export async function showPlayerListPanel(player: mc.Player): Promise<void> {
+export async function showPlayerListPanel(player: mc.Player, page: number = 1): Promise<void> {
     const form = new ActionFormBuilder().title('Online Players');
     const config = getConfig();
     const players = getVisiblePlayers(player);
 
-    for (const p of players) {
-        const targetRank = getPlayerRank(p, config);
-        const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
-        form.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
-            void showPlayerActionsPanel(player, p.id, p.name);
-        });
-    }
+    form.addPaginatedButtons(
+        players,
+        page,
+        (p, formBuilder) => {
+            const targetRank = getPlayerRank(p, config);
+            const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
+            formBuilder.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
+                void showPlayerActionsPanel(player, p.id, p.name);
+            });
+        },
+        async (newPage) => {
+            await showPlayerListPanel(player, newPage);
+        }
+    );
 
     form.addBackButton(async () => {
         const { showMainPanel } = await import('./mainPanel.js');
@@ -40,18 +52,25 @@ export async function showPlayerListPanel(player: mc.Player): Promise<void> {
     await form.show(player);
 }
 
-export async function showPlayerManagementPanel(player: mc.Player): Promise<void> {
+export async function showPlayerManagementPanel(player: mc.Player, page: number = 1): Promise<void> {
     const form = new ActionFormBuilder().title('Player Management');
     const config = getConfig();
     const players = getVisiblePlayers(player);
 
-    for (const p of players) {
-        const targetRank = getPlayerRank(p, config);
-        const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
-        form.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
-            void showPlayerActionsPanel(player, p.id, p.name);
-        });
-    }
+    form.addPaginatedButtons(
+        players,
+        page,
+        (p, formBuilder) => {
+            const targetRank = getPlayerRank(p, config);
+            const rankText = targetRank.chatFormatting?.prefixText ? `[${targetRank.chatFormatting.prefixText}]` : `[${targetRank.name}]`;
+            formBuilder.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
+                void showPlayerActionsPanel(player, p.id, p.name);
+            });
+        },
+        async (newPage) => {
+            await showPlayerManagementPanel(player, newPage);
+        }
+    );
 
     form.addBackButton(async () => {
         const { showStaffDashboardPanel } = await import('./adminPanel.js');
@@ -64,6 +83,7 @@ export async function showPlayerManagementPanel(player: mc.Player): Promise<void
 export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: string, targetPlayerName: string): Promise<void> {
     const form = new ActionFormBuilder().title(targetPlayerName);
     const isModMode = hasPermission(player, 'ui.panel.mod');
+    const onlineTarget = getPlayerFromCache(targetPlayerId);
 
     if (isModMode) {
         form.button('Kick', 'textures/ui/cancel', () => {
@@ -78,6 +98,17 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
         form.button('Ban', 'textures/ui/hammer_l', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleBanPlayer(player, targetPlayerId));
         });
+        if (isDefined(onlineTarget)) {
+            const isFrozen = onlineTarget.hasTag(frozenTag);
+            form.button(isFrozen ? 'Unfreeze' : 'Freeze', 'textures/ui/lock_color', async () => {
+                const { freezePlayer, unfreezePlayer } = await import('@features/moderation/commands/freeze.js');
+                if (onlineTarget.hasTag(frozenTag)) {
+                    unfreezePlayer(player, onlineTarget);
+                } else {
+                    freezePlayer(player, onlineTarget);
+                }
+            });
+        }
         form.button('Manage Ranks', 'textures/ui/permissions_op_crown', async () => {
             const { showRankManagementPanel } = await import('@features/ranks/ui/panel.js');
             await showRankManagementPanel(player, targetPlayerId);
@@ -91,20 +122,18 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
             await showInventoryPanel(player, targetPlayerId);
         });
         form.button('Teleport To', 'textures/ui/icon_map', () => {
-            void import('@core/playerCache.js').then((m) => {
-                const target = m.getPlayerFromCache(targetPlayerId);
-                if (target) {
-                    player.teleport(target.location, { dimension: target.dimension });
-                }
-            });
+            const target = getPlayerFromCache(targetPlayerId);
+            if (isDefined(target)) {
+                saveLastLocation(player);
+                player.teleport(target.location, { dimension: target.dimension });
+            }
         });
         form.button('Teleport Here', 'textures/ui/icon_map', () => {
-            void import('@core/playerCache.js').then((m) => {
-                const target = m.getPlayerFromCache(targetPlayerId);
-                if (target) {
-                    target.teleport(player.location, { dimension: player.dimension });
-                }
-            });
+            const target = getPlayerFromCache(targetPlayerId);
+            if (isDefined(target)) {
+                saveLastLocation(target);
+                target.teleport(player.location, { dimension: player.dimension });
+            }
         });
     }
 
@@ -117,9 +146,22 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
         await showTransferPanel(player, targetPlayerId);
     });
 
-    form.button('Bounty Actions', 'textures/items/netherite_sword', async () => {
+    form.button('Place Bounty', 'textures/items/netherite_sword', async () => {
         const { showBountyPlayer } = await import('@features/economy/ui/bountyPanel.js');
         await showBountyPlayer(player, { targetPlayerId });
+    });
+
+    const activeBounty = getBounty(targetPlayerId);
+    if (isDefined(activeBounty) && activeBounty.amount > 0) {
+        form.button(`Pay Off Bounty (${formatCurrency(activeBounty.amount)})`, 'textures/items/emerald', async () => {
+            const { showRemovePlayerBounty } = await import('@features/economy/ui/bountyPanel.js');
+            await showRemovePlayerBounty(player, { targetPlayerId });
+        });
+    }
+
+    form.button('Report Player', 'textures/ui/WarningGlyph', async () => {
+        const { handleReportPlayer } = await import('@features/moderation/ui/panel.js');
+        await handleReportPlayer(player, targetPlayerId);
     });
 
     form.addBackButton(async () => {

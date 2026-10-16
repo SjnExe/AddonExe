@@ -155,8 +155,8 @@ export function initializeDefaultMenuItems(): void {
         featureId: 'util.kit',
         order: 30,
         action: async (p) => {
-            const { showKitManagementPanel } = await import('@features/kit/ui/panel.js');
-            await showKitManagementPanel(p);
+            const { showKitClaimPanel } = await import('@features/kit/ui/panel.js');
+            await showKitClaimPanel(p);
         }
     });
 
@@ -424,6 +424,34 @@ export function initializeDefaultMenuItems(): void {
         permissionNode: 'ui.panel.mod',
         order: 20,
         action: async (p) => showPanel(p, 'moderationPanel')
+    });
+
+    registerMenuItem({
+        id: 'mod_logs',
+        title: 'Audit & Chat Logs',
+        description: 'Inspect punishment, anti-cheat flag & chat logs',
+        icon: 'textures/ui/message',
+        hub: 'staff_moderation',
+        permissionNode: 'ui.panel.admin',
+        order: 25,
+        action: async (p) => {
+            const { default: logsCommand } = await import('@features/anticheat/commands/logs.js');
+            await logsCommand.execute(p, {});
+        }
+    });
+
+    registerMenuItem({
+        id: 'mod_staff_inv',
+        title: 'Staff Inventory (/sinv)',
+        description: 'Swap between Survival & Staff inventories without losing items',
+        icon: 'textures/ui/inventory_icon',
+        hub: 'staff_moderation',
+        permissionNode: 'ui.panel.mod',
+        order: 28,
+        action: async (p) => {
+            const { toggleStaffInventory } = await import('@features/moderation/staffInventoryManager.js');
+            toggleStaffInventory(p);
+        }
     });
 
     registerMenuItem({

@@ -20,7 +20,7 @@ const warpCommand: CustomCommand = {
     description: 'Teleports you to a set warp location.',
     category: 'Transportation',
     aliases: ['warps'],
-    permissionNode: 'cmd.warp.admin',
+    permissionNode: 'cmd.warp.member',
     parameters: [
         {
             name: 'warpName',

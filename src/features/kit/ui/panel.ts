@@ -1,12 +1,62 @@
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import { hasPermission } from '@core/permissionEngine.js';
+import { formatCooldown, formatCurrency } from '@core/utils.js';
 import * as kitAdminManager from '@features/kit/adminManager.js';
 import * as kitItemsManager from '@features/kit/itemsManager.js';
+import * as kitsManager from '@features/kit/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
+export async function showKitClaimPanel(player: mc.Player, page: number = 1): Promise<void> {
+    const config = getConfig();
+    if (!config.kits.enabled) {
+        player.sendMessage('§cThe Kits system is currently disabled globally.');
+        return;
+    }
+
+    const availableKits = kitsManager.listKits(player);
+    if (availableKits.length === 0) {
+        player.sendMessage('§cThere are no kits available for you.');
+        return;
+    }
+
+    const form = new ActionFormBuilder().title('Available Kits').body('Select a kit to claim:');
+
+    form.addPaginatedButtons(
+        availableKits,
+        page,
+        (kit, formBuilder) => {
+            const parts: string[] = [`§l${kit.name}§r`];
+            if (kit.price > 0) {
+                parts.push(`§6${formatCurrency(kit.price)}`);
+            }
+            parts.push(kit.cooldown > 0 ? `§cWait: ${formatCooldown(kit.cooldown)}` : '§2Ready');
+            formBuilder.button(parts.join('\n'), kit.icon || 'textures/ui/inventory_icon', () => {
+                const result = kitsManager.giveKit(player, kit.name);
+                player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
+            });
+        },
+        async (newPage) => {
+            await showKitClaimPanel(player, newPage);
+        },
+        8
+    );
+
+    form.addBackButton(async () => {
+        const { showEconomyHub } = await import('@core/ui/panels/mainPanel.js');
+        await showEconomyHub(player);
+    });
+
+    await form.show(player);
+}
+
 export async function showKitManagementPanel(player: mc.Player, page: number = 1): Promise<void> {
+    if (!hasPermission(player, 'ui.panel.admin')) {
+        await showKitClaimPanel(player, page);
+        return;
+    }
     const mainConfig = getConfig();
     const isEnabled = mainConfig.kits.enabled;
 

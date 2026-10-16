@@ -1,6 +1,6 @@
 import * as configManager from '@core/configManager.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
-import { getOrCreatePlayer, getPlayer } from '@core/playerDataManager.js';
+import { getOrCreatePlayer, getPlayer, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as friendManager from '@features/social/friendManager.js';
@@ -11,16 +11,25 @@ import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
 
 export async function showFriendMainPanel(player: mc.Player): Promise<void> {
     const pData = getOrCreatePlayer(player);
+    const validReqs = friendManager.cleanExpiredRequests(player.id);
+    const autoTp = pData.friendSettings?.autoTpAccept ?? false;
+
     const form = new ActionFormBuilder()
         .title('Friends')
-        .button('List Friends', 'textures/ui/multiplayer_glyph_color', async () => {
+        .body(`§7Friends: §f${pData.friends?.length ?? 0} §8| §7Pending Requests: §e${validReqs.length}`)
+        .button(`List Friends (${pData.friends?.length ?? 0})`, 'textures/ui/multiplayer_glyph_color', async () => {
             await showFriendListPanel(player, 1);
         })
         .button('Add Friend', 'textures/ui/plus', async () => {
             await showFriendAddPanel(player);
         })
-        .button(`Requests (${pData.friendRequests?.length ?? 0})`, 'textures/ui/invite_base', async () => {
+        .button(`Requests (${validReqs.length})`, 'textures/ui/invite_base', async () => {
             await showFriendRequestsPanel(player, 1);
+        })
+        .button(autoTp ? '§2Auto-Accept Friend TPA: ON' : '§7Auto-Accept Friend TPA: OFF', autoTp ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
+            const next = friendManager.toggleFriendAutoTpAccept(player);
+            player.sendMessage(`§aFriend Auto-TPA Accept is now ${next ? '§2ENABLED' : '§cDISABLED'}§a.`);
+            await showFriendMainPanel(player);
         });
 
     form.addBackButton(async () => {
@@ -38,11 +47,16 @@ export async function showFriendListPanel(player: mc.Player, page: number = 1): 
 
     const form = new ActionFormBuilder().title('Friend List');
 
+    if (friends.length === 0) {
+        form.body('You have not added any friends yet.');
+    }
+
     form.addPaginatedButtons(
         friends,
         page,
         (fid, formBuilder) => {
-            const fData = getPlayer(fid);
+            const fData = getPlayer(fid) ?? loadPlayerData(fid);
+            const friendName = fData?.name ?? getPlayerNameById(fid) ?? fid;
             const onlineP = getPlayerFromCache(fid);
             const status = onlineP ? '§aOnline' : '§cOffline';
 
@@ -54,9 +68,14 @@ export async function showFriendListPanel(player: mc.Player, page: number = 1): 
                 icon = getPlayerIcon(onlineP);
             }
 
-            formBuilder.button(`${fData ? fData.name : 'Unknown'} ${status}\n${rankText}`, icon, async () => {
-                await showManageFriendPanel(player, fid, fData?.name || 'Unknown');
-            });
+            formBuilder.button(
+                `${friendName} ${status}
+${rankText}`,
+                icon,
+                async () => {
+                    await showManageFriendPanel(player, fid, friendName);
+                }
+            );
         },
         async (newPage) => {
             await showFriendListPanel(player, newPage);
@@ -75,9 +94,7 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
         .filter((p) => p.id !== player.id)
         .map((p) => p.name);
 
-    // Check if there are online players to avoid empty dropdown
     if (onlinePlayers.length === 0) {
-        // Fallback to text field if no one else is online, or just use text field entirely for simplicity
         const modal = new CustomFormBuilder<{ name: string }>('Add Friend').textField('name', 'Player Name (Exact)', 'Player Name', '').submitButton('Add Friend');
 
         const res = await modal.show(player);
@@ -89,7 +106,6 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
         return;
     }
 
-    // Give option to select from online players or type name
     onlinePlayers.unshift('-- Type Name Below --');
 
     const modal = new CustomFormBuilder<{ playerDropdown: string; manualName: string }>('Add Friend')
@@ -115,19 +131,27 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
 }
 
 export async function showFriendRequestsPanel(player: mc.Player, page: number = 1): Promise<void> {
-    const pData = getOrCreatePlayer(player);
-    const requests = pData.friendRequests ?? [];
+    const requests = friendManager.cleanExpiredRequests(player.id);
 
     const form = new ActionFormBuilder().title('Friend Requests');
+
+    if (requests.length === 0) {
+        form.body('You have no pending friend requests.');
+    }
 
     form.addPaginatedButtons(
         requests,
         page,
-        (reqId, formBuilder) => {
-            const reqData = getPlayer(reqId.senderId);
-            formBuilder.button(`${reqData ? reqData.name : 'Unknown'}\nClick to manage`, 'textures/ui/invite_base', async () => {
-                await showManageFriendRequestPanel(player, reqId.senderId, reqData?.name || 'Unknown');
-            });
+        (req, formBuilder) => {
+            const reqName = req.senderName || getPlayerNameById(req.senderId) || loadPlayerData(req.senderId)?.name || 'Unknown';
+            formBuilder.button(
+                `${reqName}
+§7Click to accept or deny`,
+                'textures/ui/invite_base',
+                async () => {
+                    await showManageFriendRequestPanel(player, req.senderId, reqName);
+                }
+            );
         },
         async (newPage) => {
             await showFriendRequestsPanel(player, newPage);
@@ -167,8 +191,12 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
     const form = new ActionFormBuilder().title(`Manage ${friendName}`);
 
     if (onlineP) {
-        form.button('Teleport To', 'textures/ui/icon_map', () => {
+        form.button('Teleport To (TPA)', 'textures/ui/icon_map', () => {
             const result = tpaManager.createRequest(player, onlineP, 'tpa');
+            player.sendMessage(result.message);
+        });
+        form.button('Teleport Here (TPAHere)', 'textures/items/ender_pearl', () => {
+            const result = tpaManager.createRequest(player, onlineP, 'tpahere');
             player.sendMessage(result.message);
         });
         form.button('Invite to Game (Tic-Tac-Toe)', 'textures/ui/controller_glyph_color', async () => {
@@ -190,7 +218,6 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
     await form.show(player);
 }
 
-// Ensure the old action is supported for backwards compat if needed, or remove.
 export async function addFriendAction(player: mc.Player, targetPlayerId: string): Promise<void> {
     await Promise.resolve();
     if (player.id === targetPlayerId) {
@@ -198,7 +225,6 @@ export async function addFriendAction(player: mc.Player, targetPlayerId: string)
         return;
     }
 
-    const { getPlayerNameById } = await import('@core/playerDataManager.js');
     const targetName = getPlayerNameById(targetPlayerId);
     if (!targetName) {
         player.sendMessage('§cPlayer not found.');

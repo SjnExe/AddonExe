@@ -82,7 +82,6 @@ const sellCommand: CustomCommand = {
     name: 'sell',
     description: 'Opens the shop to sell items (tries hand item first).',
     category: 'Economy',
-    aliases: ['sh', 'sellhand'],
     permissionNode: 'cmd.sell.member',
     allowConsole: false,
     execute: async (executor: CommandExecutor) => {
@@ -97,6 +96,49 @@ const sellCommand: CustomCommand = {
         if (!opened) {
             await showPanel(executor, 'shopMainPanel', { view: 'sell' });
         }
+    }
+};
+
+const sellHandCommand: CustomCommand = {
+    name: 'sellhand',
+    aliases: ['sh'],
+    description: 'Quickly sells the stackable item in your main hand.',
+    category: 'Economy',
+    permissionNode: 'cmd.sell.member',
+    allowConsole: false,
+    execute: (executor: CommandExecutor) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        if (!isFeatureActive('eco.shop')) {
+            executor.sendMessage('§cThe Shop system is currently disabled globally.');
+            return;
+        }
+
+        const equipment = executor.getComponent(EntityComponentTypes.Equippable);
+        const heldItem = equipment?.getEquipment(mc.EquipmentSlot.Mainhand);
+        if (!isDefined(heldItem)) {
+            executor.sendMessage('§cYou are not holding an item in your main hand.');
+            return;
+        }
+
+        if (heldItem.maxAmount <= 1) {
+            executor.sendMessage('§cUnstackable items cannot be sold with /sellhand. Use /shop instead.');
+            return;
+        }
+
+        const shopItemKey = Object.keys(allItems).find((key) => {
+            const entry = (allItems as Record<string, { itemId: string }>)[key];
+            return isDefined(entry) && entry.itemId === heldItem.typeId;
+        });
+
+        if (!isNonEmptyString(shopItemKey) || !isDefined(shopManager.findShopItem(shopItemKey))) {
+            executor.sendMessage('§cThe item in your hand cannot be sold to the shop.');
+            return;
+        }
+
+        const result = shopManager.sellItem(executor, shopItemKey, heldItem.amount);
+        executor.sendMessage(result.message);
     }
 };
 
@@ -186,4 +228,4 @@ const addShopCommand: CustomCommand = {
     }
 };
 
-export default [shopCommand, buyCommand, sellCommand, shopEditCommand, addShopCommand];
+export default [shopCommand, buyCommand, sellCommand, sellHandCommand, shopEditCommand, addShopCommand];

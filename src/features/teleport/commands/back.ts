@@ -21,7 +21,7 @@ const backCommand: CustomCommand = {
     name: 'back',
     description: 'Teleports you to your previous location (before death or teleport).',
     category: 'Transportation',
-    permissionNode: 'cmd.back',
+    permissionNode: 'cmd.back.member',
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;

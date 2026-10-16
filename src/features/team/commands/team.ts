@@ -2,12 +2,11 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayer, getPlayerIdByName, getPlayerNameById } from '@core/playerDataManager.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
 import { showPanel } from '@core/uiManager.js';
-import { isDefined } from '@lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
+import { setStaffChatState } from '@features/moderation/commands/staffchat.js';
 import * as teamManager from '@features/team/manager.js';
-import { teamConfig } from '@features/team/teamConfig.js';
 
 const teamChatActive = new Map<string, boolean>();
 
@@ -18,7 +17,12 @@ const teamCommand: CustomCommand = {
     permissionNode: 'cmd.team.member',
     aliases: ['t', 'clan', 'faction', 'guild'],
     parameters: [
-        { name: 'subcommand', type: 'string', optional: true },
+        {
+            name: 'subcommand',
+            type: 'string',
+            optional: true,
+            enumOptions: ['create', 'leave', 'invite', 'join', 'kick', 'promote', 'demote', 'sethome', 'delhome', 'disband', 'list', 'autotp']
+        },
         { name: 'target', type: 'string', optional: true }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -49,14 +53,25 @@ const teamCommand: CustomCommand = {
                 executor.sendMessage(res.message ?? (res.success ? '§aLeft team.' : '§cFailed to leave team.'));
                 break;
             }
+            case 'disband':
+            case 'delete': {
+                const myTeam = teamManager.getTeamByPlayer(executor.id);
+                if (!myTeam || myTeam.ownerId !== executor.id) {
+                    executor.sendMessage('§cOnly the team owner can disband the team.');
+                    return;
+                }
+                teamManager.deleteTeam(myTeam.id);
+                executor.sendMessage('§aTeam disbanded.');
+                break;
+            }
             case 'invite': {
                 if (!target) {
                     executor.sendMessage('§cUsage: /team invite <player>');
                     return;
                 }
                 const myTeam = teamManager.getTeamByPlayer(executor.id);
-                if (!myTeam) {
-                    executor.sendMessage('§cYou are not in a team.');
+                if (!myTeam || !teamManager.isTeamAdminOrOwner(myTeam, executor.id)) {
+                    executor.sendMessage('§cYou must be a team owner or admin to invite players.');
                     return;
                 }
                 const targetId = getPlayerIdByName(target);
@@ -69,14 +84,27 @@ const teamCommand: CustomCommand = {
                 break;
             }
             case 'join':
-            case 'apply': {
+            case 'apply':
+            case 'accept': {
+                const pData = getPlayer(executor.id);
                 if (!target) {
+                    const lastInv = pData?.pendingInvites?.at(-1);
+                    if (isDefined(lastInv)) {
+                        const res = teamManager.acceptInvite(executor, lastInv.teamId);
+                        executor.sendMessage(res.message ?? 'Done');
+                        return;
+                    }
                     executor.sendMessage('§cUsage: /team join <teamName>');
                     return;
                 }
                 const team = teamManager.getAllTeam().find((t) => t.name.toLowerCase() === target.toLowerCase());
                 if (!team) {
                     executor.sendMessage('§cTeam not found.');
+                    return;
+                }
+                if (pData?.pendingInvites?.some((inv) => inv.teamId === team.id)) {
+                    const res = teamManager.acceptInvite(executor, team.id);
+                    executor.sendMessage(res.message ?? 'Done');
                     return;
                 }
                 const res = teamManager.applyToTeam(executor, team.id);
@@ -91,8 +119,8 @@ const teamCommand: CustomCommand = {
                     return;
                 }
                 const team = teamManager.getTeamByPlayer(executor.id);
-                if (!team || team.ownerId !== executor.id) {
-                    executor.sendMessage('§cYou must be team owner to kick members.');
+                if (!team || !teamManager.isTeamAdminOrOwner(team, executor.id)) {
+                    executor.sendMessage('§cYou must be team owner or admin to kick members.');
                     return;
                 }
                 const targetId = getPlayerIdByName(target);
@@ -100,8 +128,75 @@ const teamCommand: CustomCommand = {
                     executor.sendMessage('§cPlayer not found.');
                     return;
                 }
+                if (team.admins.includes(targetId) && team.ownerId !== executor.id) {
+                    executor.sendMessage('§cOnly the team owner can kick a team admin.');
+                    return;
+                }
                 const res = teamManager.kickMember(team.id, targetId);
                 executor.sendMessage(res.message ?? 'Done');
+                break;
+            }
+            case 'promote': {
+                if (!target) {
+                    executor.sendMessage('§cUsage: /team promote <player>');
+                    return;
+                }
+                const team = teamManager.getTeamByPlayer(executor.id);
+                if (!team || team.ownerId !== executor.id) {
+                    executor.sendMessage('§cOnly the team owner can promote members.');
+                    return;
+                }
+                const targetId = getPlayerIdByName(target);
+                if (!targetId) {
+                    executor.sendMessage('§cPlayer not found.');
+                    return;
+                }
+                const res = teamManager.promoteMember(team.id, targetId);
+                executor.sendMessage(res.message ?? 'Done');
+                break;
+            }
+            case 'demote': {
+                if (!target) {
+                    executor.sendMessage('§cUsage: /team demote <player>');
+                    return;
+                }
+                const team = teamManager.getTeamByPlayer(executor.id);
+                if (!team || team.ownerId !== executor.id) {
+                    executor.sendMessage('§cOnly the team owner can demote admins.');
+                    return;
+                }
+                const targetId = getPlayerIdByName(target);
+                if (!targetId) {
+                    executor.sendMessage('§cPlayer not found.');
+                    return;
+                }
+                const res = teamManager.demoteMember(team.id, targetId);
+                executor.sendMessage(res.message ?? 'Done');
+                break;
+            }
+            case 'sethome': {
+                const team = teamManager.getTeamByPlayer(executor.id);
+                if (!team || !teamManager.isTeamAdminOrOwner(team, executor.id)) {
+                    executor.sendMessage('§cYou must be team owner or admin to set team home.');
+                    return;
+                }
+                const res = teamManager.setTeamHome(team.id, executor.location, executor.dimension.id);
+                executor.sendMessage(res.message ?? 'Done');
+                break;
+            }
+            case 'delhome': {
+                const team = teamManager.getTeamByPlayer(executor.id);
+                if (!team || !teamManager.isTeamAdminOrOwner(team, executor.id)) {
+                    executor.sendMessage('§cYou must be team owner or admin to delete team home.');
+                    return;
+                }
+                const res = teamManager.deleteTeamHome(team.id);
+                executor.sendMessage(res.message ?? 'Done');
+                break;
+            }
+            case 'autotp': {
+                const next = teamManager.toggleTeamAutoTpAccept(executor);
+                executor.sendMessage(`§aTeam Auto-TPA Accept is now ${next ? '§2ENABLED' : '§cDISABLED'}§a.`);
                 break;
             }
             case 'ls':
@@ -112,7 +207,7 @@ const teamCommand: CustomCommand = {
                     return;
                 }
                 const members = team.members.map((m) => getPlayerNameById(m) ?? m).join(', ');
-                executor.sendMessage(`§aTeam: ${team.name} | Members: ${members}`);
+                executor.sendMessage(`§aTeam: ${team.name} §7| §aBank: $${team.balance} §7| §aMembers (${team.members.length}): §f${members}`);
                 break;
             }
             default: {
@@ -123,22 +218,47 @@ const teamCommand: CustomCommand = {
     }
 };
 
+export function setTeamChatState(playerId: string, enabled: boolean): void {
+    if (enabled) {
+        teamChatActive.set(playerId, true);
+    } else {
+        teamChatActive.delete(playerId);
+    }
+}
+
 export function toggleTeamChat(playerId: string): boolean {
-    const current = teamChatActive.get(playerId) ?? false;
-    teamChatActive.set(playerId, !current);
-    return !current;
+    const next = !(teamChatActive.get(playerId) ?? false);
+    setTeamChatState(playerId, next);
+    if (next) {
+        setStaffChatState(playerId, false);
+    }
+    return next;
 }
 
 export function isTeamChatEnabled(playerId: string): boolean {
     return teamChatActive.get(playerId) ?? false;
 }
 
+export function sendTeamChatMessage(player: mc.Player, message: string): boolean {
+    const team = teamManager.getTeamByPlayer(player.id);
+    if (!isDefined(team)) {
+        setTeamChatState(player.id, false);
+        return false;
+    }
+    const roleTag = team.ownerId === player.id ? '§6[Owner] ' : team.admins.includes(player.id) ? '§b[Admin] ' : '';
+    const teamMsg = `§b[Team: ${team.name}§b] ${roleTag}§e${player.name}§r: ${message}`;
+    teamManager.broadcastTeamMessage(team.id, teamMsg);
+    return true;
+}
+
 const teamChatCommand: CustomCommand = {
     name: 'teamchat',
-    description: 'Toggle team chat mode.',
+    description: 'Send a message to your team or toggle team chat mode.',
+    category: 'Social',
     permissionNode: 'cmd.teamchat.member',
     aliases: ['tc'],
-    execute: (executor: CommandExecutor) => {
+    parameters: [{ name: 'message', type: 'text', optional: true }],
+    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
@@ -154,53 +274,28 @@ const teamChatCommand: CustomCommand = {
             return;
         }
 
+        const msg = args.message as string | undefined;
+        if (isNonEmptyString(msg)) {
+            sendTeamChatMessage(executor, msg);
+            return;
+        }
+
         const isEnabled = toggleTeamChat(executor.id);
-        executor.sendMessage(isEnabled ? '§aTeam Chat Enabled.' : '§cTeam Chat Disabled.');
+        executor.sendMessage(isEnabled ? '§aTeam Chat Enabled. §7(All regular chat messages will go to your team)' : '§cTeam Chat Disabled.');
     }
 };
 
 const hqCommand: CustomCommand = {
     name: 'hq',
     description: "Teleports you to your team's home.",
+    category: 'Transportation',
     permissionNode: 'cmd.hq.member',
     aliases: ['teamhome'],
     execute: (executor: CommandExecutor) => {
         if (!(executor instanceof mc.Player)) {
             return;
         }
-
-        const team = teamManager.getTeamByPlayer(executor.id);
-
-        if (!isDefined(team)) {
-            executor.sendMessage('§cYou are not in a team.');
-            return;
-        }
-
-        if (!isDefined(team.home)) {
-            executor.sendMessage('§cYour team does not have a home set.');
-            return;
-        }
-
-        const { x, y, z, dimensionId } = team.home;
-
-        try {
-            const dimension = mc.world.getDimension(dimensionId);
-            startTeleportWarmup(
-                executor,
-                teamConfig.teleportWarmupSeconds,
-                () => {
-                    try {
-                        executor.teleport({ x, y, z }, { dimension: dimension });
-                        executor.sendMessage('§aTeleported to team home.');
-                    } catch {
-                        executor.sendMessage('§cFailed to teleport to team home.');
-                    }
-                },
-                'team home'
-            );
-        } catch {
-            executor.sendMessage('§cError: Team home dimension is invalid or unloaded.');
-        }
+        teamManager.teleportToTeamHome(executor);
     }
 };
 
