@@ -71,7 +71,7 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 
 - **`/friend [add|remove|accept|deny|list|requests|autotp] [target]`** (Aliases: `/frnd`, `/friends`) — Opens the Friends UI or manages friends via chat.
 - **`/team [create|leave|invite|join|kick|promote|demote|sethome|delhome|disband|list|autotp] [target]`** — Opens the Teams / Guilds UI or manages your team.
-- **`/teamchat [message]`** (Alias: `/tc`) — Sends a message to your team or toggles team chat mode.
+- **`/teamchat [toggle|on|off|status]`** (Alias: `/tc`) — Toggles Team Chat mode or checks your active chat channel.
 - **`/pvp <target|accept|deny> [amount]`** — Challenges a player to a PvP duel with an optional money wager.
 - **`/wordle`** (Alias: `/wrd`) — Opens the Wordle mini-game menu.
 - **`/guess <word>`** (Alias: `/gs`) — Submits a word guess in an active staff-hosted Wordle game.
@@ -87,7 +87,7 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/warn <player> <reason>`** — Issues a logged warning to a player.
 - **`/freeze <target>`** / **`/unfreeze <target>`** — Immobilizes or releases a player by locking movement and camera input permissions.
 - **`/vanish`** (Alias: `/v`) — Toggles full staff vanish (invisibility + hidden from pause screen player list).
-- **`/staffchat [message]`** (Alias: `/sc`) — Sends a message to online staff or toggles Staff Chat mode.
+- **`/staffchat [toggle|on|off|status]`** (Alias: `/sc`) — Toggles Staff Chat mode or checks your active chat channel.
 - **`/staffinv [toggle|staff|survival|auto|status]`** (Aliases: `/sinv`, `/staffmode`) — Swaps between your Survival and Staff inventories without losing items, or toggles auto-swap on gamemode change.
 - **`/invsee <player>`** — Displays a player's inventory, hotbar, armor, and offhand contents.
 - **`/watch <target>`** / **`/listwatched`** — Toggles or lists players on the staff watchlist.
@@ -128,7 +128,7 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/tp <target> [destination]`** — Teleports yourself or a target player.
 - **`/setspawn [x] [y] [z]`** — Sets the server spawn point and updates spawn protection.
 - **`/addwarp <warpName> [x] [y] [z]`** (Alias: `/setwarp`) / **`/delwarp [warpName]`** — Creates or deletes server warps.
-- **`/worldborder <on|off|set|info> [radius] [x] [z]`** (Alias: `/wb`) — Configures and toggles the world border.
+- **`/worldborder [ui|info|overworld|end|on|off|set] [radius|on|off] [x] [z]`** (Alias: `/wb`) — Opens the World Border Manager UI or configures the linked Overworld+Nether (8:1) and End borders.
 - **`/netherlock [true|false]`** / **`/endlock [true|false]`** — Locks or unlocks the Nether and End dimensions.
 - **`/floatingtext <create|delete|list|tp> <id> [text]`** — Manages floating text holograms.
 - **`/announce <message>`** — Broadcasts a server-wide announcement.

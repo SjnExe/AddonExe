@@ -4,7 +4,7 @@ import { getConfig } from '@core/configManager.js';
 import { getEconomyConfig } from '@core/configurations.js';
 import { SerializedItem } from '@core/itemSerializer.js';
 import { debugLog, errorLog, infoLog } from '@core/logger.js';
-import { hasPermission } from '@core/permissionEngine.js';
+import { hasPermission, invalidatePlayerPermissionCache } from '@core/permissionEngine.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/playerCache.js';
 import { StorageManager } from '@core/storage/StorageManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
@@ -584,12 +584,14 @@ export function setPlayerRank(playerId: string, rankId: string) {
     updatePlayerData(playerId, (pData) => {
         pData.rankId = rankId;
     });
+    invalidatePlayerPermissionCache(playerId);
 }
 
 export function setPlayerRanks(playerId: string, ranks: string[]) {
     updatePlayerData(playerId, (pData) => {
         pData.ranks = ranks;
     });
+    invalidatePlayerPermissionCache(playerId);
 }
 
 export function setPlayerAnnouncementsMuted(playerId: string, isMuted: boolean) {

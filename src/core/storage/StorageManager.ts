@@ -35,7 +35,10 @@ export class StorageManager {
                 nextIndex++;
             }
         } catch (error) {
-            errorLog(`[StorageManager] Failed to save ${this.dbName}`, error);
+            const msg = String(error);
+            if (!msg.includes('cannot be used in early execution')) {
+                errorLog(`[StorageManager] Failed to save ${this.dbName}`, error);
+            }
         }
     }
 

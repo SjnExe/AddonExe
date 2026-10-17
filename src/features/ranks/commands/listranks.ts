@@ -1,43 +1,28 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { getAllRanks } from '@core/rankManager.js';
 import { isDefined } from '@lib/guards.js';
-import * as mc from '@minecraft/server';
 
 const listranksCommand: CustomCommand = {
     name: 'listranks',
-    description: 'List all configured ranks.',
+    description: 'List all configured server ranks and their priorities.',
     category: 'Ranks',
-    permissionNode: 'cmd.listranks.admin',
+    permissionNode: 'cmd.listranks.member',
     allowConsole: true,
-    execute: async (executor: CommandExecutor) => {
-        const configManager = await import('@core/configManager.js');
-        const ranksConfig = configManager.getConfig().ranks;
-
-        let ranksDef;
-        if (isDefined(ranksConfig) && isDefined((ranksConfig as unknown as { rankDefinitions: unknown[] }).rankDefinitions)) {
-            ranksDef = (ranksConfig as unknown as { rankDefinitions: unknown[] }).rankDefinitions;
-        } else {
-            const { default: defaultRanksConfig } = await import('@features/ranks/ranksConfig.js');
-            ranksDef = defaultRanksConfig.rankDefinitions;
-        }
+    execute: (executor: CommandExecutor) => {
+        const ranksDef = [...getAllRanks()].toSorted((a, b) => a.priority - b.priority);
 
         if (!isDefined(ranksDef) || ranksDef.length === 0) {
-            const msg = '§cNo ranks configured.';
-            if (executor instanceof mc.Player) {
-                executor.sendMessage(msg);
-            } else {
-                executor.sendMessage(msg);
-            }
+            executor.sendMessage('§cNo ranks configured.');
             return;
         }
 
-        let message = `§2Configured Ranks:§r\n`;
-        message += ranksDef.map((r: unknown) => `§7- §b${(r as { name: string }).name} §8(ID: ${(r as { id: string }).id}, Priority: ${(r as { priority: number }).priority})`).join('\n');
+        const lines = ranksDef.map((r) => {
+            const prefix = r.chatFormatting?.prefixText ?? r.nametagPrefix ?? r.name;
+            const groups = r.groups.length > 0 ? r.groups.join(', ') : 'none';
+            return `§7- ${prefix}§r §8(ID: §b${r.id}§8, Priority: §f${r.priority}§8, Groups: §e${groups}§8)`;
+        });
 
-        if (executor instanceof mc.Player) {
-            executor.sendMessage(message);
-        } else {
-            executor.sendMessage(message);
-        }
+        executor.sendMessage(`§2--- Configured Server Ranks (${ranksDef.length}) ---§r\n${lines.join('\n')}`);
     }
 };
 

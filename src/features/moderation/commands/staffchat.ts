@@ -8,8 +8,9 @@ import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { getPlayerRank } from '@core/rankManager.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
 import { addChatLog } from '@features/moderation/chatLogManager.js';
-import { setTeamChatState } from '@features/team/commands/team.js';
-import { isNonEmptyString } from '@lib/guards.js';
+import { isTeamChatEnabled, setTeamChatState } from '@features/team/commands/team.js';
+import { getTeamByPlayer } from '@features/team/manager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const staffChatActive = new Map<string, boolean>();
 
@@ -62,29 +63,64 @@ export function sendStaffChatMessage(executor: CommandExecutor, message: string)
     }
 }
 
+export function getChatChannelStatus(player: mc.Player): string {
+    if (isStaffChatEnabled(player.id)) {
+        return '§7Current Chat Channel: §cStaff Chat §7(Use §e/sc§7 to switch to General Chat)';
+    }
+    if (isTeamChatEnabled(player.id)) {
+        const team = getTeamByPlayer(player.id);
+        const teamLabel = isDefined(team) ? `§bTeam Chat (${team.name}§b)` : '§bTeam Chat';
+        return `§7Current Chat Channel: ${teamLabel} §7(Use §e/tc§7 to switch to General Chat)`;
+    }
+    return '§7Current Chat Channel: §aGeneral Chat';
+}
+
 const staffChatCommand: CustomCommand = {
     name: 'staffchat',
-    description: 'Send a message to staff chat or toggle staff chat mode.',
+    description: 'Toggle staff chat mode or check your active chat channel.',
     category: 'Moderation',
     permissionNode: 'cmd.staffchat.mod',
     aliases: ['sc'],
-    allowConsole: true,
-    parameters: [{ name: 'message', type: 'text', optional: true }],
+    allowConsole: false,
+    parameters: [
+        {
+            name: 'action',
+            type: 'string',
+            optional: true,
+            enumOptions: ['toggle', 'on', 'off', 'status']
+        }
+    ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        const msg = args.message as string | undefined;
-
-        if (isNonEmptyString(msg)) {
-            sendStaffChatMessage(executor, msg);
-            return;
-        }
-
         if (!(executor instanceof mc.Player)) {
-            executor.sendMessage('Usage from console: /staffchat <message>');
+            executor.sendMessage('This command can only be used by players.');
             return;
         }
 
-        const isEnabled = toggleStaffChat(executor.id);
-        executor.sendMessage(isEnabled ? '§aStaff Chat Enabled. §7(All regular chat messages will go to staff)' : '§cStaff Chat Disabled.');
+        const action = isNonEmptyString(args.action) ? args.action.toLowerCase() : 'toggle';
+
+        if (action === 'status' || action === 'info') {
+            executor.sendMessage(getChatChannelStatus(executor));
+            return;
+        }
+
+        let isEnabled: boolean;
+        if (action === 'on') {
+            setStaffChatState(executor.id, true);
+            setTeamChatState(executor.id, false);
+            isEnabled = true;
+        } else if (action === 'off') {
+            setStaffChatState(executor.id, false);
+            isEnabled = false;
+        } else if (action === 'toggle') {
+            isEnabled = toggleStaffChat(executor.id);
+        } else {
+            executor.sendMessage('§cUsage: /sc [toggle|on|off|status]');
+            return;
+        }
+
+        executor.sendMessage(
+            isEnabled ? '§aChat channel switched to: §cStaff Chat§a. §7(Talk normally in chat; use §e/sc§7 to switch to General Chat)' : '§aChat channel switched to: §fGeneral Chat§a.'
+        );
     }
 };
 

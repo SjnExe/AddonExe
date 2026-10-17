@@ -18,20 +18,18 @@ import { isDefined } from '@lib/guards.js';
  */
 export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     const config = getConfig();
-    if (config.chat.enabled !== true) {
-        return;
-    }
-
     const player = event.sender;
 
-    // Staff Chat Routing (Staff can use staff chat even if global chat has restrictions)
+    // Staff Chat Routing (Always intercept before general chat)
     if (isStaffChatEnabled(player.id)) {
+        event.cancel = true;
         if (hasPermission(player, 'cmd.staffchat.mod') || hasPermission(player, 'group.mod')) {
-            event.cancel = true;
             sendStaffChatMessage(player, event.message);
             return;
         }
         setStaffChatState(player.id, false);
+        player.sendMessage('§cYou no longer have permission for Staff Chat. Switched back to General Chat.');
+        return;
     }
 
     // Mute Check
@@ -46,16 +44,22 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
 
     const rank = getPlayerRank(player, config);
 
-    // Team Chat Routing
+    // Team Chat Routing (Always intercept before general chat)
     if (isTeamChatEnabled(player.id)) {
+        event.cancel = true;
         if (sendTeamChatMessage(player, event.message)) {
-            event.cancel = true;
             addChatLog(player.name, `[TeamChat] ${event.message}`, rank.name);
             if (config.chat.logToConsole === true) {
                 rawLog(`[TeamChat] ${player.name}: ${stripColorCodes(event.message)}`);
             }
             return;
         }
+        player.sendMessage('§cYou are no longer in a team. Switched back to General Chat.');
+        return;
+    }
+
+    if (config.chat.enabled !== true) {
+        return;
     }
 
     addChatLog(player.name, event.message, rank.name);

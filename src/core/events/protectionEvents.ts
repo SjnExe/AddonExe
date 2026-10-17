@@ -18,8 +18,8 @@ function canBypass(player: mc.Player): boolean {
     }
 
     try {
-        // Owner(0), Admin(1), Mod(2) bypass
-        return hasPermission(player, 'group.mod');
+        // Owner, Admin, Mod, or Builder / explicit bypass permission
+        return hasPermission(player, 'group.mod') || hasPermission(player, 'bypass.spawnprotection');
     } catch {
         return false;
     }

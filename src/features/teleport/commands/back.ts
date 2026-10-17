@@ -8,7 +8,8 @@ import { errorLog } from '@core/logger.js';
 import * as messaging from '@core/messaging.js';
 import * as playerDataManager from '@core/playerDataManager.js';
 import * as teleportLogicModule from '@core/teleportLogic.js';
-import { formatCurrency, playSound } from '@core/utils.js';
+import { formatCooldown, formatCurrency, playSound } from '@core/utils.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
 
 interface BackConfig {
     enabled: boolean;
@@ -41,6 +42,17 @@ const backCommand: CustomCommand = {
 
         if (!lastLocation) {
             messaging.sendMessage('§cYou have nowhere to go back to.', executor);
+            return;
+        }
+
+        const remainingCd = cooldownManager.getCooldown(executor.id, 'back');
+        if (remainingCd > 0) {
+            messaging.sendMessage(`§cYou must wait ${formatCooldown(remainingCd)} before using /back again.`, executor);
+            return;
+        }
+
+        if (!isWithinWorldBorder(lastLocation, lastLocation.dimensionId) && !canBypassWorldBorder(executor)) {
+            messaging.sendMessage('§cYour previous location is outside the active world border.', executor);
             return;
         }
 

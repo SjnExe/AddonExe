@@ -540,6 +540,20 @@ export function initializeDefaultMenuItems(): void {
         }
     });
 
+    registerMenuItem({
+        id: 'staff_world_border',
+        title: 'World Border Manager',
+        description: 'Configure Overworld+Nether (8:1) & End borders',
+        icon: 'textures/blocks/beacon',
+        hub: 'staff_world',
+        permissionNode: 'ui.panel.admin',
+        order: 40,
+        action: async (p) => {
+            const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
+            await showWorldBorderAdminPanel(p);
+        }
+    });
+
     // --- STAFF CONFIG SUB-ITEMS ---
     registerMenuItem({
         id: 'staff_master_toggles',

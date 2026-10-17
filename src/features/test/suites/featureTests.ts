@@ -10,6 +10,7 @@ import { StorageManager } from '@core/storage/StorageManager.js';
 import { getAnticheatConfig } from '@features/anticheat/configLoader.js';
 import { getPunishmentLogs } from '@features/anticheat/logManager.js';
 import { getBounty, incrementBounty, removeBounty } from '@features/economy/bountyManager.js';
+import { getEffectiveBorderForDimension, getWorldBorder, setEndBorder, setOverworldBorder, updateWorldBorderConfig } from '@features/essentials/worldBorderManager.js';
 import { evaluateTicTacToeBoard } from '@features/games/tictactoe/ticTacToeManager.js';
 import { addPunishment, getPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
 import { parseRankOverrides } from '@features/shop/utils.js';
@@ -173,6 +174,28 @@ export function registerFeatureTests() {
         assert.equal(parsed!['vip']?.buy, 0.8, 'VIP buy multiplier should be 0.8');
         assert.equal(parsed!['vip']?.sell, 1.2, 'VIP sell multiplier should be 1.2');
         assert.equal(parsed!['donator']?.buy, 0.9, 'Donator buy multiplier should be 0.9');
+    });
+
+    addTest(SUITE_NAME, 'World Border links Overworld and Nether with 8:1 multiplier and keeps End independent', () => {
+        const snapshot = getWorldBorder();
+        try {
+            setOverworldBorder(true, 8000, 160, -80);
+            setEndBorder(false, 5000, 0, 0);
+
+            const owBorder = getEffectiveBorderForDimension(MinecraftDimensionTypes.Overworld);
+            const netherBorder = getEffectiveBorderForDimension(MinecraftDimensionTypes.Nether);
+            const endBorder = getEffectiveBorderForDimension(MinecraftDimensionTypes.TheEnd);
+
+            assert.equal(owBorder.enabled, true, 'Overworld border should be enabled');
+            assert.equal(owBorder.radius, 8000, 'Overworld radius should be 8000');
+            assert.equal(netherBorder.enabled, true, 'Nether border should follow Overworld enabled state');
+            assert.equal(netherBorder.radius, 1000, 'Nether radius should be 1000 (8000 / 8)');
+            assert.equal(netherBorder.centerX, 20, 'Nether centerX should scale by 1/8 (160 / 8 = 20)');
+            assert.equal(netherBorder.centerZ, -10, 'Nether centerZ should scale by 1/8 (-80 / 8 = -10)');
+            assert.equal(endBorder.enabled, false, 'End border should remain independent and disabled');
+        } finally {
+            updateWorldBorderConfig(snapshot);
+        }
     });
 
     addTest(SUITE_NAME, 'Tic-Tac-Toe 3x3 evaluator detects rows, diagonals, and draws accurately', () => {

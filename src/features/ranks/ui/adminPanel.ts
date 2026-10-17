@@ -1,5 +1,6 @@
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
 import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
+import { canDeleteRankDefinition, canEditRankDefinition, isOwner, isProtectedSystemRank, validatePermissionGroupEdits, validateRankDefinitionEdits } from '@core/permissionEngine.js';
 import { getAllPlayersFromCache } from '@core/playerCache.js';
 import { reloadRanks, updatePlayerNameTag } from '@core/rankManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -22,11 +23,14 @@ function refreshOnlineNameTags(): void {
 
 export async function showRankSystemConfigPanel(player: mc.Player): Promise<void> {
     const config = getRanksConfig();
-    const ranks = config.rankDefinitions;
+    const sortedRanks = [...config.rankDefinitions].toSorted((a, b) => a.priority - b.priority);
+    const viewerIsOwner = isOwner(player);
 
-    const form = new ActionFormBuilder().title('Ranks System Configuration');
+    const form = new ActionFormBuilder()
+        .title('Ranks & Permissions')
+        .body(viewerIsOwner ? '§7Role: §4Server Owner §8(Full Rank & Permission Access)' : '§7Role: §cAdmin §8(Can manage ranks below Admin; Owner & Admin are locked)');
 
-    form.button('§2Create New Rank', 'textures/ui/color_plus', () => {
+    form.button('§2+ Create New Rank', 'textures/ui/color_plus', () => {
         void showRankEditorPanel(player);
     });
 
@@ -38,8 +42,15 @@ export async function showRankSystemConfigPanel(player: mc.Player): Promise<void
         void showGlobalRankDefaultsPanel(player);
     });
 
-    for (const rank of ranks) {
-        form.button(`§l${rank.name}§r\nID: ${rank.id} | Priority: ${rank.priority}`, 'textures/ui/permissions_member_star', () => {
+    form.button('§ePermission Nodes Guide', 'textures/ui/icon_sign', () => {
+        void showPermissionNodesGuidePanel(player);
+    });
+
+    for (const rank of sortedRanks) {
+        const editAccess = canEditRankDefinition(player, rank.id);
+        const lockBadge = !editAccess.allowed ? ' §8[Owner Only]' : isProtectedSystemRank(rank.id) ? ' §8[Core]' : '';
+        const prefixPreview = rank.chatFormatting?.prefixText ?? rank.nametagPrefix ?? rank.name;
+        form.button(`§l${prefixPreview}§r${lockBadge}\n§7ID: §f${rank.id} §8| §7Priority: §f${rank.priority}`, 'textures/ui/permissions_member_star', () => {
             void showRankActionPanel(player, rank.id);
         });
     }
@@ -52,19 +63,58 @@ export async function showRankSystemConfigPanel(player: mc.Player): Promise<void
     await form.show(player);
 }
 
+export async function showPermissionNodesGuidePanel(player: mc.Player): Promise<void> {
+    const form = new ActionFormBuilder()
+        .grid(1)
+        .title('Permission Nodes & Groups Guide')
+        .body(
+            [
+                '§l§61. Universal Permission Groups (assign in Rank Groups):§r',
+                '§e• default§r (or §emember§r) — Standard player commands & UI (/spawn, /home, /tpa, /shop, /ah, /pay, /kit, /team, /friend)',
+                '§e• vip§r — Donor & VIP perks (**.vip)',
+                '§e• builder§r — Creative/Survival toggle (/gmc, /gms, /gm c|s) & spawn protection bypass',
+                '§e• helper§r — Chat & basic moderation (/xkick, /mute, /unmute, /warn, /freeze, /sc, /watch)',
+                '§e• mod§r — Full Moderator toolkit (/vanish, /sinv, /invsee, /notify, /xraynotify, Staff Dashboard)',
+                '§e• admin§r — Server Administration (/ban, /unban, /rank, /xgamemode, /xtp, /setspawn, /addwarp, /logs) §c[Owner Only]§r',
+                '§e• owner§r — Unrestricted Server Owner (*) §4[Owner Only]§r',
+                '',
+                '§l§b2. Universal Permission Node Formats:§r',
+                '§e• Short Command Nodes:§r §fcmd.<command>§7 (e.g. §acmd.kick§7, §acmd.gmc§7, §acmd.invsee§7)',
+                '§e• Tiered Command Nodes:§r §fcmd.<command>.<tier>§7 (e.g. §acmd.kick.mod§7, §acmd.gmc.builder§7)',
+                '§e• Tier Wildcards:§r §f**.member§7, §f**.builder§7, §f**.helper§7, §f**.mod§7, §f**.admin§7',
+                '§e• Command Wildcard:§r §fcmd.*§7 (all commands) or §fcmd.*.mod§7 (all mod commands)',
+                '§e• Special Nodes:§r §fbypass.spawnprotection§7, §fui.panel.mod§7, §fgroup.mod§7'
+            ].join('\n')
+        );
+
+    form.addBackButton(async () => {
+        await showRankSystemConfigPanel(player);
+    });
+
+    await form.show(player);
+}
+
 export async function showPermissionGroupsPanel(player: mc.Player): Promise<void> {
     const config = getRanksConfig();
     const groups = config.permissionGroups;
+    const viewerIsOwner = isOwner(player);
 
     const form = new ActionFormBuilder()
         .title('Permission Groups')
-        .body('Manage reusable permission node groups assigned to ranks:')
+        .body('Manage reusable permission node bundles assigned to ranks:')
         .button('§2+ Create Permission Group', 'textures/ui/color_plus', () => {
             void showEditPermissionGroupModal(player);
         });
 
     for (const [groupName, nodes] of Object.entries(groups)) {
-        form.button(`§l${groupName}§r\n§7${nodes.length} node(s): ${nodes.slice(0, 2).join(', ')}`, 'textures/ui/permissions_op_crown', () => {
+        const isLockedToOwner = !viewerIsOwner && (groupName === 'owner' || groupName === 'admin');
+        const badge = isLockedToOwner ? ' §8[Owner Only]' : '';
+        form.button(`§l${groupName}§r${badge}\n§7${nodes.length} node(s): ${nodes.slice(0, 2).join(', ')}`, 'textures/ui/permissions_op_crown', () => {
+            if (isLockedToOwner) {
+                player.sendMessage(`§cOnly the Server Owner can edit the '${groupName}' permission group.`);
+                void showPermissionGroupsPanel(player);
+                return;
+            }
             void showEditPermissionGroupModal(player, groupName);
         });
     }
@@ -80,7 +130,7 @@ async function showEditPermissionGroupModal(player: mc.Player, existingGroup?: s
     const config = getRanksConfig();
     const isNew = !isNonEmptyString(existingGroup);
     const currentNodes = existingGroup ? (config.permissionGroups[existingGroup] ?? []) : [];
-    const coreGroups = new Set(['default', 'mod', 'admin', 'owner']);
+    const coreGroups = new Set(['default', 'vip', 'builder', 'helper', 'mod', 'admin', 'owner']);
     const canDelete = !isNew && !coreGroups.has(existingGroup);
 
     const modal = new CustomFormBuilder<{
@@ -88,8 +138,8 @@ async function showEditPermissionGroupModal(player: mc.Player, existingGroup?: s
         nodes: string;
         deleteGroup?: boolean;
     }>(isNew ? 'Create Permission Group' : `Edit Group: ${existingGroup}`)
-        .textField('groupName', 'Group Name', 'e.g. builder', existingGroup ?? '')
-        .textField('nodes', 'Permission Nodes (comma-separated)', 'e.g. **.member, cmd.tp.mod', currentNodes.join(', '));
+        .textField('groupName', 'Group Name', 'e.g. event_host', existingGroup ?? '')
+        .textField('nodes', 'Permission Nodes (comma-separated)', 'e.g. **.member, cmd.tp, cmd.gmc', currentNodes.join(', '));
 
     if (canDelete) {
         modal.toggle('deleteGroup', '§cDelete this permission group', false);
@@ -124,7 +174,19 @@ async function showEditPermissionGroupModal(player: mc.Player, existingGroup?: s
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
 
+    const securityCheck = validatePermissionGroupEdits(player, newName, parsedNodes);
+    if (!securityCheck.valid) {
+        player.sendMessage(securityCheck.error ?? '§cPermission group validation failed.');
+        await showPermissionGroupsPanel(player);
+        return;
+    }
+
     if (!isNew && existingGroup && existingGroup !== newName) {
+        if (coreGroups.has(existingGroup)) {
+            player.sendMessage(`§cCannot rename core permission group '${existingGroup}'.`);
+            await showPermissionGroupsPanel(player);
+            return;
+        }
         delete config.permissionGroups[existingGroup];
     }
 
@@ -163,15 +225,26 @@ export async function showGlobalRankDefaultsPanel(player: mc.Player): Promise<vo
         return;
     }
 
+    const defaultRankIdClean = res.defaultRankId.trim() || 'member';
     const defaultRanksList = res.defaultRanks
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
+    const effectiveDefaultRanks = defaultRanksList.length > 0 ? defaultRanksList : ['member'];
+
+    if (!isOwner(player)) {
+        const forbidden = ['owner', 'admin'];
+        if (forbidden.includes(defaultRankIdClean.toLowerCase()) || effectiveDefaultRanks.some((r) => forbidden.includes(r.toLowerCase()))) {
+            player.sendMessage('§cSecurity Error: Cannot set Owner or Admin as the default rank for new players.');
+            await showRankSystemConfigPanel(player);
+            return;
+        }
+    }
 
     updateMultipleConfig({
         'ranks.nameTagStyle': res.nameTagStyle || 'above',
-        'playerDefaults.rankId': res.defaultRankId.trim() || 'member',
-        'playerDefaults.ranks': defaultRanksList.length > 0 ? defaultRanksList : ['member']
+        'playerDefaults.rankId': defaultRankIdClean,
+        'playerDefaults.ranks': effectiveDefaultRanks
     });
 
     ranksConfig.defaultChatFormatting = {
@@ -196,30 +269,42 @@ export async function showRankActionPanel(player: mc.Player, rankId: string): Pr
         return showRankSystemConfigPanel(player);
     }
 
+    const editCheck = canEditRankDefinition(player, rankId);
+    const deleteCheck = canDeleteRankDefinition(player, rankId);
     const buyMult = existingRank.shopMultiplier?.buy ?? 1;
     const sellMult = existingRank.shopMultiplier?.sell ?? 1;
+
     const summary = [
         `§7ID: §f${existingRank.id} §8| §7Priority: §f${existingRank.priority}`,
         `§7Nametag: §r${existingRank.nametagPrefix || 'None'} §8| §7Chat Prefix: §r${existingRank.chatFormatting?.prefixText || 'None'}`,
         `§7Name Color: ${existingRank.chatFormatting?.nameColor || '§7'}Sample §8| §7Msg Color: ${existingRank.chatFormatting?.messageColor || '§f'}Sample§r`,
         `§7Shop Multipliers: §aBuy ${buyMult}x §8/ §6Sell ${sellMult}x`,
-        `§7Groups: §e${existingRank.groups.join(', ') || 'None'}`
+        `§7Groups: §e${existingRank.groups.join(', ') || 'None'}`,
+        `§7Allow Nodes: §a${existingRank.allow.join(', ') || 'None'}`,
+        `§7Deny Nodes: §c${existingRank.deny.join(', ') || 'None'}`
     ].join('\n');
 
     const form = new ActionFormBuilder().title(`Manage Rank: ${existingRank.name}`).body(summary);
 
-    form.button('Edit Rank', 'textures/ui/color_plus', () => {
-        void showRankEditorPanel(player, rankId);
-    });
-
-    if (existingRank.locked) {
-        form.button('Delete Rank\n§8[Locked]', 'textures/ui/cancel', () => {
-            player.sendMessage('§cCannot delete a locked core system rank.');
-            void showRankActionPanel(player, rankId);
+    if (editCheck.allowed) {
+        form.button('Edit Rank', 'textures/ui/book_edit_default', () => {
+            void showRankEditorPanel(player, rankId);
         });
     } else {
+        form.button('Edit Rank\n§8[Owner Only]', 'textures/ui/lock_color', () => {
+            player.sendMessage(editCheck.reason ?? '§cOnly the Server Owner can edit this rank.');
+            void showRankActionPanel(player, rankId);
+        });
+    }
+
+    if (deleteCheck.allowed) {
         form.button('§4Delete Rank', 'textures/ui/trash', () => {
             void showRankDeleteConfirmPanel(player, rankId);
+        });
+    } else {
+        form.button('Delete Rank\n§8[Locked]', 'textures/ui/cancel', () => {
+            player.sendMessage(deleteCheck.reason ?? '§cCannot delete a locked core system rank.');
+            void showRankActionPanel(player, rankId);
         });
     }
 
@@ -231,6 +316,12 @@ export async function showRankActionPanel(player: mc.Player, rankId: string): Pr
 }
 
 export async function showRankDeleteConfirmPanel(player: mc.Player, rankId: string): Promise<void> {
+    const deleteCheck = canDeleteRankDefinition(player, rankId);
+    if (!deleteCheck.allowed) {
+        player.sendMessage(deleteCheck.reason ?? '§cCannot delete this rank.');
+        return showRankActionPanel(player, rankId);
+    }
+
     const config = getRanksConfig();
     const existingRank = config.rankDefinitions.find((r) => r.id === rankId);
     if (!existingRank) {
@@ -259,6 +350,15 @@ export async function showRankDeleteConfirmPanel(player: mc.Player, rankId: stri
 export async function showRankEditorPanel(player: mc.Player, rankId?: string, draftRank?: Partial<RankDefinition> & { conditionsRaw?: string; tagCondition?: string }): Promise<void> {
     const config = getRanksConfig();
     const isNew = !isDefined(rankId);
+
+    if (!isNew) {
+        const editCheck = canEditRankDefinition(player, rankId);
+        if (!editCheck.allowed) {
+            player.sendMessage(editCheck.reason ?? '§cYou cannot edit this rank.');
+            return showRankActionPanel(player, rankId);
+        }
+    }
+
     let rank: RankDefinition;
 
     if (draftRank) {
@@ -306,6 +406,7 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     const otherConditions = rank.conditions.filter((c) => !(c.type === 'hasTag' && c === existingTagCond));
     const initialTagValue = draftRank?.tagCondition ?? (typeof existingTagCond?.value === 'string' ? existingTagCond.value : '');
     const conditionsJson = draftRank?.conditionsRaw ?? JSON.stringify(otherConditions);
+    const availableGroups = Object.keys(config.permissionGroups).join(', ');
 
     const modal = new CustomFormBuilder<{
         id: string;
@@ -324,19 +425,19 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
         conditions: string;
     }>(isNew ? 'Create New Rank' : `Edit Rank: ${rank.name}`);
 
-    modal.textField('id', 'Rank ID (Unique, alphanumeric)', 'e.g. custom_rank', rank.id);
-    modal.textField('name', 'Display Name', 'e.g. Custom Rank', rank.name);
-    modal.textField('priority', 'Priority (Lower = Higher Rank)', 'e.g. 50', String(rank.priority));
-    modal.textField('nametagPrefix', 'Nametag Prefix', 'e.g. §bVIP', rank.nametagPrefix ?? rank.chatFormatting?.prefixText ?? '');
-    modal.textField('chatPrefixText', 'Chat Prefix Text', 'e.g. §bVIP', rank.chatFormatting?.prefixText ?? rank.nametagPrefix ?? '');
-    modal.textField('chatNameColor', 'Chat Name Color Code', 'e.g. §b', rank.chatFormatting?.nameColor ?? '§7');
+    modal.textField('id', 'Rank ID (Unique, lowercase alphanumeric)', 'e.g. architect', rank.id);
+    modal.textField('name', 'Display Name', 'e.g. Architect', rank.name);
+    modal.textField('priority', 'Priority (Lower = Higher Rank; Owner=0, Admin=10, Mod=30)', 'e.g. 70', String(rank.priority));
+    modal.textField('nametagPrefix', 'Nametag Prefix', 'e.g. §3Architect', rank.nametagPrefix ?? rank.chatFormatting?.prefixText ?? '');
+    modal.textField('chatPrefixText', 'Chat Prefix Text', 'e.g. §3Architect', rank.chatFormatting?.prefixText ?? rank.nametagPrefix ?? '');
+    modal.textField('chatNameColor', 'Chat Name Color Code', 'e.g. §3', rank.chatFormatting?.nameColor ?? '§7');
     modal.textField('chatMessageColor', 'Chat Message Color Code', 'e.g. §f', rank.chatFormatting?.messageColor ?? '§f');
     modal.textField('shopBuyMultiplier', 'Shop Buy Multiplier (e.g. 0.8 = 20% off)', '1.0', String(rank.shopMultiplier?.buy ?? 1));
     modal.textField('shopSellMultiplier', 'Shop Sell Multiplier (e.g. 1.2 = 20% bonus)', '1.0', String(rank.shopMultiplier?.sell ?? 1));
-    modal.textField('groups', 'Permission Groups (comma-separated)', 'e.g. default,mod', rank.groups.join(', '));
-    modal.textField('allow', 'Allowed Permissions (comma-separated)', 'e.g. cmd.kick.mod,ui.panel.mod', rank.allow.join(', '));
-    modal.textField('deny', 'Denied Permissions (comma-separated)', 'e.g. cmd.ban.admin', rank.deny.join(', '));
-    modal.textField('tagCondition', 'Auto-Assign Vanilla Tag (Optional)', 'e.g. vip (grants rank when player has tag)', initialTagValue);
+    modal.textField('groups', `Permission Groups (Available: ${availableGroups})`, 'e.g. default, builder', rank.groups.join(', '));
+    modal.textField('allow', 'Allowed Permissions (e.g. cmd.gmc, cmd.kick, bypass.spawnprotection)', 'e.g. cmd.gmc, cmd.gms', rank.allow.join(', '));
+    modal.textField('deny', 'Denied Permissions (comma-separated)', 'e.g. cmd.rtp', rank.deny.join(', '));
+    modal.textField('tagCondition', 'Auto-Assign Vanilla Tag (Optional)', 'e.g. architect', initialTagValue);
     modal.textField('conditions', 'Extra Conditions (JSON array)', '[]', conditionsJson);
     modal.submitButton('Save Rank');
 
@@ -352,8 +453,8 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
     const safeSell = Number.isNaN(parsedSell) || parsedSell < 0 ? 1 : parsedSell;
 
     const draftState = {
-        id: response.id.trim(),
-        name: response.name,
+        id: response.id.trim().toLowerCase(),
+        name: response.name.trim() || response.id.trim(),
         priority: Number.isNaN(parsedPriority) ? 100 : parsedPriority,
         nametagPrefix: response.nametagPrefix,
         chatFormatting: {
@@ -382,14 +483,37 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
         conditionsRaw: response.conditions
     };
 
-    const newId = response.id.trim();
+    const newId = draftState.id;
     if (newId === '') {
         player.sendMessage('§cError: Rank ID cannot be empty.');
         return showRankEditorPanel(player, rankId, draftState);
     }
 
+    if (!isNew && rankId && isProtectedSystemRank(rankId) && newId !== rankId) {
+        player.sendMessage(`§cError: Cannot change the ID of core system rank '${rankId}'.`);
+        draftState.id = rankId;
+        return showRankEditorPanel(player, rankId, draftState);
+    }
+
     if (config.rankDefinitions.some((r) => r.id === newId && r.id !== rankId)) {
         player.sendMessage(`§cError: Rank ID '${newId}' already exists.`);
+        return showRankEditorPanel(player, rankId, draftState);
+    }
+
+    const securityValidation = validateRankDefinitionEdits(
+        player,
+        {
+            id: newId,
+            priority: draftState.priority,
+            groups: draftState.groups,
+            allow: draftState.allow,
+            deny: draftState.deny
+        },
+        rankId
+    );
+
+    if (!securityValidation.valid) {
+        player.sendMessage(securityValidation.error ?? '§cSecurity validation failed.');
         return showRankEditorPanel(player, rankId, draftState);
     }
 
@@ -417,14 +541,14 @@ export async function showRankEditorPanel(player: mc.Player, rankId?: string, dr
 
     rank.id = newId;
     rank.name = draftState.name;
-    rank.priority = draftState.priority;
+    rank.priority = rankId === 'owner' ? 0 : draftState.priority;
     rank.nametagPrefix = draftState.nametagPrefix;
     rank.chatFormatting = draftState.chatFormatting;
     rank.shopMultiplier = draftState.shopMultiplier;
-    rank.groups = draftState.groups;
-    rank.allow = draftState.allow;
-    rank.deny = draftState.deny;
-    rank.conditions = finalConditions;
+    rank.groups = rankId === 'owner' ? ['default', 'vip', 'builder', 'helper', 'mod', 'admin', 'owner'] : draftState.groups;
+    rank.allow = rankId === 'owner' ? ['*'] : draftState.allow;
+    rank.deny = rankId === 'owner' ? [] : draftState.deny;
+    rank.conditions = rankId === 'owner' ? [{ type: 'hasTag', value: 'owner' }] : finalConditions;
 
     if (isNew) {
         config.rankDefinitions.push(rank);

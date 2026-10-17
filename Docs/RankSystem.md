@@ -6,50 +6,70 @@ AddonExe uses a priority-based Rank and Permission Engine defined in `src/featur
 
 ## 1. Default Ranks Overview
 
-Lower `priority` numbers take visual precedence for chat and nametag formatting:
+Lower `priority` numbers take visual and hierarchical precedence:
 
-| Rank ID     | Display Name  | Priority | Tag Condition | Default Permission Groups                    | Shop Multiplier      |
-| :---------- | :------------ | :------- | :------------ | :------------------------------------------- | :------------------- |
-| `owner`     | **Owner**     | `0`      | `owner`       | `default`, `mod`, `admin`, `owner` (`*`)     | 1.0x                 |
-| `admin`     | **Admin**     | `10`     | `admin`       | `default`, `mod`, `admin`                    | 1.0x                 |
-| `moderator` | **Moderator** | `30`     | `moderator`   | `default`, `mod`                             | 1.0x                 |
-| `helper`    | **Helper**    | `50`     | `helper`      | `default` (+ `cmd.kick.mod`, `cmd.mute.mod`) | 1.0x                 |
-| `verified`  | **Verified**  | `700`    | `verified`    | `default`                                    | 1.0x                 |
-| `vip`       | **VIP**       | `800`    | `vip`         | `default`                                    | Buy 0.8x / Sell 1.2x |
-| `donator`   | **Donator**   | `850`    | `donator`     | `default`                                    | Buy 0.9x / Sell 1.1x |
-| `member`    | **Member**    | `1000`   | _(None)_      | `default`                                    | 1.0x                 |
+| Rank ID     | Display Name  | Priority | Tag Condition | Default Permission Groups                                      | Shop Multiplier        |
+| :---------- | :------------ | :------- | :------------ | :------------------------------------------------------------- | :--------------------- |
+| `owner`     | **Owner**     | `0`      | `owner`       | `default`, `vip`, `builder`, `helper`, `mod`, `admin`, `owner` | 1.0x                   |
+| `admin`     | **Admin**     | `10`     | `admin`       | `default`, `vip`, `builder`, `helper`, `mod`, `admin`          | 1.0x                   |
+| `moderator` | **Moderator** | `30`     | `moderator`   | `default`, `helper`, `mod`                                     | 1.0x                   |
+| `helper`    | **Helper**    | `50`     | `helper`      | `default`, `helper`                                            | 1.0x                   |
+| `builder`   | **Builder**   | `60`     | `builder`     | `default`, `builder` (`/gmc`, `/gms`, spawn bypass)            | 1.0x                   |
+| `media`     | **Media**     | `650`    | `media`       | `default`, `vip`                                               | Buy 0.85x / Sell 1.15x |
+| `verified`  | **Verified**  | `700`    | `verified`    | `default`                                                      | 1.0x                   |
+| `mvp`       | **MVP**       | `750`    | `mvp`         | `default`, `vip`                                               | Buy 0.75x / Sell 1.25x |
+| `vip`       | **VIP**       | `800`    | `vip`         | `default`, `vip`                                               | Buy 0.8x / Sell 1.2x   |
+| `donator`   | **Donator**   | `850`    | `donator`     | `default`, `vip`                                               | Buy 0.9x / Sell 1.1x   |
+| `member`    | **Member**    | `1000`   | _(None)_      | `default`                                                      | 1.0x                   |
 
 ---
 
-## 2. Assigning Ranks In-Game
+## 2. Security & Management Hierarchy
 
-### Granting Owner Access
+### Granting Server Owner
 
-Run `/function owner` or `/tag @s add owner` (followed by `/xreload`).
+With operator/cheats enabled in-game, run:
+
+```text
+/function owner
+```
+
+This grants both the `owner` tag and `owner` rank immediately. The `owner` rank cannot be granted by players via `/rank`.
+
+### Owner vs. Admin Capabilities
+
+- **Server Owner (`owner`):**
+    - Can grant or revoke **Admin** (`admin`) and any other rank to any player.
+    - Can edit **all** rank definitions (including `owner` and `admin`) and **all** permission groups.
+- **Administrator (`admin`):**
+    - Can grant or revoke **Moderator** (`moderator` / `mod`), **Helper**, **Builder**, **Media**, **Verified**, **MVP**, **VIP**, **Donator**, and custom ranks to players below Admin.
+    - Can create, edit, and delete ranks **except `owner` and `admin`** (and cannot set any rank priority `<= 10`).
+    - **Cannot** assign the `owner` or `admin` permission groups or restricted nodes (`*`, `**.owner`, `**.admin`) to any rank or group.
 
 ### Managing Ranks via Commands
 
-- **Grant a rank:** `/rank set <player> <rankId>`
+- **Grant a rank:** `/rank set <player> <rankId>` (supports aliases like `mod` -> `moderator`, `yt` -> `media`)
 - **Remove a rank:** `/rank remove <player> <rankId>` (or `/rank rm`)
 - **View a player's ranks:** `/rank list <player>` (or `/rank ls`)
-- **List all ranks:** `/listranks`
-
-### Managing Ranks via UI (`/panel`)
-
-- **Assign/Remove Player Ranks:** `/panel` -> **Staff Dashboard** -> **Player Management** -> **Active Player Inspector** -> _Select Player_ -> **Manage Ranks**.
-- **Create/Edit Rank Definitions:** `/panel` -> **Staff Dashboard** -> **Player Management** -> **Rank System & Permissions**.
+- **List all server ranks:** `/listranks`
 
 ---
 
-## 3. How Permission Evaluation Works
+## 3. Universal Permission Groups & Nodes
 
-Every command and UI section checks a dot-separated permission node (e.g., `cmd.ban.admin`, `ui.panel.mod`). When a player has multiple ranks, permissions from all of their ranks are combined and evaluated in this order:
+### Permission Groups (`permissionGroups`)
 
-1. **Owner Bypass:** Players with the `owner` rank or `*` allow rule are granted access automatically.
-2. **Deny Rules (`deny`):** If any possessed rank explicitly denies the node, access is denied.
-3. **Allow Rules (`allow`):** If any possessed rank explicitly allows the node, access is granted.
-4. **Permission Groups (`groups`):** Checks group wildcards defined in `permissionGroups`:
-    - `default`: `['**.member']`
-    - `mod`: `['**.mod']`
-    - `admin`: `['**.admin']`
-    - `owner`: `['**.owner']`
+- `default` (alias `member`): `['**.member']`
+- `vip`: `['**.vip']`
+- `builder`: `['**.builder', 'cmd.gmc.builder', 'cmd.gms.builder', 'cmd.gamemode.builder', 'bypass.spawnprotection']`
+- `helper`: `['**.helper', 'cmd.kick.mod', 'cmd.mute.mod', 'cmd.unmute.mod', 'cmd.warn.mod', 'cmd.freeze.mod', 'cmd.unfreeze.mod', 'cmd.staffchat.mod', 'cmd.watch.mod', 'cmd.listwatched.mod']`
+- `mod` (alias `moderator`): `['**.mod', '**.helper']`
+- `admin`: `['**.admin', '**.mod', '**.helper', '**.builder', '**.vip']`
+- `owner`: `['**.owner', '*']`
+
+### Universal Node Formats
+
+- **Short Command Nodes:** `cmd.<name>` (e.g. `cmd.kick`, `cmd.gmc`, `cmd.invsee`)
+- **Tiered Command Nodes:** `cmd.<name>.<tier>` (e.g. `cmd.kick.mod`, `cmd.gmc.builder`, `cmd.ban.admin`)
+- **Wildcards:** `cmd.*` (all commands), `**.mod` (all moderator commands/panels/groups), `**.builder` (all builder permissions)
+- **Special Nodes:** `bypass.spawnprotection`, `ui.panel.mod`, `ui.panel.admin`, `group.mod`, `group.admin`

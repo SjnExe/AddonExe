@@ -104,8 +104,17 @@ export function initialize() {
     runUpdateLoop();
 }
 
+let isRunningUpdateLoop = false;
 function runUpdateLoop() {
-    mc.system.runJob(updateLoopJob());
+    if (isRunningUpdateLoop) {
+        return;
+    }
+    isRunningUpdateLoop = true;
+    try {
+        mc.system.runJob(updateLoopJob());
+    } finally {
+        isRunningUpdateLoop = false;
+    }
 }
 
 function* updateLoopJob() {
@@ -181,31 +190,49 @@ function* updateLoopJob() {
     updateLoopId = mc.system.runTimeout(runUpdateLoop, 1);
 }
 
+let isRunningExpirationLoop = false;
 function runExpirationLoop() {
-    const now = Date.now();
-    for (const textConfig of floatingTexts.values()) {
-        if (isNumber(textConfig.expiresAt) && now >= textConfig.expiresAt) {
-            deleteText(undefined, textConfig.id);
-        }
+    if (isRunningExpirationLoop) {
+        return;
     }
-    expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200); // Check every 10 seconds
-}
-
-function runRetrySpawnLoop() {
-    if (unloadedChunkQueue.size > 0) {
-        for (const textId of unloadedChunkQueue) {
-            const textConfig = floatingTexts.get(textId);
-            if (isDefined(textConfig)) {
-                spawnText(textConfig);
-            } else {
-                unloadedChunkQueue.delete(textId);
+    isRunningExpirationLoop = true;
+    try {
+        const now = Date.now();
+        for (const textConfig of floatingTexts.values()) {
+            if (isNumber(textConfig.expiresAt) && now >= textConfig.expiresAt) {
+                deleteText(undefined, textConfig.id);
             }
         }
+        expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200);
+    } finally {
+        isRunningExpirationLoop = false;
     }
+}
 
-    pruneOrphanedTexts();
+let isRunningRetryLoop = false;
+function runRetrySpawnLoop() {
+    if (isRunningRetryLoop) {
+        return;
+    }
+    isRunningRetryLoop = true;
+    try {
+        if (unloadedChunkQueue.size > 0) {
+            for (const textId of unloadedChunkQueue) {
+                const textConfig = floatingTexts.get(textId);
+                if (isDefined(textConfig)) {
+                    spawnText(textConfig);
+                } else {
+                    unloadedChunkQueue.delete(textId);
+                }
+            }
+        }
 
-    retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
+        pruneOrphanedTexts();
+
+        retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
+    } finally {
+        isRunningRetryLoop = false;
+    }
 }
 
 function extractFloatingTextId(tags: string[]): string | undefined {

@@ -5,7 +5,7 @@ import { getPlayer, getPlayerIdByName, getPlayerNameById } from '@core/playerDat
 import { showPanel } from '@core/uiManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-import { setStaffChatState } from '@features/moderation/commands/staffchat.js';
+import { getChatChannelStatus, setStaffChatState } from '@features/moderation/commands/staffchat.js';
 import * as teamManager from '@features/team/manager.js';
 
 const teamChatActive = new Map<string, boolean>();
@@ -253,11 +253,18 @@ export function sendTeamChatMessage(player: mc.Player, message: string): boolean
 
 const teamChatCommand: CustomCommand = {
     name: 'teamchat',
-    description: 'Send a message to your team or toggle team chat mode.',
+    description: 'Toggle team chat mode or check your active chat channel.',
     category: 'Social',
     permissionNode: 'cmd.teamchat.member',
     aliases: ['tc'],
-    parameters: [{ name: 'message', type: 'text', optional: true }],
+    parameters: [
+        {
+            name: 'action',
+            type: 'string',
+            optional: true,
+            enumOptions: ['toggle', 'on', 'off', 'status']
+        }
+    ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
         if (!(executor instanceof mc.Player)) {
             return;
@@ -268,20 +275,41 @@ const teamChatCommand: CustomCommand = {
             return;
         }
 
+        const action = isNonEmptyString(args.action) ? args.action.toLowerCase() : 'toggle';
+
+        if (action === 'status' || action === 'info') {
+            executor.sendMessage(getChatChannelStatus(executor));
+            return;
+        }
+
+        if (action === 'off') {
+            setTeamChatState(executor.id, false);
+            executor.sendMessage('§aChat channel switched to: §fGeneral Chat§a.');
+            return;
+        }
+
         const team = teamManager.getTeamByPlayer(executor.id);
         if (!isDefined(team)) {
+            setTeamChatState(executor.id, false);
             executor.sendMessage('§cYou are not in a team.');
             return;
         }
 
-        const msg = args.message as string | undefined;
-        if (isNonEmptyString(msg)) {
-            sendTeamChatMessage(executor, msg);
+        let isEnabled: boolean;
+        if (action === 'on') {
+            setTeamChatState(executor.id, true);
+            setStaffChatState(executor.id, false);
+            isEnabled = true;
+        } else if (action === 'toggle') {
+            isEnabled = toggleTeamChat(executor.id);
+        } else {
+            executor.sendMessage('§cUsage: /tc [toggle|on|off|status]');
             return;
         }
 
-        const isEnabled = toggleTeamChat(executor.id);
-        executor.sendMessage(isEnabled ? '§aTeam Chat Enabled. §7(All regular chat messages will go to your team)' : '§cTeam Chat Disabled.');
+        executor.sendMessage(
+            isEnabled ? `§aChat channel switched to: §bTeam Chat (${team.name}§b)§a. §7(Talk normally in chat; use §e/tc§7 to switch to General Chat)` : '§aChat channel switched to: §fGeneral Chat§a.'
+        );
     }
 };
 

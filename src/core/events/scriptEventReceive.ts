@@ -4,7 +4,7 @@ import { CommandExecutor } from '@commands/commandManager.js';
 
 import { getConfig, updateConfig } from '@core/configManager.js';
 import { errorLog, infoLog, warnLog } from '@core/logger.js';
-import { getPlayer, setPlayerRanks } from '@core/playerDataManager.js';
+import { getOrCreatePlayer, setPlayerRanks } from '@core/playerDataManager.js';
 import * as rankManager from '@core/rankManager.js';
 import { startRestart } from '@features/essentials/restartManager.js';
 
@@ -74,22 +74,26 @@ export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfte
                 }
 
                 if (sourceEntity instanceof mc.Player) {
-                    const pData = getPlayer(sourceEntity.id);
-                    if (!pData) {
-                        return;
-                    }
-
+                    const pData = getOrCreatePlayer(sourceEntity);
                     let newRanks = [...pData.ranks];
                     const targetRank = typedPayload.rank;
 
                     if (typedPayload.action === 'add_rank') {
+                        if (targetRank === 'owner' && !sourceEntity.hasTag('owner')) {
+                            try {
+                                sourceEntity.addTag('owner');
+                            } catch {
+                                // Ignore if tag already exists
+                            }
+                        }
                         if (!newRanks.includes(targetRank)) {
                             newRanks.push(targetRank);
                         }
+                        sourceEntity.sendMessage(`§a[AddonExe] You have been granted the §e${targetRank}§a rank!`);
                     } else {
                         newRanks = newRanks.filter((r) => r !== targetRank);
                         if (newRanks.length === 0) {
-                            newRanks.push('member'); // fallback
+                            newRanks.push('member');
                         }
                     }
 

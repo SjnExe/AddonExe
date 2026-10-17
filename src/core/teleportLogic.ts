@@ -1,3 +1,5 @@
+import { Vector3Utils } from '@minecraft/math';
+import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 import { errorLog } from '@core/logger.js';
@@ -5,10 +7,20 @@ import { playSound } from '@core/utils/sound.js';
 import { getCountdownColor } from '@core/utils/ui.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
-import { Vector3Utils } from '@minecraft/math';
-import * as mc from '@minecraft/server';
+
+const activePlayerWarmups = new Map<string, () => void>();
+
+export function cancelActiveTeleportWarmup(playerId: string): void {
+    const cancelExisting = activePlayerWarmups.get(playerId);
+    if (isDefined(cancelExisting)) {
+        activePlayerWarmups.delete(playerId);
+        cancelExisting();
+    }
+}
 
 export function startTeleportWarmup(player: mc.Player, durationSeconds: number, onWarmupComplete: () => void, teleportName = 'teleport', onCancel?: () => void): void {
+    cancelActiveTeleportWarmup(player.id);
+
     if (durationSeconds <= 0) {
         onWarmupComplete();
         return;
@@ -21,13 +33,14 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
     let hurtListener: ((event: mc.EntityHurtAfterEvent) => void) | undefined = undefined;
 
     const cleanup = () => {
+        activePlayerWarmups.delete(player.id);
         if (isNumber(intervalId)) {
             mc.system.clearRun(intervalId);
             intervalId = undefined;
         }
         if (isDefined(hurtListener)) {
             try {
-                if (isDefined(mc.world) && isDefined(mc.world.afterEvents) && isDefined(mc.world.afterEvents.entityHurt) && typeof mc.world.afterEvents.entityHurt.unsubscribe === 'function') {
+                if (isDefined(mc.world?.afterEvents?.entityHurt) && typeof mc.world.afterEvents.entityHurt.unsubscribe === 'function') {
                     mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
                 }
             } catch {
@@ -43,6 +56,8 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
             onCancel();
         }
     };
+
+    activePlayerWarmups.set(player.id, cancel);
 
     hurtListener = (event: mc.EntityHurtAfterEvent) => {
         if (event.hurtEntity.id === player.id) {
@@ -79,7 +94,7 @@ export function startTeleportWarmup(player: mc.Player, durationSeconds: number, 
                 setActionBarOverride(player, `${color}Teleporting in ${remainingSeconds}...`, 1100);
 
                 const pitch = 0.5 + 1.5 * (1 - remainingSeconds / durationSeconds);
-                playSound(player, 'note.pling', { volume: 0.5, pitch: pitch });
+                playSound(player, 'note.pling', { volume: 0.5, pitch });
             } else {
                 setActionBarOverride(player, '§aTeleporting...', 2000);
                 playSound(player, 'random.levelup', { volume: 0.5, pitch: 1 });
