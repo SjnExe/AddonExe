@@ -1,24 +1,31 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/configManager.js';
 import { sendMessage } from '@core/messaging.js';
+import { canAssignRankToPlayer, resolveRankIdAlias } from '@core/permissionEngine.js';
 import { findPlayerByName } from '@core/playerCache.js';
 import { getPlayer, getPlayerIdByName, loadPlayerData, setPlayerRanks } from '@core/playerDataManager.js';
 import { getRankById, updatePlayerNameTag } from '@core/rankManager.js';
+import { rankDefinitions } from '@features/ranks/ranksConfig.js';
 import { isNonEmptyString } from '@lib/guards.js';
 
 const rankCommand: CustomCommand = {
     name: 'rank',
-    description: 'Manage player ranks.',
+    description: 'Manage player ranks (Owner can grant Admin; Admin can grant Mod & other ranks).',
     category: 'Essentials',
-    permissionNode: 'cmd.rank.admin', // Admin
+    permissionNode: 'cmd.rank.admin',
     allowConsole: true,
     parameters: [
         { name: 'action', type: 'string', enumOptions: ['set', 'remove', 'list', 'rm', 'ls'] },
         { name: 'target', type: 'string', optional: true },
-        { name: 'rank', type: 'string', optional: true }
+        {
+            name: 'rank',
+            type: 'string',
+            optional: true,
+            enumOptions: [...rankDefinitions.filter((r) => r.id !== 'owner').map((r) => r.id), 'mod']
+        }
     ],
     execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        let action = args.action as string;
+        let action = (args.action as string | undefined)?.toLowerCase() ?? 'list';
         if (action === 'rm') {
             action = 'remove';
         }
@@ -27,7 +34,7 @@ const rankCommand: CustomCommand = {
         }
 
         const targetName = args.target as string | undefined;
-        const rankId = args.rank as string | undefined;
+        const rawRankId = args.rank as string | undefined;
 
         if (action === 'list') {
             if (!isNonEmptyString(targetName)) {
@@ -48,18 +55,13 @@ const rankCommand: CustomCommand = {
                 return;
             }
 
-            let pData = getPlayer(targetId);
-            if (!pData) {
-                pData = loadPlayerData(targetId);
-            }
-
+            const pData = getPlayer(targetId) ?? loadPlayerData(targetId);
             if (!pData) {
                 sendMessage('§cCould not load player data.', executor);
                 return;
             }
 
             const ranks = pData.ranks;
-
             if (!ranks || ranks.length === 0) {
                 sendMessage(`§e${targetName} §7has no custom ranks.`, executor);
                 return;
@@ -76,14 +78,15 @@ const rankCommand: CustomCommand = {
             return;
         }
 
-        if (!isNonEmptyString(targetName) || !isNonEmptyString(rankId)) {
+        if (!isNonEmptyString(targetName) || !isNonEmptyString(rawRankId)) {
             sendMessage(`§cUsage: /rank ${action} <target> <rankId>`, executor);
             return;
         }
 
+        const rankId = resolveRankIdAlias(rawRankId);
         const rankDef = getRankById(rankId);
         if (!rankDef) {
-            sendMessage(`§cRank "${rankId}" not found. Use /listranks to see available ranks.`, executor);
+            sendMessage(`§cRank "${rawRankId}" not found. Use /listranks to see available ranks.`, executor);
             return;
         }
 
@@ -98,11 +101,13 @@ const rankCommand: CustomCommand = {
             return;
         }
 
-        let pData = getPlayer(targetId);
-        if (!pData) {
-            pData = loadPlayerData(targetId);
+        const assignCheck = canAssignRankToPlayer(executor, targetId, rankId);
+        if (!assignCheck.allowed) {
+            sendMessage(assignCheck.reason ?? '§cYou do not have permission to modify this rank.', executor);
+            return;
         }
 
+        const pData = getPlayer(targetId) ?? loadPlayerData(targetId);
         if (!pData) {
             sendMessage('§cCould not load player data.', executor);
             return;
@@ -123,16 +128,23 @@ const rankCommand: CustomCommand = {
                 targetPlayer.sendMessage(`§aYou have been granted the rank §e${rankDef.name}§a.`);
             }
         } else if (action === 'remove') {
+            if (rankDef.locked) {
+                sendMessage(`§cCannot remove core system rank '${rankDef.name}'.`, executor);
+                return;
+            }
             if (!currentRanks.includes(rankId)) {
                 sendMessage(`§e${targetName} §7does not have the rank §a${rankDef.name}§7.`, executor);
                 return;
             }
             currentRanks = currentRanks.filter((r) => r !== rankId);
+            if (currentRanks.length === 0) {
+                currentRanks.push('member');
+            }
             setPlayerRanks(targetId, currentRanks);
             sendMessage(`§aSuccessfully removed rank §e${rankDef.name} §afrom §e${targetName}§a.`, executor);
             if (targetPlayer) {
                 updatePlayerNameTag(targetPlayer, getConfig());
-                targetPlayer.sendMessage(`§cYour rank §e${rankDef.name} §chas been removed.`);
+                targetPlayer.sendMessage(`§cYour rank §e${rankDef.name}§c has been removed.`);
             }
         }
     }

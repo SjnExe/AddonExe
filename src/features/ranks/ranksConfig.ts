@@ -34,9 +34,12 @@ export const defaultChatFormatting: Required<ChatFormatting> = {
 
 export const permissionGroups: Record<string, string[]> = {
     default: ['**.member'],
-    mod: ['**.mod'],
-    admin: ['**.admin'],
-    owner: ['**.owner']
+    vip: ['**.vip'],
+    builder: ['**.builder', 'cmd.gmc.builder', 'cmd.gms.builder', 'cmd.gamemode.builder', 'bypass.spawnprotection'],
+    helper: ['**.helper', 'cmd.kick.mod', 'cmd.mute.mod', 'cmd.unmute.mod', 'cmd.warn.mod', 'cmd.freeze.mod', 'cmd.unfreeze.mod', 'cmd.staffchat.mod', 'cmd.watch.mod', 'cmd.listwatched.mod'],
+    mod: ['**.mod', '**.helper'],
+    admin: ['**.admin', '**.mod', '**.helper', '**.builder', '**.vip'],
+    owner: ['**.owner', '*']
 };
 
 export const rankDefinitions: RankDefinition[] = [
@@ -52,8 +55,8 @@ export const rankDefinitions: RankDefinition[] = [
         },
         nametagPrefix: '§4Owner',
         conditions: [{ type: 'hasTag', value: 'owner' }],
-        groups: ['default', 'mod', 'admin', 'owner'],
-        allow: ['*'], // Engine will handle this specifically if needed, but 'owner' bypassing is hardcoded in engine
+        groups: ['default', 'vip', 'builder', 'helper', 'mod', 'admin', 'owner'],
+        allow: ['*'],
         deny: []
     },
     {
@@ -67,7 +70,7 @@ export const rankDefinitions: RankDefinition[] = [
         },
         nametagPrefix: '§cAdmin',
         conditions: [{ type: 'hasTag', value: 'admin' }],
-        groups: ['default', 'mod', 'admin'],
+        groups: ['default', 'vip', 'builder', 'helper', 'mod', 'admin'],
         allow: [],
         deny: []
     },
@@ -82,7 +85,7 @@ export const rankDefinitions: RankDefinition[] = [
         },
         nametagPrefix: '§2Mod',
         conditions: [{ type: 'hasTag', value: 'moderator' }],
-        groups: ['default', 'mod'],
+        groups: ['default', 'helper', 'mod'],
         allow: [],
         deny: []
     },
@@ -97,41 +100,40 @@ export const rankDefinitions: RankDefinition[] = [
         },
         nametagPrefix: '§eHelper',
         conditions: [{ type: 'hasTag', value: 'helper' }],
-        groups: ['default'],
-        allow: ['cmd.kick.mod', 'cmd.mute.mod'], // Specific permissions just for example
+        groups: ['default', 'helper'],
+        allow: ['cmd.kick.mod', 'cmd.mute.mod', 'cmd.unmute.mod', 'cmd.warn.mod', 'cmd.staffchat.mod'],
         deny: []
     },
     {
-        id: 'donator',
-        name: 'Donator',
-        priority: 850,
+        id: 'builder',
+        name: 'Builder',
+        priority: 60,
         chatFormatting: {
-            prefixText: '§dDonator',
+            prefixText: '§3Builder',
+            nameColor: '§3',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§3Builder',
+        conditions: [{ type: 'hasTag', value: 'builder' }],
+        groups: ['default', 'builder'],
+        allow: ['cmd.gmc.builder', 'cmd.gms.builder', 'cmd.gamemode.builder', 'bypass.spawnprotection'],
+        deny: []
+    },
+    {
+        id: 'media',
+        name: 'Media',
+        priority: 650,
+        chatFormatting: {
+            prefixText: '§5Media',
             nameColor: '§d',
             messageColor: '§f'
         },
-        nametagPrefix: '§dDonator',
-        conditions: [{ type: 'hasTag', value: 'donator' }],
-        groups: ['default'],
+        nametagPrefix: '§5Media',
+        conditions: [{ type: 'hasTag', value: 'media' }],
+        groups: ['default', 'vip'],
         allow: [],
         deny: [],
-        shopMultiplier: { buy: 0.9, sell: 1.1 } // 10% discount on buy, 10% bonus on sell
-    },
-    {
-        id: 'vip',
-        name: 'VIP',
-        priority: 800,
-        chatFormatting: {
-            prefixText: '§6VIP',
-            nameColor: '§6',
-            messageColor: '§f'
-        },
-        nametagPrefix: '§6VIP',
-        conditions: [{ type: 'hasTag', value: 'vip' }],
-        groups: ['default'],
-        allow: [],
-        deny: [],
-        shopMultiplier: { buy: 0.8, sell: 1.2 } // 20% discount on buy, 20% bonus on sell
+        shopMultiplier: { buy: 0.85, sell: 1.15 }
     },
     {
         id: 'verified',
@@ -147,6 +149,54 @@ export const rankDefinitions: RankDefinition[] = [
         groups: ['default'],
         allow: [],
         deny: []
+    },
+    {
+        id: 'mvp',
+        name: 'MVP',
+        priority: 750,
+        chatFormatting: {
+            prefixText: '§bMVP',
+            nameColor: '§b',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§bMVP',
+        conditions: [{ type: 'hasTag', value: 'mvp' }],
+        groups: ['default', 'vip'],
+        allow: [],
+        deny: [],
+        shopMultiplier: { buy: 0.75, sell: 1.25 }
+    },
+    {
+        id: 'vip',
+        name: 'VIP',
+        priority: 800,
+        chatFormatting: {
+            prefixText: '§6VIP',
+            nameColor: '§6',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§6VIP',
+        conditions: [{ type: 'hasTag', value: 'vip' }],
+        groups: ['default', 'vip'],
+        allow: [],
+        deny: [],
+        shopMultiplier: { buy: 0.8, sell: 1.2 }
+    },
+    {
+        id: 'donator',
+        name: 'Donator',
+        priority: 850,
+        chatFormatting: {
+            prefixText: '§dDonator',
+            nameColor: '§d',
+            messageColor: '§f'
+        },
+        nametagPrefix: '§dDonator',
+        conditions: [{ type: 'hasTag', value: 'donator' }],
+        groups: ['default', 'vip'],
+        allow: [],
+        deny: [],
+        shopMultiplier: { buy: 0.9, sell: 1.1 }
     },
     {
         id: 'member',

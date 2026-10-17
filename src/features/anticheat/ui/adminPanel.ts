@@ -21,8 +21,9 @@ export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<voi
         .button(`Movement Check Violations (${config.movementCheck.violations.length})`, 'textures/items/diamond_sword', async () => {
             await showViolationsListPanel(player, 'movementCheck');
         })
-        .button('World Border Center Location', 'textures/blocks/beacon', async () => {
-            await showWorldBorderCenterModal(player);
+        .button('World Border Manager (Overworld/Nether & End)', 'textures/blocks/beacon', async () => {
+            const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
+            await showWorldBorderAdminPanel(player);
         });
 
     form.addBackButton(async () => {
@@ -110,53 +111,4 @@ async function showEditViolationModal(player: mc.Player, checkKey: 'itemCheck' |
     saveAnticheatConfig(config);
     player.sendMessage('§aSaved violation threshold.');
     await showViolationsListPanel(player, checkKey);
-}
-
-async function showWorldBorderCenterModal(player: mc.Player): Promise<void> {
-    const config = getAnticheatConfig();
-    const curX = config.worldBorder.center ? String(config.worldBorder.center.x) : '';
-    const curZ = config.worldBorder.center ? String(config.worldBorder.center.z) : '';
-
-    const modal = new CustomFormBuilder<{
-        useCurrentPos: boolean;
-        clearCenter: boolean;
-        x: string;
-        z: string;
-    }>('World Border Center')
-        .toggle('useCurrentPos', 'Use My Current X/Z Position', false)
-        .toggle('clearCenter', 'Use Default World Spawn (Clear Custom Center)', !config.worldBorder.center)
-        .textField('x', 'Custom Center X', '0', curX)
-        .textField('z', 'Custom Center Z', '0', curZ)
-        .submitButton('Save Center');
-
-    const res = await modal.show(player);
-    if (!res) {
-        await showAnticheatAdvancedPanel(player);
-        return;
-    }
-
-    if (res.useCurrentPos) {
-        config.worldBorder.center = {
-            x: Math.floor(player.location.x),
-            z: Math.floor(player.location.z)
-        };
-        saveAnticheatConfig(config);
-        player.sendMessage(`§aSet World Border center to X: ${config.worldBorder.center.x}, Z: ${config.worldBorder.center.z}.`);
-    } else if (res.clearCenter) {
-        config.worldBorder.center = undefined;
-        saveAnticheatConfig(config);
-        player.sendMessage('§aWorld Border center reset to World Spawn.');
-    } else {
-        const px = Number.parseFloat(res.x);
-        const pz = Number.parseFloat(res.z);
-        if (!Number.isNaN(px) && !Number.isNaN(pz)) {
-            config.worldBorder.center = { x: px, z: pz };
-            saveAnticheatConfig(config);
-            player.sendMessage(`§aSet World Border center to X: ${px}, Z: ${pz}.`);
-        } else {
-            player.sendMessage('§cInvalid X/Z coordinates.');
-        }
-    }
-
-    await showAnticheatAdvancedPanel(player);
 }

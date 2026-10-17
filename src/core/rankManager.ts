@@ -190,8 +190,9 @@ export function getAllRanks(): RankDefinition[] {
  * @param config The addon's configuration object.
  */
 export function updatePlayerNameTag(player: mc.Player, config: typeof Config = getConfig()) {
-    // Invalidate cache to force fresh calculation when explicitly updating nametags
+    // Invalidate caches to force fresh calculation when explicitly updating nametags
     rankCache.delete(player.id);
+    permissionEngine.invalidatePlayerPermissionCache(player.id);
 
     const rank = getPlayerRank(player, config);
     const rankPrefix = (isDefined(rank.chatFormatting) ? rank.chatFormatting.prefixText : undefined) ?? rank.nametagPrefix ?? '';

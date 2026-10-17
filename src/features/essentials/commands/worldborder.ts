@@ -1,99 +1,121 @@
+import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getWorldBorder, setWorldBorder } from '@features/essentials/worldBorderManager.js';
-import * as mc from '@minecraft/server';
+import { getNetherBorderRadius, getWorldBorder, setEndBorder, setOverworldBorder } from '@features/essentials/worldBorderManager.js';
+import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+
+function formatBorderStatus(): string {
+    const cfg = getWorldBorder();
+    const netherRadius = getNetherBorderRadius(cfg.overworldRadius, cfg.netherMultiplier);
+    const netherCenterX = Math.floor(cfg.overworldCenterX / Math.max(1, cfg.netherMultiplier));
+    const netherCenterZ = Math.floor(cfg.overworldCenterZ / Math.max(1, cfg.netherMultiplier));
+
+    return [
+        '§2--- World Border Status ---',
+        `§e1. Overworld + Nether Border (1:${cfg.netherMultiplier} Linked): ${cfg.overworldEnabled ? '§aON' : '§cOFF'}`,
+        `   §7Overworld Radius: §b±${cfg.overworldRadius} §7(Center: §f${cfg.overworldCenterX}, ${cfg.overworldCenterZ}§7)`,
+        `   §7Nether Radius (1/${cfg.netherMultiplier}): §d±${netherRadius} §7(Center: §f${netherCenterX}, ${netherCenterZ}§7)`,
+        `§e2. The End Border: ${cfg.endEnabled ? '§aON' : '§cOFF'}`,
+        `   §7End Radius: §b±${cfg.endRadius} §7(Center: §f${cfg.endCenterX}, ${cfg.endCenterZ}§7)`,
+        `§7Admin Bypass: ${cfg.adminBypass ? '§aEnabled' : '§cDisabled'} §8| §7Safe Buffer: §f${cfg.knockbackBuffer} blocks`
+    ].join('\n');
+}
 
 const worldborderCommand: CustomCommand = {
     name: 'worldborder',
     aliases: ['wb'],
-    description: 'Manage the world border.',
+    description: 'Manage the Overworld+Nether (8:1) and End world borders.',
     category: 'Essentials',
     permissionNode: 'cmd.worldborder.admin',
     allowConsole: true,
     parameters: [
-        { name: 'action', type: 'string', enumOptions: ['on', 'off', 'set', 'info'] },
-        { name: 'radius', type: 'float', optional: true },
+        {
+            name: 'action',
+            type: 'string',
+            optional: true,
+            enumOptions: ['ui', 'info', 'overworld', 'end', 'on', 'off', 'set']
+        },
+        { name: 'radiusOrState', type: 'string', optional: true },
         { name: 'x', type: 'float', optional: true },
         { name: 'z', type: 'float', optional: true }
     ],
-    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        const action = args.action as string;
+    execute: async (executor: CommandExecutor, args: Record<string, unknown>) => {
+        const rawAction = isNonEmptyString(args.action) ? args.action.toLowerCase() : executor instanceof mc.Player ? 'ui' : 'info';
+        const secondArg = isDefined(args.radiusOrState) ? String(args.radiusOrState).trim().toLowerCase() : undefined;
+        const xArg = args.x as number | undefined;
+        const zArg = args.z as number | undefined;
 
-        if (action === 'info') {
-            const config = getWorldBorder();
-            const msg = `§2World Border Info:\n§7Status: ${config.enabled ? '§aON' : '§cOFF'}\n§7Center: §b${config.centerX}, ${config.centerZ}\n§7Radius: §b${config.radius}\n§7Dimension: §b${config.dimension}`;
-            if (executor instanceof mc.Player) {
-                executor.sendMessage(msg);
+        if (rawAction === 'ui' || rawAction === 'menu') {
+            if (!(executor instanceof mc.Player)) {
+                executor.sendMessage(formatBorderStatus());
+                return;
+            }
+            const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
+            await showWorldBorderAdminPanel(executor);
+            return;
+        }
+
+        if (rawAction === 'info' || rawAction === 'status') {
+            executor.sendMessage(formatBorderStatus());
+            return;
+        }
+
+        const isEndTarget =
+            rawAction === 'end' ||
+            ((rawAction === 'on' || rawAction === 'off' || rawAction === 'set') && executor instanceof mc.Player && executor.dimension.id === (MinecraftDimensionTypes.TheEnd as string));
+
+        if (rawAction === 'on' || rawAction === 'off') {
+            const enable = rawAction === 'on';
+            if (isEndTarget) {
+                setEndBorder(enable);
+                executor.sendMessage(`§aThe End world border has been ${enable ? '§2enabled' : '§cdisabled'}§a.`);
             } else {
-                executor.sendMessage(msg);
+                const updated = setOverworldBorder(enable);
+                const netherRad = getNetherBorderRadius(updated.overworldRadius, updated.netherMultiplier);
+                executor.sendMessage(`§aOverworld + Nether world border has been ${enable ? '§2enabled' : '§cdisabled'}§a (Overworld: ±${updated.overworldRadius}, Nether: ±${netherRad}).`);
             }
             return;
         }
 
-        if (action === 'on') {
-            setWorldBorder(true);
-            const msg = '§aWorld border has been enabled.';
-            if (executor instanceof mc.Player) {
-                executor.sendMessage(msg);
-            } else {
-                executor.sendMessage(msg);
-            }
-            return;
-        }
-
-        if (action === 'off') {
-            setWorldBorder(false);
-            const msg = '§cWorld border has been disabled.';
-            if (executor instanceof mc.Player) {
-                executor.sendMessage(msg);
-            } else {
-                executor.sendMessage(msg);
-            }
-            return;
-        }
-
-        if (action === 'set') {
-            const radius = args.radius as number | undefined;
-            if (radius === undefined) {
-                const msg = '§cYou must provide a radius to set the border.';
-                if (executor instanceof mc.Player) {
-                    executor.sendMessage(msg);
+        if (rawAction === 'set' || rawAction === 'overworld' || rawAction === 'ow' || rawAction === 'end') {
+            if (secondArg === 'on' || secondArg === 'off') {
+                const enable = secondArg === 'on';
+                if (isEndTarget) {
+                    setEndBorder(enable);
+                    executor.sendMessage(`§aThe End world border has been ${enable ? '§2enabled' : '§cdisabled'}§a.`);
                 } else {
-                    executor.sendMessage(msg);
+                    const updated = setOverworldBorder(enable);
+                    const netherRad = getNetherBorderRadius(updated.overworldRadius, updated.netherMultiplier);
+                    executor.sendMessage(`§aOverworld + Nether world border has been ${enable ? '§2enabled' : '§cdisabled'}§a (Overworld: ±${updated.overworldRadius}, Nether: ±${netherRad}).`);
                 }
                 return;
             }
 
-            let x = args.x as number | undefined;
-            let z = args.z as number | undefined;
-            let dim = MinecraftDimensionTypes.Overworld as string;
-
-            if (executor instanceof mc.Player) {
-                if (x === undefined) {
-                    x = executor.location.x;
-                }
-                if (z === undefined) {
-                    z = executor.location.z;
-                }
-                dim = executor.dimension.id;
-            } else {
-                if (x === undefined) {
-                    x = 0;
-                }
-                if (z === undefined) {
-                    z = 0;
-                }
+            const parsedRadius = isNonEmptyString(secondArg) ? Number.parseFloat(secondArg) : Number.NaN;
+            if (Number.isNaN(parsedRadius) || parsedRadius < 16) {
+                executor.sendMessage('§cUsage: /wb <overworld|end> <on|off|radius> [centerX] [centerZ]');
+                return;
             }
 
-            setWorldBorder(true, x, z, radius, dim);
-            const msg = `§aWorld border set to radius ${radius} at center ${x}, ${z} in ${dim}.`;
-            if (executor instanceof mc.Player) {
-                executor.sendMessage(msg);
+            const cfg = getWorldBorder();
+            const centerX = isNumber(xArg) ? xArg : isEndTarget ? cfg.endCenterX : cfg.overworldCenterX;
+            const centerZ = isNumber(zArg) ? zArg : isEndTarget ? cfg.endCenterZ : cfg.overworldCenterZ;
+
+            if (isEndTarget) {
+                const updated = setEndBorder(true, parsedRadius, centerX, centerZ);
+                executor.sendMessage(`§aThe End border enabled: radius §e±${updated.endRadius}§a at center (§f${updated.endCenterX}, ${updated.endCenterZ}§a).`);
             } else {
-                executor.sendMessage(msg);
+                const updated = setOverworldBorder(true, parsedRadius, centerX, centerZ);
+                const netherRad = getNetherBorderRadius(updated.overworldRadius, updated.netherMultiplier);
+                executor.sendMessage(
+                    `§aOverworld + Nether border enabled: Overworld §e±${updated.overworldRadius}§a / Nether §d±${netherRad}§a (1:${updated.netherMultiplier}) at center (§f${updated.overworldCenterX}, ${updated.overworldCenterZ}§a).`
+                );
             }
+            return;
         }
+
+        executor.sendMessage('§cUsage: /wb [ui|info|overworld|end|on|off|set] [radius|on|off] [centerX] [centerZ]');
     }
 };
 

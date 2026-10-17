@@ -60,9 +60,6 @@ function* checkPlayersGenerator(config: AnticheatConfig) {
                     if (config.movementCheck.enabled === true) {
                         checkMovement(player, config.movementCheck);
                     }
-                    if (config.worldBorder.enabled === true) {
-                        checkWorldBorder(player, config.worldBorder);
-                    }
                     if (config.antiNetherRoof.enabled === true) {
                         checkNetherRoof(player, config.antiNetherRoof);
                     }
@@ -172,78 +169,6 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         flagManager.flag(player, 'movementCheck', `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`);
         // Clamp VL to prevent infinite buildup
         state.violationLevel = Math.min(state.violationLevel, 50);
-    }
-}
-
-function checkWorldBorder(
-    player: mc.Player,
-    config: {
-        enabled: boolean;
-        overworldRadius: number;
-        endRadius: number;
-        netherRadiusRatio: number;
-        center: { x: number; z: number } | undefined;
-        knockbackAmount: number;
-    }
-) {
-    if (!player.dimension || !player.location) {
-        return;
-    }
-    if (typeof player.getGameMode === 'function' && player.getGameMode() === mc.GameMode.Spectator) {
-        return;
-    }
-
-    const dimensionId = player.dimension.id;
-    let radius = config.overworldRadius;
-    let center = config.center;
-
-    if (!isDefined(center)) {
-        // Default to world spawn if not configured
-        const spawn = mc.world.getDefaultSpawnLocation();
-        center = { x: spawn.x, z: spawn.z };
-    }
-
-    if (dimensionId === (MinecraftDimensionTypes.Nether as string)) {
-        radius = Math.floor(config.overworldRadius / config.netherRadiusRatio);
-    } else if (dimensionId === (MinecraftDimensionTypes.TheEnd as string)) {
-        radius = config.endRadius;
-        // End usually centers on 0,0 regardless of overworld spawn
-        center = { x: 0, z: 0 };
-    }
-
-    const dx = Math.abs(player.location.x - center.x);
-    const dz = Math.abs(player.location.z - center.z);
-
-    if (dx > radius || dz > radius) {
-        // Player is outside border
-        // Calculate pushback direction (towards center)
-        // Simple teleport to the clamped position
-        const clampedX = Math.max(center.x - radius, Math.min(center.x + radius, player.location.x));
-        const clampedZ = Math.max(center.z - radius, Math.min(center.z + radius, player.location.z));
-
-        // Push them back slightly inside
-        // Determine vector from center to player
-        const vecX = player.location.x - center.x;
-        const vecZ = player.location.z - center.z;
-
-        // Normalize and invert
-        const len = Vector3Utils.distance({ x: 0, y: 0, z: 0 }, { x: vecX, y: 0, z: vecZ });
-        const pushX = len > 0 ? (vecX / len) * -config.knockbackAmount : 0;
-        const pushZ = len > 0 ? (vecZ / len) * -config.knockbackAmount : 0;
-
-        try {
-            player.teleport(
-                {
-                    x: clampedX + pushX,
-                    y: player.location.y,
-                    z: clampedZ + pushZ
-                },
-                { dimension: player.dimension }
-            );
-            player.sendMessage(`§cYou have reached the world border!`);
-        } catch {
-            // Teleport might fail if stuck
-        }
     }
 }
 

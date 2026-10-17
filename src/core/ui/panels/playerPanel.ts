@@ -109,10 +109,12 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
                 }
             });
         }
-        form.button('Manage Ranks', 'textures/ui/permissions_op_crown', async () => {
-            const { showRankManagementPanel } = await import('@features/ranks/ui/panel.js');
-            await showRankManagementPanel(player, targetPlayerId);
-        });
+        if (hasPermission(player, 'ui.panel.admin') || hasPermission(player, 'cmd.rank.admin')) {
+            form.button('Manage Ranks', 'textures/ui/permissions_op_crown', async () => {
+                const { showRankManagementPanel } = await import('@features/ranks/ui/panel.js');
+                await showRankManagementPanel(player, targetPlayerId);
+            });
+        }
         form.button('Manage Stats', 'textures/ui/Scaffolding', async () => {
             const { showStatsPanel } = await import('@core/ui/panels/statsPanel.js');
             await showStatsPanel(player, targetPlayerId);

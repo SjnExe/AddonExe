@@ -109,6 +109,17 @@ export function getSystemRegistry(): SystemDefinition[] {
             isSimpleConfig: false
         },
         {
+            id: 'world_border_manager',
+            title: 'World Border Manager',
+            icon: 'textures/blocks/beacon',
+            showFunction: async (player) => {
+                const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
+                await showWorldBorderAdminPanel(player);
+            },
+            category: 'Teleportation & World',
+            isSimpleConfig: false
+        },
+        {
             id: 'warps_manager',
             title: 'Warps Manager',
             icon: 'textures/blocks/portal',

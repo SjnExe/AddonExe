@@ -3,12 +3,12 @@ import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { getConfig, updateMultipleConfig } from '@core/configManager.js';
-import { setCooldown } from '@core/cooldownManager.js';
+import { getCooldown, setCooldown } from '@core/cooldownManager.js';
 import { errorLog } from '@core/logger.js';
 import { sendMessage } from '@core/messaging.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/teleportLogic.js';
-import { playSound } from '@core/utils.js';
+import { formatCooldown, playSound } from '@core/utils.js';
 
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 
@@ -47,6 +47,12 @@ const spawnCommand: CustomCommand = {
                 sendMessage('§eAs an admin, you can set it by running §a/setspawn§e at the desired location.', executor, { raw: true });
             }
             playSound(executor, 'note.bass');
+            return;
+        }
+
+        const remainingCd = getCooldown(executor.id, 'spawn');
+        if (remainingCd > 0) {
+            sendMessage(`§cYou must wait ${formatCooldown(remainingCd)} before using /spawn again.`, executor);
             return;
         }
 
