@@ -2,9 +2,9 @@ import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
 
-import { debugLog, errorLog } from '@core/logger.js';
-import { isDeepEqual } from '@core/objectUtils.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
+import { debugLog, errorLog } from '@core/utils/logger.js';
+import { isDeepEqual } from '@core/utils/objectUtils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 interface SidebarService {

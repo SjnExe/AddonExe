@@ -1,11 +1,11 @@
-import { getSidebarConfig, saveSidebarConfig } from '@core/configurations.js';
-import { getSidebarLayout, getSidebarVisible, setSidebarLayout, setSidebarVisible } from '@core/playerDataManager.js';
+import { getSidebarConfig, saveSidebarConfig } from '@core/config/configurations.js';
+import { getSidebarLayout, getSidebarVisible, setSidebarLayout, setSidebarVisible } from '@core/data/playerDataManager.js';
+import type { SidebarLayoutMode } from '@features/sidebar/config.js';
 import { applySidebarPreset, forceUpdate, sidebarPresets } from '@features/sidebar/manager.js';
-import type { SidebarLayoutMode } from '@features/sidebar/sidebarConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 const layoutLabels: Record<SidebarLayoutMode, string> = {
     right: 'Top-Right Sidebar Card (Recommended)',

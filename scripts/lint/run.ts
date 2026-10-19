@@ -19,7 +19,7 @@ async function runTask(name: string, command: () => Promise<unknown>): Promise<T
         status = '❌ Failed';
         const stdout = err?.stdout ? err.stdout.toString() : '';
         const stderr = err?.stderr ? err.stderr.toString() : '';
-        errorDetail = stderr || stdout || String(err);
+        errorDetail = [stdout.trim(), stderr.trim()].filter(Boolean).join('\n') || String(err);
     }
     const duration = (performance.now() - start).toFixed(2);
     if (errorDetail) {

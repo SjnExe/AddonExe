@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
-import { getConfig } from '@core/configManager.js';
-import { getPlayer, incrementPlayerBalance } from '@core/playerDataManager.js';
-import { showPanel } from '@core/uiManager.js';
-import { formatCurrency, parseCurrency } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getPlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
+import { formatCurrency, parseCurrency } from '@core/utils/index.js';
 import * as bountyManager from '@features/economy/bountyManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';

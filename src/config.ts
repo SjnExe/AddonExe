@@ -2,7 +2,6 @@ import { MinecraftDimensionTypes, MinecraftItemTypes } from '@minecraft/vanilla-
 
 export const config = {
     // --- System & Core Settings ---
-    version: [1, 0, 0], // This will be replaced by the release workflow
     serverName: '§cServerExe§r',
     defaultGamemode: 'survival',
     logLevel: 2, // 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG
@@ -208,6 +207,14 @@ export const config = {
         baltopLimit: 10,
         paymentConfirmationThreshold: 10_000, // Payments over this amount require confirmation
         paymentConfirmationTimeout: 60 // Seconds to confirm a payment
+    },
+    combat: {
+        enabled: true,
+        tagDurationSeconds: 15,
+        blockTeleportInCombat: true,
+        combatLogPenalty: true,
+        reconnectGraceSeconds: 30,
+        killOnRejoin: false
     },
     bounties: {
         enabled: false,

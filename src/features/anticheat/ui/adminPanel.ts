@@ -1,16 +1,15 @@
-import { getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/configLoader.js';
+import { getAnticheatConfig, saveAnticheatConfig } from '@core/config/configurations.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<void> {
     const config = getAnticheatConfig();
-    const centerStr = config.worldBorder.center ? `X: ${config.worldBorder.center.x}, Z: ${config.worldBorder.center.z}` : 'World Spawn (Default)';
 
     const form = new ActionFormBuilder()
         .title('Anti-Cheat & Border Rules')
-        .body(`World Border Center: §e${centerStr}`)
+        .body('Configure violation thresholds and world border settings:')
         .button('General Anti-Cheat Settings', 'textures/ui/icon_setting', async () => {
             const { showConfigSystemPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigSystemPanel(player, 'anticheat');

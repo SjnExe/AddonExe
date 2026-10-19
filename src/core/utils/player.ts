@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
+import { findPlayerByName, getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { getPlayer } from '@core/data/playerDataManager.js';
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { findPlayerByName, getAllPlayersFromCache } from '@core/playerCache.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isDefined } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 

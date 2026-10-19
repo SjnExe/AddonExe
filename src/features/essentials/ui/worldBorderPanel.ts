@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { getNetherBorderRadius, getWorldBorder, setEndBorder, setOverworldBorder, updateWorldBorderConfig } from '@features/essentials/worldBorderManager.js';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void> {
     const cfg = getWorldBorder();

@@ -1,10 +1,11 @@
+import { handleCombatPlayerLeave } from '@features/essentials/combatManager.js';
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { debugLog } from '@core/logger.js';
-import * as playerCache from '@core/playerCache.js';
-import * as playerDataManager from '@core/playerDataManager.js';
-import { formatString } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import * as playerCache from '@core/data/playerCache.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import { formatString } from '@core/utils/index.js';
+import { debugLog } from '@core/utils/logger.js';
 
 export const eventName = 'playerLeave';
 
@@ -18,6 +19,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
         mc.world.sendMessage(msg);
     }
 
+    handleCombatPlayerLeave(event.playerId, event.playerName);
     playerDataManager.handlePlayerLeave(event.playerId);
     playerCache.removePlayerFromCache(event.playerId);
     debugLog(`[AddonExe] Player ${event.playerName} left.`);

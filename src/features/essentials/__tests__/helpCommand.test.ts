@@ -1,5 +1,5 @@
 import { commandManager, CustomCommand } from '@commands/commandManager.js';
-import { initializeConfigManager } from '@core/configManager.js';
+import { initializeConfigManager } from '@core/config/configManager.js';
 import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it } from 'bun:test';
 import helpCommand, { clearCategorizedCache } from '../commands/help.js';

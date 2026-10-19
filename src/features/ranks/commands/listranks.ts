@@ -1,5 +1,5 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getAllRanks } from '@core/rankManager.js';
+import { getAllRanks } from '@core/permissions/rankManager.js';
 import { isDefined } from '@lib/guards.js';
 
 const listranksCommand: CustomCommand = {

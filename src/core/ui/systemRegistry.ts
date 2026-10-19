@@ -57,7 +57,7 @@ export function getSystemRegistry(): SystemDefinition[] {
             title: 'Shop System',
             icon: 'textures/items/emerald',
             showFunction: async (player) => {
-                const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
+                const { showShopManagementPanel } = await import('@features/economy/shop/ui/adminPanel.js');
                 await showShopManagementPanel(player);
             },
             category: 'Economy',
@@ -69,7 +69,7 @@ export function getSystemRegistry(): SystemDefinition[] {
             title: 'Kit System',
             icon: 'textures/ui/inventory_icon',
             showFunction: async (player) => {
-                const { showKitManagementPanel } = await import('@features/kit/ui/panel.js');
+                const { showKitManagementPanel } = await import('@features/economy/kit/ui/panel.js');
                 await showKitManagementPanel(player);
             },
             category: 'Economy',
@@ -91,7 +91,7 @@ export function getSystemRegistry(): SystemDefinition[] {
             title: 'X-Ray Ores',
             icon: 'textures/blocks/diamond_ore',
             showFunction: async (player) => {
-                const { showXrayOresPanel } = await import('@features/moderation/ui/xrayPanel.js');
+                const { showXrayOresPanel } = await import('@features/anticheat/ui/xrayPanel.js');
                 await showXrayOresPanel(player);
             },
             category: 'Moderation & Rules',
@@ -146,7 +146,7 @@ export function getSystemRegistry(): SystemDefinition[] {
             title: 'Daily Rewards Tier Editor',
             icon: 'textures/ui/gift_square',
             showFunction: async (player) => {
-                const { showDailyRewardsAdminPanel } = await import('@features/daily/ui/adminPanel.js');
+                const { showDailyRewardsAdminPanel } = await import('@features/economy/daily/ui/adminPanel.js');
                 await showDailyRewardsAdminPanel(player);
             },
             category: 'Economy',

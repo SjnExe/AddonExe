@@ -1,4 +1,4 @@
-import { debugLog, errorLog, infoLog, warnLog } from '@core/logger.js';
+import { debugLog, errorLog, infoLog, warnLog } from '@core/utils/logger.js';
 
 export type TestFunction = () => void | Promise<void>;
 

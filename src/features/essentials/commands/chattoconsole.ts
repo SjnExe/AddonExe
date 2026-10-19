@@ -1,5 +1,5 @@
-import { getConfig, updateConfig } from '@core/configManager.js';
-import { sendMessage } from '@core/messaging.js';
+import { getConfig, updateConfig } from '@core/config/configManager.js';
+import { sendMessage } from '@core/utils/messaging.js';
 
 import { CustomCommand } from '@commands/commandManager.js';
 

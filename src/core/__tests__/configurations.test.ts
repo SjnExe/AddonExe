@@ -7,8 +7,7 @@ const mockConfigManagerInstance = {
     reset: mock()
 };
 
-import * as configLoader from '@core/configLoader.js';
-import * as factoryModule from '@core/configManagerFactory.js';
+import * as factoryModule from '@core/config/configManagerFactory.js';
 
 import {
     _clearConfigManagersForTest,
@@ -28,17 +27,15 @@ import {
     saveGamesConfig,
     saveShopConfig,
     saveWorldProtectionConfig
-} from '@core/configurations.js';
+} from '@core/config/configurations.js';
 
-import createConfigManager from '@core/configManagerFactory.js';
+import createConfigManager from '@core/config/configManagerFactory.js';
 
 describe('Configurations Manager', () => {
     let factorySpy: any;
-    let loadConfigSpy: any;
 
     beforeEach(() => {
         factorySpy = spyOn(factoryModule, 'default').mockReturnValue(mockConfigManagerInstance as any);
-        loadConfigSpy = spyOn(configLoader, 'loadConfig').mockImplementation(() => Promise.resolve({} as any));
         _clearConfigManagersForTest();
         mockConfigManagerInstance.load.mockReset();
         mockConfigManagerInstance.get.mockReset();
@@ -48,7 +45,6 @@ describe('Configurations Manager', () => {
 
     afterEach(() => {
         factorySpy?.mockRestore();
-        loadConfigSpy?.mockRestore();
     });
 
     describe('World Protection Config', () => {

@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { vanishedTag } from '@core/constants.js';
-import { sendMessage } from '@core/messaging.js';
-import { updatePlayerData } from '@core/playerDataManager.js';
-import { formatString } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import { updatePlayerData } from '@core/data/playerDataManager.js';
+import { vanishedTag } from '@core/utils/constants.js';
+import { formatString } from '@core/utils/index.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined } from '@lib/guards.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';

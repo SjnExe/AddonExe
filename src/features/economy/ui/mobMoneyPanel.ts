@@ -1,10 +1,10 @@
-import { getEconomyConfig, saveEconomyConfig } from '@core/configurations.js';
-import { formatCurrency } from '@core/utils.js';
+import { getEconomyConfig, saveEconomyConfig } from '@core/config/configurations.js';
+import { formatCurrency } from '@core/utils/index.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showMobMoneyPanel(player: mc.Player, page: number = 1, searchQuery?: string): Promise<void> {
     const config = getEconomyConfig();

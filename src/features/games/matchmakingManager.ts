@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { getGamesConfig } from '@core/configurations.js';
-import { isFeatureActive } from '@core/featureManager.js';
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
-import { formatCurrency, playSound } from '@core/utils.js';
-import { isFriend } from '@features/social/friendManager.js';
+import { getGamesConfig } from '@core/config/configurations.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
+import { formatCurrency, playSound } from '@core/utils/index.js';
+import { isFriend } from '@features/social/friends/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export interface MultiplayerGameDefinition {
@@ -39,6 +39,7 @@ const registeredGames = new Map<string, MultiplayerGameDefinition>();
 const outgoingInvites = new Map<string, GameInvitation>();
 const incomingInvites = new Map<string, GameInvitation[]>();
 const activePlayerMatches = new Map<string, ActiveMatchSession>();
+const matchmakingQueues = new Map<string, string[]>();
 
 let initialized = false;
 
@@ -78,6 +79,7 @@ export function initializeMatchmaking(): void {
             }
         }
 
+        leaveMatchmakingQueue(playerId);
         const activeSession = activePlayerMatches.get(playerId);
         if (isDefined(activeSession)) {
             activeSession.onPlayerDisconnect(playerId);
@@ -334,7 +336,119 @@ export function setGameInvitesStopped(player: mc.Player, stopped: boolean, targe
     return stopped ? '§cIncoming game invitations are now STOPPED.' : '§aIncoming game invitations are now ALLOWED.';
 }
 
+/**
+ * Shared wager escrow utility for solo, 1v1, and staff-hosted games.
+ */
+export function escrowGameWager(player: mc.Player, amount: number): { success: boolean; message?: string } {
+    if (amount <= 0) {
+        return { success: true };
+    }
+    if (!isFeatureActive('eco')) {
+        return { success: false, message: '§cEconomy is disabled.' };
+    }
+    const pData = getOrCreatePlayer(player);
+    if (pData.balance < amount) {
+        return { success: false, message: `§cInsufficient funds (${formatCurrency(amount)} required).` };
+    }
+    incrementPlayerBalance(player.id, -amount);
+    return { success: true };
+}
+
+/**
+ * Shared prize payout utility with optional tax deduction.
+ */
+export function payoutGamePrize(winnerId: string, grossPool: number, taxRatePercent = 0): number {
+    if (grossPool <= 0 || !isFeatureActive('eco')) {
+        return 0;
+    }
+    const tax = taxRatePercent > 0 ? Math.floor(grossPool * (taxRatePercent / 100)) : 0;
+    const netPrize = Math.max(0, grossPool - tax);
+    if (netPrize > 0) {
+        incrementPlayerBalance(winnerId, netPrize);
+    }
+    return netPrize;
+}
+
+/**
+ * Joins or toggles the random matchmaking queue for a multiplayer game.
+ */
+export function joinMatchmakingQueue(player: mc.Player, gameId: string): { success: boolean; matched: boolean; message: string } {
+    const gamesCfg = getGamesConfig();
+    if (!gamesCfg.enabled) {
+        return { success: false, matched: false, message: '§cThe Games system is currently disabled.' };
+    }
+
+    const cleanGameId = gameId.toLowerCase();
+    const gameDef = getMultiplayerGame(cleanGameId);
+    if (!isDefined(gameDef) || !gameDef.isEnabled()) {
+        return { success: false, matched: false, message: `§cGame '${gameId}' is not available.` };
+    }
+
+    if (isPlayerInMatch(player.id)) {
+        return { success: false, matched: false, message: '§cYou are already in an active match.' };
+    }
+
+    let queue = matchmakingQueues.get(cleanGameId);
+    if (!isDefined(queue)) {
+        queue = [];
+        matchmakingQueues.set(cleanGameId, queue);
+    }
+
+    if (queue.includes(player.id)) {
+        leaveMatchmakingQueue(player.id);
+        return { success: true, matched: false, message: `§eLeft the §b${gameDef.name}§e matchmaking queue.` };
+    }
+
+    // Pop valid waiting opponent
+    while (queue.length > 0) {
+        const opponentId = queue.shift()!;
+        const opponent = getPlayerFromCache(opponentId);
+        if (isDefined(opponent) && opponent.isValid && opponent.id !== player.id && !isPlayerInMatch(opponent.id)) {
+            opponent.sendMessage(`§a[Matchmaking] Found an opponent (§e${player.name}§a) for §b${gameDef.name}§a! Starting match...`);
+            player.sendMessage(`§a[Matchmaking] Matched with §e${opponent.name}§a for §b${gameDef.name}§a! Starting match...`);
+            playSound(opponent, 'random.orb');
+            playSound(player, 'random.orb');
+            mc.system.run(() => {
+                void gameDef.onStartMatch(opponent, player, 0);
+            });
+            return { success: true, matched: true, message: '' };
+        }
+    }
+
+    queue.push(player.id);
+    return {
+        success: true,
+        matched: false,
+        message: `§aJoined the §b${gameDef.name}§a matchmaking queue! Waiting for another player... §7(Use §e/ttt queue§7 to leave)`
+    };
+}
+
+export function leaveMatchmakingQueue(playerId: string): boolean {
+    let removed = false;
+    for (const queue of matchmakingQueues.values()) {
+        const idx = queue.indexOf(playerId);
+        if (idx !== -1) {
+            queue.splice(idx, 1);
+            removed = true;
+        }
+    }
+    return removed;
+}
+
+export function isPlayerInQueue(playerId: string, gameId?: string): boolean {
+    if (isNonEmptyString(gameId)) {
+        return matchmakingQueues.get(gameId.toLowerCase())?.includes(playerId) ?? false;
+    }
+    for (const queue of matchmakingQueues.values()) {
+        if (queue.includes(playerId)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function _clearMatchmakingForTest(): void {
+    matchmakingQueues.clear();
     outgoingInvites.clear();
     incomingInvites.clear();
     activePlayerMatches.clear();

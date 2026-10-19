@@ -84,10 +84,10 @@ import { _resetMinecraftMocks } from './minecraftMock.ts';
 beforeEach(async () => {
     _resetMinecraftMocks();
     try {
-        const { clearPlayerCache } = await import('@core/playerCache.js');
-        const { cleanupPlayerDataManager } = await import('@core/playerDataManager.js');
-        const { invalidateAllRankCaches } = await import('@core/permissionEngine.js');
-        const { cleanupTimers } = await import('@core/timerManager.js');
+        const { clearPlayerCache } = await import('@core/data/playerCache.js');
+        const { cleanupPlayerDataManager } = await import('@core/data/playerDataManager.js');
+        const { invalidateAllRankCaches } = await import('@core/permissions/permissionEngine.js');
+        const { cleanupTimers } = await import('@core/utils/timerManager.js');
         const { clearCategorizedCache } = await import('@features/essentials/commands/help.js');
         const { _clearBountiesForTest } = await import('@features/economy/bountyManager.js');
 

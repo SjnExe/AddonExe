@@ -1,0 +1,153 @@
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+
+/**
+ * Checks if a value is a plain object.
+ */
+export function isObject(item: unknown): item is Record<string, unknown> {
+    return item !== null && typeof item === 'object' && !Array.isArray(item);
+}
+
+/**
+ * Deeply compares two values for equality, handling objects, arrays, dates, and circular references.
+ */
+export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, unknown>()): boolean {
+    if (a === b) {
+        return true;
+    }
+
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+        return false;
+    }
+
+    if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime();
+    }
+
+    if (a instanceof RegExp && b instanceof RegExp) {
+        return a.source === b.source && a.flags === b.flags;
+    }
+
+    if (map.has(a) && map.get(a) === b) {
+        return true;
+    }
+    map.set(a, b);
+
+    if (Array.isArray(a) && Array.isArray(b)) {
+        if (a.length !== b.length) {
+            return false;
+        }
+        for (const [i, element] of a.entries()) {
+            if (!isDeepEqual(element, b[i], map)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (Array.isArray(a) !== Array.isArray(b)) {
+        return false;
+    }
+
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+
+    if (keysA.length !== keysB.length) {
+        return false;
+    }
+
+    for (const key of keysA) {
+        if (!Object.prototype.hasOwnProperty.call(b, key) || !isDeepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], map)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Deeply merges the properties of a source object into a target object.
+ */
+export function deepMerge(target: unknown, source: unknown): unknown {
+    if (!isObject(target) || !isObject(source)) {
+        return target;
+    }
+    const output: Record<string, unknown> = { ...target };
+
+    for (const key of Object.keys(source)) {
+        const sourceValue = source[key];
+        const targetValue = target[key];
+
+        if (isObject(sourceValue)) {
+            output[key] = key in target ? deepMerge(targetValue, sourceValue) : deepClone(sourceValue);
+        } else {
+            output[key] = deepClone(sourceValue);
+        }
+    }
+
+    return output;
+}
+
+/**
+ * Gets a nested value from an object using a dot-notation string path.
+ */
+export function getValueFromPath(obj: unknown, pathStr: string): unknown {
+    if (!pathStr) {
+        return obj;
+    }
+    let current = obj;
+    for (const key of pathStr.split('.')) {
+        if (isDefined(current) && isObject(current) && key in current) {
+            current = current[key];
+        } else {
+            return undefined;
+        }
+    }
+    return current;
+}
+
+/**
+ * Sets a nested value in an object using a dot-notation string path.
+ */
+export function setValueByPath(obj: unknown, pathStr: string, value: unknown): void {
+    const keys = pathStr.split('.');
+    const lastKey = keys.pop();
+    if (!isNonEmptyString(lastKey) || !isObject(obj)) {
+        return;
+    }
+    let lastObj = obj;
+    for (const key of keys) {
+        if (!isDefined(lastObj[key]) || !isObject(lastObj[key])) {
+            lastObj[key] = {};
+        }
+        lastObj = lastObj[key] as Record<string, unknown>;
+    }
+    lastObj[lastKey] = value;
+}
+
+/**
+ * Creates a deep clone of an object or primitive.
+ */
+export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
+    if (Object(obj) !== obj) {
+        return obj;
+    }
+    if (hash.has(obj as object)) {
+        return hash.get(obj as object) as T;
+    }
+    if (obj instanceof Date) {
+        return new Date(obj) as unknown as T;
+    }
+    if (obj instanceof RegExp) {
+        return new RegExp(obj.source, obj.flags) as unknown as T;
+    }
+
+    const result = (Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj) as object | null)) as T;
+    hash.set(obj as object, result);
+
+    return Object.assign(
+        result as object,
+        ...Object.keys(obj as Record<string, unknown>).map((key) => ({
+            [key]: deepClone((obj as Record<string, unknown>)[key], hash)
+        }))
+    ) as T;
+}

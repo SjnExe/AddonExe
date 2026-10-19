@@ -1,6 +1,6 @@
 import { CustomCommand } from '@commands/commandManager.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 const command: CustomCommand = {
     name: 'newui',

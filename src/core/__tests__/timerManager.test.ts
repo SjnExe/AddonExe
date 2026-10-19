@@ -6,7 +6,17 @@ if (!(mc.system as any).clearJob) {
     (mc.system as any).clearJob = mock();
 }
 
-import { cleanupTimers, clearTrackedInterval, clearTrackedJob, clearTrackedTimeout, getTimerStats, setTrackedInterval, setTrackedJob, setTrackedTimeout, startSystemTimers } from '../timerManager.js';
+import {
+    cleanupTimers,
+    clearTrackedInterval,
+    clearTrackedJob,
+    clearTrackedTimeout,
+    getTimerStats,
+    setTrackedInterval,
+    setTrackedJob,
+    setTrackedTimeout,
+    startSystemTimers
+} from '@core/utils/timerManager.js';
 
 describe('timerManager', () => {
     let runIntervalSpy: any;

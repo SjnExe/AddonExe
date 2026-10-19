@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getPlayerIdByName, loadPlayerData } from '@core/playerDataManager.js';
-import { showPanel } from '@core/uiManager.js';
-import { playSound, sanitizeString } from '@core/utils.js';
+import { getPlayerIdByName, loadPlayerData } from '@core/data/playerDataManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
+import { playSound, sanitizeString } from '@core/utils/index.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 import * as reportManager from '@features/moderation/reportManager.js';
 

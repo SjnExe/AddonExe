@@ -6,7 +6,7 @@ export async function initialize(_isMigration: boolean) {
     initializeFloatingText();
 
     // Register configurations
-    const { resetWorldProtectionConfig, registerConfigReset } = await import('@core/configurations.js');
+    const { resetWorldProtectionConfig, registerConfigReset } = await import('@core/config/configurations.js');
     registerConfigReset('worldProtection', {
         reset: resetWorldProtectionConfig,
         message: 'The World Protection configuration section has been reset to default.'

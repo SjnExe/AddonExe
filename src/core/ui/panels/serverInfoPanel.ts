@@ -1,11 +1,11 @@
-import { getConfig, updateMultipleConfig } from '@core/configManager.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { showPanel } from '@core/uiManager.js';
+import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { showPanel } from '@core/ui/uiManager.js';
 import { getHelpfulLinks } from '@features/essentials/helpfulLinksManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showInfoPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder().title('Info');

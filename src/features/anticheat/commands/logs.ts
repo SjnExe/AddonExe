@@ -2,12 +2,12 @@ import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig, updateMultipleConfig } from '@core/configManager.js';
+import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { uiWait } from '@core/utils.js';
+import { uiWait } from '@core/utils/index.js';
 import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 interface ChatLog {
     timestamp: number;

@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { HomeLocation } from '@core/playerDataManager.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
+import { HomeLocation } from '@core/data/playerDataManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { isDefined } from '@lib/guards.js';
 
 const WARPS_PROPERTY_ID = 'exe:warps';

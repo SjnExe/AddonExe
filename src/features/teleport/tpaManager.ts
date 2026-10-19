@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { getCooldown, setCooldown } from '@core/cooldownManager.js';
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { getOrCreatePlayer, updatePlayerData } from '@core/playerDataManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 interface SocialFriendsService {

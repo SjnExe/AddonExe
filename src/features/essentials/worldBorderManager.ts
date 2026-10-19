@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
-import { errorLog } from '@core/logger.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
-import { playSound } from '@core/utils.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { StorageManager } from '@core/data/storageManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { playSound } from '@core/utils/index.js';
+import { errorLog } from '@core/utils/logger.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 

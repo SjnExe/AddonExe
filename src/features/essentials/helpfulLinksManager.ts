@@ -1,5 +1,5 @@
-import { getConfig, updateMultipleConfig } from '@core/configManager.js';
-import { debugLog } from '@core/logger.js';
+import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
+import { debugLog } from '@core/utils/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export interface HelpfulLink {

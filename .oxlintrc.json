@@ -38,7 +38,7 @@
         ],
         "minecraft-linting/avoid-unnecessary-command": "error"
     },
-    "ignorePatterns": ["node_modules/", "dist/", "package-lock.json", ".git/", "packs/resource/font/", ".github/", "Docs/", "**/packs/behavior/scripts/**", "package.json", "packs/**"],
+    "ignorePatterns": ["node_modules/", "dist/", "package-lock.json", ".git/", "packs/resource/font/", ".github/", "docs/", "**/packs/behavior/scripts/**", "package.json", "packs/**"],
     "overrides": [
         {
             "files": ["scripts/**/*.{js,ts}"],
@@ -50,7 +50,7 @@
             }
         },
         {
-            "files": ["src/core/logger.ts"],
+            "files": ["src/core/utils/logger.ts"],
             "rules": {
                 "no-console": "off"
             }

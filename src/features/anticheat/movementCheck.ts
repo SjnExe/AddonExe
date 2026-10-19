@@ -2,13 +2,13 @@ import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
-import { errorLog } from '@core/logger.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { errorLog } from '@core/utils/logger.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 
-import type { AnticheatConfig } from '@features/anticheat/configLoader.js';
-import * as configLoader from '@features/anticheat/configLoader.js';
+import type { AnticheatConfig } from '@core/config/configurations.js';
+import * as configLoader from '@core/config/configurations.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 
 interface PlayerMovementState {

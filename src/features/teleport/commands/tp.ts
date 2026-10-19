@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
-import { findPlayerByName } from '@core/playerCache.js';
+import { findPlayerByName } from '@core/data/playerCache.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 

@@ -4,13 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:te
 const mockStorageSave = mock();
 const mockStorageLoad = mock();
 
-import { initializeConfigManager } from '../configManager.js';
-import * as configurations from '../configurations.js';
+import { initializeConfigManager } from '@core/config/configManager.js';
+import * as configurations from '@core/config/configurations.js';
 
-import { StorageManager } from '@core/storage/StorageManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 
-import { saveAllData, saveAllDataJob } from '@core/dataManager.js';
-import { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } from '@core/playerDataManager.js';
+import { saveAllData, saveAllDataJob } from '@core/data/dataManager.js';
+import { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } from '@core/data/playerDataManager.js';
 
 const mockPlayer = (id: string, name: string) =>
     ({

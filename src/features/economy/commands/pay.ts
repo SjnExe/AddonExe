@@ -1,14 +1,14 @@
-import { getConfig } from '@core/configManager.js';
-import { isFeatureActive } from '@core/featureManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { economyDisabled } from '@core/constants.js';
-import { sendMessage } from '@core/messaging.js';
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { clearPendingPayment, createPendingPayment, getPendingPayment, getPlayer, getPlayerIdByName, getPlayerNameById, transfer } from '@core/playerDataManager.js';
-import { formatCurrency, resolveTarget } from '@core/utils.js';
-import { validateCurrencyAmount } from '@features/economy/utils.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import { clearPendingPayment, createPendingPayment, getPendingPayment, getPlayer, getPlayerIdByName, getPlayerNameById, transfer } from '@core/data/playerDataManager.js';
+import { economyDisabled } from '@core/utils/constants.js';
+import { validateCurrencyAmount } from '@core/utils/economy.js';
+import { formatCurrency, resolveTarget } from '@core/utils/index.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const payCommand: CustomCommand = {

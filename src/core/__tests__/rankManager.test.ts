@@ -1,16 +1,16 @@
-import { RankDefinition } from '@features/ranks/ranksConfig.js';
+import { RankDefinition } from '@features/ranks/config.js';
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
-import * as configManager from '@core/configManager.js';
-import * as configurations from '@core/configurations.js';
+import * as configManager from '@core/config/configManager.js';
+import * as configurations from '@core/config/configurations.js';
 
-import * as permissionEngine from '@core/permissionEngine.js';
-import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
-import * as playerDataManager from '@core/playerDataManager.js';
+import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import * as permissionEngine from '@core/permissions/permissionEngine.js';
 
 import { config as Config } from '@core/../config.js';
+import { canTarget, getAllRanks, getPlayerRank, getRankById, initialize, reloadRanks, updatePlayerNameTag } from '@core/permissions/rankManager.js';
 import * as mc from '@minecraft/server';
-import { canTarget, getAllRanks, getPlayerRank, getRankById, initialize, reloadRanks, updatePlayerNameTag } from '../rankManager.js';
 
 describe('rankManager', () => {
     const mockRanks: RankDefinition[] = [{ id: 'admin', priority: 10 } as RankDefinition, { id: 'default', priority: 100 } as RankDefinition, { id: 'mod', priority: 50 } as RankDefinition];

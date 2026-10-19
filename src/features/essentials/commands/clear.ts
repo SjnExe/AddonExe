@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { soundError, soundTeleport } from '@core/constants.js';
-import { sendMessage } from '@core/messaging.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { canTarget } from '@core/rankManager.js';
-import { playSound } from '@core/utils.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { canTarget } from '@core/permissions/rankManager.js';
+import { soundError, soundTeleport } from '@core/utils/constants.js';
+import { playSound } from '@core/utils/index.js';
+import { sendMessage } from '@core/utils/messaging.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 

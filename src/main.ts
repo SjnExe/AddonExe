@@ -1,14 +1,14 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig, initializeConfigManager } from '@core/configManager.js';
-import { dataManager, loadPersistentData } from '@core/dataManager.js';
+import { getConfig, initializeConfigManager } from '@core/config/configManager.js';
+import { dataManager, loadPersistentData } from '@core/data/dataManager.js';
+import { initializeMigration } from '@core/data/migrationManager.js';
+import { cleanupPlayerDataManager } from '@core/data/playerDataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
-import { errorLog, infoLog, setLogLevel } from '@core/logger.js';
-import { initializeMigration } from '@core/migrationManager.js';
-import { cleanupPlayerDataManager } from '@core/playerDataManager.js';
-import * as rankManager from '@core/rankManager.js';
-import { cleanupTimers, startSystemTimers } from '@core/timerManager.js';
-import { reinitializeOnlinePlayers } from '@core/utils.js';
+import * as rankManager from '@core/permissions/rankManager.js';
+import { reinitializeOnlinePlayers } from '@core/utils/index.js';
+import { errorLog, infoLog, setLogLevel } from '@core/utils/logger.js';
+import { cleanupTimers, startSystemTimers } from '@core/utils/timerManager.js';
 import { initializeXrayDetection } from '@features/anticheat/xrayDetection.js';
 import { cleanupLeaderboardManager } from '@features/economy/leaderboardManager.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
@@ -44,9 +44,9 @@ export async function initializeAddon() {
     // This reduces startup time by loading independent configs concurrently.
     await initializeConfigManager(isMigration);
 
-    const { featureRegistry } = await import('@core/featureRegistry.js');
+    const { featureRegistry } = await import('@core/services/featureRegistry.js');
 
-    const { isFeatureActive } = await import('@core/featureManager.js');
+    const { isFeatureActive } = await import('@core/services/featureManager.js');
 
     // Initialize sequentially to respect the topological sort order
     for (const feature of featureRegistry) {
@@ -72,9 +72,9 @@ export async function initializeAddon() {
     dataManager.initializeDataManager();
     loadPersistentData();
 
-    initializeMigration();
+    await initializeMigration(newVersionStr);
 
-    const { initializePlayerCache } = await import('@core/playerCache.js');
+    const { initializePlayerCache } = await import('@core/data/playerCache.js');
     initializePlayerCache();
 
     initializeManagers();

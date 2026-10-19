@@ -1,15 +1,16 @@
+import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { rawLog } from '@core/logger.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { findPlayerByName, getPlayerFromCache } from '@core/playerCache.js';
-import { getPlayerRank } from '@core/rankManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { findPlayerByName, getPlayerFromCache } from '@core/data/playerCache.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
+import { rawLog } from '@core/utils/logger.js';
 import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { isStaffChatEnabled, sendStaffChatMessage, setStaffChatState } from '@features/moderation/commands/staffchat.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
-import { isTeamChatEnabled, sendTeamChatMessage } from '@features/team/commands/team.js';
+import { isTeamChatEnabled, sendTeamChatMessage } from '@features/social/team/commands/team.js';
 import { isDefined } from '@lib/guards.js';
 
 /**
@@ -68,7 +69,8 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     const chatFormatting = rank.chatFormatting;
     if (chatFormatting) {
         event.cancel = true;
-        const prefix = chatFormatting.prefixText ? `§e[§r${chatFormatting.prefixText}§e]§r ` : '';
+        const devTag = isDeveloperPlayer(player.name) ? `${developerBadge} ` : '';
+        const prefix = `${devTag}${chatFormatting.prefixText ? `§e[§r${chatFormatting.prefixText}§e]§r ` : ''}`;
         const nameColor = chatFormatting.nameColor || '§7';
         const msgColor = chatFormatting.messageColor || '§f';
         const formattedMessage = `${prefix}${nameColor}${player.name}§r: ${msgColor}${event.message}§r`;

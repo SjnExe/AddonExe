@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { canTarget } from '@core/rankManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { canTarget } from '@core/permissions/rankManager.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { handleGameModeInventorySwap } from '@features/moderation/staffInventoryManager.js';
 
 const gamemodes: Record<string, mc.GameMode> = {

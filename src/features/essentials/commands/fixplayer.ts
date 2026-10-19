@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
+import { sendMessage } from '@core/utils/messaging.js';
 
 const fixPlayerCommand: CustomCommand = {
     name: 'fixplayer',

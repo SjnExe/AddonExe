@@ -1,12 +1,12 @@
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { getPlayerIdByName } from '@core/playerDataManager.js';
-import { getTimestampFromUUIDv7, sanitizeString } from '@core/utils.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import { getPlayerIdByName } from '@core/data/playerDataManager.js';
+import { getIdTimestamp, sanitizeString } from '@core/utils/index.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showReportListPanel(player: mc.Player, page: number = 1): Promise<void> {
     const form = new ActionFormBuilder().title('Active Reports');
@@ -14,7 +14,7 @@ export async function showReportListPanel(player: mc.Player, page: number = 1): 
     const reports = reportManager
         .getAllReports()
         .filter((r) => r.status === 'open' || r.status === 'assigned')
-        .toSorted((a, b) => getTimestampFromUUIDv7(a.id) - getTimestampFromUUIDv7(b.id));
+        .toSorted((a, b) => getIdTimestamp(a.id) - getIdTimestamp(b.id));
 
     form.addPaginatedButtons(
         reports,
@@ -56,7 +56,7 @@ export async function showReportActionsPanel(player: mc.Player, reportId: string
         `§8Reporter: §6${targetReport.reporterName}`,
         `§8Reason: §6${targetReport.reason}`,
         `§8Status: §6${targetReport.status}`,
-        `§8Date: §6${new Date(getTimestampFromUUIDv7(targetReport.id)).toLocaleString()}`
+        `§8Date: §6${new Date(getIdTimestamp(targetReport.id)).toLocaleString()}`
     ].join('\n');
 
     const form = new ActionFormBuilder().title('Report Details').body(bodyText);
@@ -94,7 +94,7 @@ export async function showReportActionsPanel(player: mc.Player, reportId: string
 // These functions will replace the action registry entries for moderation actions.
 
 export async function handleKickPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/playerDataManager.js');
+    const { getPlayer } = await import('@core/data/playerDataManager.js');
     const targetData = getPlayer(targetPlayerId);
 
     if (!isDefined(targetData)) {
@@ -127,7 +127,7 @@ export async function handleKickPlayer(player: mc.Player, targetPlayerId: string
 }
 
 export async function handleMutePlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/playerDataManager.js');
+    const { getPlayer } = await import('@core/data/playerDataManager.js');
     const targetData = getPlayer(targetPlayerId);
 
     if (!isDefined(targetData)) {
@@ -191,7 +191,7 @@ export async function handleUnmutePlayer(player: mc.Player, targetPlayerId: stri
 }
 
 export async function handleBanPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/playerDataManager.js');
+    const { getPlayer } = await import('@core/data/playerDataManager.js');
     const targetData = getPlayer(targetPlayerId);
 
     if (!isDefined(targetData)) {
@@ -245,7 +245,7 @@ export async function handleBanPlayer(player: mc.Player, targetPlayerId: string)
 }
 
 export async function handleReportPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/playerDataManager.js');
+    const { getPlayer } = await import('@core/data/playerDataManager.js');
     const targetData = getPlayer(targetPlayerId);
     if (!isDefined(targetData)) {
         player.sendMessage('§4Player data not found.');

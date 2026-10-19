@@ -1,17 +1,17 @@
-import { getConfig } from '@core/configManager.js';
-import { frozenTag } from '@core/constants.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { getVisiblePlayers, loadPlayerData } from '@core/playerDataManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
-import { showPanel } from '@core/uiManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import { getVisiblePlayers, loadPlayerData } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { getPlayerRank } from '@core/permissions/rankManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
+import { frozenTag } from '@core/utils/constants.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import { getBounty } from '@features/economy/bountyManager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 function formatDuration(ms: number): string {
     const seconds = Math.floor(ms / 1000);
@@ -140,7 +140,7 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
     }
 
     form.button('Send Friend Request', 'textures/ui/color_plus', () => {
-        void import('@features/social/ui/friendPanel.js').then((m) => m.addFriendAction(player, targetPlayerId));
+        void import('@features/social/friends/ui/panel.js').then((m) => m.addFriendAction(player, targetPlayerId));
     });
 
     form.button('Send Money', 'textures/items/gold_ingot', async () => {

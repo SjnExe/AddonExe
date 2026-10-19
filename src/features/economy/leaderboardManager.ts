@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { debugLog, errorLog } from '@core/logger.js';
-import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { debugLog, errorLog } from '@core/utils/logger.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 const leaderboardKey = 'exe:economyLeaderboard';

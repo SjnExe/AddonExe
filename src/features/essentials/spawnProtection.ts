@@ -1,7 +1,7 @@
-import { debugLog } from '@core/logger.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { getProtectionFlags } from '@core/protectionService.js';
-import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { getProtectionFlags } from '@core/events/protectionService.js';
+import { debugLog } from '@core/utils/logger.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined } from '@lib/guards.js';
 
 let intervalId: number | undefined;

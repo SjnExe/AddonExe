@@ -1,12 +1,12 @@
-import { getConfig } from '@core/configManager.js';
-import { canAssignRankToPlayer, isAdmin, isOwner } from '@core/permissionEngine.js';
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { getPlayerNameById, loadPlayerData, setPlayerRanks } from '@core/playerDataManager.js';
-import { canTarget, getAllRanks, updatePlayerNameTag } from '@core/rankManager.js';
-import { showPanel } from '@core/uiManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import { getPlayerNameById, loadPlayerData, setPlayerRanks } from '@core/data/playerDataManager.js';
+import { canAssignRankToPlayer, isAdmin, isOwner } from '@core/permissions/permissionEngine.js';
+import { canTarget, getAllRanks, updatePlayerNameTag } from '@core/permissions/rankManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 export async function showRankManagementPanel(player: mc.Player, targetPlayerId: string, page: number = 1): Promise<void> {
     if (!isAdmin(player)) {

@@ -2,12 +2,12 @@ import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import * as configManager from '@core/configManager.js';
-import { getCooldown, setCooldown } from '@core/cooldownManager.js';
-import { debugLog, errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
-import { escapeCommandArg, formatCooldown, playSound } from '@core/utils.js';
+import * as configManager from '@core/config/configManager.js';
+import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+import { escapeCommandArg, formatCooldown, playSound } from '@core/utils/index.js';
+import { debugLog, errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
+import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { getEffectiveBorderForDimension, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
 import { isSafeTeleportColumn, saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';

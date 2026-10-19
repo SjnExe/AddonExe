@@ -1,11 +1,11 @@
-import { getConfig } from '@core/configManager.js';
+import { getConfig } from '@core/config/configManager.js';
 import { executeTeleport } from '@features/teleport/utils.js';
 import * as warpsManager from '@features/teleport/warpsManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 const DIMENSION_OPTIONS = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
 

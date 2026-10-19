@@ -1,4 +1,4 @@
-import { RankDefinition } from '@features/ranks/ranksConfig.js';
+import { RankDefinition } from '@features/ranks/config.js';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 // Shared tracking variables for dynamic test scenarios
@@ -12,9 +12,9 @@ const mockGetPlayer = mock(() => null);
 const mockGetRankById = mock(() => null);
 const mockGetAllRanks = mock(() => []);
 
+import * as configManager from '@core/config/configManager.js';
+import * as realConfigurations from '@core/config/configurations.js';
 import { config as Config } from '../../config.js';
-import * as configManager from '../configManager.js';
-import * as realConfigurations from '../configurations.js';
 
 const mockGetRanksConfig = mock(() => ({
     rankDefinitions: [],
@@ -26,13 +26,13 @@ const mockGetRanksConfig = mock(() => ({
     }
 }));
 
-import * as realPlayerCache from '../playerCache.js';
-import * as playerDataManager from '../playerDataManager.js';
-import * as rankManager from '../rankManager.js';
+import * as realPlayerCache from '@core/data/playerCache.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import * as rankManager from '@core/permissions/rankManager.js';
 
+import { calculatePlayerMap, calculateRankMap, getPlayerRanks, hasPermission, invalidateAllRankCaches, invalidateRankCache } from '@core/permissions/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { config } from '../../config.js';
-import { calculatePlayerMap, calculateRankMap, getPlayerRanks, hasPermission, invalidateAllRankCaches, invalidateRankCache } from '../permissionEngine.js';
 (mc.system as any).currentTick = 100;
 
 function resetToBaseDefaults() {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
-import * as featureManager from '@core/featureManager.js';
-import * as permissionEngine from '@core/permissionEngine.js';
+import * as permissionEngine from '@core/permissions/permissionEngine.js';
+import * as featureManager from '@core/services/featureManager.js';
 import * as playerPanel from '@core/ui/panels/playerPanel.js';
 import { getMenuItemsForHub, initializeDefaultMenuItems } from '../menuRegistry.js';
 

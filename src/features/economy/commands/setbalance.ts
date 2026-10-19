@@ -1,11 +1,11 @@
-import { isFeatureActive } from '@core/featureManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
-import { getPlayerIdByName, getPlayerNameById, incrementPlayerBalance, loadPlayerData, setPlayerBalance } from '@core/playerDataManager.js';
-import { formatCurrency } from '@core/utils.js';
-import { validateCurrencyAmount } from '@features/economy/utils.js';
+import { getPlayerIdByName, getPlayerNameById, incrementPlayerBalance, loadPlayerData, setPlayerBalance } from '@core/data/playerDataManager.js';
+import { validateCurrencyAmount } from '@core/utils/economy.js';
+import { formatCurrency } from '@core/utils/index.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 // --- Online Commands (Selector Support) ---
