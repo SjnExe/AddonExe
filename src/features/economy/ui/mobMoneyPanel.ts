@@ -40,7 +40,7 @@ export async function showMobMoneyPanel(player: mc.Player, page: number = 1, sea
         async (newPage) => {
             await showMobMoneyPanel(player, newPage, searchQuery);
         },
-        10
+        45
     );
 
     form.addBackButton(async () => {

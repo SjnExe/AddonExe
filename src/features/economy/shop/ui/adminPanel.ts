@@ -2,6 +2,7 @@ import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { getShopConfig } from '@core/config/configurations.js';
 import * as shopAdminManager from '@features/economy/shop/adminManager.js';
 import { ensureItemsConfig, getAllItems, parseRankOverrides } from '@features/economy/shop/utils.js';
+import { formatShopPriceSubtitle, formatTwoLineButton, resolveTradeItemDisplayName, resolveTradeItemIcon, resolveTradeItemMetadata } from '@features/economy/tradeUtils.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
@@ -125,12 +126,14 @@ export async function showShopAdminCategoryPanel(player: mc.Player, categoryName
 
     if (category.subCategories) {
         for (const [subId, subData] of Object.entries(category.subCategories)) {
-            entries.push({ type: 'subCategory', id: subId, name: subId, icon: subData.icon });
+            const firstItemKey = Object.keys(subData.items ?? {})[0];
+            entries.push({ type: 'subCategory', id: subId, name: subId, icon: resolveTradeItemIcon(firstItemKey ?? subId, subData.icon) });
         }
     }
 
     for (const [itemId, itemData] of Object.entries(category.items)) {
-        entries.push({ type: 'item', id: itemId, name: itemData.displayName || itemId, icon: itemData.icon });
+        const meta = resolveTradeItemMetadata(itemId, itemData);
+        entries.push({ type: 'item', id: itemId, name: formatTwoLineButton(meta.displayName, formatShopPriceSubtitle(itemData.buyPrice, itemData.sellPrice)), icon: meta.icon });
     }
 
     form.addPaginatedButtons(
@@ -204,7 +207,8 @@ export async function showShopAdminSubCategoryItemPanel(player: mc.Player, categ
 
     const entries: { type: 'item'; id: string; name: string; icon?: string }[] = [];
     for (const [itemId, itemData] of Object.entries(subCat.items)) {
-        entries.push({ type: 'item', id: itemId, name: itemData.displayName || itemId, icon: itemData.icon });
+        const meta = resolveTradeItemMetadata(itemId, itemData);
+        entries.push({ type: 'item', id: itemId, name: formatTwoLineButton(meta.displayName, formatShopPriceSubtitle(itemData.buyPrice, itemData.sellPrice)), icon: meta.icon });
     }
 
     form.addPaginatedButtons(
@@ -346,7 +350,7 @@ export async function showAddItemFromListPanel(player: mc.Player, categoryName: 
         allItems,
         page,
         (itemId, formBuilder) => {
-            formBuilder.button(itemId.replace(['minecraft', ''].join(':'), ''), 'textures/ui/inventory_icon', () => {
+            formBuilder.button(resolveTradeItemDisplayName(itemId), resolveTradeItemIcon(itemId), () => {
                 void showAddCustomItemPanel(player, categoryName, subCategoryName, itemId);
             });
         },

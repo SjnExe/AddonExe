@@ -23,16 +23,19 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
-function formatSquareLabel(match: TicTacToeMatch, idx: number): string {
+const diamondIcon = 'textures/items/diamond';
+const emeraldIcon = 'textures/items/emerald';
+
+function getSquareVisual(match: TicTacToeMatch, idx: number): { label: string; icon?: string } {
     const mark = match.board[idx];
     const isWinSquare = match.winningLine?.includes(idx) === true;
     if (mark === 'X') {
-        return isWinSquare ? '§l§aX' : '§l§cX';
+        return { label: isWinSquare ? '§l§a★' : ' ', icon: diamondIcon };
     }
     if (mark === 'O') {
-        return isWinSquare ? '§l§aO' : '§l§bO';
+        return { label: isWinSquare ? '§l§a★' : ' ', icon: emeraldIcon };
     }
-    return ' ';
+    return { label: ' ' };
 }
 
 export async function showTicTacToeBoard(player: mc.Player, matchId: string, notice?: string): Promise<void> {
@@ -52,20 +55,21 @@ export async function showTicTacToeBoard(player: mc.Player, matchId: string, not
     }
 
     const isPlayerX = player.id === match.playerXId;
-    const myMark = isPlayerX ? '§l§cX§r' : '§l§bO§r';
+    const myMark = isPlayerX ? '§b◆ Diamond§r' : '§a❖ Emerald§r';
     const opponentName = isPlayerX ? match.playerOName : match.playerXName;
     const isMyTurn = match.currentTurnId === player.id;
 
     const statusLine = isMyTurn ? `§a§lYOUR TURN (${myMark}§a§l) §r§7— Tap a square!` : `§eWaiting for §f${opponentName}§e's move...`;
     const bodyText = isNonEmptyString(notice) ? `${notice}\n${statusLine}` : statusLine;
 
-    const form = new ActionFormBuilder().grid(4).title(`§r§l§bTic-Tac-Toe §8vs §f${opponentName}`).body(bodyText);
+    const form = new ActionFormBuilder().grid('board').title(`§r§l§bTic-Tac-Toe §8vs §f${opponentName}`).body(bodyText);
 
     let clickedSquare: number | undefined;
 
     for (let i = 0; i < 9; i++) {
         const squareIdx = i;
-        form.button(formatSquareLabel(match, squareIdx), undefined, () => {
+        const visual = getSquareVisual(match, squareIdx);
+        form.button(visual.label, visual.icon, () => {
             clickedSquare = squareIdx;
         });
     }
@@ -121,10 +125,11 @@ export async function showTicTacToeResultPanel(player: mc.Player, match: TicTacT
     const title = match.status === 'draw' ? '§r§l§eMatch Draw!' : isWinner ? '§r§l§aVictory!' : '§r§l§cDefeat!';
     const summary = match.endReason ?? 'Match complete.';
 
-    const form = new ActionFormBuilder().grid(4).title(title).body(summary);
+    const form = new ActionFormBuilder().grid('board').title(title).body(summary);
 
     for (let i = 0; i < 9; i++) {
-        form.button(formatSquareLabel(match, i), undefined, async () => {
+        const visual = getSquareVisual(match, i);
+        form.button(visual.label, visual.icon, async () => {
             await showTicTacToeMenu(player);
         });
     }

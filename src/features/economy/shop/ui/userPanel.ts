@@ -1,15 +1,17 @@
 import { getShopConfig } from '@core/config/configurations.js';
+import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatCurrency } from '@core/utils/index.js';
-import { buyItem, getPlayerShopItemPrice, sellItem } from '@features/economy/shop/manager.js';
+import { buyItem, getPlayerInventoryShopItemCount, getPlayerShopItemPrice, sellItem } from '@features/economy/shop/manager.js';
 import { ensureItemsConfig } from '@features/economy/shop/utils.js';
+import { formatShopPriceSubtitle, formatTwoLineButton, resolveTradeItemIcon, resolveTradeItemMetadata } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 interface ShopItemInfo {
-    itemId: string;
+    itemId?: string;
     buyPrice: number;
     sellPrice: number;
     displayName?: string;
@@ -29,10 +31,12 @@ interface ShopCategory {
 
 export async function showShopMainPanel(player: mc.Player): Promise<void> {
     await ensureItemsConfig();
+    const pData = getOrCreatePlayer(player);
     const form = new ActionFormBuilder()
         .grid(3)
-        .title('Shop')
-        .button('§l§6Search Item', 'textures/ui/magnifyingGlass', () => {
+        .title('Server Shop')
+        .body(`§7Your Balance: §a${formatCurrency(pData.balance)}\n§7Select a category or search for an item:`)
+        .button(formatTwoLineButton('§l§6Search Shop', 'Find any item by name'), 'textures/ui/magnifyingGlass', () => {
             void showShopSearchPanel(player);
         });
 
@@ -52,7 +56,12 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
         if (!isDefined(cat)) {
             continue;
         }
-        form.button(catName, cat.icon, () => {
+        const subCount = isDefined(cat.subCategories) ? Object.keys(cat.subCategories).length : 0;
+        const itemCount = Object.keys(cat.items ?? {}).length;
+        const subtitle = subCount > 0 ? `${subCount} group${subCount === 1 ? '' : 's'}${itemCount > 0 ? ` • ${itemCount} items` : ''}` : `${itemCount} item${itemCount === 1 ? '' : 's'}`;
+        const icon = resolveTradeItemIcon(catName, cat.icon);
+
+        form.button(formatTwoLineButton(`§l§f${catName}`, subtitle), icon, () => {
             void showShopCategoryPanel(player, catName, 1);
         });
     }
@@ -66,6 +75,7 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
 }
 
 export async function showShopCategoryPanel(player: mc.Player, categoryName: string, page: number = 1): Promise<void> {
+    await ensureItemsConfig();
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
 
@@ -75,20 +85,49 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
         return;
     }
 
-    const form = new ActionFormBuilder().grid(3).title(categoryName);
-    const entries: { type: 'subCategory' | 'item'; id: string; name: string; icon?: string; itemData?: unknown }[] = [];
+    const pData = getOrCreatePlayer(player);
+    const form = new ActionFormBuilder()
+        .grid(3)
+        .title(categoryName)
+        .body(`§7Balance: §a${formatCurrency(pData.balance)}`);
+
+    const entries: { type: 'subCategory' | 'item'; id: string; name: string; subtitle: string; icon: string; itemData?: ShopItemInfo }[] = [];
 
     if (category.subCategories) {
         for (const [subId, subData] of Object.entries(category.subCategories)) {
-            entries.push({ type: 'subCategory', id: subId, name: subId, icon: subData.icon });
+            if (!isDefined(subData)) {
+                continue;
+            }
+            const subItemKeys = Object.keys(subData.items ?? {});
+            const icon = resolveTradeItemIcon(subItemKeys[0] ?? subId, subData.icon);
+            entries.push({
+                type: 'subCategory',
+                id: subId,
+                name: subId,
+                subtitle: `§6Folder • §7${subItemKeys.length} items`,
+                icon
+            });
         }
     }
 
-    for (const [itemId, itemData] of Object.entries(category.items)) {
+    for (const [itemId, itemData] of Object.entries(category.items ?? {})) {
+        if (!isDefined(itemData) || typeof itemData.buyPrice !== 'number') {
+            continue;
+        }
         if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) {
             continue;
         }
-        entries.push({ type: 'item', id: itemId, name: itemData.displayName || itemId, icon: itemData.icon, itemData });
+        const meta = resolveTradeItemMetadata(itemId, itemData);
+        const buyP = getPlayerShopItemPrice(player, { ...itemData, itemId: meta.itemId }, 'buy');
+        const sellP = getPlayerShopItemPrice(player, { ...itemData, itemId: meta.itemId }, 'sell');
+        entries.push({
+            type: 'item',
+            id: itemId,
+            name: meta.displayName,
+            subtitle: formatShopPriceSubtitle(buyP, sellP),
+            icon: meta.icon,
+            itemData: { ...itemData, itemId: meta.itemId, displayName: meta.displayName, icon: meta.icon }
+        });
     }
 
     form.addPaginatedButtons(
@@ -96,25 +135,13 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
         page,
         (entry, formBuilder) => {
             if (entry.type === 'subCategory') {
-                formBuilder.button(`§l§6[Dir] §r§l${entry.name}`, entry.icon, () => {
+                formBuilder.button(formatTwoLineButton(`§l§6${entry.name}`, entry.subtitle), entry.icon, () => {
                     void showShopItemListPanel(player, categoryName, entry.id, 1);
                 });
-            } else {
-                const itemData = entry.itemData as ShopItemInfo;
-                const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
-                let displayPrice = '';
-                if (prices.buyPrice > 0) {
-                    displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
-                }
-                if (prices.sellPrice > 0) {
-                    displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
-                }
-                if (displayPrice === '') {
-                    displayPrice = '§cNot For Sale';
-                }
-
-                formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
-                    void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'category', categoryName, page });
+            } else if (isDefined(entry.itemData)) {
+                const targetItem = entry.itemData;
+                formBuilder.button(formatTwoLineButton(`§l§f${entry.name}`, entry.subtitle), entry.icon, () => {
+                    void showBuyOrSellPanel(player, entry.id, targetItem, { returnTo: 'category', categoryName, page });
                 });
             }
         },
@@ -131,6 +158,7 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
 }
 
 export async function showShopItemListPanel(player: mc.Player, categoryName: string, subCategoryName: string, page: number = 1): Promise<void> {
+    await ensureItemsConfig();
     const shopConfig = getShopConfig();
     const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
     const subCat = category?.subCategories?.[subCategoryName];
@@ -140,34 +168,38 @@ export async function showShopItemListPanel(player: mc.Player, categoryName: str
         return;
     }
 
-    const form = new ActionFormBuilder().grid(3).title(subCategoryName);
-    const entries: { id: string; name: string; icon?: string; itemData: unknown }[] = [];
-    for (const [itemId, itemData] of Object.entries(subCat.items)) {
+    const pData = getOrCreatePlayer(player);
+    const form = new ActionFormBuilder()
+        .grid(3)
+        .title(`${categoryName} > ${subCategoryName}`)
+        .body(`§7Balance: §a${formatCurrency(pData.balance)}`);
+
+    const entries: { id: string; name: string; subtitle: string; icon: string; itemData: ShopItemInfo }[] = [];
+    for (const [itemId, itemData] of Object.entries(subCat.items ?? {})) {
+        if (!isDefined(itemData)) {
+            continue;
+        }
         if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) {
             continue;
         }
-        entries.push({ id: itemId, name: itemData.displayName || itemId, icon: itemData.icon, itemData });
+        const meta = resolveTradeItemMetadata(itemId, itemData);
+        const buyP = getPlayerShopItemPrice(player, { ...itemData, itemId: meta.itemId }, 'buy');
+        const sellP = getPlayerShopItemPrice(player, { ...itemData, itemId: meta.itemId }, 'sell');
+        entries.push({
+            id: itemId,
+            name: meta.displayName,
+            subtitle: formatShopPriceSubtitle(buyP, sellP),
+            icon: meta.icon,
+            itemData: { ...itemData, itemId: meta.itemId, displayName: meta.displayName, icon: meta.icon }
+        });
     }
 
     form.addPaginatedButtons(
         entries,
         page,
         (entry, formBuilder) => {
-            const itemData = entry.itemData as ShopItemInfo;
-            const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
-            let displayPrice = '';
-            if (prices.buyPrice > 0) {
-                displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
-            }
-            if (prices.sellPrice > 0) {
-                displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
-            }
-            if (displayPrice === '') {
-                displayPrice = '§cNot For Sale';
-            }
-
-            formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
-                void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'subCategory', categoryName, subCategoryName, page });
+            formBuilder.button(formatTwoLineButton(`§l§f${entry.name}`, entry.subtitle), entry.icon, () => {
+                void showBuyOrSellPanel(player, entry.id, entry.itemData, { returnTo: 'subCategory', categoryName, subCategoryName, page });
             });
         },
         (newPage) => {
@@ -183,50 +215,64 @@ export async function showShopItemListPanel(player: mc.Player, categoryName: str
 }
 
 export async function showShopSearchPanel(player: mc.Player): Promise<void> {
-    const modal = new CustomFormBuilder<{ query: string }>('Search Shop').textField('query', 'Item Name', 'e.g., diamond', '').submitButton('Search');
+    const modal = new CustomFormBuilder<{ query: string }>('Search Shop').textField('query', 'Item Name', 'e.g., Diamond Sword, Stone Stairs', '').submitButton('Search');
     const res = await modal.show(player);
     if (!res) {
         void showShopMainPanel(player);
         return;
     }
-    if (isNonEmptyString(res.query)) {
-        void showShopSearchResultsPanel(player, res.query, 1);
+    if (isNonEmptyString(res.query.trim())) {
+        void showShopSearchResultsPanel(player, res.query.trim(), 1);
     } else {
         void showShopMainPanel(player);
     }
 }
 
 export async function showShopSearchResultsPanel(player: mc.Player, query: string, page: number = 1): Promise<void> {
+    await ensureItemsConfig();
     const shopConfig = getShopConfig();
-    const results: { id: string; name: string; icon?: string; itemData: unknown; path: { categoryName: string; subCategoryName?: string } }[] = [];
+    const results: { id: string; name: string; subtitle: string; icon: string; itemData: ShopItemInfo }[] = [];
     const lowerQuery = query.toLowerCase();
     const catMap = shopConfig.categories as Record<string, ShopCategory>;
 
-    for (const [catName, cat] of Object.entries(catMap)) {
-        for (const [itemId, itemData] of Object.entries(cat.items)) {
-            const displayName = itemData.displayName || itemId;
-            if (displayName.toLowerCase().includes(lowerQuery) || itemId.toLowerCase().includes(lowerQuery)) {
-                if (!isNonEmptyString(itemData.permission) || hasPermission(player, itemData.permission)) {
-                    results.push({ id: itemId, name: displayName, icon: itemData.icon, itemData, path: { categoryName: catName } });
-                }
+    const collectFromMap = (itemMap: Record<string, ShopItemInfo>) => {
+        for (const [itemId, itemData] of Object.entries(itemMap ?? {})) {
+            if (!isDefined(itemData) || typeof itemData.buyPrice !== 'number') {
+                continue;
+            }
+            if (isNonEmptyString(itemData.permission) && !hasPermission(player, itemData.permission)) {
+                continue;
+            }
+            const meta = resolveTradeItemMetadata(itemId, itemData);
+            if (meta.displayName.toLowerCase().includes(lowerQuery) || itemId.toLowerCase().includes(lowerQuery) || meta.itemId.toLowerCase().includes(lowerQuery)) {
+                const buyP = getPlayerShopItemPrice(player, { ...itemData, itemId: meta.itemId }, 'buy');
+                const sellP = getPlayerShopItemPrice(player, { ...itemData, itemId: meta.itemId }, 'sell');
+                results.push({
+                    id: itemId,
+                    name: meta.displayName,
+                    subtitle: formatShopPriceSubtitle(buyP, sellP),
+                    icon: meta.icon,
+                    itemData: { ...itemData, itemId: meta.itemId, displayName: meta.displayName, icon: meta.icon }
+                });
             }
         }
+    };
 
+    for (const cat of Object.values(catMap)) {
+        if (!isDefined(cat)) {
+            continue;
+        }
+        collectFromMap(cat.items);
         if (cat.subCategories) {
-            for (const [subCatName, subCat] of Object.entries(cat.subCategories)) {
-                for (const [itemId, itemData] of Object.entries(subCat.items)) {
-                    const displayName = itemData.displayName || itemId;
-                    if (displayName.toLowerCase().includes(lowerQuery) || itemId.toLowerCase().includes(lowerQuery)) {
-                        if (!isNonEmptyString(itemData.permission) || hasPermission(player, itemData.permission)) {
-                            results.push({ id: itemId, name: displayName, icon: itemData.icon, itemData, path: { categoryName: catName, subCategoryName: subCatName } });
-                        }
-                    }
+            for (const subCat of Object.values(cat.subCategories)) {
+                if (isDefined(subCat)) {
+                    collectFromMap(subCat.items);
                 }
             }
         }
     }
 
-    const form = new ActionFormBuilder().title(`Search: ${query}`);
+    const form = new ActionFormBuilder().grid(3).title(`Search: "${query}"`);
     if (results.length === 0) {
         form.body('No items found matching your search.');
     }
@@ -235,21 +281,8 @@ export async function showShopSearchResultsPanel(player: mc.Player, query: strin
         results,
         page,
         (entry, formBuilder) => {
-            const itemData = entry.itemData as ShopItemInfo;
-            const prices = { buyPrice: getPlayerShopItemPrice(player, itemData, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData, 'sell') };
-            let displayPrice = '';
-            if (prices.buyPrice > 0) {
-                displayPrice += `§2Buy: ${formatCurrency(prices.buyPrice)} `;
-            }
-            if (prices.sellPrice > 0) {
-                displayPrice += `§4Sell: ${formatCurrency(prices.sellPrice)}`;
-            }
-            if (displayPrice === '') {
-                displayPrice = '§cNot For Sale';
-            }
-
-            formBuilder.button(`${entry.name}\n${displayPrice.trim()}`, entry.icon, () => {
-                void showBuyOrSellPanel(player, entry.id, itemData, { returnTo: 'search', query, page });
+            formBuilder.button(formatTwoLineButton(`§l§f${entry.name}`, entry.subtitle), entry.icon, () => {
+                void showBuyOrSellPanel(player, entry.id, entry.itemData, { returnTo: 'search', query, page });
             });
         },
         (newPage) => {
@@ -273,40 +306,84 @@ export interface ReturnContext {
 }
 
 export async function showBuyOrSellPanel(player: mc.Player, itemKey: string, itemData: unknown, returnCtx: ReturnContext): Promise<void> {
-    const prices = { buyPrice: getPlayerShopItemPrice(player, itemData as ShopItemInfo, 'buy'), sellPrice: getPlayerShopItemPrice(player, itemData as ShopItemInfo, 'sell') };
-    const typedItemData = itemData as ShopItemInfo;
-    const itemName = typedItemData.displayName || typedItemData.itemId || itemKey;
+    const typedItemData = (itemData ?? {}) as ShopItemInfo;
+    const meta = resolveTradeItemMetadata(itemKey, typedItemData);
+    const resolvedInfo = { ...typedItemData, itemId: meta.itemId, displayName: meta.displayName, icon: meta.icon };
+    const buyPrice = getPlayerShopItemPrice(player, resolvedInfo, 'buy');
+    const sellPrice = getPlayerShopItemPrice(player, resolvedInfo, 'sell');
+    const pData = getOrCreatePlayer(player);
+    const ownedCount = getPlayerInventoryShopItemCount(player, itemKey);
 
-    const form = new ActionFormBuilder().title(`Trade ${itemName}`);
+    const bodyLines = [
+        `§7Item: §b${meta.displayName}`,
+        `§7Your Balance: §a${formatCurrency(pData.balance)} §8| §7In Inventory: §ex${ownedCount}`,
+        `§7Unit Price: ${formatShopPriceSubtitle(buyPrice, sellPrice)}`
+    ];
 
-    if (prices.buyPrice > 0) {
-        form.button(`§2Buy 1 - ${formatCurrency(prices.buyPrice)}`, 'textures/ui/color_plus', () => {
-            const res = buyItem(player, itemKey, 1);
-            player.sendMessage(res.message);
-            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+    const form = new ActionFormBuilder().grid(2).title(`Trade: ${meta.displayName}`).body(bodyLines.join('\n'));
+
+    if (buyPrice > 0) {
+        form.button(formatTwoLineButton('§2Buy 1', formatCurrency(buyPrice)), meta.icon, () => {
+            player.sendMessage(buyItem(player, itemKey, 1).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
         });
-        form.button(`§2Buy 64 - ${formatCurrency(prices.buyPrice * 64)}`, 'textures/ui/color_plus', () => {
-            const res = buyItem(player, itemKey, 64);
-            player.sendMessage(res.message);
-            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+        form.button(formatTwoLineButton('§2Buy 16', formatCurrency(buyPrice * 16)), meta.icon, () => {
+            player.sendMessage(buyItem(player, itemKey, 16).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
+        });
+        form.button(formatTwoLineButton('§2Buy 64', formatCurrency(buyPrice * 64)), meta.icon, () => {
+            player.sendMessage(buyItem(player, itemKey, 64).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
+        });
+        form.button(formatTwoLineButton('§2Buy Max', 'Fill affordable space'), 'textures/ui/color_plus', () => {
+            player.sendMessage(buyItem(player, itemKey, -1).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
         });
     }
 
-    if (prices.sellPrice > 0) {
-        form.button(`§4Sell 1 - ${formatCurrency(prices.sellPrice)}`, 'textures/ui/minus', () => {
-            const res = sellItem(player, itemKey, 1);
-            player.sendMessage(res.message);
-            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+    if (sellPrice > 0) {
+        form.button(formatTwoLineButton('§cSell 1', formatCurrency(sellPrice)), 'textures/ui/minus', () => {
+            player.sendMessage(sellItem(player, itemKey, 1).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
         });
-        form.button(`§4Sell 64 - ${formatCurrency(prices.sellPrice * 64)}`, 'textures/ui/minus', () => {
-            const res = sellItem(player, itemKey, 64);
-            player.sendMessage(res.message);
-            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+        form.button(formatTwoLineButton('§cSell 16', formatCurrency(sellPrice * 16)), 'textures/ui/minus', () => {
+            player.sendMessage(sellItem(player, itemKey, 16).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
         });
-        form.button('§6Sell All', 'textures/ui/icon_recipe_equipment', () => {
-            const res = sellItem(player, itemKey, -1);
-            player.sendMessage(res.message);
-            void showBuyOrSellPanel(player, itemKey, itemData, returnCtx);
+        form.button(formatTwoLineButton('§cSell 64', formatCurrency(sellPrice * 64)), 'textures/ui/minus', () => {
+            player.sendMessage(sellItem(player, itemKey, 64).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
+        });
+        form.button(formatTwoLineButton(`§6Sell All (x${ownedCount})`, formatCurrency(sellPrice * Math.max(0, ownedCount))), 'textures/ui/icon_recipe_equipment', () => {
+            player.sendMessage(sellItem(player, itemKey, -1).message);
+            void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
+        });
+    }
+
+    if (buyPrice > 0 || sellPrice > 0) {
+        form.button(formatTwoLineButton('§bCustom Quantity', 'Enter exact amount'), 'textures/ui/book_edit_default', async () => {
+            const modes: string[] = [];
+            if (buyPrice > 0) {
+                modes.push('Buy');
+            }
+            if (sellPrice > 0) {
+                modes.push('Sell');
+            }
+            const modal = new CustomFormBuilder<{ mode: string; qty: string }>(`Custom Trade: ${meta.displayName}`)
+                .dropdown('mode', 'Transaction Type', modes, 0)
+                .textField('qty', 'Quantity', 'e.g. 32', '16')
+                .submitButton('Confirm Trade');
+            const res = await modal.show(player);
+            if (res) {
+                const parsedQty = Number.parseInt(res.qty, 10);
+                if (!Number.isNaN(parsedQty) && parsedQty > 0) {
+                    const out = res.mode === 'Sell' ? sellItem(player, itemKey, parsedQty) : buyItem(player, itemKey, parsedQty);
+                    player.sendMessage(out.message);
+                } else {
+                    player.sendMessage('§cInvalid quantity.');
+                }
+            }
+            await showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
         });
     }
 

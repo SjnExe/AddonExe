@@ -31,7 +31,7 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
         items.push({ slot: i, item: container.getItem(i) });
     }
 
-    const itemsPerPage = 15;
+    const itemsPerPage = 36;
 
     if (page > 1) {
         form.button('§6< Previous Page', 'textures/gui/newgui/UpArrow', async () => {
@@ -57,7 +57,7 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
         }
     }
 
-    const totalPages = Math.ceil(items.length / 15);
+    const totalPages = Math.ceil(items.length / itemsPerPage);
     if (page < totalPages) {
         form.button('§6Next Page >', 'textures/gui/newgui/DownArrow', async () => {
             await showInventoryPanel(player, targetPlayerId, page + 1);

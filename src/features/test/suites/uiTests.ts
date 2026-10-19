@@ -8,20 +8,23 @@ import { usedIcons } from 'virtual:icon-index';
 import { addTest, assert } from '../testRunner.js';
 
 export function registerUiTests(): void {
-    addTest('ui', 'ActionFormBuilder sets grid columns (1, 2, 3) and buttons accurately', () => {
+    addTest('ui', 'ActionFormBuilder sets grid columns (1, 2, 3, 4, board) and buttons accurately', () => {
         const builder1 = new ActionFormBuilder().grid(1).title('Reader');
         assert.equal(builder1.getColumns(), 1, 'Grid should be 1 column');
 
-        const builder2 = new ActionFormBuilder().title('Default Hub');
-        assert.equal(builder2.getColumns(), 2, 'Default grid should be 2 columns');
+        const builderDefault = new ActionFormBuilder().title('Default Hub');
+        assert.equal(builderDefault.getColumns(), 3, 'Default grid should be 3 columns');
 
-        const builder3 = new ActionFormBuilder()
-            .grid(3)
-            .title('Shop Grid')
-            .body('Select an item')
-            .button('Home', 'textures/ui/magnifyingGlass', () => {})
-            .button('Shop', 'textures/ui/color_plus', () => {});
-        assert.equal(builder3.getColumns(), 3, 'Grid should be 3 columns');
+        const builder4 = new ActionFormBuilder()
+            .grid(4)
+            .title('Shop Categories')
+            .body('Select a category')
+            .button('Ores', 'textures/items/diamond', () => {})
+            .button('Food', 'textures/items/bread', () => {});
+        assert.equal(builder4.getColumns(), 4, 'Grid should be 4 columns');
+
+        const builderBoard = new ActionFormBuilder().grid('board').title('Tic-Tac-Toe');
+        assert.equal(builderBoard.getColumns(), 'board', 'Grid should be board');
     });
 
     addTest('ui', 'CustomFormBuilder stores and retrieves reactive Observable values', () => {

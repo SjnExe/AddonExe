@@ -86,6 +86,9 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
     const onlineTarget = getPlayerFromCache(targetPlayerId);
 
     if (isModMode) {
+        form.button('Warn', 'textures/ui/WarningGlyph', () => {
+            void import('@features/moderation/ui/panel.js').then((m) => m.handleWarnPlayer(player, targetPlayerId));
+        });
         form.button('Kick', 'textures/ui/cancel', () => {
             void import('@features/moderation/ui/panel.js').then((m) => m.handleKickPlayer(player, targetPlayerId));
         });
