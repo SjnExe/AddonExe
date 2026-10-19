@@ -1,12 +1,12 @@
-import { getConfig } from '@core/configManager.js';
-import { economyDisabled } from '@core/constants.js';
-import { isFeatureActive } from '@core/featureManager.js';
-import { getPlayer, getPlayerNameById, transfer } from '@core/playerDataManager.js';
-import { showPanel } from '@core/uiManager.js';
-import { formatCurrency } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getPlayer, getPlayerNameById, transfer } from '@core/data/playerDataManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
+import { economyDisabled } from '@core/utils/constants.js';
+import { formatCurrency } from '@core/utils/index.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showTransferPanel(player: mc.Player, targetPlayerId: string): Promise<void> {
     const config = getConfig();

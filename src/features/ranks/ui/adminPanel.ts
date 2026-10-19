@@ -1,14 +1,14 @@
-import { getConfig, updateMultipleConfig } from '@core/configManager.js';
-import { getRanksConfig, saveRanksConfig } from '@core/configurations.js';
-import { canDeleteRankDefinition, canEditRankDefinition, isOwner, isProtectedSystemRank, validatePermissionGroupEdits, validateRankDefinitionEdits } from '@core/permissionEngine.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { reloadRanks, updatePlayerNameTag } from '@core/rankManager.js';
+import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
+import { getRanksConfig, saveRanksConfig } from '@core/config/configurations.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { canDeleteRankDefinition, canEditRankDefinition, isOwner, isProtectedSystemRank, validatePermissionGroupEdits, validateRankDefinitionEdits } from '@core/permissions/permissionEngine.js';
+import { reloadRanks, updatePlayerNameTag } from '@core/permissions/rankManager.js';
+import { RankCondition, RankDefinition } from '@features/ranks/config.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
-import { RankCondition, RankDefinition } from '../ranksConfig.js';
 
 function refreshOnlineNameTags(): void {
     const mainConfig = getConfig();

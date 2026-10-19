@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
-import * as configManager from '@core/configManager.js';
-import * as configurations from '@core/configurations.js';
-import * as playerCache from '@core/playerCache.js';
-import { initializePlayerCache } from '@core/playerCache.js';
-import * as playerDataManager from '@core/playerDataManager.js';
-import * as rankManager from '@core/rankManager.js';
+import * as configManager from '@core/config/configManager.js';
+import * as configurations from '@core/config/configurations.js';
+import * as playerCache from '@core/data/playerCache.js';
+import { initializePlayerCache } from '@core/data/playerCache.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import * as rankManager from '@core/permissions/rankManager.js';
 import * as mc from '@minecraft/server';
 import defaultConfig from '../../../config.js';
 

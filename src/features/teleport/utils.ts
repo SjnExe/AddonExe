@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 
-import { getConfig } from '@core/configManager.js';
-import { getCooldown, setCooldown } from '@core/cooldownManager.js';
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { setPlayerLastLocation } from '@core/playerDataManager.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+import { setPlayerLastLocation } from '@core/data/playerDataManager.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
+import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { formatCooldown } from '@core/utils/time.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
 import { isDefined } from '@lib/guards.js';

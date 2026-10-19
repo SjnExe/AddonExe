@@ -1,16 +1,16 @@
 import * as mc from '@minecraft/server';
 
-import * as configManager from '@core/configManager.js';
-import * as configurations from '@core/configurations.js';
-import { getLastHit } from '@core/lastHitManager.js';
-import { debugLog } from '@core/logger.js';
-import { getAllPlayersFromCache, getPlayerCount, getPlayerFromCache } from '@core/playerCache.js';
-import * as playerDataManager from '@core/playerDataManager.js';
-import { getPlayerRank } from '@core/rankManager.js';
+import * as configManager from '@core/config/configManager.js';
+import * as configurations from '@core/config/configurations.js';
+import { getAllPlayersFromCache, getPlayerCount, getPlayerFromCache } from '@core/data/playerCache.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { formatCurrency, formatDuration } from '@core/utils.js';
+import { formatCurrency, formatDuration } from '@core/utils/index.js';
+import { debugLog } from '@core/utils/logger.js';
 import { getBounty } from '@features/economy/bountyManager.js';
-import type { SidebarLayoutMode } from '@features/sidebar/sidebarConfig.js';
+import { getRemainingCombatCooldown } from '@features/essentials/combatManager.js';
+import type { SidebarLayoutMode } from '@features/sidebar/config.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 interface LeaderboardEntry {
@@ -462,15 +462,8 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
                 // Ignore component read errors during spawn/despawn
             }
 
-            let combatStr = '§a✔ Safe';
-            const lastHit = getLastHit(player.id);
-            if (isDefined(lastHit)) {
-                const timeoutSec = mainConfig.bounties?.bountyCreditTimeoutSeconds ?? 15;
-                const elapsedSec = (Date.now() - lastHit.timestamp) / 1000;
-                if (elapsedSec < timeoutSec) {
-                    combatStr = `§c⚔ ${Math.ceil(timeoutSec - elapsedSec)}s`;
-                }
-            }
+            const combatRem = getRemainingCombatCooldown(player.id);
+            const combatStr = combatRem > 0 ? `§c⚔ ${combatRem}s` : '§a✔ Safe';
 
             processed = processed
                 .replaceAll('{health}', hpStr)

@@ -1,7 +1,7 @@
 import * as mc from '@minecraft/server';
 
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 

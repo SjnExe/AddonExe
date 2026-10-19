@@ -1,11 +1,10 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { uiWait } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 
 import { executeTeleport } from '@features/teleport/utils.js';
@@ -76,28 +75,19 @@ const warpCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData().title('Teleport to a Warp').body('Select a warp to teleport to:');
+        const form = new ActionFormBuilder().title('Teleport to a Warp').body('Select a warp to teleport to:');
 
         for (const warpName of warpList) {
             const location = warpsManager.getWarp(warpName);
             if (isDefined(location)) {
-                form.button(`${warpName}\n§8(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`);
+                form.button(`${warpName}\n§8(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`, 'textures/blocks/portal', () => {
+                    teleportToWarp(warpName);
+                });
             }
         }
 
         try {
-            const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) {
-                return;
-            }
-
-            const selection = (response as ActionFormResponse).selection;
-            if (isDefined(selection)) {
-                const selectedWarp = warpList[selection];
-                if (isNonEmptyString(selectedWarp)) {
-                    teleportToWarp(selectedWarp);
-                }
-            }
+            await form.show(executor, { wait: true });
         } catch (error: unknown) {
             errorLog(`[/warp UI] ${String(error)}`);
         }
@@ -202,25 +192,16 @@ const delWarpCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData().title('Delete a Warp').body('Select a warp to delete:');
+        const form = new ActionFormBuilder().title('Delete a Warp').body('Select a warp to delete:');
 
         for (const warpName of warpList) {
-            form.button(warpName);
+            form.button(warpName, 'textures/ui/trash', () => {
+                deleteWarpByName(warpName);
+            });
         }
 
         try {
-            const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) {
-                return;
-            }
-
-            const selection = (response as ActionFormResponse).selection;
-            if (isDefined(selection)) {
-                const selectedWarp = warpList[selection];
-                if (isNonEmptyString(selectedWarp)) {
-                    deleteWarpByName(selectedWarp);
-                }
-            }
+            await form.show(executor, { wait: true });
         } catch (error: unknown) {
             errorLog(`[/delwarp UI] ${String(error)}`);
         }

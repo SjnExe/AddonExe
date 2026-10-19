@@ -1,7 +1,7 @@
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
-import * as logger from '@core/logger.js';
+import * as logger from '@core/utils/logger.js';
 import * as soundUtils from '@core/utils/sound.js';
 import * as uiUtils from '@core/utils/ui.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
@@ -22,7 +22,7 @@ let clearRunSpy: any;
 let subscribeSpy: any;
 let unsubscribeSpy: any;
 
-const { startTeleportWarmup } = await import('../teleportLogic.js');
+const { startTeleportWarmup } = await import('@core/utils/teleportLogic.js');
 
 describe('startTeleportWarmup', () => {
     let mockPlayer: any;

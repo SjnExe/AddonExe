@@ -18,7 +18,7 @@ Thank you for considering contributing to **AddonExe**! We welcome bug reports, 
 
 - **Reporting Bugs:** Open an issue on our [GitHub Issues page](https://github.com/SjnExe/AddonExe/issues).
 - **Suggesting Enhancements:** Share ideas for new features or improvements to existing systems.
-- **Writing Documentation:** Keep guides in `Docs/` and `Dev/` accurate and up to date.
+- **Writing Documentation:** Keep guides in `docs/` accurate and up to date.
 - **Writing & Testing Code:** Submit pull requests with bug fixes, optimizations, or new features.
 
 ## Reporting Bugs
@@ -26,7 +26,7 @@ Thank you for considering contributing to **AddonExe**! We welcome bug reports, 
 Before opening a bug report:
 
 1. Ensure you are using the latest release of AddonExe.
-2. Check the [Troubleshooting Guide](../Docs/Troubleshooting.md) and [F.A.Q.](../Docs/F.A.Q.md).
+2. Check the [Troubleshooting Guide](../docs/troubleshooting.md) and [F.A.Q.](../docs/faq.md).
 3. Search existing [GitHub Issues](https://github.com/SjnExe/AddonExe/issues) to avoid duplicates.
 
 Include reproduction steps, expected vs. actual behavior, Content Log output, and your Minecraft + AddonExe versions.
@@ -45,7 +45,7 @@ AddonExe uses **Bun** and **TypeScript**.
 bun install
 ```
 
-See [Dev/README.md](../Dev/README.md) and [AGENTS.md](../AGENTS.md) for full architecture and build details.
+See [AGENTS.md](../AGENTS.md) for full architecture and build details.
 
 ### Contribution Workflow
 
@@ -53,12 +53,12 @@ See [Dev/README.md](../Dev/README.md) and [AGENTS.md](../AGENTS.md) for full arc
 2. **Create a Branch:** Branch off `main` using a descriptive name (e.g., `fix/auction-bid-validation`, `feat/warp-cooldown`).
 3. **Develop:** Write clean TypeScript in `src/` and/or JSON definitions in `packs/`. Never edit compiled files in `packs/behavior/scripts/`.
 4. **Verify:** Run unit tests, linting, and build checks locally.
-5. **Document:** Update relevant files in `Docs/` if user-facing behavior, commands, or configs change.
+5. **Document:** Update relevant files in `docs/` if user-facing behavior, commands, or configs change.
 6. **Submit a Pull Request:** Open a PR targeting the `main` branch.
 
 ### Coding Standards & Quality Checks
 
-Follow [Dev/CodingStyle.md](../Dev/CodingStyle.md) and [Dev/StandardizationGuidelines.md](../Dev/StandardizationGuidelines.md):
+Follow [AGENTS.md](../AGENTS.md):
 
 - **No `snake_case`** for project TypeScript identifiers (except where required by native Minecraft APIs or JSON schemas).
 - **Format modified files:** `bunx prettier --write --cache <files>`
@@ -68,10 +68,7 @@ Follow [Dev/CodingStyle.md](../Dev/CodingStyle.md) and [Dev/StandardizationGuide
 
 ## Development Resources
 
-- [Developer Overview](../Dev/README.md)
 - [Agent & Contributor Technical Guide](../AGENTS.md)
-- [Coding Style Guidelines](../Dev/CodingStyle.md)
-- [Standardization Guidelines](../Dev/StandardizationGuidelines.md)
 
 ## Code of Conduct
 

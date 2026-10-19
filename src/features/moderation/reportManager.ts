@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { debugLog, errorLog } from '@core/logger.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
-import { getTimestampFromUUIDv7 } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
+import { getIdTimestamp } from '@core/utils/index.js';
+import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDefined } from '@lib/guards.js';
-import { generateUUIDv7 } from '@lib/uuid.js';
+import { generateId } from '@lib/id.js';
 
 const storage = new StorageManager('exe:reports');
 
@@ -64,7 +64,7 @@ export function saveReports(options: { force?: boolean } = {}) {
  */
 export function createReport(reporter: mc.Player, reportedPlayerId: string, reportedPlayerName: string, reason: string) {
     const report: Report = {
-        id: generateUUIDv7(),
+        id: generateId(),
         reporterId: reporter.id,
         reporterName: reporter.name,
         reportedPlayerId: reportedPlayerId,
@@ -155,7 +155,7 @@ export function clearOldResolvedReports() {
 
     reports = reports.filter((report) => {
         if (report.status === 'resolved') {
-            return now - getTimestampFromUUIDv7(report.id) < lifetimeMs;
+            return now - getIdTimestamp(report.id) < lifetimeMs;
         }
         return true; // Keep all non-resolved reports
     });

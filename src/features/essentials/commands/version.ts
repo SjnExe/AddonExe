@@ -1,22 +1,18 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { sendMessage } from '@core/messaging.js';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { sendMessage } from '@core/utils/messaging.js';
 
 const command: CustomCommand = {
     name: 'version',
     aliases: ['ver'],
     description: 'Displays the current version of the addon.',
     category: 'General',
-    permissionNode: 'cmd.version.member', // Everyone
+    permissionNode: 'cmd.version.member',
     parameters: [],
     execute: (executor: CommandExecutor) => {
-        const config = getConfig();
-        const rawVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : config.version.join('.');
-        const versionString = `v${rawVersion}`;
-        const message = `§7AddonExe Version: §e${versionString}`;
+        const rawVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.7.0';
+        const message = `§7AddonExe Version: §ev${rawVersion}`;
 
         if (executor instanceof mc.Player) {
             sendMessage(message, executor);

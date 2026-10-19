@@ -1,9 +1,9 @@
-import { ActionFormBuilder } from '@core/ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@core/ui/builders/CustomFormBuilder.js';
-import { MessageFormBuilder } from '@core/ui/builders/MessageFormBuilder.js';
 import { getMenuItemsForHub } from '@core/ui/menuRegistry.js';
 import { getSystemRegistry } from '@core/ui/systemRegistry.js';
 import * as mc from '@minecraft/server';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
+import { MessageFormBuilder } from '@ui/builders/messageFormBuilder.js';
 import { usedIcons } from 'virtual:icon-index';
 import { addTest, assert } from '../testRunner.js';
 

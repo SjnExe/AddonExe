@@ -1,10 +1,10 @@
 import { EntityComponentTypes } from '@minecraft/server';
 
-import { getPlayerFromCache } from '@core/playerCache.js';
-import { getPlayerNameById } from '@core/playerDataManager.js';
-import { showPanel } from '@core/uiManager.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import { getPlayerNameById } from '@core/data/playerDataManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 export async function showInventoryPanel(player: mc.Player, targetPlayerId: string, page: number = 1): Promise<void> {
     const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;

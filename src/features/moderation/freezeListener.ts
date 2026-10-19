@@ -1,5 +1,5 @@
-import { frozenTag } from '@core/constants.js';
 import { registerEvent } from '@core/events/eventManager.js';
+import { frozenTag } from '@core/utils/constants.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

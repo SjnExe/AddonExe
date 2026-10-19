@@ -1,8 +1,8 @@
-import { initializeMatchmaking } from './matchmakingManager.js';
-import { initializeTicTacToe } from './tictactoe/ticTacToeManager.js';
+import { initializeMatchmaking } from '@features/games/matchmakingManager.js';
+import { initializeTicTacToe } from '@features/games/tictactoe/manager.js';
 
-export async function initialize(_isMigration: boolean) {
-    const { resetGamesConfig, registerConfigReset, resetWordleConfig } = await import('@core/configurations.js');
+export async function initialize(_isMigration: boolean): Promise<void> {
+    const { resetGamesConfig, registerConfigReset, resetWordleConfig } = await import('@core/config/configurations.js');
     registerConfigReset('games', {
         reset: resetGamesConfig,
         message: 'The games configuration section has been reset to default.'
@@ -15,10 +15,4 @@ export async function initialize(_isMigration: boolean) {
 
     initializeMatchmaking();
     initializeTicTacToe();
-
-    const { registerWordleCommands } = await import('./wordle/commands/wordle.js');
-    registerWordleCommands();
-
-    const { registerGuessCommand } = await import('./wordle/commands/guess.js');
-    registerGuessCommand();
 }

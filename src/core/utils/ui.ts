@@ -1,4 +1,4 @@
-import { hasPermission } from '@core/permissionEngine.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse, FormCancelationReason, MessageFormData, MessageFormResponse, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 

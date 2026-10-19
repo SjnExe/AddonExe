@@ -9,7 +9,7 @@ labels: bug, needs-triage
 
 - [ ] I have searched existing [GitHub Issues](https://github.com/SjnExe/AddonExe/issues) to ensure this bug has not already been reported.
 - [ ] I am using the latest version of AddonExe (check [Releases](https://github.com/SjnExe/AddonExe/releases/latest)).
-- [ ] I have reviewed the [Troubleshooting Guide](https://github.com/SjnExe/AddonExe/blob/main/Docs/Troubleshooting.md) and the issue persists.
+- [ ] I have reviewed the [Troubleshooting Guide](https://github.com/SjnExe/AddonExe/blob/main/docs/troubleshooting.md) and the issue persists.
 - [ ] I have tested without conflicting behavior/resource packs.
 
 **Describe the Bug:**

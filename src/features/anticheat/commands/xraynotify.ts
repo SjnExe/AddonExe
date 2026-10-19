@@ -1,10 +1,10 @@
 import * as mc from '@minecraft/server';
 
-import { getXrayConfig, saveXrayConfig } from '@core/configurations.js';
-import { infoLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { getOrCreatePlayer, setPlayerXrayNotifications } from '@core/playerDataManager.js';
-import { playSound } from '@core/utils.js';
+import { getXrayConfig, saveXrayConfig } from '@core/config/configurations.js';
+import { getOrCreatePlayer, setPlayerXrayNotifications } from '@core/data/playerDataManager.js';
+import { playSound } from '@core/utils/index.js';
+import { infoLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined } from '@lib/guards.js';
 
 import { CustomCommand } from '@commands/commandManager.js';

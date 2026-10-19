@@ -1,6 +1,6 @@
-import { isFeatureActive } from '@core/featureManager.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { showPanel } from '@core/uiManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -141,7 +141,7 @@ export function initializeDefaultMenuItems(): void {
         featureId: 'eco.ah',
         order: 20,
         action: async (p) => {
-            const { showAuctionHouse } = await import('@features/auction/ui/panel.js');
+            const { showAuctionHouse } = await import('@features/economy/auction/ui/panel.js');
             await showAuctionHouse(p, 1);
         }
     });
@@ -155,7 +155,7 @@ export function initializeDefaultMenuItems(): void {
         featureId: 'util.kit',
         order: 30,
         action: async (p) => {
-            const { showKitClaimPanel } = await import('@features/kit/ui/panel.js');
+            const { showKitClaimPanel } = await import('@features/economy/kit/ui/panel.js');
             await showKitClaimPanel(p);
         }
     });
@@ -169,7 +169,7 @@ export function initializeDefaultMenuItems(): void {
         featureId: 'util.daily',
         order: 40,
         action: async (p) => {
-            const { claimDailyReward } = await import('@features/daily/manager.js');
+            const { claimDailyReward } = await import('@features/economy/daily/manager.js');
             claimDailyReward(p);
         }
     });
@@ -208,7 +208,7 @@ export function initializeDefaultMenuItems(): void {
         featureId: 'util.vote',
         order: 70,
         action: async (p) => {
-            const { showVoteMenu } = await import('@features/vote/ui/panel.js');
+            const { showVoteMenu } = await import('@features/social/vote/ui/panel.js');
             await showVoteMenu(p);
         }
     });
@@ -463,7 +463,7 @@ export function initializeDefaultMenuItems(): void {
         permissionNode: 'ui.panel.admin',
         order: 30,
         action: async (p) => {
-            const { showXrayOresPanel } = await import('@features/moderation/ui/xrayPanel.js');
+            const { showXrayOresPanel } = await import('@features/anticheat/ui/xrayPanel.js');
             await showXrayOresPanel(p);
         }
     });
@@ -592,7 +592,7 @@ export function initializeDefaultMenuItems(): void {
         permissionNode: 'ui.panel.admin',
         order: 30,
         action: async (p) => {
-            const { showShopManagementPanel } = await import('@features/shop/ui/adminPanel.js');
+            const { showShopManagementPanel } = await import('@features/economy/shop/ui/adminPanel.js');
             await showShopManagementPanel(p);
         }
     });
@@ -606,7 +606,7 @@ export function initializeDefaultMenuItems(): void {
         permissionNode: 'ui.panel.admin',
         order: 40,
         action: async (p) => {
-            const { showKitManagementPanel } = await import('@features/kit/ui/panel.js');
+            const { showKitManagementPanel } = await import('@features/economy/kit/ui/panel.js');
             await showKitManagementPanel(p);
         }
     });

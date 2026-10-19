@@ -1,12 +1,12 @@
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
-import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/configurations.js';
-import { showPanel } from '@core/uiManager.js';
-import { WorldProtectionZone } from '@features/essentials/worldProtectionConfig.js';
+import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/config/configurations.js';
+import { showPanel } from '@core/ui/uiManager.js';
+import { WorldProtectionZone } from '@features/essentials/config.js';
 
 export async function showWorldProtectionListPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
     const config = getWorldProtectionConfig();

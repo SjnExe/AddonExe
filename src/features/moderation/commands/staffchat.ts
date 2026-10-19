@@ -1,15 +1,15 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
-import { rawLog } from '@core/logger.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { getPlayerRank } from '@core/rankManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
+import { rawLog } from '@core/utils/logger.js';
 import { addChatLog } from '@features/moderation/chatLogManager.js';
-import { isTeamChatEnabled, setTeamChatState } from '@features/team/commands/team.js';
-import { getTeamByPlayer } from '@features/team/manager.js';
+import { isTeamChatEnabled, setTeamChatState } from '@features/social/team/commands/team.js';
+import { getTeamByPlayer } from '@features/social/team/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 const staffChatActive = new Map<string, boolean>();

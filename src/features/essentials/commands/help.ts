@@ -1,11 +1,11 @@
 import * as mc from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
-import { getConfig } from '@core/configManager.js';
-import { noPermission } from '@core/constants.js';
-import { sendMessage } from '@core/messaging.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { uiWait } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { noPermission } from '@core/utils/constants.js';
+import { uiWait } from '@core/utils/index.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';

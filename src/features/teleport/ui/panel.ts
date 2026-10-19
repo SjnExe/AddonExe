@@ -1,8 +1,8 @@
-import { getConfig } from '@core/configManager.js';
-import { loadPlayerData } from '@core/playerDataManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { loadPlayerData } from '@core/data/playerDataManager.js';
 import * as tpaManager from '@features/teleport/tpaManager.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 export async function showTpaSettingsPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder().title('TPA Settings');

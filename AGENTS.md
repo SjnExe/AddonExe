@@ -1,50 +1,52 @@
-# Agent Instructions for AddonExe Development
+# Agent & Developer Instructions for AddonExe
 
-This document defines the architecture, technical constraints, and workflow conventions for working on **AddonExe**.
+This document is the single source of truth for the architecture, coding standards, configuration lifecycle, and workflow conventions of **AddonExe**.
 
 ## 1. Project Overview & Tech Stack
 
-- **Runtime & Package Manager:** Bun (`bun`, `bun test`, `bun scripts/build.ts`).
-- **Language:** TypeScript (strictly typed, compiled via esbuild into `packs/behavior/scripts/`).
+- **Runtime & Package Manager:** Bun (`bun`, `bun test`, `bun scripts/build/build.ts`).
+- **Language:** TypeScript (strictly typed, bundled into `packs/behavior/scripts/main.js`).
 - **Minecraft Target:** Latest Minecraft Bedrock Edition (`@minecraft/server`, `@minecraft/server-ui`, `@minecraft/vanilla-data`, `@minecraft/math`).
-- **Linter & Validator:** Oxlint (`.oxlintrc.json`), Ajv JSON schema validator (`scripts/lint/schemas.ts`), icon texture verifier (`scripts/lint/icons.ts`), and TypeScript typecheck (`scripts/lint/run.ts`).
+- **Linter & Validator:** Oxlint (`.oxlintrc.json`), custom Minecraft AST rules (`scripts/lint/minecraft-rules.ts`), Ajv JSON schema validator (`scripts/lint/schemas.ts`), icon verifier (`scripts/lint/icons.ts`), and TypeScript typecheck (`scripts/lint/run.ts`).
 
-## 2. Repository Structure
-
-- `src/main.ts`: Addon entry point.
-- `src/config.ts`: Main configuration defaults and feature toggles.
-- `src/core/`: Core infrastructure:
-    - `commands/commandManager.ts`: Native slash command registry and execution engine.
-    - `configManager.ts`, `configManagerFactory.ts`, `configurations.ts`: Two-state priority-merge configuration persistence using world dynamic properties.
-    - `dataManager.ts`, `playerDataManager.ts`, `storage/StorageManager.ts`: Player and world data persistence.
-    - `permissionEngine.ts`, `rankManager.ts`, `rankDb.ts`: Tag/condition-based rank resolution and wildcard permission evaluation.
-    - `featureManager.ts`, `featureRegistry.ts`: Topological feature loader (`ac`, `eco`, `eco.shop`, `eco.ah`, `util.daily`, `util.kit`, `util.vote`, `util.sidebar`, `essentials`, `mod`, `ranks`, `soc`, `soc.team`, `tp`, `game`).
-    - `ui/`: UI builders (`ActionFormBuilder.ts`, `CustomFormBuilder.ts`, `MessageFormBuilder.ts`), registries (`menuRegistry.ts`, `configPanelRegistry.ts`, `systemRegistry.ts`), and core panels (`mainPanel.ts`, `adminPanel.ts`, `configPanel.ts`, `playerPanel.ts`, `inventoryPanel.ts`, `serverInfoPanel.ts`, `statsPanel.ts`).
-- `src/features/`: Self-contained feature modules (`anticheat`, `auction`, `daily`, `economy`, `essentials`, `games`, `kit`, `moderation`, `ranks`, `shop`, `sidebar`, `social`, `team`, `teleport`, `test`, `vote`).
-- `packs/behavior/` & `packs/resource/`: Behavior and Resource pack JSON definitions, functions (`owner.mcfunction`), entities (`exe:floating_text`), items (`exe:panel`), and custom dark-mode JSON UI (`packs/resource/ui/server_form.json`).
-- `scripts/`: Build pipeline (`build.ts`), manifest generator (`update-manifests.ts`), lint runner (`lint/run.ts`), and dependency tools.
-
-## 3. Build, Test & Verification Commands
+## 2. Build, Test & Verification Commands
 
 - **Build (Local):** `bun run build`
-- **Package `.mcaddon` Archive:** `bun scripts/build.ts --zip`
+- **Package `.mcaddon` Archive:** `bun scripts/build/build.ts --zip`
 - **Lint & Validate (Read-Only Check):** `bun run lint:check`
 - **Lint & Auto-Fix:** `bun run lint`
-- **Format Specific Files (Preferred over full-repo format):** `bunx prettier --write --cache <file1> <file2>`
+- **Format Modified Files Only:** `bunx prettier --write --cache <file1> <file2>`
 - **Run Unit Tests:** `bun test`
-- **Check Code Duplication:** `bun run test:dupe`
-- **Full Validation Suite:** `bun run validate`
+- **Check Code Duplication (Explicit Only):** `bun run test:dupe`
+- **Full Pack Validation:** `bun run validate`
 
-## 4. Coding & Architectural Conventions
+## 3. Coding & Architectural Standards
 
 - **Never Edit Build Artifacts:** Never manually edit `packs/behavior/scripts/` or generated `manifest.json` files. Edit `src/` and run `bun run build`.
-- **Naming Convention:** `snake_case` and `UPPER_SNAKE_CASE` are disallowed for project TypeScript variables, functions, and properties (enforced by custom AST lint rules in `scripts/lint/minecraft-rules.ts`). Exception: native Minecraft API identifiers and JSON UI schema keys.
-- **Path Aliases:** Use TypeScript path aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).
-- **Strict Guards:** Use type guards from `@lib/guards.js` (`isDefined`, `isNonEmptyString`, `isNumber`) instead of loose truthiness checks.
-- **Minecraft Constants:** Use `@minecraft/vanilla-data` (`MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftDimensionTypes`) instead of raw `"minecraft:..."` string literals.
-- **Logging:** Use `debugLog`, `infoLog`, `warnLog`, and `errorLog` from `@core/logger.js` (controlled by `config.logLevel`).
-- **UI System:**
-    - Use `ActionFormBuilder`, `CustomFormBuilder`, and `MessageFormBuilder` from `@ui/builders/`.
-    - `ActionFormBuilder.grid(1 | 2 | 3)` prefixes the form title with `§1` (1-column reader/list stack), `§2` (2-column wide card grid, default for hubs/menus), or `§3` (3-column compact tile grid, used for Shop).
-    - Register hub navigation entries in `src/core/ui/menuRegistry.ts` and config schemas in `src/core/ui/configPanelRegistry.ts`.
-- **Documentation Sync:** Keep `README.md`, `Docs/*.md`, and `Dev/*.md` synchronized when adding or modifying commands, features, or configuration keys.
+- **Naming Conventions:**
+    - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraft-rules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
+    - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
+- **Formatting (Prettier):** 4-space indentation, single quotes for TS, semicolons required, curly braces `{}` required on all control flow blocks.
+- **Path Aliases:** Use aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).
+- **Strict Type Guards:** Use `isDefined`, `isNonEmptyString`, and `isNumber` from `@lib/guards.js` instead of loose truthiness checks.
+- **Minecraft Constants:** Always import `MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftEntityTypes`, and `MinecraftDimensionTypes` from `@minecraft/vanilla-data` instead of raw `'minecraft:...'` strings.
+- **Entity Safety & Command Sanitization:**
+    - Always check `player.isValid` across tick boundaries and resolve live player references via `playerCache`.
+    - Sanitize any dynamic string passed into `runCommand()` using `escapeCommandArg()`.
+
+## 4. Configuration, Presets & SemVer Migration System
+
+- **Single Bundled Build & In-Game Editor:** All configurations are compiled into `main.js` with clean defaults and edited live in-game via `/panel`.
+- **Version-Safe Deep Merge:** On world load, saved dynamic properties are merged on top of default configs (`deepMerge(defaultConfig, savedConfig)`), preserving all existing server customizations while automatically populating newly added config keys on addon updates.
+- **SemVer Migration Runner:** `migrationManager.ts` compares the stored world addon version (`exe:version`) against the current `package.json` version and runs any pending versioned migration steps sequentially.
+
+## 5. Custom Dark-Mode UI & Text Formatting
+
+- **UI Builders:** Always use `ActionFormBuilder`, `CustomFormBuilder`, and `MessageFormBuilder`.
+    - `.grid(1)` (`§1§r`): 1-column full-width reader/list stack.
+    - `.grid(2)` (`§2§<tens>§<ones>§r`): 2-column wide card grid (default for hubs/menus).
+    - `.grid(3)` (`§3§<tens>§<ones>§r`): 3-column compact tile grid (Server Shop).
+    - `.grid(4)` (`§4§r`): 3x3 fixed board grid (Tic-Tac-Toe).
+- **Bedrock Section (`§`) Color & Style Codes:**
+    - Colors: `§0` Black, `§1` Dark Blue, `§2` Dark Green, `§3` Dark Aqua, `§4` Dark Red, `§5` Dark Purple, `§6` Gold, `§7` Gray, `§8` Dark Gray, `§9` Blue, `§a` Green, `§b` Aqua, `§c` Red, `§d` Light Purple, `§e` Yellow, `§f` White, `§g` Minecoin Gold.
+    - Styles (must follow color code): `§l` Bold, `§o` Italic, `§k` Obfuscated, `§r` Reset.

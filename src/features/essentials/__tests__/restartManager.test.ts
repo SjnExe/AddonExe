@@ -2,8 +2,8 @@ import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import defaultConfig from '../../../config.js';
 
-import * as configManager from '@core/configManager.js';
-import { addPlayerToCache, initializePlayerCache } from '@core/playerCache.js';
+import * as configManager from '@core/config/configManager.js';
+import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
 
 const { startRestart, cancelRestart } = await import('../restartManager.js');
 

@@ -1,14 +1,14 @@
-import { isFeatureActive } from '@core/featureManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import * as configManager from '@core/configManager.js';
-import * as cooldownManager from '@core/cooldownManager.js';
-import { errorLog } from '@core/logger.js';
-import * as messaging from '@core/messaging.js';
-import * as playerDataManager from '@core/playerDataManager.js';
-import * as teleportLogicModule from '@core/teleportLogic.js';
-import { formatCooldown, formatCurrency, playSound } from '@core/utils.js';
+import * as configManager from '@core/config/configManager.js';
+import * as cooldownManager from '@core/data/cooldownManager.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import { formatCooldown, formatCurrency, playSound } from '@core/utils/index.js';
+import { errorLog } from '@core/utils/logger.js';
+import * as messaging from '@core/utils/messaging.js';
+import * as teleportLogicModule from '@core/utils/teleportLogic.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
 
 interface BackConfig {

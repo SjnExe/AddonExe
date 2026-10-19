@@ -1,6 +1,6 @@
 import { CommandExecutor } from '@commands/commandManager.js';
-import * as configManager from '@core/configManager.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
+import * as configManager from '@core/config/configManager.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import * as mc from '@minecraft/server';

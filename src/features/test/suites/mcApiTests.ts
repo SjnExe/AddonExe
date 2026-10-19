@@ -1,7 +1,7 @@
-import { getConfig } from '@core/configManager.js';
-import { getShopConfig, getXrayConfig } from '@core/configurations.js';
-import { floatingTextId } from '@core/constants.js';
-import { deserializeItem, serializeItem } from '@core/itemSerializer.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getShopConfig, getXrayConfig } from '@core/config/configurations.js';
+import { deserializeItem, serializeItem } from '@core/data/itemSerializer.js';
+import { floatingTextId } from '@core/utils/constants.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes, MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { addTest, assert } from '../testRunner.js';

@@ -1,4 +1,4 @@
-import { StorageManager } from '@core/storage/StorageManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { isDefined } from '@lib/guards.js';
 
 interface WatchRecord {

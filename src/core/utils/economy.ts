@@ -1,4 +1,4 @@
-import { getEconomyConfig } from '@core/configurations.js';
+import { getEconomyConfig } from '@core/config/configurations.js';
 
 interface EconomyConfig {
     currencySymbol?: string;
@@ -101,4 +101,31 @@ export function parseCurrency(input: string | number): number {
     }
 
     return value * multiplier;
+}
+
+/**
+ * Validates a currency amount string input from commands or UI.
+ * Ensures the value is a valid positive/non-negative number with at most 2 decimal places.
+ */
+export function validateCurrencyAmount(amountStr: string, requirePositive = true): number | undefined {
+    if (typeof amountStr !== 'string' || amountStr.trim().length === 0) {
+        return undefined;
+    }
+    const amount = parseCurrency(amountStr);
+    if (Number.isNaN(amount)) {
+        return undefined;
+    }
+
+    if (requirePositive && amount <= 0) {
+        return undefined;
+    }
+    if (!requirePositive && amount < 0) {
+        return undefined;
+    }
+
+    if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) {
+        return undefined;
+    }
+
+    return amount;
 }

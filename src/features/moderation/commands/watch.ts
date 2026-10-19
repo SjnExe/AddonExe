@@ -31,7 +31,7 @@ const listwatchedCommand: CustomCommand = {
     }
 };
 
-import { getPlayerIdByName } from '@core/playerDataManager.js';
+import { getPlayerIdByName } from '@core/data/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
 
 const watchCommand: CustomCommand = {

@@ -2,7 +2,7 @@ import { serviceLocator } from '@core/services/serviceLocator.js';
 import { forceUpdate, initializeSidebar, resolveGlobalPlaceholders } from '@features/sidebar/manager.js';
 
 export async function initialize(_isMigration: boolean) {
-    const { getSidebarConfig, registerConfigReset, resetSidebarConfig } = await import('@core/configurations.js');
+    const { getSidebarConfig, registerConfigReset, resetSidebarConfig } = await import('@core/config/configurations.js');
 
     const current = getSidebarConfig();
     if (current.globalInfo?.sidebarLines?.[0] === '§7----------------' || current.globalInfo?.sidebarLines?.includes('§8━━━━━━━━━━━━━━')) {

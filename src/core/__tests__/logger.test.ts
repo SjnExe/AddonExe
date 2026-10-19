@@ -1,5 +1,5 @@
+import { debugLog, errorLog, infoLog, LogLevels, setExternalDebugHandler, setExternalErrorHandler, setExternalInfoHandler, setExternalWarnHandler, setLogLevel, warnLog } from '@core/utils/logger.js';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test';
-import { debugLog, errorLog, infoLog, LogLevels, setExternalDebugHandler, setExternalErrorHandler, setExternalInfoHandler, setExternalWarnHandler, setLogLevel, warnLog } from '../logger.js';
 
 describe('Logger External Handlers', () => {
     let originalConsoleLog: any;

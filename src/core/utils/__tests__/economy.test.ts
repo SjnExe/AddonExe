@@ -1,4 +1,4 @@
-import * as configurations from '@core/configurations.js';
+import * as configurations from '@core/config/configurations.js';
 import { describe, expect, it, spyOn } from 'bun:test';
 
 spyOn(configurations, 'getEconomyConfig').mockReturnValue({

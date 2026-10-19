@@ -1,18 +1,7 @@
-import * as uiManager from '@core/uiManager.js';
-import { addPaginationButtons, getPaginatedItems, handleCommonSelection, itemsPerPage } from '@ui/uiUtils.js';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { describe, expect, it } from 'bun:test';
 
 describe('uiUtils', () => {
-    let showPanelSpy: any;
-
-    beforeEach(() => {
-        showPanelSpy = spyOn(uiManager, 'showPanel').mockImplementation(() => Promise.resolve());
-    });
-
-    afterEach(() => {
-        showPanelSpy?.mockRestore();
-    });
-
     describe('getPaginatedItems', () => {
         it('returns the correct items for the first page', () => {
             const items = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -45,58 +34,6 @@ describe('uiUtils', () => {
             const items = Array.from({ length: 10 }, (_, i) => i + 1);
             const page3 = getPaginatedItems(items, 3);
             expect(page3).toEqual([]);
-        });
-    });
-
-    describe('addPaginationButtons', () => {
-        it('adds only Next button on the first page when total pages > 1', () => {
-            const form = { button: mock(() => form) } as any;
-            addPaginationButtons(form, 1, itemsPerPage + 1);
-            expect(form.button).toHaveBeenCalledTimes(1);
-            expect(form.button).toHaveBeenCalledWith('Next >');
-        });
-
-        it('adds only Previous button on the last page', () => {
-            const form = { button: mock(() => form) } as any;
-            addPaginationButtons(form, 2, itemsPerPage + 1);
-            expect(form.button).toHaveBeenCalledTimes(1);
-            expect(form.button).toHaveBeenCalledWith('< Previous');
-        });
-
-        it('adds both Previous and Next buttons on a middle page', () => {
-            const form = { button: mock(() => form) } as any;
-            addPaginationButtons(form, 2, itemsPerPage * 3);
-            expect(form.button).toHaveBeenCalledTimes(2);
-            expect(form.button).toHaveBeenNthCalledWith(1, '< Previous');
-            expect(form.button).toHaveBeenNthCalledWith(2, 'Next >');
-        });
-
-        it('adds no buttons if there is only one page', () => {
-            const form = { button: mock(() => form) } as any;
-            addPaginationButtons(form, 1, itemsPerPage);
-            expect(form.button).not.toHaveBeenCalled();
-        });
-
-        it('adds no buttons if there are no items', () => {
-            const form = { button: mock(() => form) } as any;
-            addPaginationButtons(form, 1, 0);
-            expect(form.button).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('handleCommonSelection', () => {
-        it('handles nextPage correctly by incrementing page', () => {
-            const player = {} as any;
-            const handled = handleCommonSelection(player, 'testPanel', { actionValue: 'nextPage' }, { page: 2 });
-            expect(handled).toBe(true);
-            expect(showPanelSpy).toHaveBeenCalledWith(player, 'testPanel', { page: 3 });
-        });
-
-        it('handles prevPage correctly by decrementing page', () => {
-            const player = {} as any;
-            const handled = handleCommonSelection(player, 'testPanel', { actionValue: 'prevPage' }, { page: 2 });
-            expect(handled).toBe(true);
-            expect(showPanelSpy).toHaveBeenCalledWith(player, 'testPanel', { page: 1 });
         });
     });
 });

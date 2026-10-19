@@ -1,11 +1,11 @@
-import { resetConfigSection, updateMultipleConfig } from '@core/configManager.js';
-import { debugLog } from '@core/logger.js';
-import { getValueFromPath } from '@core/objectUtils.js';
-import { hasPermission } from '@core/permissionEngine.js';
+import { resetConfigSection, updateMultipleConfig } from '@core/config/configManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { debugLog } from '@core/utils/logger.js';
+import { getValueFromPath } from '@core/utils/objectUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { getSystemDefinition } from '@ui/systemRegistry.js';
@@ -148,16 +148,17 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
             displayVal = typeof currentValue === 'string' || typeof currentValue === 'number' || typeof currentValue === 'boolean' ? String(currentValue) : JSON.stringify(currentValue);
         }
 
+        const controlKey = `${source}:${setting.key}`;
         if (setting.type === 'toggle') {
-            modal.toggle(setting.key, setting.label, Boolean(currentValue));
+            modal.toggle(controlKey, setting.label, Boolean(currentValue));
         } else if (setting.type === 'textField') {
-            modal.textField(setting.key, setting.label, '', displayVal);
+            modal.textField(controlKey, setting.label, '', displayVal);
         } else if (setting.options) {
             let idx = setting.options.indexOf(displayVal);
             if (idx === -1 && typeof currentValue === 'number') {
                 idx = setting.options.findIndex((opt) => opt.startsWith(`${currentValue}:`));
             }
-            modal.dropdown(setting.key, setting.label, setting.options, Math.max(0, idx));
+            modal.dropdown(controlKey, setting.label, setting.options, Math.max(0, idx));
         }
     }
 
@@ -325,7 +326,8 @@ export async function showConfigImportPanel(player: mc.Player): Promise<void> {
 function _processFormValues(validSettings: SettingSchema[], formValues: Record<string, unknown>, config: Record<string, unknown>): Record<string, unknown> {
     const updates: Record<string, unknown> = {};
     validSettings.forEach((setting) => {
-        let val = formValues[setting.key];
+        const controlKey = `${setting.configSource ?? 'main'}:${setting.key}`;
+        let val = formValues[controlKey] ?? formValues[setting.key];
         const currentValue = getValueFromPath(config, setting.key);
         if (setting.type === 'dropdown' && setting.options) {
             if (typeof val === 'number') {

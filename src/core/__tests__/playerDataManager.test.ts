@@ -6,11 +6,11 @@ const { mockStorageLoad, mockStorageSave } = {
     mockStorageSave: mock()
 };
 
-import { initializeConfigManager } from '@core/configManager.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
-import * as configurations from '../configurations.js';
+import { initializeConfigManager } from '@core/config/configManager.js';
+import * as configurations from '@core/config/configurations.js';
+import { StorageManager } from '@core/data/storageManager.js';
 
-const { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } = await import('@core/playerDataManager.js');
+const { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } = await import('@core/data/playerDataManager.js');
 
 const mockPlayer = (id: string, name: string) =>
     ({

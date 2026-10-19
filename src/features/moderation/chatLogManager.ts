@@ -1,5 +1,5 @@
-import { getConfig } from '@core/configManager.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

@@ -1,8 +1,8 @@
-import { reloadConfig } from '@core/configManager.js';
-import { reloadAllConfigs } from '@core/configurations.js';
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { reloadRanks } from '@core/rankManager.js';
+import { reloadConfig } from '@core/config/configManager.js';
+import { reloadAllConfigs } from '@core/config/configurations.js';
+import { reloadRanks } from '@core/permissions/rankManager.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { refreshXrayCache } from '@features/anticheat/xrayDetection.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { updateAllPlayerRanks } from '../../../main.js';

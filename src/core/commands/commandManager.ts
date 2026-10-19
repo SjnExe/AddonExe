@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { debugLog, errorLog, infoLog } from '@core/logger.js';
-import { hasPermission } from '@core/permissionEngine.js';
-import { getPlayer } from '@core/playerDataManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getPlayer } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 // --- Type Definitions ---

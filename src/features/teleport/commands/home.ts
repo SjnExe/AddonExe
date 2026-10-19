@@ -1,11 +1,10 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { uiWait } from '@core/utils.js';
+import { getConfig } from '@core/config/configManager.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 import * as homesManager from '@features/teleport/homesManager.js';
@@ -69,24 +68,16 @@ const homeCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData().title('Teleport to Home').body('Select a home to teleport to:');
+        const form = new ActionFormBuilder().title('Teleport to Home').body('Select a home to teleport to:');
 
         for (const homeName of homeList) {
-            form.button(homeName);
+            form.button(homeName, 'textures/ui/icon_recipe_item', () => {
+                teleportToHome(homeName);
+            });
         }
 
         try {
-            const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) {
-                return;
-            }
-            const selection = (response as ActionFormResponse).selection;
-            if (isDefined(selection)) {
-                const selectedHome = homeList[selection];
-                if (isNonEmptyString(selectedHome)) {
-                    teleportToHome(selectedHome);
-                }
-            }
+            await form.show(executor, { wait: true });
         } catch (error: unknown) {
             errorLog(`[/home UI] ${String(error)}`);
         }
@@ -162,24 +153,16 @@ const delHomeCommand: CustomCommand = {
             return;
         }
 
-        const form = new ActionFormData().title('Delete a Home').body('Select a home to delete:');
+        const form = new ActionFormBuilder().title('Delete a Home').body('Select a home to delete:');
 
         for (const homeName of homeList) {
-            form.button(homeName);
+            form.button(homeName, 'textures/ui/trash', () => {
+                deleteHomeByName(homeName);
+            });
         }
 
         try {
-            const response = await uiWait(executor, form);
-            if (!isDefined(response) || response.canceled) {
-                return;
-            }
-            const selection = (response as ActionFormResponse).selection;
-            if (isDefined(selection)) {
-                const selectedHome = homeList[selection];
-                if (isNonEmptyString(selectedHome)) {
-                    deleteHomeByName(selectedHome);
-                }
-            }
+            await form.show(executor, { wait: true });
         } catch (error: unknown) {
             errorLog(`[/delhome UI] ${String(error)}`);
         }

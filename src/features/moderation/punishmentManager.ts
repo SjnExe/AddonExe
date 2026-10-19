@@ -1,9 +1,9 @@
 import * as mc from '@minecraft/server';
 
-import { getConfig } from '@core/configManager.js';
-import { debugLog, errorLog } from '@core/logger.js';
+import { getConfig } from '@core/config/configManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
+import { debugLog, errorLog } from '@core/utils/logger.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 

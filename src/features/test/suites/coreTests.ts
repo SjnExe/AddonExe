@@ -1,14 +1,14 @@
 import { commandManager } from '@commands/commandManager.js';
-import { getConfig } from '@core/configManager.js';
-import { getCooldown, setCooldown } from '@core/cooldownManager.js';
-import { getValueFromPath } from '@core/objectUtils.js';
-import { calculateRankMap } from '@core/permissionEngine.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
+import { calculateRankMap } from '@core/permissions/permissionEngine.js';
 import { configPanelSchema } from '@core/ui/configPanelRegistry.js';
 import { configHandlers } from '@core/ui/uiUtils.js';
-import { getTimestampFromUUIDv7 } from '@core/utils.js';
+import { getIdTimestamp } from '@core/utils/index.js';
+import { getValueFromPath } from '@core/utils/objectUtils.js';
 import { escapeCommandArg, sanitizeString } from '@core/utils/sanitization.js';
-import { generateUUIDv7 } from '@lib/uuid.js';
+import { generateId } from '@lib/id.js';
 import { addTest, assert } from '../testRunner.js';
 
 const SUITE_NAME = 'core';
@@ -26,11 +26,11 @@ export function registerCoreTests() {
 
     addTest(SUITE_NAME, 'UUIDv7 generator produces valid RFC 9562 time-ordered IDs', () => {
         const before = Date.now();
-        const uuid = generateUUIDv7();
+        const uuid = generateId();
         const after = Date.now();
 
-        assert.ok(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(uuid), `Invalid UUIDv7 format: ${uuid}`);
-        const ts = getTimestampFromUUIDv7(uuid);
+        assert.ok(/^[0-9a-z]+-[0-9a-z]{7}$/.test(uuid), `Invalid ID format: ${uuid}`);
+        const ts = getIdTimestamp(uuid);
         assert.ok(ts >= before && ts <= after, `Extracted timestamp ${ts} out of range [${before}, ${after}]`);
     });
 

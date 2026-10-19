@@ -1,11 +1,11 @@
-import { getConfig } from '@core/configManager.js';
-import { isFeatureActive } from '@core/featureManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
-import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/playerDataManager.js';
-import { formatCurrency, resolveTarget } from '@core/utils.js';
+import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/data/playerDataManager.js';
+import { formatCurrency, resolveTarget } from '@core/utils/index.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { getLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 

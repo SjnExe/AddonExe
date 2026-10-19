@@ -1,8 +1,8 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getConfig, onConfigUpdated } from '@core/configManager.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { getPlayer } from '@core/playerDataManager.js';
-import { clearTrackedInterval, setTrackedInterval } from '@core/timerManager.js';
+import { getConfig, onConfigUpdated } from '@core/config/configManager.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { getPlayer } from '@core/data/playerDataManager.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

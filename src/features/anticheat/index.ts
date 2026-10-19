@@ -17,7 +17,7 @@ export async function initialize(_isMigration: boolean) {
     });
 
     // Register configurations
-    const { resetXrayConfig, registerConfigReset } = await import('@core/configurations.js');
+    const { resetXrayConfig, registerConfigReset } = await import('@core/config/configurations.js');
     registerConfigReset('xray', {
         reset: resetXrayConfig,
         message: 'The X-ray configuration section has been reset to default.'

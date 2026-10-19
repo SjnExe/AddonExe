@@ -42,124 +42,184 @@ export interface ConfigCategory {
 export const configPanelSchema: ConfigCategory[] = [
     {
         id: 'featureToggles',
-        title: 'Feature Toggles',
+        title: 'Master Feature Toggles',
         icon: 'textures/ui/settings_glyph_color_2x',
         configSource: 'main',
         category: 'Server & Network',
         settings: [
             {
                 key: 'economy.enabled',
-                label: 'Enable Economy',
+                label: 'Enable Economy (Master Switch)',
                 type: 'toggle',
-                description: 'Master switch for all economy features (Shop, Auction, Bounties, etc).'
+                configSource: 'main'
             },
             {
                 key: 'shop.enabled',
-                label: 'Enable Shop System',
+                label: 'Enable Shop System (/shop)',
                 type: 'toggle',
-                description: 'Enables or disables the Shop system.'
+                configSource: 'main'
             },
             {
                 key: 'auctionHouse.enabled',
-                label: 'Enable Auction House',
+                label: 'Enable Auction House (/ah)',
                 type: 'toggle',
-                description: 'Enables or disables the Auction House system.'
+                configSource: 'main'
             },
             {
                 key: 'bounties.enabled',
-                label: 'Enable Bounty System',
+                label: 'Enable Bounty System (/bounty)',
                 type: 'toggle',
-                description: 'Enables or disables player bounties.'
+                configSource: 'main'
             },
             {
                 key: 'dailyRewards.enabled',
-                label: 'Enable Daily Rewards',
+                label: 'Enable Daily Rewards (/daily)',
                 type: 'toggle',
-                description: 'Enables or disables daily login rewards.'
+                configSource: 'main'
             },
             {
                 key: 'kits.enabled',
-                label: 'Enable Kit System',
+                label: 'Enable Kit System (/kit)',
                 type: 'toggle',
-                description: 'Enables or disables the entire Kit System.'
+                configSource: 'main'
             },
             {
                 key: 'kits.starterKit.enabled',
                 label: 'Enable Starter Kit on First Join',
                 type: 'toggle',
-                description: 'Automatically gives the starter kit to new players.'
+                configSource: 'main'
             },
             {
-                key: 'voting.enabled',
-                label: 'Enable Voting System',
+                key: 'pvp.enabled',
+                label: 'Enable PvP Wager Duels (/pvp)',
                 type: 'toggle',
-                description: 'Enables or disables the voting system.'
+                configSource: 'economy'
+            },
+            {
+                key: 'steal.enabled',
+                label: 'Enable PvP Kill Balance Steal',
+                type: 'toggle',
+                configSource: 'economy'
+            },
+            {
+                key: 'combat.enabled',
+                label: 'Enable Combat Tag & Anti-Combat-Log',
+                type: 'toggle',
+                configSource: 'main'
+            },
+            {
+                key: 'enabled',
+                label: 'Enable Anti-Cheat System',
+                type: 'toggle',
+                configSource: 'anticheat'
             },
             {
                 key: 'spawnProtection.enabled',
                 label: 'Enable Spawn Protection',
                 type: 'toggle',
-                description: 'Enables or disables radius-based spawn protection.'
+                configSource: 'main'
             },
             {
                 key: 'tpa.enabled',
-                label: 'Enable TPA System',
+                label: 'Enable TPA System (/tpa)',
                 type: 'toggle',
-                description: 'Enables or disables Teleport Requests (/tpa).'
+                configSource: 'main'
             },
             {
                 key: 'homes.enabled',
-                label: 'Enable Home System',
+                label: 'Enable Home System (/home)',
                 type: 'toggle',
-                description: 'Enables or disables Player Homes (/home, /sethome).'
+                configSource: 'main'
             },
             {
                 key: 'warps.enabled',
-                label: 'Enable Warp System',
+                label: 'Enable Warp System (/warp)',
                 type: 'toggle',
-                description: 'Enables or disables Server Warps (/warp).'
+                configSource: 'main'
             },
             {
                 key: 'rtp.enabled',
-                label: 'Enable Random Teleport',
+                label: 'Enable Random Teleport (/rtp)',
                 type: 'toggle',
-                description: 'Enables or disables Random Teleportation (/rtp).'
+                configSource: 'main'
             },
             {
                 key: 'back.enabled',
-                label: 'Enable Back System',
+                label: 'Enable Back System (/back)',
                 type: 'toggle',
-                description: 'Enables or disables /back command.'
+                configSource: 'main'
+            },
+            {
+                key: 'enabled',
+                label: 'Enable Friends System (/friend)',
+                type: 'toggle',
+                configSource: 'friend'
+            },
+            {
+                key: 'enabled',
+                label: 'Enable Teams System (/team)',
+                type: 'toggle',
+                configSource: 'team'
+            },
+            {
+                key: 'voting.enabled',
+                label: 'Enable Community Voting Polls (/vote)',
+                type: 'toggle',
+                configSource: 'main'
+            },
+            {
+                key: 'enabled',
+                label: 'Enable Sidebar & HUD (/sidebar)',
+                type: 'toggle',
+                configSource: 'sidebar'
+            },
+            {
+                key: 'enabled',
+                label: 'Enable Mini-Games Hub',
+                type: 'toggle',
+                configSource: 'games'
+            },
+            {
+                key: 'ticTacToe.enabled',
+                label: 'Enable Tic-Tac-Toe (/ttt)',
+                type: 'toggle',
+                configSource: 'games'
+            },
+            {
+                key: 'enabled',
+                label: 'Enable Wordle (/wordle)',
+                type: 'toggle',
+                configSource: 'wordle'
             },
             {
                 key: 'chat.enabled',
                 label: 'Enable Custom Chat Formatting',
                 type: 'toggle',
-                description: 'Enables rank chat formatting, mute checks, and mentions.'
+                configSource: 'main'
             },
             {
                 key: 'announcements.enabled',
-                label: 'Enable Announcement System',
+                label: 'Enable Automated Announcements',
                 type: 'toggle',
-                description: 'Enables or disables automated periodic broadcast messages.'
+                configSource: 'main'
             },
             {
                 key: 'playerInfo.enableWelcomer',
-                label: 'Enable Welcomer',
+                label: 'Enable New Player Welcomer',
                 type: 'toggle',
-                description: 'Sends welcome message to new players.'
+                configSource: 'main'
             },
             {
                 key: 'playerInfo.customJoinLeave.enabled',
-                label: 'Enable Custom Join/Leave',
+                label: 'Enable Custom Join/Leave Messages',
                 type: 'toggle',
-                description: 'Enables custom join and leave messages.'
+                configSource: 'main'
             },
             {
                 key: 'exeGlobalNotificationsDefaultOn',
                 label: 'Global Staff Notifications Default On',
                 type: 'toggle',
-                description: 'Whether staff notifications are enabled by default.'
+                configSource: 'main'
             }
         ]
     },
@@ -1189,6 +1249,51 @@ export const configPanelSchema: ConfigCategory[] = [
         ]
     },
     {
+        id: 'combatSystem',
+        title: 'Combat Tag & Anti-Log',
+        icon: 'textures/items/iron_sword',
+        configSource: 'main',
+        category: 'Moderation & Rules',
+        settings: [
+            {
+                key: 'combat.enabled',
+                label: 'Enable Combat Tagging',
+                type: 'toggle',
+                description: 'Tracks PvP combat state for players.'
+            },
+            {
+                key: 'combat.tagDurationSeconds',
+                label: 'Combat Tag Duration (s)',
+                type: 'textField',
+                description: 'Seconds a player remains in combat after PvP damage (default 15).'
+            },
+            {
+                key: 'combat.blockTeleportInCombat',
+                label: 'Block Teleports in Combat',
+                type: 'toggle',
+                description: 'Prevents /spawn, /home, /tpa, /warp, /rtp, and /back while in combat.'
+            },
+            {
+                key: 'combat.combatLogPenalty',
+                label: 'Penalize Combat Logging',
+                type: 'toggle',
+                description: 'Awards kill, bounty, and steal payout to attacker if a tagged player disconnects.'
+            },
+            {
+                key: 'combat.reconnectGraceSeconds',
+                label: 'Disconnect Grace Period (s)',
+                type: 'textField',
+                description: 'Seconds allowed to reconnect after an internet drop before penalty applies (0 = instant).'
+            },
+            {
+                key: 'combat.killOnRejoin',
+                label: 'Kill Combat Logger on Rejoin',
+                type: 'toggle',
+                description: 'If enabled, kills the player upon reconnecting after a confirmed combat log.'
+            }
+        ]
+    },
+    {
         id: 'pvpSystem',
         title: 'PvP System',
         icon: 'textures/items/diamond_sword',
@@ -1441,36 +1546,6 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Enable Flight Detection',
                 type: 'toggle',
                 description: 'Detects unauthorized flight.'
-            },
-            {
-                key: 'worldBorder.enabled',
-                label: 'Enable World Border',
-                type: 'toggle',
-                description: 'Enables world border enforcement.'
-            },
-            {
-                key: 'worldBorder.overworldRadius',
-                label: 'Overworld Border Radius',
-                type: 'textField',
-                description: 'Radius in blocks for Overworld.'
-            },
-            {
-                key: 'worldBorder.endRadius',
-                label: 'End Border Radius',
-                type: 'textField',
-                description: 'Radius in blocks for The End.'
-            },
-            {
-                key: 'worldBorder.netherRadiusRatio',
-                label: 'Nether Radius Ratio',
-                type: 'textField',
-                description: 'Divisor for Nether border radius (default 8).'
-            },
-            {
-                key: 'worldBorder.knockbackAmount',
-                label: 'Border Knockback Distance',
-                type: 'textField',
-                description: 'Blocks pushed back when hitting border.'
             },
             {
                 key: 'antiNetherRoof.enabled',

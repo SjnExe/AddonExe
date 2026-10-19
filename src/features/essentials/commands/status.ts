@@ -1,8 +1,8 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { sendMessage } from '@core/messaging.js';
-import { getPlayerCount } from '@core/playerCache.js';
+import { getPlayerCount } from '@core/data/playerCache.js';
+import { sendMessage } from '@core/utils/messaging.js';
 
 const statusCommand: CustomCommand = {
     name: 'status',

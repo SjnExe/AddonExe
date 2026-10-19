@@ -59,17 +59,17 @@
 
 ## 📖 Documentation Hub
 
-- 📜 [**Commands Reference**](Docs/Commands.md) — Every member, moderator, and admin slash command.
-- ✨ [**Features Overview**](Docs/FeaturesOverview.md) — Detailed breakdown of all systems and modules.
-- ⚙️ [**Configuration Guide**](Docs/ConfigurationGuide.md) — In-game config editor, `/xreload` merging, and config files.
-- 🏅 [**Rank & Permission System**](Docs/RankSystem.md) — Ranks, permission wildcards, and chat/nametag styling.
-- ❓ [**F.A.Q.**](Docs/F.A.Q.md) & 🛠️ [**Troubleshooting Guide**](Docs/Troubleshooting.md) — Solutions to common setup questions.
+- 📜 [**Commands Reference**](docs/commands.md) — Every member, moderator, and admin slash command.
+- ✨ [**Features Overview**](docs/features-overview.md) — Detailed breakdown of all systems and modules.
+- ⚙️ [**Configuration Guide**](docs/configuration-guide.md) — In-game config editor, `/xreload` merging, and config files.
+- 🏅 [**Rank & Permission System**](docs/rank-system.md) — Ranks, permission wildcards, and chat/nametag styling.
+- ❓ [**F.A.Q.**](docs/faq.md) & 🛠️ [**Troubleshooting Guide**](docs/troubleshooting.md) — Solutions to common setup questions.
 - 💻 [**Developer Guide**](Dev/README.md) & [**Agent Instructions**](AGENTS.md) — Architecture, build scripts, and coding standards.
 
 ---
 
 ## 🤝 Contributing & License
 
-Contributions, bug reports, and feature requests are welcome! Please read our [Contributing Guide](.github/CONTRIBUTING.md) and [Coding Style Guidelines](Dev/CodingStyle.md).
+Contributions, bug reports, and feature requests are welcome! Please read our [Contributing Guide](.github/CONTRIBUTING.md).
 
 Licensed under the [MIT License](LICENSE).

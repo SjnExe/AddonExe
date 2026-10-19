@@ -1,8 +1,8 @@
-import { getPlayerNameById, loadPlayerData, savePlayerData } from '@core/playerDataManager.js';
-import { showPanel } from '@core/uiManager.js';
+import { getPlayerNameById, loadPlayerData, savePlayerData } from '@core/data/playerDataManager.js';
+import { showPanel } from '@core/ui/uiManager.js';
 import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/CustomFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showStatsPanel(player: mc.Player, targetPlayerId: string): Promise<void> {
     const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;

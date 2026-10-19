@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 
-import { StorageManager } from '@core/storage/StorageManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 
 const flagStorage = new StorageManager('exe:logs:flags');

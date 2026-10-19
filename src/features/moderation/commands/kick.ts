@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { soundError, soundTeleport } from '@core/constants.js';
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { findPlayerByName } from '@core/playerCache.js';
-import { canTarget } from '@core/rankManager.js';
-import { playSound } from '@core/utils.js';
+import { findPlayerByName } from '@core/data/playerCache.js';
+import { canTarget } from '@core/permissions/rankManager.js';
+import { soundError, soundTeleport } from '@core/utils/constants.js';
+import { playSound } from '@core/utils/index.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
 

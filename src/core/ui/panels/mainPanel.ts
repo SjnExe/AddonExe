@@ -1,6 +1,6 @@
 import { getMenuItemsForHub, isMenuItemActive, MenuHubId } from '@core/ui/menuRegistry.js';
 import { Player } from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/ActionFormBuilder.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 /**
  * Renders a standard dark theme multi-column category hub menu for a specific hub ID.

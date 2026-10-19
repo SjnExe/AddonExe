@@ -1,6 +1,4 @@
-import { ActionFormData } from '@minecraft/server-ui';
-
-import { Config, getConfig, updateMultipleConfig } from '@core/configManager.js';
+import { Config, getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import {
     DailyRewardsConfig,
     FriendConfig,
@@ -29,20 +27,19 @@ import {
     saveWorldProtectionConfig,
     saveXrayConfig,
     SidebarConfig
-} from '@core/configurations.js';
+} from '@core/config/configurations.js';
 
-import { hasPermission } from '@core/permissionEngine.js';
-import { showPanel } from '@core/uiManager.js';
-import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@features/anticheat/configLoader.js';
+import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@core/config/configurations.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { xrayConfig } from '@features/anticheat/xrayConfig.js';
-import { auctionHouseConfig } from '@features/auction/auctionHouseConfig.js';
-import { economyConfig } from '@features/economy/economyConfig.js';
-import { WorldProtectionConfig } from '@features/essentials/worldProtectionConfig.js';
-import { gamesConfig } from '@features/games/gamesConfig.js';
-import { wordleConfig } from '@features/games/wordle/wordleConfig.js';
-import ranksConfig from '@features/ranks/ranksConfig.js';
-import { shopConfig } from '@features/shop/shopConfig.js';
-import { teamConfig } from '@features/team/teamConfig.js';
+import { auctionHouseConfig } from '@features/economy/auction/config.js';
+import { economyConfig } from '@features/economy/config.js';
+import { shopConfig } from '@features/economy/shop/config.js';
+import { WorldProtectionConfig } from '@features/essentials/config.js';
+import { gamesConfig } from '@features/games/config.js';
+import { wordleConfig } from '@features/games/wordle/config.js';
+import ranksConfig from '@features/ranks/config.js';
+import { teamConfig } from '@features/social/team/config.js';
 import * as mc from '@minecraft/server';
 
 type EconomyConfig = typeof economyConfig;
@@ -146,60 +143,6 @@ export function getPaginatedItems<T>(items: T[], page: number): T[] {
     return items.slice(startIndex, endIndex);
 }
 
-/**
- * Helper to add pagination buttons to a form.
- */
-export function addPaginationButtons(form: ActionFormData, page: number, totalItems: number): void {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (page > 1) {
-        form.button('< Previous');
-    }
-    if (page < totalPages) {
-        form.button('Next >');
-    }
-}
-
-/**
- * Helper to add pagination items to a any array.
- */
-export function addPaginationItems(items: Record<string, unknown>[], page: number, totalItems: number, permission: string = 'ui.panel.member'): void {
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (page > 1) {
-        items.unshift({
-            id: '__prev__',
-            text: '< Previous Page',
-            icon: 'textures/gui/newgui/UpArrow.png',
-            permission,
-            actionType: 'functionCall',
-            actionValue: 'prevPage'
-        });
-    }
-    if (page < totalPages) {
-        items.push({
-            id: '__next__',
-            text: 'Next Page >',
-            icon: 'textures/gui/newgui/DownArrow.png',
-            permission,
-            actionType: 'functionCall',
-            actionValue: 'nextPage'
-        });
-    }
-}
-
-/**
- * Helper to add a standardized back button to a any array.
- */
-export function addBackButton(items: Record<string, unknown>[], targetPanelId: string, permission: string = 'ui.panel.member'): void {
-    items.push({
-        id: '__back__',
-        text: '< Back',
-        icon: 'textures/gui/newgui/LeftArrow.png',
-        permission,
-        actionType: 'openPanel',
-        actionValue: targetPanelId
-    });
-}
-
 export interface SystemItem {
     id: string;
     title: string;
@@ -282,41 +225,4 @@ export function getSystemsByCategory(player: mc.Player, category: string): Syste
             icon: sys.icon
         }))
         .toSorted((a, b) => a.title.replaceAll(/§./g, '').localeCompare(b.title.replaceAll(/§./g, '')));
-}
-
-/**
- * Handles common selection actions like opening a panel or pagination.
- * Returns true if an action was handled, false otherwise.
- */
-export function handleCommonSelection(player: mc.Player, panelId: string, item: Record<string, unknown>, context: Record<string, unknown>): boolean {
-    const actionType = item.actionType as string | undefined;
-    const actionValue = item.actionValue as string | undefined;
-    const id = item.id as string | undefined;
-
-    if (actionType === 'openPanel' && actionValue) {
-        void showPanel(player, actionValue, {
-            ...context,
-            page: 1,
-            selectedItemId: id,
-            id: id
-        });
-        return true;
-    }
-    if (actionValue === 'prevPage') {
-        const currentPage = (context.page as number) || 1;
-        void showPanel(player, panelId, {
-            ...context,
-            page: Math.max(1, currentPage - 1)
-        });
-        return true;
-    }
-    if (actionValue === 'nextPage') {
-        const currentPage = (context.page as number) || 1;
-        void showPanel(player, panelId, {
-            ...context,
-            page: currentPage + 1
-        });
-        return true;
-    }
-    return false;
 }

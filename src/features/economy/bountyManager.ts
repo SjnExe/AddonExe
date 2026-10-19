@@ -3,9 +3,9 @@
  * @module bountyManager
  */
 
-import { debugLog, errorLog } from '@core/logger.js';
-import * as playerDataManager from '@core/playerDataManager.js';
-import { StorageManager } from '@core/storage/StorageManager.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
+import { debugLog, errorLog } from '@core/utils/logger.js';
 
 const bountyDataKey = 'exe:bountyData';
 const storage = new StorageManager(bountyDataKey);

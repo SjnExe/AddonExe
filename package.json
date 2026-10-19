@@ -15,35 +15,35 @@
     "license": "MIT",
     "author": "SjnExe",
     "type": "module",
-    "main": "index.js",
     "scripts": {
-        "build": "bun clean && bun scripts/build.ts",
-        "build:nightly": "bun clean && bun scripts/build.ts --nightly",
-        "build:release": "bun clean && bun scripts/build.ts --release --minify",
-        "check-deps": "bun scripts/check-dependencies.ts",
+        "build": "bun clean && bun scripts/build/build.ts",
+        "build:nightly": "bun clean && bun scripts/build/build.ts --nightly",
+        "build:release": "bun clean && bun scripts/build/build.ts --release --minify",
+        "check-deps": "bun scripts/build/check-dependencies.ts",
         "check-types": "bun check",
         "clean": "rm -rf out packs/behavior/scripts",
         "format": "bunx prettier --write --cache .",
         "format:check": "bunx prettier --check --cache .",
-        "postinstall": "bun scripts/postinstall.ts",
+        "postinstall": "bun scripts/hooks/postinstall.ts",
         "lint": "bun scripts/lint/run.ts --fix",
         "lint:check": "bun scripts/lint/run.ts",
         "lint:report": "bun scripts/lint/oxlint.ts -f json > oxlint_report.json",
-        "mc-update": "bun scripts/mc-update.ts",
+        "mc-update": "bun scripts/build/mc-update.ts",
         "project-info": "bunx mct info -i packs",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
         "test": "bun test --isolate --parallel",
-        "test:dupe": "bun scripts/test-duplication.ts",
-        "test:duplication": "bun run test:dupe",
+        "test:dupe": "bun scripts/lint/test-duplication.ts",
         "test:watch": "bun test --isolate --parallel --watch",
-        "validate": "bun scripts/validate.ts",
-        "watch": "bun scripts/build.ts --watch"
+        "validate": "bun scripts/hooks/validate.ts",
+        "watch": "bun scripts/build/build.ts --watch"
     },
     "lint-staged": {
         "*.{js,ts}": "bun scripts/lint/staged.ts",
         "*.{json,md,yml,yaml}": "bunx prettier --write --cache"
     },
-    "overrides": {},
+    "overrides": {
+        "react": "^18.3.1"
+    },
     "dependencies": {
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest"
@@ -64,7 +64,6 @@
         "oxlint": "latest",
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
-        "prettier-plugin-packagejson": "latest",
-        "react": "^18.3.1"
+        "prettier-plugin-packagejson": "latest"
     }
 }
