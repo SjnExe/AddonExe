@@ -41,7 +41,7 @@ export async function showKitClaimPanel(player: mc.Player, page: number = 1): Pr
         async (newPage) => {
             await showKitClaimPanel(player, newPage);
         },
-        8
+        45
     );
 
     form.addBackButton(async () => {

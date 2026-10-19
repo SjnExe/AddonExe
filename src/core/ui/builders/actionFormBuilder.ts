@@ -2,12 +2,12 @@ import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
-export type GridColumns = 1 | 2 | 3 | 4;
+export type GridColumns = 1 | 2 | 3 | 4 | 'board';
 
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
     private readonly callbacks: Map<number, () => void | Promise<void>>;
-    private gridColumns: GridColumns = 2;
+    private gridColumns: GridColumns = 3;
     private rawTitle = '';
 
     constructor() {
@@ -30,20 +30,20 @@ export class ActionFormBuilder {
     }
 
     private applyTitleWithGrid(): void {
-        const buttonCount = Math.max(1, this.callbacks.size);
         if (this.gridColumns === 1) {
-            this.form.title(`§1§0§0§r${this.rawTitle}`);
+            this.form.title(`§1§0§0§f§r${this.rawTitle}`);
             return;
         }
-        if (this.gridColumns === 4) {
-            this.form.title(`§4§0§0§r${this.rawTitle}`);
+        if (this.gridColumns === 'board') {
+            this.form.title(`§9§0§0§f§r${this.rawTitle}`);
             return;
         }
-        const maxRows = this.gridColumns === 2 ? 20 : 15;
+        const buttonCount = Math.max(1, this.callbacks.size);
+        const maxRows = 24;
         const rows = Math.max(1, Math.min(maxRows, Math.ceil(buttonCount / this.gridColumns)));
         const tens = Math.floor(rows / 10);
         const ones = rows % 10;
-        this.form.title(`§${this.gridColumns}§${tens}§${ones}§r${this.rawTitle}`);
+        this.form.title(`§${this.gridColumns}§${tens}§${ones}§f§r${this.rawTitle}`);
     }
 
     public getColumns(): GridColumns {
@@ -105,7 +105,7 @@ export class ActionFormBuilder {
         page: number,
         renderButton: (item: T, formBuilder: ActionFormBuilder) => void,
         onPageChange: (newPage: number) => Promise<void> | void,
-        itemsPerPage = 10
+        itemsPerPage = 45
     ): this {
         const totalPages = Math.ceil(items.length / itemsPerPage);
         const currentPage = Math.max(1, Math.min(page, totalPages));

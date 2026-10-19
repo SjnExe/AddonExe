@@ -38,3 +38,22 @@ describe('shopUtils - parseRankOverrides', () => {
         expect(parseRankOverrides('invalid_string')).toBeUndefined();
     });
 });
+
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
+import { resolveTradeItemMetadata } from '../../tradeUtils.js';
+import { formatItemName, resolveTexturePath } from '../utils.js';
+
+describe('shopUtils & tradeUtils - item names and icons', () => {
+    it('should convert camelCase and snake_case item keys into Title Case names', () => {
+        expect(formatItemName('goldIngot')).toBe('Gold Ingot');
+        expect(formatItemName('witherSkeletonSkull')).toBe('Wither Skeleton Skull');
+        expect(formatItemName(MinecraftItemTypes.StoneBrickStairs)).toBe('Stone Brick Stairs');
+    });
+
+    it('should resolve valid texture icons for items and block variants', () => {
+        const meta = resolveTradeItemMetadata('goldIngot', { buyPrice: 100, sellPrice: 50 } as any);
+        expect(meta.displayName).toBe('Gold Ingot');
+        expect(meta.icon).toBe('textures/items/gold_ingot');
+        expect(resolveTexturePath(MinecraftItemTypes.StoneBrickStairs)).toBe('textures/blocks/stonebrick');
+    });
+});

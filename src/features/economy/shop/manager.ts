@@ -8,6 +8,7 @@ import { getPlayerRanks } from '@core/permissions/permissionEngine.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { items as allItems } from '@features/economy/shop/itemsConfig.js';
+import { calculateInventorySpaceForItem, countMatchingInventoryItems, resolveTradeItemMetadata } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export interface ItemInfo {
@@ -71,7 +72,7 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
  * @param itemId The item ID to look up.
  * @returns The item definition or undefined if not found.
  */
-export function findShopItem(itemId: string): ItemInfo | undefined {
+export function findShopItem(itemKey: string): ItemInfo | undefined {
     const shopConfig = getShopConfig();
     const categories = shopConfig.categories;
     const items = allItems as Record<string, ItemInfo>;
@@ -81,19 +82,35 @@ export function findShopItem(itemId: string): ItemInfo | undefined {
         if (!isDefined(category)) {
             continue;
         }
-        if (isDefined(category.items) && isDefined(category.items[itemId])) {
-            return { ...items[itemId], ...category.items[itemId], itemId: itemId };
+        if (isDefined(category.items) && isDefined(category.items[itemKey])) {
+            const raw = { ...items[itemKey], ...category.items[itemKey] };
+            const meta = resolveTradeItemMetadata(itemKey, raw);
+            return { ...raw, itemId: meta.itemId, displayName: meta.displayName, ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}) };
         }
         if (isDefined(category.subCategories)) {
             for (const subCategoryName in category.subCategories) {
                 const subCategory = category.subCategories[subCategoryName];
-                if (isDefined(subCategory) && isDefined(subCategory.items) && isDefined(subCategory.items[itemId])) {
-                    return { ...items[itemId], ...subCategory.items[itemId], itemId: itemId };
+                if (isDefined(subCategory) && isDefined(subCategory.items) && isDefined(subCategory.items[itemKey])) {
+                    const raw = { ...items[itemKey], ...subCategory.items[itemKey] };
+                    const meta = resolveTradeItemMetadata(itemKey, raw);
+                    return { ...raw, itemId: meta.itemId, displayName: meta.displayName, ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}) };
                 }
             }
         }
     }
     return undefined;
+}
+
+export function getPlayerInventoryShopItemCount(player: mc.Player, itemKey: string): number {
+    const shopItem = findShopItem(itemKey);
+    if (!isDefined(shopItem)) {
+        return 0;
+    }
+    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent | undefined;
+    if (!isDefined(inventoryComp?.container)) {
+        return 0;
+    }
+    return countMatchingInventoryItems(inventoryComp.container, (stack) => isValidSellItem(stack, shopItem));
 }
 
 /**
@@ -138,33 +155,6 @@ export function getPlayerShopItemPrice(player: mc.Player, shopItem: ItemInfo, ty
 
     const calculatedPrice = basePrice * bestMultiplier;
     return Math.round(calculatedPrice * 100) / 100;
-}
-
-/**
- * Calculates the actual available space in an inventory for a specific item stack.
- * @param inventory The inventory container.
- * @param itemStackTemplate The template item stack to check space for.
- * @returns The total count of items that can be added.
- */
-function calculateInventorySpace(inventory: mc.Container, itemStackTemplate: mc.ItemStack): number {
-    let spaceFound = 0;
-    const maxStackSize = itemStackTemplate.maxAmount;
-
-    if (maxStackSize > 1) {
-        // Item is stackable
-        for (let i = 0; i < inventory.size; i++) {
-            const item = inventory.getItem(i);
-            if (!isDefined(item)) {
-                spaceFound += maxStackSize;
-            } else if (item.isStackableWith(itemStackTemplate)) {
-                spaceFound += maxStackSize - item.amount;
-            }
-        }
-    } else {
-        // Item is not stackable
-        spaceFound = inventory.emptySlotsCount;
-    }
-    return spaceFound;
 }
 
 /**
@@ -227,7 +217,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     }
 
     // 1. Calculate true available space in inventory
-    const spaceFound = calculateInventorySpace(inventory, itemStackTemplate);
+    const spaceFound = calculateInventorySpaceForItem(inventory, itemStackTemplate);
 
     // 2. Validate and adjust quantity based on space
     if (spaceFound === 0) {

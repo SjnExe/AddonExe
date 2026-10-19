@@ -93,6 +93,25 @@ export async function showReportActionsPanel(player: mc.Player, reportId: string
 
 // These functions will replace the action registry entries for moderation actions.
 
+export async function handleWarnPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
+    const target = getPlayerFromCache(targetPlayerId);
+    if (!isDefined(target)) {
+        player.sendMessage('§4Player is offline.');
+        return;
+    }
+
+    const form = new CustomFormBuilder<{ reasonRaw: string }>(`Warn ${target.name}`).textField('reasonRaw', 'Warning Reason', 'Enter reason', 'Rule violation').submitButton('Issue Warning');
+
+    const res = await form.show(player);
+    if (!res) {
+        return;
+    }
+
+    const reason = sanitizeString(res.reasonRaw, true);
+    const { warnPlayer } = await import('@features/moderation/commands/warn.js');
+    warnPlayer(player, target, reason);
+}
+
 export async function handleKickPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
     const { getPlayer } = await import('@core/data/playerDataManager.js');
     const targetData = getPlayer(targetPlayerId);
@@ -303,6 +322,11 @@ export async function handleUnmuteForm(player: mc.Player): Promise<void> {
 
 export async function showModerationPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder().title('Moderation Tools');
+
+    form.button('Inspect & Warn / Punish Online Players', 'textures/ui/WarningGlyph', async () => {
+        const { showPlayerManagementPanel } = await import('@core/ui/panels/playerPanel.js');
+        await showPlayerManagementPanel(player);
+    });
 
     form.button('Unban Player', 'textures/ui/refresh_light', async () => {
         await handleUnbanForm(player);

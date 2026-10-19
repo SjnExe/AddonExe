@@ -53,7 +53,7 @@ type WordleConfig = typeof wordleConfig;
 
 import { getSystemRegistry, SystemDefinition } from '@ui/systemRegistry.js';
 
-export const itemsPerPage = 8;
+export const itemsPerPage = 45;
 
 interface ConfigHandler {
     get: () =>
