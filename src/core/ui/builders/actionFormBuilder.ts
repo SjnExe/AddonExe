@@ -2,7 +2,7 @@ import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
-export type GridColumns = 1 | 2 | 3 | 4 | 'board';
+export type GridColumns = 1 | 2 | 3 | 4 | 'board' | 'minesweeper' | 'ms9' | 'ms12' | 'ms16';
 
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
@@ -36,6 +36,18 @@ export class ActionFormBuilder {
         }
         if (this.gridColumns === 'board') {
             this.form.title(`§9§0§0§f§r${this.rawTitle}`);
+            return;
+        }
+        if (this.gridColumns === 'ms9') {
+            this.form.title(`§8§0§9§f§r${this.rawTitle}`);
+            return;
+        }
+        if (this.gridColumns === 'ms12' || this.gridColumns === 'minesweeper') {
+            this.form.title(`§8§1§2§f§r${this.rawTitle}`);
+            return;
+        }
+        if (this.gridColumns === 'ms16') {
+            this.form.title(`§8§1§6§f§r${this.rawTitle}`);
             return;
         }
         const buttonCount = Math.max(1, this.callbacks.size);

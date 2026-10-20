@@ -1,4 +1,4 @@
-import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+const uiOpenTimestamps = new Map<string, number>();
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -8,11 +8,12 @@ import * as mc from '@minecraft/server';
  */
 export async function showPanel(player: mc.Player, panelId: string, _context: Record<string, unknown> = {}) {
     try {
-        const cooldown = getCooldown(player.id, 'ui_spam');
-        if (cooldown > 0) {
+        const now = Date.now();
+        const lastOpen = uiOpenTimestamps.get(player.id) ?? 0;
+        if (now - lastOpen < 150) {
             return;
         }
-        setCooldown(player.id, 'ui_spam', 0.5);
+        uiOpenTimestamps.set(player.id, now);
 
         debugLog(`[UIManager] Routing panel '${panelId}'...`);
 
@@ -79,6 +80,18 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
         if (panelId === 'ticTacToeMainPanel') {
             const { showTicTacToeMenu } = await import('@features/games/tictactoe/ui/panel.js');
             await showTicTacToeMenu(player);
+            return;
+        }
+
+        if (panelId === 'rpsMainPanel') {
+            const { showRpsMenu } = await import('@features/games/rps/ui/panel.js');
+            await showRpsMenu(player);
+            return;
+        }
+
+        if (panelId === 'minesweeperMainPanel') {
+            const { showMinesweeperMenu } = await import('@features/games/minesweeper/ui/panel.js');
+            await showMinesweeperMenu(player);
             return;
         }
 

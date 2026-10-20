@@ -70,3 +70,42 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
 
     await form.show(player);
 }
+
+export async function showEnderChestPanel(player: mc.Player, targetPlayerId: string): Promise<void> {
+    const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
+    const targetPlayer = getPlayerFromCache(targetPlayerId);
+
+    if (!targetPlayer) {
+        player.sendMessage(`§cCannot view Ender Chest. Player ${targetName} is offline.`);
+        return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    }
+
+    const enderComponent = targetPlayer.getComponent(EntityComponentTypes.EnderInventory) as mc.EntityEnderInventoryComponent | undefined;
+    if (!enderComponent || !enderComponent.container) {
+        player.sendMessage(`§cCannot access Ender Chest component for ${targetName}.`);
+        return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    }
+
+    const container = enderComponent.container;
+    const form = new ActionFormBuilder().title(`${targetName}'s Ender Chest`);
+
+    for (let i = 0; i < container.size; i++) {
+        const item = container.getItem(i);
+        if (item) {
+            const displayName = item.nameTag ? item.nameTag : item.typeId.replace('minecraft:', '');
+            form.button(`Slot ${i}: ${displayName} x${item.amount}`, 'textures/ui/inventory_icon', () => {
+                void showEnderChestPanel(player, targetPlayerId);
+            });
+        } else {
+            form.button(`Slot ${i}: Empty`, 'textures/ui/inventory_icon', () => {
+                void showEnderChestPanel(player, targetPlayerId);
+            });
+        }
+    }
+
+    form.addBackButton(async () => {
+        await showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    });
+
+    await form.show(player);
+}

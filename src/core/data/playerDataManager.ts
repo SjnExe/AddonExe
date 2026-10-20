@@ -68,6 +68,7 @@ export interface PlayerData {
     mailbox: SerializedItem[];
     lastDailyClaim: number;
     dailyStreak: number;
+    claimedPlaytimeMilestones?: string[];
     starterKitClaimed: boolean;
     isVanished: boolean;
     staffInventoryMode?: 'survival' | 'staff';
@@ -114,6 +115,7 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     mailbox: [],
     lastDailyClaim: 0,
     dailyStreak: 0,
+    claimedPlaytimeMilestones: [],
     starterKitClaimed: false,
     isVanished: false,
     friends: [],

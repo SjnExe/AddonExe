@@ -1,4 +1,5 @@
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
+import { initializeConfigManager } from '@core/config/configManager.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
 import * as utils from '@core/utils/index.js';
@@ -39,7 +40,8 @@ describe('Moderation Hierarchy', () => {
 
     target.getComponent = mock();
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await initializeConfigManager(false);
         getPlayerRankSpy = spyOn(rankManager, 'getPlayerRank').mockImplementation((...args: any[]) => rankManager.getPlayerRank(args[0], args[1]));
         canTargetSpy = spyOn(rankManager, 'canTarget').mockImplementation((...args: any[]) => rankManager.canTarget(args[0], args[1], args[2]));
         loadPlayerDataSpy = spyOn(playerDataManager, 'loadPlayerData').mockReturnValue(undefined);

@@ -1,4 +1,6 @@
 import { initializeMatchmaking } from '@features/games/matchmakingManager.js';
+import { initializeMinesweeper } from '@features/games/minesweeper/manager.js';
+import { initializeRps } from '@features/games/rps/manager.js';
 import { initializeTicTacToe } from '@features/games/tictactoe/manager.js';
 
 export async function initialize(_isMigration: boolean): Promise<void> {
@@ -15,4 +17,6 @@ export async function initialize(_isMigration: boolean): Promise<void> {
 
     initializeMatchmaking();
     initializeTicTacToe();
+    initializeRps();
+    initializeMinesweeper();
 }

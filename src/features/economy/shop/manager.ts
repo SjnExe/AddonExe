@@ -387,3 +387,144 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
         message: `§2Successfully sold ${targetQuantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(totalGain)}§2.`
     };
 }
+
+export interface SellAllPreview {
+    totalItems: number;
+    distinctTypes: number;
+    totalPayout: number;
+    breakdown: { itemKey: string; displayName: string; count: number; payout: number }[];
+}
+
+function buildReverseSellMap(): Map<string, { itemKey: string; shopItem: ItemInfo }> {
+    const shopConfig = getShopConfig();
+    const categories = shopConfig.categories;
+    const items = allItems as Record<string, ItemInfo>;
+    const map = new Map<string, { itemKey: string; shopItem: ItemInfo }>();
+
+    const registerItemKey = (itemKey: string, rawItem: unknown) => {
+        const base = { ...items[itemKey], ...(rawItem as Record<string, unknown>) };
+        const meta = resolveTradeItemMetadata(itemKey, base);
+        const shopItem: ItemInfo = {
+            ...base,
+            itemId: meta.itemId,
+            displayName: meta.displayName,
+            ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {})
+        };
+        if (isDefined(shopItem.sellPrice) && shopItem.sellPrice > 0 && !isDefined(shopItem.enchantment) && !map.has(shopItem.itemId)) {
+            map.set(shopItem.itemId, { itemKey, shopItem });
+        }
+    };
+
+    for (const category of Object.values(categories)) {
+        if (!isDefined(category)) {
+            continue;
+        }
+        for (const [k, v] of Object.entries(category.items ?? {})) {
+            registerItemKey(k, v);
+        }
+        for (const sub of Object.values(category.subCategories ?? {})) {
+            if (!isDefined(sub)) {
+                continue;
+            }
+            for (const [k, v] of Object.entries(sub.items ?? {})) {
+                registerItemKey(k, v);
+            }
+        }
+    }
+    return map;
+}
+
+export function previewSellAllInventory(player: mc.Player): SellAllPreview {
+    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent | undefined;
+    const container = inventoryComp?.container;
+    if (!isDefined(container)) {
+        return { totalItems: 0, distinctTypes: 0, totalPayout: 0, breakdown: [] };
+    }
+
+    const sellMap = buildReverseSellMap();
+    const counts = new Map<string, { itemKey: string; shopItem: ItemInfo; count: number }>();
+
+    for (let i = 0; i < container.size; i++) {
+        const stack = container.getItem(i);
+        if (!isDefined(stack)) {
+            continue;
+        }
+        const match = sellMap.get(stack.typeId);
+        if (!isDefined(match) || !isValidSellItem(stack, match.shopItem)) {
+            continue;
+        }
+        const existing = counts.get(match.itemKey);
+        if (isDefined(existing)) {
+            existing.count += stack.amount;
+        } else {
+            counts.set(match.itemKey, { itemKey: match.itemKey, shopItem: match.shopItem, count: stack.amount });
+        }
+    }
+
+    let totalItems = 0;
+    let totalPayout = 0;
+    const breakdown: { itemKey: string; displayName: string; count: number; payout: number }[] = [];
+
+    for (const entry of counts.values()) {
+        const unitPrice = getPlayerShopItemPrice(player, entry.shopItem, 'sell');
+        if (unitPrice <= 0) {
+            continue;
+        }
+        const payout = Math.round(unitPrice * entry.count * 100) / 100;
+        totalItems += entry.count;
+        totalPayout = Math.round((totalPayout + payout) * 100) / 100;
+        breakdown.push({
+            itemKey: entry.itemKey,
+            displayName: entry.shopItem.displayName ?? entry.itemKey,
+            count: entry.count,
+            payout
+        });
+    }
+
+    return {
+        totalItems,
+        distinctTypes: breakdown.length,
+        totalPayout,
+        breakdown
+    };
+}
+
+export function executeSellAllInventory(player: mc.Player): ShopTransactionResult {
+    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent | undefined;
+    const container = inventoryComp?.container;
+    if (!isDefined(container)) {
+        return { success: false, message: '§cCould not access inventory.' };
+    }
+
+    const sellMap = buildReverseSellMap();
+    let totalItems = 0;
+    let totalPayout = 0;
+
+    for (let i = 0; i < container.size; i++) {
+        const stack = container.getItem(i);
+        if (!isDefined(stack)) {
+            continue;
+        }
+        const match = sellMap.get(stack.typeId);
+        if (!isDefined(match) || !isValidSellItem(stack, match.shopItem)) {
+            continue;
+        }
+        const unitPrice = getPlayerShopItemPrice(player, match.shopItem, 'sell');
+        if (unitPrice <= 0) {
+            continue;
+        }
+        totalItems += stack.amount;
+        totalPayout = Math.round((totalPayout + unitPrice * stack.amount) * 100) / 100;
+        container.setItem(i, undefined);
+    }
+
+    if (totalItems === 0 || totalPayout <= 0) {
+        return { success: false, message: '§cYou have no sellable items in your inventory.' };
+    }
+
+    incrementPlayerBalance(player.id, totalPayout);
+    return {
+        success: true,
+        message: `§2Successfully sold §e${totalItems}§2 items from your inventory for §a${formatCurrency(totalPayout)}§2!`
+    };
+}

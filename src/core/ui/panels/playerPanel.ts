@@ -126,6 +126,10 @@ export async function showPlayerActionsPanel(player: mc.Player, targetPlayerId: 
             const { showInventoryPanel } = await import('@core/ui/panels/inventoryPanel.js');
             await showInventoryPanel(player, targetPlayerId);
         });
+        form.button('See Ender Chest', 'textures/ui/inventory_icon', async () => {
+            const { showEnderChestPanel } = await import('@core/ui/panels/inventoryPanel.js');
+            await showEnderChestPanel(player, targetPlayerId);
+        });
         form.button('Teleport To', 'textures/ui/icon_map', () => {
             const target = getPlayerFromCache(targetPlayerId);
             if (isDefined(target)) {

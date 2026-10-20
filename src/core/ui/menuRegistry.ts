@@ -175,6 +175,20 @@ export function initializeDefaultMenuItems(): void {
     });
 
     registerMenuItem({
+        id: 'eco_playtime',
+        title: 'Playtime & AFK Rewards',
+        description: 'Stay-online drops & playtime milestones',
+        icon: 'textures/items/clock_item',
+        hub: 'economy',
+        featureId: 'eco.playtime',
+        order: 45,
+        action: async (p) => {
+            const { showPlaytimeRewardsPanel } = await import('@features/economy/commands/playtime.js');
+            await showPlaytimeRewardsPanel(p);
+        }
+    });
+
+    registerMenuItem({
         id: 'eco_bounty',
         title: 'Bounty Board',
         description: 'View or place bounties on players',
@@ -278,6 +292,28 @@ export function initializeDefaultMenuItems(): void {
         featureId: 'game.tictactoe',
         order: 5,
         action: async (p) => showPanel(p, 'ticTacToeMainPanel')
+    });
+
+    registerMenuItem({
+        id: 'games_rps',
+        title: 'Rock Paper Scissors',
+        description: 'Play 2P or Solo vs Bot RPS matches',
+        icon: 'textures/items/shears',
+        hub: 'games',
+        featureId: 'game.rps',
+        order: 8,
+        action: async (p) => showPanel(p, 'rpsMainPanel')
+    });
+
+    registerMenuItem({
+        id: 'games_minesweeper',
+        title: 'Minesweeper (12x6)',
+        description: 'Clear the 72-tile minefield for rewards',
+        icon: 'textures/items/iron_pickaxe',
+        hub: 'games',
+        featureId: 'game.minesweeper',
+        order: 9,
+        action: async (p) => showPanel(p, 'minesweeperMainPanel')
     });
 
     registerMenuItem({

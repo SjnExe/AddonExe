@@ -1,5 +1,6 @@
 import { resetConfigSection, updateMultipleConfig } from '@core/config/configManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { showPanel } from '@core/ui/uiManager.js';
 import { debugLog } from '@core/utils/logger.js';
 import { getValueFromPath } from '@core/utils/objectUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -63,8 +64,7 @@ export async function showConfigCategoryPanel(player: mc.Player, context: Record
     );
 
     form.addBackButton(async () => {
-        const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
-        await showStaffDashboardPanel(player);
+        await showPanel(player, 'staffConfigHub');
     });
 
     await form.show(player);
@@ -164,7 +164,8 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
 
     const res = await modal.show(player);
     if (!res) {
-        return showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
+        await showPanel(player, 'staffConfigHub');
+        return;
     }
 
     const updatesBySource: Record<string, SettingSchema[]> = {};
@@ -188,7 +189,7 @@ export async function showConfigSystemPanel(player: mc.Player, systemId: string,
     }
 
     player.sendMessage('§2Configuration saved.');
-    await showConfigCategoryDetailPanel(player, schema.category ?? 'General', { page: 1 });
+    await showPanel(player, 'staffConfigHub');
 }
 
 export async function showConfigResetPanel(player: mc.Player): Promise<void> {
