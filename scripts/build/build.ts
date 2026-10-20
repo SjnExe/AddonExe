@@ -1,8 +1,7 @@
-import { $ } from 'bun';
-import JSZip from 'jszip';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getVersionContext, parseCliArgs } from './cli-utils.ts';
+import { updateManifests } from './update-manifests.ts';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
 
@@ -174,15 +173,93 @@ async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Prom
     return entries;
 }
 
-function populateZipFromEntries(entries: Map<string, string | ArrayBuffer>, zip: JSZip, zipPrefix = '') {
-    for (const [relPath, content] of entries) {
-        const zipPath = zipPrefix ? `${zipPrefix}/${relPath}` : relPath;
-        zip.file(zipPath, content);
+function buildZipArchive(entries: Map<string, string | ArrayBuffer>): Uint8Array {
+    const encoder = new TextEncoder();
+    const localChunks: Uint8Array[] = [];
+    const centralChunks: Uint8Array[] = [];
+    let localOffset = 0;
+    let centralSize = 0;
+
+    for (const [zipPath, content] of entries) {
+        const nameBytes = encoder.encode(zipPath);
+        const rawBytes = typeof content === 'string' ? encoder.encode(content) : new Uint8Array(content);
+        const crc = Bun.hash.crc32(rawBytes) >>> 0;
+        const deflated = rawBytes.byteLength > 0 ? Bun.deflateSync(rawBytes, { level: 9 }) : new Uint8Array(0);
+        const useDeflate = rawBytes.byteLength > 0 && deflated.byteLength < rawBytes.byteLength;
+        const dataBytes = useDeflate ? deflated : rawBytes;
+        const method = useDeflate ? 8 : 0;
+
+        const localHeader = new Uint8Array(30 + nameBytes.byteLength);
+        const localView = new DataView(localHeader.buffer);
+        localView.setUint32(0, 0x04034b50, true);
+        localView.setUint16(4, 20, true);
+        localView.setUint16(6, 0x0800, true);
+        localView.setUint16(8, method, true);
+        localView.setUint16(10, 0, true);
+        localView.setUint16(12, 0x0021, true);
+        localView.setUint32(14, crc, true);
+        localView.setUint32(18, dataBytes.byteLength, true);
+        localView.setUint32(22, rawBytes.byteLength, true);
+        localView.setUint16(26, nameBytes.byteLength, true);
+        localView.setUint16(28, 0, true);
+        localHeader.set(nameBytes, 30);
+
+        localChunks.push(localHeader, dataBytes);
+
+        const centralHeader = new Uint8Array(46 + nameBytes.byteLength);
+        const centralView = new DataView(centralHeader.buffer);
+        centralView.setUint32(0, 0x02014b50, true);
+        centralView.setUint16(4, 20, true);
+        centralView.setUint16(6, 20, true);
+        centralView.setUint16(8, 0x0800, true);
+        centralView.setUint16(10, method, true);
+        centralView.setUint16(12, 0, true);
+        centralView.setUint16(14, 0x0021, true);
+        centralView.setUint32(16, crc, true);
+        centralView.setUint32(20, dataBytes.byteLength, true);
+        centralView.setUint32(24, rawBytes.byteLength, true);
+        centralView.setUint16(28, nameBytes.byteLength, true);
+        centralView.setUint16(30, 0, true);
+        centralView.setUint16(32, 0, true);
+        centralView.setUint16(34, 0, true);
+        centralView.setUint16(36, 0, true);
+        centralView.setUint32(38, 0, true);
+        centralView.setUint32(42, localOffset, true);
+        centralHeader.set(nameBytes, 46);
+
+        centralChunks.push(centralHeader);
+        localOffset += localHeader.byteLength + dataBytes.byteLength;
+        centralSize += centralHeader.byteLength;
     }
+
+    const eocd = new Uint8Array(22);
+    const eocdView = new DataView(eocd.buffer);
+    eocdView.setUint32(0, 0x06054b50, true);
+    eocdView.setUint16(4, 0, true);
+    eocdView.setUint16(6, 0, true);
+    eocdView.setUint16(8, entries.size, true);
+    eocdView.setUint16(10, entries.size, true);
+    eocdView.setUint32(12, centralSize, true);
+    eocdView.setUint32(16, localOffset, true);
+    eocdView.setUint16(20, 0, true);
+
+    const totalSize = localOffset + centralSize + 22;
+    const output = new Uint8Array(totalSize);
+    let offset = 0;
+    for (const chunk of localChunks) {
+        output.set(chunk, offset);
+        offset += chunk.byteLength;
+    }
+    for (const chunk of centralChunks) {
+        output.set(chunk, offset);
+        offset += chunk.byteLength;
+    }
+    output.set(eocd, offset);
+    return output;
 }
 
-async function createArchives(prefix: string, versionStr: string) {
-    console.log(`[Build] Creating release archives (${prefix}.${versionStr})...`);
+async function createArchives(versionStr: string) {
+    console.log(`[Build] Creating release archives (${versionStr})...`);
 
     const packsDir = path.resolve(ROOT_DIR, 'packs');
     const behaviorDir = path.join(packsDir, 'behavior');
@@ -190,27 +267,21 @@ async function createArchives(prefix: string, versionStr: string) {
 
     const [bpEntries, rpEntries] = await Promise.all([collectPackFiles(behaviorDir), collectPackFiles(resourceDir)]);
 
-    const mcaddonZip = new JSZip();
-    populateZipFromEntries(bpEntries, mcaddonZip, 'behavior');
-    populateZipFromEntries(rpEntries, mcaddonZip, 'resource');
+    const mcaddonEntries = new Map<string, string | ArrayBuffer>();
+    for (const [relPath, content] of bpEntries) {
+        mcaddonEntries.set(`behavior/${relPath}`, content);
+    }
+    for (const [relPath, content] of rpEntries) {
+        mcaddonEntries.set(`resource/${relPath}`, content);
+    }
 
-    const bpZip = new JSZip();
-    populateZipFromEntries(bpEntries, bpZip);
+    const mcaddonPath = path.resolve(ROOT_DIR, `AddonExe.${versionStr}.mcaddon`);
+    const bpPath = path.resolve(ROOT_DIR, `AddonExe_BP.${versionStr}.mcpack`);
+    const rpPath = path.resolve(ROOT_DIR, `AddonExe_RP.${versionStr}.mcpack`);
 
-    const rpZip = new JSZip();
-    populateZipFromEntries(rpEntries, rpZip);
-
-    const zipOptions: JSZip.JSZipGeneratorOptions<'uint8array'> = {
-        type: 'uint8array',
-        compression: 'DEFLATE',
-        compressionOptions: { level: 9 }
-    };
-
-    const mcaddonPath = path.resolve(ROOT_DIR, `AddonExe.${prefix}.${versionStr}.mcaddon`);
-    const bpPath = path.resolve(ROOT_DIR, `AddonExe_BP.${prefix}.${versionStr}.mcpack`);
-    const rpPath = path.resolve(ROOT_DIR, `AddonExe_RP.${prefix}.${versionStr}.mcpack`);
-
-    const [mcaddonData, bpData, rpData] = await Promise.all([mcaddonZip.generateAsync(zipOptions), bpZip.generateAsync(zipOptions), rpZip.generateAsync(zipOptions)]);
+    const mcaddonData = buildZipArchive(mcaddonEntries);
+    const bpData = buildZipArchive(bpEntries);
+    const rpData = buildZipArchive(rpEntries);
 
     await Promise.all([Bun.write(mcaddonPath, mcaddonData), Bun.write(bpPath, bpData), Bun.write(rpPath, rpData)]);
 
@@ -262,21 +333,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
 async function main() {
     console.log('--- Starting Build Pipeline ---');
 
-    const updateArgs: string[] = [];
-    if (isNightly) {
-        updateArgs.push('-n');
-    }
-    if (isRelease) {
-        updateArgs.push('-r');
-    }
-    if (buildNumber > 0) {
-        updateArgs.push('-b', String(buildNumber));
-    }
-    if (customVersion) {
-        updateArgs.push('-v', customVersion);
-    }
-
-    await $`bun scripts/build/update-manifests.ts ${updateArgs}`;
+    await updateManifests(cliArgs);
 
     const { versionStr, versionArray } = await getVersionParts();
 
@@ -292,8 +349,7 @@ async function main() {
     await compileScripts(versionArray, versionStr, '');
 
     if (isZip) {
-        const prefix = isRelease ? 'Release' : isNightly ? 'Nightly' : 'Local';
-        await createArchives(prefix, versionStr);
+        await createArchives(versionStr);
     }
 
     const buildMetaContent = [

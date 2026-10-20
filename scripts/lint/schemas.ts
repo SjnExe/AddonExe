@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-async function main() {
+export async function validateSchemas() {
     console.log('[Validator] Starting programmatic JSON schema validation...');
 
     const ajv = new Ajv({ strict: false, allErrors: true });
@@ -166,7 +166,9 @@ function validateUiJson(relativePath: string, json: any): string[] {
     return uiErrors;
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+if (import.meta.main) {
+    validateSchemas().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}

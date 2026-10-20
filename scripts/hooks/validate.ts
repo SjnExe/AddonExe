@@ -1,5 +1,4 @@
 import { $ } from 'bun';
-import fs from 'node:fs/promises';
 import path from 'node:path';
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
 async function main() {
@@ -7,9 +6,7 @@ async function main() {
     await $`bun scripts/build/check-dependencies.ts`;
 
     const scriptEntry = path.join(ROOT_DIR, 'packs/behavior/scripts/main.js');
-    try {
-        await fs.access(scriptEntry);
-    } catch {
+    if (!(await Bun.file(scriptEntry).exists())) {
         console.error('❌ packs/behavior/scripts/main.js not found. Run "bun run build" first.');
         process.exit(1);
     }

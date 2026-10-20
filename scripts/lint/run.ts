@@ -1,5 +1,7 @@
 import { $ } from 'bun';
+import { validateIcons } from './icons.ts';
 import { validateMinecraftRules } from './minecraft-rules.ts';
+import { validateSchemas } from './schemas.ts';
 
 interface TaskResult {
     Task: string;
@@ -43,9 +45,9 @@ async function runLintingPipeline() {
         isFix ? $`bun scripts/lint/oxlint.ts --skip-custom-rules --fix`.quiet() : $`bun scripts/lint/oxlint.ts --skip-custom-rules`.quiet()
     );
 
-    const schemaTask = runTask('JSON Schema Validation', () => $`bun run scripts/lint/schemas.ts`.quiet());
+    const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());
 
-    const iconTask = runTask('Icon & Texture Integrity', () => $`bun run scripts/lint/icons.ts`.quiet());
+    const iconTask = runTask('Icon & Texture Integrity', () => validateIcons());
 
     const typeCheckTask = runTask('TypeScript Type Check', () => $`bun check`.quiet());
 

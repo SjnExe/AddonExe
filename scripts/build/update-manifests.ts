@@ -67,13 +67,13 @@ async function resolveModuleVersion(pkgName: string, npmVersion: string): Promis
     return cleanVersion;
 }
 
-async function main() {
+export async function updateManifests(options = cliArgs) {
     const pkg = await Bun.file(pkgPath).json();
     const { versionStr: finalStr, versionArray: finalParts } = await getVersionContext(ROOT_DIR, {
-        customVersion: cliArgs.customVersion,
-        isNightly: cliArgs.isNightly,
-        buildNumber: cliArgs.buildNumber,
-        isRelease: cliArgs.isRelease
+        customVersion: options.customVersion,
+        isNightly: options.isNightly,
+        buildNumber: options.buildNumber,
+        isRelease: options.isRelease
     });
 
     console.log(`[Prebuild] Updating manifests to version ${finalStr} -> [${finalParts.join(', ')}]`);
@@ -179,7 +179,9 @@ async function main() {
     await Bun.write(path.join(ROOT_DIR, 'packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
 }
 
-main().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+if (import.meta.main) {
+    updateManifests().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}

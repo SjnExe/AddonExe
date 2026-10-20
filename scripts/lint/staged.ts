@@ -1,9 +1,0 @@
-import { $ } from 'bun';
-
-const files = process.argv.slice(2);
-if (files.length === 0) {
-    process.exit(0);
-}
-
-await $`bun scripts/lint/oxlint.ts --fix ${files}`.quiet();
-await $`bunx prettier --write --cache ${files}`.quiet();

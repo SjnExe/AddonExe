@@ -10,8 +10,35 @@ const paths = [cargoBinDir, termuxBinDir, process.env.PATH].filter(Boolean);
 process.env.PATH = paths.join(path.delimiter);
 
 try {
-    // 1. Run single-pass staged linter/formatter
-    await $`bun lint-staged`;
+    // 1. Native single-pass staged linter/formatter (bypasses external lint-staged)
+    const stagedOutput = await $`git diff --cached --name-only --diff-filter=ACMR`.text();
+    const stagedFiles = stagedOutput
+        .split('\n')
+        .map((f) => f.trim())
+        .filter(Boolean);
+
+    if (stagedFiles.length > 0) {
+        const existingFiles: string[] = [];
+        for (const f of stagedFiles) {
+            if (await Bun.file(f).exists()) {
+                existingFiles.push(f);
+            }
+        }
+
+        const codeFiles = existingFiles.filter((f) => /\.(js|ts)$/.test(f));
+        const docFiles = existingFiles.filter((f) => /\.(json|md|yml|yaml)$/.test(f));
+
+        if (codeFiles.length > 0) {
+            await $`bun scripts/lint/oxlint.ts --fix ${codeFiles}`.quiet();
+            await $`bunx prettier --write --cache --log-level warn ${codeFiles}`.quiet();
+        }
+        if (docFiles.length > 0) {
+            await $`bunx prettier --write --cache --log-level warn ${docFiles}`.quiet();
+        }
+        if (codeFiles.length > 0 || docFiles.length > 0) {
+            await $`git add ${existingFiles}`.quiet();
+        }
+    }
 
     // 2. Fast Incremental Type Check
     console.log('⚡ Running incremental type check...');

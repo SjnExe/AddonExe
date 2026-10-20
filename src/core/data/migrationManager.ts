@@ -63,7 +63,7 @@ const migrations: MigrationStep[] = [
     }
 ];
 
-export async function initializeMigration(currentVersion = '0.7.0'): Promise<boolean> {
+export async function initializeMigration(currentVersion = '0.8.0'): Promise<boolean> {
     debugLog('[MigrationManager] Checking addon version for pending migrations...');
 
     const storedVersionRaw = (mc.world.getDynamicProperty(VERSION_KEY) as string | undefined) ?? (mc.world.getDynamicProperty(LEGACY_VERSION_KEY) as string | undefined);

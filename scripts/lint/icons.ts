@@ -171,7 +171,7 @@ async function extractUsedIcons(): Promise<Map<string, string[]>> {
 
 const IGNORED_TEXTURES = new Set<string>(ignoredTextures);
 
-async function validate() {
+export async function validateIcons() {
     console.log('--- Starting Icon Validation ---');
 
     const [vanillaTextures, customTextures, usedIcons] = await Promise.all([fetchVanillaTextures(), getCustomTextures(), extractUsedIcons()]);
@@ -203,7 +203,9 @@ async function validate() {
     }
 }
 
-validate().catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+if (import.meta.main) {
+    validateIcons().catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+}

@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-
+
+### ✨ Features
+
+- **Mini-Games Hub (`/panel` -> Mini-Games):** Added multiplayer & solo **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), and **Minesweeper** (`/ms` — Beginner 9x9, Intermediate 12x12, Expert 16x12, and 2P Race) alongside **Wordle** (`/wordle`, `/guess`).
+- **Playtime & AFK Rewards (`/playtime`):** Added recurring stay-online payouts and unlockable playtime milestones.
+- **Combat Tag & Anti-Combat-Log:** Added configurable PvP combat tagging, teleport blocking in combat, and disconnect grace-period penalties.
+- **World Border Manager (`/worldborder`, `/wb`):** Added linked Overworld + Nether (8:1) and End borders with safe knockback buffers and an in-game admin UI.
+- **Staff & Social Enhancements:** Added **Staff Inventory Swap** (`/staffinv`, `/sinv`), **Ender Chest Inspector** (`/ecsee`), **Private Messaging & Social Spy** (`/xmsg`, `/r`, `/socialspy`), and **Bulk Shop Selling** (`/sellall`).
+- **Adaptive Sidebar & HUD Layouts (`/sidebar`):** Added Top-Right Card, Top-Left Touch-Friendly Card, and Bottom Compact Bar layouts with theme presets.
+
 ## [0.7.0] - 2025-10-28
 
 ### Updated to 1.21.120
