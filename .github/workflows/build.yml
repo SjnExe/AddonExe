@@ -8,8 +8,6 @@ on:
             - main
     workflow_dispatch:
     pull_request:
-        branches:
-            - main
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -177,9 +175,9 @@ jobs:
               with:
                   name: release-archives
                   path: |
-                      AddonExe.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcaddon
-                      AddonExe_BP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
-                      AddonExe_RP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
+                      AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon
+                      AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack
+                      AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
                   retention-days: 7
                   compression-level: 0
 
@@ -204,6 +202,11 @@ jobs:
               uses: actions/checkout@v7
               with:
                   fetch-depth: 1
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
 
             - name: Download Build Meta
               uses: actions/download-artifact@v8
@@ -243,17 +246,39 @@ jobs:
                       --title "Nightly Build (Latest Dev)" \
                       --prerelease \
                       --notes-file release_notes.md \
-                      AddonExe.Nightly.${{ env.ARCHIVE_VERSION }}.mcaddon \
-                      AddonExe_BP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack \
-                      AddonExe_RP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack
+                      AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
+                      AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack \
+                      AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
 
-            - name: Publish Stable Release
+            - name: Generate Changelog & Upload Stable Release to CurseForge
+              if: env.BUILD_TYPE == 'stable'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+              run: |
+                  gh api repos/${{ github.repository }}/releases/generate-notes \
+                      -f tag_name="${{ github.ref_name }}" \
+                      --jq .body > release_notes.md
+                  bun scripts/build/curseforgeUpload.ts
+
+            - name: Publish Stable Release Link on GitHub
               if: env.BUILD_TYPE == 'stable'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  gh release create ${{ env.ARCHIVE_VERSION }} \
-                      --generate-notes \
-                      AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon \
-                      AddonExe_BP.Release.${{ env.ARCHIVE_VERSION }}.mcpack \
-                      AddonExe_RP.Release.${{ env.ARCHIVE_VERSION }}.mcpack
+                  cat <<EOF > github_release_notes.md
+                  ## 📥 [Download AddonExe v${{ env.ARCHIVE_VERSION }} on CurseForge](${{ env.CF_DOWNLOAD_URL }})
+
+                  ---
+
+                  $(cat release_notes.md)
+                  EOF
+                  if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+                      gh release edit "${{ github.ref_name }}" \
+                          --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
+                          --notes-file github_release_notes.md
+                  else
+                      gh release create "${{ github.ref_name }}" \
+                          --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
+                          --notes-file github_release_notes.md
+                  fi

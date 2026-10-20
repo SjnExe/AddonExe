@@ -11,7 +11,7 @@ const command: CustomCommand = {
     permissionNode: 'cmd.version.member',
     parameters: [],
     execute: (executor: CommandExecutor) => {
-        const rawVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.7.0';
+        const rawVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.8.0';
         const message = `§7AddonExe Version: §ev${rawVersion}`;
 
         if (executor instanceof mc.Player) {

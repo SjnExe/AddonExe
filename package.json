@@ -1,6 +1,6 @@
 {
     "name": "AddonExe",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "private": true,
     "description": "<p align=\"center\"> <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
     "keywords": [],
@@ -37,13 +37,6 @@
         "validate": "bun scripts/hooks/validate.ts",
         "watch": "bun scripts/build/build.ts --watch"
     },
-    "lint-staged": {
-        "*.{js,ts}": "bun scripts/lint/staged.ts",
-        "*.{json,md,yml,yaml}": "bunx prettier --write --cache"
-    },
-    "overrides": {
-        "react": "^18.3.1"
-    },
     "dependencies": {
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest"
@@ -55,12 +48,9 @@
         "@minecraft/server": "2.11.0-beta.1.26.52-stable",
         "@minecraft/server-ui": "2.3.0-beta.1.26.52-stable",
         "@types/bun": "latest",
-        "@types/jszip": "latest",
         "ajv": "latest",
         "eslint-plugin-minecraft-linting": "latest",
         "jscpd": "^4.3.0",
-        "jszip": "latest",
-        "lint-staged": "latest",
         "oxlint": "latest",
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
