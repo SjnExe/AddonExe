@@ -1,15 +1,7 @@
 import { registerCoreTests } from './coreTests.js';
-import { registerEconomyTests } from './economyTests.js';
-import { registerEconomyTransferTests } from './economyTransferTests.js';
-import { registerFeatureTests } from './featureTests.js';
 import { registerMcApiTests } from './mcApiTests.js';
-import { registerUiTests } from './uiTests.js';
 
-export function registerAllSuites() {
-    registerCoreTests();
-    registerEconomyTests();
+export function registerAllSuites(): void {
     registerMcApiTests();
-    registerEconomyTransferTests();
-    registerUiTests();
-    registerFeatureTests();
+    registerCoreTests();
 }

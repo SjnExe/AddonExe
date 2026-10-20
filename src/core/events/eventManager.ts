@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 import { errorLog } from '@core/utils/logger.js';
 
@@ -30,9 +31,18 @@ const cleanupActions: (() => void)[] = [];
  * @param handler The handler function for the event.
  * @param name The name of the event for logging purposes.
  */
-export function registerEvent<T>(signal: { subscribe: (handler: (arg: T) => void) => void; unsubscribe: (handler: (arg: T) => void) => void }, handler: (arg: T) => void, name: string) {
+export function registerEvent<T, O = undefined>(
+    signal: { subscribe: (handler: (arg: T) => void, options?: O) => void; unsubscribe: (handler: (arg: T) => void) => void },
+    handler: (arg: T) => void,
+    name: string,
+    options?: O
+) {
     try {
-        signal.subscribe(handler);
+        if (options !== undefined) {
+            signal.subscribe(handler, options);
+        } else {
+            signal.subscribe(handler);
+        }
         cleanupActions.push(() => {
             try {
                 signal.unsubscribe(handler);
@@ -67,7 +77,7 @@ export function initializeEventManager() {
     // Other Events
     registerEvent(mc.world.beforeEvents.chatSend, handleBeforeChatSend, 'beforeChatSend');
     registerEvent(mc.world.afterEvents.playerSpawn, handlePlayerSpawn, 'playerSpawn');
-    registerEvent(mc.world.afterEvents.entityHurt, handleEntityHurt, 'entityHurt');
+    registerEvent(mc.world.afterEvents.entityHurt, handleEntityHurt, 'entityHurt', { entityTypes: [MinecraftEntityTypes.Player] });
     registerEvent(mc.world.afterEvents.playerLeave, handlePlayerLeave, 'playerLeave');
     registerEvent(mc.world.afterEvents.playerDimensionChange, handlePlayerDimensionChange, 'playerDimensionChange');
     registerEvent(mc.world.afterEvents.itemUse, handleItemUse, 'itemUse');

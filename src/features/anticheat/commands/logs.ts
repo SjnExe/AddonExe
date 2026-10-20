@@ -1,12 +1,12 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
+import { ActionFormResponse } from '@minecraft/server-ui';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { uiWait } from '@core/utils/index.js';
 import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 interface ChatLog {
@@ -35,14 +35,14 @@ const logsCommand: CustomCommand = {
 };
 
 async function showLogsMenu(player: mc.Player) {
-    const form = new ActionFormData()
+    const form = new ActionFormBuilder()
         .title('Logs Menu')
         .button('Punishment Logs', 'textures/ui/hammer_l')
         .button('Anti-Cheat Flags', 'textures/items/diamond_sword')
         .button('Chat Logs', 'textures/ui/message')
         .button('Settings', 'textures/ui/settings_glyph_color_2x');
 
-    const response = await uiWait(player, form);
+    const response = await form.show(player, { wait: true });
     if (!isDefined(response) || response.canceled) {
         return;
     }
@@ -99,7 +99,7 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
     const maxPage = Math.ceil(logs.length / perPage) || 1;
     page = Math.max(1, Math.min(page, maxPage));
 
-    const form = new ActionFormData().title(`Punishments (${page}/${maxPage})`);
+    const form = new ActionFormBuilder().title(`Punishments (${page}/${maxPage})`);
     const slice = logs.slice((page - 1) * perPage, page * perPage);
 
     if (slice.length === 0) {
@@ -119,7 +119,7 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
     }
     form.button('Back to Filter');
 
-    const response = await uiWait(player, form);
+    const response = await form.show(player, { wait: true });
     if (!isDefined(response) || response.canceled) {
         return showLogsMenu(player);
     }
@@ -140,8 +140,8 @@ async function showPunishmentLogs(player: mc.Player, page: number, nameQuery?: s
             return;
         }
         const detail = `Player: ${log.playerName}\nType: ${log.type}\nReason: ${log.reason}\nAdmin: ${log.adminName}\nDate: ${new Date(log.timestamp).toLocaleString()}\nDuration: ${(isNonEmptyString(log.duration) ? log.duration : undefined) ?? 'N/A'}`;
-        const detailForm = new ActionFormData().title('Log Detail').body(detail).button('Back');
-        await uiWait(player, detailForm);
+        const detailForm = new ActionFormBuilder().title('Log Detail').body(detail).button('Back');
+        await detailForm.show(player, { wait: true });
         await showPunishmentLogs(player, page, nameQuery, typeFilter);
         return;
     }
@@ -190,7 +190,7 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
     const maxPage = Math.ceil(logs.length / perPage) || 1;
     page = Math.max(1, Math.min(page, maxPage));
 
-    const form = new ActionFormData().title(`Flag Logs (${page}/${maxPage})`);
+    const form = new ActionFormBuilder().title(`Flag Logs (${page}/${maxPage})`);
     const slice = logs.slice((page - 1) * perPage, page * perPage);
 
     if (slice.length === 0) {
@@ -210,7 +210,7 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
     }
     form.button('Back to Filter');
 
-    const response = await uiWait(player, form);
+    const response = await form.show(player, { wait: true });
     if (!isDefined(response) || response.canceled) {
         return showLogsMenu(player);
     }
@@ -231,8 +231,8 @@ async function showFlagLogs(player: mc.Player, page: number, nameQuery?: string)
             return;
         }
         const detail = `Player: ${log.playerName}\nCheck: ${log.checkName}\nVL: ${log.vl}\nDetails: ${log.details}\nTime: ${new Date(log.timestamp).toLocaleString()}`;
-        const detailForm = new ActionFormData().title('Flag Detail').body(detail).button('Back');
-        await uiWait(player, detailForm);
+        const detailForm = new ActionFormBuilder().title('Flag Detail').body(detail).button('Back');
+        await detailForm.show(player, { wait: true });
         await showFlagLogs(player, page, nameQuery);
         return;
     }
@@ -311,7 +311,7 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
     const maxPage = Math.ceil(logs.length / perPage) || 1;
     page = Math.max(1, Math.min(page, maxPage));
 
-    const form = new ActionFormData().title(`Chat: ${date} (${page}/${maxPage})`);
+    const form = new ActionFormBuilder().title(`Chat: ${date} (${page}/${maxPage})`);
     const slice = logs.slice((page - 1) * perPage, page * perPage);
 
     if (slice.length === 0) {
@@ -332,7 +332,7 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
     }
     form.button('Back to Filter');
 
-    const response = await uiWait(player, form);
+    const response = await form.show(player, { wait: true });
     if (!isDefined(response) || response.canceled) {
         return showLogsMenu(player);
     }
@@ -353,8 +353,8 @@ async function showChatLogs(player: mc.Player, page: number, date: string, nameQ
             return;
         }
         const detail = `Player: ${log.playerName}\nRank: ${(isNonEmptyString(log.rank) ? log.rank : undefined) ?? 'Default'}\nTime: ${new Date(log.timestamp).toLocaleString()}\n\nMessage:\n${log.message}`;
-        const detailForm = new ActionFormData().title('Chat Detail').body(detail).button('Back');
-        await uiWait(player, detailForm);
+        const detailForm = new ActionFormBuilder().title('Chat Detail').body(detail).button('Back');
+        await detailForm.show(player, { wait: true });
         await showChatLogs(player, page, date, nameQuery, keyword);
         return;
     }

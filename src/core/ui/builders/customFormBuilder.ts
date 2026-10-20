@@ -50,8 +50,11 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         return this;
     }
 
-    public toggle<K extends string>(key: K, label: string, defaultValue = false): CustomFormBuilder<T & Record<K, boolean>> {
+    public toggle<K extends string>(key: K, label: string, defaultValue = false, onChange?: (val: boolean) => void): CustomFormBuilder<T & Record<K, boolean>> {
         const observable = new ObservableBoolean(defaultValue, { clientWritable: true });
+        if (onChange) {
+            observable.subscribe(onChange);
+        }
         this.controls.push({
             type: 'toggle',
             key,

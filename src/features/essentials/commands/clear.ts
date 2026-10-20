@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { canTarget } from '@core/permissions/rankManager.js';
@@ -59,7 +60,7 @@ const clearCommand: CustomCommand = {
             }
         }
 
-        const inventory = targetPlayer.getComponent('inventory')?.container;
+        const inventory = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
         if (!inventory) {
             if (executor instanceof mc.Player) {
                 sendMessage(`§cCould not access the inventory of ${targetPlayer.name}.`, executor);

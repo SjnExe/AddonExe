@@ -24,6 +24,7 @@ export interface SerializedItem {
     lockMode?: string; // 'none' | 'slot' | 'inventory'
     canDestroy?: string[];
     canPlaceOn?: string[];
+    dynamicProperties?: Record<string, boolean | number | string | mc.Vector3>;
 }
 
 /**
@@ -92,6 +93,22 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     const canPlaceOn = itemStack.getCanPlaceOn();
     if (isDefined(canPlaceOn) && canPlaceOn.length > 0) {
         serialized.canPlaceOn = canPlaceOn;
+    }
+
+    if (typeof itemStack.getDynamicPropertyIds === 'function') {
+        const propIds = itemStack.getDynamicPropertyIds();
+        if (propIds.length > 0) {
+            const props: Record<string, boolean | number | string | mc.Vector3> = {};
+            for (const id of propIds) {
+                const val = itemStack.getDynamicProperty(id);
+                if (isDefined(val)) {
+                    props[id] = val;
+                }
+            }
+            if (Object.keys(props).length > 0) {
+                serialized.dynamicProperties = props;
+            }
+        }
     }
 
     return serialized;
@@ -167,6 +184,16 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
         }
         if (isDefined(data.canPlaceOn)) {
             itemStack.setCanPlaceOn(data.canPlaceOn);
+        }
+
+        if (isDefined(data.dynamicProperties) && typeof itemStack.setDynamicProperty === 'function') {
+            for (const [propKey, propVal] of Object.entries(data.dynamicProperties)) {
+                try {
+                    itemStack.setDynamicProperty(propKey, propVal);
+                } catch {
+                    // Ignore unsupported dynamic property
+                }
+            }
         }
 
         return itemStack;

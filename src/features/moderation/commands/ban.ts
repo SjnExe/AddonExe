@@ -1,5 +1,6 @@
 // FIXED
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/data/playerDataManager.js';
@@ -55,7 +56,7 @@ export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, du
         const safeReason = escapeCommandArg(reason);
         const safeTargetName = escapeCommandArg(targetPlayer.name);
         const command = `kick "${safeTargetName}" "You have been banned ${durationText}. Reason: ${safeReason}"`;
-        mc.world.getDimension('overworld').runCommand(command);
+        mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(command);
     } catch (error: unknown) {
         warnLog(`[Commands:Ban] Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
         errorLog(`[/ban] Failed to run kick command for ${targetPlayer.name}:`, error);
@@ -201,7 +202,7 @@ export function offlineBanPlayer(executor: CommandExecutor, targetId: string, ta
     try {
         const safeReason = escapeCommandArg(reason);
         const safeTargetName = escapeCommandArg(targetName);
-        mc.world.getDimension('overworld').runCommand(`kick "${safeTargetName}" "You have been banned ${durationText}. Reason: ${safeReason}"`);
+        mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(`kick "${safeTargetName}" "You have been banned ${durationText}. Reason: ${safeReason}"`);
     } catch {
         // Player is likely offline, which is fine.
     }

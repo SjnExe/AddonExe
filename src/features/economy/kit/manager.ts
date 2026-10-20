@@ -3,6 +3,7 @@ import { EntityComponentTypes } from '@minecraft/server';
 
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import * as mc from '@minecraft/server';
+import { ItemComponentTypes } from '@minecraft/server';
 
 import { getConfig } from '@core/config/configManager.js';
 import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData } from '@core/data/playerDataManager.js';
@@ -200,7 +201,7 @@ export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
             itemStack.setLore(itemInfo.lore);
         }
         if (isDefined(itemInfo.enchantments)) {
-            const enchantComp = itemStack.getComponent('enchantable') as mc.ItemEnchantableComponent;
+            const enchantComp = itemStack.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
             if (isDefined(enchantComp)) {
                 for (const ench of itemInfo.enchantments) {
                     const type = mc.EnchantmentTypes.get(ench.id);

@@ -1,23 +1,44 @@
 // Suppress expected addon logger output during unit tests
+const _suppressedPrefixes = [
+    '[DEBUG]',
+    '[PlayerDataManager]',
+    '[TimerManager]',
+    '[MigrationManager]',
+    '[RankManager]',
+    '[DataManager]',
+    '[CommandManager]',
+    '[Economy]',
+    '[FloatingText]',
+    '[KitItemsManager]',
+    '[Warmup]',
+    '[AddonExe]',
+    '[FeatureRegistry]',
+    '[Logger]',
+    '[TestRunner]',
+    '[Benchmark',
+    '[BENCHMARK',
+    '==========',
+    'Total: ',
+    'All tests passed'
+];
 const _shouldSuppress = (args: unknown[]): boolean => {
-    const first = typeof args[0] === 'string' ? args[0] : '';
-    return (
-        first.includes('[DEBUG]') ||
-        first.includes('[PlayerDataManager]') ||
-        first.includes('[TimerManager]') ||
-        first.includes('[MigrationManager]') ||
-        first.includes('[RankManager]') ||
-        first.includes('[DataManager]')
-    );
+    const first = typeof args[0] === 'string' ? args[0].trimStart() : '';
+    return _suppressedPrefixes.some((p) => first.startsWith(p) || first.includes(p));
 };
 
 const _origLog = console.log.bind(console);
+const _origInfo = console.info.bind(console);
 const _origWarn = console.warn.bind(console);
 const _origError = console.error.bind(console);
 
 console.log = (...args: unknown[]) => {
     if (!_shouldSuppress(args)) {
         _origLog(...args);
+    }
+};
+console.info = (...args: unknown[]) => {
+    if (!_shouldSuppress(args)) {
+        _origInfo(...args);
     }
 };
 console.warn = (...args: unknown[]) => {

@@ -67,6 +67,27 @@ export class ActionFormBuilder {
         return this;
     }
 
+    public header(headerText: string): this {
+        if (typeof (this.form as unknown as { header?: (t: string) => void }).header === 'function') {
+            (this.form as unknown as { header: (t: string) => void }).header(headerText);
+        }
+        return this;
+    }
+
+    public label(labelText: string): this {
+        if (typeof (this.form as unknown as { label?: (t: string) => void }).label === 'function') {
+            (this.form as unknown as { label: (t: string) => void }).label(labelText);
+        }
+        return this;
+    }
+
+    public divider(): this {
+        if (typeof (this.form as unknown as { divider?: () => void }).divider === 'function') {
+            (this.form as unknown as { divider: () => void }).divider();
+        }
+        return this;
+    }
+
     public button(text: string, iconPath?: string | null, onClick?: () => void | Promise<void>): this {
         if (iconPath) {
             this.form.button(text, iconPath);

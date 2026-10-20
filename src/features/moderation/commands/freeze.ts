@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { canTarget } from '@core/permissions/rankManager.js';
@@ -31,9 +32,9 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
         targetPlayer.addTag(frozenTag);
 
         // Add invulnerability (Resistance 255)
-        targetPlayer.addEffect('resistance', 20_000_000, { amplifier: 255, showParticles: false });
+        targetPlayer.addEffect(MinecraftEffectTypes.Resistance, 20_000_000, { amplifier: 255, showParticles: false });
         // Add weakness to prevent attacking
-        targetPlayer.addEffect('weakness', 20_000_000, { amplifier: 255, showParticles: false });
+        targetPlayer.addEffect(MinecraftEffectTypes.Weakness, 20_000_000, { amplifier: 255, showParticles: false });
 
         playSound(targetPlayer, 'mob.stray.ambient');
 
@@ -81,8 +82,8 @@ export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Playe
         targetPlayer.removeTag(frozenTag);
 
         // Remove effects
-        targetPlayer.removeEffect('resistance');
-        targetPlayer.removeEffect('weakness');
+        targetPlayer.removeEffect(MinecraftEffectTypes.Resistance);
+        targetPlayer.removeEffect(MinecraftEffectTypes.Weakness);
 
         playSound(targetPlayer, 'random.levelup');
 

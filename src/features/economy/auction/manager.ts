@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 import { getAuctionHouseConfig } from '@core/config/configurations.js';
 import { deserializeItem, SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
@@ -157,7 +158,7 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
     // Or we add to mailbox if inventory full?
     // Best practice: Try inventory, fallback to mailbox.
 
-    const inventory = buyer.getComponent('inventory') as mc.EntityInventoryComponent;
+    const inventory = buyer.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     let itemGiven = false;
 
     if (isDefined(inventory) && isDefined(inventory.container) && inventory.container.emptySlotsCount > 0) {
@@ -333,7 +334,7 @@ export function claimMailbox(player: mc.Player): { success: boolean; message: st
         return { success: false, message: '§cYour Collection Bin is empty.' };
     }
 
-    const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
+    const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     if (!isDefined(inventory) || !isDefined(inventory.container)) {
         return { success: false, message: '§cInventory error.' };
     }
@@ -378,7 +379,7 @@ export function claimMailboxItem(player: mc.Player, index: number): { success: b
         return { success: false, message: '§cItem not found.' };
     }
 
-    const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
+    const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     if (!isDefined(inventory) || !isDefined(inventory.container)) {
         return { success: false, message: '§cInventory error.' };
     }

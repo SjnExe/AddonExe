@@ -1,6 +1,7 @@
 import { EntityComponentTypes } from '@minecraft/server';
 
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName } from '@core/data/playerDataManager.js';
@@ -72,8 +73,8 @@ const invseeCommand: CustomCommand = {
         }
 
         executor.sendMessage(`§eInventory of ${targetPlayer.name}:`);
-        const inventory = targetPlayer.getComponent('inventory')?.container;
-        const equipment = targetPlayer.getComponent('equippable');
+        const inventory = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
+        const equipment = targetPlayer.getComponent(EntityComponentTypes.Equippable);
 
         if (!isDefined(inventory)) {
             executor.sendMessage('§cCould not access inventory.');
@@ -127,7 +128,7 @@ const ecwipeCommand: CustomCommand = {
 
         let success = true;
         try {
-            const overworld = mc.world.getDimension('overworld');
+            const overworld = mc.world.getDimension(MinecraftDimensionTypes.Overworld);
             const targetPlayer = mc.world.getPlayers({ name: targetNameResolved })[0];
 
             if (isDefined(targetPlayer)) {
@@ -185,8 +186,8 @@ const copyinvCommand: CustomCommand = {
             return;
         }
 
-        const targetInv = targetPlayer.getComponent('inventory')?.container;
-        const myInv = executor.getComponent('inventory')?.container;
+        const targetInv = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
+        const myInv = executor.getComponent(EntityComponentTypes.Inventory)?.container;
 
         if (!isDefined(targetInv) || !isDefined(myInv)) {
             executor.sendMessage('§cCould not access inventory.');

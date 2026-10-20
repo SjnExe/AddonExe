@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import * as mcUi from '@minecraft/server-ui';
+import { uiManager } from '@minecraft/server-ui';
 
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
@@ -213,9 +213,8 @@ function triggerOpponentUiRefresh(match: RpsMatch, targetPlayerId: string): void
     }
     match.refreshingPlayers.add(targetPlayerId);
     try {
-        const uiMgr = (mcUi as unknown as { uiManager?: { closeAllForms?: (p: mc.Player) => void } }).uiManager;
-        if (isDefined(uiMgr) && typeof uiMgr.closeAllForms === 'function') {
-            uiMgr.closeAllForms(target);
+        if (isDefined(uiManager) && typeof uiManager.closeAllForms === 'function') {
+            uiManager.closeAllForms(target);
         }
     } catch {
         // Ignore if closeAllForms is unavailable

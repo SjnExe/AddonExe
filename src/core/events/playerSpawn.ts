@@ -1,5 +1,6 @@
 import { handleCombatPlayerJoin } from '@features/essentials/combatManager.js';
 import * as mc from '@minecraft/server';
+import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 import { getConfig } from '@core/config/configManager.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
@@ -32,7 +33,7 @@ export function handlePlayerJoin(player: mc.Player) {
             d.isVanished = true;
         });
         // Re-apply invisibility effect if player died or effect expired
-        player.addEffect('invisibility', 2_000_000, { amplifier: 1, showParticles: false });
+        player.addEffect(MinecraftEffectTypes.Invisibility, 2_000_000, { amplifier: 1, showParticles: false });
     } else {
         if (pData.isVanished) {
             updatePlayerData(player.id, (d) => {
@@ -53,8 +54,8 @@ export function handlePlayerJoin(player: mc.Player) {
     if (player.hasTag(frozenTag)) {
         player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, false);
         player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Movement, false);
-        player.addEffect('resistance', 20_000_000, { amplifier: 255, showParticles: false });
-        player.addEffect('weakness', 20_000_000, { amplifier: 255, showParticles: false });
+        player.addEffect(MinecraftEffectTypes.Resistance, 20_000_000, { amplifier: 255, showParticles: false });
+        player.addEffect(MinecraftEffectTypes.Weakness, 20_000_000, { amplifier: 255, showParticles: false });
         sendMessage('§cYou are currently frozen.', player);
     }
 

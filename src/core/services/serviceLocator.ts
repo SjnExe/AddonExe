@@ -1,4 +1,3 @@
-import { InvalidArgumentError, InvalidArgumentErrorType } from '@minecraft/common';
 type ServiceName = string;
 
 class ServiceLocator {
@@ -6,7 +5,7 @@ class ServiceLocator {
 
     registerService<T>(name: ServiceName, service: T): void {
         if (this.services.has(name)) {
-            throw new InvalidArgumentError('registerService', 'name', InvalidArgumentErrorType.Duplicate, 0);
+            throw new Error(`Service '${name}' is already registered.`);
         }
         this.services.set(name, service);
     }

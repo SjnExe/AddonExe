@@ -93,7 +93,8 @@ export const world = {
         entitySpawn: { subscribe: mock(), unsubscribe: mock() },
         itemUse: { subscribe: mock(), unsubscribe: mock() },
         chatSend: { subscribe: mock(), unsubscribe: mock() },
-        entityHurt: { subscribe: mock(), unsubscribe: mock() }
+        entityHurt: { subscribe: mock(), unsubscribe: mock() },
+        playerGameModeChange: { subscribe: mock(), unsubscribe: mock() }
     },
     beforeEvents: {
         chatSend: { subscribe: mock(), unsubscribe: mock() },
@@ -191,6 +192,20 @@ export enum GameMode {
     Adventure = 'adventure',
     Spectator = 'spectator'
 }
+
+export enum EquipmentSlot {
+    Head = 'Head',
+    Chest = 'Chest',
+    Legs = 'Legs',
+    Feet = 'Feet',
+    Mainhand = 'Mainhand',
+    Offhand = 'Offhand'
+}
+
+export const EntityTypes = {
+    get: mock((id: string) => ({ id })),
+    getAll: mock(() => [{ id: 'exe:floating_text' }])
+};
 
 // --- @minecraft/server-ui Mocks ---
 
@@ -491,6 +506,15 @@ export class ActionFormData {
     body(_: string) {
         return this;
     }
+    header(_: string) {
+        return this;
+    }
+    label(_: string) {
+        return this;
+    }
+    divider() {
+        return this;
+    }
     button(text: string, iconPath?: string) {
         this._buttons.push({ text, iconPath });
         return this;
@@ -531,6 +555,7 @@ export class ItemStack {
 
 // --- Component Types for strict enum matching ---
 export const EntityComponentTypes = {
+    Health: 'minecraft:health',
     Inventory: 'minecraft:inventory',
     Equippable: 'minecraft:equippable',
     EnderInventory: 'minecraft:ender_inventory',
