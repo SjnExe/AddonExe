@@ -37,6 +37,9 @@
         "validate": "bun scripts/hooks/validate.ts",
         "watch": "bun scripts/build/build.ts --watch"
     },
+    "overrides": {
+        "react": "^18.3.1"
+    },
     "dependencies": {
         "@minecraft/math": "latest",
         "@minecraft/vanilla-data": "latest"
