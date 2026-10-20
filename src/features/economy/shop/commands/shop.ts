@@ -5,9 +5,10 @@ import * as mc from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
-import { parseCurrency } from '@core/utils/index.js';
+import { formatCurrency, parseCurrency } from '@core/utils/index.js';
 import { items as allItems } from '@features/economy/shop/itemsConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { showConfirmationDialog } from '@ui/components.js';
 
 import * as shopAdminManager from '@features/economy/shop/adminManager.js';
 import * as shopManager from '@features/economy/shop/manager.js';
@@ -228,4 +229,70 @@ const addShopCommand: CustomCommand = {
     }
 };
 
-export default [shopCommand, buyCommand, sellCommand, sellHandCommand, shopEditCommand, addShopCommand];
+const pendingSellAllConfirmations = new Map<string, number>();
+
+const sellAllCommand: CustomCommand = {
+    name: 'sellall',
+    aliases: ['sa'],
+    description: 'Sells all sellable shop items in your inventory (with confirmation).',
+    category: 'Economy',
+    permissionNode: 'cmd.sell.member',
+    allowConsole: false,
+    parameters: [
+        {
+            name: 'action',
+            type: 'string',
+            optional: true,
+            enumOptions: ['confirm']
+        }
+    ],
+    execute: async (executor: CommandExecutor, args: { action?: string }) => {
+        if (!(executor instanceof mc.Player)) {
+            return;
+        }
+        if (!isFeatureActive('eco.shop')) {
+            executor.sendMessage('§cThe Shop system is currently disabled globally.');
+            return;
+        }
+
+        const preview = shopManager.previewSellAllInventory(executor);
+        if (preview.totalItems === 0) {
+            executor.sendMessage('§cYou have no sellable shop items in your inventory.');
+            return;
+        }
+
+        if (args.action?.toLowerCase() === 'confirm') {
+            pendingSellAllConfirmations.delete(executor.id);
+            const result = shopManager.executeSellAllInventory(executor);
+            executor.sendMessage(result.message);
+            return;
+        }
+
+        pendingSellAllConfirmations.set(executor.id, Date.now() + 30_000);
+        const topLines = preview.breakdown
+            .slice(0, 8)
+            .map((b) => `§7- §f${b.displayName} §ex${b.count} §7(§a${formatCurrency(b.payout)}§7)`)
+            .join('\n');
+        const extraLine = preview.breakdown.length > 8 ? `\n§8...and ${preview.breakdown.length - 8} more item types` : '';
+
+        executor.sendMessage(`§e[Shop] Ready to sell §f${preview.totalItems}§e items for §a${formatCurrency(preview.totalPayout)}§e. Confirm in the popup or type §a/sellall confirm§e within 30s.`);
+
+        await showConfirmationDialog(executor, {
+            title: 'Confirm Sell All',
+            body: `Sell §e${preview.totalItems}§f items (§b${preview.distinctTypes}§f types) for §a${formatCurrency(preview.totalPayout)}§f?\n\n${topLines}${extraLine}`,
+            confirmButtonText: `§2Sell All (${formatCurrency(preview.totalPayout)})`,
+            cancelButtonText: '§cCancel',
+            onConfirm: () => {
+                pendingSellAllConfirmations.delete(executor.id);
+                const res = shopManager.executeSellAllInventory(executor);
+                executor.sendMessage(res.message);
+            },
+            onCancel: () => {
+                pendingSellAllConfirmations.delete(executor.id);
+                executor.sendMessage('§eSell All cancelled.');
+            }
+        });
+    }
+};
+
+export default [shopCommand, buyCommand, sellCommand, sellHandCommand, sellAllCommand, shopEditCommand, addShopCommand];

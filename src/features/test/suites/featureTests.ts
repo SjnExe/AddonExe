@@ -12,6 +12,7 @@ import { getPunishmentLogs } from '@features/anticheat/logManager.js';
 import { getBounty, incrementBounty, removeBounty } from '@features/economy/bountyManager.js';
 import { parseRankOverrides } from '@features/economy/shop/utils.js';
 import { getEffectiveBorderForDimension, getWorldBorder, setEndBorder, setOverworldBorder, updateWorldBorderConfig } from '@features/essentials/worldBorderManager.js';
+import { evaluateRpsRound } from '@features/games/rps/manager.js';
 import { evaluateTicTacToeBoard } from '@features/games/tictactoe/manager.js';
 import { addPunishment, getPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
@@ -209,5 +210,13 @@ export function registerFeatureTests() {
         const drawBoard = evaluateTicTacToeBoard(['X', 'O', 'X', 'X', 'O', 'O', 'O', 'X', 'X']);
         assert.equal(drawBoard.winner, undefined, 'Draw board should have no winner');
         assert.equal(drawBoard.isDraw, true, 'Should detect draw when all 9 squares are filled');
+    });
+
+    addTest(SUITE_NAME, 'Rock Paper Scissors evaluator resolves all matchups and draws', () => {
+        assert.equal(evaluateRpsRound('rock', 'scissors'), 'p1', 'Rock should beat Scissors');
+        assert.equal(evaluateRpsRound('paper', 'rock'), 'p1', 'Paper should beat Rock');
+        assert.equal(evaluateRpsRound('scissors', 'paper'), 'p1', 'Scissors should beat Paper');
+        assert.equal(evaluateRpsRound('rock', 'paper'), 'p2', 'Rock should lose to Paper');
+        assert.equal(evaluateRpsRound('scissors', 'scissors'), 'draw', 'Identical moves should draw');
     });
 }

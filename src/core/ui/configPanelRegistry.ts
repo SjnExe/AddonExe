@@ -78,6 +78,12 @@ export const configPanelSchema: ConfigCategory[] = [
                 configSource: 'main'
             },
             {
+                key: 'playtimeRewards.enabled',
+                label: 'Enable Playtime & AFK Rewards (/playtime)',
+                type: 'toggle',
+                configSource: 'main'
+            },
+            {
                 key: 'kits.enabled',
                 label: 'Enable Kit System (/kit)',
                 type: 'toggle',
@@ -182,6 +188,18 @@ export const configPanelSchema: ConfigCategory[] = [
             {
                 key: 'ticTacToe.enabled',
                 label: 'Enable Tic-Tac-Toe (/ttt)',
+                type: 'toggle',
+                configSource: 'games'
+            },
+            {
+                key: 'rps.enabled',
+                label: 'Enable Rock Paper Scissors (/rps)',
+                type: 'toggle',
+                configSource: 'games'
+            },
+            {
+                key: 'minesweeper.enabled',
+                label: 'Enable Minesweeper (/ms)',
                 type: 'toggle',
                 configSource: 'games'
             },
@@ -1609,6 +1627,135 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Allow Money Wagers',
                 type: 'toggle',
                 description: 'Allow players to wager money on multiplayer matches.'
+            },
+            {
+                key: 'rps.enabled',
+                label: 'Enable Rock Paper Scissors Module',
+                type: 'toggle',
+                description: 'Enables the multiplayer and solo Rock Paper Scissors mini-game.'
+            },
+            {
+                key: 'rps.bestOfRounds',
+                label: 'RPS Best-Of Rounds (1, 3, or 5)',
+                type: 'textField',
+                description: 'Number of rounds in a Rock Paper Scissors match (default 3).'
+            },
+            {
+                key: 'rps.turnTimeoutSeconds',
+                label: 'RPS Turn Timeout (s)',
+                type: 'textField',
+                description: 'Seconds allowed per round before forfeiting.'
+            },
+            {
+                key: 'rps.allowWagers',
+                label: 'Allow RPS Money Wagers',
+                type: 'toggle',
+                description: 'Allow players to wager money on Rock Paper Scissors matches.'
+            },
+            {
+                key: 'minesweeper.enabled',
+                label: 'Enable Minesweeper (Solo & 2P Race)',
+                type: 'toggle',
+                description: 'Enables Beginner (9x9), Intermediate (12x12), and Expert (16x12) Minesweeper.'
+            },
+            {
+                key: 'minesweeper.easyReward',
+                label: 'Minesweeper Beginner (9x9) Base Reward',
+                type: 'textField',
+                description: 'Base money reward for clearing Beginner (9x9, 10 mines).'
+            },
+            {
+                key: 'minesweeper.easySpeedBonusMax',
+                label: 'Minesweeper Beginner Max Speed Bonus',
+                type: 'textField',
+                description: 'Max bonus money for clearing Beginner under par time.'
+            },
+            {
+                key: 'minesweeper.easyParSeconds',
+                label: 'Minesweeper Beginner Par Time (s)',
+                type: 'textField',
+                description: 'Par time in seconds for Beginner speed bonus (default 180s).'
+            },
+            {
+                key: 'minesweeper.mediumReward',
+                label: 'Minesweeper Intermediate (12x12) Base Reward',
+                type: 'textField',
+                description: 'Base money reward for clearing Intermediate (12x12, 24 mines).'
+            },
+            {
+                key: 'minesweeper.mediumSpeedBonusMax',
+                label: 'Minesweeper Intermediate Max Speed Bonus',
+                type: 'textField',
+                description: 'Max bonus money for clearing Intermediate under par time.'
+            },
+            {
+                key: 'minesweeper.mediumParSeconds',
+                label: 'Minesweeper Intermediate Par Time (s)',
+                type: 'textField',
+                description: 'Par time in seconds for Intermediate speed bonus (default 300s).'
+            },
+            {
+                key: 'minesweeper.hardReward',
+                label: 'Minesweeper Expert (16x12) Base Reward',
+                type: 'textField',
+                description: 'Base money reward for clearing Expert (16x12, 40 mines).'
+            },
+            {
+                key: 'minesweeper.hardSpeedBonusMax',
+                label: 'Minesweeper Expert Max Speed Bonus',
+                type: 'textField',
+                description: 'Max bonus money for clearing Expert under par time.'
+            },
+            {
+                key: 'minesweeper.hardParSeconds',
+                label: 'Minesweeper Expert Par Time (s)',
+                type: 'textField',
+                description: 'Par time in seconds for Expert speed bonus (default 480s).'
+            },
+            {
+                key: 'minesweeper.allowWagers',
+                label: 'Allow Minesweeper 2P Race Wagers',
+                type: 'toggle',
+                description: 'Allow players to wager money on 2-player Minesweeper races.'
+            }
+        ]
+    },
+    {
+        id: 'playtimeRewards',
+        title: 'Playtime & AFK Rewards',
+        icon: 'textures/items/clock_item',
+        configSource: 'main',
+        category: 'Economy',
+        settings: [
+            {
+                key: 'playtimeRewards.enabled',
+                label: 'Enable Playtime & AFK Rewards',
+                type: 'toggle',
+                description: 'Enables recurring stay-online/AFK payouts and playtime milestones.'
+            },
+            {
+                key: 'playtimeRewards.afkIntervalMinutes',
+                label: 'Stay-Online / AFK Payout Interval (Minutes)',
+                type: 'textField',
+                description: 'Minutes between automatic stay-online reward drops (default 15).'
+            },
+            {
+                key: 'playtimeRewards.afkRewardMoney',
+                label: 'Stay-Online / AFK Money Reward',
+                type: 'textField',
+                description: 'Money granted each interval while online/AFK.'
+            },
+            {
+                key: 'playtimeRewards.afkRewardXpLevels',
+                label: 'Stay-Online / AFK XP Levels',
+                type: 'textField',
+                description: 'XP levels granted each interval (0 to disable).'
+            },
+            {
+                key: 'playtimeRewards.notifyOnAfkReward',
+                label: 'Notify Player on Stay-Online Payout',
+                type: 'toggle',
+                description: 'Sends a chat message and sound when an AFK/Online drop is received.'
             }
         ]
     },

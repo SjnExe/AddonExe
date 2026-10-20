@@ -82,8 +82,11 @@ mock.module('virtual:command-index', () => ({
 import { _resetMinecraftMocks } from './minecraftMock.ts';
 
 beforeEach(async () => {
+    mock.restore();
     _resetMinecraftMocks();
     try {
+        const { _clearConfigManagersForTest } = await import('@core/config/configurations.js');
+        _clearConfigManagersForTest();
         const { clearPlayerCache } = await import('@core/data/playerCache.js');
         const { cleanupPlayerDataManager } = await import('@core/data/playerDataManager.js');
         const { invalidateAllRankCaches } = await import('@core/permissions/permissionEngine.js');

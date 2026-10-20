@@ -211,4 +211,68 @@ const copyinvCommand: CustomCommand = {
     }
 };
 
-export default [invseeCommand, ecwipeCommand, copyinvCommand];
+const ecseeCommand: CustomCommand = {
+    name: 'ecsee',
+    aliases: ['enderchestsee', 'viewec'],
+    description: 'View the 27 Ender Chest slots of another player.',
+    category: 'Moderation',
+    permissionNode: 'cmd.invsee.mod',
+    parameters: [
+        { name: 'player', type: 'string', optional: false },
+        { name: 'mode', type: 'string', optional: true, enumOptions: ['chat', 'ui'] }
+    ],
+    execute: async (executor: CommandExecutor, params: Record<string, unknown>) => {
+        if (!(executor instanceof mc.Player)) {
+            executor.sendMessage('§cThis command can only be used by players.');
+            return;
+        }
+
+        const targetName = params.player;
+        if (typeof targetName !== 'string') {
+            return;
+        }
+        const targets = resolveTarget(targetName, executor);
+        const targetPlayer = targets[0];
+
+        if (!isDefined(targetPlayer)) {
+            executor.sendMessage('§cPlayer not found.');
+            return;
+        }
+
+        if (executor.id !== targetPlayer.id && !canTarget(executor, targetPlayer.id)) {
+            executor.sendMessage('§cYou cannot view the Ender Chest of a player with the same or higher rank than you.');
+            return;
+        }
+
+        if (typeof params.mode === 'string' && params.mode.toLowerCase() === 'ui') {
+            const { showEnderChestPanel } = await import('@core/ui/panels/inventoryPanel.js');
+            await showEnderChestPanel(executor, targetPlayer.id);
+            return;
+        }
+
+        const enderInv = targetPlayer.getComponent(EntityComponentTypes.EnderInventory) as mc.EntityEnderInventoryComponent | undefined;
+        if (!isDefined(enderInv) || !isDefined(enderInv.container)) {
+            executor.sendMessage('§cCould not access Ender Chest.');
+            return;
+        }
+
+        const container = enderInv.container;
+        let output = '';
+        for (let i = 0; i < container.size; i++) {
+            const item = container.getItem(i);
+            if (isDefined(item)) {
+                const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
+                output += ` §d[${i}] §f${name} §7x${item.amount}\n`;
+            }
+        }
+
+        executor.sendMessage(`§dEnder Chest of ${targetPlayer.name}:`);
+        if (output.trim().length > 0) {
+            executor.sendMessage(output.trim());
+        } else {
+            executor.sendMessage('§7Ender Chest is empty.');
+        }
+    }
+};
+
+export default [invseeCommand, ecseeCommand, ecwipeCommand, copyinvCommand];

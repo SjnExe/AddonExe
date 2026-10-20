@@ -2,13 +2,14 @@ import { getShopConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatCurrency } from '@core/utils/index.js';
-import { buyItem, getPlayerInventoryShopItemCount, getPlayerShopItemPrice, sellItem } from '@features/economy/shop/manager.js';
+import { buyItem, executeSellAllInventory, getPlayerInventoryShopItemCount, getPlayerShopItemPrice, previewSellAllInventory, sellItem } from '@features/economy/shop/manager.js';
 import { ensureItemsConfig } from '@features/economy/shop/utils.js';
 import { formatShopPriceSubtitle, formatTwoLineButton, resolveTradeItemIcon, resolveTradeItemMetadata } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
+import { showConfirmationDialog } from '@ui/components.js';
 
 interface ShopItemInfo {
     itemId?: string;
@@ -38,6 +39,28 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
         .body(`§7Your Balance: §a${formatCurrency(pData.balance)}\n§7Select a category or search for an item:`)
         .button(formatTwoLineButton('§l§6Search Shop', 'Find any item by name'), 'textures/ui/magnifyingGlass', () => {
             void showShopSearchPanel(player);
+        })
+        .button(formatTwoLineButton('§l§aSell All Inventory', 'Bulk sell with confirmation'), 'textures/ui/icon_recipe_equipment', async () => {
+            const preview = previewSellAllInventory(player);
+            if (preview.totalItems === 0) {
+                player.sendMessage('§cYou have no sellable shop items in your inventory.');
+                await showShopMainPanel(player);
+                return;
+            }
+            await showConfirmationDialog(player, {
+                title: 'Confirm Sell All',
+                body: `Sell §e${preview.totalItems}§f items (§b${preview.distinctTypes}§f types) for §a${formatCurrency(preview.totalPayout)}§f?`,
+                confirmButtonText: `§2Sell All (${formatCurrency(preview.totalPayout)})`,
+                cancelButtonText: '§cCancel',
+                onConfirm: async () => {
+                    const res = executeSellAllInventory(player);
+                    player.sendMessage(res.message);
+                    await showShopMainPanel(player);
+                },
+                onCancel: async () => {
+                    await showShopMainPanel(player);
+                }
+            });
         });
 
     const shopConfig = getShopConfig();

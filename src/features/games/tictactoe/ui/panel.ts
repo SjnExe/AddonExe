@@ -234,7 +234,8 @@ export async function showInviteFriendToGameModal(player: mc.Player, defaultGame
 
     const canWager = isFeatureActive('eco') && getGamesConfig().ticTacToe?.allowWagers !== false;
 
-    const modal = new CustomFormBuilder<{ friendName: string; wagerStr: string }>('Invite Friend to Tic-Tac-Toe').dropdown('friendName', 'Select Online Friend', friendNames, defaultIdx);
+    const gameTitle = defaultGameId === 'rps' ? 'Rock Paper Scissors' : defaultGameId === 'minesweeper' ? 'Minesweeper Race' : 'Tic-Tac-Toe';
+    const modal = new CustomFormBuilder<{ friendName: string; wagerStr: string }>(`Invite Friend to ${gameTitle}`).dropdown('friendName', 'Select Online Friend', friendNames, defaultIdx);
 
     if (canWager) {
         modal.textField('wagerStr', 'Optional Wager Amount (0 for friendly match)', '0', '0');

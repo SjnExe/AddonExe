@@ -189,6 +189,13 @@ export const config = {
     dailyRewards: {
         enabled: false
     },
+    playtimeRewards: {
+        enabled: false,
+        afkIntervalMinutes: 15,
+        afkRewardMoney: 50,
+        afkRewardXpLevels: 0,
+        notifyOnAfkReward: true
+    },
     voting: {
         enabled: false
     },

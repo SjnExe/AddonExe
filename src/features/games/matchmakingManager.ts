@@ -5,6 +5,7 @@ import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
+import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isFriend } from '@features/social/friends/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
@@ -49,7 +50,7 @@ export function initializeMatchmaking(): void {
     }
     initialized = true;
 
-    mc.system.runInterval(() => {
+    setTrackedInterval(() => {
         const now = Date.now();
         for (const [senderId, inv] of outgoingInvites.entries()) {
             if (inv.expiryTimestamp <= now) {
@@ -100,6 +101,16 @@ export function getAllMultiplayerGames(): MultiplayerGameDefinition[] {
 }
 
 export function registerActiveMatchSession(session: ActiveMatchSession): void {
+    leaveMatchmakingQueue(session.playerIds[0]);
+    leaveMatchmakingQueue(session.playerIds[1]);
+    const out0 = outgoingInvites.get(session.playerIds[0]);
+    if (isDefined(out0)) {
+        removeInvite(out0);
+    }
+    const out1 = outgoingInvites.get(session.playerIds[1]);
+    if (isDefined(out1)) {
+        removeInvite(out1);
+    }
     activePlayerMatches.set(session.playerIds[0], session);
     activePlayerMatches.set(session.playerIds[1], session);
 }
@@ -224,8 +235,9 @@ export function sendGameInvite(sender: mc.Player, target: mc.Player, gameId: str
     };
 }
 
-export function acceptGameInvite(player: mc.Player, senderName?: string): { success: boolean; message: string } {
-    const list = incomingInvites.get(player.id);
+export function acceptGameInvite(player: mc.Player, senderName?: string, gameId?: string): { success: boolean; message: string } {
+    const rawList = incomingInvites.get(player.id);
+    const list = isDefined(rawList) && isNonEmptyString(gameId) ? rawList.filter((i) => i.gameId === gameId.toLowerCase()) : rawList;
     if (!isDefined(list) || list.length === 0) {
         return { success: false, message: '§cYou have no pending game invitations.' };
     }
@@ -273,8 +285,9 @@ export function acceptGameInvite(player: mc.Player, senderName?: string): { succ
     return { success: true, message: '' };
 }
 
-export function denyGameInvite(player: mc.Player, senderName?: string): { success: boolean; message: string } {
-    const list = incomingInvites.get(player.id);
+export function denyGameInvite(player: mc.Player, senderName?: string, gameId?: string): { success: boolean; message: string } {
+    const rawList = incomingInvites.get(player.id);
+    const list = isDefined(rawList) && isNonEmptyString(gameId) ? rawList.filter((i) => i.gameId === gameId.toLowerCase()) : rawList;
     if (!isDefined(list) || list.length === 0) {
         return { success: false, message: '§cYou have no pending game invitations.' };
     }

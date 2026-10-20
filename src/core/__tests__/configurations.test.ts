@@ -44,6 +44,7 @@ describe('Configurations Manager', () => {
     });
 
     afterEach(() => {
+        _clearConfigManagersForTest();
         factorySpy?.mockRestore();
     });
 

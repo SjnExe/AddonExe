@@ -16,6 +16,26 @@ export async function showGamesMainPanel(player: mc.Player): Promise<void> {
         });
     }
 
+    if (isFeatureActive('game.rps')) {
+        form.button('Rock Paper Scissors', 'textures/items/shears', async () => {
+            await showPanel(player, 'rpsMainPanel');
+        });
+    } else {
+        form.button('Rock Paper Scissors\n§0[§cDISABLED§0]', 'textures/items/shears', async () => {
+            await showGamesMainPanel(player);
+        });
+    }
+
+    if (isFeatureActive('game.minesweeper')) {
+        form.button('Minesweeper (12x6)', 'textures/items/iron_pickaxe', async () => {
+            await showPanel(player, 'minesweeperMainPanel');
+        });
+    } else {
+        form.button('Minesweeper\n§0[§cDISABLED§0]', 'textures/items/iron_pickaxe', async () => {
+            await showGamesMainPanel(player);
+        });
+    }
+
     if (isFeatureActive('game.wordle')) {
         form.button('Wordle', 'textures/ui/icon_recipe_item', async () => {
             await showPanel(player, 'wordleMainPanel', { page: 1 });

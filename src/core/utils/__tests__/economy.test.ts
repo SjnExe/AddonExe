@@ -1,13 +1,21 @@
 import * as configurations from '@core/config/configurations.js';
-import { describe, expect, it, spyOn } from 'bun:test';
-
-spyOn(configurations, 'getEconomyConfig').mockReturnValue({
-    currencySymbol: '$'
-} as any);
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 const { formatCurrency, parseCurrency } = await import('../economy.ts');
 
 describe('economy utils', () => {
+    let getEconomyConfigSpy: any;
+
+    beforeEach(() => {
+        getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+            currencySymbol: '$'
+        } as any);
+    });
+
+    afterEach(() => {
+        getEconomyConfigSpy?.mockRestore();
+    });
+
     describe('formatCurrency', () => {
         it('should format numbers less than 1000 correctly', () => {
             expect(formatCurrency(100)).toBe('$100.00');

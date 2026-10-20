@@ -1,6 +1,6 @@
 import * as mc from '@minecraft/server';
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as permissionEngine from '@core/permissions/permissionEngine.js';
@@ -131,9 +131,12 @@ function createMockPlayer(id: string, name: string, initialMode: mc.GameMode = m
 }
 
 describe('staffInventoryManager & staffChat', () => {
+    let getOrCreateSpy: any;
+    let updateDataSpy: any;
+    let hasPermSpy: any;
+
     beforeEach(() => {
-        mock.restore();
-        spyOn(playerDataManager, 'getOrCreatePlayer').mockReturnValue({
+        getOrCreateSpy = spyOn(playerDataManager, 'getOrCreatePlayer').mockReturnValue({
             name: 'StaffTester',
             balance: 0,
             homes: {},
@@ -142,9 +145,15 @@ describe('staffInventoryManager & staffChat', () => {
             tpaSettings: { autoAccept: false },
             pendingInvites: [],
             mailbox: []
-        });
-        spyOn(playerDataManager, 'updatePlayerData').mockImplementation(() => {});
-        spyOn(permissionEngine, 'hasPermission').mockReturnValue(true);
+        } as any);
+        updateDataSpy = spyOn(playerDataManager, 'updatePlayerData').mockImplementation(() => {});
+        hasPermSpy = spyOn(permissionEngine, 'hasPermission').mockReturnValue(true);
+    });
+
+    afterEach(() => {
+        getOrCreateSpy?.mockRestore();
+        updateDataSpy?.mockRestore();
+        hasPermSpy?.mockRestore();
     });
 
     it('should preserve survival items, equipment, and XP levels when swapping to staff and back', () => {

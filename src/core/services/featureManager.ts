@@ -90,6 +90,16 @@ export function isFeatureActive(featureId: string): boolean {
             const gCfg = configs.getGamesConfig();
             return isDefined(gCfg) ? gCfg.enabled === true && gCfg.ticTacToe?.enabled !== false : false;
         }
+        case 'game.rps': {
+            const gCfg = configs.getGamesConfig();
+            return isDefined(gCfg) ? gCfg.enabled === true && gCfg.rps?.enabled !== false : false;
+        }
+        case 'game.minesweeper': {
+            const gCfg = configs.getGamesConfig();
+            return isDefined(gCfg) ? gCfg.enabled === true && gCfg.minesweeper?.enabled !== false : false;
+        }
+        case 'eco.playtime':
+            return mainConfig ? mainConfig.playtimeRewards?.enabled === true : false;
         case 'game.wordle': {
             const gCfg = configs.getGamesConfig();
             const wCfg = configs.getWordleConfig();

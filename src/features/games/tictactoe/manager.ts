@@ -5,6 +5,7 @@ import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
+import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { registerActiveMatchSession, registerMultiplayerGame, unregisterActiveMatchSession } from '@features/games/matchmakingManager.js';
 import { isDefined } from '@lib/guards.js';
 
@@ -63,7 +64,7 @@ export function initializeTicTacToe(): void {
 
     if (!turnTimerInitialized) {
         turnTimerInitialized = true;
-        mc.system.runInterval(() => {
+        setTrackedInterval(() => {
             const now = Date.now();
             const timeoutMs = Math.max(15, getGamesConfig().ticTacToe?.turnTimeoutSeconds ?? 45) * 1000;
             for (const match of activeMatches.values()) {
