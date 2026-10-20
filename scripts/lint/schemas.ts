@@ -7,7 +7,6 @@ async function main() {
 
     const ajv = new Ajv({ strict: false, allErrors: true });
 
-    // 1. Resolve Bedrock Schemas package root & catalog.json dynamically using import.meta.resolve
     const schemasPkgResolved = import.meta.resolve('@minecraft/bedrock-schemas/package.json');
     const schemasPkgPath = fileURLToPath(schemasPkgResolved);
     const schemasDir = path.dirname(schemasPkgPath);
@@ -33,7 +32,6 @@ async function main() {
 
         try {
             const absolutePath = path.resolve(schemasDir, schemaDef.url);
-
             const schemaJson = await Bun.file(absolutePath).json();
             const validate = ajv.compile(schemaJson);
 
@@ -48,7 +46,6 @@ async function main() {
         }
     }
 
-    // 2. Validate files in root packs/ using Bun.Glob
     const projectRoot = process.cwd();
     const packsDir = path.join(projectRoot, 'packs');
     let totalValidated = 0;
@@ -81,7 +78,6 @@ async function main() {
                     errors++;
                 }
 
-                // Enhanced Bedrock UI validation for UI JSON files
                 if (relativePath.includes('/ui/')) {
                     const uiErrors = validateUiJson(relativePath, json);
                     if (uiErrors.length > 0) {
@@ -106,7 +102,7 @@ async function main() {
         console.error(`[Validator] Found ${errors} schema validation errors.`);
         process.exit(1);
     } else {
-        console.log(`[Validator] All JSON files passed schema validation.`);
+        console.log('[Validator] All JSON files passed schema validation.');
     }
 }
 
@@ -123,6 +119,32 @@ function validateUiJson(relativePath: string, json: any): string[] {
             uiErrors.push(`${keyPath}: Control of type 'grid' cannot have 'orientation' property.`);
         }
 
+        // Rule 1b: view bindings must have a valid #property/$var or balanced outer parentheses
+        if (Array.isArray(obj.bindings)) {
+            for (const b of obj.bindings) {
+                if (b && b.binding_type === 'view' && typeof b.source_property_name === 'string') {
+                    const expr = b.source_property_name.trim();
+                    if (!expr.startsWith('#') && !expr.startsWith('$')) {
+                        let depth = 0;
+                        let closedBeforeEnd = false;
+                        for (let i = 0; i < expr.length; i++) {
+                            if (expr[i] === '(') {
+                                depth++;
+                            } else if (expr[i] === ')') {
+                                depth--;
+                                if (depth === 0 && i < expr.length - 1) {
+                                    closedBeforeEnd = true;
+                                }
+                            }
+                        }
+                        if (!expr.startsWith('(') || !expr.endsWith(')') || depth !== 0 || closedBeforeEnd) {
+                            uiErrors.push(`${keyPath}: View binding source_property_name must be wrapped in outer parentheses: ${expr}`);
+                        }
+                    }
+                }
+            }
+        }
+
         // Rule 2: Specific dynamic controls expected by Bedrock C++ UI engine
         if (keyPath.endsWith('long_form_dynamic_buttons_panel')) {
             if (obj.type && obj.type !== 'stack_panel' && obj.type !== 'panel') {
@@ -133,7 +155,6 @@ function validateUiJson(relativePath: string, json: any): string[] {
             }
         }
 
-        // Recursively check child objects and controls
         for (const [key, val] of Object.entries(obj)) {
             if (val && typeof val === 'object') {
                 checkControl(`${keyPath}.${key}`, val);

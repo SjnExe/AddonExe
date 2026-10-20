@@ -226,7 +226,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
     const coreEntrypoints = ['src/main.ts'];
     const outDir = path.resolve(ROOT_DIR, `packs/behavior/scripts${outDirSuffix}`);
 
-    const externalModules = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest', '@minecraft/debug-utilities', '@minecraft/common'];
+    const externalModules = ['@minecraft/server', '@minecraft/server-ui'];
 
     // Bundle Core Engine Module into main.js
     const coreResult = await Bun.build({

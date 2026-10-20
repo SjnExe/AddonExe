@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
@@ -41,7 +42,7 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | 
         const safeReason = escapeCommandArg(reason);
         const safeTargetName = escapeCommandArg(targetPlayer.name);
         const commandToRun = `kick "${safeTargetName}" "${safeReason}"`;
-        mc.world.getDimension('overworld').runCommand(commandToRun);
+        mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(commandToRun);
         if (executor instanceof mc.Player) {
             sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`, executor);
             playSound(executor, soundTeleport);

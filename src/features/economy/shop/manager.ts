@@ -1,6 +1,7 @@
 import { ItemComponentTypes } from '@minecraft/server';
 
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 import { getShopConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
@@ -106,7 +107,7 @@ export function getPlayerInventoryShopItemCount(player: mc.Player, itemKey: stri
     if (!isDefined(shopItem)) {
         return 0;
     }
-    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent | undefined;
+    const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
     if (!isDefined(inventoryComp?.container)) {
         return 0;
     }
@@ -205,7 +206,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
         };
     }
 
-    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
+    const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         return { success: false, message: '§cCould not access inventory.' };
     }
@@ -327,7 +328,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
         return { success: false, message: '§cThis item cannot be sold.' };
     }
 
-    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent;
+    const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
     if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
         return { success: false, message: '§cCould not access inventory.' };
     }
@@ -435,7 +436,7 @@ function buildReverseSellMap(): Map<string, { itemKey: string; shopItem: ItemInf
 }
 
 export function previewSellAllInventory(player: mc.Player): SellAllPreview {
-    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent | undefined;
+    const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
     const container = inventoryComp?.container;
     if (!isDefined(container)) {
         return { totalItems: 0, distinctTypes: 0, totalPayout: 0, breakdown: [] };
@@ -490,7 +491,7 @@ export function previewSellAllInventory(player: mc.Player): SellAllPreview {
 }
 
 export function executeSellAllInventory(player: mc.Player): ShopTransactionResult {
-    const inventoryComp = player.getComponent('inventory') as mc.EntityInventoryComponent | undefined;
+    const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
     const container = inventoryComp?.container;
     if (!isDefined(container)) {
         return { success: false, message: '§cCould not access inventory.' };

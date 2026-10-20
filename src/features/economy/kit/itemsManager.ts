@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 
 import * as configManager from '@core/config/configManager.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
@@ -79,7 +80,7 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
  * Preserves Name, Lore, and Enchantments.
  */
 export function addItemFromHandToKit(kitName: string, player: mc.Player): ActionResult {
-    const inventory = (player.getComponent('inventory') as mc.EntityInventoryComponent).container;
+    const inventory = (player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent).container;
     if (!isDefined(inventory)) {
         return { success: false, message: 'Could not access inventory.' };
     }
@@ -90,7 +91,7 @@ export function addItemFromHandToKit(kitName: string, player: mc.Player): Action
     }
 
     const enchantments: EnchantmentInfo[] = [];
-    const enchantComp = item.getComponent('enchantable') as mc.ItemEnchantableComponent;
+    const enchantComp = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
     if (isDefined(enchantComp)) {
         const enchants = enchantComp.getEnchantments();
         for (const ench of enchants) {

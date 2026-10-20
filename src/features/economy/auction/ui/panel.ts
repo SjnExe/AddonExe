@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
@@ -88,7 +89,7 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
 
 async function showCreateListingModal(player: mc.Player): Promise<void> {
     const config = getAuctionHouseConfig();
-    const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent | undefined;
+    const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
     const heldItem = inventory?.container?.getItem(player.selectedSlotIndex);
 
     if (!isDefined(heldItem)) {

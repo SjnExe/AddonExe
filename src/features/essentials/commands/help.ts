@@ -1,12 +1,11 @@
 import * as mc from '@minecraft/server';
-import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
 import { getConfig } from '@core/config/configManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { noPermission } from '@core/utils/constants.js';
-import { uiWait } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 
@@ -219,14 +218,14 @@ async function showUIHelp(player: mc.Player) {
 
     const sortedCats = getSortedCategories(visibleCategories);
 
-    const form = new ActionFormData().title('§lHelp Menu').body('Select a category to view commands:');
+    const form = new ActionFormBuilder().title('§lHelp Menu').body('Select a category to view commands:');
 
     for (const cat of sortedCats) {
         form.button(cat);
     }
 
     try {
-        const response = (await uiWait(player, form)) as ActionFormResponse;
+        const response = await form.show(player, { wait: true });
         if (response.canceled || response.selection === undefined) {
             return;
         }
@@ -244,7 +243,7 @@ async function showUICategory(player: mc.Player, category: string) {
     const cmds = getCategorizedCommands().get(category) ?? [];
     const visibleCmds = cmds.filter((c) => c.hidden !== true && hasPermission(player, c.permissionNode));
 
-    const form = new ActionFormData().title(`§l${category}`).body(`Commands in ${category}:`);
+    const form = new ActionFormBuilder().title(`§l${category}`).body(`Commands in ${category}:`);
 
     form.button('§4< Back');
     for (const c of visibleCmds) {
@@ -252,7 +251,7 @@ async function showUICategory(player: mc.Player, category: string) {
     }
 
     try {
-        const response = (await uiWait(player, form)) as ActionFormResponse;
+        const response = await form.show(player, { wait: true });
         if (response.canceled || response.selection === undefined) {
             return;
         }

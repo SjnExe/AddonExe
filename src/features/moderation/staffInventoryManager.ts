@@ -27,14 +27,7 @@ export interface StaffInventoryRecord {
 
 const staffInvPrefix = 'exe:staffInv.';
 function getEquipmentSlots(): mc.EquipmentSlot[] {
-    const slotEnum = (mc as unknown as { EquipmentSlot?: Record<string, mc.EquipmentSlot> }).EquipmentSlot;
-    return [
-        slotEnum?.Head ?? ('Head' as mc.EquipmentSlot),
-        slotEnum?.Chest ?? ('Chest' as mc.EquipmentSlot),
-        slotEnum?.Legs ?? ('Legs' as mc.EquipmentSlot),
-        slotEnum?.Feet ?? ('Feet' as mc.EquipmentSlot),
-        slotEnum?.Offhand ?? ('Offhand' as mc.EquipmentSlot)
-    ];
+    return [mc.EquipmentSlot.Head, mc.EquipmentSlot.Chest, mc.EquipmentSlot.Legs, mc.EquipmentSlot.Feet, mc.EquipmentSlot.Offhand];
 }
 
 const memoryCache = new Map<string, StaffInventoryRecord>();
@@ -44,9 +37,8 @@ function getStorage(playerId: string): StorageManager {
 }
 
 export function isStaffGamemode(mode: mc.GameMode): boolean {
-    const gmEnum = (mc as unknown as { GameMode?: Record<string, mc.GameMode> }).GameMode;
     const modeLower = String(mode).toLowerCase();
-    return mode === gmEnum?.Creative || mode === gmEnum?.Spectator || modeLower === 'creative' || modeLower === 'spectator';
+    return mode === mc.GameMode.Creative || mode === mc.GameMode.Spectator || modeLower === 'creative' || modeLower === 'spectator';
 }
 
 export function hasStaffInventoryPermission(player: mc.Player): boolean {
@@ -322,16 +314,9 @@ export function handleGameModeInventorySwap(player: mc.Player, toGameMode: mc.Ga
 }
 
 export function initializeStaffInventoryListener(): void {
-    const afterEvents = mc.world?.afterEvents as unknown as {
-        playerGameModeChange?: {
-            subscribe: (fn: (ev: { player: mc.Player; fromGameMode: mc.GameMode; toGameMode: mc.GameMode }) => void) => void;
-            unsubscribe: (fn: (ev: { player: mc.Player; fromGameMode: mc.GameMode; toGameMode: mc.GameMode }) => void) => void;
-        };
-    };
-
-    if (isDefined(afterEvents?.playerGameModeChange)) {
+    if (isDefined(mc.world?.afterEvents?.playerGameModeChange)) {
         registerEvent(
-            afterEvents.playerGameModeChange,
+            mc.world.afterEvents.playerGameModeChange,
             (event) => {
                 handleGameModeInventorySwap(event.player, event.toGameMode, event.fromGameMode);
             },

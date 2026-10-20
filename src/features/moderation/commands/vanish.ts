@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 import { getConfig } from '@core/config/configManager.js';
 import { updatePlayerData } from '@core/data/playerDataManager.js';
@@ -27,7 +28,7 @@ const vanishCommand: CustomCommand = {
 
         if (isVanished) {
             executor.removeTag(vanishedTag);
-            executor.removeEffect('invisibility');
+            executor.removeEffect(MinecraftEffectTypes.Invisibility);
             updatePlayerData(executor.id, (d) => {
                 d.isVanished = false;
             });
@@ -41,7 +42,7 @@ const vanishCommand: CustomCommand = {
             }
         } else {
             executor.addTag(vanishedTag);
-            executor.addEffect('invisibility', 2_000_000, { amplifier: 1, showParticles: false });
+            executor.addEffect(MinecraftEffectTypes.Invisibility, 2_000_000, { amplifier: 1, showParticles: false });
             updatePlayerData(executor.id, (d) => {
                 d.isVanished = true;
             });

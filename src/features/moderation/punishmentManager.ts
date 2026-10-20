@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import { getConfig } from '@core/config/configManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
@@ -188,7 +189,7 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
         const safeReason = escapeCommandArg(banReason);
         const safePlayerName = escapeCommandArg(player.name);
         // Use a slight delay to ensure the kick command processes after join
-        mc.system.runTimeout(() => mc.world.getDimension('overworld').runCommand(`kick "${safePlayerName}" "${safeReason}"`), 5);
+        mc.system.runTimeout(() => mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(`kick "${safePlayerName}" "${safeReason}"`), 5);
         return true;
     }
     return false;

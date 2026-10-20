@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-const targetPackages = ['@minecraft/debug-utilities', '@minecraft/server', '@minecraft/server-gametest', '@minecraft/server-ui'];
+const targetPackages = ['@minecraft/server', '@minecraft/server-ui'];
 
 function compareVersions(v1: string, v2: string) {
     const regex = /^(\d+)\.(\d+)\.(\d+)-beta\.(\d+)\.(\d+)\.(\d+)-stable$/;

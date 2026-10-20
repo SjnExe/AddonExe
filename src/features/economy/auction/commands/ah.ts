@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getAuctionHouseConfig } from '@core/config/configurations.js';
@@ -52,7 +53,7 @@ const mainCommand: CustomCommand = {
 
             const isBid = args.type?.toLowerCase() === 'bid';
 
-            const inventory = executor.getComponent('inventory') as mc.EntityInventoryComponent;
+            const inventory = executor.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
             if (!isDefined(inventory) || !isDefined(inventory.container)) {
                 return;
             }

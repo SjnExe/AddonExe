@@ -205,6 +205,7 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
 }
 
 export function initializeXrayDetection(): void {
-    refreshXrayCache(); // Build initial cache
-    registerEvent(mc.world.afterEvents.playerBreakBlock, handleBlockBreak, 'xrayDetection');
+    refreshXrayCache();
+    const monitoredBlockIds = [...oreCache.keys()];
+    registerEvent(mc.world.afterEvents.playerBreakBlock, handleBlockBreak, 'xrayDetection', monitoredBlockIds.length > 0 ? { blockTypes: monitoredBlockIds } : undefined);
 }

@@ -1,4 +1,5 @@
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 import * as configurations from '@core/config/configurations.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
@@ -86,7 +87,7 @@ export function claimDailyReward(player: mc.Player): ClaimResult {
         }
 
         if (isDefined(reward.items) && reward.items.length > 0) {
-            const inventory = player.getComponent('inventory') as mc.EntityInventoryComponent;
+            const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
             if (isDefined(inventory) && isDefined(inventory.container)) {
                 for (const itemDef of reward.items) {
                     try {
