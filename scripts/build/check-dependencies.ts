@@ -4,7 +4,7 @@ const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
 const packageJsonPath = path.join(ROOT_DIR, 'package.json');
 const manifestJsonPath = path.join(ROOT_DIR, 'packs/behavior/manifest.json');
 
-async function main() {
+export async function checkDependencies() {
     const pkgFile = Bun.file(packageJsonPath);
     const manifestFile = Bun.file(manifestJsonPath);
 
@@ -96,7 +96,9 @@ async function main() {
     }
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+if (import.meta.main) {
+    checkDependencies().catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+}

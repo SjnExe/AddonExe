@@ -76,7 +76,7 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
         const game = startMinesweeperGame(player, 'easy');
 
         const unminedVis = getCellVisual(game, game.cells[0]!);
-        expect(unminedVis.icon).toBe('textures/blocks/grass_carried');
+        expect(unminedVis.icon).toBe('textures/blocks/grass_side_carried');
 
         toggleMinesweeperFlagMode(player.id);
         handleMinesweeperCellTap(player, 0);

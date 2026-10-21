@@ -148,8 +148,30 @@ export function loadCommands() {
     }
 };
 
-async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Promise<Map<string, string | ArrayBuffer>> {
-    const entries = new Map<string, string | ArrayBuffer>();
+interface PrecompressedEntry {
+    dataBytes: Uint8Array;
+    rawLength: number;
+    crc: number;
+    method: number;
+}
+
+const zipEncoder = new TextEncoder();
+
+function prepareZipEntry(content: string | Uint8Array): PrecompressedEntry {
+    const rawBytes = typeof content === 'string' ? zipEncoder.encode(content) : content;
+    const crc = Bun.hash.crc32(rawBytes) >>> 0;
+    const deflated = rawBytes.byteLength > 0 ? Bun.deflateSync(rawBytes, { level: 9 }) : new Uint8Array(0);
+    const useDeflate = rawBytes.byteLength > 0 && deflated.byteLength < rawBytes.byteLength;
+    return {
+        dataBytes: useDeflate ? deflated : rawBytes,
+        rawLength: rawBytes.byteLength,
+        crc,
+        method: useDeflate ? 8 : 0
+    };
+}
+
+async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Promise<Map<string, PrecompressedEntry>> {
+    const entries = new Map<string, PrecompressedEntry>();
     const glob = new Bun.Glob('**/*');
     const files = Array.from(glob.scanSync({ cwd: sourceDir, absolute: false, dot: true, onlyFiles: true }));
 
@@ -163,8 +185,8 @@ async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Prom
 
             if (relPath.endsWith('.json')) {
                 try {
-                    const rawJsonText = await Bun.file(fullPath).text();
-                    entries.set(normalizedPath, JSON.stringify(JSON.parse(rawJsonText)));
+                    const parsedJson = await Bun.file(fullPath).json();
+                    entries.set(normalizedPath, prepareZipEntry(JSON.stringify(parsedJson)));
                     return;
                 } catch {
                     // Fall back to raw content if JSON parsing fails
@@ -179,32 +201,26 @@ async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Prom
                         return t.length > 0 && !t.startsWith('#');
                     })
                     .join('\n');
-                entries.set(normalizedPath, minLang);
+                entries.set(normalizedPath, prepareZipEntry(minLang));
                 return;
             }
 
-            entries.set(normalizedPath, await Bun.file(fullPath).arrayBuffer());
+            entries.set(normalizedPath, prepareZipEntry(await Bun.file(fullPath).bytes()));
         })
     );
 
     return entries;
 }
 
-function buildZipArchive(entries: Map<string, string | ArrayBuffer>): Uint8Array {
-    const encoder = new TextEncoder();
+function buildZipArchive(entries: Map<string, PrecompressedEntry>): Uint8Array {
     const localChunks: Uint8Array[] = [];
     const centralChunks: Uint8Array[] = [];
     let localOffset = 0;
     let centralSize = 0;
 
-    for (const [zipPath, content] of entries) {
-        const nameBytes = encoder.encode(zipPath);
-        const rawBytes = typeof content === 'string' ? encoder.encode(content) : new Uint8Array(content);
-        const crc = Bun.hash.crc32(rawBytes) >>> 0;
-        const deflated = rawBytes.byteLength > 0 ? Bun.deflateSync(rawBytes, { level: 9 }) : new Uint8Array(0);
-        const useDeflate = rawBytes.byteLength > 0 && deflated.byteLength < rawBytes.byteLength;
-        const dataBytes = useDeflate ? deflated : rawBytes;
-        const method = useDeflate ? 8 : 0;
+    for (const [zipPath, entry] of entries) {
+        const nameBytes = zipEncoder.encode(zipPath);
+        const { dataBytes, rawLength, crc, method } = entry;
 
         const localHeader = new Uint8Array(30 + nameBytes.byteLength);
         const localView = new DataView(localHeader.buffer);
@@ -216,7 +232,7 @@ function buildZipArchive(entries: Map<string, string | ArrayBuffer>): Uint8Array
         localView.setUint16(12, 0x0021, true);
         localView.setUint32(14, crc, true);
         localView.setUint32(18, dataBytes.byteLength, true);
-        localView.setUint32(22, rawBytes.byteLength, true);
+        localView.setUint32(22, rawLength, true);
         localView.setUint16(26, nameBytes.byteLength, true);
         localView.setUint16(28, 0, true);
         localHeader.set(nameBytes, 30);
@@ -234,7 +250,7 @@ function buildZipArchive(entries: Map<string, string | ArrayBuffer>): Uint8Array
         centralView.setUint16(14, 0x0021, true);
         centralView.setUint32(16, crc, true);
         centralView.setUint32(20, dataBytes.byteLength, true);
-        centralView.setUint32(24, rawBytes.byteLength, true);
+        centralView.setUint32(24, rawLength, true);
         centralView.setUint16(28, nameBytes.byteLength, true);
         centralView.setUint16(30, 0, true);
         centralView.setUint16(32, 0, true);
@@ -284,7 +300,7 @@ async function createArchives(versionStr: string) {
 
     const [bpEntries, rpEntries] = await Promise.all([collectPackFiles(behaviorDir), collectPackFiles(resourceDir)]);
 
-    const mcaddonEntries = new Map<string, string | ArrayBuffer>();
+    const mcaddonEntries = new Map<string, PrecompressedEntry>();
     for (const [relPath, content] of bpEntries) {
         mcaddonEntries.set(`behavior/${relPath}`, content);
     }

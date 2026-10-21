@@ -78,7 +78,7 @@ export const minesweeperTotalCells = 144;
 
 const uiLatencyCompensationMsPerTap = 250;
 
-const unminedGrassTexture = 'textures/blocks/grass_carried';
+const unminedGrassTexture = 'textures/blocks/grass_side_carried';
 const minedDirtTexture = 'textures/blocks/dirt';
 const flaggedTntTexture = 'textures/blocks/tnt_side';
 const explodedMineTexture = 'textures/ui/WarningGlyph';

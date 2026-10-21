@@ -25,10 +25,12 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
 
     console.log('[IconLint] Fetching vanilla textures from GitHub...');
     const texturesToCache: string[] = [];
+    const session = typeof Bun.FetchSession === 'function' ? new Bun.FetchSession() : undefined;
+    const ghFetch = session ? session.fetch.bind(session) : fetch;
 
     try {
         // 1. Fetch item textures
-        const itemRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/item_texture.json');
+        const itemRes = await ghFetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/item_texture.json');
         const itemText = await itemRes.text();
         const itemJson = Bun.JSON5.parse(itemText) as any;
         for (const key in itemJson.texture_data) {
@@ -41,7 +43,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         }
 
         // 2. Fetch terrain textures
-        const terrainRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/terrain_texture.json');
+        const terrainRes = await ghFetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/terrain_texture.json');
         const terrainText = await terrainRes.text();
         const terrainJson = Bun.JSON5.parse(terrainText) as any;
         for (const key in terrainJson.texture_data) {
@@ -54,7 +56,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         }
 
         // 3. Fetch texture list
-        const listRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/texture_list.json');
+        const listRes = await ghFetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/texture_list.json');
         const listText = await listRes.text();
         const listJson = Bun.JSON5.parse(listText) as any;
         if (Array.isArray(listJson)) {
@@ -83,14 +85,14 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         if (!uiTexturesFound) {
             console.log('[IconLint] GitHub tree API unaccessible, extracting UI texture references from Bedrock UI JSON files via _ui_defs.json...');
             try {
-                const defsRes = await fetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/_ui_defs.json');
+                const defsRes = await ghFetch('https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/_ui_defs.json');
                 if (defsRes.ok) {
                     const defsJson = Bun.JSON5.parse(await defsRes.text()) as any;
                     const uiFiles: string[] = defsJson.ui_defs || [];
                     await Promise.all(
                         uiFiles.map(async (file) => {
                             try {
-                                const res = await fetch(`https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/${file}`);
+                                const res = await ghFetch(`https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/${file}`);
                                 if (res.ok) {
                                     const text = await res.text();
                                     const matches = text.match(/textures\/ui\/[a-zA-Z0-9_\-/]+/g);

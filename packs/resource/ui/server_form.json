@@ -162,7 +162,7 @@
                                     { "binding_name": "#title_text" },
                                     {
                                         "binding_type": "view",
-                                        "source_property_name": "((not ((#title_text - '§1§0§0§f§r') = #title_text)) or (not ((#title_text - '§8§0§9§f§r') = #title_text)) or (not ((#title_text - '§8§1§2§f§r') = #title_text)) or (not ((#title_text - '§8§1§6§f§r') = #title_text)) or ((#title_text - '§f§r') = #title_text))",
+                                        "source_property_name": "((not ((#title_text - '') = #title_text)) or (not ((#title_text - '§8§0§9§f§r') = #title_text)) or (not ((#title_text - '§8§1§2§f§r') = #title_text)) or (not ((#title_text - '§8§1§6§f§r') = #title_text)) or ((#title_text - '§f§r') = #title_text))",
                                         "target_property_name": "#visible"
                                     }
                                 ]
@@ -894,7 +894,7 @@
             { "binding_name": "#form_button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" },
             {
                 "binding_type": "view",
-                "source_property_name": "((not ((#title_text - '§1§0§0§f§r') = #title_text)) or ((#title_text - '§f§r') = #title_text) or (not ((#form_button_text - '§m§r') = #form_button_text)))",
+                "source_property_name": "((not ((#title_text - '') = #title_text)) or ((#title_text - '§f§r') = #title_text) or (not ((#form_button_text - '') = #form_button_text)))",
                 "target_property_name": "#visible"
             }
         ],
@@ -1717,9 +1717,58 @@
         "size": ["100%", "100%"],
         "controls": [
             {
+                "unmined_bg": {
+                    "type": "image",
+                    "texture": "textures/ui/White",
+                    "color": [0.22, 0.45, 0.2],
+                    "alpha": 0.92,
+                    "layer": 1,
+                    "size": ["100% - 2px", "100% - 2px"],
+                    "anchor_from": "center",
+                    "anchor_to": "center",
+                    "bindings": [
+                        { "binding_name": "#form_button_texture", "binding_name_override": "#texture", "binding_type": "collection", "binding_collection_name": "form_buttons" },
+                        { "binding_type": "view", "source_property_name": "(#texture = 'textures/blocks/grass_side_carried')", "target_property_name": "#visible" }
+                    ]
+                }
+            },
+            {
+                "mined_bg": {
+                    "type": "image",
+                    "texture": "textures/ui/White",
+                    "color": [0.16, 0.14, 0.12],
+                    "alpha": 0.95,
+                    "layer": 1,
+                    "size": ["100% - 2px", "100% - 2px"],
+                    "anchor_from": "center",
+                    "anchor_to": "center",
+                    "bindings": [
+                        { "binding_name": "#form_button_texture", "binding_name_override": "#texture", "binding_type": "collection", "binding_collection_name": "form_buttons" },
+                        { "binding_type": "view", "source_property_name": "(#texture = 'textures/blocks/dirt')", "target_property_name": "#visible" }
+                    ]
+                }
+            },
+            {
+                "flagged_bg": {
+                    "type": "image",
+                    "texture": "textures/ui/White",
+                    "color": [0.48, 0.2, 0.16],
+                    "alpha": 0.95,
+                    "layer": 1,
+                    "size": ["100% - 2px", "100% - 2px"],
+                    "anchor_from": "center",
+                    "anchor_to": "center",
+                    "bindings": [
+                        { "binding_name": "#form_button_texture", "binding_name_override": "#texture", "binding_type": "collection", "binding_collection_name": "form_buttons" },
+                        { "binding_type": "view", "source_property_name": "((#texture = 'textures/blocks/tnt_side') or (#texture = 'textures/ui/WarningGlyph'))", "target_property_name": "#visible" }
+                    ]
+                }
+            },
+            {
                 "tile_icon": {
                     "type": "image",
-                    "layer": 2,
+                    "layer": 3,
+                    "alpha": 0.88,
                     "size": ["100% - 2px", "100% - 2px"],
                     "anchor_from": "center",
                     "anchor_to": "center",
@@ -1738,9 +1787,9 @@
             {
                 "cell_label": {
                     "type": "label",
-                    "layer": 4,
+                    "layer": 6,
                     "text": "#form_button_text",
-                    "color": [0.95, 0.96, 0.98],
+                    "color": [0.98, 0.98, 1],
                     "font_size": "normal",
                     "font_scale_factor": "$exe_font_scale",
                     "text_alignment": "center",
@@ -1748,7 +1797,7 @@
                     "anchor_from": "center",
                     "anchor_to": "center",
                     "shadow": true,
-                    "$exe_font_scale|default": 0.82,
+                    "$exe_font_scale|default": 0.85,
                     "bindings": [{ "binding_name": "#form_button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" }]
                 }
             }
