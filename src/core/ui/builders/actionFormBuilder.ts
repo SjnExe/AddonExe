@@ -7,7 +7,7 @@ export type GridColumns = 1 | 2 | 3 | 4 | 'board' | 'minesweeper' | 'ms9' | 'ms1
 export class ActionFormBuilder {
     private readonly form: ActionFormData;
     private readonly callbacks: Map<number, () => void | Promise<void>>;
-    private gridColumns: GridColumns = 3;
+    private gridColumns: GridColumns = 2;
     private rawTitle = '';
 
     constructor() {

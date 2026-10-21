@@ -71,7 +71,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'hub_economy',
         title: '§l§6Economy & Commerce',
-        description: 'Shop, Auction House, Kits & Bounties',
+        description: 'Shop, Auctions, Kits & Bounties',
         icon: 'textures/items/gold_ingot',
         hub: 'main',
         order: 10,
@@ -81,7 +81,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'hub_social',
         title: '§l§bSocial & Community',
-        description: 'Friends, Teams & Player List',
+        description: 'Friends, Teams & Players',
         icon: 'textures/ui/icon_multiplayer',
         hub: 'main',
         order: 20,
@@ -91,7 +91,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'hub_games',
         title: '§l§aMini-Games',
-        description: 'Play Wordle & Mini-Games',
+        description: 'Wordle, Minesweeper, RPS & TTT',
         icon: 'textures/ui/controller_glyph_color',
         hub: 'main',
         featureId: 'game',
@@ -102,7 +102,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'hub_profile',
         title: '§l§eProfile & Server Info',
-        description: 'Your Statistics, Info & Rules',
+        description: 'Stats, HUD, Rules & Links',
         icon: 'textures/ui/user_icon',
         hub: 'main',
         order: 40,
@@ -112,7 +112,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'hub_staff',
         title: '§l§cStaff Dashboard',
-        description: 'Moderation, Player Management & Configs',
+        description: 'Moderation, Players & Configs',
         icon: 'textures/ui/op',
         hub: 'main',
         permissionNode: 'ui.panel.mod',
@@ -135,7 +135,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'eco_ah',
         title: 'Auction House',
-        description: 'Trade items with other players',
+        description: 'Buy & bid on player listings',
         icon: 'textures/items/gold_ingot',
         hub: 'economy',
         featureId: 'eco.ah',
@@ -176,8 +176,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'eco_playtime',
-        title: 'Playtime & AFK Rewards',
-        description: 'Stay-online drops & playtime milestones',
+        title: 'Playtime Rewards',
+        description: 'AFK drops & milestones',
         icon: 'textures/items/clock_item',
         hub: 'economy',
         featureId: 'eco.playtime',
@@ -191,7 +191,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'eco_bounty',
         title: 'Bounty Board',
-        description: 'View or place bounties on players',
+        description: 'View or place bounties',
         icon: 'textures/items/netherite_sword',
         hub: 'economy',
         featureId: 'eco.bounty',
@@ -202,7 +202,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'eco_transfer',
         title: 'Send Money',
-        description: 'Transfer funds to another player',
+        description: 'Pay another player',
         icon: 'textures/items/emerald',
         hub: 'economy',
         featureId: 'eco',
@@ -216,7 +216,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'eco_vote',
         title: 'Vote Rewards',
-        description: 'Vote for the server and collect rewards',
+        description: 'Vote on active server polls',
         icon: 'textures/ui/color_plus',
         hub: 'economy',
         featureId: 'util.vote',
@@ -231,7 +231,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'soc_friends',
         title: 'Friends',
-        description: 'Manage friends & friend requests',
+        description: 'Friends list & requests',
         icon: 'textures/ui/icon_steve',
         hub: 'social',
         featureId: 'soc',
@@ -242,7 +242,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'soc_teams',
         title: 'Teams',
-        description: 'Create or manage team / guild',
+        description: 'Create or manage your team',
         icon: 'textures/ui/icon_multiplayer',
         hub: 'social',
         featureId: 'soc.team',
@@ -253,7 +253,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'soc_playerlist',
         title: 'Online Players',
-        description: 'View online players and inspect profiles',
+        description: 'Browse online players',
         icon: 'textures/ui/multiplayer_glyph_color',
         hub: 'social',
         order: 30,
@@ -285,8 +285,8 @@ export function initializeDefaultMenuItems(): void {
     // --- GAMES HUB ITEMS ---
     registerMenuItem({
         id: 'games_tictactoe',
-        title: 'Tic-Tac-Toe (2P)',
-        description: 'Challenge a friend to a 3x3 match',
+        title: 'Tic-Tac-Toe',
+        description: '2P 3x3 board matches',
         icon: 'textures/ui/controller_glyph_color',
         hub: 'games',
         featureId: 'game.tictactoe',
@@ -297,7 +297,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'games_rps',
         title: 'Rock Paper Scissors',
-        description: 'Play 2P or Solo vs Bot RPS matches',
+        description: 'Solo vs Bot or 2P matches',
         icon: 'textures/items/shears',
         hub: 'games',
         featureId: 'game.rps',
@@ -307,8 +307,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'games_minesweeper',
-        title: 'Minesweeper (12x6)',
-        description: 'Clear the 72-tile minefield for rewards',
+        title: 'Minesweeper',
+        description: 'Solo & 2P Race minefields',
         icon: 'textures/items/iron_pickaxe',
         hub: 'games',
         featureId: 'game.minesweeper',
@@ -319,7 +319,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'games_wordle',
         title: 'Wordle Game',
-        description: 'Guess the secret word',
+        description: 'Solo & Staff-Hosted Wordle',
         icon: 'textures/ui/icon_recipe_item',
         hub: 'games',
         featureId: 'game',
@@ -331,7 +331,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'profile_stats',
         title: 'My Statistics',
-        description: 'View personal stats, balance & rank',
+        description: 'Balance, rank & combat stats',
         icon: 'textures/ui/user_icon',
         hub: 'profile',
         order: 10,
@@ -344,7 +344,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'profile_rules',
         title: 'Server Rules',
-        description: 'Read official server rules & guidelines',
+        description: 'Read official server rules',
         icon: 'textures/items/book_enchanted',
         hub: 'profile',
         order: 20,
@@ -356,8 +356,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'profile_links',
-        title: 'Helpful Links & Discord',
-        description: 'Discord, website & community links',
+        title: 'Links & Discord',
+        description: 'Discord & community links',
         icon: 'textures/items/chain',
         hub: 'profile',
         order: 30,
@@ -369,8 +369,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'profile_hud',
-        title: 'HUD & Sidebar Settings',
-        description: 'Toggle HUD or switch between Right, Left & Bottom layouts',
+        title: 'HUD & Sidebar',
+        description: 'Toggle HUD or switch layout',
         icon: 'textures/items/book_writable',
         hub: 'profile',
         featureId: 'util.sidebar',
@@ -383,8 +383,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'profile_tpa',
-        title: 'TPA & Privacy Settings',
-        description: 'Toggle teleport requests & blocked players',
+        title: 'TPA & Privacy',
+        description: 'Teleport & block settings',
         icon: 'textures/items/ender_pearl',
         hub: 'profile',
         order: 40,
@@ -409,7 +409,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'staff_player_hub',
         title: '§l§bPlayer Management',
-        description: 'Inspect Players, Ranks, Stats & Inventories',
+        description: 'Inspect players, ranks & gear',
         icon: 'textures/ui/icon_multiplayer',
         hub: 'staff',
         permissionNode: 'ui.panel.mod',
@@ -420,7 +420,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'staff_world_hub',
         title: '§l§aWorld & Essentials',
-        description: 'Floating Text & World Protection Zones',
+        description: 'Holograms, zones & borders',
         icon: 'textures/ui/icon_recipe_nature',
         hub: 'staff',
         permissionNode: 'ui.panel.admin',
@@ -454,7 +454,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'mod_actions',
         title: 'Punishment Center',
-        description: 'Ban, Mute, Freeze, Kick & Warn players',
+        description: 'Ban, mute, freeze & warn',
         icon: 'textures/ui/hammer_l',
         hub: 'staff_moderation',
         permissionNode: 'ui.panel.mod',
@@ -465,7 +465,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'mod_logs',
         title: 'Audit & Chat Logs',
-        description: 'Inspect punishment, anti-cheat flag & chat logs',
+        description: 'Punishment, flag & chat logs',
         icon: 'textures/ui/message',
         hub: 'staff_moderation',
         permissionNode: 'ui.panel.admin',
@@ -478,8 +478,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'mod_staff_inv',
-        title: 'Staff Inventory (/sinv)',
-        description: 'Swap between Survival & Staff inventories without losing items',
+        title: 'Staff Inventory',
+        description: 'Swap Survival & Staff gear',
         icon: 'textures/ui/inventory_icon',
         hub: 'staff_moderation',
         permissionNode: 'ui.panel.mod',
@@ -492,8 +492,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'mod_xray',
-        title: 'X-Ray Ores Monitored',
-        description: 'Manage ores and alert levels for X-Ray detection',
+        title: 'X-Ray Ores',
+        description: 'Configure monitored ores',
         icon: 'textures/blocks/diamond_ore',
         hub: 'staff_moderation',
         permissionNode: 'ui.panel.admin',
@@ -507,8 +507,8 @@ export function initializeDefaultMenuItems(): void {
     // --- STAFF PLAYER SUB-ITEMS ---
     registerMenuItem({
         id: 'staff_player_mgmt',
-        title: 'Active Player Inspector',
-        description: 'View player stats, inventories, teleport & sanctions',
+        title: 'Player Inspector',
+        description: 'Stats, inventory & sanctions',
         icon: 'textures/ui/icon_multiplayer',
         hub: 'staff_player',
         permissionNode: 'ui.panel.mod',
@@ -521,8 +521,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_rank_mgmt',
-        title: 'Rank System & Permissions',
-        description: 'Create, edit & grant server ranks and permissions',
+        title: 'Ranks & Perms',
+        description: 'Edit & grant server ranks',
         icon: 'textures/ui/permissions_member_star',
         hub: 'staff_player',
         permissionNode: 'ui.panel.admin',
@@ -536,8 +536,8 @@ export function initializeDefaultMenuItems(): void {
     // --- STAFF WORLD SUB-ITEMS ---
     registerMenuItem({
         id: 'staff_floating_text',
-        title: 'Floating Text Holograms',
-        description: 'Create, edit & manage holographic floating text',
+        title: 'Floating Text',
+        description: 'Manage hologram displays',
         icon: 'textures/ui/text_color_paintbrush',
         hub: 'staff_world',
         permissionNode: 'ui.panel.admin',
@@ -550,8 +550,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_world_prot',
-        title: 'Spawn & Protection Zones',
-        description: 'Manage protected areas, PvP flags & block protection',
+        title: 'Protection Zones',
+        description: 'Manage spawn & 3D zones',
         icon: 'textures/ui/icon_recipe_nature',
         hub: 'staff_world',
         permissionNode: 'ui.panel.admin',
@@ -564,8 +564,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_warps_mgmt',
-        title: 'Server Warps Manager',
-        description: 'Create, edit, teleport to & delete server warps',
+        title: 'Warps Manager',
+        description: 'Create & edit server warps',
         icon: 'textures/blocks/portal',
         hub: 'staff_world',
         permissionNode: 'ui.panel.admin',
@@ -578,8 +578,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_world_border',
-        title: 'World Border Manager',
-        description: 'Configure Overworld+Nether (8:1) & End borders',
+        title: 'World Border',
+        description: 'Overworld, Nether & End limits',
         icon: 'textures/blocks/beacon',
         hub: 'staff_world',
         permissionNode: 'ui.panel.admin',
@@ -593,9 +593,9 @@ export function initializeDefaultMenuItems(): void {
     // --- STAFF CONFIG SUB-ITEMS ---
     registerMenuItem({
         id: 'staff_master_toggles',
-        title: 'Master Feature Toggles',
+        title: 'Feature Toggles',
         icon: 'textures/ui/settings_glyph_color_2x',
-        description: 'Master switches for Economy, Shop, Kits, TPA, Sidebar, etc.',
+        description: 'Enable or disable modules',
         hub: 'staff_config',
         permissionNode: 'ui.panel.admin',
         order: 10,
@@ -607,8 +607,8 @@ export function initializeDefaultMenuItems(): void {
 
     registerMenuItem({
         id: 'staff_configs',
-        title: 'Detailed System Configs',
-        description: 'Fine-tune values for all server modules',
+        title: 'System Configs',
+        description: 'Tune module settings',
         icon: 'textures/ui/icon_setting',
         hub: 'staff_config',
         permissionNode: 'ui.panel.admin',
@@ -622,7 +622,7 @@ export function initializeDefaultMenuItems(): void {
     registerMenuItem({
         id: 'staff_shop_admin',
         title: 'Shop Editor',
-        description: 'Add/edit shop categories, items & prices',
+        description: 'Categories, items & prices',
         icon: 'textures/ui/trade_icon',
         hub: 'staff_config',
         permissionNode: 'ui.panel.admin',

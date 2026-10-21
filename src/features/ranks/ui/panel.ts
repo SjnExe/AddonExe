@@ -41,7 +41,7 @@ export async function showRankManagementPanel(player: mc.Player, targetPlayerId:
         const assignCheck = canAssignRankToPlayer(player, targetPlayerId, rank.id);
         const prefix = rank.chatFormatting?.prefixText ?? rank.nametagPrefix ?? rank.name;
 
-        let buttonText = `§l${prefix}§r §8(Priority: ${rank.priority})\n${hasRank ? '§a✔ Assigned — Click to Remove' : '§7Click to Grant'}`;
+        let buttonText = `§l${prefix}§r §8(#${rank.priority})\n${hasRank ? '§aAssigned • Tap to Remove' : '§7Tap to Grant'}`;
         let icon = hasRank ? 'textures/ui/realms_green_check' : 'textures/ui/cancel';
 
         if (!assignCheck.allowed) {

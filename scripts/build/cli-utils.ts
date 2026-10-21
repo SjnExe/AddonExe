@@ -16,6 +16,7 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
     let isNightly = false;
     let isZip = false;
     let isMinify = false;
+    let noMinify = false;
     let buildNumber = 0;
     let customVersion: string | undefined;
 
@@ -32,6 +33,8 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
             isZip = true;
         } else if (arg === '-m' || arg === '--minify') {
             isMinify = true;
+        } else if (arg === '--no-minify') {
+            noMinify = true;
         } else if (arg === '-b' || arg === '--build-number') {
             if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) {
                 buildNumber = Number.parseInt(argv[++i], 10) || 0;
@@ -49,7 +52,7 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
     }
 
     isZip = isZip || isRelease || isNightly;
-    isMinify = isMinify || isRelease;
+    isMinify = !noMinify && (isMinify || isRelease || isNightly || isZip);
 
     return {
         isWatch,

@@ -1,3 +1,5 @@
+import { stripColorCodes } from '@core/utils/formatting.js';
+import { forceCloseChat } from '@core/utils/ui.js';
 import * as mc from '@minecraft/server';
 import { Player } from '@minecraft/server';
 import { CustomForm, DataDrivenScreenClosedReason, ObservableBoolean, ObservableNumber, ObservableString } from '@minecraft/server-ui';
@@ -151,30 +153,31 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
     }
 
     public async show(player: Player): Promise<T | undefined> {
-        const form = new CustomForm(player, this.titleText);
+        const cleanLabel = (str?: string): string => stripColorCodes(str ?? '');
+        const form = new CustomForm(player, cleanLabel(this.titleText));
         let wasSubmitted = false;
 
         for (const ctrl of this.controls) {
             if (ctrl.type === 'toggle' && ctrl.meta?.type === 'toggle') {
-                form.toggle(ctrl.label ?? '', ctrl.meta.observable);
+                form.toggle(cleanLabel(ctrl.label), ctrl.meta.observable);
             } else if (ctrl.type === 'slider' && ctrl.meta?.type === 'slider') {
-                form.slider(ctrl.label ?? '', ctrl.meta.observable, ctrl.meta.min, ctrl.meta.max, { step: ctrl.meta.step });
+                form.slider(cleanLabel(ctrl.label), ctrl.meta.observable, ctrl.meta.min, ctrl.meta.max, { step: ctrl.meta.step });
             } else if (ctrl.type === 'dropdown' && ctrl.meta?.type === 'dropdown') {
-                const items = ctrl.meta.options.map((opt, i) => ({ label: opt, value: i }));
-                form.dropdown(ctrl.label ?? '', ctrl.meta.observable, items);
+                const items = ctrl.meta.options.map((opt, i) => ({ label: cleanLabel(opt), value: i }));
+                form.dropdown(cleanLabel(ctrl.label), ctrl.meta.observable, items);
             } else if (ctrl.type === 'textField' && ctrl.meta?.type === 'textField') {
-                form.textField(ctrl.label ?? '', ctrl.meta.observable);
+                form.textField(cleanLabel(ctrl.label), ctrl.meta.observable);
             } else if (ctrl.type === 'header') {
-                form.header(ctrl.label ?? '');
+                form.header(cleanLabel(ctrl.label));
             } else if (ctrl.type === 'label') {
-                form.label(ctrl.label ?? '');
+                form.label(cleanLabel(ctrl.label));
             } else if (ctrl.type === 'divider') {
                 form.divider();
             } else if (ctrl.type === 'spacer') {
                 form.spacer();
             } else if (ctrl.type === 'button' && ctrl.onClick) {
                 const userOnClick = ctrl.onClick;
-                form.button(ctrl.label ?? '', () => {
+                form.button(cleanLabel(ctrl.label), () => {
                     wasSubmitted = true;
                     userOnClick();
                     form.close();
@@ -185,7 +188,7 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         const effectiveSubmitText = this.submitText ?? (!this.controls.some((c) => c.type === 'button') && this.controls.some((c) => c.key && c.meta) ? 'Submit' : undefined);
 
         if (effectiveSubmitText) {
-            form.button(effectiveSubmitText, () => {
+            form.button(cleanLabel(effectiveSubmitText), () => {
                 wasSubmitted = true;
                 form.close();
             });
@@ -193,7 +196,25 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
 
         form.closeButton();
 
-        const closeReason = await form.show();
+        let closeReason = await form.show();
+        if (closeReason === DataDrivenScreenClosedReason.UserBusy) {
+            await forceCloseChat(player);
+            let attempts = 0;
+            while (closeReason === DataDrivenScreenClosedReason.UserBusy && attempts < 25) {
+                attempts++;
+                if (!player.isValid) {
+                    return undefined;
+                }
+                if (mc.system && typeof mc.system.runTimeout === 'function') {
+                    await new Promise<void>((resolve) => {
+                        mc.system.runTimeout(() => resolve(), 4);
+                    });
+                } else {
+                    break;
+                }
+                closeReason = await form.show();
+            }
+        }
 
         if (closeReason === DataDrivenScreenClosedReason.UserBusy) {
             return undefined;

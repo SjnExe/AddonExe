@@ -18,14 +18,14 @@ export const gamesConfig = {
     },
     minesweeper: {
         enabled: true,
-        easyReward: 5,
-        easySpeedBonusMax: 5,
+        easyReward: 50,
+        easySpeedBonusMax: 50,
         easyParSeconds: 180,
-        mediumReward: 15,
-        mediumSpeedBonusMax: 10,
+        mediumReward: 150,
+        mediumSpeedBonusMax: 100,
         mediumParSeconds: 300,
-        hardReward: 30,
-        hardSpeedBonusMax: 20,
+        hardReward: 400,
+        hardSpeedBonusMax: 250,
         hardParSeconds: 480,
         allowWagers: true
     }

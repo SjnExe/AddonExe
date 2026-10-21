@@ -136,8 +136,8 @@ export function getDifficultySettings(difficulty: MinesweeperDifficulty): Minesw
             rows: 9,
             mines: 10,
             gridMode: 'ms9',
-            baseReward: Math.max(0, Number(cfg?.easyReward ?? 5)),
-            maxSpeedBonus: Math.max(0, Number(cfg?.easySpeedBonusMax ?? 5)),
+            baseReward: Math.max(0, Number(cfg?.easyReward ?? 50)),
+            maxSpeedBonus: Math.max(0, Number(cfg?.easySpeedBonusMax ?? 50)),
             parSeconds: Math.max(10, Number(cfg?.easyParSeconds ?? 180))
         };
     }
@@ -149,8 +149,8 @@ export function getDifficultySettings(difficulty: MinesweeperDifficulty): Minesw
             rows: 12,
             mines: 40,
             gridMode: 'ms16',
-            baseReward: Math.max(0, Number(cfg?.hardReward ?? 30)),
-            maxSpeedBonus: Math.max(0, Number(cfg?.hardSpeedBonusMax ?? 20)),
+            baseReward: Math.max(0, Number(cfg?.hardReward ?? 400)),
+            maxSpeedBonus: Math.max(0, Number(cfg?.hardSpeedBonusMax ?? 250)),
             parSeconds: Math.max(30, Number(cfg?.hardParSeconds ?? 480))
         };
     }
@@ -161,8 +161,8 @@ export function getDifficultySettings(difficulty: MinesweeperDifficulty): Minesw
         rows: 12,
         mines: 24,
         gridMode: 'ms12',
-        baseReward: Math.max(0, Number(cfg?.mediumReward ?? 15)),
-        maxSpeedBonus: Math.max(0, Number(cfg?.mediumSpeedBonusMax ?? 10)),
+        baseReward: Math.max(0, Number(cfg?.mediumReward ?? 150)),
+        maxSpeedBonus: Math.max(0, Number(cfg?.mediumSpeedBonusMax ?? 100)),
         parSeconds: Math.max(20, Number(cfg?.mediumParSeconds ?? 300))
     };
 }

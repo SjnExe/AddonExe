@@ -141,10 +141,10 @@ export function countMatchingInventoryItems(inventory: mc.Container, matcher: (i
 export function formatShopPriceSubtitle(buyPrice: number, sellPrice: number): string {
     const parts: string[] = [];
     if (buyPrice > 0) {
-        parts.push(`§2B: ${formatCurrency(buyPrice)}`);
+        parts.push(`§2B:${formatCurrency(buyPrice)}`);
     }
     if (sellPrice > 0) {
-        parts.push(`§cS: ${formatCurrency(sellPrice)}`);
+        parts.push(`§cS:${formatCurrency(sellPrice)}`);
     }
-    return parts.length > 0 ? parts.join(' §8| ') : '§cNot For Sale';
+    return parts.length > 0 ? parts.join(' ') : '§cNot For Sale';
 }

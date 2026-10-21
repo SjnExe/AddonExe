@@ -57,7 +57,7 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
             });
         }
 
-        form.button(autoTp ? '§2Auto-Accept Team TPA: ON' : '§7Auto-Accept Team TPA: OFF', autoTp ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
+        form.button(autoTp ? '§l§2Team Auto-TPA: ON\n§r§7Tap to disable' : '§l§7Team Auto-TPA: OFF\n§r§7Tap to enable', autoTp ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
             const next = teamManager.toggleTeamAutoTpAccept(player);
             player.sendMessage(`§aTeam Auto-TPA Accept is now ${next ? '§2ENABLED' : '§cDISABLED'}§a.`);
             await showTeamMainPanel(player);

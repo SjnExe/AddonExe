@@ -185,14 +185,14 @@ export async function showRpsMenu(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder()
         .title('Rock Paper Scissors')
         .body(bodyLines.join('\n'))
-        .button('§l§aPlay vs Bot (Solo)\n§r§7Instant practice match', 'textures/ui/user_icon', async () => {
+        .button('§l§aPlay vs Bot\n§r§7Solo practice match', 'textures/ui/user_icon', async () => {
             const match = startRpsBotMatch(player);
             await showRpsMatchPanel(player, match.id);
         })
-        .button('§l§2Invite a Friend (2P)\n§r§7Challenge an online friend', 'textures/items/shears', async () => {
+        .button('§l§2Invite Friend\n§r§7Challenge 2P match', 'textures/items/shears', async () => {
             await showInviteFriendToGameModal(player, 'rps');
         })
-        .button(isPlayerInQueue(player.id, 'rps') ? '§eLeave Matchmaking Queue' : '§bFind Random Match (Queue)', 'textures/ui/magnifyingGlass', () => {
+        .button(isPlayerInQueue(player.id, 'rps') ? '§l§eLeave Queue\n§r§7Cancel search' : '§l§bRandom Match\n§r§7Join 2P queue', 'textures/ui/magnifyingGlass', () => {
             const res = joinMatchmakingQueue(player, 'rps');
             if (isNonEmptyString(res.message)) {
                 player.sendMessage(res.message);
@@ -222,7 +222,7 @@ export async function showRpsMenu(player: mc.Player): Promise<void> {
         });
     }
 
-    form.button(invitesDisabled ? '§cGame Invites: STOPPED' : '§2Game Invites: ALLOWED', invitesDisabled ? 'textures/ui/cancel' : 'textures/ui/realms_green_check', async () => {
+    form.button(invitesDisabled ? '§l§cInvites: OFF\n§r§7Tap to allow' : '§l§2Invites: ON\n§r§7Tap to block', invitesDisabled ? 'textures/ui/cancel' : 'textures/ui/realms_green_check', async () => {
         const msg = setGameInvitesStopped(player, !invitesDisabled);
         player.sendMessage(msg);
         await showRpsMenu(player);

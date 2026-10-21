@@ -14,13 +14,13 @@ export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<voi
             const { showConfigSystemPanel } = await import('@core/ui/panels/configPanel.js');
             await showConfigSystemPanel(player, 'anticheat');
         })
-        .button(`Item Check Violations (${config.itemCheck.violations.length})`, 'textures/items/iron_chestplate', async () => {
+        .button(`§l§fItem Check Rules (${config.itemCheck.violations.length})\n§r§7Configure VL punishments`, 'textures/items/iron_chestplate', async () => {
             await showViolationsListPanel(player, 'itemCheck');
         })
-        .button(`Movement Check Violations (${config.movementCheck.violations.length})`, 'textures/items/diamond_sword', async () => {
+        .button(`§l§fMovement Rules (${config.movementCheck.violations.length})\n§r§7Configure VL punishments`, 'textures/items/diamond_sword', async () => {
             await showViolationsListPanel(player, 'movementCheck');
         })
-        .button('World Border Manager (Overworld/Nether & End)', 'textures/blocks/beacon', async () => {
+        .button('§l§bWorld Border Manager\n§r§7Overworld, Nether & End', 'textures/blocks/beacon', async () => {
             const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
             await showWorldBorderAdminPanel(player);
         });

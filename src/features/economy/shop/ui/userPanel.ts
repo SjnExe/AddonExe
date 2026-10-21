@@ -37,10 +37,10 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
         .grid(3)
         .title('Server Shop')
         .body(`§7Your Balance: §a${formatCurrency(pData.balance)}\n§7Select a category or search for an item:`)
-        .button(formatTwoLineButton('§l§6Search Shop', 'Find any item by name'), 'textures/ui/magnifyingGlass', () => {
+        .button(formatTwoLineButton('§l§6Search Shop', 'Find items by name'), 'textures/ui/magnifyingGlass', () => {
             void showShopSearchPanel(player);
         })
-        .button(formatTwoLineButton('§l§aSell All Inventory', 'Bulk sell with confirmation'), 'textures/ui/icon_recipe_equipment', async () => {
+        .button(formatTwoLineButton('§l§aSell All', 'Bulk sell inventory'), 'textures/ui/icon_recipe_equipment', async () => {
             const preview = previewSellAllInventory(player);
             if (preview.totalItems === 0) {
                 player.sendMessage('§cYou have no sellable shop items in your inventory.');
@@ -358,7 +358,7 @@ export async function showBuyOrSellPanel(player: mc.Player, itemKey: string, ite
             player.sendMessage(buyItem(player, itemKey, 64).message);
             void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
         });
-        form.button(formatTwoLineButton('§2Buy Max', 'Fill affordable space'), 'textures/ui/color_plus', () => {
+        form.button(formatTwoLineButton('§2Buy Max', 'Max affordable'), 'textures/ui/color_plus', () => {
             player.sendMessage(buyItem(player, itemKey, -1).message);
             void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
         });
@@ -384,7 +384,7 @@ export async function showBuyOrSellPanel(player: mc.Player, itemKey: string, ite
     }
 
     if (buyPrice > 0 || sellPrice > 0) {
-        form.button(formatTwoLineButton('§bCustom Quantity', 'Enter exact amount'), 'textures/ui/book_edit_default', async () => {
+        form.button(formatTwoLineButton('§bCustom Amount', 'Enter exact qty'), 'textures/ui/book_edit_default', async () => {
             const modes: string[] = [];
             if (buyPrice > 0) {
                 modes.push('Buy');

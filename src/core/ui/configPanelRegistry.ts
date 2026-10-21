@@ -1843,6 +1843,18 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Staff Hosted Time Limit (s)',
                 type: 'textField',
                 description: 'Default time limit in seconds for staff hosted games.'
+            },
+            {
+                key: 'staffHosted.guessCooldownSeconds',
+                label: 'Staff Hosted Guess Cooldown (s)',
+                type: 'textField',
+                description: 'Cooldown in seconds between guesses for each player.'
+            },
+            {
+                key: 'staffHosted.guessLimit',
+                label: 'Staff Hosted Guess Limit per Fee',
+                type: 'textField',
+                description: 'Max guesses per paid entry fee (0 for unlimited).'
             }
         ]
     }

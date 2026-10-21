@@ -30,26 +30,30 @@ export async function showSidebarAdminPanel(player: mc.Player): Promise<void> {
                 `§7Sidebar Lines: §f${config.globalInfo.sidebarLines.length} §8| §7Bottom Bar Items: §f${config.hud.actionBarLines.length}`
             ].join('\n')
         )
-        .button(isEnabled ? '§2Sidebar & HUD: ENABLED' : '§4Sidebar & HUD: DISABLED', isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
-            config.enabled = !isEnabled;
-            saveSidebarConfig(config);
-            forceUpdate();
-            player.sendMessage(`§aSidebar & HUD module ${config.enabled ? 'enabled' : 'disabled'}.`);
-            await showSidebarAdminPanel(player);
-        })
-        .button('§bLayout & Timing Settings', 'textures/ui/icon_setting', async () => {
+        .button(
+            isEnabled ? '§l§2Sidebar & HUD: ON\n§r§7Tap to disable' : '§l§4Sidebar & HUD: OFF\n§r§7Tap to enable',
+            isEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
+            async () => {
+                config.enabled = !isEnabled;
+                saveSidebarConfig(config);
+                forceUpdate();
+                player.sendMessage(`§aSidebar & HUD module ${config.enabled ? 'enabled' : 'disabled'}.`);
+                await showSidebarAdminPanel(player);
+            }
+        )
+        .button('§l§bLayout & Timing\n§r§7Position & intervals', 'textures/ui/icon_setting', async () => {
             await showSidebarLayoutSettingsModal(player);
         })
-        .button('§6Apply Theme Preset', 'textures/ui/refresh_light', async () => {
+        .button('§l§6Theme Presets\n§r§7Apply card templates', 'textures/ui/refresh_light', async () => {
             await showSidebarPresetsPanel(player);
         })
-        .button(`Edit Sidebar Card Lines (${config.globalInfo.sidebarLines.length})`, 'textures/items/book_writable', async () => {
+        .button(`§l§fSidebar Lines (${config.globalInfo.sidebarLines.length})\n§r§7Edit card text lines`, 'textures/items/book_writable', async () => {
             await showLineEditorPanel(player, 'sidebar');
         })
-        .button(`Edit Bottom HUD Bar (${config.hud.actionBarLines.length})`, 'textures/ui/book_edit_default', async () => {
+        .button(`§l§fBottom Bar (${config.hud.actionBarLines.length})\n§r§7Edit actionbar items`, 'textures/ui/book_edit_default', async () => {
             await showLineEditorPanel(player, 'hud');
         })
-        .button('§eView Available Placeholders', 'textures/ui/icon_sign', async () => {
+        .button('§l§ePlaceholders\n§r§7View supported tags', 'textures/ui/icon_sign', async () => {
             await showSidebarPlaceholdersGuide(player);
         });
 
@@ -294,28 +298,28 @@ export async function showPlayerSidebarSettingsPanel(player: mc.Player): Promise
             player.sendMessage(next ? '§aPersonal HUD enabled.' : '§cPersonal HUD hidden.');
             await showPlayerSidebarSettingsPanel(player);
         })
-        .button('Layout: Top-Right Sidebar Card', 'textures/items/book_writable', async () => {
+        .button('§l§bTop-Right Card\n§r§7Standard sidebar card', 'textures/items/book_writable', async () => {
             setSidebarLayout(player.id, 'right');
             setSidebarVisible(player.id, true);
             forceUpdate();
             player.sendMessage('§aHUD layout set to Top-Right Sidebar Card.');
             await showPlayerSidebarSettingsPanel(player);
         })
-        .button('Layout: Top-Left Corner Card\n§7Best for mobile touch controls', 'textures/items/book_writable', async () => {
+        .button('§l§bTop-Left Card\n§r§7Mobile touch friendly', 'textures/items/book_writable', async () => {
             setSidebarLayout(player.id, 'left');
             setSidebarVisible(player.id, true);
             forceUpdate();
             player.sendMessage('§aHUD layout set to Top-Left Corner Card.');
             await showPlayerSidebarSettingsPanel(player);
         })
-        .button('Layout: Bottom Compact Bar', 'textures/items/book_writable', async () => {
+        .button('§l§bBottom Bar\n§r§7Compact actionbar pill', 'textures/items/book_writable', async () => {
             setSidebarLayout(player.id, 'bottom');
             setSidebarVisible(player.id, true);
             forceUpdate();
             player.sendMessage('§aHUD layout set to Bottom Compact Bar.');
             await showPlayerSidebarSettingsPanel(player);
         })
-        .button('Reset to Server Default Layout', 'textures/ui/refresh_light', async () => {
+        .button('§l§eServer Default\n§r§7Reset position layout', 'textures/ui/refresh_light', async () => {
             setSidebarLayout(player.id, 'default');
             forceUpdate();
             player.sendMessage('§aHUD layout reset to Server Default.');

@@ -54,39 +54,31 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder().title('Minesweeper').body(bodyLines.join('\n'));
 
     if (isDefined(active) && active.status === 'active') {
-        form.button(`§l§aResume Active Board (${active.cols}x${active.rows})\n§r§7Continue your current game`, 'textures/ui/refresh_light', async () => {
+        form.button(`§l§aResume (${active.cols}x${active.rows})\n§r§7Continue active board`, 'textures/ui/refresh_light', async () => {
             await showMinesweeperBoard(player);
         });
     }
 
-    form.button(
-        `§l§a${easy.label}\n§r§7Reward: §6${formatCurrency(easy.baseReward)} §7(+up to §a${formatCurrency(easy.maxSpeedBonus)} §7speed bonus)`,
-        'textures/blocks/grass_side_carried',
-        async () => {
-            startMinesweeperGame(player, 'easy');
-            await showMinesweeperBoard(player);
-        }
-    );
+    form.button(`§l§aBeginner (9x9)\n§r§710 Mines • §6${formatCurrency(easy.baseReward)} §a+${formatCurrency(easy.maxSpeedBonus)}`, 'textures/blocks/grass_side_carried', async () => {
+        startMinesweeperGame(player, 'easy');
+        await showMinesweeperBoard(player);
+    });
 
-    form.button(
-        `§l§e${medium.label}\n§r§7Reward: §6${formatCurrency(medium.baseReward)} §7(+up to §a${formatCurrency(medium.maxSpeedBonus)} §7speed bonus)`,
-        'textures/items/iron_pickaxe',
-        async () => {
-            startMinesweeperGame(player, 'medium');
-            await showMinesweeperBoard(player);
-        }
-    );
+    form.button(`§l§eIntermediate (12x12)\n§r§724 Mines • §6${formatCurrency(medium.baseReward)} §a+${formatCurrency(medium.maxSpeedBonus)}`, 'textures/items/iron_pickaxe', async () => {
+        startMinesweeperGame(player, 'medium');
+        await showMinesweeperBoard(player);
+    });
 
-    form.button(`§l§c${hard.label}\n§r§7Reward: §6${formatCurrency(hard.baseReward)} §7(+up to §a${formatCurrency(hard.maxSpeedBonus)} §7speed bonus)`, 'textures/items/diamond_pickaxe', async () => {
+    form.button(`§l§cExpert (16x12)\n§r§740 Mines • §6${formatCurrency(hard.baseReward)} §a+${formatCurrency(hard.maxSpeedBonus)}`, 'textures/items/diamond_pickaxe', async () => {
         startMinesweeperGame(player, 'hard');
         await showMinesweeperBoard(player);
     });
 
-    form.button('§l§dInvite Friend to 2P Race\n§r§7Speed race (if opponent explodes, you win!)', 'textures/ui/controller_glyph_color', async () => {
+    form.button('§l§dInvite Friend (2P Race)\n§r§7Fastest clear wins', 'textures/ui/controller_glyph_color', async () => {
         await showInviteFriendToGameModal(player, 'minesweeper');
     });
 
-    form.button(isPlayerInQueue(player.id, 'minesweeper') ? '§eLeave 2P Race Queue' : '§bJoin 2P Race Matchmaking Queue', 'textures/ui/magnifyingGlass', () => {
+    form.button(isPlayerInQueue(player.id, 'minesweeper') ? '§l§eLeave 2P Queue\n§r§7Cancel matchmaking' : '§l§bJoin 2P Race Queue\n§r§7Find random opponent', 'textures/ui/magnifyingGlass', () => {
         const res = joinMatchmakingQueue(player, 'minesweeper');
         if (isNonEmptyString(res.message)) {
             player.sendMessage(res.message);

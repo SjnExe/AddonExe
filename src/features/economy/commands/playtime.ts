@@ -23,8 +23,8 @@ export async function showPlaytimeRewardsPanel(player: mc.Player): Promise<void>
         const isClaimed = summary.claimedIds.has(m.id);
         const progress = Math.min(100, Math.floor((summary.totalMinutes / m.requiredMinutes) * 100));
         const subtitle = isClaimed
-            ? `§a✔ Unlocked §8| §6${formatCurrency(m.rewardMoney)} + ${m.rewardXpLevels} XP`
-            : `§e${progress}% (${summary.totalMinutes}/${m.requiredMinutes}m) §8| §6${formatCurrency(m.rewardMoney)} + ${m.rewardXpLevels} XP`;
+            ? `§aUnlocked • §6${formatCurrency(m.rewardMoney)} +${m.rewardXpLevels}L`
+            : `§e${progress}% (${summary.totalMinutes}/${m.requiredMinutes}m) • §6${formatCurrency(m.rewardMoney)}`;
 
         form.button(`§l§f${m.name}\n§r${subtitle}`, isClaimed ? 'textures/ui/realms_green_check' : 'textures/items/clock_item', async () => {
             await showPlaytimeRewardsPanel(player);

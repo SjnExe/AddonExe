@@ -53,11 +53,11 @@ export async function showAuctionHouse(player: mc.Player, page: number = 1, sear
         .title(title)
         .body(`§7Balance: §a${formatCurrency(pData.balance)} §8| §7Active Listings: §f${totalListings}${isNonEmptyString(searchQuery) ? ` matching "${searchQuery}"` : ''}`);
 
-    form.button(formatTwoLineButton('§l§2+ List Held Item', 'Sell item in main hand'), 'textures/ui/color_plus', async () => showCreateListingModal(player));
-    form.button(formatTwoLineButton(`§eCollection Bin (${pData.mailbox.length})`, 'Claim purchased & expired items'), 'textures/items/minecart_chest', async () => showMailboxUI(player));
-    form.button(formatTwoLineButton('§bYour Listings', 'View or cancel your items'), 'textures/ui/recipe_book_icon', async () => showYourListings(player));
+    form.button(formatTwoLineButton('§l§2+ List Held Item', 'Sell held item'), 'textures/ui/color_plus', async () => showCreateListingModal(player));
+    form.button(formatTwoLineButton(`§eCollection Bin (${pData.mailbox.length})`, 'Claim items & returns'), 'textures/items/minecart_chest', async () => showMailboxUI(player));
+    form.button(formatTwoLineButton('§bYour Listings', 'Manage your items'), 'textures/ui/recipe_book_icon', async () => showYourListings(player));
     form.button(
-        formatTwoLineButton(isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search / Filter', isNonEmptyString(searchQuery) ? `Current: ${searchQuery}` : 'Filter by item or seller'),
+        formatTwoLineButton(isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search / Filter', isNonEmptyString(searchQuery) ? `Current: ${searchQuery}` : 'Filter by item/seller'),
         'textures/ui/magnifyingGlass',
         async () => (isNonEmptyString(searchQuery) ? showAuctionHouse(player, 1, undefined, sort) : showSearchUI(player, sort))
     );
