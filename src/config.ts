@@ -108,19 +108,19 @@ export const config = {
             },
             food: {
                 enabled: true,
-                description: 'A simple food refill.',
+                description: 'A hearty food refill.',
                 cooldownSeconds: 900, // 15 minutes
                 icon: 'textures/items/beef_cooked',
-                price: 10,
+                price: 25,
                 permission: 'ui.panel.member',
-                items: [{ typeId: MinecraftItemTypes.CookedBeef, amount: 8 }]
+                items: [{ typeId: MinecraftItemTypes.CookedBeef, amount: 16 }]
             },
             warrior: {
                 enabled: true,
                 description: 'A kit for the aspiring warrior.',
                 cooldownSeconds: 86_400, // 24 hours
                 icon: 'textures/items/iron_sword',
-                price: 100,
+                price: 350,
                 permission: 'ui.panel.member',
                 items: [
                     { typeId: MinecraftItemTypes.IronSword, amount: 1 },
@@ -137,7 +137,7 @@ export const config = {
                 description: 'A kit for the skilled archer.',
                 cooldownSeconds: 86_400, // 24 hours
                 icon: 'textures/items/bow_standby',
-                price: 100,
+                price: 250,
                 permission: 'ui.panel.member',
                 items: [
                     { typeId: MinecraftItemTypes.Bow, amount: 1 },
@@ -154,7 +154,7 @@ export const config = {
                 description: 'A kit for the dedicated miner.',
                 cooldownSeconds: 43_200, // 12 hours
                 icon: 'textures/items/iron_pickaxe',
-                price: 50,
+                price: 150,
                 permission: 'ui.panel.member',
                 items: [
                     { typeId: MinecraftItemTypes.IronPickaxe, amount: 1 },
@@ -169,7 +169,7 @@ export const config = {
                 description: 'A kit for the creative builder.',
                 cooldownSeconds: 86_400, // 24 hours
                 icon: 'textures/blocks/planks_oak',
-                price: 200,
+                price: 300,
                 permission: 'ui.panel.member',
                 items: [
                     { typeId: MinecraftItemTypes.OakLog, amount: 64 },

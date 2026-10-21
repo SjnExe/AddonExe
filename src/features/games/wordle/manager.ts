@@ -1,13 +1,56 @@
-import { getWordleConfig } from '@core/config/configurations.js';
-import { generateId } from '@lib/id.js';
 import * as mc from '@minecraft/server';
-import { getRandomSolution, isValidWord } from './wordPool.js';
+
+import { getWordleConfig } from '@core/config/configurations.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
+import { formatCurrency } from '@core/utils/index.js';
+import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { generateId } from '@lib/id.js';
+import { compressedWordPool } from './wordPool.js';
+
+const solutionLimit = 500;
+
+export function isValidWord(word: string): boolean {
+    const len = word.length;
+    const pool = compressedWordPool[len];
+    if (!isNonEmptyString(pool)) {
+        return false;
+    }
+
+    const idx = pool.indexOf(word.toLowerCase());
+    return idx !== -1 && idx % len === 0;
+}
+
+export function getRandomSolution(length: number): string | undefined {
+    const pool = compressedWordPool[length];
+    if (!isNonEmptyString(pool)) {
+        return undefined;
+    }
+
+    const maxWordsInPool = pool.length / length;
+    if (maxWordsInPool === 0) {
+        return undefined;
+    }
+
+    const limit = Math.min(maxWordsInPool, solutionLimit);
+    const randomIdx = Math.floor(Math.random() * limit) * length;
+
+    return pool.substring(randomIdx, randomIdx + length);
+}
 
 export interface GuessResult {
     word: string;
-    // 'g' for green (correct), 'y' for yellow (wrong place), '-' for gray (not in word)
     pattern: string;
     isWin: boolean;
+}
+
+export interface StaffWordleOptions {
+    entryFee?: number;
+    taxRatePercentage?: number;
+    timeLimitSeconds?: number;
+    guessLimit?: number;
+    guessCooldownSeconds?: number;
 }
 
 export interface WordleGame {
@@ -19,12 +62,49 @@ export interface WordleGame {
     startTime: number;
     status: 'active' | 'won' | 'lost';
     isStaffHosted: boolean;
-    poolPrize?: number;
+    poolPrize: number;
+    entryFee: number;
+    taxRatePercentage: number;
+    timeLimitSeconds: number;
+    expiresAt?: number;
+    guessLimit: number;
+    guessCooldownSeconds: number;
+    playerGuesses: Record<string, number>;
+    lastGuessTime: Record<string, number>;
     winnerId?: string;
 }
 
 const activeGames = new Map<string, WordleGame>();
-let globalStaffGameId: string | undefined = undefined;
+const playerGameMap = new Map<string, string>();
+let globalStaffGameId: string | undefined;
+let staffExpiryTimeoutId: number | undefined;
+
+export function broadcastWordleMessage(message: string): void {
+    for (const player of getAllPlayersFromCache()) {
+        if (!player.isValid) {
+            continue;
+        }
+        const pData = getPlayer(player.id);
+        if (pData?.wordleNotificationsMuted === true) {
+            continue;
+        }
+        player.sendMessage(message);
+    }
+}
+
+export function toggleWordleNotifications(player: mc.Player): boolean {
+    let muted = false;
+    updatePlayerData(player.id, (d) => {
+        muted = !(d.wordleNotificationsMuted ?? false);
+        d.wordleNotificationsMuted = muted;
+    });
+    return !muted;
+}
+
+export function areWordleNotificationsEnabled(playerId: string): boolean {
+    const pData = getPlayer(playerId);
+    return pData?.wordleNotificationsMuted !== true;
+}
 
 export function evaluateGuess(guess: string, answer: string): GuessResult {
     guess = guess.toLowerCase();
@@ -34,23 +114,21 @@ export function evaluateGuess(guess: string, answer: string): GuessResult {
     const answerChars: (string | null)[] = answer.split('');
     let isWin = true;
 
-    // First pass: Find exact matches (Green)
     for (let i = 0; i < guess.length; i++) {
         if (guess[i] === answer[i]) {
             pattern[i] = 'g';
-            answerChars[i] = null; // Mark as used
+            answerChars[i] = null;
         } else {
             isWin = false;
         }
     }
 
-    // Second pass: Find wrong place matches (Yellow)
     for (let i = 0; i < guess.length; i++) {
         if (pattern[i] !== 'g') {
             const charIndex = answerChars.indexOf(guess[i] as string);
             if (charIndex !== -1) {
                 pattern[i] = 'y';
-                answerChars[charIndex] = null; // Mark as used
+                answerChars[charIndex] = null;
             }
         }
     }
@@ -64,7 +142,7 @@ export function evaluateGuess(guess: string, answer: string): GuessResult {
 
 export function createSinglePlayerGame(player: mc.Player, wordLength: number = 5): WordleGame | undefined {
     const word = getRandomSolution(wordLength);
-    if (!word) {
+    if (!isNonEmptyString(word)) {
         return undefined;
     }
 
@@ -77,94 +155,148 @@ export function createSinglePlayerGame(player: mc.Player, wordLength: number = 5
         playerIds: [player.id],
         startTime: Date.now(),
         status: 'active',
-        isStaffHosted: false
+        isStaffHosted: false,
+        poolPrize: 0,
+        entryFee: config.singlePlayer.cost,
+        taxRatePercentage: 0,
+        timeLimitSeconds: 0,
+        guessLimit: config.singlePlayer.defaultLimit,
+        guessCooldownSeconds: 0,
+        playerGuesses: {},
+        lastGuessTime: {}
     };
 
     activeGames.set(game.id, game);
-    // Overwrite previous active singleplayer game if needed
-    // Assuming 1 game per player, we can just map player id to game id
     playerGameMap.set(player.id, game.id);
     return game;
 }
 
-const playerGameMap = new Map<string, string>();
-
 export function getPlayerActiveGame(player: mc.Player): WordleGame | undefined {
     const gameId = playerGameMap.get(player.id);
-    if (gameId) {
+    if (isNonEmptyString(gameId)) {
         return activeGames.get(gameId);
     }
     return undefined;
 }
 
 export function getStaffHostedGame(): WordleGame | undefined {
-    if (globalStaffGameId) {
-        return activeGames.get(globalStaffGameId);
+    if (isNonEmptyString(globalStaffGameId)) {
+        const game = activeGames.get(globalStaffGameId);
+        if (isDefined(game) && isDefined(game.expiresAt) && Date.now() >= game.expiresAt) {
+            endStaffHostedGame(undefined, true);
+            return undefined;
+        }
+        return game;
     }
     return undefined;
 }
 
-export function createStaffHostedGame(word: string, poolPrize: number = 0): WordleGame {
+export function createStaffHostedGame(word: string, poolPrize: number = 0, options: StaffWordleOptions = {}): WordleGame {
+    if (isDefined(staffExpiryTimeoutId)) {
+        clearTrackedTimeout(staffExpiryTimeoutId);
+        staffExpiryTimeoutId = undefined;
+    }
+
+    const cfg = getWordleConfig().staffHosted;
+    const entryFee = Math.max(0, options.entryFee ?? cfg.defaultCost ?? 50);
+    const taxRatePercentage = Math.max(0, Math.min(100, options.taxRatePercentage ?? cfg.taxRatePercentage ?? 10));
+    const timeLimitSeconds = Math.max(0, options.timeLimitSeconds ?? cfg.defaultTimeLimitSeconds ?? 300);
+    const guessLimit = Math.max(0, options.guessLimit ?? cfg.guessLimit ?? 6);
+    const guessCooldownSeconds = Math.max(0, options.guessCooldownSeconds ?? cfg.guessCooldownSeconds ?? 5);
+    const now = Date.now();
+
     const game: WordleGame = {
-        id: 'staff_game',
+        id: generateId('staffwrd'),
         word: word.toLowerCase(),
         guesses: [],
-        maxGuesses: 99999, // unlimited guesses for global
-        playerIds: [], // everyone can play
-        startTime: Date.now(),
+        maxGuesses: 99999,
+        playerIds: [],
+        startTime: now,
         status: 'active',
         isStaffHosted: true,
-        poolPrize
+        poolPrize: Math.max(0, poolPrize),
+        entryFee,
+        taxRatePercentage,
+        timeLimitSeconds,
+        ...(timeLimitSeconds > 0 ? { expiresAt: now + timeLimitSeconds * 1000 } : {}),
+        guessLimit,
+        guessCooldownSeconds,
+        playerGuesses: {},
+        lastGuessTime: {}
     };
 
     globalStaffGameId = game.id;
     activeGames.set(game.id, game);
+
+    if (timeLimitSeconds > 0) {
+        const targetId = game.id;
+        staffExpiryTimeoutId = setTrackedTimeout(() => {
+            if (globalStaffGameId === targetId) {
+                endStaffHostedGame(undefined, true);
+            }
+        }, timeLimitSeconds * 20);
+    }
+
     return game;
 }
 
-export function endStaffHostedGame(winnerId?: string) {
-    if (globalStaffGameId) {
+export function endStaffHostedGame(winnerId?: string, expired = false): void {
+    if (isDefined(staffExpiryTimeoutId)) {
+        clearTrackedTimeout(staffExpiryTimeoutId);
+        staffExpiryTimeoutId = undefined;
+    }
+
+    if (isNonEmptyString(globalStaffGameId)) {
         const game = activeGames.get(globalStaffGameId);
-        if (game) {
-            game.status = winnerId ? 'won' : 'lost';
+        globalStaffGameId = undefined;
+
+        if (isDefined(game)) {
+            game.status = isNonEmptyString(winnerId) ? 'won' : 'lost';
             game.winnerId = winnerId;
+
+            if (expired && !isNonEmptyString(winnerId)) {
+                broadcastWordleMessage(`§e[Wordle] §cTime is up! Nobody solved the staff-hosted Wordle. The word was §e${game.word.toUpperCase()}§c.`);
+            }
+
             const config = getWordleConfig();
-            if (config.staffHosted.unlimitedAutoStart) {
-                // Inline to avoid cyclical dependency without require
-                const defaultWord = 'apple';
-                mc.system.runTimeout(() => {
-                    if (config.staffHosted.enabled) {
-                        createStaffHostedGame(defaultWord, 0);
-                        mc.world.sendMessage(`§e[Wordle] A new staff hosted game has automatically started! Type §a/gs <word>§e to join.`);
+            if (config.staffHosted.unlimitedAutoStart && config.staffHosted.enabled) {
+                setTrackedTimeout(() => {
+                    const freshConfig = getWordleConfig();
+                    if (freshConfig.staffHosted.enabled && !isDefined(getStaffHostedGame())) {
+                        const nextWord = getRandomSolution(5) ?? 'apple';
+                        const nextGame = createStaffHostedGame(nextWord, 0);
+                        broadcastWordleMessage(
+                            `§e[Wordle] §aA new Staff-Hosted Wordle round has automatically started! Entry Fee: §6${formatCurrency(nextGame.entryFee)}§a. Type §e/gs <word>§a to join!`
+                        );
                     }
                 }, 100);
             }
         }
-        globalStaffGameId = undefined;
     }
 }
 
-import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
-
 export function submitGuess(gameId: string, player: mc.Player, guess: string): GuessResult | string {
     const game = activeGames.get(gameId);
-    if (!game) {
+    if (!isDefined(game)) {
         return 'Game not found.';
     }
     if (game.status !== 'active') {
         return 'Game is no longer active.';
     }
 
-    if (guess.length !== game.word.length) {
+    const cleanGuess = guess.trim().toLowerCase();
+    if (cleanGuess.length !== game.word.length) {
         return `Word must be exactly ${game.word.length} letters long.`;
     }
 
-    if (!isValidWord(guess)) {
-        return 'Not a valid word.';
+    if (!isValidWord(cleanGuess)) {
+        return 'Not a valid 5-letter English word.';
     }
 
-    const result = evaluateGuess(guess, game.word);
-    game.guesses.push(guess);
+    const result = evaluateGuess(cleanGuess, game.word);
+    game.guesses.push(cleanGuess);
+    game.playerGuesses[player.id] = (game.playerGuesses[player.id] ?? 0) + 1;
+    game.lastGuessTime[player.id] = Date.now();
 
     if (result.isWin) {
         game.status = 'won';
@@ -174,7 +306,7 @@ export function submitGuess(gameId: string, player: mc.Player, guess: string): G
             const config = getWordleConfig();
             if (config.singlePlayer.reward > 0) {
                 incrementPlayerBalance(player.id, config.singlePlayer.reward);
-                player.sendMessage(`§aYou won $${config.singlePlayer.reward} for guessing the word!`);
+                player.sendMessage(`§aYou won ${formatCurrency(config.singlePlayer.reward)} for guessing the word!`);
             }
         } else {
             endStaffHostedGame(player.id);
@@ -191,7 +323,6 @@ export function submitGuess(gameId: string, player: mc.Player, guess: string): G
     return result;
 }
 
-// Utility to format pattern nicely
 export function formatGuess(guess: string, pattern: string): string {
     let result = '';
     for (let i = 0; i < guess.length; i++) {
@@ -204,7 +335,7 @@ export function formatGuess(guess: string, pattern: string): string {
         } else if (pattern[i] === 'y') {
             result += `§e${char} `;
         } else {
-            result += `§f${char} `; // Changed from §7 to §f for visibility
+            result += `§f${char} `;
         }
     }
     return result.trim();

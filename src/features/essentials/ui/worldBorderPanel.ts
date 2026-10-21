@@ -27,7 +27,7 @@ export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void
         .title('World Border Manager')
         .body(bodyText)
         .button(
-            cfg.overworldEnabled ? '§2Overworld + Nether: ENABLED\n§7Click to Disable' : '§4Overworld + Nether: DISABLED\n§7Click to Enable',
+            cfg.overworldEnabled ? '§l§2Overworld+Nether: ON\n§r§7Tap to disable' : '§l§4Overworld+Nether: OFF\n§r§7Tap to enable',
             cfg.overworldEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
             async () => {
                 const next = !cfg.overworldEnabled;
@@ -37,7 +37,7 @@ export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void
             }
         )
         .button(
-            cfg.endEnabled ? '§2The End Border: ENABLED\n§7Click to Disable' : '§4The End Border: DISABLED\n§7Click to Enable',
+            cfg.endEnabled ? '§l§2End Border: ON\n§r§7Tap to disable' : '§l§4End Border: OFF\n§r§7Tap to enable',
             cfg.endEnabled ? 'textures/ui/realms_green_check' : 'textures/ui/cancel',
             async () => {
                 const next = !cfg.endEnabled;
@@ -49,10 +49,10 @@ export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void
         .button(`Configure Overworld + Nether\n§7OW: ${cfg.overworldRadius} | Nether: ${netherRadius}`, 'textures/blocks/grass_side_carried', async () => {
             await showEditOverworldBorderModal(player);
         })
-        .button(`Configure The End Border\n§7Radius: ${cfg.endRadius}`, 'textures/blocks/end_stone', async () => {
+        .button(`§l§dEdit End Border\n§r§7Radius: ±${cfg.endRadius}`, 'textures/blocks/end_stone', async () => {
             await showEditEndBorderModal(player);
         })
-        .button('General Border Settings\n§7Multiplier, Buffer & Admin Bypass', 'textures/ui/icon_setting', async () => {
+        .button('§l§eBorder Settings\n§r§7Ratio, buffer & bypass', 'textures/ui/icon_setting', async () => {
             await showEditGeneralBorderModal(player);
         });
 

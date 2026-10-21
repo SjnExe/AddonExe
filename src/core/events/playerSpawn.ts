@@ -20,6 +20,11 @@ export function handlePlayerJoin(player: mc.Player) {
     // This ensures that if a player is Owner in config or has a rank tag,
     // their internal permission data is updated immediately.
     const calculatedRank = getPlayerRank(player, config);
+    if (calculatedRank.id === 'owner') {
+        mc.world.setDynamicProperty('exe:ownerId', player.id);
+    } else if (mc.world.getDynamicProperty('exe:ownerId') === undefined) {
+        sendMessage('§6[AddonExe] §eNo Server Owner is set yet! Run §a/claimowner§e (or §a/function owner§e) to claim Server Owner.', player);
+    }
     if (pData.rankId !== calculatedRank.id) {
         infoLog(`[Add-on] Syncing rank for ${player.name}: ${pData.rankId} -> ${calculatedRank.id}`);
         updatePlayerData(player.id, (d) => {

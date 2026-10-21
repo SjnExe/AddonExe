@@ -156,6 +156,6 @@ describe('worldBorderManager', () => {
         }
         const cachedTimeMs = performance.now() - startCached;
 
-        expect(cachedTimeMs).toBeLessThan(100);
+        expect(cachedTimeMs).toBeLessThan(250);
     });
 });

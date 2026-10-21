@@ -160,10 +160,10 @@ export async function showTicTacToeMenu(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder()
         .title('Tic-Tac-Toe')
         .body(bodyLines.join('\n'))
-        .button('§l§2Invite a Friend', 'textures/ui/controller_glyph_color', async () => {
+        .button('§l§2Invite Friend\n§r§7Challenge 2P match', 'textures/ui/controller_glyph_color', async () => {
             await showInviteFriendToGameModal(player, 'tictactoe');
         })
-        .button(isPlayerInQueue(player.id, 'tictactoe') ? '§eLeave Matchmaking Queue' : '§bFind Random Match (Queue)', 'textures/ui/magnifyingGlass', () => {
+        .button(isPlayerInQueue(player.id, 'tictactoe') ? '§l§eLeave Queue\n§r§7Cancel search' : '§l§bRandom Match\n§r§7Join 2P queue', 'textures/ui/magnifyingGlass', () => {
             const res = joinMatchmakingQueue(player, 'tictactoe');
             if (isNonEmptyString(res.message)) {
                 player.sendMessage(res.message);
@@ -193,7 +193,7 @@ export async function showTicTacToeMenu(player: mc.Player): Promise<void> {
         });
     }
 
-    form.button(invitesDisabled ? '§cGame Invites: STOPPED' : '§2Game Invites: ALLOWED', invitesDisabled ? 'textures/ui/cancel' : 'textures/ui/realms_green_check', async () => {
+    form.button(invitesDisabled ? '§l§cInvites: OFF\n§r§7Tap to allow' : '§l§2Invites: ON\n§r§7Tap to block', invitesDisabled ? 'textures/ui/cancel' : 'textures/ui/realms_green_check', async () => {
         const msg = setGameInvitesStopped(player, !invitesDisabled);
         player.sendMessage(msg);
         await showTicTacToeMenu(player);

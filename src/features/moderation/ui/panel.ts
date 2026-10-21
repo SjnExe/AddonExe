@@ -323,7 +323,7 @@ export async function handleUnmuteForm(player: mc.Player): Promise<void> {
 export async function showModerationPanel(player: mc.Player): Promise<void> {
     const form = new ActionFormBuilder().title('Moderation Tools');
 
-    form.button('Inspect & Warn / Punish Online Players', 'textures/ui/WarningGlyph', async () => {
+    form.button('§l§fPlayer Moderation\n§r§7Inspect, warn & punish', 'textures/ui/WarningGlyph', async () => {
         const { showPlayerManagementPanel } = await import('@core/ui/panels/playerPanel.js');
         await showPlayerManagementPanel(player);
     });

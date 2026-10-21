@@ -165,6 +165,18 @@ async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Prom
                     // Fall back to raw content if JSON parsing fails
                 }
             }
+            if (relPath.endsWith('.lang')) {
+                const rawLang = await Bun.file(fullPath).text();
+                const minLang = rawLang
+                    .split(/\r?\n/)
+                    .filter((line) => {
+                        const t = line.trim();
+                        return t.length > 0 && !t.startsWith('#');
+                    })
+                    .join('\n');
+                entries.set(normalizedPath, minLang);
+                return;
+            }
 
             entries.set(normalizedPath, await Bun.file(fullPath).arrayBuffer());
         })
@@ -306,9 +318,9 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
         root: './src',
         target: 'browser',
         format: 'esm',
-        minify: isMinify,
+        minify: isMinify ? { whitespace: true, identifiers: true, syntax: true } : false,
         sourcemap: process.argv.includes('--sourcemap') || cliArgs.sourcemap ? 'external' : 'none',
-        drop: isRelease ? ['debugger'] : [],
+        drop: isRelease || isMinify ? ['debugger'] : [],
         splitting: false,
         naming: '[dir]/[name].[ext]',
         define: {

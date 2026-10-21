@@ -108,9 +108,9 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
 
         const soloGame = startMinesweeperGame(p1, 'easy');
         const fastReward = calculateSoloTimeReward(soloGame, 30);
-        expect(fastReward.base).toBe(5);
+        expect(fastReward.base).toBe(50);
         expect(fastReward.bonus).toBeGreaterThan(0);
-        expect(fastReward.total).toBeGreaterThan(5);
+        expect(fastReward.total).toBeGreaterThan(50);
 
         const raceMatch = startMinesweeperRaceMatch(p1, p2, 20, 'easy');
         expect(raceMatch).toBeDefined();

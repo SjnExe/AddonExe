@@ -56,6 +56,7 @@ export interface PlayerData {
     gameInvitesDisabled?: boolean;
     gameInviteBlockedPlayerIds?: string[];
     announcementsMuted: boolean;
+    wordleNotificationsMuted?: boolean;
     teamId: number | undefined;
     teamSettings: { autoTpAccept: boolean };
     pendingInvites: PendingInvite[];
@@ -103,6 +104,7 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
     gameInvitesDisabled: false,
     gameInviteBlockedPlayerIds: [],
     announcementsMuted: false,
+    wordleNotificationsMuted: false,
     teamId: undefined,
     teamSettings: { autoTpAccept: false },
     pendingInvites: [],

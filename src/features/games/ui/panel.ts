@@ -27,7 +27,7 @@ export async function showGamesMainPanel(player: mc.Player): Promise<void> {
     }
 
     if (isFeatureActive('game.minesweeper')) {
-        form.button('Minesweeper (12x6)', 'textures/items/iron_pickaxe', async () => {
+        form.button('Minesweeper', 'textures/items/iron_pickaxe', async () => {
             await showPanel(player, 'minesweeperMainPanel');
         });
     } else {

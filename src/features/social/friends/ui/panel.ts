@@ -26,7 +26,7 @@ export async function showFriendMainPanel(player: mc.Player): Promise<void> {
         .button(`Requests (${validReqs.length})`, 'textures/ui/invite_base', async () => {
             await showFriendRequestsPanel(player, 1);
         })
-        .button(autoTp ? '§2Auto-Accept Friend TPA: ON' : '§7Auto-Accept Friend TPA: OFF', autoTp ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
+        .button(autoTp ? '§l§2Friend Auto-TPA: ON\n§r§7Tap to disable' : '§l§7Friend Auto-TPA: OFF\n§r§7Tap to enable', autoTp ? 'textures/ui/realms_green_check' : 'textures/ui/cancel', async () => {
             const next = friendManager.toggleFriendAutoTpAccept(player);
             player.sendMessage(`§aFriend Auto-TPA Accept is now ${next ? '§2ENABLED' : '§cDISABLED'}§a.`);
             await showFriendMainPanel(player);
@@ -199,7 +199,7 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
             const result = tpaManager.createRequest(player, onlineP, 'tpahere');
             player.sendMessage(result.message);
         });
-        form.button('Invite to Game (Tic-Tac-Toe)', 'textures/ui/controller_glyph_color', async () => {
+        form.button('Invite to Mini-Game', 'textures/ui/controller_glyph_color', async () => {
             const { showInviteFriendToGameModal } = await import('@features/games/tictactoe/ui/panel.js');
             await showInviteFriendToGameModal(player, 'tictactoe', friendId);
         });

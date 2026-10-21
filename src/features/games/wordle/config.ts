@@ -3,7 +3,7 @@ export const wordleConfig = {
     singlePlayer: {
         enabled: true,
         cost: 0,
-        reward: 10,
+        reward: 75,
         defaultLimit: 6
     },
     multiplayer: {
@@ -16,7 +16,9 @@ export const wordleConfig = {
         taxRatePercentage: 10,
         unlimitedAutoStart: false,
         defaultCost: 50,
-        defaultTimeLimitSeconds: 120
+        defaultTimeLimitSeconds: 300,
+        guessCooldownSeconds: 5,
+        guessLimit: 6
     }
 };
 

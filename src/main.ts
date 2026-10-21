@@ -32,7 +32,7 @@ export async function initializeAddon() {
 
     // Version Check & Migration Flag
     const newVersionStr = VERSION;
-    const lastVersionStr = mc.world.getDynamicProperty('exe:lastVersion') as string | undefined;
+    const lastVersionStr = (mc.world.getDynamicProperty('exe:version') as string | undefined) ?? (mc.world.getDynamicProperty('exe:lastVersion') as string | undefined);
 
     let isMigration = true;
     if (isNonEmptyString(lastVersionStr)) {
@@ -66,8 +66,6 @@ export async function initializeAddon() {
 
     const config = getConfig();
     setLogLevel(config.logLevel);
-
-    mc.world.setDynamicProperty('exe:lastVersion', newVersionStr);
 
     dataManager.initializeDataManager();
     loadPersistentData();
