@@ -1,0 +1,11 @@
+* text=auto eol=lf
+*.ts text diff=typescript
+*.json text
+*.mcfunction text
+*.lang text
+*.md text
+*.yml text
+*.png binary
+*.mcaddon binary
+*.mcpack binary
+src/features/games/wordle/wordPool.ts linguist-generated=true -diff
