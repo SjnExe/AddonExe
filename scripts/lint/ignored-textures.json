@@ -1495,5 +1495,8 @@
     "textures/ui/proton",
     "textures/ui/proton_lowdetail",
     "textures/ui/render_dragon",
-    "textures/ui/white_slider_progress"
+    "textures/ui/white_slider_progress",
+    "textures/ui/dialog_background_opaque",
+    "textures/ui/Black",
+    "textures/ui/button_borderless_dark"
 ]
