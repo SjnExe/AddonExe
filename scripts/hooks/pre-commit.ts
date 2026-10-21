@@ -52,7 +52,7 @@ try {
 
     // 3. Fast Unit Test Suite
     console.log('🧪 Running unit tests...');
-    const runTests = await $`bun test`.nothrow().quiet();
+    const runTests = await $`bun test --parallel`.nothrow().quiet();
 
     if (runTests.exitCode !== 0) {
         console.error(`=== Unit Tests Failed (Exit: ${runTests.exitCode}) ===\n${runTests.stdout}${runTests.stderr}`);
