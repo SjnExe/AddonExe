@@ -141,30 +141,35 @@ async function getCustomTextures(): Promise<Set<string>> {
 async function extractUsedIcons(): Promise<Map<string, string[]>> {
     const tsGlob = new Bun.Glob('**/*.ts');
     const tsFiles = Array.from(tsGlob.scanSync({ cwd: SRC_DIR, absolute: true }));
-    const regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
+    const _regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
 
     // Map of icon path to array of files it was found in
     const usedIcons = new Map<string, string[]>();
 
-    for (const file of tsFiles) {
-        try {
-            const content = await Bun.file(file).text();
-            let match;
-            while ((match = regex.exec(content)) !== null) {
-                // If it ends with .png in the code, strip it for validation since Bedrock accepts both and our validator stores them without .png
-                const iconPath = match[1] || match[2] || match[3];
-                if (iconPath) {
-                    const cleanPath = iconPath.replace(/\.png$/, '');
-                    if (!usedIcons.has(cleanPath)) {
-                        usedIcons.set(cleanPath, []);
-                    }
-                    usedIcons.get(cleanPath)!.push(file.replace(SRC_DIR, 'src'));
+    await Promise.all(
+        tsFiles.map(async (file) => {
+            try {
+                const content = await Bun.file(file).text();
+                if (!content.includes('textures/')) {
+                    return;
                 }
+                const localRegex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
+                let match;
+                while ((match = localRegex.exec(content)) !== null) {
+                    const iconPath = match[1] || match[2] || match[3];
+                    if (iconPath) {
+                        const cleanPath = iconPath.replace(/\.png$/, '');
+                        if (!usedIcons.has(cleanPath)) {
+                            usedIcons.set(cleanPath, []);
+                        }
+                        usedIcons.get(cleanPath)!.push(file.replace(SRC_DIR, 'src'));
+                    }
+                }
+            } catch {
+                // Ignore error
             }
-        } catch {
-            // Ignore error
-        }
-    }
+        })
+    );
 
     return usedIcons;
 }

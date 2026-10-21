@@ -127,27 +127,38 @@ export function setValueByPath(obj: unknown, pathStr: string, value: unknown): v
 /**
  * Creates a deep clone of an object or primitive.
  */
-export function deepClone<T>(obj: T, hash = new WeakMap<object, unknown>()): T {
-    if (Object(obj) !== obj) {
+export function deepClone<T>(obj: T, hash?: WeakMap<object, unknown>): T {
+    if (obj === null || typeof obj !== 'object') {
         return obj;
     }
-    if (hash.has(obj as object)) {
-        return hash.get(obj as object) as T;
-    }
     if (obj instanceof Date) {
-        return new Date(obj) as unknown as T;
+        return new Date(obj.getTime()) as unknown as T;
     }
     if (obj instanceof RegExp) {
         return new RegExp(obj.source, obj.flags) as unknown as T;
     }
+    if (hash?.has(obj)) {
+        return hash.get(obj) as T;
+    }
 
-    const result = (Array.isArray(obj) ? [] : Object.create(Object.getPrototypeOf(obj) as object | null)) as T;
-    hash.set(obj as object, result);
+    const seen = hash ?? new WeakMap<object, unknown>();
 
-    return Object.assign(
-        result as object,
-        ...Object.keys(obj as Record<string, unknown>).map((key) => ({
-            [key]: deepClone((obj as Record<string, unknown>)[key], hash)
-        }))
-    ) as T;
+    if (Array.isArray(obj)) {
+        const arr = new Array(obj.length);
+        seen.set(obj, arr);
+        for (let i = 0; i < obj.length; i++) {
+            arr[i] = deepClone(obj[i], seen);
+        }
+        return arr as unknown as T;
+    }
+
+    const proto = Object.getPrototypeOf(obj) as object | null;
+    const result = (proto === Object.prototype || proto === null ? {} : Object.create(proto)) as Record<string, unknown>;
+    seen.set(obj, result);
+
+    const record = obj as Record<string, unknown>;
+    for (const key of Object.keys(record)) {
+        result[key] = deepClone(record[key], seen);
+    }
+    return result as T;
 }
