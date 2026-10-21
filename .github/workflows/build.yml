@@ -102,7 +102,7 @@ jobs:
                       ${{ runner.os }}-bun-
 
             - run: bun install --frozen-lockfile
-            - run: bun test
+            - run: bun test --parallel
 
     build:
         runs-on: ubuntu-latest

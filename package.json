@@ -31,9 +31,8 @@
         "mc-update": "bun scripts/build/mc-update.ts",
         "project-info": "bunx mct info -i packs",
         "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
-        "test": "bun test",
         "test:dupe": "bun scripts/lint/test-duplication.ts",
-        "test:watch": "bun test --watch",
+        "test:watch": "bun test --parallel --watch",
         "validate": "bun scripts/hooks/validate.ts",
         "watch": "bun scripts/build/build.ts --watch"
     },
