@@ -41,9 +41,14 @@ async function runLintingPipeline() {
         }
     });
 
-    const oxlintTask = runTask('Oxlint Engine (Rust + JS Plugins)', () =>
-        isFix ? $`bun scripts/lint/oxlint.ts --skip-custom-rules --fix`.quiet() : $`bun scripts/lint/oxlint.ts --skip-custom-rules`.quiet()
-    );
+    const termuxOxlint = '/data/data/com.termux/files/usr/bin/oxlint';
+    const hasNativeOxlint = await Bun.file(termuxOxlint).exists();
+    const oxlintTask = runTask('Oxlint Engine (Pure Rust)', () => {
+        if (hasNativeOxlint) {
+            return isFix ? $`${termuxOxlint} --fix`.quiet() : $`${termuxOxlint}`.quiet();
+        }
+        return isFix ? $`./node_modules/.bin/oxlint --fix`.quiet() : $`./node_modules/.bin/oxlint`.quiet();
+    });
 
     const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());
 

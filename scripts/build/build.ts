@@ -34,26 +34,31 @@ export const iconIndexPlugin = {
             const globScanner = new Bun.Glob('**/*.ts');
             const tsFiles = Array.from(globScanner.scanSync({ cwd: SRC_DIR, absolute: true }));
             const textures = new Set<string>();
-            const regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
+            const _regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
 
-            for (const file of tsFiles) {
-                if (file.includes('virtual:icon-index')) {
-                    continue;
-                }
-
-                try {
-                    const content = await Bun.file(file).text();
-                    let match;
-                    while ((match = regex.exec(content)) !== null) {
-                        const iconPath = match[1] || match[2] || match[3];
-                        if (iconPath) {
-                            textures.add(iconPath);
-                        }
+            await Promise.all(
+                tsFiles.map(async (file) => {
+                    if (file.includes('virtual:icon-index')) {
+                        return;
                     }
-                } catch {
-                    // Ignore read errors
-                }
-            }
+                    try {
+                        const content = await Bun.file(file).text();
+                        if (!content.includes('textures/')) {
+                            return;
+                        }
+                        const localRegex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
+                        let match;
+                        while ((match = localRegex.exec(content)) !== null) {
+                            const iconPath = match[1] || match[2] || match[3];
+                            if (iconPath) {
+                                textures.add(iconPath);
+                            }
+                        }
+                    } catch {
+                        // Ignore read errors
+                    }
+                })
+            );
 
             const iconList = Array.from(textures);
             console.log(`[Plugin] Found ${iconList.length} unique icon paths.`);

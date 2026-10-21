@@ -12,7 +12,7 @@ async function main() {
     }
 
     console.log('🧪 Running Minecraft Creator Tools (mct) validation...');
-    const exclusions = ['PRJINT', 'UNKJSON', 'pathlength', 'PATHLENGTH', 'BASEGAMEVER', 'WPACKREFS', 'JSON', 'STRICT', 'ENTITYTYPE', 'FORMATVER', 'ITEMTYPE', 'CHKMANIF', 'FORBFILE'].join(',');
+    const exclusions = ['pathlength', 'PATHLENGTH', 'BASEGAMEVER', 'UNKJSON'].join(',');
 
     await $`bunx mct validate default ${exclusions} -i packs`;
 }

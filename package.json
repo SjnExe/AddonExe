@@ -52,8 +52,6 @@
         "@minecraft/server-ui": "2.3.0-beta.1.26.52-stable",
         "@types/bun": "latest",
         "ajv": "latest",
-        "eslint-plugin-minecraft-linting": "latest",
-        "jscpd": "^4.3.0",
         "oxlint": "latest",
         "prettier": "latest",
         "prettier-plugin-organize-imports": "latest",
