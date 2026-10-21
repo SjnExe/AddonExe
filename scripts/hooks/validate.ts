@@ -1,9 +1,10 @@
 import { $ } from 'bun';
 import path from 'node:path';
+import { checkDependencies } from '../build/check-dependencies.ts';
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
 async function main() {
     console.log('🔍 Running project dependency verification...');
-    await $`bun scripts/build/check-dependencies.ts`;
+    await checkDependencies();
 
     const scriptEntry = path.join(ROOT_DIR, 'packs/behavior/scripts/main.js');
     if (!(await Bun.file(scriptEntry).exists())) {

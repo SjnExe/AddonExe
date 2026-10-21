@@ -14,18 +14,18 @@ function selectLatestBedrockVersion(versions: CfGameVersion[]): CfGameVersion {
     const semverCandidates = versions.filter((v) => /^\d+\.\d+/.test(v.name.trim()));
     const pool = semverCandidates.length > 0 ? semverCandidates : versions;
 
+    const toSemver = (raw: string) => {
+        const nums = raw
+            .trim()
+            .replace(/^v/i, '')
+            .split('.')
+            .map((n) => Number.parseInt(n, 10) || 0);
+        return `${nums[0] ?? 0}.${nums[1] ?? 0}.${nums[2] ?? 0}`;
+    };
+
     const sorted = [...pool].sort((a, b) => {
-        const cleanA = a.name.trim().replace(/^v/i, '');
-        const cleanB = b.name.trim().replace(/^v/i, '');
-        const partsA = cleanA.split('.').map((n) => Number.parseInt(n, 10) || 0);
-        const partsB = cleanB.split('.').map((n) => Number.parseInt(n, 10) || 0);
-        for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-            const diff = (partsA[i] ?? 0) - (partsB[i] ?? 0);
-            if (diff !== 0) {
-                return diff;
-            }
-        }
-        return a.id - b.id;
+        const cmp = Bun.semver.order(toSemver(a.name), toSemver(b.name));
+        return cmp !== 0 ? cmp : a.id - b.id;
     });
 
     return sorted[sorted.length - 1]!;

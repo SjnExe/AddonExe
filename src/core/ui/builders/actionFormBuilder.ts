@@ -31,7 +31,7 @@ export class ActionFormBuilder {
 
     private applyTitleWithGrid(): void {
         if (this.gridColumns === 1) {
-            this.form.title(`§1§0§0§f§r${this.rawTitle}`);
+            this.form.title(`\uE100§r${this.rawTitle}`);
             return;
         }
         if (this.gridColumns === 'board') {

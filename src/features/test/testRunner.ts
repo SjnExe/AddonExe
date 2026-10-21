@@ -1,4 +1,5 @@
 import { debugLog, errorLog, infoLog, warnLog } from '@core/utils/logger.js';
+import { isDeepEqual } from '@core/utils/objectUtils.js';
 
 export type TestFunction = () => void | Promise<void>;
 
@@ -144,10 +145,8 @@ export const assert = {
         }
     },
     deepEqual(actual: unknown, expected: unknown, message?: string) {
-        const aJson = JSON.stringify(actual);
-        const eJson = JSON.stringify(expected);
-        if (aJson !== eJson) {
-            throw new Error(message || `Expected ${eJson}, got ${aJson}`);
+        if (!isDeepEqual(actual, expected)) {
+            throw new Error(message || `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
         }
     },
     notEqual<T>(actual: T, expected: T, message?: string) {

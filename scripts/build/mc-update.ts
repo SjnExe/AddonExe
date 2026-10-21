@@ -13,10 +13,12 @@ async function autoAlignDependencies() {
     const packageJsonFile = Bun.file(packageJsonPath);
     const packageJson = await packageJsonFile.json();
     let changesMade = false;
+    const session = typeof Bun.FetchSession === 'function' ? new Bun.FetchSession() : undefined;
+    const doFetch = session ? session.fetch.bind(session) : fetch;
 
     for (const pkg of targetPackages) {
         try {
-            const response = await fetch(`https://registry.npmjs.org/${pkg}`, {
+            const response = await doFetch(`https://registry.npmjs.org/${pkg}`, {
                 headers: { Accept: 'application/vnd.npm.install-v1+json' }
             });
             if (!response.ok) {

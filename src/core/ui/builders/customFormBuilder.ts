@@ -1,31 +1,30 @@
-import { stripColorCodes } from '@core/utils/formatting.js';
-import { forceCloseChat } from '@core/utils/ui.js';
-import * as mc from '@minecraft/server';
+import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
-import { CustomForm, DataDrivenScreenClosedReason, ObservableBoolean, ObservableNumber, ObservableString } from '@minecraft/server-ui';
+import { FormCancelationReason, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 interface DropdownMeta {
     type: 'dropdown';
     options: string[];
-    observable: ObservableNumber;
+    defaultValueIndex: number;
 }
 
 interface ToggleMeta {
     type: 'toggle';
-    observable: ObservableBoolean;
+    defaultValue: boolean;
 }
 
 interface SliderMeta {
     type: 'slider';
-    observable: ObservableNumber;
     min: number;
     max: number;
     step: number;
+    defaultValue: number;
 }
 
 interface TextFieldMeta {
     type: 'textField';
-    observable: ObservableString;
+    placeholderText: string;
+    defaultValue: string;
 }
 
 type ValueMeta = DropdownMeta | ToggleMeta | SliderMeta | TextFieldMeta;
@@ -42,6 +41,7 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
     private titleText: string;
     private readonly controls: ControlItem[] = [];
     private submitText?: string;
+    private readonly currentValues: Record<string, unknown> = {};
 
     constructor(titleText = '') {
         this.titleText = titleText;
@@ -52,16 +52,13 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         return this;
     }
 
-    public toggle<K extends string>(key: K, label: string, defaultValue = false, onChange?: (val: boolean) => void): CustomFormBuilder<T & Record<K, boolean>> {
-        const observable = new ObservableBoolean(defaultValue, { clientWritable: true });
-        if (onChange) {
-            observable.subscribe(onChange);
-        }
+    public toggle<K extends string>(key: K, label: string, defaultValue = false, _onChange?: (val: boolean) => void): CustomFormBuilder<T & Record<K, boolean>> {
+        this.currentValues[key] = defaultValue;
         this.controls.push({
             type: 'toggle',
             key,
             label,
-            meta: { type: 'toggle', observable }
+            meta: { type: 'toggle', defaultValue }
         });
         return this as unknown as CustomFormBuilder<T & Record<K, boolean>>;
     }
@@ -70,34 +67,35 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         const min = Math.min(minimumValue, maximumValue);
         const max = Math.max(minimumValue, maximumValue);
         const initialVal = defaultValue !== undefined ? defaultValue : min;
-        const observable = new ObservableNumber(initialVal, { clientWritable: true });
+        this.currentValues[key] = initialVal;
         this.controls.push({
             type: 'slider',
             key,
             label,
-            meta: { type: 'slider', observable, min, max, step: valueStep }
+            meta: { type: 'slider', min, max, step: valueStep, defaultValue: initialVal }
         });
         return this as unknown as CustomFormBuilder<T & Record<K, number>>;
     }
 
     public dropdown<K extends string>(key: K, label: string, options: string[], defaultValueIndex = 0): CustomFormBuilder<T & Record<K, string>> {
-        const observable = new ObservableNumber(defaultValueIndex, { clientWritable: true });
+        const safeIndex = Math.max(0, Math.min(defaultValueIndex, Math.max(0, options.length - 1)));
+        this.currentValues[key] = options[safeIndex] ?? options[0] ?? '';
         this.controls.push({
             type: 'dropdown',
             key,
             label,
-            meta: { type: 'dropdown', options, observable }
+            meta: { type: 'dropdown', options, defaultValueIndex: safeIndex }
         });
         return this as unknown as CustomFormBuilder<T & Record<K, string>>;
     }
 
-    public textField<K extends string>(key: K, label: string, _placeholderText = '', defaultValue = ''): CustomFormBuilder<T & Record<K, string>> {
-        const observable = new ObservableString(defaultValue, { clientWritable: true });
+    public textField<K extends string>(key: K, label: string, placeholderText = '', defaultValue = ''): CustomFormBuilder<T & Record<K, string>> {
+        this.currentValues[key] = defaultValue;
         this.controls.push({
             type: 'textField',
             key,
             label,
-            meta: { type: 'textField', observable }
+            meta: { type: 'textField', placeholderText, defaultValue }
         });
         return this as unknown as CustomFormBuilder<T & Record<K, string>>;
     }
@@ -133,102 +131,87 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
     }
 
     public getValues(): T {
-        const result: Record<string, unknown> = {};
-        for (const ctrl of this.controls) {
-            if (!ctrl.key || !ctrl.meta) {
-                continue;
-            }
-            if (ctrl.meta.type === 'toggle') {
-                result[ctrl.key] = ctrl.meta.observable.getData();
-            } else if (ctrl.meta.type === 'slider') {
-                result[ctrl.key] = ctrl.meta.observable.getData();
-            } else if (ctrl.meta.type === 'textField') {
-                result[ctrl.key] = ctrl.meta.observable.getData();
-            } else if (ctrl.meta.type === 'dropdown') {
-                const idx = ctrl.meta.observable.getData();
-                result[ctrl.key] = ctrl.meta.options[idx] ?? ctrl.meta.options[0] ?? '';
-            }
-        }
-        return result as T;
+        return { ...this.currentValues } as T;
     }
 
     public async show(player: Player): Promise<T | undefined> {
-        const cleanLabel = (str?: string): string => stripColorCodes(str ?? '');
-        const form = new CustomForm(player, cleanLabel(this.titleText));
-        let wasSubmitted = false;
+        const form = new ModalFormData().title(this.titleText);
+        const valueControlOrder: ControlItem[] = [];
+        const buttonCallbacks: (() => void)[] = [];
 
         for (const ctrl of this.controls) {
             if (ctrl.type === 'toggle' && ctrl.meta?.type === 'toggle') {
-                form.toggle(cleanLabel(ctrl.label), ctrl.meta.observable);
+                form.toggle(ctrl.label ?? '', { defaultValue: ctrl.meta.defaultValue });
+                valueControlOrder.push(ctrl);
             } else if (ctrl.type === 'slider' && ctrl.meta?.type === 'slider') {
-                form.slider(cleanLabel(ctrl.label), ctrl.meta.observable, ctrl.meta.min, ctrl.meta.max, { step: ctrl.meta.step });
+                form.slider(ctrl.label ?? '', ctrl.meta.min, ctrl.meta.max, { valueStep: ctrl.meta.step, defaultValue: ctrl.meta.defaultValue });
+                valueControlOrder.push(ctrl);
             } else if (ctrl.type === 'dropdown' && ctrl.meta?.type === 'dropdown') {
-                const items = ctrl.meta.options.map((opt, i) => ({ label: cleanLabel(opt), value: i }));
-                form.dropdown(cleanLabel(ctrl.label), ctrl.meta.observable, items);
+                form.dropdown(ctrl.label ?? '', ctrl.meta.options, { defaultValueIndex: ctrl.meta.defaultValueIndex });
+                valueControlOrder.push(ctrl);
             } else if (ctrl.type === 'textField' && ctrl.meta?.type === 'textField') {
-                form.textField(cleanLabel(ctrl.label), ctrl.meta.observable);
+                form.textField(ctrl.label ?? '', ctrl.meta.placeholderText, { defaultValue: ctrl.meta.defaultValue });
+                valueControlOrder.push(ctrl);
             } else if (ctrl.type === 'header') {
-                form.header(cleanLabel(ctrl.label));
+                if (typeof (form as unknown as { header?: (t: string) => void }).header === 'function') {
+                    (form as unknown as { header: (t: string) => void }).header(ctrl.label ?? '');
+                    valueControlOrder.push(ctrl);
+                }
             } else if (ctrl.type === 'label') {
-                form.label(cleanLabel(ctrl.label));
+                if (typeof (form as unknown as { label?: (t: string) => void }).label === 'function') {
+                    (form as unknown as { label: (t: string) => void }).label(ctrl.label ?? '');
+                    valueControlOrder.push(ctrl);
+                }
             } else if (ctrl.type === 'divider') {
-                form.divider();
-            } else if (ctrl.type === 'spacer') {
-                form.spacer();
+                if (typeof (form as unknown as { divider?: () => void }).divider === 'function') {
+                    (form as unknown as { divider: () => void }).divider();
+                    valueControlOrder.push(ctrl);
+                }
             } else if (ctrl.type === 'button' && ctrl.onClick) {
-                const userOnClick = ctrl.onClick;
-                form.button(cleanLabel(ctrl.label), () => {
-                    wasSubmitted = true;
-                    userOnClick();
-                    form.close();
-                });
+                buttonCallbacks.push(ctrl.onClick);
+                if (!this.submitText) {
+                    this.submitText = ctrl.label;
+                }
             }
         }
 
-        const effectiveSubmitText = this.submitText ?? (!this.controls.some((c) => c.type === 'button') && this.controls.some((c) => c.key && c.meta) ? 'Submit' : undefined);
-
-        if (effectiveSubmitText) {
-            form.button(cleanLabel(effectiveSubmitText), () => {
-                wasSubmitted = true;
-                form.close();
-            });
+        if (this.submitText && typeof form.submitButton === 'function') {
+            form.submitButton(this.submitText);
         }
 
-        form.closeButton();
+        let response = await form.show(player);
+        if (response.cancelationReason === FormCancelationReason.UserBusy && player.isValid !== false) {
+            response = (await uiWait(player, form)) as ModalFormResponse;
+        }
+        if (response.canceled || !response.formValues) {
+            return undefined;
+        }
 
-        let closeReason = await form.show();
-        if (closeReason === DataDrivenScreenClosedReason.UserBusy) {
-            await forceCloseChat(player);
-            let attempts = 0;
-            while (closeReason === DataDrivenScreenClosedReason.UserBusy && attempts < 25) {
-                attempts++;
-                if (!player.isValid) {
-                    return undefined;
-                }
-                if (mc.system && typeof mc.system.runTimeout === 'function') {
-                    await new Promise<void>((resolve) => {
-                        mc.system.runTimeout(() => resolve(), 4);
-                    });
-                } else {
-                    break;
-                }
-                closeReason = await form.show();
+        const rawValues = response.formValues;
+        let valIdx = 0;
+
+        for (const ctrl of valueControlOrder) {
+            const rawVal = rawValues[valIdx];
+            valIdx++;
+
+            if (!ctrl.key || !ctrl.meta) {
+                continue;
+            }
+
+            if (ctrl.meta.type === 'toggle') {
+                this.currentValues[ctrl.key] = Boolean(rawVal);
+            } else if (ctrl.meta.type === 'slider') {
+                this.currentValues[ctrl.key] = typeof rawVal === 'number' ? rawVal : ctrl.meta.defaultValue;
+            } else if (ctrl.meta.type === 'textField') {
+                this.currentValues[ctrl.key] = typeof rawVal === 'string' ? rawVal : String(rawVal ?? '');
+            } else if (ctrl.meta.type === 'dropdown') {
+                const idx = typeof rawVal === 'number' ? rawVal : ctrl.meta.defaultValueIndex;
+                this.currentValues[ctrl.key] = ctrl.meta.options[idx] ?? ctrl.meta.options[0] ?? '';
             }
         }
 
-        if (closeReason === DataDrivenScreenClosedReason.UserBusy) {
-            return undefined;
-        }
-
-        // Delay 1 tick for the Script Engine event loop to execute the button's onClick callback if triggered by button click
-        if (mc.system && typeof mc.system.runTimeout === 'function') {
-            await new Promise<void>((resolve) => {
-                mc.system.runTimeout(() => resolve(), 1);
-            });
-        }
-
-        if (effectiveSubmitText && !wasSubmitted) {
-            return undefined;
+        for (const cb of buttonCallbacks) {
+            cb();
         }
 
         return this.getValues();

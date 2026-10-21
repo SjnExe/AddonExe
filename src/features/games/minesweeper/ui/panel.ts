@@ -172,7 +172,12 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
         });
     }
 
-    const toolbarText = game.status !== 'active' ? '§m§r§l§e[ Play Again / Menu ]' : game.flagMode ? '§m§r§l§e[ ⚑ FLAG MODE ] §7(Tap to Dig)' : '§m§r§l§a[ ⛏ DIG MODE ] §7(Tap to Flag)';
+    const toolbarText =
+        game.status !== 'active'
+            ? '\uE101§r§l§e[ Play Again / Menu ]'
+            : game.flagMode
+              ? '\uE101§r§l§e[ ⚑ FLAG MODE: ON ] §7(Tap to switch to Dig)'
+              : '\uE101§r§l§a[ ⛏ DIG MODE: ON ] §7(Tap to switch to Flag)';
 
     form.button(toolbarText, undefined, () => {
         tappedToolbar = true;
