@@ -198,7 +198,7 @@ describe('timerManager', () => {
 
             cleanupTimers();
 
-            expect(clearRunSpy).toHaveBeenCalledTimes(2); // One for interval, one for timeout
+            expect(clearRunSpy).toHaveBeenCalledTimes(2); // Master interval + timeout
             expect(clearJobSpy).toHaveBeenCalledTimes(1); // One for job
 
             expect(getTimerStats().intervals).toBe(0);
