@@ -24,7 +24,7 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/rules [ruleNumber]`** (Alias: `/rule`) — Displays the server rules.
 - **`/links`** (Aliases: `/link`, `/websites`) — Displays Discord and community links.
 - **`/version`** (Alias: `/ver`) — Displays the active AddonExe version.
-- **`/sidebar`** (Alias: `/sb`) — Toggles your personal Scoreboard Sidebar and Action Bar HUD.
+- **`/sidebar [toggle|ui|right|left|bottom|default|on|off]`** (Alias: `/sb`) — Toggles your personal HUD/Sidebar, switches screen layout, or opens the HUD settings UI.
 - **`/fixplayer`** — Resets your player state if stuck in spawn protection or frozen flags.
 - **`/vote`** — Opens the active server poll / voting menu.
 
@@ -36,9 +36,10 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/deathcoords`** — Displays the coordinates of your most recent death.
 - **`/sethome [homeName]`** — Sets a personal home at your current location.
 - **`/home [homeName]`** — Teleports you to a saved home (or opens the Homes UI).
-- **`/delhome <homeName>`** — Deletes a saved home.
+- **`/delhome [homeName]`** — Deletes a saved home (or opens the delete home UI).
 - **`/homes`** — Lists all of your saved homes.
 - **`/warp [warpName]`** — Teleports you to a server warp (or opens the Warps UI).
+- **`/hq`** (Alias: `/teamhome`) — Teleports you to your team's home location.
 
 ### Teleport Requests (TPA)
 
@@ -59,10 +60,12 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/payconfirm`** (Alias: `/confirmpay`) — Confirms a pending high-value payment.
 - **`/shop`** — Opens the 3-column Server Shop UI.
 - **`/buy`** / **`/sell`** — Opens the shop item trade menu (or inspects held item).
-- **`/sellhand`** — Quickly sells the stackable item in your main hand.
+- **`/sellhand`** (Alias: `/sh`) — Quickly sells the stackable item in your main hand.
+- **`/sellall [confirm]`** (Alias: `/sa`) — Sells all sellable shop items in your inventory with a confirmation prompt.
 - **`/ah [sell|search|help] [price|query] [bin|bid]`** (Alias: `/auction`) — Opens the Auction House UI or lists the item in your hand.
 - **`/kit [kitName]`** — Opens the Kits menu or claims a specific kit.
 - **`/daily`** (Alias: `/reward`) — Claims your daily login reward.
+- **`/playtime`** (Aliases: `/pt`, `/milestones`, `/afkrewards`) — Views your total playtime, stay-online/AFK reward timer, and playtime milestones.
 - **`/bounty <target> <amount>`** (Aliases: `/setbounty`, `/addbounty`) — Places a bounty on a player.
 - **`/listbounty [target]`** (Aliases: `/bounties`, `/bountylist`, `/hitlist`) — Lists active bounties.
 - **`/removebounty <target> <amount>`** (Aliases: `/rbounty`, `/delbounty`) — Pays to reduce or remove a bounty.
@@ -72,7 +75,13 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/friend [add|remove|accept|deny|list|requests|autotp] [target]`** (Aliases: `/frnd`, `/friends`) — Opens the Friends UI or manages friends via chat.
 - **`/team [create|leave|invite|join|kick|promote|demote|sethome|delhome|disband|list|autotp] [target]`** — Opens the Teams / Guilds UI or manages your team.
 - **`/teamchat [toggle|on|off|status]`** (Alias: `/tc`) — Toggles Team Chat mode or checks your active chat channel.
+- **`/xmsg <target> <message>`** (Aliases: `/tell`, `/w`, `/whisper`, `/pm`, `/dm`) — Sends a private message to an online player.
+- **`/reply <message>`** (Alias: `/r`) — Replies to the last player who private messaged you.
 - **`/pvp <target|accept|deny> [amount]`** — Challenges a player to a PvP duel with an optional money wager.
+- **`/ttt [actionOrFriend] [wagerOrPlayer]`** (Alias: `/tictactoe`) — Opens Tic-Tac-Toe, joins the 2P queue, or invites a friend.
+- **`/rps [actionOrFriend] [wagerOrPlayer]`** (Alias: `/rockpaperscissors`) — Plays Rock Paper Scissors solo vs Bot, in 2P queue, or against a friend.
+- **`/minesweeper [easy|medium|hard|queue|accept|deny|cancel|friend] [wager]`** (Aliases: `/ms`, `/sweeper`) — Plays Beginner (9x9), Intermediate (12x12), or Expert (16x12) Minesweeper solo or in a 2P Race.
+- **`/game [queue|invite|accept|deny|cancel|stop|start] [target]`** (Alias: `/match`) — Universal multiplayer mini-game invitation and privacy controls.
 - **`/wordle`** (Alias: `/wrd`) — Opens the Wordle mini-game menu.
 - **`/guess <word>`** (Alias: `/gs`) — Submits a word guess in an active staff-hosted Wordle game.
 - **`/report [target] [reason]`** — Submits a player report to server staff.
@@ -90,6 +99,8 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/staffchat [toggle|on|off|status]`** (Alias: `/sc`) — Toggles Staff Chat mode or checks your active chat channel.
 - **`/staffinv [toggle|staff|survival|auto|status]`** (Aliases: `/sinv`, `/staffmode`) — Swaps between your Survival and Staff inventories without losing items, or toggles auto-swap on gamemode change.
 - **`/invsee <player>`** — Displays a player's inventory, hotbar, armor, and offhand contents.
+- **`/ecsee <player> [chat|ui]`** (Aliases: `/enderchestsee`, `/viewec`) — Views a player's 27 Ender Chest slots in chat or UI.
+- **`/socialspy [toggle|on|off|status]`** (Alias: `/ss`) — Toggles viewing private messages sent between players.
 - **`/watch <target>`** / **`/listwatched`** — Toggles or lists players on the staff watchlist.
 - **`/notify`** — Toggles Anti-Cheat violation alerts for yourself (or console).
 - **`/xraynotify`** (Alias: `/xray`) — Toggles X-Ray mining notifications for yourself (or console).
@@ -121,11 +132,13 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/rank <set|remove|list> <target> [rankId]`** — Grants, revokes, or lists a player's ranks.
 - **`/listranks`** — Lists all configured ranks, IDs, and priorities.
 - **`/addkit [kitName]`** — Creates a new kit directly from your current inventory and opens the Kit Editor UI.
+- **`/shopedit`** (Alias: `/editshop`) — Opens the in-game Shop Management UI.
+- **`/addshop <category> <buyPrice> <sellPrice> [subCategory]`** — Adds the item in your main hand to a shop category.
 
 ### World, Teleport & Server Control
 
-- **`/xgamemode <s|c|a|sp> [targets]`** (Aliases: `/gm`, plus `/gms`, `/gmc`, `/gma`, `/gmsp`) — Changes player gamemode.
-- **`/tp <target> [destination]`** — Teleports yourself or a target player.
+- **`/xgamemode <s|c|a|sp> [targets]`** (Aliases: `/gm`, plus `/gms`, `/gmc`, `/gma`, `/gmsp` — `/gms` & `/gmc` are available to Builders) — Changes player gamemode.
+- **`/xtp <target|x> [destination|y] [z]`** (Alias: `/teleport`) — Teleports yourself or a target player to a player or coordinates.
 - **`/setspawn [x] [y] [z]`** — Sets the server spawn point and updates spawn protection.
 - **`/addwarp <warpName> [x] [y] [z]`** (Alias: `/setwarp`) / **`/delwarp [warpName]`** — Creates or deletes server warps.
 - **`/worldborder [ui|info|overworld|end|on|off|set] [radius|on|off] [x] [z]`** (Alias: `/wb`) — Opens the World Border Manager UI or configures the linked Overworld+Nether (8:1) and End borders.

@@ -233,6 +233,21 @@ export function removePunishment(playerId: string, type: PunishmentType) {
 }
 
 /**
+ * Lists all active punishments of a given type ('ban' or 'mute').
+ */
+export function getActivePunishmentsByType(type: PunishmentType): { playerId: string; punishment: Punishment }[] {
+    clearExpiredPunishments();
+    const list: { playerId: string; punishment: Punishment }[] = [];
+    for (const [playerId, record] of punishments.entries()) {
+        const entry = type === 'ban' ? record.ban : record.mute;
+        if (isDefined(entry)) {
+            list.push({ playerId, punishment: entry });
+        }
+    }
+    return list;
+}
+
+/**
  * Initializes the punishment manager's periodic tasks.
  */
 export function initializePunishmentManager() {

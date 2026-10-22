@@ -6,17 +6,23 @@ import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency } from '@core/utils/index.js';
+import { acceptGameInvite, cancelGameInvite, denyGameInvite, getIncomingGameInvites, getOutgoingGameInvite, isPlayerInQueue, joinMatchmakingQueue } from '@features/games/matchmakingManager.js';
+import { showInviteFriendToGameModal } from '@features/games/tictactoe/ui/panel.js';
 import {
     broadcastWordleMessage,
+    clearPlayerWordleDuel,
     createSinglePlayerGame,
     createStaffHostedGame,
     endStaffHostedGame,
     evaluateGuess,
+    forfeitWordleDuel,
     formatGuess,
     getPlayerActiveGame,
+    getPlayerWordleDuel,
     getRandomSolution,
     getStaffHostedGame,
-    submitGuess
+    submitGuess,
+    submitWordleDuelGuess
 } from '@features/games/wordle/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
@@ -28,11 +34,17 @@ export async function showWordleMainPanel(player: mc.Player): Promise<void> {
     const spSubtitle = isDefined(activeSp) ? `§aResume (${activeSp.guesses.length}/${activeSp.maxGuesses})` : '§7Guess a 5-letter word';
     const staffSubtitle = isDefined(activeStaff) ? `§aPool: §6${formatCurrency(activeStaff.poolPrize ?? 0)}` : '§7Global server rounds';
 
+    const activeDuel = getPlayerWordleDuel(player.id);
+    const duelSubtitle = isDefined(activeDuel) && activeDuel.status === 'active' ? '§aResume 2P Race' : '§7Invite friend or 2P queue';
+
     const form = new ActionFormBuilder()
         .title('Wordle Menu')
         .body('§7Green = Correct spot §8| §eYellow = Wrong spot §8| §fWhite = Not in word')
         .button(`§l§aSingle Player Wordle\n§r${spSubtitle}`, 'textures/ui/icon_recipe_item', async () => {
             await showSinglePlayerWordle(player);
+        })
+        .button(`§l§bMultiplayer Wordle (2P)\n§r${duelSubtitle}`, 'textures/ui/controller_glyph_color', async () => {
+            await showWordleMultiplayerMenu(player);
         })
         .button(`§l§6Staff Hosted Wordle\n§r${staffSubtitle}`, 'textures/ui/icon_recipe_item', async () => {
             await showWordleStaffGamePanel(player);
@@ -41,6 +53,136 @@ export async function showWordleMainPanel(player: mc.Player): Promise<void> {
     form.addBackButton(async () => {
         await showPanel(player, 'gamesHub');
     });
+
+    await form.show(player, { wait: true });
+}
+
+export async function showWordleMultiplayerMenu(player: mc.Player): Promise<void> {
+    const cfg = getWordleConfig();
+    if (!cfg.enabled || cfg.multiplayer?.enabled === false) {
+        player.sendMessage('§cMultiplayer Wordle is currently disabled.');
+        await showWordleMainPanel(player);
+        return;
+    }
+
+    const activeDuel = getPlayerWordleDuel(player.id);
+    const incoming = getIncomingGameInvites(player.id).filter((i) => i.gameId === 'wordle');
+    const outgoing = getOutgoingGameInvite(player.id);
+
+    const form = new ActionFormBuilder().title('Multiplayer Wordle (2P Race)').body('§7Race head-to-head to solve the same secret 5-letter word first!');
+
+    if (isDefined(activeDuel)) {
+        form.button('§l§aOpen Active 2P Wordle Board', 'textures/ui/refresh_light', async () => {
+            await showWordleDuelPanel(player);
+        });
+    }
+
+    form.button('§l§2Invite Friend (2P Race)\n§r§7Challenge with optional wager', 'textures/ui/controller_glyph_color', async () => {
+        await showInviteFriendToGameModal(player, 'wordle');
+    });
+
+    form.button(isPlayerInQueue(player.id, 'wordle') ? '§l§eLeave 2P Queue\n§r§7Cancel matchmaking' : '§l§bJoin 2P Queue\n§r§7Find random opponent', 'textures/ui/magnifyingGlass', () => {
+        const res = joinMatchmakingQueue(player, 'wordle');
+        if (isNonEmptyString(res.message)) {
+            player.sendMessage(res.message);
+        }
+    });
+
+    for (const inv of incoming) {
+        const wagerStr = inv.wager > 0 ? ` (${formatCurrency(inv.wager)})` : '';
+        form.button(`§aAccept: ${inv.senderName}${wagerStr}`, 'textures/ui/realms_green_check', () => {
+            const res = acceptGameInvite(player, inv.senderName, 'wordle');
+            if (isNonEmptyString(res.message)) {
+                player.sendMessage(res.message);
+            }
+        });
+        form.button(`§cDeny: ${inv.senderName}`, 'textures/ui/cancel', async () => {
+            player.sendMessage(denyGameInvite(player, inv.senderName, 'wordle').message);
+            await showWordleMultiplayerMenu(player);
+        });
+    }
+
+    if (isDefined(outgoing) && outgoing.gameId === 'wordle') {
+        form.button(`§cCancel Invite to ${outgoing.targetName}`, 'textures/ui/cancel', async () => {
+            player.sendMessage(cancelGameInvite(player).message);
+            await showWordleMultiplayerMenu(player);
+        });
+    }
+
+    form.addBackButton(async () => {
+        await showWordleMainPanel(player);
+    });
+
+    await form.show(player, { wait: true });
+}
+
+export async function showWordleDuelPanel(player: mc.Player, errorMsg?: string): Promise<void> {
+    const match = getPlayerWordleDuel(player.id);
+    if (!isDefined(match)) {
+        await showWordleMultiplayerMenu(player);
+        return;
+    }
+
+    const isP1 = player.id === match.player1Id;
+    const myGuesses = isP1 ? match.p1Guesses : match.p2Guesses;
+    const oppGuesses = isP1 ? match.p2Guesses : match.p1Guesses;
+    const oppName = isP1 ? match.player2Name : match.player1Name;
+    const remSec = Math.max(0, Math.ceil((match.expiresAt - Date.now()) / 1000));
+
+    const boardRows: string[] = [];
+    for (let i = 0; i < match.maxGuesses; i++) {
+        const g = myGuesses[i];
+        if (isNonEmptyString(g)) {
+            boardRows.push(`§7#${i + 1}: §r${formatGuess(g, evaluateGuess(g, match.word).pattern)}`);
+        } else {
+            boardRows.push(`§8#${i + 1}: _ _ _ _ _`);
+        }
+    }
+
+    const lines = [
+        `§7Opponent: §e${oppName} §8(${oppGuesses.length}/${match.maxGuesses} guesses) §8| §7Time Left: §b${remSec}s`,
+        ...(match.status !== 'active' ? [`\n${match.endReason ?? 'Match complete.'}`] : []),
+        '',
+        ...boardRows
+    ];
+    if (isNonEmptyString(errorMsg)) {
+        lines.push('', `§c⚠ ${errorMsg}`);
+    }
+
+    const form = new ActionFormBuilder().grid(1).title(`§l§bWordle 2P vs ${oppName}`).body(lines.join('\n'));
+
+    if (match.status === 'active' && myGuesses.length < match.maxGuesses) {
+        form.button(`§l§2Submit Guess (${myGuesses.length + 1}/${match.maxGuesses})`, 'textures/ui/book_edit_default', async () => {
+            const modal = new CustomFormBuilder<{ guess: string }>('2P Wordle Guess').textField('guess', `Enter a ${match.word.length}-letter word`, 'apple', '').submitButton('Submit Guess');
+            const res = await modal.show(player);
+            if (!res || !isNonEmptyString(res.guess.trim())) {
+                await showWordleDuelPanel(player);
+                return;
+            }
+            const out = submitWordleDuelGuess(player, res.guess.trim());
+            if (typeof out === 'string') {
+                await showWordleDuelPanel(player, out);
+                return;
+            }
+            await showWordleDuelPanel(player);
+        });
+    }
+
+    if (match.status === 'active') {
+        form.button('§bRefresh Opponent Progress', 'textures/ui/refresh_light', async () => {
+            await showWordleDuelPanel(player);
+        });
+        form.button('§cForfeit Match', 'textures/ui/cancel', async () => {
+            forfeitWordleDuel(match.id, player.id, 'forfeited the match');
+            clearPlayerWordleDuel(player.id);
+            await showWordleMultiplayerMenu(player);
+        });
+    } else {
+        form.button('§eReturn to Wordle Menu', 'textures/ui/arrow_left', async () => {
+            clearPlayerWordleDuel(player.id);
+            await showWordleMultiplayerMenu(player);
+        });
+    }
 
     await form.show(player, { wait: true });
 }

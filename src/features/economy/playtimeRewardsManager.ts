@@ -25,6 +25,8 @@ export const defaultPlaytimeMilestones: PlaytimeMilestone[] = [
 ];
 
 const sessionOnlineMinutes = new Map<string, number>();
+const playerIdleMinutes = new Map<string, number>();
+const lastPlayerLocations = new Map<string, { x: number; y: number; z: number }>();
 let playtimeLoopId: number | undefined;
 
 export function initializePlaytimeRewards(): void {
@@ -50,6 +52,23 @@ export function processPlaytimeTick(): void {
     for (const player of getAllPlayersFromCache()) {
         if (!player.isValid) {
             continue;
+        }
+
+        if (cfg.requireActiveMovement === true && player.location) {
+            const prevLoc = lastPlayerLocations.get(player.id);
+            const curLoc = { x: Math.round(player.location.x * 10) / 10, y: Math.round(player.location.y * 10) / 10, z: Math.round(player.location.z * 10) / 10 };
+            lastPlayerLocations.set(player.id, curLoc);
+
+            if (isDefined(prevLoc) && prevLoc.x === curLoc.x && prevLoc.y === curLoc.y && prevLoc.z === curLoc.z) {
+                const idleMins = (playerIdleMinutes.get(player.id) ?? 0) + 1;
+                playerIdleMinutes.set(player.id, idleMins);
+                const maxIdle = Math.max(1, Number(cfg.maxIdleMinutes) || 10);
+                if (idleMins > maxIdle) {
+                    continue;
+                }
+            } else {
+                playerIdleMinutes.set(player.id, 0);
+            }
         }
 
         const currentMins = (sessionOnlineMinutes.get(player.id) ?? 0) + 1;
@@ -152,6 +171,17 @@ export function getPlayerPlaytimeSummary(player: mc.Player): {
     };
 }
 
+export function isPlayerIdleAfk(playerId: string): boolean {
+    const cfg = getConfig().playtimeRewards;
+    if (!cfg?.requireActiveMovement) {
+        return false;
+    }
+    const maxIdle = Math.max(1, Number(cfg.maxIdleMinutes) || 10);
+    return (playerIdleMinutes.get(playerId) ?? 0) > maxIdle;
+}
+
 export function _resetPlaytimeRewardsForTest(): void {
     sessionOnlineMinutes.clear();
+    playerIdleMinutes.clear();
+    lastPlayerLocations.clear();
 }

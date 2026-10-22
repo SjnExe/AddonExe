@@ -29,6 +29,12 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
             return;
         }
 
+        if (panelId === 'teleportHub') {
+            const { showTeleportHub } = await import('@core/ui/panels/mainPanel.js');
+            await showTeleportHub(player);
+            return;
+        }
+
         if (panelId === 'socialHub') {
             const { showSocialHub } = await import('@core/ui/panels/mainPanel.js');
             await showSocialHub(player);

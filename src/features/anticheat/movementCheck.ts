@@ -13,6 +13,7 @@ import * as flagManager from '@features/anticheat/flagManager.js';
 
 interface PlayerMovementState {
     violationLevel: number; // Token bucket
+    airTicks: number;
 }
 
 const movementStates = new Map<string, PlayerMovementState>();
@@ -80,6 +81,7 @@ interface MovementCheckConfig {
     maxSpeed: number;
     maxSpeedIce: number;
     maxSpeedElytra: number;
+    flightDetection?: boolean;
 }
 
 function checkMovement(player: mc.Player, config: MovementCheckConfig) {
@@ -93,7 +95,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
 
     let state = movementStates.get(player.id);
     if (!isDefined(state)) {
-        state = { violationLevel: 0 };
+        state = { violationLevel: 0, airTicks: 0 };
         movementStates.set(player.id, state);
     }
 
@@ -160,6 +162,39 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     } else {
         // Decay
         state.violationLevel = Math.max(0, state.violationLevel - 2); // Decay 2 points per check
+    }
+
+    // Flight / Hover Detection
+    if (config.flightDetection === true && !isGliding) {
+        const isOnGround = player.isOnGround === true;
+        const isSwimming = player.isSwimming === true;
+        const isClimbing = player.isClimbing === true;
+        const hasLevitation = typeof player.getEffect === 'function' && isDefined(player.getEffect(MinecraftEffectTypes.Levitation));
+        const hasSlowFalling = typeof player.getEffect === 'function' && isDefined(player.getEffect(MinecraftEffectTypes.SlowFalling));
+
+        let nearGroundOrLiquid = false;
+        try {
+            const pos = player.location;
+            const b0 = player.dimension.getBlock({ x: Math.floor(pos.x), y: Math.floor(pos.y), z: Math.floor(pos.z) });
+            const b1 = player.dimension.getBlock({ x: Math.floor(pos.x), y: Math.floor(pos.y - 1), z: Math.floor(pos.z) });
+            if ((isDefined(b0) && (!b0.isAir || b0.isLiquid)) || (isDefined(b1) && (!b1.isAir || b1.isLiquid))) {
+                nearGroundOrLiquid = true;
+            }
+        } catch {
+            nearGroundOrLiquid = true;
+        }
+
+        if (!isOnGround && !isSwimming && !isClimbing && !hasLevitation && !hasSlowFalling && !nearGroundOrLiquid && velocity.y >= -0.05) {
+            state.airTicks++;
+            if (state.airTicks >= 12) {
+                flagManager.flag(player, 'movementCheck', `Flight/Hover detected (Air checks: ${state.airTicks}, vY: ${velocity.y.toFixed(2)})`);
+                state.airTicks = 8;
+            }
+        } else {
+            state.airTicks = Math.max(0, state.airTicks - 2);
+        }
+    } else {
+        state.airTicks = 0;
     }
 
     // Threshold for flagging

@@ -194,10 +194,13 @@ export const config = {
         afkIntervalMinutes: 15,
         afkRewardMoney: 50,
         afkRewardXpLevels: 0,
-        notifyOnAfkReward: true
+        notifyOnAfkReward: true,
+        requireActiveMovement: false,
+        maxIdleMinutes: 10
     },
     voting: {
-        enabled: false
+        enabled: false,
+        rewardMoney: 50
     },
     reports: {
         resolvedReportLifetimeDays: 7
@@ -207,7 +210,11 @@ export const config = {
         allowMentions: true,
         logToConsole: false,
         loggingEnabled: true,
-        logExpirationDays: 7
+        logExpirationDays: 7,
+        cooldownSeconds: 2,
+        preventDuplicateMessages: true,
+        maxCapsPercentage: 70,
+        blockedWords: ['badword1', 'badword2']
     },
     economy: {
         enabled: false,

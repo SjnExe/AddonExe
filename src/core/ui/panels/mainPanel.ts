@@ -49,6 +49,10 @@ export async function showEconomyHub(player: Player): Promise<void> {
     await showHubPanel(player, 'economy', 'Economy & Commerce', 'Access shops, auctions, kits, bounties and transfers:');
 }
 
+export async function showTeleportHub(player: Player): Promise<void> {
+    await showHubPanel(player, 'teleport', 'Teleportation & Travel', 'Access your homes, server warps, TPA requests, spawn, RTP, and /back:');
+}
+
 export async function showSocialHub(player: Player): Promise<void> {
     await showHubPanel(player, 'social', 'Social & Community', 'Manage friends, teams, online players and rank perks:');
 }

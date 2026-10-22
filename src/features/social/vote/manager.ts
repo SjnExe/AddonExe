@@ -1,6 +1,10 @@
 import * as mc from '@minecraft/server';
 
+import { getConfig } from '@core/config/configManager.js';
+import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
+import { formatCurrency } from '@core/utils/economy.js';
 import { debugLog } from '@core/utils/logger.js';
 
 export interface VoteOption {
@@ -95,7 +99,19 @@ export function castVote(player: mc.Player, optionId: number): { success: boolea
     currentVote.votedPlayerIds.push(player.id);
     saveVote();
 
-    return { success: true, message: `§aYou voted for: §e${option.text}` };
+    let rewardSuffix = '';
+    try {
+        const cfg = getConfig();
+        const rewardAmount = Number(cfg.voting?.rewardMoney ?? 0);
+        if (rewardAmount > 0 && isFeatureActive('eco')) {
+            incrementPlayerBalance(player.id, rewardAmount);
+            rewardSuffix = ` §6(+${formatCurrency(rewardAmount)} Vote Reward!)`;
+        }
+    } catch {
+        // Ignore if config manager is not initialized in unit test
+    }
+
+    return { success: true, message: `§aYou voted for: §e${option.text}${rewardSuffix}` };
 }
 
 export function endVote() {
