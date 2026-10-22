@@ -4,7 +4,7 @@ import { showPanel } from '@core/ui/uiManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
-export type MenuHubId = 'main' | 'economy' | 'social' | 'games' | 'profile' | 'staff' | 'staff_moderation' | 'staff_player' | 'staff_world' | 'staff_config';
+export type MenuHubId = 'main' | 'economy' | 'teleport' | 'social' | 'games' | 'profile' | 'staff' | 'staff_moderation' | 'staff_player' | 'staff_world' | 'staff_config';
 
 export interface MenuItem {
     id: string;
@@ -76,6 +76,16 @@ export function initializeDefaultMenuItems(): void {
         hub: 'main',
         order: 10,
         action: async (p) => showPanel(p, 'economyHub')
+    });
+
+    registerMenuItem({
+        id: 'hub_teleport',
+        title: '§l§dTeleportation & Travel',
+        description: 'Homes, Warps, RTP, Spawn & TPA',
+        icon: 'textures/items/ender_pearl',
+        hub: 'main',
+        order: 15,
+        action: async (p) => showPanel(p, 'teleportHub')
     });
 
     registerMenuItem({
@@ -224,6 +234,91 @@ export function initializeDefaultMenuItems(): void {
         action: async (p) => {
             const { showVoteMenu } = await import('@features/social/vote/ui/panel.js');
             await showVoteMenu(p);
+        }
+    });
+
+    // --- TELEPORT HUB ITEMS ---
+    registerMenuItem({
+        id: 'tp_homes',
+        title: 'My Homes',
+        description: 'Teleport to or set your homes',
+        icon: 'textures/ui/icon_recipe_item',
+        hub: 'teleport',
+        featureId: 'tp.home',
+        order: 10,
+        action: async (p) => {
+            const { showHomesMenuPanel } = await import('@features/teleport/ui/hubPanel.js');
+            await showHomesMenuPanel(p);
+        }
+    });
+
+    registerMenuItem({
+        id: 'tp_warps',
+        title: 'Server Warps',
+        description: 'Browse public server warps',
+        icon: 'textures/blocks/portal',
+        hub: 'teleport',
+        featureId: 'tp.warp',
+        order: 20,
+        action: async (p) => {
+            const { showWarpsMenuPanel } = await import('@features/teleport/ui/hubPanel.js');
+            await showWarpsMenuPanel(p);
+        }
+    });
+
+    registerMenuItem({
+        id: 'tp_tpa',
+        title: 'TPA Requests',
+        description: 'Send or accept player teleports',
+        icon: 'textures/items/ender_pearl',
+        hub: 'teleport',
+        featureId: 'tp.tpa',
+        order: 30,
+        action: async (p) => {
+            const { showTpaMenuPanel } = await import('@features/teleport/ui/hubPanel.js');
+            await showTpaMenuPanel(p);
+        }
+    });
+
+    registerMenuItem({
+        id: 'tp_spawn',
+        title: 'Server Spawn',
+        description: 'Teleport to world spawn',
+        icon: 'textures/blocks/beacon',
+        hub: 'teleport',
+        featureId: 'tp.spawn',
+        order: 40,
+        action: async (p) => {
+            const { default: spawnCmds } = await import('@features/essentials/commands/spawn.js');
+            await spawnCmds[0]!.execute(p, {});
+        }
+    });
+
+    registerMenuItem({
+        id: 'tp_rtp',
+        title: 'Random Teleport',
+        description: 'Find a random safe location',
+        icon: 'textures/ui/icon_map',
+        hub: 'teleport',
+        featureId: 'tp.rtp',
+        order: 50,
+        action: async (p) => {
+            const { default: rtpCmd } = await import('@features/teleport/commands/rtp.js');
+            await rtpCmd.execute(p, {});
+        }
+    });
+
+    registerMenuItem({
+        id: 'tp_back',
+        title: 'Return (/back)',
+        description: 'Teleport to previous/death spot',
+        icon: 'textures/ui/refresh_light',
+        hub: 'teleport',
+        featureId: 'tp.back',
+        order: 60,
+        action: async (p) => {
+            const { default: backCmds } = await import('@features/teleport/commands/back.js');
+            await backCmds[0]!.execute(p, {});
         }
     });
 

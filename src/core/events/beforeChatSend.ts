@@ -13,6 +13,14 @@ import { getPunishment } from '@features/moderation/punishmentManager.js';
 import { isTeamChatEnabled, sendTeamChatMessage } from '@features/social/team/commands/team.js';
 import { isDefined } from '@lib/guards.js';
 
+const lastChatTimestamp = new Map<string, number>();
+const lastChatMessage = new Map<string, string>();
+
+export function _clearChatFilterStateForTest(): void {
+    lastChatTimestamp.clear();
+    lastChatMessage.clear();
+}
+
 /**
  * Handles chat messages before they are sent.
  * Manages chat formatting, muting, staff chat, team chat, logging, and mentions.
@@ -63,7 +71,60 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
         return;
     }
 
-    addChatLog(player.name, event.message, rank.name);
+    let finalMessageText = event.message;
+    const isStaffBypass = hasPermission(player, 'group.mod');
+
+    if (!isStaffBypass) {
+        const now = Date.now();
+        const cooldownSec = Number(config.chat.cooldownSeconds ?? 0);
+        if (cooldownSec > 0) {
+            const prevTime = lastChatTimestamp.get(player.id) ?? 0;
+            const elapsedMs = now - prevTime;
+            if (elapsedMs < cooldownSec * 1000) {
+                event.cancel = true;
+                const rem = ((cooldownSec * 1000 - elapsedMs) / 1000).toFixed(1);
+                player.sendMessage(`§cPlease wait ${rem}s before sending another message.`);
+                return;
+            }
+        }
+
+        const normalizedMsg = finalMessageText.trim().toLowerCase();
+        if (config.chat.preventDuplicateMessages === true && normalizedMsg.length > 0 && lastChatMessage.get(player.id) === normalizedMsg) {
+            event.cancel = true;
+            player.sendMessage('§cPlease do not repeat the same message.');
+            return;
+        }
+
+        const blockedWords = config.chat.blockedWords ?? [];
+        if (blockedWords.length > 0) {
+            const cleanNoColor = stripColorCodes(normalizedMsg);
+            for (const word of blockedWords) {
+                const w = word.trim().toLowerCase();
+                if (w.length > 0 && cleanNoColor.includes(w)) {
+                    event.cancel = true;
+                    player.sendMessage('§cYour message contains blocked language and was not sent.');
+                    return;
+                }
+            }
+        }
+
+        const maxCaps = Number(config.chat.maxCapsPercentage ?? 0);
+        if (maxCaps > 0 && finalMessageText.length >= 6) {
+            const letters = finalMessageText.replaceAll(/[^a-zA-Z]/g, '');
+            if (letters.length >= 5) {
+                const upperCount = letters.replaceAll(/[^A-Z]/g, '').length;
+                const pct = (upperCount / letters.length) * 100;
+                if (pct > maxCaps) {
+                    finalMessageText = finalMessageText.toLowerCase();
+                }
+            }
+        }
+
+        lastChatTimestamp.set(player.id, now);
+        lastChatMessage.set(player.id, normalizedMsg);
+    }
+
+    addChatLog(player.name, finalMessageText, rank.name);
 
     // Apply Rank Formatting
     const chatFormatting = rank.chatFormatting;
@@ -73,7 +134,7 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
         const prefix = `${devTag}${chatFormatting.prefixText ? `§e[§r${chatFormatting.prefixText}§e]§r ` : ''}`;
         const nameColor = chatFormatting.nameColor || '§7';
         const msgColor = chatFormatting.messageColor || '§f';
-        const formattedMessage = `${prefix}${nameColor}${player.name}§r: ${msgColor}${event.message}§r`;
+        const formattedMessage = `${prefix}${nameColor}${player.name}§r: ${msgColor}${finalMessageText}§r`;
 
         mc.world.sendMessage(formattedMessage);
 
@@ -81,7 +142,7 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
             rawLog(stripColorCodes(formattedMessage));
         }
     } else if (config.chat.logToConsole === true) {
-        rawLog(`[CHAT] ${player.name}: ${event.message}`);
+        rawLog(`[CHAT] ${player.name}: ${finalMessageText}`);
     }
 
     // Mentions

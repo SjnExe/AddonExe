@@ -7,13 +7,34 @@ import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/config/configurations.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { WorldProtectionZone } from '@features/essentials/config.js';
+import { getZoneSelection, giveZoneSelectionWand, previewZoneBoundaryParticles, setZoneSelectionPos } from '@features/essentials/zoneSelectionManager.js';
+import { isDefined } from '@lib/guards.js';
 
 export async function showWorldProtectionListPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
     const config = getWorldProtectionConfig();
     const form = new ActionFormBuilder().title('World Protection Zones');
 
-    form.button('Add New Zone', 'textures/ui/color_plus', async () => {
+    const sel = getZoneSelection(player.id);
+    const p1Str = isDefined(sel?.pos1) ? `${sel.pos1.x} ${sel.pos1.y} ${sel.pos1.z}` : 'Unset';
+    const p2Str = isDefined(sel?.pos2) ? `${sel.pos2.x} ${sel.pos2.y} ${sel.pos2.z}` : 'Unset';
+    form.body(`§7Wand Selection — §bPos1: §f${p1Str} §8| §ePos2: §f${p2Str}`);
+
+    form.button('§l§2+ Add New Zone\n§r§7Uses wand Pos1/Pos2 if set', 'textures/ui/color_plus', async () => {
         await showPanel(player, 'addWorldProtectionPanel', { ...context, page: 1 });
+    });
+
+    form.button('§l§dGet Selection Wand\n§r§7Break=Pos1, Interact=Pos2', 'textures/items/gold_axe', async () => {
+        giveZoneSelectionWand(player);
+    });
+
+    form.button('§bSet Pos1 at My Feet', 'textures/ui/icon_map', async () => {
+        setZoneSelectionPos(player, 'pos1', player.location);
+        await showWorldProtectionListPanel(player, context);
+    });
+
+    form.button('§eSet Pos2 at My Feet', 'textures/ui/icon_map', async () => {
+        setZoneSelectionPos(player, 'pos2', player.location);
+        await showWorldProtectionListPanel(player, context);
     });
 
     config.zones.forEach((zone) => {
@@ -60,6 +81,7 @@ type WorldProtectionFormVals = {
     preventMobGriefing: boolean;
     preventEntityInteraction: boolean;
     preventProjectileUsage: boolean;
+    previewParticles?: boolean;
     isDelete?: boolean;
 };
 
@@ -84,8 +106,11 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     const dimIndex = zone ? Math.max(0, dimensions.indexOf(zone.dimension as MinecraftDimensionTypes)) : 0;
     form.dropdown('dimension', 'Dimension', dimensions, dimIndex);
 
-    const defPos1 = zone ? `${zone.box.min.x} ${zone.box.min.y} ${zone.box.min.z}` : '';
-    const defPos2 = zone ? `${zone.box.max.x} ${zone.box.max.y} ${zone.box.max.z}` : '';
+    const wandSel = getZoneSelection(player.id);
+    const wandPos1 = isDefined(wandSel?.pos1) ? `${wandSel.pos1.x} ${wandSel.pos1.y} ${wandSel.pos1.z}` : '';
+    const wandPos2 = isDefined(wandSel?.pos2) ? `${wandSel.pos2.x} ${wandSel.pos2.y} ${wandSel.pos2.z}` : '';
+    const defPos1 = zone ? `${zone.box.min.x} ${zone.box.min.y} ${zone.box.min.z}` : wandPos1;
+    const defPos2 = zone ? `${zone.box.max.x} ${zone.box.max.y} ${zone.box.max.z}` : wandPos2;
 
     form.textField('pos1', 'Position 1 (x y z)', 'e.g., -100 -64 -100', defPos1);
     form.textField('pos2', 'Position 2 (x y z)', 'e.g., 100 320 100', defPos2);
@@ -120,6 +145,7 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     form.toggle('preventEntityInteraction', 'Prevent Entity Interaction (Players Only)', flags.preventEntityInteraction);
     form.toggle('preventProjectileUsage', 'Prevent Projectile Usage (Players Only)', flags.preventProjectileUsage);
 
+    form.toggle('previewParticles', '§bPreview Zone Outline with Particles (20s)', false);
     if (isEdit) {
         form.toggle('isDelete', '§cDelete Zone§r', false);
     }
@@ -217,5 +243,8 @@ async function handleWorldProtectionForm(player: mc.Player, isEdit: boolean, con
     }
 
     saveWorldProtectionConfig(config);
+    if (values.previewParticles && !values.isDelete) {
+        previewZoneBoundaryParticles(player, { x: minX, y: minY, z: minZ }, { x: maxX, y: maxY, z: maxZ }, dimension, 20);
+    }
     return showWorldProtectionListPanel(player, context);
 }

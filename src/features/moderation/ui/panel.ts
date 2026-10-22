@@ -289,35 +289,85 @@ export async function handleReportPlayer(player: mc.Player, targetPlayerId: stri
 }
 
 export async function handleUnbanForm(player: mc.Player): Promise<void> {
-    const form = new CustomFormBuilder<{ name: string }>('Unban Player').textField('name', 'Player Name (exact)', 'Enter the name of the banned player', '').submitButton('Unban');
-    const res = await form.show(player);
-    if (!res) {
-        return;
+    const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
+    const activeBans = punishmentManager.getActivePunishmentsByType('ban');
+
+    const form = new ActionFormBuilder()
+        .title(`Unban Player (${activeBans.length} Active)`)
+        .body('Select a banned player below to unban immediately, or type a name manually:')
+        .button('§l§6Type Player Name Manually\n§r§7Unban by exact username', 'textures/ui/book_edit_default', async () => {
+            const modal = new CustomFormBuilder<{ name: string }>('Unban Player by Name').textField('name', 'Player Name (exact)', 'Enter the name of the banned player', '').submitButton('Unban');
+            const res = await modal.show(player);
+            if (res && isNonEmptyString(res.name.trim())) {
+                const targetId = getPlayerIdByName(res.name.trim());
+                if (isNonEmptyString(targetId)) {
+                    punishmentManager.removePunishment(targetId, 'ban');
+                    player.sendMessage(`§2Unbanned ${res.name.trim()}.`);
+                } else {
+                    player.sendMessage('§4Player not found in database.');
+                }
+            }
+            await showModerationPanel(player);
+        });
+
+    for (const entry of activeBans) {
+        const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
+        const expText = entry.punishment.expires === Infinity || entry.punishment.expires > Date.now() + 50 * 365 * 86_400_000 ? 'Permanent' : new Date(entry.punishment.expires).toLocaleDateString();
+        form.button(`§l§c${pName}§r §8(${expText})\n§7${entry.punishment.reason}`, 'textures/ui/refresh_light', async () => {
+            punishmentManager.removePunishment(entry.playerId, 'ban');
+            player.sendMessage(`§2Unbanned ${pName}.`);
+            await handleUnbanForm(player);
+        });
     }
 
-    const targetId = getPlayerIdByName(res.name);
-    if (isNonEmptyString(targetId)) {
-        punishmentManager.removePunishment(targetId, 'ban');
-        player.sendMessage(`§2Unbanned ${res.name}.`);
-    } else {
-        player.sendMessage('§4Player not found in database.');
-    }
+    form.addBackButton(async () => {
+        await showModerationPanel(player);
+    });
+
+    await form.show(player);
 }
 
 export async function handleUnmuteForm(player: mc.Player): Promise<void> {
-    const form = new CustomFormBuilder<{ name: string }>('Unmute Player').textField('name', 'Player Name (exact)', 'Enter the name of the muted player', '').submitButton('Unmute');
-    const res = await form.show(player);
-    if (!res) {
-        return;
+    const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
+    const activeMutes = punishmentManager.getActivePunishmentsByType('mute');
+
+    const form = new ActionFormBuilder()
+        .title(`Unmute Player (${activeMutes.length} Active)`)
+        .body('Select a muted player below to unmute immediately, or type a name manually:')
+        .button('§l§6Type Player Name Manually\n§r§7Unmute by exact username', 'textures/ui/book_edit_default', async () => {
+            const modal = new CustomFormBuilder<{ name: string }>('Unmute Player by Name').textField('name', 'Player Name (exact)', 'Enter the name of the muted player', '').submitButton('Unmute');
+            const res = await modal.show(player);
+            if (res && isNonEmptyString(res.name.trim())) {
+                const targetId = getPlayerIdByName(res.name.trim());
+                if (isNonEmptyString(targetId)) {
+                    punishmentManager.removePunishment(targetId, 'mute');
+                    player.sendMessage(`§2Unmuted ${res.name.trim()}.`);
+                } else {
+                    player.sendMessage('§4Player not found in database.');
+                }
+            }
+            await showModerationPanel(player);
+        });
+
+    for (const entry of activeMutes) {
+        const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
+        const expText = entry.punishment.expires === Infinity ? 'Permanent' : new Date(entry.punishment.expires).toLocaleTimeString();
+        form.button(`§l§e${pName}§r §8(Until ${expText})\n§7${entry.punishment.reason}`, 'textures/ui/mute_off', async () => {
+            punishmentManager.removePunishment(entry.playerId, 'mute');
+            const onlineTarget = getPlayerFromCache(entry.playerId);
+            if (isDefined(onlineTarget)) {
+                onlineTarget.sendMessage('§2You have been unmuted.');
+            }
+            player.sendMessage(`§2Unmuted ${pName}.`);
+            await handleUnmuteForm(player);
+        });
     }
 
-    const targetId = getPlayerIdByName(res.name);
-    if (isNonEmptyString(targetId)) {
-        punishmentManager.removePunishment(targetId, 'mute');
-        player.sendMessage(`§2Unmuted ${res.name}.`);
-    } else {
-        player.sendMessage('§4Player not found in database.');
-    }
+    form.addBackButton(async () => {
+        await showModerationPanel(player);
+    });
+
+    await form.show(player);
 }
 
 export async function showModerationPanel(player: mc.Player): Promise<void> {

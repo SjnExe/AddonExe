@@ -43,10 +43,12 @@ This document is the single source of truth for the architecture, coding standar
 ## 5. Custom Dark-Mode UI & Text Formatting
 
 - **UI Builders:** Always use `ActionFormBuilder`, `CustomFormBuilder`, and `MessageFormBuilder`.
-    - `.grid(1)` (`§1§r`): 1-column full-width reader/list stack.
-    - `.grid(2)` (`§2§<tens>§<ones>§r`): 2-column wide card grid (default for hubs/menus).
-    - `.grid(3)` (`§3§<tens>§<ones>§r`): 3-column compact tile grid (Server Shop).
-    - `.grid(4)` (`§4§r`): 3x3 fixed board grid (Tic-Tac-Toe).
+    - `.grid(1)` (`\uE100§r`): 1-column full-width reader/list stack.
+    - `.grid(2)` (`§2§<tens>§<ones>§f§r`): 2-column wide card grid (default for hubs/menus).
+    - `.grid(3)` (`§3§<tens>§<ones>§f§r`): 3-column compact tile grid (Server Shop & RPS).
+    - `.grid(4)` (`§4§<tens>§<ones>§f§r`): 4-column icon tile grid.
+    - `.grid('board')` (`§9§0§0§f§r`): 3x3 fixed board grid (Tic-Tac-Toe).
+    - `.grid('ms9' | 'ms12' | 'ms16')` (`§8§0§9§f§r`, `§8§1§2§f§r`, `§8§1§6§f§r`): Minesweeper 9x9, 12x12, and 16x12 grids.
 - **Bedrock Section (`§`) Color & Style Codes:**
     - Colors: `§0` Black, `§1` Dark Blue, `§2` Dark Green, `§3` Dark Aqua, `§4` Dark Red, `§5` Dark Purple, `§6` Gold, `§7` Gray, `§8` Dark Gray, `§9` Blue, `§a` Green, `§b` Aqua, `§c` Red, `§d` Light Purple, `§e` Yellow, `§f` White, `§g` Minecoin Gold.
     - Styles (must follow color code): `§l` Bold, `§o` Italic, `§k` Obfuscated, `§r` Reset.

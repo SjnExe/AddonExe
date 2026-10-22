@@ -1,10 +1,11 @@
 import * as mc from '@minecraft/server';
 
 import { getWordleConfig } from '@core/config/configurations.js';
-import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager.js';
+import { registerActiveMatchSession, registerMultiplayerGame, unregisterActiveMatchSession } from '@features/games/matchmakingManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { generateId } from '@lib/id.js';
 import { compressedWordPool } from './wordPool.js';
@@ -339,4 +340,215 @@ export function formatGuess(guess: string, pattern: string): string {
         }
     }
     return result.trim();
+}
+
+export interface WordleDuelMatch {
+    id: string;
+    word: string;
+    maxGuesses: number;
+    player1Id: string;
+    player1Name: string;
+    player2Id: string;
+    player2Name: string;
+    p1Guesses: string[];
+    p2Guesses: string[];
+    wager: number;
+    status: 'active' | 'won' | 'draw' | 'forfeit';
+    winnerId?: string;
+    endReason?: string;
+    expiresAt: number;
+}
+
+const activeWordleDuels = new Map<string, WordleDuelMatch>();
+const playerWordleDuelMap = new Map<string, string>();
+
+export function initializeWordleMultiplayer(): void {
+    registerMultiplayerGame({
+        id: 'wordle',
+        name: 'Wordle 2P Race',
+        icon: 'textures/ui/icon_recipe_item',
+        isEnabled: () => {
+            const cfg = getWordleConfig();
+            return cfg.enabled === true && cfg.multiplayer?.enabled !== false;
+        },
+        onStartMatch: async (host, guest, wager) => {
+            const match = startWordleDuelMatch(host, guest, wager);
+            if (isDefined(match)) {
+                const { showWordleDuelPanel } = await import('@features/games/wordle/ui/panel.js');
+                void showWordleDuelPanel(host);
+                void showWordleDuelPanel(guest);
+            }
+        }
+    });
+}
+
+export function startWordleDuelMatch(player1: mc.Player, player2: mc.Player, wager: number = 0): WordleDuelMatch | undefined {
+    const word = getRandomSolution(5) ?? 'apple';
+    const mpCfg = getWordleConfig().multiplayer;
+    const maxGuesses = Math.max(1, Number(mpCfg?.defaultLimit ?? 6));
+    const timeLimitSec = Math.max(30, Number(mpCfg?.timeLimitSeconds ?? 120));
+
+    if (wager > 0) {
+        incrementPlayerBalance(player1.id, -wager);
+        incrementPlayerBalance(player2.id, -wager);
+    }
+
+    const matchId = generateId('wrd2p');
+    const match: WordleDuelMatch = {
+        id: matchId,
+        word,
+        maxGuesses,
+        player1Id: player1.id,
+        player1Name: player1.name,
+        player2Id: player2.id,
+        player2Name: player2.name,
+        p1Guesses: [],
+        p2Guesses: [],
+        wager,
+        status: 'active',
+        expiresAt: Date.now() + timeLimitSec * 1000
+    };
+
+    activeWordleDuels.set(matchId, match);
+    playerWordleDuelMap.set(player1.id, matchId);
+    playerWordleDuelMap.set(player2.id, matchId);
+
+    registerActiveMatchSession({
+        matchId,
+        gameId: 'wordle',
+        playerIds: [player1.id, player2.id],
+        onPlayerDisconnect: (disconnectedId) => {
+            forfeitWordleDuel(matchId, disconnectedId, 'disconnected');
+        }
+    });
+
+    return match;
+}
+
+export function getPlayerWordleDuel(playerId: string): WordleDuelMatch | undefined {
+    const id = playerWordleDuelMap.get(playerId);
+    return isNonEmptyString(id) ? activeWordleDuels.get(id) : undefined;
+}
+
+export function clearPlayerWordleDuel(playerId: string): void {
+    playerWordleDuelMap.delete(playerId);
+}
+
+function finalizeWordleDuelCleanup(match: WordleDuelMatch): void {
+    unregisterActiveMatchSession(match.id);
+    mc.system.runTimeout(() => {
+        activeWordleDuels.delete(match.id);
+    }, 600);
+}
+
+export function forfeitWordleDuel(matchId: string, losingPlayerId: string, reason: string): void {
+    const match = activeWordleDuels.get(matchId);
+    if (!isDefined(match) || match.status !== 'active') {
+        return;
+    }
+
+    const winnerId = losingPlayerId === match.player1Id ? match.player2Id : match.player1Id;
+    const winnerName = losingPlayerId === match.player1Id ? match.player2Name : match.player1Name;
+    const loserName = losingPlayerId === match.player1Id ? match.player1Name : match.player2Name;
+
+    match.status = 'forfeit';
+    match.winnerId = winnerId;
+    match.endReason = `§c${loserName} §7${reason}! §a${winnerName} §7wins the Wordle Race!`;
+
+    if (match.wager > 0) {
+        incrementPlayerBalance(winnerId, match.wager * 2);
+    }
+
+    const p1 = getPlayerFromCache(match.player1Id);
+    const p2 = getPlayerFromCache(match.player2Id);
+    const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})` : '';
+    if (isDefined(p1)) {
+        p1.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
+    }
+    if (isDefined(p2)) {
+        p2.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
+    }
+
+    finalizeWordleDuelCleanup(match);
+}
+
+export function submitWordleDuelGuess(player: mc.Player, rawGuess: string): GuessResult | string {
+    const match = getPlayerWordleDuel(player.id);
+    if (!isDefined(match) || match.status !== 'active') {
+        return 'No active 2P Wordle match.';
+    }
+
+    if (Date.now() >= match.expiresAt) {
+        match.status = 'draw';
+        match.endReason = `§eTime expired! The word was §b${match.word.toUpperCase()}§e.`;
+        if (match.wager > 0) {
+            incrementPlayerBalance(match.player1Id, match.wager);
+            incrementPlayerBalance(match.player2Id, match.wager);
+        }
+        finalizeWordleDuelCleanup(match);
+        return 'Time limit expired! Match ended in a draw.';
+    }
+
+    const isP1 = player.id === match.player1Id;
+    const myGuesses = isP1 ? match.p1Guesses : match.p2Guesses;
+    const oppGuesses = isP1 ? match.p2Guesses : match.p1Guesses;
+
+    if (myGuesses.length >= match.maxGuesses) {
+        return `You have used all ${match.maxGuesses} guesses! Waiting for opponent.`;
+    }
+
+    const cleanGuess = rawGuess.trim().toLowerCase();
+    if (cleanGuess.length !== match.word.length) {
+        return `Word must be ${match.word.length} letters long.`;
+    }
+    if (!isValidWord(cleanGuess)) {
+        return 'Not a valid 5-letter English word.';
+    }
+
+    const res = evaluateGuess(cleanGuess, match.word);
+    myGuesses.push(cleanGuess);
+
+    if (res.isWin) {
+        match.status = 'won';
+        match.winnerId = player.id;
+        const loserName = isP1 ? match.player2Name : match.player1Name;
+        match.endReason = `§a${player.name} §7solved §e${match.word.toUpperCase()} §7in ${myGuesses.length} guess(es) against §c${loserName}§7!`;
+
+        if (match.wager > 0) {
+            incrementPlayerBalance(player.id, match.wager * 2);
+        }
+
+        const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})` : '';
+        const p1 = getPlayerFromCache(match.player1Id);
+        const p2 = getPlayerFromCache(match.player2Id);
+        if (isDefined(p1)) {
+            p1.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
+        }
+        if (isDefined(p2)) {
+            p2.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
+        }
+
+        finalizeWordleDuelCleanup(match);
+        return res;
+    }
+
+    if (myGuesses.length >= match.maxGuesses && oppGuesses.length >= match.maxGuesses) {
+        match.status = 'draw';
+        match.endReason = `§eBoth players ran out of guesses! The secret word was §b${match.word.toUpperCase()}§e.`;
+        if (match.wager > 0) {
+            incrementPlayerBalance(match.player1Id, match.wager);
+            incrementPlayerBalance(match.player2Id, match.wager);
+        }
+        const p1 = getPlayerFromCache(match.player1Id);
+        const p2 = getPlayerFromCache(match.player2Id);
+        if (isDefined(p1)) {
+            p1.sendMessage(`§e[Wordle 2P] ${match.endReason}`);
+        }
+        if (isDefined(p2)) {
+            p2.sendMessage(`§e[Wordle 2P] ${match.endReason}`);
+        }
+        finalizeWordleDuelCleanup(match);
+    }
+
+    return res;
 }

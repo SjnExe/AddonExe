@@ -638,6 +638,30 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Log Chat to Console',
                 type: 'toggle',
                 description: 'Prints player chat messages to the server console.'
+            },
+            {
+                key: 'chat.cooldownSeconds',
+                label: 'Chat Cooldown (s)',
+                type: 'textField',
+                description: 'Minimum seconds between chat messages (0 to disable).'
+            },
+            {
+                key: 'chat.preventDuplicateMessages',
+                label: 'Block Duplicate Messages',
+                type: 'toggle',
+                description: 'Prevents players from repeating the exact same message consecutively.'
+            },
+            {
+                key: 'chat.maxCapsPercentage',
+                label: 'Max Caps Percentage (0-100)',
+                type: 'textField',
+                description: 'Automatically lowercases messages exceeding this % of capital letters (0 = off).'
+            },
+            {
+                key: 'chat.blockedWords',
+                label: 'Blocked Words (Comma-Separated)',
+                type: 'textField',
+                description: 'Words blocked from being sent in chat.'
             }
         ]
     },
@@ -1756,6 +1780,39 @@ export const configPanelSchema: ConfigCategory[] = [
                 label: 'Notify Player on Stay-Online Payout',
                 type: 'toggle',
                 description: 'Sends a chat message and sound when an AFK/Online drop is received.'
+            },
+            {
+                key: 'playtimeRewards.requireActiveMovement',
+                label: 'Require Movement (Pause When AFK)',
+                type: 'toggle',
+                description: 'If enabled, pauses stay-online payouts if a player stands completely still beyond Max Idle Minutes.'
+            },
+            {
+                key: 'playtimeRewards.maxIdleMinutes',
+                label: 'Max Idle Minutes Before AFK',
+                type: 'textField',
+                description: 'Minutes a player can stand still before being marked AFK when Require Movement is enabled.'
+            }
+        ]
+    },
+    {
+        id: 'votingSettings',
+        title: 'Voting & Polls',
+        icon: 'textures/ui/color_plus',
+        configSource: 'main',
+        category: 'Social',
+        settings: [
+            {
+                key: 'voting.enabled',
+                label: 'Enable Voting System (/vote)',
+                type: 'toggle',
+                description: 'Enables server-wide community polls.'
+            },
+            {
+                key: 'voting.rewardMoney',
+                label: 'Vote Participation Reward',
+                type: 'textField',
+                description: 'Money awarded to a player when they cast a vote in an active poll (0 to disable).'
             }
         ]
     },

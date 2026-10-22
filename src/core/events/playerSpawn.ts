@@ -23,7 +23,7 @@ export function handlePlayerJoin(player: mc.Player) {
     if (calculatedRank.id === 'owner') {
         mc.world.setDynamicProperty('exe:ownerId', player.id);
     } else if (mc.world.getDynamicProperty('exe:ownerId') === undefined) {
-        sendMessage('§6[AddonExe] §eNo Server Owner is set yet! Run §a/claimowner§e (or §a/function owner§e) to claim Server Owner.', player);
+        sendMessage('§6[AddonExe] §eNo Server Owner is set yet! Run §a/function owner§e to claim Server Owner.', player);
     }
     if (pData.rankId !== calculatedRank.id) {
         infoLog(`[Add-on] Syncing rank for ${player.name}: ${pData.rankId} -> ${calculatedRank.id}`);

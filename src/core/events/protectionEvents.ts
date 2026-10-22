@@ -5,6 +5,7 @@ import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-dat
 import { getConfig } from '@core/config/configManager.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/zoneSelectionManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -28,6 +29,9 @@ function canBypass(player: mc.Player): boolean {
 export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEvent) {
     const { player, block } = event;
     if (!isDefined(player) || !isDefined(block)) {
+        return;
+    }
+    if (handleWandBreakBlock(event)) {
         return;
     }
 
@@ -132,6 +136,9 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
 export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockBeforeEvent) {
     const { player, block } = event;
     if (!isDefined(player) || !isDefined(block)) {
+        return;
+    }
+    if (handleWandInteractBlock(event)) {
         return;
     }
 
