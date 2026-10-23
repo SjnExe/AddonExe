@@ -1,3 +1,4 @@
+import { CustomCommand } from '@commands/commandManager.js';
 import { reloadConfig } from '@core/config/configManager.js';
 import { reloadAllConfigs } from '@core/config/configurations.js';
 import { reloadRanks } from '@core/permissions/rankManager.js';
@@ -5,9 +6,8 @@ import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { refreshXrayCache } from '@features/anticheat/xrayDetection.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
-import { updateAllPlayerRanks } from '../../../main.js';
 
-import { CustomCommand } from '@commands/commandManager.js';
+import { updateAllPlayerRanks } from '../../../main.js';
 
 const command: CustomCommand = {
     name: 'reload',

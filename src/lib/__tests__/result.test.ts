@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+
 import { err, ok, unwrap } from '../result.js';
 
 describe('Result Utilities', () => {

@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/config/configurations.js';
 import { resolveTarget } from '@core/utils/index.js';
@@ -7,6 +5,7 @@ import { acceptGameInvite, cancelGameInvite, denyGameInvite, joinMatchmakingQueu
 import { startRpsBotMatch } from '@features/games/rps/manager.js';
 import { showRpsMatchPanel, showRpsMenu } from '@features/games/rps/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const rpsCommand: CustomCommand = {
     name: 'rps',

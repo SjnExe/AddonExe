@@ -1,8 +1,7 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { deletePlayerHome as deletePlayerDataHome, getOrCreatePlayer, HomeLocation, setPlayerHome as setPlayerDataHome } from '@core/data/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 interface ActionResult {
     success: boolean;
@@ -11,6 +10,7 @@ interface ActionResult {
 
 /**
  * Sets a home for a player.
+ *
  * @param player The player setting the home.
  * @param homeName The name of the home.
  * @returns The result of the operation.
@@ -56,6 +56,7 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
 
 /**
  * Gets a player's home location.
+ *
  * @param player The player.
  * @param homeName The name of the home.
  * @returns The location of the home, or undefined if it doesn't exist.
@@ -70,6 +71,7 @@ export function getHome(player: mc.Player, homeName: string): HomeLocation | und
 
 /**
  * Deletes a player's home.
+ *
  * @param player The player.
  * @param homeName The name of the home.
  * @returns The result of the operation.
@@ -92,6 +94,7 @@ export function deleteHome(player: mc.Player, homeName: string): ActionResult {
 
 /**
  * Lists all of a player's homes.
+ *
  * @param player The player.
  * @returns An array of home names.
  */
@@ -105,6 +108,7 @@ export function listHomes(player: mc.Player): string[] {
 
 /**
  * Gets the number of homes a player has set.
+ *
  * @param player The player.
  * @returns The number of homes.
  */

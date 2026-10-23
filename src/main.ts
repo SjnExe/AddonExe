@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig, initializeConfigManager } from '@core/config/configManager.js';
 import { dataManager, loadPersistentData } from '@core/data/dataManager.js';
 import { initializeMigration } from '@core/data/migrationManager.js';
@@ -16,6 +14,7 @@ import { cleanup as cleanupFloatingText } from '@features/essentials/floatingTex
 import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 import { loadCommands } from 'virtual:command-index';
 
 const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1'; // Current Addon Version
@@ -23,10 +22,7 @@ const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1'; // C
 // Load Commands immediately to register slash commands during startup
 loadCommands();
 
-/**
- * Initializes the addon.
- * This function should be called once at startup.
- */
+/** Initializes the addon. This function should be called once at startup. */
 export async function initializeAddon() {
     infoLog('[AddonExe] Initializing...');
 
@@ -92,10 +88,7 @@ function initializeManagers() {
     rankManager.initialize();
 }
 
-/**
- * Updates all player ranks.
- * This is useful when ranks are changed via commands.
- */
+/** Updates all player ranks. This is useful when ranks are changed via commands. */
 export function updateAllPlayerRanks() {
     const config = getConfig();
     for (const player of mc.world.getAllPlayers()) {

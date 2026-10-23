@@ -8,7 +8,7 @@ const mockConfigManagerInstance = {
 };
 
 import * as factoryModule from '@core/config/configManagerFactory.js';
-
+import createConfigManager from '@core/config/configManagerFactory.js';
 import {
     _clearConfigManagersForTest,
     configResetCallbacks,
@@ -28,8 +28,6 @@ import {
     saveShopConfig,
     saveWorldProtectionConfig
 } from '@core/config/configurations.js';
-
-import createConfigManager from '@core/config/configManagerFactory.js';
 
 describe('Configurations Manager', () => {
     let factorySpy: any;

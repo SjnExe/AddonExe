@@ -1,17 +1,14 @@
-import { isFeatureActive } from '@core/services/featureManager.js';
-import { EntityComponentTypes } from '@minecraft/server';
-
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils/index.js';
-import { items as allItems } from '@features/economy/shop/itemsConfig.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
-import { showConfirmationDialog } from '@ui/components.js';
-
 import * as shopAdminManager from '@features/economy/shop/adminManager.js';
+import { items as allItems } from '@features/economy/shop/itemsConfig.js';
 import * as shopManager from '@features/economy/shop/manager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { EntityComponentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
+import { showConfirmationDialog } from '@ui/components.js';
 
 const shopCommand: CustomCommand = {
     name: 'shop',

@@ -1,13 +1,10 @@
-import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
-
-import * as mc from '@minecraft/server';
-
+import { AnticheatConfig, getAnticheatConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { errorLog } from '@core/utils/logger.js';
-import { isDefined } from '@lib/guards.js';
-
-import { AnticheatConfig, getAnticheatConfig } from '@core/config/configurations.js';
 import { flag } from '@features/anticheat/flagManager.js';
+import { isDefined } from '@lib/guards.js';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 let isChecking = false;
 

@@ -1,8 +1,3 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
-
 import { getAuctionHouseConfig } from '@core/config/configurations.js';
 import { serializeItem } from '@core/data/itemSerializer.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
@@ -10,6 +5,10 @@ import { formatCurrency, formatTime, getIdTimestamp } from '@core/utils/index.js
 import { AuctionListing, buyItem, cancelListing, claimMailbox, claimMailboxItem, createListing, getListings, getListingsCount, placeBid, SortOption } from '@features/economy/auction/manager.js';
 import { formatSerializedItemSummary, formatTwoLineButton, parseTradeAmount } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 const listingsPerPage = 45;
 

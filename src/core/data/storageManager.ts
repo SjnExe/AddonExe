@@ -1,6 +1,5 @@
-import * as mc from '@minecraft/server';
-
 import { errorLog } from '@core/utils/logger.js';
+import * as mc from '@minecraft/server';
 
 const CHUNK_SIZE = 30_000; // Safe limit below 32kb
 
@@ -11,9 +10,7 @@ export class StorageManager {
         this.dbName = dbName;
     }
 
-    /**
-     * Saves data to dynamic properties, handling sharding if necessary.
-     */
+    /** Saves data to dynamic properties, handling sharding if necessary. */
     save<T>(data: T): void {
         try {
             const jsonString = JSON.stringify(data);
@@ -42,9 +39,7 @@ export class StorageManager {
         }
     }
 
-    /**
-     * Generator version of save for use with mc.system.runJob to avoid lag spikes with large data.
-     */
+    /** Generator version of save for use with mc.system.runJob to avoid lag spikes with large data. */
     *saveJob<T>(data: T): Generator<void, void, void> {
         try {
             const jsonString = JSON.stringify(data);
@@ -79,9 +74,7 @@ export class StorageManager {
         }
     }
 
-    /**
-     * Loads data from dynamic properties, reassembling shards.
-     */
+    /** Loads data from dynamic properties, reassembling shards. */
     load<T>(): T | undefined {
         try {
             const meta = mc.world.getDynamicProperty(`${this.dbName}:meta`);
@@ -114,10 +107,7 @@ export class StorageManager {
         }
     }
 
-    /**
-     * Update a specific portion of the stored data without replacing it entirely.
-     * Only works if the stored data is an object.
-     */
+    /** Update a specific portion of the stored data without replacing it entirely. Only works if the stored data is an object. */
     update<T>(partialData: Partial<T>): void {
         const currentData = this.load<T>();
         if (currentData && typeof currentData === 'object' && !Array.isArray(currentData)) {
@@ -128,9 +118,7 @@ export class StorageManager {
         }
     }
 
-    /**
-     * Deletes all data associated with this storage instance.
-     */
+    /** Deletes all data associated with this storage instance. */
     delete(): void {
         try {
             const meta = mc.world.getDynamicProperty(`${this.dbName}:meta`);

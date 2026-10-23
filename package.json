@@ -8,12 +8,12 @@
     "bugs": {
         "url": "https://github.com/SjnExe/AddonExe/issues"
     },
+    "license": "MIT",
+    "author": "SjnExe",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/SjnExe/AddonExe.git"
     },
-    "license": "MIT",
-    "author": "SjnExe",
     "type": "module",
     "scripts": {
         "build": "bun clean && bun scripts/build/build.ts",
@@ -22,8 +22,8 @@
         "check-deps": "bun scripts/build/check-dependencies.ts",
         "check-types": "bun check",
         "clean": "rm -rf out packs/behavior/scripts",
-        "format": "bunx prettier --write --cache .",
-        "format:check": "bunx prettier --check --cache .",
+        "format": "bun fmt",
+        "format:check": "bun fmt --check",
         "postinstall": "bun scripts/hooks/postinstall.ts",
         "lint": "bun scripts/lint/run.ts --fix",
         "lint:check": "bun scripts/lint/run.ts",
@@ -35,9 +35,6 @@
         "test:watch": "bun test --parallel --watch",
         "validate": "bun scripts/hooks/validate.ts",
         "watch": "bun scripts/build/build.ts --watch"
-    },
-    "overrides": {
-        "react": "^18.3.1"
     },
     "dependencies": {
         "@minecraft/math": "latest",
@@ -51,9 +48,9 @@
         "@minecraft/server-ui": "2.3.0-beta.1.26.52-stable",
         "@types/bun": "latest",
         "ajv": "latest",
-        "oxlint": "latest",
-        "prettier": "latest",
-        "prettier-plugin-organize-imports": "latest",
-        "prettier-plugin-packagejson": "latest"
+        "oxlint": "latest"
+    },
+    "overrides": {
+        "react": "^18.3.1"
     }
 }

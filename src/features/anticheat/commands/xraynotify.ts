@@ -1,13 +1,11 @@
-import * as mc from '@minecraft/server';
-
+import { CustomCommand } from '@commands/commandManager.js';
 import { getXrayConfig, saveXrayConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer, setPlayerXrayNotifications } from '@core/data/playerDataManager.js';
 import { playSound } from '@core/utils/index.js';
 import { infoLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined } from '@lib/guards.js';
-
-import { CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 
 const command: CustomCommand = {
     name: 'xraynotify',

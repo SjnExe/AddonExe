@@ -1,7 +1,9 @@
 import { Config, getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import {
+    AnticheatConfig,
     DailyRewardsConfig,
     FriendConfig,
+    getAnticheatConfig,
     getAuctionHouseConfig,
     getDailyRewardsConfig,
     getEconomyConfig,
@@ -14,6 +16,7 @@ import {
     getWordleConfig,
     getWorldProtectionConfig,
     getXrayConfig,
+    saveAnticheatConfig,
     saveAuctionHouseConfig,
     saveDailyRewardsConfig,
     saveEconomyConfig,
@@ -28,8 +31,6 @@ import {
     saveXrayConfig,
     SidebarConfig
 } from '@core/config/configurations.js';
-
-import { AnticheatConfig, getAnticheatConfig, saveAnticheatConfig } from '@core/config/configurations.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { xrayConfig } from '@features/anticheat/xrayConfig.js';
 import { auctionHouseConfig } from '@features/economy/auction/config.js';
@@ -134,9 +135,7 @@ export const configHandlers: Record<string, ConfigHandler> = {
     }
 };
 
-/**
- * Helper to slice items for pagination.
- */
+/** Helper to slice items for pagination. */
 export function getPaginatedItems<T>(items: T[], page: number): T[] {
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -167,16 +166,12 @@ export const categoryIcons: Record<string, string> = {
     Chat: 'textures/ui/chat_send'
 };
 
-/**
- * Returns all registered systems.
- */
+/** Returns all registered systems. */
 export function getAllSystems(): SystemDefinition[] {
     return getSystemRegistry();
 }
 
-/**
- * Returns all visible systems for a player (permission filtered).
- */
+/** Returns all visible systems for a player (permission filtered). */
 export function getVisibleSystems(player: mc.Player): SystemDefinition[] {
     return getSystemRegistry().filter((sys) => {
         if (sys.hidden === true) {
@@ -186,9 +181,7 @@ export function getVisibleSystems(player: mc.Player): SystemDefinition[] {
     });
 }
 
-/**
- * Returns unique categories available to the player.
- */
+/** Returns unique categories available to the player. */
 export function getVisibleCategories(player: mc.Player): SystemItem[] {
     const systems = getVisibleSystems(player);
     const categories = new Set<string>();
@@ -213,9 +206,7 @@ export function getVisibleCategories(player: mc.Player): SystemItem[] {
     }));
 }
 
-/**
- * Returns systems belonging to a specific category.
- */
+/** Returns systems belonging to a specific category. */
 export function getSystemsByCategory(player: mc.Player, category: string): SystemItem[] {
     const systems = getVisibleSystems(player).filter((sys) => sys.category === category);
     return systems

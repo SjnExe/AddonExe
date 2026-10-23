@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getVisiblePlayers } from '@core/data/playerDataManager.js';
@@ -10,6 +8,7 @@ import { showTpaSettingsPanel } from '@features/teleport/ui/panel.js';
 import { executeTeleport } from '@features/teleport/utils.js';
 import * as warpsManager from '@features/teleport/warpsManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 

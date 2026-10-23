@@ -1,9 +1,8 @@
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getNetherBorderRadius, getWorldBorder, setEndBorder, setOverworldBorder } from '@features/essentials/worldBorderManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 function formatBorderStatus(): string {
     const cfg = getWorldBorder();

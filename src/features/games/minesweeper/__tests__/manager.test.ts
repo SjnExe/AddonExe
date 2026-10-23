@@ -1,4 +1,3 @@
-import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { initializeConfigManager } from '@core/config/configManager.js';
@@ -16,6 +15,7 @@ import {
     startMinesweeperRaceMatch,
     toggleMinesweeperFlagMode
 } from '@features/games/minesweeper/manager.js';
+import * as mc from '@minecraft/server';
 
 const createMockPlayer = (id: string, name: string) =>
     ({

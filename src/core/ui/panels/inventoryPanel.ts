@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayerNameById } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
@@ -8,6 +5,8 @@ import { canTarget } from '@core/permissions/rankManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { resolveTradeItemDisplayName, resolveTradeItemIcon } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 

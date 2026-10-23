@@ -1,5 +1,6 @@
-import * as configurations from '@core/config/configurations.js';
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+
+import * as configurations from '@core/config/configurations.js';
 
 const { formatCurrency, parseCurrency } = await import('../economy.ts');
 

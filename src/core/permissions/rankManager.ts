@@ -1,19 +1,16 @@
-import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
-import * as mc from '@minecraft/server';
-
-import { getConfig } from '@core/config/configManager.js';
-import { config as Config } from '../../config.js';
-
-import { getRanksConfig, saveRanksConfig } from '@core/config/configurations.js';
-import { debugLog, errorLog } from '@core/utils/logger.js';
-import { isNonEmptyString } from '@lib/guards.js';
-
 import { CommandExecutor } from '@commands/commandManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getRanksConfig, saveRanksConfig } from '@core/config/configurations.js';
 import { findPlayerByName, getPlayerFromCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as permissionEngine from '@core/permissions/permissionEngine.js';
+import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
+import { debugLog, errorLog } from '@core/utils/logger.js';
 import { RankDefinition } from '@features/ranks/config.js';
-import { isDefined } from '@lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+
+import { config as Config } from '../../config.js';
 
 let sortedRanks: RankDefinition[] = [];
 
@@ -23,10 +20,7 @@ const rankCache = new Map<string, { rank: RankDefinition; tick: number }>();
 // Cache for rank definitions by ID for O(1) lookups
 const ranksMap = new Map<string, RankDefinition>();
 
-/**
- * Reloads and sorts the ranks from the config manager cache.
- * This can be called to refresh ranks after they've been modified in the UI.
- */
+/** Reloads and sorts the ranks from the config manager cache. This can be called to refresh ranks after they've been modified in the UI. */
 export function reloadRanks() {
     const allRanks = getRanksConfig().rankDefinitions;
     sortedRanks = [...allRanks].toSorted((a, b) => a.priority - b.priority);
@@ -43,10 +37,7 @@ export function reloadRanks() {
     debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
 
-/**
- * Initializes the rank manager by loading and sorting ranks.
- * This is called once at startup.
- */
+/** Initializes the rank manager by loading and sorting ranks. This is called once at startup. */
 export function initialize() {
     reloadRanks();
     // Clear cache on player leave to prevent memory leaks
@@ -57,8 +48,8 @@ export function initialize() {
 }
 
 /**
- * Gets the highest priority rank for a given player.
- * Uses the permission engine to fetch all active ranks and returns the one with the lowest priority number.
+ * Gets the highest priority rank for a given player. Uses the permission engine to fetch all active ranks and returns the one with the lowest priority number.
+ *
  * @param player
  * @param config The addon's configuration object.
  */
@@ -108,9 +99,9 @@ export function getPlayerRank(player: mc.Player, config: typeof Config = getConf
 }
 
 /**
- * Checks if a player or console executor can target another player based on rank priorities.
- * Returns true if the executor's highest rank priority is mathematically lower (higher importance)
- * than the target's highest rank priority. Console always returns true.
+ * Checks if a player or console executor can target another player based on rank priorities. Returns true if the executor's highest rank priority is mathematically lower (higher importance) than the
+ * target's highest rank priority. Console always returns true.
+ *
  * @param executor The player or console executing the command.
  * @param targetId The ID of the targeted player.
  * @param config The addon's configuration object.
@@ -162,6 +153,7 @@ export function canTarget(executor: mc.Player | CommandExecutor, targetId: strin
 
 /**
  * Gets a rank definition by its ID.
+ *
  * @param rankId The ID of the rank to get.
  */
 export function getRankById(rankId: string): RankDefinition | undefined {
@@ -179,15 +171,14 @@ export function getRankById(rankId: string): RankDefinition | undefined {
     return rank;
 }
 
-/**
- * Gets all rank definitions.
- */
+/** Gets all rank definitions. */
 export function getAllRanks(): RankDefinition[] {
     return getRanksConfig().rankDefinitions;
 }
 
 /**
  * Updates a player's nametag to display their rank and team.
+ *
  * @param player The player whose nametag should be updated.
  * @param config The addon's configuration object.
  */
@@ -235,9 +226,7 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config = g
     }
 }
 
-/**
- * Adds a new rank definition and persists the ranks configuration.
- */
+/** Adds a new rank definition and persists the ranks configuration. */
 export function addRank(rankData: RankDefinition): { success: boolean; message: string } {
     const ranksConfig = getRanksConfig();
     if (isDefined(getRankById(rankData.id))) {
@@ -249,9 +238,7 @@ export function addRank(rankData: RankDefinition): { success: boolean; message: 
     return { success: true, message: `Rank '${rankData.name}' added successfully.` };
 }
 
-/**
- * Updates an existing rank definition and persists the ranks configuration.
- */
+/** Updates an existing rank definition and persists the ranks configuration. */
 export function updateRank(rankId: string, updatedData: Partial<RankDefinition>): { success: boolean; message: string } {
     const ranksConfig = getRanksConfig();
     const rankIndex = ranksConfig.rankDefinitions.findIndex((r) => r.id === rankId);
@@ -302,9 +289,7 @@ export function updateRank(rankId: string, updatedData: Partial<RankDefinition>)
     return { success: true, message };
 }
 
-/**
- * Deletes a rank definition if it is not locked.
- */
+/** Deletes a rank definition if it is not locked. */
 export function deleteRank(rankId: string): { success: boolean; message: string } {
     const ranksConfig = getRanksConfig();
     const rankIndex = ranksConfig.rankDefinitions.findIndex((r) => r.id === rankId);

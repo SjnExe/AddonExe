@@ -1,15 +1,13 @@
-import { isFeatureActive } from '@core/services/featureManager.js';
-import * as mc from '@minecraft/server';
-
 import * as configurations from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { TeamData } from '@features/social/team/types.js';
-
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 interface TeleportUtilsService {
     saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;
@@ -51,9 +49,7 @@ function* loadTeamJob(allIds: number[]) {
     debugLog(`[TeamManager] Loaded ${loadedCount} team.`);
 }
 
-/**
- * Initializes the team manager, loading all team into cache.
- */
+/** Initializes the team manager, loading all team into cache. */
 export function initialize() {
     try {
         // Load next ID
@@ -169,6 +165,7 @@ function validateTeamName(name: string): ActionResult | null {
 
 /**
  * Creates a new team.
+ *
  * @param player The player creating the team.
  * @param name The name of the team.
  * @returns The result of the operation.
@@ -260,6 +257,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
 
 /**
  * Deletes a team.
+ *
  * @param teamId The ID of the team to delete.
  * @returns True if successful, false otherwise.
  */
@@ -349,6 +347,7 @@ export function getTeamByPlayer(playerId: string): TeamData | undefined {
 
 /**
  * Helper to update player data with team ID.
+ *
  * @param playerId The player ID.
  * @param teamId The team ID or undefined to remove.
  */

@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { FormCancelationReason } from '@minecraft/server-ui';
-
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
@@ -20,6 +17,8 @@ import {
 } from '@features/games/matchmakingManager.js';
 import { forfeitTicTacToeMatch, getTicTacToeMatch, makeTicTacToeMove, type TicTacToeMatch } from '@features/games/tictactoe/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { FormCancelationReason } from '@minecraft/server-ui';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 

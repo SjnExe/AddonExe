@@ -1,5 +1,6 @@
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 import { describe, expect, it } from 'bun:test';
+
+import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 describe('uiUtils', () => {
     describe('getPaginatedItems', () => {

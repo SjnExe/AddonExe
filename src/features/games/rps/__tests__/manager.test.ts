@@ -1,4 +1,3 @@
-import * as mc from '@minecraft/server';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { initializeConfigManager } from '@core/config/configManager.js';
@@ -6,6 +5,7 @@ import { addPlayerToCache, clearPlayerCache } from '@core/data/playerCache.js';
 import { cleanupPlayerDataManager, getBalance, getOrCreatePlayer, setPlayerBalance } from '@core/data/playerDataManager.js';
 import { _clearMatchmakingForTest } from '@features/games/matchmakingManager.js';
 import { _clearRpsForTest, evaluateRpsRound, forfeitRpsMatch, initializeRps, startRpsBotMatch, startRpsMatch, submitRpsChoice } from '@features/games/rps/manager.js';
+import * as mc from '@minecraft/server';
 
 const createMockPlayer = (id: string, name: string) =>
     ({

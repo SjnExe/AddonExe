@@ -1,10 +1,12 @@
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { initializeConfigManager } from '@core/config/configManager.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
 import * as utils from '@core/utils/index.js';
 import * as mc from '@minecraft/server';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import { freezePlayer } from '../commands/freeze.js';
 import { default as inventoryCommands } from '../commands/inventory.js';
 import { default as warnCommand } from '../commands/warn.js';

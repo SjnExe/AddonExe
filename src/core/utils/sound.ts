@@ -15,9 +15,10 @@ interface SoundEventConfig {
 
 /**
  * Plays a sound for a specific player.
+ *
  * @param player The player to play the sound for.
  * @param soundId The ID of the sound to play.
- * @param options options for the sound.
+ * @param options Options for the sound.
  */
 export function playSound(player: mc.Player, soundId: string, options: mc.PlayerSoundOptions = {}): void {
     try {
@@ -29,6 +30,7 @@ export function playSound(player: mc.Player, soundId: string, options: mc.Player
 
 /**
  * Plays a configured sound for a player if it's enabled in the config.
+ *
  * @param player The player to play the sound for.
  * @param soundEventKey The key of the sound event in the config.
  */

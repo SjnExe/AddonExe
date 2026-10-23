@@ -1,5 +1,6 @@
 /**
  * Sanitizes a string by removing color codes and control characters.
+ *
  * @param input The string to sanitize.
  * @param allowColors Whether to allow § color codes. Defaults to false.
  * @returns The sanitized string.
@@ -26,6 +27,7 @@ export function sanitizeString(input: string, allowColors = false): string {
 
 /**
  * Validates that an input is safe (length check).
+ *
  * @param input The input string.
  * @param maxLength Max length.
  * @returns True if valid.
@@ -41,10 +43,9 @@ export function validateInput(input: string, maxLength = 256): boolean {
 }
 
 /**
- * Escapes a string to be safely used as an argument in a Minecraft command.
- * It replaces double quotes with single quotes, removes backslashes to prevent
- * escaping the closing quote, and replaces newlines with spaces.
- * The resulting string should be wrapped in double quotes in the command.
+ * Escapes a string to be safely used as an argument in a Minecraft command. It replaces double quotes with single quotes, removes backslashes to prevent escaping the closing quote, and replaces
+ * newlines with spaces. The resulting string should be wrapped in double quotes in the command.
+ *
  * @param input The string to escape.
  * @returns The escaped string.
  */

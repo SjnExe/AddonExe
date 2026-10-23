@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
@@ -11,6 +9,7 @@ import { rawLog } from '@core/utils/logger.js';
 import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 export const socialSpyTag = 'exe:socialspy';
 const lastReplyPartner = new Map<string, string>();

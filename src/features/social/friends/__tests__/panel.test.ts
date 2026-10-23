@@ -1,8 +1,10 @@
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import * as configManager from '@core/config/configManager.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
 import * as tpaManager from '@features/teleport/tpaManager.js';
 import * as mc from '@minecraft/server';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import defaultConfig from '../../../../config.js';
 
 const { showManageFriendPanel } = await import('@features/social/friends/ui/panel.js');

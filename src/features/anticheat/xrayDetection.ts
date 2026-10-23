@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getXrayConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/data/playerDataManager.js';
@@ -10,6 +8,7 @@ import { warnLog } from '@core/utils/logger.js';
 import { setTrackedTimeout } from '@core/utils/timerManager.js';
 import { MonitoredOreType } from '@features/anticheat/xrayConfig.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 interface AlertData {
     count: number;
@@ -29,10 +28,7 @@ interface CachedOreInfo {
 const oreCache = new Map<string, CachedOreInfo[]>();
 const alertBuffers = new Map<string, Map<string, AlertData>>();
 
-/**
- * Rebuilds the fast lookup cache for monitored ores.
- * This should be called whenever the X-Ray configuration changes.
- */
+/** Rebuilds the fast lookup cache for monitored ores. This should be called whenever the X-Ray configuration changes. */
 export function refreshXrayCache(): void {
     const xrayConfig = getXrayConfig();
     if (!isDefined(xrayConfig.monitoredOreTypes)) {

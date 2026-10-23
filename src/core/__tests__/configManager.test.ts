@@ -1,6 +1,7 @@
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import * as factoryModule from '@core/config/configManagerFactory.js';
 import * as anticheatConfigLoader from '@core/config/configurations.js';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 const mockConfigManagerInstance = {
     load: mock(),

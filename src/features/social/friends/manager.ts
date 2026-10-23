@@ -1,10 +1,9 @@
-import * as mc from '@minecraft/server';
-
 import * as configurations from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import type { FriendRequest, PlayerData } from '@core/data/playerDataManager.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 export interface FriendInvite {
     senderId: string;

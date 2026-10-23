@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-import { MinecraftItemTypes } from '@minecraft/vanilla-data';
-
 import { getShopConfig, saveShopConfig } from '@core/config/configurations.js';
 import { ShopCategory, ShopItem, ShopSubCategory } from '@features/economy/shop/config.js';
 import { ItemData, items } from '@features/economy/shop/itemsConfig.js';
 import { resolveTradeItemDisplayName, resolveTradeItemIcon, resolveTradeItemMetadata } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 interface BlockFamilySpec {
     subCategoryName: string;

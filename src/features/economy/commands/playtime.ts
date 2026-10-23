@@ -1,10 +1,9 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { defaultPlaytimeMilestones, getPlayerPlaytimeSummary } from '@features/economy/playtimeRewardsManager.js';
+import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 export async function showPlaytimeRewardsPanel(player: mc.Player): Promise<void> {

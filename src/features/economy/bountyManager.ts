@@ -1,5 +1,6 @@
 /**
  * Manages all active player bounties in an efficient, centralized way.
+ *
  * @module bountyManager
  */
 
@@ -16,15 +17,10 @@ interface BountyEntry {
     amount: number;
 }
 
-/**
- * A map of active bounties.
- * Key: playerId, Value: BountyEntry
- */
+/** A map of active bounties. Key: playerId, Value: BountyEntry */
 let activeBounties = new Map<string, BountyEntry>();
 
-/**
- * Loads the active bounty list from a dynamic property into memory.
- */
+/** Loads the active bounty list from a dynamic property into memory. */
 export function loadBounties() {
     try {
         const parsedData = storage.load<[string, BountyEntry][]>();
@@ -44,9 +40,7 @@ export function loadBounties() {
     }
 }
 
-/**
- * Saves the active bounty list to a dynamic property.
- */
+/** Saves the active bounty list to a dynamic property. */
 export function saveBounties() {
     try {
         const dataToSave = [...activeBounties.entries()];
@@ -63,6 +57,7 @@ export function saveBounties() {
 
 /**
  * Gets the entire map of active bounties.
+ *
  * @returns The map of active bounties.
  */
 export function getAllBounties(): Map<string, BountyEntry> {
@@ -71,6 +66,7 @@ export function getAllBounties(): Map<string, BountyEntry> {
 
 /**
  * Gets the bounty for a specific player.
+ *
  * @param playerId The ID of the player to check.
  * @returns The bounty entry or undefined.
  */
@@ -79,8 +75,8 @@ export function getBounty(playerId: string): BountyEntry | undefined {
 }
 
 /**
- * Sets or updates the bounty for a specific player.
- * If the amount is 0 or less, the bounty is removed.
+ * Sets or updates the bounty for a specific player. If the amount is 0 or less, the bounty is removed.
+ *
  * @param playerId The player ID.
  * @param amount The bounty amount.
  */
@@ -112,6 +108,7 @@ export function setBounty(playerId: string, amount: number) {
 
 /**
  * Adds to an existing bounty.
+ *
  * @param playerId The player ID.
  * @param amountToAdd The amount to add.
  */
@@ -122,6 +119,7 @@ export function incrementBounty(playerId: string, amountToAdd: number) {
 
 /**
  * Removes a bounty from a player.
+ *
  * @param playerId The player ID.
  */
 export function removeBounty(playerId: string) {
@@ -132,9 +130,7 @@ export function removeBounty(playerId: string) {
     }
 }
 
-/**
- * Places a bounty on a player, handling money deduction safely.
- */
+/** Places a bounty on a player, handling money deduction safely. */
 export function placeBounty(sourcePlayerId: string, targetPlayerId: string, amount: number): { success: boolean; message: string } {
     if (amount <= 0) {
         return { success: false, message: 'Invalid amount.' };
@@ -163,9 +159,7 @@ export function placeBounty(sourcePlayerId: string, targetPlayerId: string, amou
     return { success: true, message: `Placed bounty of $${amount} on ${targetData.name}.` };
 }
 
-/**
- * Resets active bounties in-memory cache for unit tests.
- */
+/** Resets active bounties in-memory cache for unit tests. */
 export function _clearBountiesForTest(): void {
     activeBounties.clear();
 }

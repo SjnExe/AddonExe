@@ -1,4 +1,3 @@
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as logger from '@core/utils/logger.js';
@@ -7,6 +6,7 @@ import * as uiUtils from '@core/utils/ui.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 const mockPlaySound = mock();
 const mockGetCountdownColor = mock();

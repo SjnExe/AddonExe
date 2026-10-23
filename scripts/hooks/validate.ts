@@ -1,5 +1,7 @@
-import { $ } from 'bun';
 import path from 'node:path';
+
+import { $ } from 'bun';
+
 import { checkDependencies } from '../build/check-dependencies.ts';
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
 async function main() {

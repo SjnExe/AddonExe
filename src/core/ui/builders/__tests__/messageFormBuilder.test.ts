@@ -1,6 +1,7 @@
+import { describe, expect, test } from 'bun:test';
+
 import { Player } from '@minecraft/server';
 import { MessageFormBuilder } from '@ui/builders/messageFormBuilder.js';
-import { describe, expect, test } from 'bun:test';
 
 describe('MessageFormBuilder', () => {
     test('builds and shows form', async () => {

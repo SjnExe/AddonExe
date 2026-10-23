@@ -1,14 +1,12 @@
-import * as mc from '@minecraft/server';
-import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
-
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { updatePlayerData } from '@core/data/playerDataManager.js';
 import { vanishedTag } from '@core/utils/constants.js';
 import { formatString } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined } from '@lib/guards.js';
-
-import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
+import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 const vanishCommand: CustomCommand = {
     name: 'vanish',

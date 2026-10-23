@@ -1,4 +1,5 @@
 import path from 'node:path';
+
 import ignoredTextures from './ignored-textures.json';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');

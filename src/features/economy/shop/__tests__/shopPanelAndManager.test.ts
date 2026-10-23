@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as configurations from '@core/config/configurations.js';
+
 import { setItem, updateShopItem } from '../adminManager.js';
 import { parseRankOverrides } from '../utils.js';
 

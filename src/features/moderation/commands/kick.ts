@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
 import { canTarget } from '@core/permissions/rankManager.js';
@@ -10,6 +7,8 @@ import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | undefined, reason: string) {
     if (!isDefined(targetPlayer)) {

@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-import { ActionFormResponse } from '@minecraft/server-ui';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { FlagLog, getFlagLogs, getPunishmentLogs, PunishmentLog } from '@features/anticheat/logManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { ActionFormResponse } from '@minecraft/server-ui';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 

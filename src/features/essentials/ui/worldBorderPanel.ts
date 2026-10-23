@@ -1,6 +1,5 @@
-import * as mc from '@minecraft/server';
-
 import { getNetherBorderRadius, getWorldBorder, setEndBorder, setOverworldBorder, updateWorldBorderConfig } from '@features/essentials/worldBorderManager.js';
+import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 

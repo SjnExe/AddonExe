@@ -1,9 +1,7 @@
-import * as mc from '@minecraft/server';
-
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { sendMessage } from '@core/utils/messaging.js';
-
-import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 
 const linksCommand: CustomCommand = {
     name: 'links',

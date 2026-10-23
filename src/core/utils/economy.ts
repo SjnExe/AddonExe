@@ -5,8 +5,8 @@ interface EconomyConfig {
 }
 
 /**
- * Formats a number as a currency string, using the symbol from the config.
- * Supports short forms like k, M, B, T.
+ * Formats a number as a currency string, using the symbol from the config. Supports short forms like k, M, B, T.
+ *
  * @param amount The amount to format.
  * @returns The formatted currency string (e.g., "$105k").
  */
@@ -41,10 +41,8 @@ export function formatCurrency(amount: number): string {
 }
 
 /**
- * Parses a currency string (e.g., "1.5k", "2M", "500") into a number.
- * Supports k, m, b, t suffixes (case insensitive).
- * Also accepts numbers directly.
- * Returns NaN if the format is invalid.
+ * Parses a currency string (e.g., "1.5k", "2M", "500") into a number. Supports k, m, b, t suffixes (case insensitive). Also accepts numbers directly. Returns NaN if the format is invalid.
+ *
  * @param input The input string or number to parse.
  * @returns The parsed number or NaN.
  */
@@ -103,10 +101,7 @@ export function parseCurrency(input: string | number): number {
     return value * multiplier;
 }
 
-/**
- * Validates a currency amount string input from commands or UI.
- * Ensures the value is a valid positive/non-negative number with at most 2 decimal places.
- */
+/** Validates a currency amount string input from commands or UI. Ensures the value is a valid positive/non-negative number with at most 2 decimal places. */
 export function validateCurrencyAmount(amountStr: string, requirePositive = true): number | undefined {
     if (typeof amountStr !== 'string' || amountStr.trim().length === 0) {
         return undefined;

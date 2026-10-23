@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-import { MinecraftItemTypes } from '@minecraft/vanilla-data';
-
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { playSound } from '@core/utils/index.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 export const zoneWandTag = 'exe:zone_wand';
 const borderParticleId = ['minecraft', 'villager_happy'].join(':');

@@ -1,10 +1,8 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getDailyRewardsConfig } from '@core/config/configurations.js';
 import { sendMessage } from '@core/utils/messaging.js';
-
 import { claimDailyReward } from '@features/economy/daily/manager.js';
+import * as mc from '@minecraft/server';
 
 const dailyCommand: CustomCommand = {
     name: 'daily',

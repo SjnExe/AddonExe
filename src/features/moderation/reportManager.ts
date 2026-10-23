@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { getIdTimestamp } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDefined } from '@lib/guards.js';
 import { generateId } from '@lib/id.js';
+import * as mc from '@minecraft/server';
 
 const storage = new StorageManager('exe:reports');
 
@@ -23,9 +22,7 @@ export interface Report {
 let reports: Report[] = [];
 let needsSave = false;
 
-/**
- * Loads reports from world dynamic properties.
- */
+/** Loads reports from world dynamic properties. */
 export function loadReports() {
     debugLog('[ReportManager] Loading reports...');
     const loaded = storage.load<Report[]>();
@@ -37,6 +34,7 @@ export function loadReports() {
 
 /**
  * Saves reports to world dynamic properties.
+ *
  * @param options
  * @param options.force - If true, saves even if the `needsSave` flag is false.
  */
@@ -57,6 +55,7 @@ export function saveReports(options: { force?: boolean } = {}) {
 
 /**
  * Creates a new report and adds it to the list.
+ *
  * @param reporter The player making the report.
  * @param reportedPlayerId The ID of the player being reported.
  * @param reportedPlayerName The name of the player being reported.
@@ -80,6 +79,7 @@ export function createReport(reporter: mc.Player, reportedPlayerId: string, repo
 
 /**
  * Gets all active reports.
+ *
  * @returns A copy of the reports array.
  */
 export function getAllReports(): Report[] {
@@ -88,6 +88,7 @@ export function getAllReports(): Report[] {
 
 /**
  * Assigns a report to an admin.
+ *
  * @param reportId The ID of the report to assign.
  * @param adminId The ID of the admin to assign the report to.
  */
@@ -103,6 +104,7 @@ export function assignReport(reportId: string, adminId: string) {
 
 /**
  * Marks a report as resolved.
+ *
  * @param reportId The ID of the report to resolve.
  */
 export function resolveReport(reportId: string) {
@@ -116,6 +118,7 @@ export function resolveReport(reportId: string) {
 
 /**
  * Clears a report from the list.
+ *
  * @param reportId The ID of the report to clear.
  */
 export function clearReport(reportId: string) {
@@ -127,9 +130,7 @@ export function clearReport(reportId: string) {
     }
 }
 
-/**
- * Clears all reports from the list.
- */
+/** Clears all reports from the list. */
 export function clearAllReports() {
     if (reports.length > 0) {
         reports.length = 0;
@@ -138,9 +139,7 @@ export function clearAllReports() {
     }
 }
 
-/**
- * Clears old, resolved reports from the system to prevent data bloat.
- */
+/** Clears old, resolved reports from the system to prevent data bloat. */
 export function clearOldResolvedReports() {
     const config = getConfig();
     const lifetimeDays = config.reports.resolvedReportLifetimeDays;

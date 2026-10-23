@@ -1,11 +1,13 @@
 /**
  * Formats a string by replacing placeholders with values from a context object.
+ *
  * @param template The string template with placeholders like {key}.
  * @param context An object containing the values to substitute.
  * @returns The formatted string.
  */
 /**
  * Strips Minecraft color codes from a string.
+ *
  * @param text The string to strip color codes from.
  */
 export function stripColorCodes(text: string): string {

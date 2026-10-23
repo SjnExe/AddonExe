@@ -1,10 +1,8 @@
-import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { findPlayerByName, getPlayerFromCache } from '@core/data/playerCache.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { getPlayerRank } from '@core/permissions/rankManager.js';
+import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
 import { rawLog } from '@core/utils/logger.js';
 import { addChatLog } from '@features/moderation/chatLogManager.js';
@@ -12,6 +10,7 @@ import { isStaffChatEnabled, sendStaffChatMessage, setStaffChatState } from '@fe
 import { getPunishment } from '@features/moderation/punishmentManager.js';
 import { isTeamChatEnabled, sendTeamChatMessage } from '@features/social/team/commands/team.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const lastChatTimestamp = new Map<string, number>();
 const lastChatMessage = new Map<string, string>();
@@ -21,10 +20,7 @@ export function _clearChatFilterStateForTest(): void {
     lastChatMessage.clear();
 }
 
-/**
- * Handles chat messages before they are sent.
- * Manages chat formatting, muting, staff chat, team chat, logging, and mentions.
- */
+/** Handles chat messages before they are sent. Manages chat formatting, muting, staff chat, team chat, logging, and mentions. */
 export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     const config = getConfig();
     const player = event.sender;

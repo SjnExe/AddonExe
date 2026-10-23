@@ -20,44 +20,34 @@ let externalDebugHandler: ((message: string) => void) | undefined;
 let externalInfoHandler: ((message: string) => void) | undefined;
 let externalWarnHandler: ((message: string) => void) | undefined;
 
-/**
- * Register an external error handler to capture critical errors.
- */
+/** Register an external error handler to capture critical errors. */
 export function setExternalErrorHandler(handler: (error: unknown, context?: string) => void): void {
     externalErrorHandler = handler;
 }
 
-/**
- * Register an external debug handler.
- */
+/** Register an external debug handler. */
 export function setExternalDebugHandler(handler: (message: string) => void): void {
     externalDebugHandler = handler;
 }
 
-/**
- * Register an external info handler.
- */
+/** Register an external info handler. */
 export function setExternalInfoHandler(handler: (message: string) => void): void {
     externalInfoHandler = handler;
 }
 
-/**
- * Register an external warn handler.
- */
+/** Register an external warn handler. */
 export function setExternalWarnHandler(handler: (message: string) => void): void {
     externalWarnHandler = handler;
 }
 
-/**
- * Gets the current log level.
- */
+/** Gets the current log level. */
 export function getLogLevel(): number {
     return currentLogLevel;
 }
 
 /**
- * Sets the current log level for the entire application.
- * Messages below this level will not be logged.
+ * Sets the current log level for the entire application. Messages below this level will not be logged.
+ *
  * @param {number | string} level The log level to set (use LogLevels enum).
  */
 export function setLogLevel(level: number | string): void {
@@ -75,6 +65,7 @@ export function setLogLevel(level: number | string): void {
 
 /**
  * Formats an error object or any value into a readable string.
+ *
  * @param {unknown} error The error or object to format.
  * @returns {string} A string representation of the error.
  */
@@ -107,8 +98,8 @@ function formatError(error: unknown): string {
 type ConsoleMethod = 'log' | 'info' | 'warn' | 'error';
 
 /**
- * Internal helper to perform the actual console call.
- * This centralizes the linter suppression.
+ * Internal helper to perform the actual console call. This centralizes the linter suppression.
+ *
  * @param method The console method to use.
  * @param message The message to log.
  */
@@ -118,6 +109,7 @@ function internalLog(method: ConsoleMethod, message: string): void {
 
 /**
  * Logs a debug message to the console if the log level is DEBUG.
+ *
  * @param {string} message The message to log.
  */
 export function debugLog(message: string): void {
@@ -131,6 +123,7 @@ export function debugLog(message: string): void {
 
 /**
  * Logs an informational message to the console if the log level is INFO or lower.
+ *
  * @param {string} message The message to log.
  */
 export function infoLog(message: string): void {
@@ -144,6 +137,7 @@ export function infoLog(message: string): void {
 
 /**
  * Logs a warning message to the console if the log level is WARN or lower.
+ *
  * @param {string} message The message to log.
  */
 export function warnLog(message: string): void {
@@ -157,6 +151,7 @@ export function warnLog(message: string): void {
 
 /**
  * Logs an error message to the console. Errors are always logged unless the level is > ERROR.
+ *
  * @param {string} message The primary error message.
  * @param {unknown} [error] Optional error object or additional info to serialize.
  */
@@ -176,8 +171,8 @@ export function errorLog(message: string, error?: unknown): void {
 }
 
 /**
- * Logs a raw message to the console without any prefix.
- * Useful for chat logging where the prefix is undesired.
+ * Logs a raw message to the console without any prefix. Useful for chat logging where the prefix is undesired.
+ *
  * @param {string} message The message to log.
  */
 export function rawLog(message: string): void {

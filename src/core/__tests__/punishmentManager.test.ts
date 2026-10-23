@@ -1,9 +1,11 @@
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+
 import * as configManager from '@core/config/configManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import * as logManager from '@features/anticheat/logManager.js';
 import { addPunishment, getPunishment, loadPunishments, removePunishment } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
-import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+
 import defaultConfig from '../../config.js';
 
 describe('PunishmentManager', () => {

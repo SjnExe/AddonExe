@@ -1,5 +1,6 @@
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import * as floatingTextManager from '../floatingTextManager.js';
 

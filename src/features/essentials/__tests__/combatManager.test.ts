@@ -1,5 +1,6 @@
-import { clearLastHit, getLastHit, getRemainingCombatCooldown, isInCombat, setLastHit } from '@features/essentials/combatManager.js';
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+
+import { clearLastHit, getLastHit, getRemainingCombatCooldown, isInCombat, setLastHit } from '@features/essentials/combatManager.js';
 
 describe('combatManager', () => {
     beforeEach(() => {

@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
 import { canTarget } from '@core/permissions/rankManager.js';
@@ -10,6 +8,7 @@ import { sendMessage } from '@core/utils/messaging.js';
 import { getPunishmentLogs } from '@features/anticheat/logManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 interface AnticheatLogsService {
     addPunishmentLog: (playerName: string, type: string, reason: string, adminName: string, duration?: string) => void;

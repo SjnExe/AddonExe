@@ -1,12 +1,11 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-
 import * as configurations from '@core/config/configurations.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { formatDuration } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 export interface ClaimResult {
     success: boolean;

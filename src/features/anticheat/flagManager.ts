@@ -1,16 +1,14 @@
-import * as mc from '@minecraft/server';
-
+import { getAnticheatConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { escapeCommandArg, formatString } from '@core/utils/index.js';
 import { debugLog, errorLog, warnLog } from '@core/utils/logger.js';
-import { isDefined } from '@lib/guards.js';
-
-import { getAnticheatConfig } from '@core/config/configurations.js';
 import { BaseCheckConfig } from '@features/anticheat/config.js';
 import { addFlagLog } from '@features/anticheat/logManager.js';
+import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const storage = new StorageManager('exe:flags');
 

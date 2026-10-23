@@ -1,8 +1,9 @@
-import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import * as configLoader from '@core/config/configurations.js';
+import * as mc from '@minecraft/server';
+
 import { executePunishment } from '../flagManager.js';
 
 describe('FlagManager', () => {

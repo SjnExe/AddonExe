@@ -36,6 +36,7 @@ interface ActionResult {
 
 /**
  * Creates a new, empty kit with default settings.
+ *
  * @param kitName - The name for the new kit. Must be unique.
  * @param options - The initial settings for the kit.
  * @returns The result of the operation.
@@ -77,6 +78,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
 
 /**
  * Deletes a kit from the configuration.
+ *
  * @param kitName - The name of the kit to delete.
  * @returns The result of the operation.
  */
@@ -98,6 +100,7 @@ export function deleteKit(kitName: string): ActionResult {
 
 /**
  * Updates the settings of a kit.
+ *
  * @param kitName - The name of the kit to update.
  * @param newSettings - The new settings for the kit.
  * @returns The result of the operation.
@@ -123,6 +126,7 @@ export function updateKitSettings(kitName: string, newSettings: KitSettings): Ac
 
 /**
  * Gets all kits from the configuration.
+ *
  * @returns The kit definitions object.
  */
 export function getAllKits(): Record<string, Kit> {
@@ -132,6 +136,7 @@ export function getAllKits(): Record<string, Kit> {
 
 /**
  * Renames a kit.
+ *
  * @param oldName - The current name of the kit.
  * @param newName - The new name for the kit.
  * @returns The result of the operation.

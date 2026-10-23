@@ -1,9 +1,6 @@
 import { RawMessage } from '@minecraft/server';
 
-/**
- * This file contains centralized constants for the addon.
- * Using constants helps prevent "magic strings" and makes the code easier to maintain.
- */
+/** This file contains centralized constants for the addon. Using constants helps prevent "magic strings" and makes the code easier to maintain. */
 
 // --- Entity Identifiers ---
 export const floatingTextId = 'exe:floating_text';

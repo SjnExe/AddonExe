@@ -2,6 +2,7 @@ const durationRegex = /^(\d+)([smhdw])$/;
 
 /**
  * Parses a duration string (e.g., "10m", "2h", "7d") and returns the duration in milliseconds.
+ *
  * @param durationString The duration string to parse.
  * @returns The duration in milliseconds, or 0 if the format is invalid.
  */
@@ -53,6 +54,7 @@ export function parseDuration(durationString: string): number {
 
 /**
  * Formats a duration in milliseconds into a human-readable string (e.g., "1d 2h 30m").
+ *
  * @param ms The duration in milliseconds.
  * @returns The formatted string.
  */
@@ -85,8 +87,8 @@ export function formatDuration(ms: number): string {
 }
 
 /**
- * Formats a duration in seconds into a human-readable string.
- * Wrapper around formatDuration.
+ * Formats a duration in seconds into a human-readable string. Wrapper around formatDuration.
+ *
  * @param seconds The duration in seconds.
  * @returns The formatted string.
  */

@@ -1,18 +1,15 @@
-import { hasPermission } from '@core/permissions/permissionEngine.js';
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { formatCooldown, playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
-
 import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
-
-import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 interface TeleportUtilsService {
     saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;

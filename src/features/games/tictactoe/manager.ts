@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { uiManager } from '@minecraft/server-ui';
-
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
@@ -8,6 +5,8 @@ import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { registerActiveMatchSession, registerMultiplayerGame, unregisterActiveMatchSession } from '@features/games/matchmakingManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { uiManager } from '@minecraft/server-ui';
 
 export type CellMark = '' | 'X' | 'O';
 

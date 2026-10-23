@@ -1,8 +1,3 @@
-import { ItemComponentTypes } from '@minecraft/server';
-
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-
 import { getShopConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { getPlayerRanks } from '@core/permissions/permissionEngine.js';
@@ -11,6 +6,8 @@ import { errorLog } from '@core/utils/logger.js';
 import { items as allItems } from '@features/economy/shop/itemsConfig.js';
 import { calculateInventorySpaceForItem, countMatchingInventoryItems, resolveTradeItemMetadata } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 export interface ItemInfo {
     itemId: string;
@@ -28,6 +25,7 @@ interface ShopTransactionResult {
 
 /**
  * Creates an ItemStack for a given item ID, handling enchantments.
+ *
  * @param itemInfo The item info object.
  * @param quantity The amount of items.
  * @returns The created ItemStack or undefined if failed.
@@ -70,6 +68,7 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
 
 /**
  * Finds a shop item definition by its ID.
+ *
  * @param itemId The item ID to look up.
  * @returns The item definition or undefined if not found.
  */
@@ -116,6 +115,7 @@ export function getPlayerInventoryShopItemCount(player: mc.Player, itemKey: stri
 
 /**
  * Calculates the dynamic price of an item based on the player's ranks and item overrides.
+ *
  * @param player The player to calculate the price for.
  * @param shopItem The shop item definition.
  * @param type Whether we are calculating 'buy' or 'sell' price.
@@ -160,6 +160,7 @@ export function getPlayerShopItemPrice(player: mc.Player, shopItem: ItemInfo, ty
 
 /**
  * Handles a player's request to buy an item from the shop.
+ *
  * @param player The player buying the item.
  * @param itemId The ID of the item from itemsConfig.js.
  * @param quantity The amount to buy.
@@ -281,6 +282,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
 
 /**
  * Checks if an item from the player's inventory is valid to be sold as a specific shop item.
+ *
  * @param item The item stack from inventory.
  * @param shopItem The shop definition.
  * @returns True if the item matches and is valid for sale.
@@ -307,6 +309,7 @@ function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
 
 /**
  * Handles a player's request to sell an item to the shop.
+ *
  * @param player The player selling the item.
  * @param itemId The ID of the item from itemsConfig.js.
  * @param quantity The amount to sell.

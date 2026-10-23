@@ -1,12 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import * as configurations from '@core/config/configurations.js';
 import { generateDisplayName, resolveIcon, sanitizeString, validateInput } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
+import { ShopCategory, ShopSubCategory } from '@features/economy/shop/config.js';
 import { items } from '@features/economy/shop/itemsConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-
-import { ShopCategory, ShopSubCategory } from '@features/economy/shop/config.js';
+import * as mc from '@minecraft/server';
 
 interface ActionResult {
     success: boolean;
@@ -37,6 +35,7 @@ interface UpdateItemData {
 
 /**
  * Adds a new category to the shop.
+ *
  * @param categoryName - The name for the new category.
  * @param icon - The icon for the new category.
  * @returns The result of the operation.
@@ -66,6 +65,7 @@ export function addCategory(categoryName: string, icon: string): ActionResult {
 
 /**
  * Edits a subcategory's name and icon.
+ *
  * @param categoryName - The name of the parent category.
  * @param oldSubCategoryName - The current name of the subcategory.
  * @param newSubCategoryName - The new name for the subcategory.
@@ -104,6 +104,7 @@ export function editSubCategory(categoryName: string, oldSubCategoryName: string
 
 /**
  * Edits a category's name and icon.
+ *
  * @param oldCategoryName - The current name of the category.
  * @param newCategoryName - The new name for the category.
  * @param newIcon - The new icon for the category.
@@ -134,6 +135,7 @@ export function editCategory(oldCategoryName: string, newCategoryName: string, n
 
 /**
  * Renames a category.
+ *
  * @param oldCategoryName - The current name of the category.
  * @param newCategoryName - The new name for the category.
  * @returns The result of the operation.
@@ -158,6 +160,7 @@ export function renameCategory(oldCategoryName: string, newCategoryName: string)
 
 /**
  * Deletes a category from the shop.
+ *
  * @param categoryName - The name of the category to delete.
  * @returns The result of the operation.
  */
@@ -176,6 +179,7 @@ export function deleteCategory(categoryName: string): ActionResult {
 
 /**
  * Adds a new subcategory to a category.
+ *
  * @param categoryName - The name of the parent category.
  * @param subCategoryName - The name for the new subcategory.
  * @param icon - The icon for the new subcategory.
@@ -212,6 +216,7 @@ export function addSubCategory(categoryName: string, subCategoryName: string, ic
 
 /**
  * Renames a subcategory.
+ *
  * @param categoryName - The name of the parent category.
  * @param oldSubCategoryName - The current name of the subcategory.
  * @param newSubCategoryName - The new name for the subcategory.
@@ -244,6 +249,7 @@ export function renameSubCategory(categoryName: string, oldSubCategoryName: stri
 
 /**
  * Deletes a subcategory from a category.
+ *
  * @param categoryName - The name of the parent category.
  * @param subCategoryName - The name of the subcategory to delete.
  * @returns The result of the operation.
@@ -319,8 +325,8 @@ function resolveItemMetadata(itemStack: mc.ItemStack): { icon: string; displayNa
 }
 
 /**
- * Adds an item from a player's hand to the shop.
- * Generates a unique ID and adds it to both the master item config and the shop config.
+ * Adds an item from a player's hand to the shop. Generates a unique ID and adds it to both the master item config and the shop config.
+ *
  * @param itemStack The item stack from the player's hand.
  * @param categoryName The category to add the item to.
  * @param subCategoryName The subcategory to add the item to (optional).
@@ -371,6 +377,7 @@ export function addShopItemFromHand(itemStack: mc.ItemStack, categoryName: strin
 
 /**
  * Adds or updates an item in the shop.
+ *
  * @param categoryName - The name of the category.
  * @param subCategoryName - The name of the subcategory, or undefined for the main category.
  * @param itemId - The ID of the item to add/update.
@@ -410,6 +417,7 @@ export function setItem(categoryName: string, subCategoryName: string | undefine
 
 /**
  * Adds a custom item to the in-memory items config.
+ *
  * @param itemId - The unique ID for the new item.
  * @param itemData - The data for the new item.
  * @returns The result of the operation.
@@ -431,6 +439,7 @@ export function addCustomItemToConfig(itemId: string, itemData: ItemData): Actio
 
 /**
  * Removes an item from the shop.
+ *
  * @param categoryName - The name of the category.
  * @param subCategoryName - The name of the subcategory, or undefined for the main category.
  * @param itemId - The ID of the item to remove.
@@ -487,6 +496,7 @@ function updateMasterItemList(itemId: string, newData: UpdateItemData) {
 
 /**
  * Updates a shop item's details in both the shop config and the master item list.
+ *
  * @param categoryName The category of the item.
  * @param subCategoryName The subcategory of the item.
  * @param itemId The ID of the item to update.

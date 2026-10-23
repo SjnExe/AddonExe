@@ -1,8 +1,7 @@
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getWorldProtectionConfig } from '@core/config/configurations.js';
 import type { Vector3 } from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export type ProtectionFlags = {
     preventPvP: boolean;
@@ -38,10 +37,11 @@ const defaultFlags: ProtectionFlags = {
 
 /**
  * Checks if a coordinate is within a bounding box.
+ *
  * @param location The coordinate to check.
  * @param min The minimum point of the bounding box.
  * @param max The maximum point of the bounding box.
- * @returns true if the coordinate is within the box.
+ * @returns True if the coordinate is within the box.
  */
 function isWithinBox(location: Vector3, min: Vector3, max: Vector3): boolean {
     const minX = Math.min(min.x, max.x);
@@ -57,6 +57,7 @@ function isWithinBox(location: Vector3, min: Vector3, max: Vector3): boolean {
 
 /**
  * Gets the combined protection flags for a given location and dimension.
+ *
  * @param location The coordinate to check.
  * @param dimensionId The dimension of the coordinate (e.g., MinecraftDimensionTypes.Overworld).
  * @returns The combined active protection flags. If any overlapping zone prevents an action, it is prevented.

@@ -1,15 +1,11 @@
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
-/**
- * Checks if a value is a plain object.
- */
+/** Checks if a value is a plain object. */
 export function isObject(item: unknown): item is Record<string, unknown> {
     return item !== null && typeof item === 'object' && !Array.isArray(item);
 }
 
-/**
- * Deeply compares two values for equality, handling objects, arrays, dates, and circular references.
- */
+/** Deeply compares two values for equality, handling objects, arrays, dates, and circular references. */
 export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, unknown>()): boolean {
     if (a === b) {
         return true;
@@ -64,9 +60,7 @@ export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, un
     return true;
 }
 
-/**
- * Deeply merges the properties of a source object into a target object.
- */
+/** Deeply merges the properties of a source object into a target object. */
 export function deepMerge(target: unknown, source: unknown): unknown {
     if (!isObject(target) || !isObject(source)) {
         return target;
@@ -87,9 +81,7 @@ export function deepMerge(target: unknown, source: unknown): unknown {
     return output;
 }
 
-/**
- * Gets a nested value from an object using a dot-notation string path.
- */
+/** Gets a nested value from an object using a dot-notation string path. */
 export function getValueFromPath(obj: unknown, pathStr: string): unknown {
     if (!pathStr) {
         return obj;
@@ -105,9 +97,7 @@ export function getValueFromPath(obj: unknown, pathStr: string): unknown {
     return current;
 }
 
-/**
- * Sets a nested value in an object using a dot-notation string path.
- */
+/** Sets a nested value in an object using a dot-notation string path. */
 export function setValueByPath(obj: unknown, pathStr: string, value: unknown): void {
     const keys = pathStr.split('.');
     const lastKey = keys.pop();
@@ -124,9 +114,7 @@ export function setValueByPath(obj: unknown, pathStr: string, value: unknown): v
     lastObj[lastKey] = value;
 }
 
-/**
- * Creates a deep clone of an object or primitive.
- */
+/** Creates a deep clone of an object or primitive. */
 export function deepClone<T>(obj: T, hash?: WeakMap<object, unknown>): T {
     if (obj === null || typeof obj !== 'object') {
         return obj;

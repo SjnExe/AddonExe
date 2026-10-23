@@ -1,8 +1,10 @@
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import { getWorldBorder, initializeWorldBorder, setWorldBorder } from '../worldBorderManager.js';
 
 describe('worldBorderManager', () => {

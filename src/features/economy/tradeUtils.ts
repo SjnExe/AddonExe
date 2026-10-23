@@ -1,10 +1,9 @@
-import * as mc from '@minecraft/server';
-
 import { SerializedItem } from '@core/data/itemSerializer.js';
 import { formatCurrency, validateCurrencyAmount } from '@core/utils/economy.js';
 import { generateDisplayName, isFormattedDisplayName, resolveIcon } from '@core/utils/item.js';
 import { ItemData, items as masterItems } from '@features/economy/shop/itemsConfig.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 export interface TradeItemMetadata {
     key: string;

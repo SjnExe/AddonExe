@@ -9,6 +9,7 @@ export interface HelpfulLink {
 
 /**
  * Gets the current list of helpful links from the main configuration.
+ *
  * @returns The array of link objects.
  */
 export function getHelpfulLinks(): HelpfulLink[] {
@@ -18,6 +19,7 @@ export function getHelpfulLinks(): HelpfulLink[] {
 
 /**
  * Saves the entire helpful links array back to the configuration.
+ *
  * @param links The full array of links to save.
  */
 function saveHelpfulLinks(links: HelpfulLink[]) {
@@ -27,6 +29,7 @@ function saveHelpfulLinks(links: HelpfulLink[]) {
 
 /**
  * Adds a new link to the end of the list and saves.
+ *
  * @param title The title of the new link.
  * @param url The URL of the new link.
  */
@@ -42,6 +45,7 @@ export function addHelpfulLink(title: string, url: string) {
 
 /**
  * Updates the link at a specific index and saves.
+ *
  * @param index The index of the link to edit.
  * @param newTitle The new title for the link.
  * @param newUrl The new URL for the link.
@@ -62,6 +66,7 @@ export function editHelpfulLink(index: number, newTitle: string, newUrl: string)
 
 /**
  * Deletes a link at a specific index and saves.
+ *
  * @param index The index of the link to delete.
  */
 export function deleteHelpfulLink(index: number) {
@@ -80,6 +85,7 @@ export function deleteHelpfulLink(index: number) {
 
 /**
  * Moves a link up or down in the list and saves.
+ *
  * @param index The index of the link to move.
  * @param direction The direction to move the link.
  */

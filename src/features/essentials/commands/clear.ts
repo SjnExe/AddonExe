@@ -1,13 +1,11 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { canTarget } from '@core/permissions/rankManager.js';
 import { soundError, soundTeleport } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
-
-import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 interface ClearCommandArgs {
     target?: mc.Player[];

@@ -1,15 +1,15 @@
-import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
-import defaultConfig from '../../../../config.js';
 
+import * as mcMock from '@core/__tests__/__mocks__/minecraftMock.ts';
 import * as configManager from '@core/config/configManager.js';
-import * as configurations from '@core/config/configurations.js';
-import * as realPlayerDataManager from '@core/data/playerDataManager.js';
-
 import { getConfig } from '@core/config/configManager.js';
+import * as configurations from '@core/config/configurations.js';
 import { getTeamConfig } from '@core/config/configurations.js';
+import * as realPlayerDataManager from '@core/data/playerDataManager.js';
 import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import * as mc from '@minecraft/server';
+
+import defaultConfig from '../../../../config.js';
 import {
     acceptApplication,
     acceptInvite,

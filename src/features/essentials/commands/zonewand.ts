@@ -1,8 +1,7 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { clearZoneSelection, getZoneSelection, giveZoneSelectionWand, setZoneSelectionPos } from '@features/essentials/zoneSelectionManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const zoneWandCommand: CustomCommand = {
     name: 'zonewand',

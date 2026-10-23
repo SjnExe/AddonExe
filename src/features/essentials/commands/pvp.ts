@@ -1,10 +1,8 @@
-import * as mc from '@minecraft/server';
-
+import { CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { acceptPvP, denyPvP, requestPvP } from '@features/essentials/combatManager.js';
-
-import { CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 
 const command: CustomCommand = {
     name: 'pvp',

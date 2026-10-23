@@ -1,5 +1,6 @@
-import { RankDefinition } from '@features/ranks/config.js';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
+import { RankDefinition } from '@features/ranks/config.js';
 
 // Shared tracking variables for dynamic test scenarios
 let rankPermissions: Record<string, string[]> = {
@@ -14,6 +15,7 @@ const mockGetAllRanks = mock(() => []);
 
 import * as configManager from '@core/config/configManager.js';
 import * as realConfigurations from '@core/config/configurations.js';
+
 import { config as Config } from '../../config.js';
 
 const mockGetRanksConfig = mock(() => ({
@@ -28,10 +30,10 @@ const mockGetRanksConfig = mock(() => ({
 
 import * as realPlayerCache from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
-import * as rankManager from '@core/permissions/rankManager.js';
-
 import { calculatePlayerMap, calculateRankMap, getPlayerRanks, hasPermission, invalidateAllRankCaches, invalidateRankCache } from '@core/permissions/permissionEngine.js';
+import * as rankManager from '@core/permissions/rankManager.js';
 import * as mc from '@minecraft/server';
+
 import { config } from '../../config.js';
 (mc.system as any).currentTick = 100;
 

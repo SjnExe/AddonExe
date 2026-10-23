@@ -1,11 +1,9 @@
-import * as mc from '@minecraft/server';
-
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { updateMultipleConfig } from '@core/config/configManager.js';
 import { getLockState, setLockState } from '@core/data/playerDataManager.js';
 import { playSound } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
-
-import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 
 type Dimension = 'nether' | 'end';
 
@@ -13,9 +11,7 @@ interface LockCommandArgs {
     isLocked?: boolean;
 }
 
-/**
- * Creates the execution logic for a dimension lock command.
- */
+/** Creates the execution logic for a dimension lock command. */
 function createLockCommandExecute(dimension: Dimension): (executor: CommandExecutor, args: LockCommandArgs) => void {
     return (executor, args) => {
         const currentState = getLockState(dimension);

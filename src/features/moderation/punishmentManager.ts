@@ -1,12 +1,11 @@
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { getConfig } from '@core/config/configManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 interface AnticheatLogsService {
     addPunishmentLog: (playerName: string, type: string, reason: string, adminName: string, duration?: string) => void;
@@ -31,10 +30,7 @@ export interface PlayerPunishmentRecord {
 let punishments = new Map<string, PlayerPunishmentRecord>();
 let needsSave = false;
 
-/**
- * Loads punishment data from world dynamic properties.
- * Handles migration from legacy single-punishment format.
- */
+/** Loads punishment data from world dynamic properties. Handles migration from legacy single-punishment format. */
 export function loadPunishments() {
     debugLog('[PunishmentManager] Loading punishments...');
     // Try loading new format first
@@ -71,9 +67,7 @@ export function loadPunishments() {
     }
 }
 
-/**
- * Iterates through all punishments and removes any that have expired.
- */
+/** Iterates through all punishments and removes any that have expired. */
 export function clearExpiredPunishments() {
     const now = Date.now();
     let clearedCount = 0;
@@ -107,9 +101,7 @@ export function clearExpiredPunishments() {
     }
 }
 
-/**
- * Saves punishment data to world dynamic properties if a change has occurred.
- */
+/** Saves punishment data to world dynamic properties if a change has occurred. */
 function savePunishments() {
     if (!needsSave) {
         return;
@@ -126,6 +118,7 @@ function savePunishments() {
 
 /**
  * Adds or updates a punishment for a player.
+ *
  * @param playerId The ID of the player.
  * @param playerName The name of the player (for logging).
  * @param punishment The punishment details.
@@ -152,8 +145,8 @@ export function addPunishment(playerId: string, playerName: string, punishment: 
 }
 
 /**
- * Gets a player's active punishment of a specific type.
- * It also clears the punishment if it has expired.
+ * Gets a player's active punishment of a specific type. It also clears the punishment if it has expired.
+ *
  * @param playerId The ID of the player.
  * @param type The type of punishment to retrieve.
  */
@@ -179,6 +172,7 @@ export function getPunishment(playerId: string, type: PunishmentType): Punishmen
 
 /**
  * Checks if a player is banned and kicks them if so.
+ *
  * @param {mc.Player} player The player to check.
  * @returns {boolean} True if the player was kicked (is banned), false otherwise.
  */
@@ -197,6 +191,7 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
 
 /**
  * Removes a punishment for a player.
+ *
  * @param playerId The ID of the player to unpunish.
  * @param type The type of punishment to remove.
  */
@@ -232,9 +227,7 @@ export function removePunishment(playerId: string, type: PunishmentType) {
     }
 }
 
-/**
- * Lists all active punishments of a given type ('ban' or 'mute').
- */
+/** Lists all active punishments of a given type ('ban' or 'mute'). */
 export function getActivePunishmentsByType(type: PunishmentType): { playerId: string; punishment: Punishment }[] {
     clearExpiredPunishments();
     const list: { playerId: string; punishment: Punishment }[] = [];
@@ -247,9 +240,7 @@ export function getActivePunishmentsByType(type: PunishmentType): { playerId: st
     return list;
 }
 
-/**
- * Initializes the punishment manager's periodic tasks.
- */
+/** Initializes the punishment manager's periodic tasks. */
 export function initializePunishmentManager() {
     // Periodically clear expired punishments and save to the world
     const config = getConfig();

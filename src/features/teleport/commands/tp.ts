@@ -1,10 +1,9 @@
-import * as mc from '@minecraft/server';
-
 import { CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const command: CustomCommand = {
     name: 'tp',

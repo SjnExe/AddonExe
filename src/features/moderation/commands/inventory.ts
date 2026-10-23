@@ -1,14 +1,12 @@
-import { EntityComponentTypes } from '@minecraft/server';
-
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName } from '@core/data/playerDataManager.js';
 import { canTarget } from '@core/permissions/rankManager.js';
 import { resolveTarget } from '@core/utils/index.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { isDefined } from '@lib/guards.js';
+import { EntityComponentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 function inspectArmor(equipment: mc.EntityEquippableComponent): string {
     let output = '';

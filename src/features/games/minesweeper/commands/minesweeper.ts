@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/config/configurations.js';
 import { resolveTarget } from '@core/utils/index.js';
@@ -7,6 +5,7 @@ import { acceptGameInvite, cancelGameInvite, denyGameInvite, joinMatchmakingQueu
 import { startMinesweeperGame } from '@features/games/minesweeper/manager.js';
 import { showMinesweeperBoard, showMinesweeperMenu } from '@features/games/minesweeper/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const minesweeperCommand: CustomCommand = {
     name: 'minesweeper',

@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { findPlayerByName, getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isDefined } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
+import * as mc from '@minecraft/server';
 
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
     if (!input) {
@@ -88,6 +87,7 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
 
 /**
  * Validates that a player object is still valid and online.
+ *
  * @param player
  */
 export function isValidPlayer(player: mc.Player): boolean {
@@ -101,9 +101,7 @@ export function isValidPlayer(player: mc.Player): boolean {
     }
 }
 
-/**
- * Gets a clean name for display, checking vanish status.
- */
+/** Gets a clean name for display, checking vanish status. */
 export function getSafeDisplayName(player: mc.Player, observer?: mc.Player): string {
     const pData = getPlayer(player.id);
     if (isDefined(pData) && pData.isVanished) {

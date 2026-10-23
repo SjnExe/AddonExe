@@ -1,12 +1,11 @@
-import { hasPermission } from '@core/permissions/permissionEngine.js';
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatString, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const deathCoordsCommand: CustomCommand = {
     name: 'deathcoords',

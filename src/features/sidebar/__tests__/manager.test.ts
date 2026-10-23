@@ -7,6 +7,7 @@ import { initializePlayerCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
 import * as mc from '@minecraft/server';
+
 import defaultConfig from '../../../config.js';
 
 const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } = await import('../manager.js');

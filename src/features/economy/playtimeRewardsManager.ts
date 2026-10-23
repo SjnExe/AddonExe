@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, getPlayTime, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
@@ -7,6 +5,7 @@ import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, formatDuration, playSound } from '@core/utils/index.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 export interface PlaytimeMilestone {
     id: string;

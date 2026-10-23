@@ -1,16 +1,15 @@
-import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
+import * as mc from '@minecraft/server';
 
 const mockStorageSave = mock();
 const mockStorageLoad = mock();
 
 import { initializeConfigManager } from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
-
-import { StorageManager } from '@core/data/storageManager.js';
-
 import { saveAllData, saveAllDataJob } from '@core/data/dataManager.js';
 import { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } from '@core/data/playerDataManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 
 const mockPlayer = (id: string, name: string) =>
     ({

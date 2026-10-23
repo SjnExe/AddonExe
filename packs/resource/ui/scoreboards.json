@@ -1,6 +1,6 @@
 {
-    "namespace": "scoreboard",
-    "scoreboard_sidebar_scores": {
-        "ignored": true
-    }
+  "namespace": "scoreboard",
+  "scoreboard_sidebar_scores": {
+    "ignored": true
+  }
 }

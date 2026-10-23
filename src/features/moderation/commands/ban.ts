@@ -1,7 +1,3 @@
-// FIXED
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/data/playerDataManager.js';
 import { canTarget } from '@core/permissions/rankManager.js';
@@ -9,9 +5,11 @@ import { parseDuration, playSoundFromConfig } from '@core/utils/index.js';
 import { errorLog, warnLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
-import { isDefined } from '@lib/guards.js';
-
 import { addPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
+import { isDefined } from '@lib/guards.js';
+// FIXED
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export function banPlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
     if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
