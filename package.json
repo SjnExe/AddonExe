@@ -22,8 +22,6 @@
     "check-deps": "bun scripts/build/check-dependencies.ts",
     "check-types": "bun check",
     "clean": "rm -rf out packs/behavior/scripts",
-    "format": "bun fmt",
-    "format:check": "bun fmt --check",
     "postinstall": "bun scripts/hooks/postinstall.ts",
     "lint": "bun scripts/lint/run.ts --fix",
     "lint:check": "bun scripts/lint/run.ts",

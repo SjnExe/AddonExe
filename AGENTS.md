@@ -26,7 +26,7 @@ This document is the single source of truth for the architecture, coding standar
 - **Naming Conventions:**
   - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraft-rules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
   - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
-- **Formatting (`bun fmt`):** 4-space indentation, single quotes for TS, semicolons required, curly braces `{}` required on all control flow blocks.
+- **Formatting (`bun fmt`):** 2-space indentation, single quotes for TS, sorted imports, semicolons required, curly braces `{}` required on all control flow blocks (`bun fmt <files>` / `bun fmt --check`).
 - **Path Aliases:** Use aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).
 - **Strict Type Guards:** Use `isDefined`, `isNonEmptyString`, and `isNumber` from `@lib/guards.js` instead of loose truthiness checks.
 - **Minecraft Constants:** Always import `MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftEntityTypes`, and `MinecraftDimensionTypes` from `@minecraft/vanilla-data` instead of raw `'minecraft:...'` strings.

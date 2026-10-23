@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 
-import { isDefined, isNonEmptyString, isNumber, isString } from '../guards.js';
+import { isBoolean, isDefined, isNonBlankString, isNonEmptyString, isNumber, isString } from '../guards.js';
 
 describe('Type Guards', () => {
   describe('isDefined', () => {
@@ -47,9 +47,11 @@ describe('Type Guards', () => {
       expect(isNumber(Number('123'))).toBe(true);
     });
 
-    it('should return false for NaN', () => {
+    it('should return false for NaN and Infinity', () => {
       expect(isNumber(NaN)).toBe(false);
       expect(isNumber(Number.NaN)).toBe(false);
+      expect(isNumber(Infinity)).toBe(false);
+      expect(isNumber(-Infinity)).toBe(false);
       expect(isNumber(Number('abc'))).toBe(false);
     });
 
@@ -86,6 +88,17 @@ describe('Type Guards', () => {
       expect(isNonEmptyString({})).toBe(false);
       expect(isNonEmptyString([])).toBe(false);
       expect(isNonEmptyString(() => {})).toBe(false);
+    });
+  });
+
+  describe('isBoolean & isNonBlankString', () => {
+    it('should validate booleans and non-blank strings', () => {
+      expect(isBoolean(true)).toBe(true);
+      expect(isBoolean(false)).toBe(true);
+      expect(isBoolean(0)).toBe(false);
+      expect(isNonBlankString('hello')).toBe(true);
+      expect(isNonBlankString('   ')).toBe(false);
+      expect(isNonBlankString('')).toBe(false);
     });
   });
 });

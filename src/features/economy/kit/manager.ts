@@ -113,7 +113,10 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
   }
 
   if (kit.enabled !== true) {
-    return { success: false, message: `Kit '${kitName}' is currently disabled.` };
+    return {
+      success: false,
+      message: `Kit '${kitName}' is currently disabled.`,
+    };
   }
 
   const pData = getOrCreatePlayer(player);
@@ -124,7 +127,10 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
   // Check permissions
 
   if (!hasPermission(player, kit.permission)) {
-    return { success: false, message: 'You do not have permission to claim this kit.' };
+    return {
+      success: false,
+      message: 'You do not have permission to claim this kit.',
+    };
   }
 
   const remainingCooldown = getKitCooldown(player, lowerCaseKitName);
@@ -138,14 +144,16 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
   // Check for price
   let isEconomyEnabled = false;
   try {
-    // @ts-ignore (ignoring unused var)
     isEconomyEnabled = isFeatureActive('eco');
   } catch {
     // Fallback
   }
 
   if (isEconomyEnabled && isDefined(kit.price) && kit.price > 0 && pData.balance < kit.price) {
-    return { success: false, message: `You cannot afford this kit. It costs $${kit.price}.` };
+    return {
+      success: false,
+      message: `You cannot afford this kit. It costs $${kit.price}.`,
+    };
   }
 
   const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
@@ -155,7 +163,10 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
   const inventory = inventoryComp.container;
 
   if (inventory.emptySlotsCount < kit.items.length) {
-    return { success: false, message: 'You do not have enough inventory space to claim this kit.' };
+    return {
+      success: false,
+      message: 'You do not have enough inventory space to claim this kit.',
+    };
   }
 
   // All checks passed, now charge the player
@@ -170,14 +181,20 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     // Set the new cooldown
     setCooldown(player.id, `kit_${lowerCaseKitName}`, kit.cooldownSeconds);
 
-    return { success: true, message: `You have received the '${kitName}' kit.` };
+    return {
+      success: true,
+      message: `You have received the '${kitName}' kit.`,
+    };
   } catch (error: unknown) {
     if (error instanceof Error) {
       errorLog(`[KitsManager] Failed to give kit: ${error.stack}`);
     } else {
       errorLog(`[KitsManager] Failed to give kit: ${String(error)}`);
     }
-    return { success: false, message: 'An unexpected error occurred while giving the kit.' };
+    return {
+      success: false,
+      message: 'An unexpected error occurred while giving the kit.',
+    };
   }
 }
 

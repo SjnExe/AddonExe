@@ -1,9 +1,6 @@
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isDefined, isNonEmptyString, isObject } from '@lib/guards.js';
 
-/** Checks if a value is a plain object. */
-export function isObject(item: unknown): item is Record<string, unknown> {
-  return item !== null && typeof item === 'object' && !Array.isArray(item);
-}
+export { isObject };
 
 /** Deeply compares two values for equality, handling objects, arrays, dates, and circular references. */
 export function isDeepEqual(a: unknown, b: unknown, map = new WeakMap<object, unknown>()): boolean {

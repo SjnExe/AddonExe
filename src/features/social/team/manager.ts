@@ -117,7 +117,6 @@ function processTeamCreationCost(
 ): { success: boolean; message?: string; charged: boolean } {
   let economyEnabled = false;
   try {
-    // @ts-ignore (ignoring unused var)
     economyEnabled = isFeatureActive('eco');
   } catch {
     // Fallback
@@ -125,7 +124,11 @@ function processTeamCreationCost(
 
   if (economyEnabled && cost > 0) {
     if (balance < cost) {
-      return { success: false, message: `§cInsufficient funds. Cost: ${cost}`, charged: false };
+      return {
+        success: false,
+        message: `§cInsufficient funds. Cost: ${cost}`,
+        charged: false,
+      };
     }
     // Deduct money first
     playerDataManager.incrementPlayerBalance(playerId, -cost);
@@ -146,11 +149,17 @@ function validateTeamName(name: string): ActionResult | null {
 
   const nameRegex = /^[0-9a-zA-Z §&+-]+$/;
   if (!nameRegex.test(name)) {
-    return { success: false, message: '§cName contains invalid characters. Allowed: A-Z, 0-9, space, §, &, +, -' };
+    return {
+      success: false,
+      message: '§cName contains invalid characters. Allowed: A-Z, 0-9, space, §, &, +, -',
+    };
   }
 
   if (name.includes('§k') || name.includes('&k')) {
-    return { success: false, message: '§cTeam names cannot contain obfuscated (magic) text.' };
+    return {
+      success: false,
+      message: '§cTeam names cannot contain obfuscated (magic) text.',
+    };
   }
 
   const lowerName = name.toLowerCase();
@@ -256,7 +265,10 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     }
     activeTeam.delete(newTeamId);
     errorLog(`[TeamManager] Failed to create team, rolled back. Error: ${String(error)}`);
-    return { success: false, message: '§cFailed to create team due to storage error. Funds refunded.' };
+    return {
+      success: false,
+      message: '§cFailed to create team due to storage error. Funds refunded.',
+    };
   }
 
   return { success: true, message: `§aTeam '${name}§a' created successfully!` };
@@ -278,7 +290,6 @@ export function deleteTeam(teamId: number): boolean {
   const cost = teamConfig.creationCost;
   let economyEnabled = false;
   try {
-    // @ts-ignore (ignoring unused var)
     economyEnabled = isFeatureActive('eco');
   } catch {
     // Fallback
@@ -545,7 +556,10 @@ export function denyInvite(playerId: string, teamId: number): ActionResult {
     }
   });
 
-  return { success: found, message: found ? '§aInvite denied.' : '§cInvite not found.' };
+  return {
+    success: found,
+    message: found ? '§aInvite denied.' : '§cInvite not found.',
+  };
 }
 
 // --- Application System (Player -> Team) ---
@@ -565,12 +579,18 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
 
   // Check if team accepts requests
   if (team.open === false) {
-    return { success: false, message: '§cThis team is not accepting new join requests.' };
+    return {
+      success: false,
+      message: '§cThis team is not accepting new join requests.',
+    };
   }
 
   // Check existing application
   if (team.applications.some((app) => app.playerId === player.id)) {
-    return { success: false, message: '§cYou have already applied to this team.' };
+    return {
+      success: false,
+      message: '§cYou have already applied to this team.',
+    };
   }
 
   // Clean expired
@@ -578,7 +598,10 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
   team.applications = team.applications.filter((app) => now - app.timestamp < teamConfig.requestExpirySeconds * 1000);
 
   if (team.applications.length >= teamConfig.maxApplications) {
-    return { success: false, message: '§cTeam has too many pending applications.' };
+    return {
+      success: false,
+      message: '§cTeam has too many pending applications.',
+    };
   }
 
   team.applications.push({
@@ -618,7 +641,10 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
   // Update player
   setPlayerTeam(playerId, teamId);
 
-  return { success: true, message: `§aAccepted ${isDefined(pData) ? pData.name : 'player'} into the team.` };
+  return {
+    success: true,
+    message: `§aAccepted ${isDefined(pData) ? pData.name : 'player'} into the team.`,
+  };
 }
 
 export function denyApplication(teamId: number, playerId: string): ActionResult {
@@ -661,7 +687,10 @@ export function setTeamOpenStatus(teamId: number, isOpen: boolean): ActionResult
   }
   team.open = !!isOpen;
   saveTeam(teamId);
-  return { success: true, message: `§aTeam is now ${isOpen ? 'open' : 'closed'} to requests.` };
+  return {
+    success: true,
+    message: `§aTeam is now ${isOpen ? 'open' : 'closed'} to requests.`,
+  };
 }
 
 export function leaveTeam(player: mc.Player): ActionResult {
@@ -670,7 +699,10 @@ export function leaveTeam(player: mc.Player): ActionResult {
     return { success: false, message: 'You are not in a team.' };
   }
   if (team.ownerId === player.id) {
-    return { success: false, message: 'Owner cannot leave. Delete team or transfer ownership.' };
+    return {
+      success: false,
+      message: 'Owner cannot leave. Delete team or transfer ownership.',
+    };
   }
   return kickMember(team.id, player.id);
 }
@@ -714,7 +746,10 @@ export function withdrawFromTeam(player: mc.Player, amount: number): ActionResul
     return { success: false, message: '§cYou are not in a team.' };
   }
   if (team.ownerId !== player.id) {
-    return { success: false, message: '§cOnly the team owner can withdraw from the team bank.' };
+    return {
+      success: false,
+      message: '§cOnly the team owner can withdraw from the team bank.',
+    };
   }
   if (team.balance < rounded) {
     return { success: false, message: '§cInsufficient team bank funds.' };
@@ -722,7 +757,10 @@ export function withdrawFromTeam(player: mc.Player, amount: number): ActionResul
   team.balance = Number.parseFloat((team.balance - rounded).toFixed(2));
   saveTeam(team.id);
   playerDataManager.incrementPlayerBalance(player.id, rounded);
-  return { success: true, message: `§aWithdrew ${rounded} from the team bank.` };
+  return {
+    success: true,
+    message: `§aWithdrew ${rounded} from the team bank.`,
+  };
 }
 
 export function teleportToTeamHome(player: mc.Player): void {

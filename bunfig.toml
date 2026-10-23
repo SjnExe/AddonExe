@@ -8,11 +8,16 @@ peer = true
 linker = "isolated"
 
 [run]
+bun = true
 shell = "bun"
+noOrphans = true
 
 [test]
 preload = ["./src/core/__tests__/__mocks__/bunSetup.ts"]
 smol = false
+onlyFailures = true
+isolate = false
+randomize = true
 
 [fmt]
 tabWidth = 2

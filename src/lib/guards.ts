@@ -15,14 +15,24 @@ export function isString(value: unknown): value is string {
   return typeof value === 'string';
 }
 
-/** Checks if a value is a number and not NaN. */
+/** Checks if a value is a boolean. */
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
+/** Checks if a value is a finite number and not NaN. */
 export function isNumber(value: unknown): value is number {
-  return typeof value === 'number' && !Number.isNaN(value);
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
 /** Checks if a value is a non-empty string. */
 export function isNonEmptyString(value: unknown): value is string {
   return isString(value) && value.length > 0;
+}
+
+/** Checks if a value is a string containing at least one non-whitespace character. */
+export function isNonBlankString(value: unknown): value is string {
+  return isString(value) && value.trim().length > 0;
 }
 
 /** Checks if a value is a non-null object. */

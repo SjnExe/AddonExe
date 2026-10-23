@@ -1,4 +1,3 @@
-declare const __ENVIRONMENT__: 'BDS' | 'REALMS' | undefined;
 declare const __IS_NIGHTLY__: boolean | undefined;
 declare const __VERSION__: string | undefined;
 

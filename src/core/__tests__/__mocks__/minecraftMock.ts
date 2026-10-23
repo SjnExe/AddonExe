@@ -29,6 +29,10 @@ export function _clearTestDynamicProperties(): void {
   _testDynamicProperties.clear();
 }
 
+export function setCurrentTickForTest(tick: number): void {
+  system.currentTick = tick;
+}
+
 export function _resetMinecraftMocks(): void {
   _clearTestDynamicProperties();
 
@@ -451,13 +455,23 @@ export class ModalFormData {
   textField(label: string, placeholder: string, options?: { defaultValue?: string } | string) {
     const defaultValue =
       typeof options === 'object' && options !== null ? options.defaultValue : (options as string | undefined);
-    this._controls.push({ type: 'textField', label, placeholder, defaultValue });
+    this._controls.push({
+      type: 'textField',
+      label,
+      placeholder,
+      defaultValue,
+    });
     return this;
   }
   dropdown(label: string, optionsList: string[], options?: { defaultValueIndex?: number } | number) {
     const defaultValueIndex =
       typeof options === 'object' && options !== null ? options.defaultValueIndex : (options as number | undefined);
-    this._controls.push({ type: 'dropdown', label, options: optionsList, defaultValueIndex });
+    this._controls.push({
+      type: 'dropdown',
+      label,
+      options: optionsList,
+      defaultValueIndex,
+    });
     return this;
   }
   toggle(label: string, options?: { defaultValue?: boolean } | boolean) {
@@ -482,7 +496,14 @@ export class ModalFormData {
       step = options;
       defaultValue = defaultValueParam ?? min;
     }
-    this._controls.push({ type: 'slider', label, min, max, step, defaultValue });
+    this._controls.push({
+      type: 'slider',
+      label,
+      min,
+      max,
+      step,
+      defaultValue,
+    });
     return this;
   }
   submitButton(_: string) {

@@ -11,16 +11,18 @@ export function sanitizeString(input: string, allowColors = false): string {
   }
   let result = input;
 
-  // Remove color codes if not allowed
   if (!allowColors) {
-    // oxlint-disable-next-line eslint/no-control-regex
-    result = result.replaceAll(/§[0-9a-fklmnor]/g, '');
+    result = result.replaceAll(/§[0-9a-fklmnor]/gi, '');
   }
 
-  // Remove non-printable characters (basic control chars, keeping newlines/returns)
-
-  // oxlint-disable-next-line
-  result = result.replaceAll(/[\u0000-\u0009\u000B\u000C\u000E-\u001F]/g, '');
+  let cleaned = '';
+  for (let i = 0; i < result.length; i++) {
+    const code = result.charCodeAt(i);
+    if (code >= 0x20 || code === 0x0a || code === 0x0d) {
+      cleaned += result[i];
+    }
+  }
+  result = cleaned;
 
   return result.trim();
 }
