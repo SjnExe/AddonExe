@@ -80,7 +80,7 @@ jobs:
             ${{ runner.os }}-bun-
 
       - run: bun install --frozen-lockfile
-      - run: bun check-types
+      - run: bun check
 
   test:
     runs-on: ubuntu-latest
