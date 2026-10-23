@@ -1,8 +1,7 @@
-import * as mc from '@minecraft/server';
-
 import { HomeLocation } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const WARPS_PROPERTY_ID = 'exe:warps';
 const storage = new StorageManager(WARPS_PROPERTY_ID);
@@ -14,6 +13,7 @@ interface ActionResult {
 
 /**
  * Gets all warps from dynamic properties.
+ *
  * @returns A record of warp names to their locations.
  */
 function getWarps(): Record<string, HomeLocation> {
@@ -23,6 +23,7 @@ function getWarps(): Record<string, HomeLocation> {
 
 /**
  * Saves all warps to dynamic properties.
+ *
  * @param warps The record of warps to save.
  */
 function saveWarps(warps: Record<string, HomeLocation>) {
@@ -31,6 +32,7 @@ function saveWarps(warps: Record<string, HomeLocation>) {
 
 /**
  * Sets a warp at a specific location.
+ *
  * @param warpName The name of the warp.
  * @param location The location of the warp.
  * @param dimensionId The dimension of the warp.
@@ -60,6 +62,7 @@ export function setWarp(warpName: string, location: mc.Vector3, dimensionId: str
 
 /**
  * Gets a warp's location.
+ *
  * @param warpName The name of the warp.
  * @returns The location of the warp, or undefined if it doesn't exist.
  */
@@ -70,6 +73,7 @@ export function getWarp(warpName: string): HomeLocation | undefined {
 
 /**
  * Deletes a warp.
+ *
  * @param warpName The name of the warp.
  * @returns The result of the operation.
  */
@@ -88,6 +92,7 @@ export function deleteWarp(warpName: string): ActionResult {
 
 /**
  * Lists all warps.
+ *
  * @returns An array of warp names.
  */
 export function listWarps(): string[] {

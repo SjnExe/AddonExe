@@ -1,9 +1,8 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerCount } from '@core/data/playerCache.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getTimerStats } from '@core/utils/timerManager.js';
+import * as mc from '@minecraft/server';
 
 const debugCommand: CustomCommand = {
     name: 'debug',

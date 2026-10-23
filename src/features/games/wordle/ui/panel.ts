@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getWordleConfig } from '@core/config/configurations.js';
 import { getBalance, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
@@ -25,6 +23,7 @@ import {
     submitWordleDuelGuess
 } from '@features/games/wordle/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 

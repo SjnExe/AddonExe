@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
@@ -8,6 +5,8 @@ import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export interface WorldBorderConfig {
     enabled: boolean;

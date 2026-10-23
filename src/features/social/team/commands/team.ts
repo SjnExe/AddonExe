@@ -1,12 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayer, getPlayerIdByName, getPlayerNameById } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
-
 import { getChatChannelStatus, setStaffChatState } from '@features/moderation/commands/staffchat.js';
 import * as teamManager from '@features/social/team/manager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const teamChatActive = new Map<string, boolean>();
 

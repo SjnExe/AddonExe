@@ -1,7 +1,3 @@
-import { handleCombatPlayerJoin } from '@features/essentials/combatManager.js';
-import * as mc from '@minecraft/server';
-import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
 import { getPlayerRank, updatePlayerNameTag } from '@core/permissions/rankManager.js';
@@ -10,7 +6,10 @@ import { formatLocation, formatString } from '@core/utils/index.js';
 import { debugLog, infoLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getKit, giveKitItems } from '@features/economy/kit/manager.js';
+import { handleCombatPlayerJoin } from '@features/essentials/combatManager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
+import * as mc from '@minecraft/server';
+import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 export function handlePlayerJoin(player: mc.Player) {
     const pData = getOrCreatePlayer(player);

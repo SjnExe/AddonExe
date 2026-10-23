@@ -1,11 +1,9 @@
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
-import * as mc from '@minecraft/server';
-
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDeepEqual } from '@core/utils/objectUtils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 interface SidebarService {
     resolveGlobalPlaceholders: (text: string, player?: mc.Player) => string;

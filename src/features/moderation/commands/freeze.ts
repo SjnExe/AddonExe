@@ -1,12 +1,11 @@
-import * as mc from '@minecraft/server';
-import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { canTarget } from '@core/permissions/rankManager.js';
 import { frozenTag } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
+import * as mc from '@minecraft/server';
+import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
     if (!canTarget(executor, targetPlayer.id)) {

@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { debugLog } from '@core/utils/logger.js';
+import * as mc from '@minecraft/server';
 
 export interface VoteOption {
     id: number;

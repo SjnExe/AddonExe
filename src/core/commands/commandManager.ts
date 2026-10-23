@@ -1,18 +1,15 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 // --- Type Definitions ---
 
 export { CustomCommandParamType } from '@minecraft/server';
 
-/**
- * Represents a parameter for a custom command.
- */
+/** Represents a parameter for a custom command. */
 export interface CommandParameter {
     /** The name of the parameter. */
     name: string;
@@ -26,9 +23,7 @@ export interface CommandParameter {
     description?: string;
 }
 
-/**
- * Represents the entity executing a command, which can be a player or the console.
- */
+/** Represents the entity executing a command, which can be a player or the console. */
 export type CommandExecutor =
     | mc.Player
     | {
@@ -36,9 +31,7 @@ export type CommandExecutor =
           sendMessage: (message: string | mc.RawMessage) => void;
       };
 
-/**
- * Represents the structure for defining a custom command.
- */
+/** Represents the structure for defining a custom command. */
 export interface CustomCommand {
     /** The primary name of the command. */
     name: string;
@@ -66,9 +59,7 @@ export interface CustomCommand {
     hidden?: boolean;
 }
 
-/**
- * Manages the registration and execution of both slash and chat commands.
- */
+/** Manages the registration and execution of both slash and chat commands. */
 class CommandManager {
     public commands: Map<string, CustomCommand> = new Map();
     public aliases: Map<string, string> = new Map();
@@ -139,6 +130,7 @@ class CommandManager {
 
     /**
      * Registers a new command.
+     *
      * @param {CustomCommand} commandOptions
      */
     register(commandOptions: CustomCommand) {
@@ -154,6 +146,7 @@ class CommandManager {
 
     /**
      * Gets all registered commands.
+     *
      * @returns {CustomCommand[]} An array of all registered commands.
      */
     getAllCommands(): CustomCommand[] {
@@ -162,10 +155,11 @@ class CommandManager {
 
     /**
      * The core command execution logic, shared by slash and chat commands.
+     *
+     * @private
      * @param {CommandExecutor} executor The player or a console identifier.
      * @param {CustomCommand} command The command to execute.
      * @param {Record<string, unknown>} args The parsed arguments for the command.
-     * @private
      */
     private _executeCommand(executor: CommandExecutor, command: CustomCommand, args: Record<string, unknown>) {
         let config: unknown;
@@ -240,8 +234,9 @@ class CommandManager {
 
     /**
      * Generates a usage string for a command.
+     *
      * @param {CustomCommand} command
-     * @returns {string} e.g. "Usage: /gm [s|c|a] <target>"
+     * @returns {string} E.g. "Usage: /gm [s|c|a] <target>"
      */
     getUsageString(command: CustomCommand): string {
         const params = command.parameters ?? [];
@@ -261,11 +256,12 @@ class CommandManager {
 
     /**
      * Registers a single slash command or alias.
+     *
+     * @private
      * @param {mc.CustomCommandRegistry} customCommandRegistry The registry object from the startup event.
      * @param {CustomCommand} command The command definition.
      * @param {string} name The name to register (either primary or an alias).
      * @param {boolean} isRetry Whether this is a retry attempt (e.g. after collision).
-     * @private
      */
     private _registerSlashCommand(customCommandRegistry: mc.CustomCommandRegistry, command: CustomCommand, name: string, isRetry = false) {
         if (this.registeredSlashCommands.has(name)) {
@@ -364,11 +360,12 @@ class CommandManager {
 
     /**
      * Prepares the command data for registration with the Minecraft API.
+     *
+     * @private
      * @param {CustomCommand} command The command definition.
      * @param {string} nameOverride The specific name to use for this registration (main name or alias).
      * @param {mc.CustomCommandRegistry} registry The custom command registry for enum registration.
      * @returns {mc.CustomCommand} The formatted command data.
-     * @private
      */
     private prepareCommandData(command: CustomCommand, nameOverride: string, registry: mc.CustomCommandRegistry): mc.CustomCommand {
         const slashCommandName = isNonEmptyString(nameOverride) ? nameOverride : (command.slashName ?? command.name);
@@ -386,11 +383,12 @@ class CommandManager {
 
     /**
      * Formats a parameter for registration with the Minecraft API.
+     *
+     * @private
      * @param {CommandParameter} param The parameter definition.
      * @param {string} commandName The name of the command (for unique enum naming).
      * @param {mc.CustomCommandRegistry} registry The custom command registry for enum registration.
      * @returns {mc.CustomCommandParameter} The formatted parameter data.
-     * @private
      */
     private formatParameter(param: CommandParameter, commandName: string, registry: mc.CustomCommandRegistry): mc.CustomCommandParameter {
         // --- Enum Handling ---

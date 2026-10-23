@@ -1,19 +1,18 @@
-import * as mc from '@minecraft/server';
-
 import createConfigManager, { ConfigManager } from '@core/config/configManagerFactory.js';
-import { anticheatConfig, type AnticheatConfig } from '@features/anticheat/config.js';
+import { type AnticheatConfig, anticheatConfig } from '@features/anticheat/config.js';
 import { xrayConfig } from '@features/anticheat/xrayConfig.js';
 import { auctionHouseConfig } from '@features/economy/auction/config.js';
 import { economyConfig } from '@features/economy/config.js';
 import { dailyRewardsConfig } from '@features/economy/daily/config.js';
 import { shopConfig } from '@features/economy/shop/config.js';
-import { worldProtectionConfig, type WorldProtectionConfig } from '@features/essentials/config.js';
-import { gamesConfig, type GamesConfig } from '@features/games/config.js';
-import { wordleConfig, type WordleConfig } from '@features/games/wordle/config.js';
+import { type WorldProtectionConfig, worldProtectionConfig } from '@features/essentials/config.js';
+import { type GamesConfig, gamesConfig } from '@features/games/config.js';
+import { type WordleConfig, wordleConfig } from '@features/games/wordle/config.js';
 import ranksConfig from '@features/ranks/config.js';
 import { config as sidebarConfig } from '@features/sidebar/config.js';
 import { friendConfig } from '@features/social/friends/config.js';
 import { teamConfig } from '@features/social/team/config.js';
+import * as mc from '@minecraft/server';
 
 export type { AnticheatConfig, GamesConfig, WordleConfig, WorldProtectionConfig };
 export type ShopConfig = typeof shopConfig;

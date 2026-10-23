@@ -1,10 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { warnLog } from '@core/utils/logger.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 /**
  * Sends a consistently formatted message to a player or the entire world.
+ *
  * @param message The message to send. Can include color codes.
  * @param target - The player to send the message to, or 'all' to broadcast to everyone. Defaults to a world broadcast.
  * @param options Optional parameters.

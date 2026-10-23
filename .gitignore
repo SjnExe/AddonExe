@@ -19,5 +19,4 @@ validation_report/
 
 # Caches & State
 .cache/
-.prettier-cache
 *.tsbuildinfo

@@ -1,7 +1,6 @@
+import { CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateConfig } from '@core/config/configManager.js';
 import { sendMessage } from '@core/utils/messaging.js';
-
-import { CustomCommand } from '@commands/commandManager.js';
 
 const command: CustomCommand = {
     name: 'chattoconsole',

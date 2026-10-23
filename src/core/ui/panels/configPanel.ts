@@ -10,7 +10,7 @@ import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 import { getSystemDefinition } from '@ui/systemRegistry.js';
-import { getSystemsByCategory, getVisibleCategories, itemsPerPage, configHandlers as uiConfigHandlers } from '@ui/uiUtils.js';
+import { configHandlers as uiConfigHandlers, getSystemsByCategory, getVisibleCategories, itemsPerPage } from '@ui/uiUtils.js';
 
 const uiConfigHandlerKeys = Object.keys(uiConfigHandlers);
 const uiConfigHandlerEntries = Object.entries(uiConfigHandlers);

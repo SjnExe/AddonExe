@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import * as configManager from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
 import { getAllPlayersFromCache, getPlayerCount, getPlayerFromCache } from '@core/data/playerCache.js';
@@ -12,6 +10,7 @@ import { getBounty } from '@features/economy/bountyManager.js';
 import { getRemainingCombatCooldown } from '@features/essentials/combatManager.js';
 import type { SidebarLayoutMode } from '@features/sidebar/config.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 interface LeaderboardEntry {
     name: string;

@@ -1,8 +1,7 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getStaffInventoryStatus, swapStaffInventory, toggleStaffAutoSwap, toggleStaffInventory } from '@features/moderation/staffInventoryManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const staffInvCommand: CustomCommand = {
     name: 'staffinv',

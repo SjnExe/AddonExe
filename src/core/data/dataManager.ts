@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { loadCooldowns } from '@core/data/cooldownManager.js';
 import { clearExpiredPayments, getAllPlayerData, isNameIdMapDirty, loadNameIdMap, saveNameIdMap, savePlayerData } from '@core/data/playerDataManager.js';
@@ -7,6 +5,7 @@ import { debugLog, infoLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import { initializeLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 let autoSaveIntervalId: number | undefined;
 const loadDataHandlers: Array<() => void> = [];
@@ -34,8 +33,8 @@ export function restartAutoSave() {
 }
 
 /**
- * Saves all "dirty" data to world properties.
- * This includes player data flagged with `needsSave` and the name-to-ID map if it has changed.
+ * Saves all "dirty" data to world properties. This includes player data flagged with `needsSave` and the name-to-ID map if it has changed.
+ *
  * @param options
  * @param options.log - Whether to log the save event.
  * @returns True if any data was saved, false otherwise.
@@ -85,8 +84,8 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
 }
 
 /**
- * Generator version of saveAllData for background processing across ticks via system.runJob.
- * Saves dirty name-to-ID map and modified player data incrementally without causing tick lag spikes.
+ * Generator version of saveAllData for background processing across ticks via system.runJob. Saves dirty name-to-ID map and modified player data incrementally without causing tick lag spikes.
+ *
  * @param options
  * @param options.log - Whether to log the save event.
  */
@@ -133,9 +132,7 @@ export function* saveAllDataJob(options: { log?: boolean } = {}): Generator<void
     }
 }
 
-/**
- * Initializes the data manager, including setting up the auto-saver.
- */
+/** Initializes the data manager, including setting up the auto-saver. */
 export function initializeDataManager() {
     restartAutoSave();
 

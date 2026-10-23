@@ -3,9 +3,7 @@ import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
-/**
- * Main entry point for showing a UI panel to a player.
- */
+/** Main entry point for showing a UI panel to a player. */
 export async function showPanel(player: mc.Player, panelId: string, _context: Record<string, unknown> = {}) {
     try {
         const now = Date.now();

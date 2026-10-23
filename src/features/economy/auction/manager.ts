@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-
 import { getAuctionHouseConfig } from '@core/config/configurations.js';
 import { deserializeItem, SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
@@ -11,6 +8,8 @@ import { formatCurrency, getIdTimestamp } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { generateId } from '@lib/id.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 export interface AuctionListing {
     id: string; // Unique ID (UUID)
@@ -71,9 +70,7 @@ function saveAuctions() {
     storage.save(data);
 }
 
-/**
- * Creates a new auction listing.
- */
+/** Creates a new auction listing. */
 export function createListing(player: mc.Player, item: SerializedItem, price: number, isBid: boolean, duration: number): { success: boolean; message: string } {
     const config = getAuctionHouseConfig();
 
@@ -118,9 +115,7 @@ export function createListing(player: mc.Player, item: SerializedItem, price: nu
     return { success: true, message: `§aItem listed for ${formatCurrency(price)}!` };
 }
 
-/**
- * Buy It Now (BIN) transaction.
- */
+/** Buy It Now (BIN) transaction. */
 export function buyItem(buyer: mc.Player, listingId: string): { success: boolean; message: string } {
     const listing = activeListings.get(listingId);
     if (!listing) {
@@ -194,9 +189,7 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
     return { success: true, message: '§aPurchase successful.' };
 }
 
-/**
- * Place a bid on an auction.
- */
+/** Place a bid on an auction. */
 export function placeBid(bidder: mc.Player, listingId: string, amount: number): { success: boolean; message: string } {
     const listing = activeListings.get(listingId);
     if (!listing) {

@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getWordleConfig } from '@core/config/configurations.js';
 import { getBalance, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { broadcastWordleMessage, formatGuess, getStaffHostedGame, isValidWord, submitGuess } from '@features/games/wordle/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const pendingConfirmations = new Map<string, string>();
 

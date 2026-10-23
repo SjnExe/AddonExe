@@ -1,9 +1,8 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { resolveTarget } from '@core/utils/index.js';
 import { replyPrivateMessage, sendPrivateMessage, socialSpyTag } from '@features/social/privateMessageManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const msgCommand: CustomCommand = {
     name: 'msg',

@@ -1,6 +1,5 @@
-import * as mc from '@minecraft/server';
-
 import { debugLog } from '@core/utils/logger.js';
+import * as mc from '@minecraft/server';
 
 const timeoutIds = new Set<number>();
 const jobIds = new Set<number>();

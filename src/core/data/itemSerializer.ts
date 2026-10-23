@@ -1,9 +1,7 @@
-import { ItemComponentTypes } from '@minecraft/server';
-
-import * as mc from '@minecraft/server';
-
 import { errorLog } from '@core/utils/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { ItemComponentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 export interface SerializedEnchantment {
     id: string;
@@ -27,10 +25,7 @@ export interface SerializedItem {
     dynamicProperties?: Record<string, boolean | number | string | mc.Vector3>;
 }
 
-/**
- * Serializes an ItemStack into a JSON-compatible object.
- * Warning: Does not support container contents (Shulker Boxes).
- */
+/** Serializes an ItemStack into a JSON-compatible object. Warning: Does not support container contents (Shulker Boxes). */
 export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     const serialized: SerializedItem = {
         typeId: itemStack.typeId,
@@ -114,9 +109,7 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     return serialized;
 }
 
-/**
- * Deserializes a SerializedItem back into an ItemStack.
- */
+/** Deserializes a SerializedItem back into an ItemStack. */
 
 export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined {
     try {

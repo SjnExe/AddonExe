@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as playerDataManager from '@core/data/playerDataManager.js';
@@ -7,6 +5,8 @@ import * as permissionEngine from '@core/permissions/permissionEngine.js';
 import { isStaffChatEnabled, toggleStaffChat } from '@features/moderation/commands/staffchat.js';
 import { handleGameModeInventorySwap, swapStaffInventory, toggleStaffAutoSwap, toggleStaffInventory } from '@features/moderation/staffInventoryManager.js';
 import { isTeamChatEnabled, toggleTeamChat } from '@features/social/team/commands/team.js';
+import * as mc from '@minecraft/server';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 const itemProto = mc.ItemStack.prototype as unknown as {
     lore?: string[];

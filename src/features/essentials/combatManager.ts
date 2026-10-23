@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getEconomyConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
@@ -13,6 +10,8 @@ import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager
 import * as bountyManager from '@features/economy/bountyManager.js';
 import * as teamManager from '@features/social/team/manager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 export interface LastHitInfo {
     attackerId: string;

@@ -1,10 +1,10 @@
-import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as configurations from '@core/config/configurations.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { removeFriend } from '@features/social/friends/manager.js';
+import * as mc from '@minecraft/server';
 
 describe('friendManager', () => {
     let updatePlayerDataSpy: any;

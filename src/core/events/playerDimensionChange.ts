@@ -1,11 +1,9 @@
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
-import { hasPermission } from '@core/permissions/permissionEngine.js';
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getLockState } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export const eventName = 'playerDimensionChange';
 

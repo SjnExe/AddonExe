@@ -1,4 +1,5 @@
 import { $ } from 'bun';
+
 import { validateIcons } from './icons.ts';
 import { validateMinecraftRules } from './minecraft-rules.ts';
 import { validateSchemas } from './schemas.ts';

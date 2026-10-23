@@ -4,6 +4,7 @@ import { ActionFormData, ActionFormResponse, FormCancelationReason, MessageFormD
 
 /**
  * Returns an appropriate icon based on the player's permission level.
+ *
  * @param player The player to evaluate.
  * @returns The path to the texture icon.
  */
@@ -14,10 +15,7 @@ export function getPlayerIcon(player: mc.Player): string {
     return 'textures/ui/permissions_member_star.png';
 }
 
-/**
- * Forces the chat window to close by briefly toggling input permissions.
- * This is a known workaround for Bedrock UI behavior.
- */
+/** Forces the chat window to close by briefly toggling input permissions. This is a known workaround for Bedrock UI behavior. */
 export async function forceCloseChat(player: mc.Player): Promise<void> {
     try {
         if (!player.isValid) {
@@ -43,6 +41,7 @@ export async function forceCloseChat(player: mc.Player): Promise<void> {
 
 /**
  * Shows a form to a player, handling 'UserBusy' cancelations by automatically retrying.
+ *
  * @param player The player to show the form to.
  * @param form The form instance to show.
  * @returns A promise that resolves with the form response.
@@ -95,6 +94,7 @@ export async function uiWait(player: mc.Player, form: ActionFormData | ModalForm
 
 /**
  * Determines the color for the countdown timer based on remaining seconds.
+ *
  * @param secondsRemaining
  * @returns The Minecraft color code.
  */
@@ -114,10 +114,7 @@ export function getCountdownColor(secondsRemaining: number): string {
     return '§a'; // Green
 }
 
-/**
- * Plays the click sound for UI interactions.
- * This is a standard feedback sound for the addon.
- */
+/** Plays the click sound for UI interactions. This is a standard feedback sound for the addon. */
 export function playClickSound(player: mc.Player): void {
     if (player.isValid) {
         player.playSound('random.click', { pitch: 1, volume: 1 });

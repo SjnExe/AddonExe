@@ -1,18 +1,9 @@
 /**
- * Defines all possible items that can be available in the shop.
- * The 'edit shop' panel will allow admins to enable/disable these items
- * and override their default prices.
+ * Defines all possible items that can be available in the shop. The 'edit shop' panel will allow admins to enable/disable these items and override their default prices.
  *
- * Structure for each item:
- * {
- *   itemId: string,        // The Minecraft item type ID (e.g., MinecraftItemTypes.Diamond).
- *   icon: string,          // The texture path for the icon (e.g., 'textures/items/diamond').
- *   buyPrice: number,      // Default buy price. -1 to disable buying.
- *   sellPrice: number,     // Default sell price. -1 to disable selling.
- *   category: string,      // The main category for the item.
- *   subCategory?: string,   // Optional sub-category for more detailed sorting.
- *   displayName?: string    // Optional display name for items like enchanted books.
- * }
+ * Structure for each item: { itemId: string, // The Minecraft item type ID (e.g., MinecraftItemTypes.Diamond). icon: string, // The texture path for the icon (e.g., 'textures/items/diamond').
+ * buyPrice: number, // Default buy price. -1 to disable buying. sellPrice: number, // Default sell price. -1 to disable selling. category: string, // The main category for the item. subCategory?:
+ * string, // Optional sub-category for more detailed sorting. displayName?: string // Optional display name for items like enchanted books. }
  */
 import { MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 

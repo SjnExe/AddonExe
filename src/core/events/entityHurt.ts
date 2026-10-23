@@ -1,7 +1,6 @@
+import { setLastHit } from '@features/essentials/combatManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
-
-import { setLastHit } from '@features/essentials/combatManager.js';
 
 export const eventName = 'entityHurt';
 

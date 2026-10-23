@@ -20,9 +20,7 @@ export interface MenuItem {
 
 const menuRegistry: MenuItem[] = [];
 
-/**
- * Registers a dynamic menu item into the UI menu registry.
- */
+/** Registers a dynamic menu item into the UI menu registry. */
 export function registerMenuItem(item: MenuItem): void {
     const existingIndex = menuRegistry.findIndex((i) => i.id === item.id && i.hub === item.hub);
     if (existingIndex >= 0) {
@@ -32,9 +30,7 @@ export function registerMenuItem(item: MenuItem): void {
     }
 }
 
-/**
- * Retrieves all registered menu items for a specific hub that are available to the player.
- */
+/** Retrieves all registered menu items for a specific hub that are available to the player. */
 export function getMenuItemsForHub(hub: MenuHubId, player: mc.Player): MenuItem[] {
     return menuRegistry
         .filter((item) => {
@@ -49,9 +45,7 @@ export function getMenuItemsForHub(hub: MenuHubId, player: mc.Player): MenuItem[
         .sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
 }
 
-/**
- * Checks if a menu item is enabled based on its feature state.
- */
+/** Checks if a menu item is enabled based on its feature state. */
 export function isMenuItemActive(item: MenuItem): boolean {
     if (!isDefined(item.featureId)) {
         return true;
@@ -59,9 +53,7 @@ export function isMenuItemActive(item: MenuItem): boolean {
     return isFeatureActive(item.featureId);
 }
 
-/**
- * Initializes default menu items for all hubs.
- */
+/** Initializes default menu items for all hubs. */
 export function initializeDefaultMenuItems(): void {
     if (menuRegistry.length > 0) {
         return;

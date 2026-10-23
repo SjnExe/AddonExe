@@ -1,14 +1,12 @@
-import { EntityComponentTypes } from '@minecraft/server';
-
-import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/zoneSelectionManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined } from '@lib/guards.js';
+import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 function canBypass(player: mc.Player): boolean {
     // Check if admin bypass is allowed globally or in spawn configuration

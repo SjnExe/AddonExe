@@ -1,7 +1,9 @@
-import { MinecraftBlockTypes, MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
-import Ajv from 'ajv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { MinecraftBlockTypes, MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+import Ajv from 'ajv';
+
 import ignoredTextures from './ignored-textures.json';
 
 const VALID_UI_TYPES = new Set([

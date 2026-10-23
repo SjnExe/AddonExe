@@ -1,8 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
-
-import { errorLog } from '@core/utils/logger.js';
-
 import handleBeforeChatSend from '@core/events/beforeChatSend.js';
 import handleEntityDie from '@core/events/entityDie.js';
 import handleEntityHurt from '@core/events/entityHurt.js';
@@ -22,11 +17,15 @@ import {
     handlePlayerInteractWithEntity
 } from '@core/events/protectionEvents.js';
 import { handleScriptEventReceive } from '@core/events/scriptEventReceive.js';
+import { errorLog } from '@core/utils/logger.js';
+import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 const cleanupActions: (() => void)[] = [];
 
 /**
  * Registers an event listener safely and stores the cleanup action.
+ *
  * @param signal The event signal to subscribe to.
  * @param handler The handler function for the event.
  * @param name The name of the event for logging purposes.

@@ -1,8 +1,9 @@
-import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
-import defaultConfig from '../../../../config.js';
 
 import * as configManager from '@core/config/configManager.js';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
+
+import defaultConfig from '../../../../config.js';
 
 // Mocks
 const mockGetConfig = mock();

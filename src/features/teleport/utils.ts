@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
 import { setPlayerLastLocation } from '@core/data/playerDataManager.js';
@@ -10,6 +7,8 @@ import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { formatCooldown } from '@core/utils/time.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 
 export const unsafeTeleportBlocks = new Set<string>([
     MinecraftBlockTypes.Lava,
@@ -56,9 +55,7 @@ const sortedSearchOffsets: Offset3D[] = (() => {
     return offsets.toSorted((a, b) => a.distSq - b.distSq);
 })();
 
-/**
- * Saves the player's current location as their "last location" for /back command.
- */
+/** Saves the player's current location as their "last location" for /back command. */
 export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport'): void {
     if (!isDefined(player) || !player.isValid) {
         return;
@@ -87,9 +84,7 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
     }
 }
 
-/**
- * Checks if a specific block column has safe solid ground and 2 breathable blocks above.
- */
+/** Checks if a specific block column has safe solid ground and 2 breathable blocks above. */
 export function isSafeTeleportColumn(dimension: mc.Dimension, x: number, y: number, z: number, rejectLeaves = false): boolean {
     try {
         const ground = dimension.getBlock({ x, y: y - 1, z });
@@ -116,9 +111,7 @@ export function isSafeTeleportColumn(dimension: mc.Dimension, x: number, y: numb
     }
 }
 
-/**
- * Finds the nearest safe location to the target coordinates, checking (0, 0, 0) first.
- */
+/** Finds the nearest safe location to the target coordinates, checking (0, 0, 0) first. */
 export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vector3 | undefined {
     const baseX = Math.floor(location.x);
     const baseY = Math.floor(location.y);
@@ -150,9 +143,7 @@ export interface ExecuteTeleportParams {
     cooldownKey: string;
 }
 
-/**
- * Consolidates common teleport logic including cooldown check, world border check, warmup, dimension resolution, and error logging.
- */
+/** Consolidates common teleport logic including cooldown check, world border check, warmup, dimension resolution, and error logging. */
 export function executeTeleport(params: ExecuteTeleportParams): void {
     const { executor, location, destinationName, teleportType, warmupSeconds, cooldownSeconds, cooldownKey } = params;
 

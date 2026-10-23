@@ -1,15 +1,14 @@
 import { getConfig } from '@core/config/configManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
-import { getRemainingCombatCooldown } from '@features/essentials/combatManager.js';
-import { Vector3Utils } from '@minecraft/math';
-import * as mc from '@minecraft/server';
-import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
-
 import { errorLog } from '@core/utils/logger.js';
 import { playSound } from '@core/utils/sound.js';
 import { getCountdownColor } from '@core/utils/ui.js';
+import { getRemainingCombatCooldown } from '@features/essentials/combatManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
+import { Vector3Utils } from '@minecraft/math';
+import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 const activePlayerWarmups = new Map<string, () => void>();
 

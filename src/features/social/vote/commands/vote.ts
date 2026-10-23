@@ -1,12 +1,10 @@
-import { hasPermission } from '@core/permissions/permissionEngine.js';
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
-
 import { endVote, getActiveVote } from '@features/social/vote/manager.js';
 import { showVoteMenu } from '@features/social/vote/ui/panel.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const voteCommand: CustomCommand = {
     name: 'vote',

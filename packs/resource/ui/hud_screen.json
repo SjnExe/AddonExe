@@ -1,151 +1,151 @@
 {
-    "namespace": "hud",
-    "anim_exe_hud_hold": {
-        "anim_type": "alpha",
-        "easing": "linear",
-        "duration": 2.5,
-        "from": 1,
-        "to": 1,
-        "next": "@hud.anim_actionbar_text_alpha_out"
-    },
-    "exe_card_frame": {
-        "type": "image",
-        "texture": "textures/ui/dialog_background_opaque",
-        "color": [0.12, 0.14, 0.18],
-        "alpha": 0.88,
-        "size": ["100%c + 8px", "100%c + 8px"],
-        "layer": 30,
-        "controls": [
+  "namespace": "hud",
+  "anim_exe_hud_hold": {
+    "anim_type": "alpha",
+    "easing": "linear",
+    "duration": 2.5,
+    "from": 1,
+    "to": 1,
+    "next": "@hud.anim_actionbar_text_alpha_out"
+  },
+  "exe_card_frame": {
+    "type": "image",
+    "texture": "textures/ui/dialog_background_opaque",
+    "color": [0.12, 0.14, 0.18],
+    "alpha": 0.88,
+    "size": ["100%c + 8px", "100%c + 8px"],
+    "layer": 30,
+    "controls": [
+      {
+        "inner_recess": {
+          "type": "image",
+          "texture": "textures/ui/Black",
+          "alpha": 0.6,
+          "size": ["100%c + 8px", "100%c + 6px"],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "layer": 31,
+          "controls": [
             {
-                "inner_recess": {
-                    "type": "image",
-                    "texture": "textures/ui/Black",
-                    "alpha": 0.6,
-                    "size": ["100%c + 8px", "100%c + 6px"],
-                    "anchor_from": "center",
-                    "anchor_to": "center",
-                    "layer": 31,
-                    "controls": [
-                        {
-                            "card_label": {
-                                "type": "label",
-                                "text": "$actionbar_text",
-                                "localize": false,
-                                "color": [0.95, 0.96, 0.98],
-                                "shadow": true,
-                                "font_size": "normal",
-                                "text_alignment": "left",
-                                "layer": 32,
-                                "anchor_from": "center",
-                                "anchor_to": "center"
-                            }
-                        }
-                    ]
-                }
+              "card_label": {
+                "type": "label",
+                "text": "$actionbar_text",
+                "localize": false,
+                "color": [0.95, 0.96, 0.98],
+                "shadow": true,
+                "font_size": "normal",
+                "text_alignment": "left",
+                "layer": 32,
+                "anchor_from": "center",
+                "anchor_to": "center"
+              }
             }
-        ]
-    },
-    "exe_right_sidebar_card": {
-        "type": "panel",
-        "size": ["100%c", "100%c"],
-        "anchor_from": "top_right",
-        "anchor_to": "top_right",
-        "offset": [-6, 20],
-        "$atext": "$actionbar_text",
-        "visible": "(not (($atext - '§1§r') = $atext))",
-        "controls": [
-            {
-                "bg@hud.exe_card_frame": {}
-            }
-        ]
-    },
-    "exe_left_sidebar_card": {
-        "type": "panel",
-        "size": ["100%c", "100%c"],
-        "anchor_from": "top_left",
-        "anchor_to": "top_left",
-        "offset": [6, 62],
-        "$atext": "$actionbar_text",
-        "visible": "(not (($atext - '§2§r') = $atext))",
-        "controls": [
-            {
-                "bg@hud.exe_card_frame": {}
-            }
-        ]
-    },
-    "exe_bottom_hud_pill": {
-        "type": "image",
-        "texture": "textures/ui/Black",
-        "alpha": 0.68,
-        "size": ["100%c + 12px", "100%c + 6px"],
-        "anchor_from": "bottom_middle",
-        "anchor_to": "bottom_middle",
-        "offset": [0, -50],
-        "layer": 30,
-        "$atext": "$actionbar_text",
-        "visible": "(not (($atext - '§3§r') = $atext))",
-        "controls": [
-            {
-                "pill_label": {
-                    "type": "label",
-                    "text": "$actionbar_text",
-                    "localize": false,
-                    "color": [0.95, 0.96, 0.98],
-                    "shadow": true,
-                    "font_size": "normal",
-                    "text_alignment": "center",
-                    "layer": 31,
-                    "anchor_from": "center",
-                    "anchor_to": "center"
-                }
-            }
-        ]
-    },
-    "exe_hud_root": {
-        "type": "panel",
-        "size": ["100%", "100%"],
-        "anchor_from": "center",
-        "anchor_to": "center",
-        "alpha": "@hud.anim_exe_hud_hold",
-        "controls": [
-            {
-                "right_card@hud.exe_right_sidebar_card": {}
-            },
-            {
-                "left_card@hud.exe_left_sidebar_card": {}
-            },
-            {
-                "bottom_pill@hud.exe_bottom_hud_pill": {}
-            }
-        ]
-    },
-    "exe_hud_actionbar_area": {
-        "type": "panel",
-        "size": ["100%", "100%"],
-        "anchor_from": "center",
-        "anchor_to": "center",
-        "factory": {
-            "name": "hud_actionbar_text_factory",
-            "control_ids": {
-                "hud_actionbar_text": "hud_actionbar_text@hud.exe_hud_root"
-            }
+          ]
         }
-    },
-    "hud_actionbar_text": {
-        "$atext": "$actionbar_text",
-        "visible": "((($atext - '§1§r') = $atext) and (($atext - '§2§r') = $atext) and (($atext - '§3§r') = $atext))"
-    },
-    "root_panel": {
-        "modifications": [
-            {
-                "array_name": "controls",
-                "operation": "insert_front",
-                "value": [
-                    {
-                        "exe_hud_actionbar_area@hud.exe_hud_actionbar_area": {}
-                    }
-                ]
-            }
-        ]
+      }
+    ]
+  },
+  "exe_right_sidebar_card": {
+    "type": "panel",
+    "size": ["100%c", "100%c"],
+    "anchor_from": "top_right",
+    "anchor_to": "top_right",
+    "offset": [-6, 20],
+    "$atext": "$actionbar_text",
+    "visible": "(not (($atext - '§1§r') = $atext))",
+    "controls": [
+      {
+        "bg@hud.exe_card_frame": {}
+      }
+    ]
+  },
+  "exe_left_sidebar_card": {
+    "type": "panel",
+    "size": ["100%c", "100%c"],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "offset": [6, 62],
+    "$atext": "$actionbar_text",
+    "visible": "(not (($atext - '§2§r') = $atext))",
+    "controls": [
+      {
+        "bg@hud.exe_card_frame": {}
+      }
+    ]
+  },
+  "exe_bottom_hud_pill": {
+    "type": "image",
+    "texture": "textures/ui/Black",
+    "alpha": 0.68,
+    "size": ["100%c + 12px", "100%c + 6px"],
+    "anchor_from": "bottom_middle",
+    "anchor_to": "bottom_middle",
+    "offset": [0, -50],
+    "layer": 30,
+    "$atext": "$actionbar_text",
+    "visible": "(not (($atext - '§3§r') = $atext))",
+    "controls": [
+      {
+        "pill_label": {
+          "type": "label",
+          "text": "$actionbar_text",
+          "localize": false,
+          "color": [0.95, 0.96, 0.98],
+          "shadow": true,
+          "font_size": "normal",
+          "text_alignment": "center",
+          "layer": 31,
+          "anchor_from": "center",
+          "anchor_to": "center"
+        }
+      }
+    ]
+  },
+  "exe_hud_root": {
+    "type": "panel",
+    "size": ["100%", "100%"],
+    "anchor_from": "center",
+    "anchor_to": "center",
+    "alpha": "@hud.anim_exe_hud_hold",
+    "controls": [
+      {
+        "right_card@hud.exe_right_sidebar_card": {}
+      },
+      {
+        "left_card@hud.exe_left_sidebar_card": {}
+      },
+      {
+        "bottom_pill@hud.exe_bottom_hud_pill": {}
+      }
+    ]
+  },
+  "exe_hud_actionbar_area": {
+    "type": "panel",
+    "size": ["100%", "100%"],
+    "anchor_from": "center",
+    "anchor_to": "center",
+    "factory": {
+      "name": "hud_actionbar_text_factory",
+      "control_ids": {
+        "hud_actionbar_text": "hud_actionbar_text@hud.exe_hud_root"
+      }
     }
+  },
+  "hud_actionbar_text": {
+    "$atext": "$actionbar_text",
+    "visible": "((($atext - '§1§r') = $atext) and (($atext - '§2§r') = $atext) and (($atext - '§3§r') = $atext))"
+  },
+  "root_panel": {
+    "modifications": [
+      {
+        "array_name": "controls",
+        "operation": "insert_front",
+        "value": [
+          {
+            "exe_hud_actionbar_area@hud.exe_hud_actionbar_area": {}
+          }
+        ]
+      }
+    ]
+  }
 }

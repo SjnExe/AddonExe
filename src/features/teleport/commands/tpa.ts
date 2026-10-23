@@ -1,14 +1,12 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { addTpaBlockedPlayer, getPlayerIdByName, getPlayerNameById, removeTpaBlockedPlayer, setTpaRequestsDisabled } from '@core/data/playerDataManager.js';
 import { soundTeleport } from '@core/utils/constants.js';
 import { playSound, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
-
 import { acceptRequest, cancelRequest, createRequest, denyRequest, getIncomingRequest, getOutgoingRequest } from '@features/teleport/tpaManager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 function handleTpaRequest(executor: mc.Player, args: Record<string, unknown>, type: 'tpa' | 'tpahere'): void {
     const config = getConfig();

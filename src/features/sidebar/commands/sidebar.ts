@@ -1,10 +1,9 @@
-import * as mc from '@minecraft/server';
-
 import { CustomCommand } from '@commands/commandManager.js';
 import { getSidebarVisible, setSidebarLayout, setSidebarVisible } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { forceUpdate } from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const command: CustomCommand = {
     name: 'sidebar',

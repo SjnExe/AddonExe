@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
@@ -8,6 +6,7 @@ import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isFriend } from '@features/social/friends/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 export interface MultiplayerGameDefinition {
     id: string;
@@ -349,9 +348,7 @@ export function setGameInvitesStopped(player: mc.Player, stopped: boolean, targe
     return stopped ? '§cIncoming game invitations are now STOPPED.' : '§aIncoming game invitations are now ALLOWED.';
 }
 
-/**
- * Shared wager escrow utility for solo, 1v1, and staff-hosted games.
- */
+/** Shared wager escrow utility for solo, 1v1, and staff-hosted games. */
 export function escrowGameWager(player: mc.Player, amount: number): { success: boolean; message?: string } {
     if (amount <= 0) {
         return { success: true };
@@ -367,9 +364,7 @@ export function escrowGameWager(player: mc.Player, amount: number): { success: b
     return { success: true };
 }
 
-/**
- * Shared prize payout utility with optional tax deduction.
- */
+/** Shared prize payout utility with optional tax deduction. */
 export function payoutGamePrize(winnerId: string, grossPool: number, taxRatePercent = 0): number {
     if (grossPool <= 0 || !isFeatureActive('eco')) {
         return 0;
@@ -382,9 +377,7 @@ export function payoutGamePrize(winnerId: string, grossPool: number, taxRatePerc
     return netPrize;
 }
 
-/**
- * Joins or toggles the random matchmaking queue for a multiplayer game.
- */
+/** Joins or toggles the random matchmaking queue for a multiplayer game. */
 export function joinMatchmakingQueue(player: mc.Player, gameId: string): { success: boolean; matched: boolean; message: string } {
     const gamesCfg = getGamesConfig();
     if (!gamesCfg.enabled) {

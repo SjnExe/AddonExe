@@ -18,3 +18,20 @@ smol = false
 onlyFailures = true
 isolate = false
 randomize = true
+
+[fmt]
+tabWidth = 4
+useTabs = false
+semi = true
+singleQuote = true
+quoteProps = "preserve"
+trailingComma = "none"
+printWidth = 200
+endOfLine = "lf"
+sortImports = true
+sortPackageJson = true
+jsdoc = true
+
+[[fmt.overrides]]
+files = ["packs/**/*.json"]
+options = { printWidth = 100000, tabWidth = 2 }

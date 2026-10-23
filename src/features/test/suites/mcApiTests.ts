@@ -5,6 +5,7 @@ import { StorageManager } from '@core/data/storageManager.js';
 import { floatingTextId } from '@core/utils/constants.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes, MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+
 import { addTest, assert } from '../testRunner.js';
 
 const SUITE_NAME = 'mc_api';

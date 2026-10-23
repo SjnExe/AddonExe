@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import * as configManager from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
@@ -11,6 +8,8 @@ import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { getEffectiveBorderForDimension, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
 import { isSafeTeleportColumn, saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 const activeRtpSearches = new Set<string>();
 
@@ -110,9 +109,7 @@ function resolveRtpOriginAndBounds(minRange: number, maxRange: number): { center
     };
 }
 
-/**
- * Generates uniformly distributed random coordinates within the annulus [minRadius, maxRadius].
- */
+/** Generates uniformly distributed random coordinates within the annulus [minRadius, maxRadius]. */
 function sampleUniformAnnulusPoint(centerX: number, centerZ: number, minRadius: number, maxRadius: number): { x: number; z: number } {
     const theta = Math.random() * Math.PI * 2;
     const minSq = minRadius * minRadius;

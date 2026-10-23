@@ -1,8 +1,7 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getWordleConfig } from '@core/config/configurations.js';
 import { showWordleMainPanel } from '@features/games/wordle/ui/panel.js';
+import * as mc from '@minecraft/server';
 
 const wordleCommand: CustomCommand = {
     name: 'wordle',

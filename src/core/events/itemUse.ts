@@ -1,6 +1,5 @@
-import * as mc from '@minecraft/server';
-
 import * as playerDataManager from '@core/data/playerDataManager.js';
+import * as mc from '@minecraft/server';
 
 export const eventName = 'itemUse';
 

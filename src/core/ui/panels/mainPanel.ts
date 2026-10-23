@@ -2,9 +2,7 @@ import { getMenuItemsForHub, isMenuItemActive, MenuHubId } from '@core/ui/menuRe
 import { Player } from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
-/**
- * Renders a standard dark theme multi-column category hub menu for a specific hub ID.
- */
+/** Renders a standard dark theme multi-column category hub menu for a specific hub ID. */
 export async function showHubPanel(player: Player, hubId: MenuHubId, titleText: string, bodyText?: string): Promise<void> {
     const items = getMenuItemsForHub(hubId, player);
     const form = new ActionFormBuilder().grid(2).title(`§l§b${titleText}`);

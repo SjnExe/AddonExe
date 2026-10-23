@@ -1,10 +1,8 @@
-import { hasPermission } from '@core/permissions/permissionEngine.js';
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-
 import { getAnticheatConfig, saveAnticheatConfig } from '@core/config/configurations.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import * as mc from '@minecraft/server';
 
 const notifyCommand: CustomCommand = {
     name: 'notify',

@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
 import { getPlayerIdByName } from '@core/data/playerDataManager.js';
@@ -7,9 +5,9 @@ import { canTarget } from '@core/permissions/rankManager.js';
 import { soundError, soundTeleport } from '@core/utils/constants.js';
 import { parseDuration, playSound } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { isDefined } from '@lib/guards.js';
-
 import { addPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
+import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
     if (executor instanceof mc.Player && executor.id === targetPlayer.id) {

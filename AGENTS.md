@@ -15,7 +15,7 @@ This document is the single source of truth for the architecture, coding standar
 - **Package `.mcaddon` Archive:** `bun scripts/build/build.ts --zip`
 - **Lint & Validate (Read-Only Check):** `bun run lint:check`
 - **Lint & Auto-Fix:** `bun run lint`
-- **Format Modified Files Only:** `bunx prettier --write --cache <file1> <file2>`
+- **Format Modified Files Only:** `bun fmt <file1> <file2>`
 - **Run Unit Tests:** `bun test`
 - **Check Code Duplication (Explicit Only):** `bun run test:dupe`
 - **Full Pack Validation:** `bun run validate`
@@ -26,7 +26,7 @@ This document is the single source of truth for the architecture, coding standar
 - **Naming Conventions:**
     - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraft-rules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
     - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
-- **Formatting (Prettier):** 4-space indentation, single quotes for TS, semicolons required, curly braces `{}` required on all control flow blocks.
+- **Formatting (`bun fmt`):** 4-space indentation, single quotes for TS, semicolons required, curly braces `{}` required on all control flow blocks.
 - **Path Aliases:** Use aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).
 - **Strict Type Guards:** Use `isDefined`, `isNonEmptyString`, and `isNumber` from `@lib/guards.js` instead of loose truthiness checks.
 - **Minecraft Constants:** Always import `MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftEntityTypes`, and `MinecraftDimensionTypes` from `@minecraft/vanilla-data` instead of raw `'minecraft:...'` strings.

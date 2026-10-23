@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it } from 'bun:test';
+
 import { initializeConfigManager } from '@core/config/configManager.js';
 import { configPanelSchema } from '@core/ui/configPanelRegistry.js';
 import { getMenuItemsForHub, MenuHubId } from '@core/ui/menuRegistry.js';
@@ -8,7 +10,6 @@ import { getValueFromPath } from '@core/utils/objectUtils.js';
 import { registerAllSuites } from '@features/test/suites/index.js';
 import { runTests } from '@features/test/testRunner.js';
 import { generateId } from '@lib/id.js';
-import { beforeEach, describe, expect, it } from 'bun:test';
 
 describe('UI, Config Schema & UUIDv7 Integrity', () => {
     beforeEach(async () => {

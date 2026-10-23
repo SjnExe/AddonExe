@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getEconomyConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer, incrementDeathCount, incrementKillCount, incrementKillStreak, incrementPlayerBalance, resetKillStreak, setPlayerLastDeathLocation } from '@core/data/playerDataManager.js';
@@ -10,6 +7,8 @@ import { errorLog, infoLog } from '@core/utils/logger.js';
 import { processBountyAndSteal, resolveKiller } from '@features/essentials/combatManager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 export const eventName = 'entityDie';
 

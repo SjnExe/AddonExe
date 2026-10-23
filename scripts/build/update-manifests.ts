@@ -10,6 +10,7 @@ function getEngineVersion(serverVersion?: string): [number, number, number] {
 }
 
 import path from 'node:path';
+
 import { getVersionContext, parseCliArgs } from './cli-utils.ts';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
@@ -17,9 +18,7 @@ const pkgPath = path.resolve(ROOT_DIR, 'package.json');
 
 const cliArgs = parseCliArgs(process.argv.slice(2));
 
-/**
- * Fetches the latest stable version of a package from the npm registry.
- */
+/** Fetches the latest stable version of a package from the npm registry. */
 async function fetchLatestVersion(pkgName: string): Promise<string> {
     try {
         const localPkg = Bun.file(path.join(ROOT_DIR, 'node_modules', pkgName, 'package.json'));
@@ -45,9 +44,7 @@ async function fetchLatestVersion(pkgName: string): Promise<string> {
     }
 }
 
-/**
- * Resolves the module version from the NPM version string.
- */
+/** Resolves the module version from the NPM version string. */
 async function resolveModuleVersion(pkgName: string, npmVersion: string): Promise<string> {
     if (!npmVersion) {
         return '1.0.0';

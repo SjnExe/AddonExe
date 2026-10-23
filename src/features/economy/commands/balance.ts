@@ -1,13 +1,12 @@
-import { getConfig } from '@core/config/configManager.js';
-import { isFeatureActive } from '@core/services/featureManager.js';
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { getConfig } from '@core/config/configManager.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, loadPlayerData } from '@core/data/playerDataManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const balanceCommand: CustomCommand = {
     name: 'balance',

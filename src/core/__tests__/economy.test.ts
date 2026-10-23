@@ -1,6 +1,8 @@
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import { StorageManager } from '@core/data/storageManager.js';
 import * as mc from '@minecraft/server';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import defaultConfig from '../../config.js';
 
 const { mockStorageLoad, mockStorageSave } = {

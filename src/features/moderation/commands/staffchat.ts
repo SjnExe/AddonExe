@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
@@ -11,6 +9,7 @@ import { addChatLog } from '@features/moderation/chatLogManager.js';
 import { isTeamChatEnabled, setTeamChatState } from '@features/social/team/commands/team.js';
 import { getTeamByPlayer } from '@features/social/team/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const staffChatActive = new Map<string, boolean>();
 

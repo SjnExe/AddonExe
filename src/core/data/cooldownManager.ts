@@ -1,7 +1,6 @@
-import * as mc from '@minecraft/server';
-
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const cooldownDbKey = 'exe:cooldowns';
 const saveIntervalTicks = 6000; // Every 5 minutes
@@ -10,9 +9,7 @@ const saveIntervalTicks = 6000; // Every 5 minutes
 let cooldowns = new Map<string, number>();
 let needsSave = false;
 
-/**
- * Loads cooldowns from world dynamic properties.
- */
+/** Loads cooldowns from world dynamic properties. */
 export function loadCooldowns() {
     debugLog('[CooldownManager] Loading cooldowns...');
     const dataStr = mc.world.getDynamicProperty(cooldownDbKey);
@@ -29,9 +26,7 @@ export function loadCooldowns() {
     }
 }
 
-/**
- * Saves cooldowns to world dynamic properties if a change has occurred.
- */
+/** Saves cooldowns to world dynamic properties if a change has occurred. */
 function saveCooldowns() {
     if (!needsSave) {
         return;
@@ -47,10 +42,7 @@ function saveCooldowns() {
     }
 }
 
-/**
- * Iterates through all cooldowns and removes any that have expired.
- * This is for proactive cleanup to prevent the cooldown map from growing indefinitely.
- */
+/** Iterates through all cooldowns and removes any that have expired. This is for proactive cleanup to prevent the cooldown map from growing indefinitely. */
 export function clearExpiredCooldowns() {
     const now = Date.now();
     let clearedCount = 0;
@@ -72,6 +64,7 @@ function getCooldownKey(playerId: string, identifier: string): string {
 
 /**
  * Sets a cooldown for a player for a specific identifier.
+ *
  * @param playerId
  * @param identifier A unique name for the cooldown (e.g., a command name).
  * @param durationSeconds The length of the cooldown in seconds.
@@ -89,6 +82,7 @@ export function setCooldown(playerId: string, identifier: string, durationSecond
 
 /**
  * Gets the remaining cooldown for a player for a specific identifier.
+ *
  * @param playerId
  * @param identifier A unique name for the cooldown (e.g., a command name).
  * @returns Remaining cooldown in seconds, or 0 if available.

@@ -1,8 +1,7 @@
-import * as mc from '@minecraft/server';
-
 import { StorageManager } from '@core/data/storageManager.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const VERSION_KEY = 'exe:version';
 const LEGACY_VERSION_KEY = 'exe:lastVersion';
@@ -13,10 +12,7 @@ export interface MigrationStep {
     migrate: () => void | Promise<void>;
 }
 
-/**
- * Compares two SemVer strings (e.g. "0.6.3" vs "0.7.0").
- * Returns -1 if a < b, 0 if a == b, 1 if a > b.
- */
+/** Compares two SemVer strings (e.g. "0.6.3" vs "0.7.0"). Returns -1 if a < b, 0 if a == b, 1 if a > b. */
 export function compareSemVer(a: string, b: string): number {
     const cleanA = a.replace(/^v/i, '').split('-')[0] ?? '0.0.0';
     const cleanB = b.replace(/^v/i, '').split('-')[0] ?? '0.0.0';

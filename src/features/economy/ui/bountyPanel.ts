@@ -1,13 +1,12 @@
-import * as mc from '@minecraft/server';
-import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
-import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getPlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils/index.js';
 import * as bountyManager from '@features/economy/bountyManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
 
 export async function showBountyListPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {

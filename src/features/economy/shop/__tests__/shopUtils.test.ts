@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+
 import { parseRankOverrides } from '../utils.js';
 
 describe('shopUtils - parseRankOverrides', () => {
@@ -40,6 +41,7 @@ describe('shopUtils - parseRankOverrides', () => {
 });
 
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
+
 import { resolveTradeItemMetadata } from '../../tradeUtils.js';
 import { formatItemName, resolveTexturePath } from '../utils.js';
 

@@ -85,9 +85,7 @@ export function addChatLog(playerName: string, message: string, rank?: string) {
     isDirty = true;
 }
 
-/**
- * Gets chat logs for a specific date. Defaults to today.
- */
+/** Gets chat logs for a specific date. Defaults to today. */
 export function getChatLogs(date?: string): ChatLog[] {
     if (!isNonEmptyString(date) || date === today) {
         return [...currentDayLogs];

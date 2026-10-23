@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { FormCancelationReason } from '@minecraft/server-ui';
-
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
@@ -15,9 +12,11 @@ import {
     joinMatchmakingQueue,
     setGameInvitesStopped
 } from '@features/games/matchmakingManager.js';
-import { forfeitRpsMatch, formatRpsChoice, getRpsMatch, startRpsBotMatch, submitRpsChoice, type RpsChoice, type RpsMatch } from '@features/games/rps/manager.js';
+import { forfeitRpsMatch, formatRpsChoice, getRpsMatch, type RpsChoice, type RpsMatch, startRpsBotMatch, submitRpsChoice } from '@features/games/rps/manager.js';
 import { showInviteFriendToGameModal } from '@features/games/tictactoe/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { FormCancelationReason } from '@minecraft/server-ui';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 const rockIcon = 'textures/blocks/cobblestone';

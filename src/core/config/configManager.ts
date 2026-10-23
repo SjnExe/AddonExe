@@ -1,9 +1,9 @@
-import * as mc from '@minecraft/server';
-
 import * as factoryModule from '@core/config/configManagerFactory.js';
 import { ConfigManager } from '@core/config/configManagerFactory.js';
 import { deepClone } from '@core/utils/objectUtils.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+
 import defaultConfig, { type config as Config } from '../../config.js';
 
 let mainConfigManager: ConfigManager<typeof Config>;

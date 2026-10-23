@@ -1,15 +1,13 @@
-import { isFeatureActive } from '@core/services/featureManager.js';
-import * as mc from '@minecraft/server';
-
+import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { getOrCreatePlayer, getPlayerIdByName, getPlayerNameById, incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { validateCurrencyAmount } from '@core/utils/economy.js';
 import { resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import * as bountyManager from '@features/economy/bountyManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
-
-import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 
 function checkBountyEnabled(executor: CommandExecutor): boolean {
     const config = getConfig();

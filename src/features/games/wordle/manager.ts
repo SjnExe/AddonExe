@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getWordleConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
@@ -8,6 +6,8 @@ import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager
 import { registerActiveMatchSession, registerMultiplayerGame, unregisterActiveMatchSession } from '@features/games/matchmakingManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { generateId } from '@lib/id.js';
+import * as mc from '@minecraft/server';
+
 import { compressedWordPool } from './wordPool.js';
 
 const solutionLimit = 500;

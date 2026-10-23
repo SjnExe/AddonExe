@@ -1,13 +1,11 @@
-import * as mc from '@minecraft/server';
-
+import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { noPermission } from '@core/utils/constants.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
-
-import { CommandExecutor, commandManager, CustomCommand } from '@commands/commandManager.js';
 
 // Cache for categorized commands
 let categorizedCache: Map<string, CustomCommand[]> | undefined;
@@ -62,9 +60,7 @@ interface HelpConfig {
     };
 }
 
-/**
- * Helper to resolve the command object and check basic permissions/console usage.
- */
+/** Helper to resolve the command object and check basic permissions/console usage. */
 function resolveCommandForHelp(executor: CommandExecutor, commandName: string): { cmd: CustomCommand | undefined; error?: string } {
     const isConsole = !(executor instanceof mc.Player);
     const realCommandName = commandManager.aliases.get(commandName) ?? commandName;
@@ -95,9 +91,7 @@ function resolveCommandForHelp(executor: CommandExecutor, commandName: string): 
     return { cmd };
 }
 
-/**
- * Displays detailed help for a specific command.
- */
+/** Displays detailed help for a specific command. */
 function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     const { cmd, error } = resolveCommandForHelp(executor, commandName);
 
@@ -146,9 +140,7 @@ function showSpecificHelp(executor: CommandExecutor, commandName: string) {
     }
 }
 
-/**
- * Displays the chat-based categorized help.
- */
+/** Displays the chat-based categorized help. */
 function showChatHelp(executor: CommandExecutor) {
     const allCategories = getCategorizedCommands();
     const isPlayer = executor instanceof mc.Player;
@@ -198,9 +190,7 @@ function showChatHelp(executor: CommandExecutor) {
     }
 }
 
-/**
- * Displays the UI-based categorized help.
- */
+/** Displays the UI-based categorized help. */
 async function showUIHelp(player: mc.Player) {
     const allCategories = getCategorizedCommands();
     const visibleCategories: string[] = [];

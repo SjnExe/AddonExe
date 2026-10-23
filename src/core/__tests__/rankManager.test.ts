@@ -1,15 +1,13 @@
-import { RankDefinition } from '@features/ranks/config.js';
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
+import { config as Config } from '@core/../config.js';
 import * as configManager from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
-
 import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as permissionEngine from '@core/permissions/permissionEngine.js';
-
-import { config as Config } from '@core/../config.js';
 import { canTarget, getAllRanks, getPlayerRank, getRankById, initialize, reloadRanks, updatePlayerNameTag } from '@core/permissions/rankManager.js';
+import { RankDefinition } from '@features/ranks/config.js';
 import * as mc from '@minecraft/server';
 
 describe('rankManager', () => {

@@ -1,7 +1,9 @@
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import * as configManager from '@core/config/configManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import defaultConfig from '../../../config.js';
 import rtpCommand from '../commands/rtp.js';
 

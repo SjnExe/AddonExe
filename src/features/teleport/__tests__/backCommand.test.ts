@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import * as configManager from '@core/config/configManager.js';
 import { loadEconomyConfig } from '@core/config/configurations.js';
@@ -7,7 +9,7 @@ import * as messaging from '@core/utils/messaging.js';
 import * as teleportLogicModule from '@core/utils/teleportLogic.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
 import defaultConfig from '../../../config.js';
 
 // Import command

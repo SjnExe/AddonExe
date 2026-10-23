@@ -1,6 +1,7 @@
-import { $ } from 'bun';
 import os from 'node:os';
 import path from 'node:path';
+
+import { $ } from 'bun';
 
 const homeDir = os.homedir();
 const termuxBinDir = '/data/data/com.termux/files/usr/bin';
@@ -26,18 +27,12 @@ try {
         }
 
         const codeFiles = existingFiles.filter((f) => /\.(js|ts)$/.test(f));
-        const docFiles = existingFiles.filter((f) => /\.(json|md|yml|yaml)$/.test(f));
 
         if (codeFiles.length > 0) {
             await $`bun scripts/lint/oxlint.ts --fix ${codeFiles}`.quiet();
-            await $`bunx prettier --write --cache --log-level warn ${codeFiles}`.quiet();
+            await $`git add ${codeFiles}`.quiet();
         }
-        if (docFiles.length > 0) {
-            await $`bunx prettier --write --cache --log-level warn ${docFiles}`.quiet();
-        }
-        if (codeFiles.length > 0 || docFiles.length > 0) {
-            await $`git add ${existingFiles}`.quiet();
-        }
+        await $`bun fmt --staged`.quiet();
     }
 
     // 2. Fast Incremental Type Check

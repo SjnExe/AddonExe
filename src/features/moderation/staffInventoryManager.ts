@@ -1,6 +1,3 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-
 import { deserializeItem, SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
@@ -8,6 +5,8 @@ import { registerEvent } from '@core/events/eventManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { errorLog } from '@core/utils/logger.js';
 import { isDefined, isNumber } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 export type InventoryProfileType = 'survival' | 'staff';
 

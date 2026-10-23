@@ -1,4 +1,5 @@
 import { $ } from 'bun';
+
 import { validateMinecraftRules } from './minecraft-rules.ts';
 
 const rawArgs = process.argv.slice(2);

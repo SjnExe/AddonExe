@@ -1,6 +1,5 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import * as mc from '@minecraft/server';
 
 const panelCommand: CustomCommand = {
     name: 'panel',

@@ -1,12 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor } from '@commands/commandManager.js';
-
 import { getConfig, updateConfig } from '@core/config/configManager.js';
 import { getOrCreatePlayer, setPlayerRanks } from '@core/data/playerDataManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
 import { errorLog, infoLog, warnLog } from '@core/utils/logger.js';
 import { startRestart } from '@features/essentials/restartManager.js';
+import * as mc from '@minecraft/server';
 
 export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfterEvent) {
     const { id, sourceEntity } = event;

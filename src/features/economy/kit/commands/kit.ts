@@ -1,12 +1,11 @@
-import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { createKit, getAllKits } from '@features/economy/kit/adminManager.js';
 import { addItemToKit } from '@features/economy/kit/itemsManager.js';
 import * as kitsManager from '@features/economy/kit/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 interface KitCommandArgs {
     kitName?: string;

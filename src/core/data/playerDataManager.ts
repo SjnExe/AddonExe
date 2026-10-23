@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getEconomyConfig } from '@core/config/configurations.js';
 import { SerializedItem } from '@core/data/itemSerializer.js';
@@ -10,6 +8,7 @@ import { formatCurrency } from '@core/utils/economy.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { updateAndSaveLeaderboard } from '@features/economy/leaderboardManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 const playerPropertyPrefix = 'exe:player.';
 // Legacy keys (kept for migration)
@@ -89,9 +88,7 @@ const playerIdNameMap = new Map<string, string>();
 /** A flag indicating that the name-to-ID map has changed and needs to be saved. */
 export let isNameIdMapDirty = false;
 
-/**
- * Defines the default structure and values for a new player.
- */
+/** Defines the default structure and values for a new player. */
 const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 'tpaBlockedPlayerIds'> = {
     ranks: ['member'],
     rankId: 'member',
@@ -128,9 +125,8 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
 // --- Generic Data Handling ---
 
 /**
- * A generic function to update a player's data. It handles getting the data,
- * running a modification callback, and saving the data.
- * Supports updating offline players by temporarily loading their data.
+ * A generic function to update a player's data. It handles getting the data, running a modification callback, and saving the data. Supports updating offline players by temporarily loading their data.
+ *
  * @param playerId The ID of the player to update.
  * @param modificationCallback A callback that receives the player data and modifies it.
  */
@@ -158,9 +154,7 @@ export function updatePlayerData(playerId: string, modificationCallback: (pData:
     }
 }
 
-/**
- * Resets all in-memory caches and state variables.
- */
+/** Resets all in-memory caches and state variables. */
 export function cleanupPlayerDataManager() {
     activePlayerData.clear();
     sessionStartTimes.clear();
@@ -170,9 +164,7 @@ export function cleanupPlayerDataManager() {
     debugLog('[PlayerDataManager] All in-memory caches have been cleared.');
 }
 
-/**
- * Helper to save a map across multiple dynamic properties (shards).
- */
+/** Helper to save a map across multiple dynamic properties (shards). */
 function saveShardedMap(map: Map<string, string>, prefix: string) {
     const entries = [...map.entries()];
     const totalShards = Math.ceil(entries.length / MAP_SHARD_SIZE);
@@ -192,10 +184,7 @@ function saveShardedMap(map: Map<string, string>, prefix: string) {
     }
 }
 
-/**
- * Helper to load a map from either a legacy single property or multiple shards.
- * Returns true if migration from legacy occurred.
- */
+/** Helper to load a map from either a legacy single property or multiple shards. Returns true if migration from legacy occurred. */
 function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefix: string): boolean {
     const migrated = false;
     let i = 0;
@@ -221,9 +210,7 @@ function loadShardedMap(map: Map<string, string>, _legacyKey: string, shardPrefi
     return migrated;
 }
 
-/**
- * Saves the player name-to-ID map to a dynamic property.
- */
+/** Saves the player name-to-ID map to a dynamic property. */
 export function saveNameIdMap() {
     try {
         saveShardedMap(playerNameIdMap, playerNameIdMapShardPrefix);
@@ -251,6 +238,7 @@ export function loadNameIdMap() {
 
 /**
  * Saves a single player's data to a unique dynamic property.
+ *
  * @param playerId The ID of the player to save.
  * @returns True if successful, false otherwise.
  */
@@ -286,6 +274,7 @@ export function savePlayerData(playerId: string): boolean {
 
 /**
  * Loads a single player's data from their unique dynamic property into the cache.
+ *
  * @param playerId The ID of the player to load.
  * @returns The loaded player data, or undefined if not found.
  */
@@ -320,9 +309,7 @@ export function loadPlayerData(playerId: string): PlayerData | undefined {
     return undefined;
 }
 
-/**
- * Updates the name-to-ID map if the player's name has changed.
- */
+/** Updates the name-to-ID map if the player's name has changed. */
 function _updateNameMap(player: mc.Player) {
     const playerNameLower = player.name.toLowerCase();
     // Update if ID mismatch (name change) OR if ID not in reverse map (init)
@@ -339,6 +326,7 @@ function _updateNameMap(player: mc.Player) {
 
 /**
  * Creates a new player data object with default values.
+ *
  * @param player
  */
 function _createNewPlayerData(player: mc.Player): PlayerData {
@@ -380,6 +368,7 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
 
 /**
  * Gets a player's data from the cache, or loads/creates it if it doesn't exist.
+ *
  * @param player
  */
 export function getOrCreatePlayer(player: mc.Player): PlayerData {
@@ -414,6 +403,7 @@ export function getOrCreatePlayer(player: mc.Player): PlayerData {
 
 /**
  * Gets a player's ID from their name via the lookup map.
+ *
  * @param playerName The name of the player.
  * @returns The player's ID, or undefined if not found.
  */
@@ -423,6 +413,7 @@ export function getPlayerIdByName(playerName: string): string | undefined {
 
 /**
  * Gets a player's name from their ID via the lookup map.
+ *
  * @param playerId The ID of the player.
  * @returns The player's name, or undefined if not found.
  */
@@ -432,6 +423,7 @@ export function getPlayerNameById(playerId: string): string | undefined {
 
 /**
  * Gets a player's data from the in-memory cache.
+ *
  * @param playerId
  */
 export function getPlayer(playerId: string): PlayerData | undefined {
@@ -440,6 +432,7 @@ export function getPlayer(playerId: string): PlayerData | undefined {
 
 /**
  * Handles a player leaving the server by removing them from the cache.
+ *
  * @param playerId
  */
 export function handlePlayerLeave(playerId: string) {
@@ -451,23 +444,17 @@ export function handlePlayerLeave(playerId: string) {
     }
 }
 
-/**
- * Gets all active (online) player data from the cache.
- */
+/** Gets all active (online) player data from the cache. */
 export function getAllPlayerData(): Map<string, PlayerData> {
     return activePlayerData;
 }
 
-/**
- * Gets the map of all known player names and their corresponding IDs.
- */
+/** Gets the map of all known player names and their corresponding IDs. */
 export function getAllPlayerNameIdMap(): Map<string, string> {
     return playerNameIdMap;
 }
 
-/**
- * Gets a list of all known players with their correct display names.
- */
+/** Gets a list of all known players with their correct display names. */
 export function getAllKnownPlayers(): { id: string; name: string }[] {
     const players: { id: string; name: string }[] = [];
     if (playerIdNameMap.size > 0) {
@@ -485,6 +472,7 @@ export function getAllKnownPlayers(): { id: string; name: string }[] {
 
 /**
  * Returns a list of online players visible to the observer.
+ *
  * @param observer The player viewing the list.
  */
 export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
@@ -506,6 +494,7 @@ export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
 
 /**
  * Finds a player by name, respecting vanish visibility rules.
+ *
  * @param name The name to search for.
  * @param observer The player performing the search.
  */
@@ -818,9 +807,7 @@ export function resetKillStreak(playerId: string) {
     });
 }
 
-/**
- * Gets the total playtime in milliseconds (historical + current session).
- */
+/** Gets the total playtime in milliseconds (historical + current session). */
 export function getPlayTime(playerId: string): number {
     const pData = getPlayer(playerId);
     if (!isDefined(pData)) {

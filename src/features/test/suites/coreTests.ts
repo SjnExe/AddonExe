@@ -5,6 +5,7 @@ import { getBalance, getOrCreatePlayer, setPlayerBalance, transfer } from '@core
 import { getRankById } from '@core/permissions/rankManager.js';
 import { featureRegistry } from '@core/services/featureRegistry.js';
 import * as mc from '@minecraft/server';
+
 import { addTest, assert } from '../testRunner.js';
 
 const SUITE_NAME = 'runtime';

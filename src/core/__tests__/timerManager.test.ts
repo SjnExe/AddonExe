@@ -1,5 +1,6 @@
-import * as mc from '@minecraft/server';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
+import * as mc from '@minecraft/server';
 
 // Ensure clearJob is mocked because it's missing in the global mock
 if (!(mc.system as any).clearJob) {

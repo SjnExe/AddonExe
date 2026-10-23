@@ -1,17 +1,14 @@
-import { isFeatureActive } from '@core/services/featureManager.js';
-import { EntityComponentTypes } from '@minecraft/server';
-
-import { hasPermission } from '@core/permissions/permissionEngine.js';
-import * as mc from '@minecraft/server';
-import { ItemComponentTypes } from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getOrCreatePlayer, incrementPlayerBalance, savePlayerData } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCooldown } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { Kit } from '@features/economy/kit/adminManager.js';
 import { ItemInfo } from '@features/economy/kit/itemsManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 interface KitInfo {
     name: string;
@@ -27,6 +24,7 @@ interface KitResult {
 
 /**
  * Gets the definition of a kit from the config.
+ *
  * @param kitName The name of the kit.
  * @returns The kit definition or undefined.
  */
@@ -41,6 +39,7 @@ export function getKit(kitName: string): Kit | undefined {
 
 /**
  * Lists all available and enabled kits for a given player.
+ *
  * @param player The player to check permissions for.
  * @returns An array of kit information objects.
  */
@@ -82,6 +81,7 @@ export function listKits(player: mc.Player): KitInfo[] {
 
 /**
  * Gets the remaining cooldown time for a player's kit in seconds.
+ *
  * @param player The player.
  * @param kitName The name of the kit.
  * @returns The remaining cooldown in seconds, or 0 if available.
@@ -94,6 +94,7 @@ export function getKitCooldown(player: mc.Player, kitName: string): number {
 
 /**
  * Gives a kit to a player if they are off cooldown and the kit is enabled.
+ *
  * @param player The player to give the kit to.
  * @param kitName The name of the kit to give.
  * @returns The result of the operation.
@@ -180,10 +181,7 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
     }
 }
 
-/**
- * Helper to give a list of items to a player safely.
- * Handles enchantments, lore, nametags, and dropping leftovers.
- */
+/** Helper to give a list of items to a player safely. Handles enchantments, lore, nametags, and dropping leftovers. */
 
 export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
     const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;

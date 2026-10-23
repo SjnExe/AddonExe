@@ -12,6 +12,7 @@ export interface ConfirmationDialogOptions {
 
 /**
  * Shows a confirmation dialog to the player.
+ *
  * @param {mc.Player} player The player to show the dialog to.
  * @param {ConfirmationDialogOptions} options
  */

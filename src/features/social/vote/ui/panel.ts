@@ -1,10 +1,9 @@
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/social/vote/manager.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
-
-import { castVote, createVote, endVote, getActiveVote, getLastVote } from '@features/social/vote/manager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
 export async function showVoteMenu(player: mc.Player) {
     const activeVote = getActiveVote();

@@ -1,13 +1,12 @@
-import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
-import { addPlayerToCache, clearPlayerCache } from '@core/data/playerCache.js';
-
 import * as configLoader from '@core/config/configurations.js';
+import { addPlayerToCache, clearPlayerCache } from '@core/data/playerCache.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import { _resetMovementCheckForTest, startMovementCheckLoop } from '@features/anticheat/movementCheck.js';
+import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 describe('MovementCheck', () => {
     let intervalCallback: () => void;

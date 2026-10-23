@@ -1,11 +1,10 @@
-import * as mc from '@minecraft/server';
-
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, getPlayerNameById } from '@core/data/playerDataManager.js';
 import { resolveTarget } from '@core/utils/index.js';
 import { acceptGameInvite, cancelGameInvite, denyGameInvite, joinMatchmakingQueue, sendGameInvite, setGameInvitesStopped } from '@features/games/matchmakingManager.js';
 import { showTicTacToeMenu } from '@features/games/tictactoe/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 async function handleGameCommand(player: mc.Player, actionOrTarget?: string, secondArg?: string, defaultGameId: string = 'tictactoe'): Promise<void> {
     if (!isNonEmptyString(actionOrTarget)) {

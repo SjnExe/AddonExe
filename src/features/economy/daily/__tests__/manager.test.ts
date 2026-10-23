@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:te
 
 import * as configurations from '@core/config/configurations.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
+
 import { claimDailyReward } from '../manager.js';
 
 describe('Daily Rewards Manager', () => {

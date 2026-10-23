@@ -1,7 +1,4 @@
-/**
- * @fileoverview This file defines the schema for configuration panels in the addon.
- * It separates configuration UI definitions from the main navigation panel registry.
- */
+/** @file This file defines the schema for configuration panels in the addon. It separates configuration UI definitions from the main navigation panel registry. */
 
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 

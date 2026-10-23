@@ -1,5 +1,3 @@
-import * as mc from '@minecraft/server';
-
 import { getConfig } from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
@@ -7,6 +5,7 @@ import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManage
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
 
 interface SocialFriendsService {
     isFriend: (playerId1: string, playerId2: string) => boolean;
@@ -55,6 +54,7 @@ mc.system.runInterval(() => {
 
 /**
  * Clears a TPA request from the system.
+ *
  * @param request The request to clear.
  */
 function clearRequest(request: TpaRequest | undefined) {
