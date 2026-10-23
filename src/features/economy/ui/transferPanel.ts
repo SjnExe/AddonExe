@@ -9,78 +9,83 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showTransferPanel(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const config = getConfig();
-    if (!isFeatureActive('eco')) {
-        player.sendMessage(economyDisabled);
-        return showPanel(player, 'playerActionsPanel', { targetPlayerId });
-    }
+  const config = getConfig();
+  if (!isFeatureActive('eco')) {
+    player.sendMessage(economyDisabled);
+    return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+  }
 
-    if (player.id === targetPlayerId) {
-        player.sendMessage('§cYou cannot pay yourself.');
-        return showPanel(player, 'playerActionsPanel', { targetPlayerId });
-    }
+  if (player.id === targetPlayerId) {
+    player.sendMessage('§cYou cannot pay yourself.');
+    return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+  }
 
-    const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
-    const sourceData = getPlayer(player.id);
+  const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
+  const sourceData = getPlayer(player.id);
 
-    if (!sourceData) {
-        player.sendMessage('§cCould not retrieve your data.');
-        return showPanel(player, 'playerActionsPanel', { targetPlayerId });
-    }
+  if (!sourceData) {
+    player.sendMessage('§cCould not retrieve your data.');
+    return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+  }
 
-    const form = new CustomFormBuilder<{ amount: string }>(`Send Money to ${targetName}`)
-        .textField('amount', `Your Balance: ${formatCurrency(sourceData.balance)}\nEnter amount to send:`, 'e.g. 100, 2.5k', '')
-        .submitButton('Send Money');
+  const form = new CustomFormBuilder<{ amount: string }>(`Send Money to ${targetName}`)
+    .textField(
+      'amount',
+      `Your Balance: ${formatCurrency(sourceData.balance)}\nEnter amount to send:`,
+      'e.g. 100, 2.5k',
+      '',
+    )
+    .submitButton('Send Money');
 
-    const res = await form.show(player);
-    if (!res) {
-        return showPanel(player, 'playerActionsPanel', { targetPlayerId });
-    }
+  const res = await form.show(player);
+  if (!res) {
+    return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+  }
 
-    let amount = parseFloat(res.amount);
-    if (res.amount.toLowerCase().endsWith('k')) {
-        amount = parseFloat(res.amount.slice(0, -1)) * 1000;
-    } else if (res.amount.toLowerCase().endsWith('m')) {
-        amount = parseFloat(res.amount.slice(0, -1)) * 1000000;
-    }
+  let amount = parseFloat(res.amount);
+  if (res.amount.toLowerCase().endsWith('k')) {
+    amount = parseFloat(res.amount.slice(0, -1)) * 1000;
+  } else if (res.amount.toLowerCase().endsWith('m')) {
+    amount = parseFloat(res.amount.slice(0, -1)) * 1000000;
+  }
 
-    if (isNaN(amount) || amount <= 0) {
-        player.sendMessage('§cInvalid amount. Must be positive.');
-        return showTransferPanel(player, targetPlayerId);
-    }
+  if (isNaN(amount) || amount <= 0) {
+    player.sendMessage('§cInvalid amount. Must be positive.');
+    return showTransferPanel(player, targetPlayerId);
+  }
 
-    if (amount > sourceData.balance) {
-        player.sendMessage('§cYou do not have enough money.');
-        return showTransferPanel(player, targetPlayerId);
-    }
+  if (amount > sourceData.balance) {
+    player.sendMessage('§cYou do not have enough money.');
+    return showTransferPanel(player, targetPlayerId);
+  }
 
-    if (amount > config.economy.paymentConfirmationThreshold) {
-        // Confirmation panel
-        const confirmForm = new ActionFormBuilder()
-            .title('Confirm Payment')
-            .body(`Are you sure you want to send ${formatCurrency(amount)} to ${targetName}?`)
-            .button('§2Confirm', 'textures/ui/realms_green_check', async () => {
-                const result = transfer(player.id, targetPlayerId, amount);
-                if (result.success) {
-                    player.sendMessage(`§aYou have paid §e${formatCurrency(amount)}§a to ${targetName}.`);
-                } else {
-                    player.sendMessage(`§cPayment failed: ${result.message}`);
-                }
-                await showPanel(player, 'playerActionsPanel', { targetPlayerId });
-            })
-            .button('§4Cancel', 'textures/ui/cancel', async () => {
-                player.sendMessage('§cPayment cancelled.');
-                await showTransferPanel(player, targetPlayerId);
-            });
-
-        await confirmForm.show(player);
-    } else {
+  if (amount > config.economy.paymentConfirmationThreshold) {
+    // Confirmation panel
+    const confirmForm = new ActionFormBuilder()
+      .title('Confirm Payment')
+      .body(`Are you sure you want to send ${formatCurrency(amount)} to ${targetName}?`)
+      .button('§2Confirm', 'textures/ui/realms_green_check', async () => {
         const result = transfer(player.id, targetPlayerId, amount);
         if (result.success) {
-            player.sendMessage(`§aYou have paid §e${formatCurrency(amount)}§a to ${targetName}.`);
+          player.sendMessage(`§aYou have paid §e${formatCurrency(amount)}§a to ${targetName}.`);
         } else {
-            player.sendMessage(`§cPayment failed: ${result.message}`);
+          player.sendMessage(`§cPayment failed: ${result.message}`);
         }
         await showPanel(player, 'playerActionsPanel', { targetPlayerId });
+      })
+      .button('§4Cancel', 'textures/ui/cancel', async () => {
+        player.sendMessage('§cPayment cancelled.');
+        await showTransferPanel(player, targetPlayerId);
+      });
+
+    await confirmForm.show(player);
+  } else {
+    const result = transfer(player.id, targetPlayerId, amount);
+    if (result.success) {
+      player.sendMessage(`§aYou have paid §e${formatCurrency(amount)}§a to ${targetName}.`);
+    } else {
+      player.sendMessage(`§cPayment failed: ${result.message}`);
     }
+    await showPanel(player, 'playerActionsPanel', { targetPlayerId });
+  }
 }

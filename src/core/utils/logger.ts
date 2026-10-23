@@ -1,10 +1,10 @@
 // Log level constants, ordered by verbosity
 // (Refreshed for deployment)
 export const LogLevels = {
-    ERROR: 0, // Critical errors
-    WARN: 1, // Warnings, potential issues
-    INFO: 2, // General information, status updates
-    DEBUG: 3 // Verbose debugging for developers
+  ERROR: 0, // Critical errors
+  WARN: 1, // Warnings, potential issues
+  INFO: 2, // General information, status updates
+  DEBUG: 3, // Verbose debugging for developers
 } as const;
 
 type LogLevelKey = keyof typeof LogLevels;
@@ -22,27 +22,27 @@ let externalWarnHandler: ((message: string) => void) | undefined;
 
 /** Register an external error handler to capture critical errors. */
 export function setExternalErrorHandler(handler: (error: unknown, context?: string) => void): void {
-    externalErrorHandler = handler;
+  externalErrorHandler = handler;
 }
 
 /** Register an external debug handler. */
 export function setExternalDebugHandler(handler: (message: string) => void): void {
-    externalDebugHandler = handler;
+  externalDebugHandler = handler;
 }
 
 /** Register an external info handler. */
 export function setExternalInfoHandler(handler: (message: string) => void): void {
-    externalInfoHandler = handler;
+  externalInfoHandler = handler;
 }
 
 /** Register an external warn handler. */
 export function setExternalWarnHandler(handler: (message: string) => void): void {
-    externalWarnHandler = handler;
+  externalWarnHandler = handler;
 }
 
 /** Gets the current log level. */
 export function getLogLevel(): number {
-    return currentLogLevel;
+  return currentLogLevel;
 }
 
 /**
@@ -51,16 +51,16 @@ export function getLogLevel(): number {
  * @param {number | string} level The log level to set (use LogLevels enum).
  */
 export function setLogLevel(level: number | string): void {
-    const numericLevel = typeof level === 'string' ? Number.parseInt(level, 10) : level;
-    if (!Number.isNaN(numericLevel) && numericLevel >= LogLevels.ERROR && numericLevel <= LogLevels.DEBUG) {
-        currentLogLevel = numericLevel;
-        // Provide feedback on the new log level for clarity during startup
-        const levelName = (Object.keys(LogLevels) as LogLevelKey[]).find((key) => LogLevels[key] === numericLevel);
-        infoLog(`[Logger] Log level set to: ${levelName}`);
-    } else {
-        errorLog(`[Logger] Invalid log level provided: '${String(level)}'. Defaulting to INFO.`);
-        currentLogLevel = LogLevels.INFO;
-    }
+  const numericLevel = typeof level === 'string' ? Number.parseInt(level, 10) : level;
+  if (!Number.isNaN(numericLevel) && numericLevel >= LogLevels.ERROR && numericLevel <= LogLevels.DEBUG) {
+    currentLogLevel = numericLevel;
+    // Provide feedback on the new log level for clarity during startup
+    const levelName = (Object.keys(LogLevels) as LogLevelKey[]).find((key) => LogLevels[key] === numericLevel);
+    infoLog(`[Logger] Log level set to: ${levelName}`);
+  } else {
+    errorLog(`[Logger] Invalid log level provided: '${String(level)}'. Defaulting to INFO.`);
+    currentLogLevel = LogLevels.INFO;
+  }
 }
 
 /**
@@ -70,29 +70,37 @@ export function setLogLevel(level: number | string): void {
  * @returns {string} A string representation of the error.
  */
 function formatError(error: unknown): string {
-    if (error instanceof Error) {
-        return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
-    }
+  if (error instanceof Error) {
+    return `\n  Message: ${error.message}\n  Stack: ${error.stack}`;
+  }
 
-    if (typeof error === 'string' || typeof error === 'number' || typeof error === 'boolean' || typeof error === 'symbol' || typeof error === 'bigint' || error === undefined || error === null) {
-        return String(error);
-    }
+  if (
+    typeof error === 'string' ||
+    typeof error === 'number' ||
+    typeof error === 'boolean' ||
+    typeof error === 'symbol' ||
+    typeof error === 'bigint' ||
+    error === undefined ||
+    error === null
+  ) {
+    return String(error);
+  }
 
-    // For other objects, attempt to stringify them.
-    try {
-        return JSON.stringify(
-            error,
-            (_key: string, value: unknown) => {
-                if (value instanceof Error) {
-                    return { message: value.message, stack: value.stack };
-                }
-                return value;
-            },
-            2
-        );
-    } catch {
-        return 'Unserializable object';
-    }
+  // For other objects, attempt to stringify them.
+  try {
+    return JSON.stringify(
+      error,
+      (_key: string, value: unknown) => {
+        if (value instanceof Error) {
+          return { message: value.message, stack: value.stack };
+        }
+        return value;
+      },
+      2,
+    );
+  } catch {
+    return 'Unserializable object';
+  }
 }
 
 type ConsoleMethod = 'log' | 'info' | 'warn' | 'error';
@@ -104,7 +112,7 @@ type ConsoleMethod = 'log' | 'info' | 'warn' | 'error';
  * @param message The message to log.
  */
 function internalLog(method: ConsoleMethod, message: string): void {
-    console[method](message);
+  console[method](message);
 }
 
 /**
@@ -113,12 +121,12 @@ function internalLog(method: ConsoleMethod, message: string): void {
  * @param {string} message The message to log.
  */
 export function debugLog(message: string): void {
-    if (externalDebugHandler) {
-        externalDebugHandler(message);
-    }
-    if (currentLogLevel >= LogLevels.DEBUG) {
-        internalLog('log', `[DEBUG] ${message}`);
-    }
+  if (externalDebugHandler) {
+    externalDebugHandler(message);
+  }
+  if (currentLogLevel >= LogLevels.DEBUG) {
+    internalLog('log', `[DEBUG] ${message}`);
+  }
 }
 
 /**
@@ -127,12 +135,12 @@ export function debugLog(message: string): void {
  * @param {string} message The message to log.
  */
 export function infoLog(message: string): void {
-    if (externalInfoHandler) {
-        externalInfoHandler(message);
-    }
-    if (currentLogLevel >= LogLevels.INFO) {
-        internalLog('info', message);
-    }
+  if (externalInfoHandler) {
+    externalInfoHandler(message);
+  }
+  if (currentLogLevel >= LogLevels.INFO) {
+    internalLog('info', message);
+  }
 }
 
 /**
@@ -141,12 +149,12 @@ export function infoLog(message: string): void {
  * @param {string} message The message to log.
  */
 export function warnLog(message: string): void {
-    if (externalWarnHandler) {
-        externalWarnHandler(message);
-    }
-    if (currentLogLevel >= LogLevels.WARN) {
-        internalLog('warn', message);
-    }
+  if (externalWarnHandler) {
+    externalWarnHandler(message);
+  }
+  if (currentLogLevel >= LogLevels.WARN) {
+    internalLog('warn', message);
+  }
 }
 
 /**
@@ -156,18 +164,18 @@ export function warnLog(message: string): void {
  * @param {unknown} [error] Optional error object or additional info to serialize.
  */
 export function errorLog(message: string, error?: unknown): void {
-    if (currentLogLevel >= LogLevels.ERROR) {
-        let fullMessage = message;
-        if (error !== undefined) {
-            fullMessage += `\n  Details: ${formatError(error)}`;
-        }
-        internalLog('error', fullMessage);
-
-        if (externalErrorHandler) {
-            // If an explicit error object is provided, use it. Otherwise, use the message as the error.
-            externalErrorHandler(error ?? new Error(message), message);
-        }
+  if (currentLogLevel >= LogLevels.ERROR) {
+    let fullMessage = message;
+    if (error !== undefined) {
+      fullMessage += `\n  Details: ${formatError(error)}`;
     }
+    internalLog('error', fullMessage);
+
+    if (externalErrorHandler) {
+      // If an explicit error object is provided, use it. Otherwise, use the message as the error.
+      externalErrorHandler(error ?? new Error(message), message);
+    }
+  }
 }
 
 /**
@@ -176,5 +184,5 @@ export function errorLog(message: string, error?: unknown): void {
  * @param {string} message The message to log.
  */
 export function rawLog(message: string): void {
-    internalLog('log', message);
+  internalLog('log', message);
 }

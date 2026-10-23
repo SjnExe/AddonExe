@@ -9,19 +9,19 @@ import * as mc from '@minecraft/server';
 export const eventName = 'playerLeave';
 
 function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
-    const pData = playerDataManager.getPlayer(event.playerId);
-    const config = getConfig();
-    const joinLeaveConfig = config.playerInfo.customJoinLeave;
+  const pData = playerDataManager.getPlayer(event.playerId);
+  const config = getConfig();
+  const joinLeaveConfig = config.playerInfo.customJoinLeave;
 
-    if (joinLeaveConfig.enabled === true && pData?.isVanished !== true) {
-        const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: event.playerName });
-        mc.world.sendMessage(msg);
-    }
+  if (joinLeaveConfig.enabled === true && pData?.isVanished !== true) {
+    const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: event.playerName });
+    mc.world.sendMessage(msg);
+  }
 
-    handleCombatPlayerLeave(event.playerId, event.playerName);
-    playerDataManager.handlePlayerLeave(event.playerId);
-    playerCache.removePlayerFromCache(event.playerId);
-    debugLog(`[AddonExe] Player ${event.playerName} left.`);
+  handleCombatPlayerLeave(event.playerId, event.playerName);
+  playerDataManager.handlePlayerLeave(event.playerId);
+  playerCache.removePlayerFromCache(event.playerId);
+  debugLog(`[AddonExe] Player ${event.playerName} left.`);
 }
 
 export default handlePlayerLeave;

@@ -8,9 +8,9 @@ Thank you for considering contributing to **AddonExe**! We welcome bug reports, 
 - [Reporting Bugs](#reporting-bugs)
 - [Suggesting Enhancements](#suggesting-enhancements)
 - [Code Contributions](#code-contributions)
-    - [Environment Setup](#environment-setup)
-    - [Contribution Workflow](#contribution-workflow)
-    - [Coding Standards & Quality Checks](#coding-standards--quality-checks)
+  - [Environment Setup](#environment-setup)
+  - [Contribution Workflow](#contribution-workflow)
+  - [Coding Standards & Quality Checks](#coding-standards--quality-checks)
 - [Development Resources](#development-resources)
 - [Code of Conduct](#code-of-conduct)
 

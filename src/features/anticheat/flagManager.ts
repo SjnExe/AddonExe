@@ -13,102 +13,102 @@ import * as mc from '@minecraft/server';
 const storage = new StorageManager('exe:flags');
 
 interface FlagData {
-    vl: number; // Violation Level
-    lastFlagTime: number;
+  vl: number; // Violation Level
+  lastFlagTime: number;
 }
 
 // Map<PlayerID, Map<CheckName, FlagData>>
 const flags = new Map<string, Map<string, FlagData>>();
 
 export function initializeFlagManager() {
-    // Load flags from storage
-    const rawData = storage.load<[string, [string, FlagData][]][]>();
-    if (isDefined(rawData)) {
-        for (const [playerId, checkMap] of rawData) {
-            flags.set(playerId, new Map(checkMap));
-        }
+  // Load flags from storage
+  const rawData = storage.load<[string, [string, FlagData][]][]>();
+  if (isDefined(rawData)) {
+    for (const [playerId, checkMap] of rawData) {
+      flags.set(playerId, new Map(checkMap));
     }
+  }
 
-    // Auto-save loop
-    mc.system.runInterval(() => saveFlags(), 600); // 30s
+  // Auto-save loop
+  mc.system.runInterval(() => saveFlags(), 600); // 30s
 }
 
 export function saveFlags() {
-    const dataToSave: [string, [string, FlagData][]][] = [];
-    for (const [playerId, checkMap] of flags) {
-        dataToSave.push([playerId, [...checkMap.entries()]]);
-    }
-    storage.save(dataToSave);
+  const dataToSave: [string, [string, FlagData][]][] = [];
+  for (const [playerId, checkMap] of flags) {
+    dataToSave.push([playerId, [...checkMap.entries()]]);
+  }
+  storage.save(dataToSave);
 }
 
 export function flag(player: mc.Player, checkName: string, message: string) {
-    const config = getAnticheatConfig();
-    const checkConfig = (config as unknown as Record<string, BaseCheckConfig | undefined>)[checkName];
+  const config = getAnticheatConfig();
+  const checkConfig = (config as unknown as Record<string, BaseCheckConfig | undefined>)[checkName];
 
-    if (config.enabled !== true || !isDefined(checkConfig) || checkConfig.enabled !== true) {
-        return;
+  if (config.enabled !== true || !isDefined(checkConfig) || checkConfig.enabled !== true) {
+    return;
+  }
+
+  if (!flags.has(player.id)) {
+    flags.set(player.id, new Map());
+  }
+  const playerFlags = flags.get(player.id)!;
+
+  if (!playerFlags.has(checkName)) {
+    playerFlags.set(checkName, { vl: 0, lastFlagTime: Date.now() });
+  }
+  const data = playerFlags.get(checkName)!;
+
+  // Decay logic
+  if (checkConfig.flagDecaySeconds > 0) {
+    const decayAmount = Math.floor((Date.now() - data.lastFlagTime) / (checkConfig.flagDecaySeconds * 1000));
+    if (decayAmount > 0) {
+      data.vl = Math.max(0, data.vl - decayAmount);
     }
+  }
 
-    if (!flags.has(player.id)) {
-        flags.set(player.id, new Map());
+  data.vl++;
+  data.lastFlagTime = Date.now();
+
+  // Log
+  addFlagLog(player.name, checkName, data.vl, message);
+
+  // Notify
+  if (checkConfig.notifyStaff === true) {
+    notifyAdmins(player, checkName, data.vl, message);
+
+    if (config.consoleNotifications === true) {
+      warnLog(`§c[AC] §e${player.name} §7failed §b${checkName} §7(VL: ${data.vl}): §f${message}`);
     }
-    const playerFlags = flags.get(player.id)!;
+  }
 
-    if (!playerFlags.has(checkName)) {
-        playerFlags.set(checkName, { vl: 0, lastFlagTime: Date.now() });
+  // Punish
+  if (isDefined(checkConfig.violations)) {
+    for (const v of checkConfig.violations) {
+      if (data.vl === v.threshold) {
+        executePunishment(player, v.command);
+      }
     }
-    const data = playerFlags.get(checkName)!;
-
-    // Decay logic
-    if (checkConfig.flagDecaySeconds > 0) {
-        const decayAmount = Math.floor((Date.now() - data.lastFlagTime) / (checkConfig.flagDecaySeconds * 1000));
-        if (decayAmount > 0) {
-            data.vl = Math.max(0, data.vl - decayAmount);
-        }
-    }
-
-    data.vl++;
-    data.lastFlagTime = Date.now();
-
-    // Log
-    addFlagLog(player.name, checkName, data.vl, message);
-
-    // Notify
-    if (checkConfig.notifyStaff === true) {
-        notifyAdmins(player, checkName, data.vl, message);
-
-        if (config.consoleNotifications === true) {
-            warnLog(`§c[AC] §e${player.name} §7failed §b${checkName} §7(VL: ${data.vl}): §f${message}`);
-        }
-    }
-
-    // Punish
-    if (isDefined(checkConfig.violations)) {
-        for (const v of checkConfig.violations) {
-            if (data.vl === v.threshold) {
-                executePunishment(player, v.command);
-            }
-        }
-    }
+  }
 }
 
 function notifyAdmins(suspect: mc.Player, check: string, vl: number, info: string) {
-    for (const admin of getAllPlayersFromCache()) {
-        const pData = getPlayer(admin.id);
-        if (isDefined(pData) && hasPermission(admin, 'group.mod') && !admin.hasTag('exe:ac_notify_off')) {
-            admin.sendMessage(`§c[AC] §e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
-        }
+  for (const admin of getAllPlayersFromCache()) {
+    const pData = getPlayer(admin.id);
+    if (isDefined(pData) && hasPermission(admin, 'group.mod') && !admin.hasTag('exe:ac_notify_off')) {
+      admin.sendMessage(`§c[AC] §e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
     }
+  }
 }
 
 export function executePunishment(player: mc.Player, commandTemplate: string) {
-    const safePlayerName = escapeCommandArg(player.name);
-    const normalizedTemplate = commandTemplate.replaceAll('"{player}"', '{player}').replaceAll("'{player}'", '{player}');
-    const cmd = formatString(normalizedTemplate, { player: `"${safePlayerName}"` });
-    try {
-        player.dimension.runCommand(cmd);
-        debugLog(`[AntiCheat] Executed: ${cmd}`);
-    } catch (error) {
-        errorLog(`[AntiCheat] Failed to execute punishment: ${cmd}`, error);
-    }
+  const safePlayerName = escapeCommandArg(player.name);
+  const normalizedTemplate = commandTemplate.replaceAll('"{player}"', '{player}').replaceAll("'{player}'", '{player}');
+  const cmd = formatString(normalizedTemplate, { player: `"${safePlayerName}"` });
+  try {
+    player.dimension.runCommand(cmd);
+    debugLog(`[AntiCheat] Executed: ${cmd}`);
+  } catch (error) {
+    errorLog(`[AntiCheat] Failed to execute punishment: ${cmd}`, error);
+  }
 }

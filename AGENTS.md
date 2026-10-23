@@ -24,15 +24,15 @@ This document is the single source of truth for the architecture, coding standar
 
 - **Never Edit Build Artifacts:** Never manually edit `packs/behavior/scripts/` or generated `manifest.json` files. Edit `src/` and run `bun run build`.
 - **Naming Conventions:**
-    - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraft-rules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
-    - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
+  - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraft-rules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
+  - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
 - **Formatting (`bun fmt`):** 4-space indentation, single quotes for TS, semicolons required, curly braces `{}` required on all control flow blocks.
 - **Path Aliases:** Use aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).
 - **Strict Type Guards:** Use `isDefined`, `isNonEmptyString`, and `isNumber` from `@lib/guards.js` instead of loose truthiness checks.
 - **Minecraft Constants:** Always import `MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftEntityTypes`, and `MinecraftDimensionTypes` from `@minecraft/vanilla-data` instead of raw `'minecraft:...'` strings.
 - **Entity Safety & Command Sanitization:**
-    - Always check `player.isValid` across tick boundaries and resolve live player references via `playerCache`.
-    - Sanitize any dynamic string passed into `runCommand()` using `escapeCommandArg()`.
+  - Always check `player.isValid` across tick boundaries and resolve live player references via `playerCache`.
+  - Sanitize any dynamic string passed into `runCommand()` using `escapeCommandArg()`.
 
 ## 4. Configuration, Presets & SemVer Migration System
 
@@ -43,12 +43,12 @@ This document is the single source of truth for the architecture, coding standar
 ## 5. Custom Dark-Mode UI & Text Formatting
 
 - **UI Builders:** Always use `ActionFormBuilder`, `CustomFormBuilder`, and `MessageFormBuilder`.
-    - `.grid(1)` (`\uE100§r`): 1-column full-width reader/list stack.
-    - `.grid(2)` (`§2§<tens>§<ones>§f§r`): 2-column wide card grid (default for hubs/menus).
-    - `.grid(3)` (`§3§<tens>§<ones>§f§r`): 3-column compact tile grid (Server Shop & RPS).
-    - `.grid(4)` (`§4§<tens>§<ones>§f§r`): 4-column icon tile grid.
-    - `.grid('board')` (`§9§0§0§f§r`): 3x3 fixed board grid (Tic-Tac-Toe).
-    - `.grid('ms9' | 'ms12' | 'ms16')` (`§8§0§9§f§r`, `§8§1§2§f§r`, `§8§1§6§f§r`): Minesweeper 9x9, 12x12, and 16x12 grids.
+  - `.grid(1)` (`\uE100§r`): 1-column full-width reader/list stack.
+  - `.grid(2)` (`§2§<tens>§<ones>§f§r`): 2-column wide card grid (default for hubs/menus).
+  - `.grid(3)` (`§3§<tens>§<ones>§f§r`): 3-column compact tile grid (Server Shop & RPS).
+  - `.grid(4)` (`§4§<tens>§<ones>§f§r`): 4-column icon tile grid.
+  - `.grid('board')` (`§9§0§0§f§r`): 3x3 fixed board grid (Tic-Tac-Toe).
+  - `.grid('ms9' | 'ms12' | 'ms16')` (`§8§0§9§f§r`, `§8§1§2§f§r`, `§8§1§6§f§r`): Minesweeper 9x9, 12x12, and 16x12 grids.
 - **Bedrock Section (`§`) Color & Style Codes:**
-    - Colors: `§0` Black, `§1` Dark Blue, `§2` Dark Green, `§3` Dark Aqua, `§4` Dark Red, `§5` Dark Purple, `§6` Gold, `§7` Gray, `§8` Dark Gray, `§9` Blue, `§a` Green, `§b` Aqua, `§c` Red, `§d` Light Purple, `§e` Yellow, `§f` White, `§g` Minecoin Gold.
-    - Styles (must follow color code): `§l` Bold, `§o` Italic, `§k` Obfuscated, `§r` Reset.
+  - Colors: `§0` Black, `§1` Dark Blue, `§2` Dark Green, `§3` Dark Aqua, `§4` Dark Red, `§5` Dark Purple, `§6` Gold, `§7` Gray, `§8` Dark Gray, `§9` Blue, `§a` Green, `§b` Aqua, `§c` Red, `§d` Light Purple, `§e` Yellow, `§f` White, `§g` Minecoin Gold.
+  - Styles (must follow color code): `§l` Bold, `§o` Italic, `§k` Obfuscated, `§r` Reset.

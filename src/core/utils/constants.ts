@@ -1,6 +1,9 @@
 import { RawMessage } from '@minecraft/server';
 
-/** This file contains centralized constants for the addon. Using constants helps prevent "magic strings" and makes the code easier to maintain. */
+/**
+ * This file contains centralized constants for the addon. Using constants helps prevent "magic strings" and makes the
+ * code easier to maintain.
+ */
 
 // --- Entity Identifiers ---
 export const floatingTextId = 'exe:floating_text';
@@ -31,5 +34,5 @@ export const developerUsernames = new Set(['sjntechmlmyt']);
 export const developerBadge = '§b[§dDev§b]§r';
 
 export function isDeveloperPlayer(name: string | undefined): boolean {
-    return typeof name === 'string' && developerUsernames.has(name.trim().toLowerCase());
+  return typeof name === 'string' && developerUsernames.has(name.trim().toLowerCase());
 }

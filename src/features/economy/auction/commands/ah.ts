@@ -10,97 +10,100 @@ import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 
 const mainCommand: CustomCommand = {
-    name: 'ah',
-    aliases: ['auction'],
-    description: 'Auction House commands.',
-    category: 'Economy',
-    permissionNode: 'cmd.ah.member',
-    parameters: [
-        { name: 'subcommand', type: 'string', optional: true, enumOptions: ['sell', 'help', 'search'] },
-        { name: 'price', type: 'string', optional: true },
-        { name: 'type', type: 'string', optional: true, enumOptions: ['bin', 'bid'] }
-    ],
-    execute: async (executor: CommandExecutor, args: { subcommand?: string; price?: string; type?: string }) => {
-        if (!(executor instanceof mc.Player)) {
-            return;
-        }
-
-        const config = getAuctionHouseConfig();
-        if (!config.enabled) {
-            sendMessage('§cThe Auction House system is currently disabled globally.', executor);
-            return;
-        }
-
-        const sub = args.subcommand?.toLowerCase();
-
-        if (!isNonEmptyString(sub)) {
-            await showAuctionHouse(executor);
-            return;
-        }
-
-        if (sub === 'sell') {
-            if (!isNonEmptyString(args.price)) {
-                sendMessage('§cUsage: /ah sell <price> [bin/bid]', executor);
-                return;
-            }
-            const price = parseCurrency(args.price);
-            if (Number.isNaN(price) || price <= 0) {
-                sendMessage('§cInvalid price.', executor);
-                return;
-            }
-
-            const isBid = args.type?.toLowerCase() === 'bid';
-
-            const inventory = executor.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
-            if (!isDefined(inventory) || !isDefined(inventory.container)) {
-                return;
-            }
-
-            const item = inventory.container.getItem(executor.selectedSlotIndex);
-            if (!isDefined(item)) {
-                sendMessage('§cYou are not holding an item.', executor);
-                return;
-            }
-
-            // Check blocked items
-            if (config.blockedItemIds.includes(item.typeId)) {
-                sendMessage('§cYou cannot sell this item (Shulker Box/Bundle) to prevent data loss.', executor);
-                return;
-            }
-
-            const serialized = serializeItem(item);
-
-            // Create Listing
-            const result = createListing(executor, serialized, price, isBid, config.defaultDurationSeconds);
-
-            if (result.success) {
-                // Remove item only after successful listing creation
-                inventory.container.setItem(executor.selectedSlotIndex);
-                sendMessage(result.message, executor);
-            } else {
-                sendMessage(result.message, executor);
-            }
-            return;
-        }
-
-        if (sub === 'help') {
-            sendMessage('§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item', executor);
-            return;
-        }
-
-        if (sub === 'search') {
-            // Arg 2 is mapped to 'price' in definition, but here acts as query
-
-            if (isNonEmptyString(args.price)) {
-                await showAuctionHouse(executor, 1, args.price);
-            } else {
-                await showAuctionHouse(executor);
-            }
-            return;
-        }
-
-        sendMessage('§cUnknown subcommand. Use /ah help.', executor);
+  name: 'ah',
+  aliases: ['auction'],
+  description: 'Auction House commands.',
+  category: 'Economy',
+  permissionNode: 'cmd.ah.member',
+  parameters: [
+    { name: 'subcommand', type: 'string', optional: true, enumOptions: ['sell', 'help', 'search'] },
+    { name: 'price', type: 'string', optional: true },
+    { name: 'type', type: 'string', optional: true, enumOptions: ['bin', 'bid'] },
+  ],
+  execute: async (executor: CommandExecutor, args: { subcommand?: string; price?: string; type?: string }) => {
+    if (!(executor instanceof mc.Player)) {
+      return;
     }
+
+    const config = getAuctionHouseConfig();
+    if (!config.enabled) {
+      sendMessage('§cThe Auction House system is currently disabled globally.', executor);
+      return;
+    }
+
+    const sub = args.subcommand?.toLowerCase();
+
+    if (!isNonEmptyString(sub)) {
+      await showAuctionHouse(executor);
+      return;
+    }
+
+    if (sub === 'sell') {
+      if (!isNonEmptyString(args.price)) {
+        sendMessage('§cUsage: /ah sell <price> [bin/bid]', executor);
+        return;
+      }
+      const price = parseCurrency(args.price);
+      if (Number.isNaN(price) || price <= 0) {
+        sendMessage('§cInvalid price.', executor);
+        return;
+      }
+
+      const isBid = args.type?.toLowerCase() === 'bid';
+
+      const inventory = executor.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
+      if (!isDefined(inventory) || !isDefined(inventory.container)) {
+        return;
+      }
+
+      const item = inventory.container.getItem(executor.selectedSlotIndex);
+      if (!isDefined(item)) {
+        sendMessage('§cYou are not holding an item.', executor);
+        return;
+      }
+
+      // Check blocked items
+      if (config.blockedItemIds.includes(item.typeId)) {
+        sendMessage('§cYou cannot sell this item (Shulker Box/Bundle) to prevent data loss.', executor);
+        return;
+      }
+
+      const serialized = serializeItem(item);
+
+      // Create Listing
+      const result = createListing(executor, serialized, price, isBid, config.defaultDurationSeconds);
+
+      if (result.success) {
+        // Remove item only after successful listing creation
+        inventory.container.setItem(executor.selectedSlotIndex);
+        sendMessage(result.message, executor);
+      } else {
+        sendMessage(result.message, executor);
+      }
+      return;
+    }
+
+    if (sub === 'help') {
+      sendMessage(
+        '§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item',
+        executor,
+      );
+      return;
+    }
+
+    if (sub === 'search') {
+      // Arg 2 is mapped to 'price' in definition, but here acts as query
+
+      if (isNonEmptyString(args.price)) {
+        await showAuctionHouse(executor, 1, args.price);
+      } else {
+        await showAuctionHouse(executor);
+      }
+      return;
+    }
+
+    sendMessage('§cUnknown subcommand. Use /ah help.', executor);
+  },
 };
 
 export default [mainCommand];

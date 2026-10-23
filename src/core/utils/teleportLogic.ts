@@ -13,115 +13,124 @@ import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 const activePlayerWarmups = new Map<string, () => void>();
 
 export function cancelActiveTeleportWarmup(playerId: string): void {
-    const cancelExisting = activePlayerWarmups.get(playerId);
-    if (isDefined(cancelExisting)) {
-        activePlayerWarmups.delete(playerId);
-        cancelExisting();
-    }
+  const cancelExisting = activePlayerWarmups.get(playerId);
+  if (isDefined(cancelExisting)) {
+    activePlayerWarmups.delete(playerId);
+    cancelExisting();
+  }
 }
 
-export function startTeleportWarmup(player: mc.Player, durationSeconds: number, onWarmupComplete: () => void, teleportName = 'teleport', onCancel?: () => void): void {
-    cancelActiveTeleportWarmup(player.id);
+export function startTeleportWarmup(
+  player: mc.Player,
+  durationSeconds: number,
+  onWarmupComplete: () => void,
+  teleportName = 'teleport',
+  onCancel?: () => void,
+): void {
+  cancelActiveTeleportWarmup(player.id);
 
-    try {
-        const cfg = getConfig();
-        if (cfg.combat?.enabled !== false && cfg.combat?.blockTeleportInCombat !== false) {
-            const combatRem = getRemainingCombatCooldown(player.id);
-            if (combatRem > 0 && !hasPermission(player, 'group.admin')) {
-                player.sendMessage(`§cYou cannot teleport while in combat! (${combatRem}s remaining)`);
-                if (isDefined(onCancel)) {
-                    onCancel();
-                }
-                return;
-            }
-        }
-    } catch {
-        // Proceed if config not loaded in unit test
-    }
-
-    if (durationSeconds <= 0) {
-        onWarmupComplete();
-        return;
-    }
-
-    let remainingSeconds = durationSeconds;
-    const initialLocation = { x: player.location.x, y: player.location.y, z: player.location.z };
-    const dimensionId = player.dimension.id;
-    let intervalId: number | undefined = undefined;
-    let hurtListener: ((event: mc.EntityHurtAfterEvent) => void) | undefined = undefined;
-
-    const cleanup = () => {
-        activePlayerWarmups.delete(player.id);
-        if (isNumber(intervalId)) {
-            mc.system.clearRun(intervalId);
-            intervalId = undefined;
-        }
-        if (isDefined(hurtListener)) {
-            try {
-                if (isDefined(mc.world?.afterEvents?.entityHurt) && typeof mc.world.afterEvents.entityHurt.unsubscribe === 'function') {
-                    mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
-                }
-            } catch {
-                // Ignore cleanup errors
-            }
-            hurtListener = undefined;
-        }
-    };
-
-    const cancel = () => {
-        cleanup();
+  try {
+    const cfg = getConfig();
+    if (cfg.combat?.enabled !== false && cfg.combat?.blockTeleportInCombat !== false) {
+      const combatRem = getRemainingCombatCooldown(player.id);
+      if (combatRem > 0 && !hasPermission(player, 'group.admin')) {
+        player.sendMessage(`§cYou cannot teleport while in combat! (${combatRem}s remaining)`);
         if (isDefined(onCancel)) {
-            onCancel();
+          onCancel();
         }
-    };
+        return;
+      }
+    }
+  } catch {
+    // Proceed if config not loaded in unit test
+  }
 
-    activePlayerWarmups.set(player.id, cancel);
+  if (durationSeconds <= 0) {
+    onWarmupComplete();
+    return;
+  }
 
-    hurtListener = (event: mc.EntityHurtAfterEvent) => {
-        if (event.hurtEntity.id === player.id) {
-            setActionBarOverride(player, '§cTeleport canceled because you took damage.', 3000);
-            playSound(player, 'note.bass', { volume: 1, pitch: 0.5 });
-            cancel();
+  let remainingSeconds = durationSeconds;
+  const initialLocation = { x: player.location.x, y: player.location.y, z: player.location.z };
+  const dimensionId = player.dimension.id;
+  let intervalId: number | undefined = undefined;
+  let hurtListener: ((event: mc.EntityHurtAfterEvent) => void) | undefined = undefined;
+
+  const cleanup = () => {
+    activePlayerWarmups.delete(player.id);
+    if (isNumber(intervalId)) {
+      mc.system.clearRun(intervalId);
+      intervalId = undefined;
+    }
+    if (isDefined(hurtListener)) {
+      try {
+        if (
+          isDefined(mc.world?.afterEvents?.entityHurt) &&
+          typeof mc.world.afterEvents.entityHurt.unsubscribe === 'function'
+        ) {
+          mc.world.afterEvents.entityHurt.unsubscribe(hurtListener);
         }
-    };
+      } catch {
+        // Ignore cleanup errors
+      }
+      hurtListener = undefined;
+    }
+  };
 
-    mc.world.afterEvents.entityHurt.subscribe(hurtListener, { entityTypes: [MinecraftEntityTypes.Player] });
+  const cancel = () => {
+    cleanup();
+    if (isDefined(onCancel)) {
+      onCancel();
+    }
+  };
 
-    player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
+  activePlayerWarmups.set(player.id, cancel);
 
-    intervalId = mc.system.runInterval(() => {
-        try {
-            if (!player.isValid) {
-                cancel();
-                return;
-            }
-            const currentLocation = player.location;
-            const distanceMoved = Vector3Utils.distance(currentLocation, initialLocation);
+  hurtListener = (event: mc.EntityHurtAfterEvent) => {
+    if (event.hurtEntity.id === player.id) {
+      setActionBarOverride(player, '§cTeleport canceled because you took damage.', 3000);
+      playSound(player, 'note.bass', { volume: 1, pitch: 0.5 });
+      cancel();
+    }
+  };
 
-            if (distanceMoved > 2 || player.dimension.id !== dimensionId) {
-                setActionBarOverride(player, '§cTeleport canceled because you moved.', 3000);
-                playSound(player, 'note.bass', { volume: 1, pitch: 0.5 });
-                cancel();
-                return;
-            }
+  mc.world.afterEvents.entityHurt.subscribe(hurtListener, { entityTypes: [MinecraftEntityTypes.Player] });
 
-            remainingSeconds--;
+  player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
-            if (remainingSeconds > 0) {
-                const color = getCountdownColor(remainingSeconds);
-                setActionBarOverride(player, `${color}Teleporting in ${remainingSeconds}...`, 1100);
+  intervalId = mc.system.runInterval(() => {
+    try {
+      if (!player.isValid) {
+        cancel();
+        return;
+      }
+      const currentLocation = player.location;
+      const distanceMoved = Vector3Utils.distance(currentLocation, initialLocation);
 
-                const pitch = 0.5 + 1.5 * (1 - remainingSeconds / durationSeconds);
-                playSound(player, 'note.pling', { volume: 0.5, pitch });
-            } else {
-                setActionBarOverride(player, '§aTeleporting...', 2000);
-                playSound(player, 'random.levelup', { volume: 0.5, pitch: 1 });
-                cleanup();
-                onWarmupComplete();
-            }
-        } catch (error: unknown) {
-            errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(error)}`);
-            cancel();
-        }
-    }, 20);
+      if (distanceMoved > 2 || player.dimension.id !== dimensionId) {
+        setActionBarOverride(player, '§cTeleport canceled because you moved.', 3000);
+        playSound(player, 'note.bass', { volume: 1, pitch: 0.5 });
+        cancel();
+        return;
+      }
+
+      remainingSeconds--;
+
+      if (remainingSeconds > 0) {
+        const color = getCountdownColor(remainingSeconds);
+        setActionBarOverride(player, `${color}Teleporting in ${remainingSeconds}...`, 1100);
+
+        const pitch = 0.5 + 1.5 * (1 - remainingSeconds / durationSeconds);
+        playSound(player, 'note.pling', { volume: 0.5, pitch });
+      } else {
+        setActionBarOverride(player, '§aTeleporting...', 2000);
+        playSound(player, 'random.levelup', { volume: 0.5, pitch: 1 });
+        cleanup();
+        onWarmupComplete();
+      }
+    } catch (error: unknown) {
+      errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(error)}`);
+      cancel();
+    }
+  }, 20);
 }

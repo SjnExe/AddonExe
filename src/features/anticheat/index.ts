@@ -6,20 +6,20 @@ import { addPunishmentLog, initializeLogManager } from '@features/anticheat/logM
 import { startMovementCheckLoop } from '@features/anticheat/movementCheck.js';
 
 export async function initialize(_isMigration: boolean) {
-    initializeLogManager();
-    initializeFlagManager();
-    startItemCheckLoop();
-    startMovementCheckLoop();
+  initializeLogManager();
+  initializeFlagManager();
+  startItemCheckLoop();
+  startMovementCheckLoop();
 
-    serviceLocator.registerService('anticheat.logs', {
-        addPunishmentLog,
-        showChatFilter
-    });
+  serviceLocator.registerService('anticheat.logs', {
+    addPunishmentLog,
+    showChatFilter,
+  });
 
-    // Register configurations
-    const { resetXrayConfig, registerConfigReset } = await import('@core/config/configurations.js');
-    registerConfigReset('xray', {
-        reset: resetXrayConfig,
-        message: 'The X-ray configuration section has been reset to default.'
-    });
+  // Register configurations
+  const { resetXrayConfig, registerConfigReset } = await import('@core/config/configurations.js');
+  registerConfigReset('xray', {
+    reset: resetXrayConfig,
+    message: 'The X-ray configuration section has been reset to default.',
+  });
 }

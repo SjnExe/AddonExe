@@ -16,27 +16,27 @@
 ## 🌟 Core Features at a Glance
 
 - 🖥️ **Custom Dark-Mode Server UI (`/panel`):**
-    - Adaptive 2-column category hubs, 3-column item shop grids, and 1-column long-text readers styled with a custom dark-mode frame.
-    - Permission-aware navigation—regular players see gameplay hubs while moderators and admins see the **Staff Dashboard**.
+  - Adaptive 2-column category hubs, 3-column item shop grids, and 1-column long-text readers styled with a custom dark-mode frame.
+  - Permission-aware navigation—regular players see gameplay hubs while moderators and admins see the **Staff Dashboard**.
 - 💰 **Full Economy, Shop & Auction House:**
-    - Player balances (`/balance`), transfers (`/pay`), leaderboards (`/baltop`), Daily Rewards (`/daily`), Playtime & AFK Rewards (`/playtime`), and Server Voting (`/vote`).
-    - **Server Shop (`/shop`):** 3-column visual item shop with buy/sell quantities, search, rank discounts, `/sellhand`, `/sellall`, and a live in-game **Shop Editor**.
-    - **Auction House (`/ah`):** Player marketplace with Buy-It-Now (BIN) and Bidding modes, search/sort filters, and a Mailbox collection bin.
-    - **Bounties (`/bounty`) & PvP Duels (`/pvp`):** Place bounties on players, challenge others to wagered duels, or configure PvP kill-steal percentages.
-    - **Kits (`/kit`, `/addkit`):** Starter and custom kits with cooldowns, prices, and an in-game Kit Editor.
+  - Player balances (`/balance`), transfers (`/pay`), leaderboards (`/baltop`), Daily Rewards (`/daily`), Playtime & AFK Rewards (`/playtime`), and Server Voting (`/vote`).
+  - **Server Shop (`/shop`):** 3-column visual item shop with buy/sell quantities, search, rank discounts, `/sellhand`, `/sellall`, and a live in-game **Shop Editor**.
+  - **Auction House (`/ah`):** Player marketplace with Buy-It-Now (BIN) and Bidding modes, search/sort filters, and a Mailbox collection bin.
+  - **Bounties (`/bounty`) & PvP Duels (`/pvp`):** Place bounties on players, challenge others to wagered duels, or configure PvP kill-steal percentages.
+  - **Kits (`/kit`, `/addkit`):** Starter and custom kits with cooldowns, prices, and an in-game Kit Editor.
 - 🛡️ **Moderation, Anti-Cheat & Security:**
-    - Ban/Offline-Ban (`/ban`, `/oban`), Mute (`/mute`), Kick (`/xkick`), Warn (`/warn`), Hard Freeze (`/freeze`), Staff Vanish (`/vanish`), and Staff Inventory Swap (`/sinv`).
-    - Inspect inventories & armor (`/invsee`), inspect Ender Chests (`/ecsee`), clone inventories (`/copyinv`), clear inventories (`/xclear`), and wipe Ender Chests (`/ecwipe`).
-    - Filterable in-game **Punishment, Anti-Cheat Flag & Chat Logs** (`/logs`, `/chatlog`) and player reporting (`/report`).
-    - **Anti-Cheat & X-Ray Detection:** Movement speed/fly checks, illegal item & over-enchanted gear checks, monitored X-Ray ore alerts (`/xraynotify`), and hidden world seed protection.
+  - Ban/Offline-Ban (`/ban`, `/oban`), Mute (`/mute`), Kick (`/xkick`), Warn (`/warn`), Hard Freeze (`/freeze`), Staff Vanish (`/vanish`), and Staff Inventory Swap (`/sinv`).
+  - Inspect inventories & armor (`/invsee`), inspect Ender Chests (`/ecsee`), clone inventories (`/copyinv`), clear inventories (`/xclear`), and wipe Ender Chests (`/ecwipe`).
+  - Filterable in-game **Punishment, Anti-Cheat Flag & Chat Logs** (`/logs`, `/chatlog`) and player reporting (`/report`).
+  - **Anti-Cheat & X-Ray Detection:** Movement speed/fly checks, illegal item & over-enchanted gear checks, monitored X-Ray ore alerts (`/xraynotify`), and hidden world seed protection.
 - 🌍 **Teleportation & World Protection:**
-    - Player Homes (`/home`, `/sethome`), Server Warps (`/warp`), TPA/TPAHere (`/tpa`), Random Teleport (`/rtp`), and Back on death/teleport (`/back`).
-    - Radius-based **Spawn Protection**, custom 3D **World Protection Zones**, **World Border** (`/worldborder`), **Dimension Locks** (`/netherlock`, `/endlock`), and **Floating Text Holograms** (`/floatingtext`).
+  - Player Homes (`/home`, `/sethome`), Server Warps (`/warp`), TPA/TPAHere (`/tpa`), Random Teleport (`/rtp`), and Back on death/teleport (`/back`).
+  - Radius-based **Spawn Protection**, custom 3D **World Protection Zones**, **World Border** (`/worldborder`), **Dimension Locks** (`/netherlock`, `/endlock`), and **Floating Text Holograms** (`/floatingtext`).
 - 🤝 **Social, Ranks, HUD & Mini-Games:**
-    - **Rank & Permission Engine (`/rank`, `/listranks`):** Customizable ranks with wildcard permissions, chat/nametag formatting, and shop multipliers.
-    - **Friends (`/friend`), Private Messages (`/xmsg`, `/r`) & Teams/Guilds (`/team`, `/teamchat`):** Friend lists with quick TPA, plus Teams with shared bank balances and team homes.
-    - **Scoreboard Sidebar & Action Bar HUD (`/sidebar`):** Customizable live server/player stats display with Right, Left, and Bottom layouts.
-    - **Mini-Games Hub:** Play **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), **Minesweeper** (`/ms`), and **Wordle** (`/wordle`, `/guess`).
+  - **Rank & Permission Engine (`/rank`, `/listranks`):** Customizable ranks with wildcard permissions, chat/nametag formatting, and shop multipliers.
+  - **Friends (`/friend`), Private Messages (`/xmsg`, `/r`) & Teams/Guilds (`/team`, `/teamchat`):** Friend lists with quick TPA, plus Teams with shared bank balances and team homes.
+  - **Scoreboard Sidebar & Action Bar HUD (`/sidebar`):** Customizable live server/player stats display with Right, Left, and Bottom layouts.
+  - **Mini-Games Hub:** Play **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), **Minesweeper** (`/ms`), and **Wordle** (`/wordle`, `/guess`).
 
 ---
 
@@ -45,13 +45,13 @@
 1. **Download:** Grab the latest `AddonExe.<version>.mcaddon` file from [CurseForge](https://www.curseforge.com/minecraft-bedrock/addons/addonexe) and open it in Minecraft.
 2. **Apply Packs:** Activate **AddonExe BP** (at the top of Behavior Packs) and **AddonExe RP** (in Resource Packs) on your world.
 3. **Enable Required World Settings:**
-    - Turn ON **Activate Cheats** (_Game_ settings).
-    - Turn ON **Beta APIs** (_Experiments_ settings).
+   - Turn ON **Activate Cheats** (_Game_ settings).
+   - Turn ON **Beta APIs** (_Experiments_ settings).
 4. **Become Server Owner:** Join the world and run:
-    ```text
-    /function owner
-    ```
-    _(Or run `/tag @s add owner` followed by `/xreload`.)_
+   ```text
+   /function owner
+   ```
+   _(Or run `/tag @s add owner` followed by `/xreload`.)_
 5. **Configure & Enable Features:** Run `/panel` -> **Staff Dashboard** -> **Addon Configuration** -> **Master Feature Toggles** to enable Economy, Shop, Kits, and other optional modules.
 
 ---

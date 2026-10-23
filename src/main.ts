@@ -24,109 +24,113 @@ loadCommands();
 
 /** Initializes the addon. This function should be called once at startup. */
 export async function initializeAddon() {
-    infoLog('[AddonExe] Initializing...');
+  infoLog('[AddonExe] Initializing...');
 
-    // Version Check & Migration Flag
-    const newVersionStr = VERSION;
-    const lastVersionStr = (mc.world.getDynamicProperty('exe:version') as string | undefined) ?? (mc.world.getDynamicProperty('exe:lastVersion') as string | undefined);
+  // Version Check & Migration Flag
+  const newVersionStr = VERSION;
+  const lastVersionStr =
+    (mc.world.getDynamicProperty('exe:version') as string | undefined) ??
+    (mc.world.getDynamicProperty('exe:lastVersion') as string | undefined);
 
-    let isMigration = true;
-    if (isNonEmptyString(lastVersionStr)) {
-        // Trigger migration if the version string changes at all (Major, Minor, or Patch)
-        isMigration = lastVersionStr !== newVersionStr;
+  let isMigration = true;
+  if (isNonEmptyString(lastVersionStr)) {
+    // Trigger migration if the version string changes at all (Major, Minor, or Patch)
+    isMigration = lastVersionStr !== newVersionStr;
+  }
+
+  // Parallel Initialization of core configurations and feature modules
+  // This reduces startup time by loading independent configs concurrently.
+  await initializeConfigManager(isMigration);
+
+  const { featureRegistry } = await import('@core/services/featureRegistry.js');
+
+  const { isFeatureActive } = await import('@core/services/featureManager.js');
+
+  // Initialize sequentially to respect the topological sort order
+  for (const feature of featureRegistry) {
+    try {
+      if (!isFeatureActive(feature.id)) {
+        infoLog(`[FeatureRegistry] Feature '${feature.id}' is disabled by configuration or dependencies.`);
+        continue; // Do not initialize if it's not active
+      }
+      const module = await feature.load();
+      if (module.initialize) {
+        await module.initialize(isMigration, feature.subfeatures);
+      }
+    } catch (error) {
+      errorLog(`[FeatureRegistry] Failed to initialize feature '${feature.id}': ${String(error)}`);
     }
+  }
 
-    // Parallel Initialization of core configurations and feature modules
-    // This reduces startup time by loading independent configs concurrently.
-    await initializeConfigManager(isMigration);
+  const config = getConfig();
+  setLogLevel(config.logLevel);
 
-    const { featureRegistry } = await import('@core/services/featureRegistry.js');
+  dataManager.initializeDataManager();
+  loadPersistentData();
 
-    const { isFeatureActive } = await import('@core/services/featureManager.js');
+  await initializeMigration(newVersionStr);
 
-    // Initialize sequentially to respect the topological sort order
-    for (const feature of featureRegistry) {
-        try {
-            if (!isFeatureActive(feature.id)) {
-                infoLog(`[FeatureRegistry] Feature '${feature.id}' is disabled by configuration or dependencies.`);
-                continue; // Do not initialize if it's not active
-            }
-            const module = await feature.load();
-            if (module.initialize) {
-                await module.initialize(isMigration, feature.subfeatures);
-            }
-        } catch (error) {
-            errorLog(`[FeatureRegistry] Failed to initialize feature '${feature.id}': ${String(error)}`);
-        }
-    }
+  const { initializePlayerCache } = await import('@core/data/playerCache.js');
+  initializePlayerCache();
 
-    const config = getConfig();
-    setLogLevel(config.logLevel);
+  initializeManagers();
 
-    dataManager.initializeDataManager();
-    loadPersistentData();
+  initializeEventManager();
+  initializeSpawnProtection();
+  initializeXrayDetection();
+  restartAnnouncer();
 
-    await initializeMigration(newVersionStr);
+  reinitializeOnlinePlayers();
 
-    const { initializePlayerCache } = await import('@core/data/playerCache.js');
-    initializePlayerCache();
-
-    initializeManagers();
-
-    initializeEventManager();
-    initializeSpawnProtection();
-    initializeXrayDetection();
-    restartAnnouncer();
-
-    reinitializeOnlinePlayers();
-
-    startSystemTimers();
-    infoLog('[AddonExe] Addon initialized successfully.');
+  startSystemTimers();
+  infoLog('[AddonExe] Addon initialized successfully.');
 }
 
 function initializeManagers() {
-    rankManager.initialize();
+  rankManager.initialize();
 }
 
 /** Updates all player ranks. This is useful when ranks are changed via commands. */
 export function updateAllPlayerRanks() {
-    const config = getConfig();
-    for (const player of mc.world.getAllPlayers()) {
-        rankManager.updatePlayerNameTag(player, config);
-    }
+  const config = getConfig();
+  for (const player of mc.world.getAllPlayers()) {
+    rankManager.updatePlayerNameTag(player, config);
+  }
 }
 
 function cleanupAddon() {
-    infoLog('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
-    cleanupSpawnProtection();
-    cleanupFloatingText();
-    cleanupPlayerDataManager();
-    sidebarManager.cleanup();
-    cleanupLeaderboardManager();
-    cleanupEventManager();
-    cleanupTimers();
-    infoLog('[AddonExe] Cleanup complete. The script will now unload.');
+  infoLog('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');
+  cleanupSpawnProtection();
+  cleanupFloatingText();
+  cleanupPlayerDataManager();
+  sidebarManager.cleanup();
+  cleanupLeaderboardManager();
+  cleanupEventManager();
+  cleanupTimers();
+  infoLog('[AddonExe] Cleanup complete. The script will now unload.');
 }
 
 mc.system.runTimeout(() => {
-    void (async () => {
-        try {
-            await initializeAddon();
-        } catch (error: unknown) {
-            errorLog('[AddonExe] A critical error occurred during addon initialization:');
-            if (error instanceof Error) {
-                errorLog(`Message: ${error.message}`);
-                if (error.stack !== undefined) {
-                    errorLog(`Stack: ${error.stack}`);
-                }
-            } else {
-                errorLog(`Error: ${String(error)}`);
-            }
-            mc.world.sendMessage('§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.');
+  void (async () => {
+    try {
+      await initializeAddon();
+    } catch (error: unknown) {
+      errorLog('[AddonExe] A critical error occurred during addon initialization:');
+      if (error instanceof Error) {
+        errorLog(`Message: ${error.message}`);
+        if (error.stack !== undefined) {
+          errorLog(`Stack: ${error.stack}`);
         }
-    })();
+      } else {
+        errorLog(`Error: ${String(error)}`);
+      }
+      mc.world.sendMessage(
+        '§l§c[AddonExe] A critical error occurred during startup. Please check the content log for details.',
+      );
+    }
+  })();
 }, 0);
 
 mc.system.beforeEvents.shutdown.subscribe(() => {
-    cleanupAddon();
+  cleanupAddon();
 });

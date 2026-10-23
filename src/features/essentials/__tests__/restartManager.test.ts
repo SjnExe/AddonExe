@@ -9,95 +9,97 @@ import defaultConfig from '../../../config.js';
 const { startRestart, cancelRestart } = await import('../restartManager.js');
 
 describe('restartManager', () => {
-    let intervalCallback: (() => void) | undefined;
-    let getConfigSpy: any;
-    let runIntervalSpy: any;
-    let clearRunSpy: any;
-    let sendMessageSpy: any;
+  let intervalCallback: (() => void) | undefined;
+  let getConfigSpy: any;
+  let runIntervalSpy: any;
+  let clearRunSpy: any;
+  let sendMessageSpy: any;
 
-    beforeEach(() => {
-        cancelRestart();
-        initializePlayerCache();
-        intervalCallback = undefined;
+  beforeEach(() => {
+    cancelRestart();
+    initializePlayerCache();
+    intervalCallback = undefined;
 
-        sendMessageSpy = spyOn(mc.world, 'sendMessage').mockImplementation(() => {});
-        clearRunSpy = spyOn(mc.system, 'clearRun').mockImplementation(() => {});
-        runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
-            intervalCallback = cb;
-            return 123 as any;
-        });
-
-        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
-            ...defaultConfig,
-            restart: {
-                countdownSeconds: 2,
-                subtitle: 'Server maintenance',
-                kickMessage: 'Server is restarting; please rejoin shortly.'
-            }
-        } as any);
+    sendMessageSpy = spyOn(mc.world, 'sendMessage').mockImplementation(() => {});
+    clearRunSpy = spyOn(mc.system, 'clearRun').mockImplementation(() => {});
+    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
+      intervalCallback = cb;
+      return 123 as any;
     });
 
-    afterEach(() => {
-        cancelRestart();
-        sendMessageSpy?.mockRestore();
-        clearRunSpy?.mockRestore();
-        runIntervalSpy?.mockRestore();
-        getConfigSpy?.mockRestore();
-    });
+    getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      ...defaultConfig,
+      restart: {
+        countdownSeconds: 2,
+        subtitle: 'Server maintenance',
+        kickMessage: 'Server is restarting; please rejoin shortly.',
+      },
+    } as any);
+  });
 
-    it('should start countdown and trigger escaped kick commands when countdown reaches 0', () => {
-        const mockPlayer1 = {
-            name: 'Malicious"Name\\',
-            runCommand: mock(),
-            onScreenDisplay: {
-                setTitle: mock(),
-                updateSubtitle: mock()
-            },
-            playSound: mock()
-        };
+  afterEach(() => {
+    cancelRestart();
+    sendMessageSpy?.mockRestore();
+    clearRunSpy?.mockRestore();
+    runIntervalSpy?.mockRestore();
+    getConfigSpy?.mockRestore();
+  });
 
-        addPlayerToCache(mockPlayer1 as any);
+  it('should start countdown and trigger escaped kick commands when countdown reaches 0', () => {
+    const mockPlayer1 = {
+      name: 'Malicious"Name\\',
+      runCommand: mock(),
+      onScreenDisplay: {
+        setTitle: mock(),
+        updateSubtitle: mock(),
+      },
+      playSound: mock(),
+    };
 
-        startRestart();
+    addPlayerToCache(mockPlayer1 as any);
 
-        expect(sendMessageSpy).toHaveBeenCalledWith(expect.stringContaining('Server restart initiated'));
-        expect(runIntervalSpy).toHaveBeenCalled();
+    startRestart();
 
-        expect(intervalCallback).toBeDefined();
+    expect(sendMessageSpy).toHaveBeenCalledWith(expect.stringContaining('Server restart initiated'));
+    expect(runIntervalSpy).toHaveBeenCalled();
 
-        // Tick 1 (secondsRemaining = 2)
-        intervalCallback!();
-        expect(mockPlayer1.onScreenDisplay.setTitle).toHaveBeenCalledWith('§c2');
-        expect(mockPlayer1.runCommand).not.toHaveBeenCalled();
+    expect(intervalCallback).toBeDefined();
 
-        // Tick 2 (secondsRemaining = 1)
-        intervalCallback!();
-        expect(mockPlayer1.onScreenDisplay.setTitle).toHaveBeenCalledWith('§c1');
-        expect(mockPlayer1.runCommand).not.toHaveBeenCalled();
+    // Tick 1 (secondsRemaining = 2)
+    intervalCallback!();
+    expect(mockPlayer1.onScreenDisplay.setTitle).toHaveBeenCalledWith('§c2');
+    expect(mockPlayer1.runCommand).not.toHaveBeenCalled();
 
-        // Tick 3 (secondsRemaining = 0) -> kick executed
-        intervalCallback!();
+    // Tick 2 (secondsRemaining = 1)
+    intervalCallback!();
+    expect(mockPlayer1.onScreenDisplay.setTitle).toHaveBeenCalledWith('§c1');
+    expect(mockPlayer1.runCommand).not.toHaveBeenCalled();
 
-        expect(mockPlayer1.runCommand).toHaveBeenCalledWith('kick "Malicious\'Name" "Server is restarting; please rejoin shortly."');
-        expect(clearRunSpy).toHaveBeenCalledWith(123);
-    });
+    // Tick 3 (secondsRemaining = 0) -> kick executed
+    intervalCallback!();
 
-    it('should prevent starting multiple restarts simultaneously', () => {
-        const initiator = {
-            sendMessage: mock()
-        } as any;
+    expect(mockPlayer1.runCommand).toHaveBeenCalledWith(
+      'kick "Malicious\'Name" "Server is restarting; please rejoin shortly."',
+    );
+    expect(clearRunSpy).toHaveBeenCalledWith(123);
+  });
 
-        startRestart();
-        startRestart(initiator);
+  it('should prevent starting multiple restarts simultaneously', () => {
+    const initiator = {
+      sendMessage: mock(),
+    } as any;
 
-        expect(initiator.sendMessage).toHaveBeenCalledWith('§cRestart is already in progress.');
-    });
+    startRestart();
+    startRestart(initiator);
 
-    it('should allow cancelling an active restart', () => {
-        startRestart();
-        cancelRestart();
+    expect(initiator.sendMessage).toHaveBeenCalledWith('§cRestart is already in progress.');
+  });
 
-        expect(clearRunSpy).toHaveBeenCalledWith(123);
-        expect(sendMessageSpy).toHaveBeenCalledWith('§aServer restart has been cancelled.');
-    });
+  it('should allow cancelling an active restart', () => {
+    startRestart();
+    cancelRestart();
+
+    expect(clearRunSpy).toHaveBeenCalledWith(123);
+    expect(sendMessageSpy).toHaveBeenCalledWith('§aServer restart has been cancelled.');
+  });
 });

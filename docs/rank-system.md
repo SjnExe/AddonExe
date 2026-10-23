@@ -39,12 +39,12 @@ This grants both the `owner` tag and `owner` rank immediately. The `owner` rank 
 ### Owner vs. Admin Capabilities
 
 - **Server Owner (`owner`):**
-    - Can grant or revoke **Admin** (`admin`) and any other rank to any player.
-    - Can edit **all** rank definitions (including `owner` and `admin`) and **all** permission groups.
+  - Can grant or revoke **Admin** (`admin`) and any other rank to any player.
+  - Can edit **all** rank definitions (including `owner` and `admin`) and **all** permission groups.
 - **Administrator (`admin`):**
-    - Can grant or revoke **Moderator** (`moderator` / `mod`), **Helper**, **Builder**, **Media**, **Verified**, **MVP**, **VIP**, **Donator**, and custom ranks to players below Admin.
-    - Can create, edit, and delete ranks **except `owner` and `admin`** (and cannot set any rank priority `<= 10`).
-    - **Cannot** assign the `owner` or `admin` permission groups or restricted nodes (`*`, `**.owner`, `**.admin`) to any rank or group.
+  - Can grant or revoke **Moderator** (`moderator` / `mod`), **Helper**, **Builder**, **Media**, **Verified**, **MVP**, **VIP**, **Donator**, and custom ranks to players below Admin.
+  - Can create, edit, and delete ranks **except `owner` and `admin`** (and cannot set any rank priority `<= 10`).
+  - **Cannot** assign the `owner` or `admin` permission groups or restricted nodes (`*`, `**.owner`, `**.admin`) to any rank or group.
 
 ### Managing Ranks via Commands
 

@@ -69,9 +69,9 @@ This version introduces critical security fixes, bug fixes, and stability improv
 ### ✨ Features
 
 - **In-Game Shop System**: Introduced a comprehensive, GUI-based shop system.
-    - Players can access the shop via the `/shop` command or the main admin panel.
-    - The UI supports browsing categorized items, buying, and selling.
-    - New commands were added for direct access: `/buy` opens the buy view, `/sell` opens the sell view, and `/sellhand` allows for quickly selling the item in the main hand.
+  - Players can access the shop via the `/shop` command or the main admin panel.
+  - The UI supports browsing categorized items, buying, and selling.
+  - New commands were added for direct access: `/buy` opens the buy view, `/sell` opens the sell view, and `/sellhand` allows for quickly selling the item in the main hand.
 
 ### 🔒 Security
 
@@ -119,8 +119,8 @@ This version introduces a major performance overhaul for the bounty system, a ne
 - **Command Cooldown System**: A new system has been integrated into the `commandManager` to allow any command to have an optional, configurable cooldown period to prevent spam. The `/spawn` command is the first to use this new system.
 - **New Ranks Added**: Added three new ranks to the default configuration: `VIP`, `Donator`, and `Verified`. These can be assigned to players via tags.
 - **`/rank` Command Enhancements**:
-    - Running `/rank` with no arguments now displays a list of all available ranks.
-    - The command now provides in-game suggestions for the "set" and "remove" actions, improving usability for admins.
+  - Running `/rank` with no arguments now displays a list of all available ranks.
+  - The command now provides in-game suggestions for the "set" and "remove" actions, improving usability for admins.
 
 ### 🐛 Bug Fixes
 
