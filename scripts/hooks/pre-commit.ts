@@ -37,7 +37,7 @@ try {
 
   // 2. Fast Incremental Type Check
   console.log('⚡ Running incremental type check...');
-  const checkTypes = await $`bun check-types`.nothrow().quiet();
+  const checkTypes = await $`bun check`.nothrow().quiet();
 
   if (checkTypes.exitCode !== 0) {
     console.error(`=== Type Check Failed (Exit: ${checkTypes.exitCode}) ===\n${checkTypes.stdout}${checkTypes.stderr}`);

@@ -20,7 +20,6 @@
     "build:nightly": "bun clean && bun scripts/build/build.ts --nightly",
     "build:release": "bun clean && bun scripts/build/build.ts --release --minify",
     "check-deps": "bun scripts/build/check-dependencies.ts",
-    "check-types": "bun check",
     "clean": "rm -rf out packs/behavior/scripts",
     "postinstall": "bun scripts/hooks/postinstall.ts",
     "lint": "bun scripts/lint/run.ts --fix",
