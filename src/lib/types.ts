@@ -1,5 +1,3 @@
-/** Re-export useful type-fest types. */
-
 /** Represents a value that may be null or undefined. */
 export type Nullable<T> = T | null | undefined;
 
@@ -15,4 +13,6 @@ export type JsonArray = JsonValue[];
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
 
 declare const opaqueTagSymbol: unique symbol;
-export type Opaque<Type, Token = unknown> = Type & { readonly [opaqueTagSymbol]: Token };
+export type Opaque<Type, Token = unknown> = Type & {
+  readonly [opaqueTagSymbol]: Token;
+};

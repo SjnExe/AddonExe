@@ -21,7 +21,6 @@ function handleOnlineEconomyCommand(
   action: 'set' | 'add' | 'remove',
 ): void {
   if (!isFeatureActive('eco')) {
-    // @ts-ignore (ignoring unused var)
     sendMessage('§cThe Economy system is currently disabled globally.', executor);
     return;
   }
@@ -91,7 +90,11 @@ const setBalanceCommand: CustomCommand = {
   allowConsole: true,
   hidden: true,
   parameters: [
-    { name: 'targets', type: 'player', description: 'The player(s) to target.' },
+    {
+      name: 'targets',
+      type: 'player',
+      description: 'The player(s) to target.',
+    },
     { name: 'amount', type: 'string', description: 'The amount to set.' },
   ],
   execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
@@ -142,7 +145,6 @@ function handleOfflineEconomyCommand(
 ): void {
   if (!isFeatureActive('eco')) {
     sendMessage('§cThe Economy system is currently disabled globally.', executor);
-    // @ts-ignore (ignoring unused var)
     return;
   }
 

@@ -54,9 +54,8 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
       if (all.length === 0) {
         return [];
       }
-      // nosemgrep: javascript.builtins.insecure-random.insecure-random
-      // Risk Accepted: Math.random() is acceptable here because this is for simple random player selection in a game context, not for cryptography.
-      const random = all[Math.floor(Math.random() * all.length)];
+      const randomIndex = Math.floor(Math.random() * all.length);
+      const random = all[randomIndex];
       return isDefined(random) ? [random] : [];
     }
   }

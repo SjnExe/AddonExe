@@ -21,7 +21,6 @@ const shopCommand: CustomCommand = {
       return;
     }
     if (!isFeatureActive('eco.shop')) {
-      // @ts-ignore (ignoring unused var)
       return executor.sendMessage('§cThe Shop system is currently disabled globally.');
     }
     await showPanel(executor, 'shopMainPanel', { view: 'shop' });
@@ -197,7 +196,6 @@ const addShopCommand: CustomCommand = {
       sellPrice: sellPriceStr,
       subCategory,
     } = args as unknown as AddShopCommandArgs;
-    // @ts-ignore (ignoring unused var)
 
     if (!isNonEmptyString(buyPriceStr) || !isNonEmptyString(sellPriceStr)) {
       return executor.sendMessage('§cPlease specify buy and sell prices.');

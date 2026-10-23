@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import { config as Config } from '@core/../config.js';
+import { setCurrentTickForTest } from '@core/__tests__/__mocks__/minecraftMock.js';
 import * as configManager from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
@@ -40,8 +41,7 @@ describe('rankManager', () => {
     } as any);
     getPlayerRanksSpy = spyOn(permissionEngine, 'getPlayerRanks').mockReturnValue([]);
     loadPlayerDataSpy = spyOn(playerDataManager, 'loadPlayerData').mockReturnValue(undefined);
-    // @ts-expect-error mocking readonly
-    mc.system.currentTick = 0;
+    setCurrentTickForTest(0);
     reloadRanks();
   });
 
@@ -85,12 +85,10 @@ describe('rankManager', () => {
       const player = { id: 'player2' } as mc.Player;
       getPlayerRanksSpy.mockReturnValue([mockRanks[0]]);
 
-      // @ts-expect-error mocking readonly
-      mc.system.currentTick = 100;
+      setCurrentTickForTest(100);
       const rank1 = getPlayerRank(player, Config);
 
-      // @ts-expect-error mocking readonly
-      mc.system.currentTick = 110;
+      setCurrentTickForTest(110);
       getPlayerRanksSpy.mockReturnValue([mockRanks[1]]);
       const rank2 = getPlayerRank(player, Config);
 
@@ -128,8 +126,7 @@ describe('rankManager', () => {
   describe('canTarget', () => {
     beforeEach(() => {
       initializePlayerCache();
-      // @ts-expect-error mocking readonly
-      mc.system.currentTick = 200;
+      setCurrentTickForTest(200);
       getRanksConfigSpy.mockReturnValue({
         rankDefinitions: mockRanks,
       } as any);
@@ -160,7 +157,11 @@ describe('rankManager', () => {
         return [];
       });
 
-      const targetPlayer = { id: 'modId', name: 'modId', isValid: true } as mc.Player;
+      const targetPlayer = {
+        id: 'modId',
+        name: 'modId',
+        isValid: true,
+      } as mc.Player;
       addPlayerToCache(targetPlayer);
 
       expect(canTarget(executor, 'modId', Config)).toBe(true);
@@ -179,7 +180,11 @@ describe('rankManager', () => {
         return [];
       });
 
-      const targetPlayer = { id: 'adminId', name: 'adminId', isValid: true } as mc.Player;
+      const targetPlayer = {
+        id: 'adminId',
+        name: 'adminId',
+        isValid: true,
+      } as mc.Player;
       addPlayerToCache(targetPlayer);
 
       expect(canTarget(executor, 'adminId', Config)).toBe(false);
@@ -234,12 +239,19 @@ describe('rankManager', () => {
       if (!Config.playerDefaults) {
         (Config as any).playerDefaults = { rankId: 'default' };
       }
-      player = { id: 'player1', name: 'PlayerName', nameTag: 'PlayerName' } as mc.Player;
+      player = {
+        id: 'player1',
+        name: 'PlayerName',
+        nameTag: 'PlayerName',
+      } as mc.Player;
       getPlayerRanksSpy.mockReturnValue([mockRanks[0]]);
-      mockRanks[0].chatFormatting = { prefixText: 'ADMIN', nameColor: '§7', messageColor: '§r' };
+      mockRanks[0].chatFormatting = {
+        prefixText: 'ADMIN',
+        nameColor: '§7',
+        messageColor: '§r',
+      };
 
-      // @ts-expect-error mocking readonly
-      mc.system.currentTick = 300;
+      setCurrentTickForTest(300);
     });
 
     it('should apply rank prefix above nametag by default (or if configured default)', () => {
@@ -267,14 +279,17 @@ describe('rankManager', () => {
     });
 
     it('should default to above if an unknown nametag style is provided', () => {
-      // @ts-expect-error mocking wrong enum
-      Config.ranks.nameTagStyle = 'unknown_style';
+      Reflect.set(Config.ranks, 'nameTagStyle', 'unknown_style');
       updatePlayerNameTag(player, Config);
       expect(player.nameTag).toBe('§e[§rADMIN§e]§r\nPlayerName');
     });
 
     it('should set nametag to just the player name if no prefix is configured', () => {
-      mockRanks[0].chatFormatting = { prefixText: '', nameColor: '§7', messageColor: '§r' };
+      mockRanks[0].chatFormatting = {
+        prefixText: '',
+        nameColor: '§7',
+        messageColor: '§r',
+      };
       updatePlayerNameTag(player, Config);
       expect(player.nameTag).toBe('PlayerName');
     });
@@ -282,7 +297,11 @@ describe('rankManager', () => {
     it('should not update nameTag if it has not changed', () => {
       player.nameTag = '§e[§rADMIN§e]§r\nPlayerName';
       Config.ranks.nameTagStyle = 'above';
-      mockRanks[0].chatFormatting = { prefixText: 'ADMIN', nameColor: '§7', messageColor: '§r' };
+      mockRanks[0].chatFormatting = {
+        prefixText: 'ADMIN',
+        nameColor: '§7',
+        messageColor: '§r',
+      };
 
       updatePlayerNameTag(player, Config);
       expect(player.nameTag).toBe('§e[§rADMIN§e]§r\nPlayerName');

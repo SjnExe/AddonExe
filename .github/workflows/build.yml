@@ -58,7 +58,7 @@ jobs:
             ${{ runner.os }}-bun-
 
       - run: bun install --frozen-lockfile
-      - run: bun format:check
+      - run: bun fmt --check
 
   typecheck:
     runs-on: ubuntu-latest
