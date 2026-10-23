@@ -42,11 +42,11 @@ To enable them:
 1. **Download:** Grab the latest `AddonExe.*.mcaddon` file from [GitHub Releases](https://github.com/SjnExe/AddonExe/releases/latest).
 2. **Import:** Open the `.mcaddon` file with Minecraft to import both **AddonExeBP** (Behavior Pack) and **AddonExeRP** (Resource Pack).
 3. **Activate on World:**
-    - Place **AddonExeBP** at the **top** of your world's Behavior Packs list.
-    - Activate **AddonExeRP** in your world's Resource Packs list.
+   - Place **AddonExeBP** at the **top** of your world's Behavior Packs list.
+   - Activate **AddonExeRP** in your world's Resource Packs list.
 4. **Enable Required Settings:**
-    - Turn ON **Activate Cheats** under _Game_ settings.
-    - Turn ON **Beta APIs** under _Experiments_.
+   - Turn ON **Activate Cheats** under _Game_ settings.
+   - Turn ON **Beta APIs** under _Experiments_.
 
 ### Installing on Bedrock Dedicated Server (BDS)
 

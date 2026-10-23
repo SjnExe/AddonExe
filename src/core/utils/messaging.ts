@@ -12,22 +12,22 @@ import * as mc from '@minecraft/server';
  * @param options.title An optional title to replace the default server name.
  */
 export function sendMessage(
-    message: string | mc.RawMessage,
-    target: { sendMessage: (msg: string | mc.RawMessage) => void } | 'all' = mc.world,
+  message: string | mc.RawMessage,
+  target: { sendMessage: (msg: string | mc.RawMessage) => void } | 'all' = mc.world,
 
-    _options: { raw?: boolean; title?: string | undefined } = {}
+  _options: { raw?: boolean; title?: string | undefined } = {},
 ) {
-    const finalMessage = message;
+  const finalMessage = message;
 
-    try {
-        if (target === 'all') {
-            mc.world.sendMessage(finalMessage);
-        } else if (isDefined(target) && typeof target.sendMessage === 'function') {
-            target.sendMessage(finalMessage);
-        } else {
-            warnLog(`[sendMessage] Invalid target provided.`);
-        }
-    } catch {
-        // Suppress potential errors if the target player is invalid or has left.
+  try {
+    if (target === 'all') {
+      mc.world.sendMessage(finalMessage);
+    } else if (isDefined(target) && typeof target.sendMessage === 'function') {
+      target.sendMessage(finalMessage);
+    } else {
+      warnLog(`[sendMessage] Invalid target provided.`);
     }
+  } catch {
+    // Suppress potential errors if the target player is invalid or has left.
+  }
 }

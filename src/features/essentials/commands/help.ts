@@ -11,295 +11,306 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 let categorizedCache: Map<string, CustomCommand[]> | undefined;
 
 export function clearCategorizedCache(): void {
-    categorizedCache = undefined;
+  categorizedCache = undefined;
 }
 
 function getCategorizedCommands(): Map<string, CustomCommand[]> {
-    if (isDefined(categorizedCache)) {
-        return categorizedCache;
-    }
+  if (isDefined(categorizedCache)) {
+    return categorizedCache;
+  }
 
-    const map = new Map<string, CustomCommand[]>();
-    for (const cmd of commandManager.commands.values()) {
-        const cat = cmd.category ?? 'General';
-        if (!map.has(cat)) {
-            map.set(cat, []);
-        }
-        map.get(cat)!.push(cmd);
+  const map = new Map<string, CustomCommand[]>();
+  for (const cmd of commandManager.commands.values()) {
+    const cat = cmd.category ?? 'General';
+    if (!map.has(cat)) {
+      map.set(cat, []);
     }
-    for (const cmds of map.values()) {
-        cmds.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    categorizedCache = map;
-    return map;
+    map.get(cat)!.push(cmd);
+  }
+  for (const cmds of map.values()) {
+    cmds.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  categorizedCache = map;
+  return map;
 }
 
 // Preferred sort order
-const CATEGORY_ORDER = ['General', 'Transportation', 'Economy', 'Moderation', 'Administration', 'PvP', 'X-Ray Detection'];
+const CATEGORY_ORDER = [
+  'General',
+  'Transportation',
+  'Economy',
+  'Moderation',
+  'Administration',
+  'PvP',
+  'X-Ray Detection',
+];
 
 function getSortedCategories(availableCategories: string[]): string[] {
-    return [...availableCategories].sort((a, b) => {
-        const idxA = CATEGORY_ORDER.indexOf(a);
-        const idxB = CATEGORY_ORDER.indexOf(b);
-        if (idxA !== -1 && idxB !== -1) {
-            return idxA - idxB;
-        }
-        if (idxA !== -1) {
-            return -1;
-        }
-        if (idxB !== -1) {
-            return 1;
-        }
-        return a.localeCompare(b);
-    });
+  return [...availableCategories].sort((a, b) => {
+    const idxA = CATEGORY_ORDER.indexOf(a);
+    const idxB = CATEGORY_ORDER.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) {
+      return idxA - idxB;
+    }
+    if (idxA !== -1) {
+      return -1;
+    }
+    if (idxB !== -1) {
+      return 1;
+    }
+    return a.localeCompare(b);
+  });
 }
 
 interface HelpConfig {
-    helpSystem?: {
-        defaultMode?: 'chat' | 'ui';
-    };
+  helpSystem?: {
+    defaultMode?: 'chat' | 'ui';
+  };
 }
 
 /** Helper to resolve the command object and check basic permissions/console usage. */
-function resolveCommandForHelp(executor: CommandExecutor, commandName: string): { cmd: CustomCommand | undefined; error?: string } {
-    const isConsole = !(executor instanceof mc.Player);
-    const realCommandName = commandManager.aliases.get(commandName) ?? commandName;
-    let cmd = commandManager.commands.get(realCommandName);
+function resolveCommandForHelp(
+  executor: CommandExecutor,
+  commandName: string,
+): { cmd: CustomCommand | undefined; error?: string } {
+  const isConsole = !(executor instanceof mc.Player);
+  const realCommandName = commandManager.aliases.get(commandName) ?? commandName;
+  let cmd = commandManager.commands.get(realCommandName);
 
-    if (!isDefined(cmd)) {
-        // Fallback search by slashName
-        for (const command of commandManager.commands.values()) {
-            if (isDefined(command.slashName) && command.slashName.toLowerCase() === commandName) {
-                cmd = command;
-                break;
-            }
-        }
+  if (!isDefined(cmd)) {
+    // Fallback search by slashName
+    for (const command of commandManager.commands.values()) {
+      if (isDefined(command.slashName) && command.slashName.toLowerCase() === commandName) {
+        cmd = command;
+        break;
+      }
     }
+  }
 
-    if (!isDefined(cmd)) {
-        return { cmd: undefined, error: `§cUnknown command: '${commandName}'.` };
-    }
+  if (!isDefined(cmd)) {
+    return { cmd: undefined, error: `§cUnknown command: '${commandName}'.` };
+  }
 
-    if (isConsole && (cmd.allowConsole ?? false) === false) {
-        return { cmd: undefined, error: `§cCommand '${commandName}' cannot be run from console.` };
-    }
+  if (isConsole && (cmd.allowConsole ?? false) === false) {
+    return { cmd: undefined, error: `§cCommand '${commandName}' cannot be run from console.` };
+  }
 
-    if (!isConsole && !hasPermission(executor, cmd.permissionNode)) {
-        return { cmd: undefined, error: `§cYou do not have permission to view command: '${commandName}'.` };
-    }
+  if (!isConsole && !hasPermission(executor, cmd.permissionNode)) {
+    return { cmd: undefined, error: `§cYou do not have permission to view command: '${commandName}'.` };
+  }
 
-    return { cmd };
+  return { cmd };
 }
 
 /** Displays detailed help for a specific command. */
 function showSpecificHelp(executor: CommandExecutor, commandName: string) {
-    const { cmd, error } = resolveCommandForHelp(executor, commandName);
+  const { cmd, error } = resolveCommandForHelp(executor, commandName);
 
-    if (isDefined(error)) {
-        if (executor instanceof mc.Player) {
-            sendMessage(error, executor);
-        } else {
-            executor.sendMessage(error);
-        }
-        return;
-    }
-
-    if (!isDefined(cmd)) {
-        return;
-    }
-
-    const slashCommand = cmd.slashName ?? cmd.name;
-
-    let paramString = '';
-    if (isDefined(cmd.parameters) && cmd.parameters.length > 0) {
-        paramString =
-            ' ' +
-            cmd.parameters
-                .map((p) => {
-                    const options = typeof p.enumOptions === 'function' ? p.enumOptions() : p.enumOptions;
-                    const name = isDefined(options) ? options.join('|') : p.name;
-                    return p.optional === true ? `[${name}]` : `<${name}>`;
-                })
-                .join(' ');
-    }
-
-    let helpMessage = `§a--- Help: /${slashCommand} ---§r\n`;
-    helpMessage += `§eDescription§r: ${cmd.description}\n`;
-    helpMessage += `§eSyntax§r: /${slashCommand}${paramString}\n`;
-
-    if (isDefined(cmd.aliases) && cmd.aliases.length > 0) {
-        helpMessage += `§eAliases§r: ${cmd.aliases.join(', ')}\n`;
-    }
-
-    helpMessage += `§eCategory§r: ${cmd.category ?? 'General'}`;
-
+  if (isDefined(error)) {
     if (executor instanceof mc.Player) {
-        sendMessage(helpMessage, executor, { raw: true });
+      sendMessage(error, executor);
     } else {
-        executor.sendMessage(helpMessage);
+      executor.sendMessage(error);
     }
+    return;
+  }
+
+  if (!isDefined(cmd)) {
+    return;
+  }
+
+  const slashCommand = cmd.slashName ?? cmd.name;
+
+  let paramString = '';
+  if (isDefined(cmd.parameters) && cmd.parameters.length > 0) {
+    paramString =
+      ' ' +
+      cmd.parameters
+        .map((p) => {
+          const options = typeof p.enumOptions === 'function' ? p.enumOptions() : p.enumOptions;
+          const name = isDefined(options) ? options.join('|') : p.name;
+          return p.optional === true ? `[${name}]` : `<${name}>`;
+        })
+        .join(' ');
+  }
+
+  let helpMessage = `§a--- Help: /${slashCommand} ---§r\n`;
+  helpMessage += `§eDescription§r: ${cmd.description}\n`;
+  helpMessage += `§eSyntax§r: /${slashCommand}${paramString}\n`;
+
+  if (isDefined(cmd.aliases) && cmd.aliases.length > 0) {
+    helpMessage += `§eAliases§r: ${cmd.aliases.join(', ')}\n`;
+  }
+
+  helpMessage += `§eCategory§r: ${cmd.category ?? 'General'}`;
+
+  if (executor instanceof mc.Player) {
+    sendMessage(helpMessage, executor, { raw: true });
+  } else {
+    executor.sendMessage(helpMessage);
+  }
 }
 
 /** Displays the chat-based categorized help. */
 function showChatHelp(executor: CommandExecutor) {
-    const allCategories = getCategorizedCommands();
-    const isPlayer = executor instanceof mc.Player;
-    const sortedCats = getSortedCategories(Array.from(allCategories.keys()));
+  const allCategories = getCategorizedCommands();
+  const isPlayer = executor instanceof mc.Player;
+  const sortedCats = getSortedCategories(Array.from(allCategories.keys()));
 
-    let helpMessage = '§a--- Available Commands ---';
-    let hasAnyCommands = false;
+  let helpMessage = '§a--- Available Commands ---';
+  let hasAnyCommands = false;
 
-    for (const categoryName of sortedCats) {
-        const cmds = allCategories.get(categoryName);
-        if (!isDefined(cmds)) {
-            continue;
-        }
-
-        let categoryHeaderAdded = false;
-        for (const cmd of cmds) {
-            if (cmd.hidden === true) {
-                continue;
-            }
-            if (isPlayer && !hasPermission(executor, cmd.permissionNode)) {
-                continue;
-            }
-
-            if (!categoryHeaderAdded) {
-                helpMessage += `\n§l§e--- ${categoryName} ---§r`;
-                categoryHeaderAdded = true;
-                hasAnyCommands = true;
-            }
-            const slashCommand = cmd.slashName ?? cmd.name;
-            helpMessage += `\n §b/${slashCommand}§r: ${cmd.description}`;
-        }
+  for (const categoryName of sortedCats) {
+    const cmds = allCategories.get(categoryName);
+    if (!isDefined(cmds)) {
+      continue;
     }
 
-    if (!hasAnyCommands) {
-        if (isPlayer) {
-            sendMessage(noPermission, executor);
-        } else {
-            executor.sendMessage(noPermission);
-        }
-        return;
-    }
+    let categoryHeaderAdded = false;
+    for (const cmd of cmds) {
+      if (cmd.hidden === true) {
+        continue;
+      }
+      if (isPlayer && !hasPermission(executor, cmd.permissionNode)) {
+        continue;
+      }
 
+      if (!categoryHeaderAdded) {
+        helpMessage += `\n§l§e--- ${categoryName} ---§r`;
+        categoryHeaderAdded = true;
+        hasAnyCommands = true;
+      }
+      const slashCommand = cmd.slashName ?? cmd.name;
+      helpMessage += `\n §b/${slashCommand}§r: ${cmd.description}`;
+    }
+  }
+
+  if (!hasAnyCommands) {
     if (isPlayer) {
-        sendMessage(helpMessage, executor, { raw: true });
+      sendMessage(noPermission, executor);
     } else {
-        executor.sendMessage(helpMessage);
+      executor.sendMessage(noPermission);
     }
+    return;
+  }
+
+  if (isPlayer) {
+    sendMessage(helpMessage, executor, { raw: true });
+  } else {
+    executor.sendMessage(helpMessage);
+  }
 }
 
 /** Displays the UI-based categorized help. */
 async function showUIHelp(player: mc.Player) {
-    const allCategories = getCategorizedCommands();
-    const visibleCategories: string[] = [];
+  const allCategories = getCategorizedCommands();
+  const visibleCategories: string[] = [];
 
-    for (const [cat, cmds] of allCategories) {
-        if (cmds.some((c) => hasPermission(player, c.permissionNode) && c.hidden !== true)) {
-            visibleCategories.push(cat);
-        }
+  for (const [cat, cmds] of allCategories) {
+    if (cmds.some((c) => hasPermission(player, c.permissionNode) && c.hidden !== true)) {
+      visibleCategories.push(cat);
+    }
+  }
+
+  if (visibleCategories.length === 0) {
+    sendMessage(noPermission, player);
+    return;
+  }
+
+  const sortedCats = getSortedCategories(visibleCategories);
+
+  const form = new ActionFormBuilder().title('§lHelp Menu').body('Select a category to view commands:');
+
+  for (const cat of sortedCats) {
+    form.button(cat);
+  }
+
+  try {
+    const response = await form.show(player, { wait: true });
+    if (response.canceled || response.selection === undefined) {
+      return;
     }
 
-    if (visibleCategories.length === 0) {
-        sendMessage(noPermission, player);
-        return;
+    const selectedCat = sortedCats[response.selection];
+    if (selectedCat !== undefined) {
+      await showUICategory(player, selectedCat);
     }
-
-    const sortedCats = getSortedCategories(visibleCategories);
-
-    const form = new ActionFormBuilder().title('§lHelp Menu').body('Select a category to view commands:');
-
-    for (const cat of sortedCats) {
-        form.button(cat);
-    }
-
-    try {
-        const response = await form.show(player, { wait: true });
-        if (response.canceled || response.selection === undefined) {
-            return;
-        }
-
-        const selectedCat = sortedCats[response.selection];
-        if (selectedCat !== undefined) {
-            await showUICategory(player, selectedCat);
-        }
-    } catch {
-        // Ignore UI errors
-    }
+  } catch {
+    // Ignore UI errors
+  }
 }
 
 async function showUICategory(player: mc.Player, category: string) {
-    const cmds = getCategorizedCommands().get(category) ?? [];
-    const visibleCmds = cmds.filter((c) => c.hidden !== true && hasPermission(player, c.permissionNode));
+  const cmds = getCategorizedCommands().get(category) ?? [];
+  const visibleCmds = cmds.filter((c) => c.hidden !== true && hasPermission(player, c.permissionNode));
 
-    const form = new ActionFormBuilder().title(`§l${category}`).body(`Commands in ${category}:`);
+  const form = new ActionFormBuilder().title(`§l${category}`).body(`Commands in ${category}:`);
 
-    form.button('§4< Back');
-    for (const c of visibleCmds) {
-        form.button(`/${c.name}`);
+  form.button('§4< Back');
+  for (const c of visibleCmds) {
+    form.button(`/${c.name}`);
+  }
+
+  try {
+    const response = await form.show(player, { wait: true });
+    if (response.canceled || response.selection === undefined) {
+      return;
     }
 
-    try {
-        const response = await form.show(player, { wait: true });
-        if (response.canceled || response.selection === undefined) {
-            return;
-        }
-
-        if (response.selection === 0) {
-            return showUIHelp(player);
-        }
-
-        const selectedCmd = visibleCmds[response.selection - 1];
-        if (isDefined(selectedCmd)) {
-            showSpecificHelp(player, selectedCmd.name);
-        }
-    } catch {
-        // Ignore UI errors
+    if (response.selection === 0) {
+      return showUIHelp(player);
     }
+
+    const selectedCmd = visibleCmds[response.selection - 1];
+    if (isDefined(selectedCmd)) {
+      showSpecificHelp(player, selectedCmd.name);
+    }
+  } catch {
+    // Ignore UI errors
+  }
 }
 
 interface HelpCommandArgs {
-    command?: string;
+  command?: string;
 }
 
 const helpCommand: CustomCommand = {
-    name: 'help',
-    slashName: 'xhelp',
-    aliases: ['?', 'h', 'cmds', 'commands'],
-    description: 'Displays a list of available commands or help for a specific command.',
-    category: 'General',
-    permissionNode: 'cmd.help.member',
-    allowConsole: true,
-    parameters: [{ name: 'command', type: 'string', optional: true }],
-    execute: (executor: CommandExecutor, args: HelpCommandArgs) => {
-        const topic = isNonEmptyString(args.command) ? String(args.command).toLowerCase() : undefined;
+  name: 'help',
+  slashName: 'xhelp',
+  aliases: ['?', 'h', 'cmds', 'commands'],
+  description: 'Displays a list of available commands or help for a specific command.',
+  category: 'General',
+  permissionNode: 'cmd.help.member',
+  allowConsole: true,
+  parameters: [{ name: 'command', type: 'string', optional: true }],
+  execute: (executor: CommandExecutor, args: HelpCommandArgs) => {
+    const topic = isNonEmptyString(args.command) ? String(args.command).toLowerCase() : undefined;
 
-        // Handle Mode Switching Override
-        if (topic === 'ui' && executor instanceof mc.Player) {
-            showUIHelp(executor).catch(() => {});
-            return;
-        }
-        if (topic === 'chat') {
-            showChatHelp(executor);
-            return;
-        }
-
-        if (isNonEmptyString(topic)) {
-            showSpecificHelp(executor, topic);
-            return;
-        }
-
-        // Default Mode Logic
-        const config = getConfig() as HelpConfig;
-        const defaultMode = (isDefined(config.helpSystem) ? config.helpSystem.defaultMode : undefined) ?? 'chat';
-
-        if (defaultMode === 'ui' && executor instanceof mc.Player) {
-            showUIHelp(executor).catch(() => {});
-        } else {
-            showChatHelp(executor);
-        }
+    // Handle Mode Switching Override
+    if (topic === 'ui' && executor instanceof mc.Player) {
+      showUIHelp(executor).catch(() => {});
+      return;
     }
+    if (topic === 'chat') {
+      showChatHelp(executor);
+      return;
+    }
+
+    if (isNonEmptyString(topic)) {
+      showSpecificHelp(executor, topic);
+      return;
+    }
+
+    // Default Mode Logic
+    const config = getConfig() as HelpConfig;
+    const defaultMode = (isDefined(config.helpSystem) ? config.helpSystem.defaultMode : undefined) ?? 'chat';
+
+    if (defaultMode === 'ui' && executor instanceof mc.Player) {
+      showUIHelp(executor).catch(() => {});
+    } else {
+      showChatHelp(executor);
+    }
+  },
 };
 
 export default helpCommand;

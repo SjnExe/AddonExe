@@ -1,10 +1,10 @@
 export async function initialize(_isMigration: boolean) {
-    // Empty index for now
+  // Empty index for now
 
-    // Register configurations
-    const { resetDailyRewardsConfig, registerConfigReset } = await import('@core/config/configurations.js');
-    registerConfigReset('dailyRewards', {
-        reset: resetDailyRewardsConfig,
-        message: 'The Daily Rewards configuration section has been reset to default.'
-    });
+  // Register configurations
+  const { resetDailyRewardsConfig, registerConfigReset } = await import('@core/config/configurations.js');
+  registerConfigReset('dailyRewards', {
+    reset: resetDailyRewardsConfig,
+    message: 'The Daily Rewards configuration section has been reset to default.',
+  });
 }

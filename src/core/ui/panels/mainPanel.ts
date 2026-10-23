@@ -3,62 +3,74 @@ import { Player } from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 /** Renders a standard dark theme multi-column category hub menu for a specific hub ID. */
-export async function showHubPanel(player: Player, hubId: MenuHubId, titleText: string, bodyText?: string): Promise<void> {
-    const items = getMenuItemsForHub(hubId, player);
-    const form = new ActionFormBuilder().grid(2).title(`§l§b${titleText}`);
+export async function showHubPanel(
+  player: Player,
+  hubId: MenuHubId,
+  titleText: string,
+  bodyText?: string,
+): Promise<void> {
+  const items = getMenuItemsForHub(hubId, player);
+  const form = new ActionFormBuilder().grid(2).title(`§l§b${titleText}`);
 
-    if (bodyText) {
-        form.body(`§7${bodyText}`);
-    }
+  if (bodyText) {
+    form.body(`§7${bodyText}`);
+  }
 
-    for (const item of items) {
-        const active = isMenuItemActive(item);
-        const buttonText = active ? `§l§f${item.title}${item.description ? `\n§r§7${item.description}` : ''}` : `§l§7${item.title}\n§r§c[DISABLED]`;
+  for (const item of items) {
+    const active = isMenuItemActive(item);
+    const buttonText = active
+      ? `§l§f${item.title}${item.description ? `\n§r§7${item.description}` : ''}`
+      : `§l§7${item.title}\n§r§c[DISABLED]`;
 
-        form.button(buttonText, item.icon, async () => {
-            if (!active) {
-                player.sendMessage(`§cThe '${item.title}' feature is currently disabled.`);
-                await showHubPanel(player, hubId, titleText, bodyText);
-                return;
-            }
-            await item.action(player);
-        });
-    }
+    form.button(buttonText, item.icon, async () => {
+      if (!active) {
+        player.sendMessage(`§cThe '${item.title}' feature is currently disabled.`);
+        await showHubPanel(player, hubId, titleText, bodyText);
+        return;
+      }
+      await item.action(player);
+    });
+  }
 
-    if (hubId !== 'main') {
-        form.addBackButton(async () => {
-            if (hubId.startsWith('staff_')) {
-                const { showStaffDashboardPanel } = await import('./adminPanel.js');
-                await showStaffDashboardPanel(player);
-            } else {
-                await showMainPanel(player);
-            }
-        });
-    }
+  if (hubId !== 'main') {
+    form.addBackButton(async () => {
+      if (hubId.startsWith('staff_')) {
+        const { showStaffDashboardPanel } = await import('./adminPanel.js');
+        await showStaffDashboardPanel(player);
+      } else {
+        await showMainPanel(player);
+      }
+    });
+  }
 
-    await form.show(player);
+  await form.show(player);
 }
 
 export async function showMainPanel(player: Player): Promise<void> {
-    await showHubPanel(player, 'main', 'Main Menu', 'Select a category to explore available options:');
+  await showHubPanel(player, 'main', 'Main Menu', 'Select a category to explore available options:');
 }
 
 export async function showEconomyHub(player: Player): Promise<void> {
-    await showHubPanel(player, 'economy', 'Economy & Commerce', 'Access shops, auctions, kits, bounties and transfers:');
+  await showHubPanel(player, 'economy', 'Economy & Commerce', 'Access shops, auctions, kits, bounties and transfers:');
 }
 
 export async function showTeleportHub(player: Player): Promise<void> {
-    await showHubPanel(player, 'teleport', 'Teleportation & Travel', 'Access your homes, server warps, TPA requests, spawn, RTP, and /back:');
+  await showHubPanel(
+    player,
+    'teleport',
+    'Teleportation & Travel',
+    'Access your homes, server warps, TPA requests, spawn, RTP, and /back:',
+  );
 }
 
 export async function showSocialHub(player: Player): Promise<void> {
-    await showHubPanel(player, 'social', 'Social & Community', 'Manage friends, teams, online players and rank perks:');
+  await showHubPanel(player, 'social', 'Social & Community', 'Manage friends, teams, online players and rank perks:');
 }
 
 export async function showGamesHub(player: Player): Promise<void> {
-    await showHubPanel(player, 'games', 'Mini-Games Hub', 'Select a game to play:');
+  await showHubPanel(player, 'games', 'Mini-Games Hub', 'Select a game to play:');
 }
 
 export async function showProfileHub(player: Player): Promise<void> {
-    await showHubPanel(player, 'profile', 'Profile & Server Info', 'View your stats and server information:');
+  await showHubPanel(player, 'profile', 'Profile & Server Info', 'View your stats and server information:');
 }

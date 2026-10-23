@@ -7,16 +7,16 @@ import { initializeStaffInventoryListener } from '@features/moderation/staffInve
 import { initializeWatchManager } from '@features/moderation/watchManager.js';
 
 export function initialize() {
-    loadPunishments();
-    initializePunishmentManager();
-    loadReports();
-    initializeChatLogger();
-    initializeFreezeListener();
-    initializeWatchManager();
-    initializeStaffInventoryListener();
+  loadPunishments();
+  initializePunishmentManager();
+  loadReports();
+  initializeChatLogger();
+  initializeFreezeListener();
+  initializeWatchManager();
+  initializeStaffInventoryListener();
 
-    serviceLocator.registerService('moderation.chatLogs', {
-        getAvailableDates,
-        getChatLogs
-    });
+  serviceLocator.registerService('moderation.chatLogs', {
+    getAvailableDates,
+    getChatLogs,
+  });
 }

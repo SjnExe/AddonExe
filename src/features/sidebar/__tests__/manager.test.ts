@@ -10,116 +10,117 @@ import * as mc from '@minecraft/server';
 
 import defaultConfig from '../../../config.js';
 
-const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } = await import('../manager.js');
+const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } =
+  await import('../manager.js');
 
 describe('Sidebar Manager', () => {
-    let getAllPlayersSpy: any;
-    let getPlayerCountSpy: any;
-    let getPlayerSpy: any;
-    let getSidebarVisibleSpy: any;
-    let getPlayTimeSpy: any;
-    let getPlayerRankSpy: any;
-    let getSidebarConfigSpy: any;
-    let getEconomyConfigSpy: any;
-    let getConfigSpy: any;
+  let getAllPlayersSpy: any;
+  let getPlayerCountSpy: any;
+  let getPlayerSpy: any;
+  let getSidebarVisibleSpy: any;
+  let getPlayTimeSpy: any;
+  let getPlayerRankSpy: any;
+  let getSidebarConfigSpy: any;
+  let getEconomyConfigSpy: any;
+  let getConfigSpy: any;
 
-    beforeEach(() => {
-        getSidebarConfigSpy = spyOn(configurations, 'getSidebarConfig').mockReturnValue({
-            enabled: true,
-            globalInfo: {
-                enabled: true,
-                title: '§l§6{server_name}',
-                updateInterval: 20,
-                maxPlayers: 20,
-                sidebarLines: ['§fPlayers: {online}/{max_online}', '§fTPS: {tps}']
-            },
-            hud: {
-                enabled: true,
-                updateInterval: 20,
-                actionBarLines: ['Money: {money}']
-            }
-        } as any);
+  beforeEach(() => {
+    getSidebarConfigSpy = spyOn(configurations, 'getSidebarConfig').mockReturnValue({
+      enabled: true,
+      globalInfo: {
+        enabled: true,
+        title: '§l§6{server_name}',
+        updateInterval: 20,
+        maxPlayers: 20,
+        sidebarLines: ['§fPlayers: {online}/{max_online}', '§fTPS: {tps}'],
+      },
+      hud: {
+        enabled: true,
+        updateInterval: 20,
+        actionBarLines: ['Money: {money}'],
+      },
+    } as any);
 
-        getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
-            currencySymbol: '$'
-        } as any);
+    getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+      currencySymbol: '$',
+    } as any);
 
-        getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
-            ...defaultConfig,
-            serverName: 'Test Server'
-        } as any);
+    getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      ...defaultConfig,
+      serverName: 'Test Server',
+    } as any);
 
-        getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
-        initializePlayerCache();
-        getPlayerCountSpy = spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
-        getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockReturnValue({
-            balance: 1000,
-            kills: 10,
-            deaths: 2,
-            killStreak: 3
-        } as any);
-        getSidebarVisibleSpy = spyOn(playerDataManager, 'getSidebarVisible').mockReturnValue(true);
-        getPlayTimeSpy = spyOn(playerDataManager, 'getPlayTime').mockReturnValue(3600);
-        getPlayerRankSpy = spyOn(rankManager, 'getPlayerRank').mockReturnValue({
-            name: 'VIP'
-        } as any);
-    });
+    getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
+    initializePlayerCache();
+    getPlayerCountSpy = spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
+    getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockReturnValue({
+      balance: 1000,
+      kills: 10,
+      deaths: 2,
+      killStreak: 3,
+    } as any);
+    getSidebarVisibleSpy = spyOn(playerDataManager, 'getSidebarVisible').mockReturnValue(true);
+    getPlayTimeSpy = spyOn(playerDataManager, 'getPlayTime').mockReturnValue(3600);
+    getPlayerRankSpy = spyOn(rankManager, 'getPlayerRank').mockReturnValue({
+      name: 'VIP',
+    } as any);
+  });
 
-    afterEach(() => {
-        getSidebarConfigSpy?.mockRestore();
-        getEconomyConfigSpy?.mockRestore();
-        getConfigSpy?.mockRestore();
-        getAllPlayersSpy?.mockRestore();
-        getPlayerCountSpy?.mockRestore();
-        getPlayerSpy?.mockRestore();
-        getSidebarVisibleSpy?.mockRestore();
-        getPlayTimeSpy?.mockRestore();
-        getPlayerRankSpy?.mockRestore();
-    });
+  afterEach(() => {
+    getSidebarConfigSpy?.mockRestore();
+    getEconomyConfigSpy?.mockRestore();
+    getConfigSpy?.mockRestore();
+    getAllPlayersSpy?.mockRestore();
+    getPlayerCountSpy?.mockRestore();
+    getPlayerSpy?.mockRestore();
+    getSidebarVisibleSpy?.mockRestore();
+    getPlayTimeSpy?.mockRestore();
+    getPlayerRankSpy?.mockRestore();
+  });
 
-    it('should resolve global placeholders correctly', () => {
-        const text = 'Server: {server_name} | Online: {online}/{max_online}';
-        const resolved = resolveGlobalPlaceholders(text);
-        expect(resolved).toContain('Test Server');
-        expect(resolved).toContain('5/20');
-    });
+  it('should resolve global placeholders correctly', () => {
+    const text = 'Server: {server_name} | Online: {online}/{max_online}';
+    const resolved = resolveGlobalPlaceholders(text);
+    expect(resolved).toContain('Test Server');
+    expect(resolved).toContain('5/20');
+  });
 
-    it('should resolve player placeholders when player context is provided', () => {
-        const mockPlayer = {
-            id: 'player-1',
-            name: 'TestPlayer',
-            isValid: true
-        } as unknown as mc.Player;
+  it('should resolve player placeholders when player context is provided', () => {
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+    } as unknown as mc.Player;
 
-        const text = 'Player: {name} | Rank: {rank} | Money: {money} | KDR: {kdr}';
-        const resolved = resolveGlobalPlaceholders(text, mockPlayer);
+    const text = 'Player: {name} | Rank: {rank} | Money: {money} | KDR: {kdr}';
+    const resolved = resolveGlobalPlaceholders(text, mockPlayer);
 
-        expect(resolved).toContain('TestPlayer');
-        expect(resolved).toContain('VIP');
-        expect(resolved).toContain('$1k');
-        expect(resolved).toContain('5.00');
-    });
+    expect(resolved).toContain('TestPlayer');
+    expect(resolved).toContain('VIP');
+    expect(resolved).toContain('$1k');
+    expect(resolved).toContain('5.00');
+  });
 
-    it('should allow setting action bar override on player', () => {
-        let setActionBarMsg = '';
-        const mockPlayer = {
-            id: 'player-1',
-            name: 'TestPlayer',
-            isValid: true,
-            onScreenDisplay: {
-                setActionBar: (msg: string) => {
-                    setActionBarMsg = msg;
-                }
-            }
-        } as unknown as mc.Player;
+  it('should allow setting action bar override on player', () => {
+    let setActionBarMsg = '';
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+      onScreenDisplay: {
+        setActionBar: (msg: string) => {
+          setActionBarMsg = msg;
+        },
+      },
+    } as unknown as mc.Player;
 
-        setActionBarOverride(mockPlayer, '§cTest Alert', 1000);
-        expect(setActionBarMsg).toBe('§cTest Alert');
-    });
+    setActionBarOverride(mockPlayer, '§cTest Alert', 1000);
+    expect(setActionBarMsg).toBe('§cTest Alert');
+  });
 
-    it('should initialize and cleanup interval correctly', () => {
-        initializeSidebar();
-        forceUpdate();
-        cleanup();
-    });
+  it('should initialize and cleanup interval correctly', () => {
+    initializeSidebar();
+    forceUpdate();
+    cleanup();
+  });
 });

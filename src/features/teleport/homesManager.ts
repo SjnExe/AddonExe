@@ -1,11 +1,16 @@
 import { getConfig } from '@core/config/configManager.js';
-import { deletePlayerHome as deletePlayerDataHome, getOrCreatePlayer, HomeLocation, setPlayerHome as setPlayerDataHome } from '@core/data/playerDataManager.js';
+import {
+  deletePlayerHome as deletePlayerDataHome,
+  getOrCreatePlayer,
+  HomeLocation,
+  setPlayerHome as setPlayerDataHome,
+} from '@core/data/playerDataManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 interface ActionResult {
-    success: boolean;
-    message: string;
+  success: boolean;
+  message: string;
 }
 
 /**
@@ -16,42 +21,42 @@ interface ActionResult {
  * @returns The result of the operation.
  */
 export function setHome(player: mc.Player, homeName: string): ActionResult {
-    const pData = getOrCreatePlayer(player);
-    if (!isDefined(pData)) {
-        return { success: false, message: 'Could not find your player data.' };
-    }
+  const pData = getOrCreatePlayer(player);
+  if (!isDefined(pData)) {
+    return { success: false, message: 'Could not find your player data.' };
+  }
 
-    const lowerCaseHomeName = homeName.toLowerCase();
+  const lowerCaseHomeName = homeName.toLowerCase();
 
-    // Prevent overwriting an existing home
-    if (isDefined(pData.homes[lowerCaseHomeName])) {
-        return {
-            success: false,
-            message: `You already have a home named '${homeName}'. Use /delhome to remove it first.`
-        };
-    }
-
-    const config = getConfig();
-    const homeCount = Object.keys(pData.homes).length;
-
-    // Check if the player has reached the maximum number of homes
-    if (homeCount >= config.homes.maxHomes) {
-        return { success: false, message: `You have reached the maximum number of homes (${config.homes.maxHomes}).` };
-    }
-
-    if (homeName.length > 20) {
-        return { success: false, message: 'Home name cannot be longer than 20 characters.' };
-    }
-
-    const location: HomeLocation = {
-        x: Math.round(player.location.x * 100) / 100,
-        y: Math.round(player.location.y * 100) / 100,
-        z: Math.round(player.location.z * 100) / 100,
-        dimensionId: player.dimension.id
+  // Prevent overwriting an existing home
+  if (isDefined(pData.homes[lowerCaseHomeName])) {
+    return {
+      success: false,
+      message: `You already have a home named '${homeName}'. Use /delhome to remove it first.`,
     };
+  }
 
-    setPlayerDataHome(player.id, lowerCaseHomeName, location);
-    return { success: true, message: `Home '${homeName}' has been set.` };
+  const config = getConfig();
+  const homeCount = Object.keys(pData.homes).length;
+
+  // Check if the player has reached the maximum number of homes
+  if (homeCount >= config.homes.maxHomes) {
+    return { success: false, message: `You have reached the maximum number of homes (${config.homes.maxHomes}).` };
+  }
+
+  if (homeName.length > 20) {
+    return { success: false, message: 'Home name cannot be longer than 20 characters.' };
+  }
+
+  const location: HomeLocation = {
+    x: Math.round(player.location.x * 100) / 100,
+    y: Math.round(player.location.y * 100) / 100,
+    z: Math.round(player.location.z * 100) / 100,
+    dimensionId: player.dimension.id,
+  };
+
+  setPlayerDataHome(player.id, lowerCaseHomeName, location);
+  return { success: true, message: `Home '${homeName}' has been set.` };
 }
 
 /**
@@ -62,11 +67,11 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
  * @returns The location of the home, or undefined if it doesn't exist.
  */
 export function getHome(player: mc.Player, homeName: string): HomeLocation | undefined {
-    const pData = getOrCreatePlayer(player);
-    if (!isDefined(pData)) {
-        return undefined;
-    }
-    return pData.homes[homeName.toLowerCase()] || undefined;
+  const pData = getOrCreatePlayer(player);
+  if (!isDefined(pData)) {
+    return undefined;
+  }
+  return pData.homes[homeName.toLowerCase()] || undefined;
 }
 
 /**
@@ -77,19 +82,19 @@ export function getHome(player: mc.Player, homeName: string): HomeLocation | und
  * @returns The result of the operation.
  */
 export function deleteHome(player: mc.Player, homeName: string): ActionResult {
-    const pData = getOrCreatePlayer(player);
-    if (!isDefined(pData)) {
-        return { success: false, message: 'Could not find your player data.' };
-    }
+  const pData = getOrCreatePlayer(player);
+  if (!isDefined(pData)) {
+    return { success: false, message: 'Could not find your player data.' };
+  }
 
-    const lowerCaseHomeName = homeName.toLowerCase();
+  const lowerCaseHomeName = homeName.toLowerCase();
 
-    if (!isDefined(pData.homes[lowerCaseHomeName])) {
-        return { success: false, message: `Home '${homeName}' does not exist.` };
-    }
+  if (!isDefined(pData.homes[lowerCaseHomeName])) {
+    return { success: false, message: `Home '${homeName}' does not exist.` };
+  }
 
-    deletePlayerDataHome(player.id, lowerCaseHomeName);
-    return { success: true, message: `Home '${homeName}' has been deleted.` };
+  deletePlayerDataHome(player.id, lowerCaseHomeName);
+  return { success: true, message: `Home '${homeName}' has been deleted.` };
 }
 
 /**
@@ -99,11 +104,11 @@ export function deleteHome(player: mc.Player, homeName: string): ActionResult {
  * @returns An array of home names.
  */
 export function listHomes(player: mc.Player): string[] {
-    const pData = getOrCreatePlayer(player);
-    if (!isDefined(pData)) {
-        return [];
-    }
-    return Object.keys(pData.homes);
+  const pData = getOrCreatePlayer(player);
+  if (!isDefined(pData)) {
+    return [];
+  }
+  return Object.keys(pData.homes);
 }
 
 /**
@@ -113,9 +118,9 @@ export function listHomes(player: mc.Player): string[] {
  * @returns The number of homes.
  */
 export function getHomeCount(player: mc.Player): number {
-    const pData = getOrCreatePlayer(player);
-    if (!isDefined(pData)) {
-        return 0;
-    }
-    return Object.keys(pData.homes).length;
+  const pData = getOrCreatePlayer(player);
+  if (!isDefined(pData)) {
+    return 0;
+  }
+  return Object.keys(pData.homes).length;
 }

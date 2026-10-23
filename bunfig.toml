@@ -8,25 +8,20 @@ peer = true
 linker = "isolated"
 
 [run]
-bun = true
 shell = "bun"
-noOrphans = true
 
 [test]
 preload = ["./src/core/__tests__/__mocks__/bunSetup.ts"]
 smol = false
-onlyFailures = true
-isolate = false
-randomize = true
 
 [fmt]
-tabWidth = 4
+tabWidth = 2
 useTabs = false
 semi = true
 singleQuote = true
-quoteProps = "preserve"
-trailingComma = "none"
-printWidth = 200
+quoteProps = "as-needed"
+trailingComma = "all"
+printWidth = 120
 endOfLine = "lf"
 sortImports = true
 sortPackageJson = true
@@ -34,4 +29,4 @@ jsdoc = true
 
 [[fmt.overrides]]
 files = ["packs/**/*.json"]
-options = { printWidth = 100000, tabWidth = 2 }
+options = { printWidth = 120, tabWidth = 2 }

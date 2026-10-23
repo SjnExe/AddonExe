@@ -7,55 +7,55 @@ import * as mc from '@minecraft/server';
 import { executePunishment } from '../flagManager.js';
 
 describe('FlagManager', () => {
-    let getAnticheatConfigSpy: any;
+  let getAnticheatConfigSpy: any;
 
-    beforeEach(() => {
-        getAnticheatConfigSpy = spyOn(configLoader, 'getAnticheatConfig').mockReturnValue({} as any);
+  beforeEach(() => {
+    getAnticheatConfigSpy = spyOn(configLoader, 'getAnticheatConfig').mockReturnValue({} as any);
+  });
+
+  afterEach(() => {
+    getAnticheatConfigSpy?.mockRestore();
+  });
+
+  it('executePunishment should sanitize player names to prevent command injection', () => {
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const maliciousName = 'Hacker" ] } ; kill @a ; #';
+    const player = new PlayerMock('p1', maliciousName);
+
+    const mockRunCommand = mock();
+    Object.defineProperty(player, 'dimension', {
+      value: { runCommand: mockRunCommand },
+      writable: true,
     });
 
-    afterEach(() => {
-        getAnticheatConfigSpy?.mockRestore();
+    const commandTemplate = 'kick {player} Illegal Items';
+
+    executePunishment(player, commandTemplate);
+
+    const expectedSafeName = maliciousName.replaceAll('"', "'");
+    const expectedCmd = `kick "${expectedSafeName}" Illegal Items`;
+
+    expect(mockRunCommand).toHaveBeenCalledWith(expectedCmd);
+  });
+
+  it('executePunishment should handle template with manual quotes', () => {
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const maliciousName = 'Hacker" ] } ; kill @a ; #';
+    const player = new PlayerMock('p1', maliciousName);
+
+    const mockRunCommand = mock();
+    Object.defineProperty(player, 'dimension', {
+      value: { runCommand: mockRunCommand },
+      writable: true,
     });
 
-    it('executePunishment should sanitize player names to prevent command injection', () => {
-        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
-        const maliciousName = 'Hacker" ] } ; kill @a ; #';
-        const player = new PlayerMock('p1', maliciousName);
+    const commandTemplate = 'kick "{player}" Illegal Items';
 
-        const mockRunCommand = mock();
-        Object.defineProperty(player, 'dimension', {
-            value: { runCommand: mockRunCommand },
-            writable: true
-        });
+    executePunishment(player, commandTemplate);
 
-        const commandTemplate = 'kick {player} Illegal Items';
+    const expectedSafeName = maliciousName.replaceAll('"', "'");
+    const expectedCmd = `kick "${expectedSafeName}" Illegal Items`;
 
-        executePunishment(player, commandTemplate);
-
-        const expectedSafeName = maliciousName.replaceAll('"', "'");
-        const expectedCmd = `kick "${expectedSafeName}" Illegal Items`;
-
-        expect(mockRunCommand).toHaveBeenCalledWith(expectedCmd);
-    });
-
-    it('executePunishment should handle template with manual quotes', () => {
-        const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
-        const maliciousName = 'Hacker" ] } ; kill @a ; #';
-        const player = new PlayerMock('p1', maliciousName);
-
-        const mockRunCommand = mock();
-        Object.defineProperty(player, 'dimension', {
-            value: { runCommand: mockRunCommand },
-            writable: true
-        });
-
-        const commandTemplate = 'kick "{player}" Illegal Items';
-
-        executePunishment(player, commandTemplate);
-
-        const expectedSafeName = maliciousName.replaceAll('"', "'");
-        const expectedCmd = `kick "${expectedSafeName}" Illegal Items`;
-
-        expect(mockRunCommand).toHaveBeenCalledWith(expectedCmd);
-    });
+    expect(mockRunCommand).toHaveBeenCalledWith(expectedCmd);
+  });
 });

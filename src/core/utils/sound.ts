@@ -3,14 +3,14 @@ import { errorLog } from '@core/utils/logger.js';
 import * as mc from '@minecraft/server';
 
 interface SoundEventConfig {
-    soundEvents?: {
-        [key: string]: {
-            enabled: boolean;
-            soundId: string;
-            volume: number;
-            pitch: number;
-        };
+  soundEvents?: {
+    [key: string]: {
+      enabled: boolean;
+      soundId: string;
+      volume: number;
+      pitch: number;
     };
+  };
 }
 
 /**
@@ -21,11 +21,11 @@ interface SoundEventConfig {
  * @param options Options for the sound.
  */
 export function playSound(player: mc.Player, soundId: string, options: mc.PlayerSoundOptions = {}): void {
-    try {
-        player.playSound(soundId, options);
-    } catch (error: unknown) {
-        errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${String(error)}`);
-    }
+  try {
+    player.playSound(soundId, options);
+  } catch (error: unknown) {
+    errorLog(`Failed to play sound "${soundId}" for player ${player.name}: ${String(error)}`);
+  }
 }
 
 /**
@@ -35,16 +35,16 @@ export function playSound(player: mc.Player, soundId: string, options: mc.Player
  * @param soundEventKey The key of the sound event in the config.
  */
 export function playSoundFromConfig(player: mc.Player, soundEventKey: string): void {
-    try {
-        const config = getConfig() as SoundEventConfig;
-        const soundEvent = config.soundEvents?.[soundEventKey];
-        if (soundEvent && soundEvent.enabled) {
-            player.playSound(soundEvent.soundId, {
-                volume: soundEvent.volume,
-                pitch: soundEvent.pitch
-            });
-        }
-    } catch (error: unknown) {
-        errorLog(`Failed to play sound from config for key "${soundEventKey}": ${String(error)}`);
+  try {
+    const config = getConfig() as SoundEventConfig;
+    const soundEvent = config.soundEvents?.[soundEventKey];
+    if (soundEvent && soundEvent.enabled) {
+      player.playSound(soundEvent.soundId, {
+        volume: soundEvent.volume,
+        pitch: soundEvent.pitch,
+      });
     }
+  } catch (error: unknown) {
+    errorLog(`Failed to play sound from config for key "${soundEventKey}": ${String(error)}`);
+  }
 }

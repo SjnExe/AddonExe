@@ -10,38 +10,38 @@ import { restartAnnouncer } from '@features/essentials/commands/announcement.js'
 import { updateAllPlayerRanks } from '../../../main.js';
 
 const command: CustomCommand = {
-    name: 'reload',
-    slashName: 'xreload',
-    aliases: ['xreload'],
-    description: 'Reloads the addon configuration from the config file.',
-    category: 'Administration',
-    permissionNode: 'cmd.reload.admin', // Admins only
-    allowConsole: true,
-    parameters: [],
-    execute: (_executor) => {
-        try {
-            sendMessage('§eReloading configuration...');
+  name: 'reload',
+  slashName: 'xreload',
+  aliases: ['xreload'],
+  description: 'Reloads the addon configuration from the config file.',
+  category: 'Administration',
+  permissionNode: 'cmd.reload.admin', // Admins only
+  allowConsole: true,
+  parameters: [],
+  execute: (_executor) => {
+    try {
+      sendMessage('§eReloading configuration...');
 
-            // Reload main and all feature configurations with priority-merge logic
-            reloadConfig();
-            void reloadAllConfigs();
-            reloadRanks();
-            refreshXrayCache();
-            restartAnnouncer();
+      // Reload main and all feature configurations with priority-merge logic
+      reloadConfig();
+      void reloadAllConfigs();
+      reloadRanks();
+      refreshXrayCache();
+      restartAnnouncer();
 
-            sendMessage('§aConfiguration reloaded successfully.');
+      sendMessage('§aConfiguration reloaded successfully.');
 
-            // Refresh online player nametags immediately
-            updateAllPlayerRanks();
+      // Refresh online player nametags immediately
+      updateAllPlayerRanks();
 
-            sendMessage('§aAll online player ranks have been re-evaluated.');
-        } catch (error: unknown) {
-            sendMessage('§cFailed to reload configuration. Check the console for errors.');
-            if (error instanceof Error) {
-                errorLog(`[/reload] ${error.stack}`);
-            }
-        }
+      sendMessage('§aAll online player ranks have been re-evaluated.');
+    } catch (error: unknown) {
+      sendMessage('§cFailed to reload configuration. Check the console for errors.');
+      if (error instanceof Error) {
+        errorLog(`[/reload] ${error.stack}`);
+      }
     }
+  },
 };
 
 export default command;

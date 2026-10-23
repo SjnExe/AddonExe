@@ -1,11 +1,11 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "outDir": "./dist/tests",
-        "types": ["bun", "node"],
-        "noEmit": true,
-        "isolatedModules": true
-    },
-    "include": ["src/**/__tests__/**/*.ts", "src/**/__mocks__/**/*.ts"],
-    "exclude": ["node_modules"]
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist/tests",
+    "types": ["bun", "node"],
+    "noEmit": true,
+    "isolatedModules": true
+  },
+  "include": ["src/**/__tests__/**/*.ts", "src/**/__mocks__/**/*.ts"],
+  "exclude": ["node_modules"]
 }

@@ -9,387 +9,416 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
 export async function showReportListPanel(player: mc.Player, page: number = 1): Promise<void> {
-    const form = new ActionFormBuilder().title('Active Reports');
+  const form = new ActionFormBuilder().title('Active Reports');
 
-    const reports = reportManager
-        .getAllReports()
-        .filter((r) => r.status === 'open' || r.status === 'assigned')
-        .toSorted((a, b) => getIdTimestamp(a.id) - getIdTimestamp(b.id));
+  const reports = reportManager
+    .getAllReports()
+    .filter((r) => r.status === 'open' || r.status === 'assigned')
+    .toSorted((a, b) => getIdTimestamp(a.id) - getIdTimestamp(b.id));
 
-    form.addPaginatedButtons(
-        reports,
-        page,
-        (report, formBuilder) => {
-            const statusColor = report.status === 'assigned' ? '§6' : '§4';
-            formBuilder.button(
-                `[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`,
-                undefined, // No icon for now, could use a warning icon
-                async () => {
-                    await showReportActionsPanel(player, report.id);
-                }
-            );
+  form.addPaginatedButtons(
+    reports,
+    page,
+    (report, formBuilder) => {
+      const statusColor = report.status === 'assigned' ? '§6' : '§4';
+      formBuilder.button(
+        `[${statusColor}${report.status.toUpperCase()}§r] ${report.reportedPlayerName}\n§8Reported by: ${report.reporterName}`,
+        undefined, // No icon for now, could use a warning icon
+        async () => {
+          await showReportActionsPanel(player, report.id);
         },
-        async (newPage) => {
-            await showReportListPanel(player, newPage);
-        }
-    );
+      );
+    },
+    async (newPage) => {
+      await showReportListPanel(player, newPage);
+    },
+  );
 
-    form.addBackButton(async () => {
-        const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
-        await showStaffDashboardPanel(player);
-    });
+  form.addBackButton(async () => {
+    const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
+    await showStaffDashboardPanel(player);
+  });
 
-    await form.show(player);
+  await form.show(player);
 }
 
 export async function showReportActionsPanel(player: mc.Player, reportId: string): Promise<void> {
-    const targetReport = reportManager.getAllReports().find((r) => r.id === reportId);
-    if (!isDefined(targetReport)) {
-        player.sendMessage('§cReport not found.');
-        await showReportListPanel(player, 1);
-        return;
-    }
+  const targetReport = reportManager.getAllReports().find((r) => r.id === reportId);
+  if (!isDefined(targetReport)) {
+    player.sendMessage('§cReport not found.');
+    await showReportListPanel(player, 1);
+    return;
+  }
 
-    const bodyText = [
-        `§8Report ID: §6${String(targetReport.id)}`,
-        `§8Reported Player: §6${targetReport.reportedPlayerName}`,
-        `§8Reporter: §6${targetReport.reporterName}`,
-        `§8Reason: §6${targetReport.reason}`,
-        `§8Status: §6${targetReport.status}`,
-        `§8Date: §6${new Date(getIdTimestamp(targetReport.id)).toLocaleString()}`
-    ].join('\n');
+  const bodyText = [
+    `§8Report ID: §6${String(targetReport.id)}`,
+    `§8Reported Player: §6${targetReport.reportedPlayerName}`,
+    `§8Reporter: §6${targetReport.reporterName}`,
+    `§8Reason: §6${targetReport.reason}`,
+    `§8Status: §6${targetReport.status}`,
+    `§8Date: §6${new Date(getIdTimestamp(targetReport.id)).toLocaleString()}`,
+  ].join('\n');
 
-    const form = new ActionFormBuilder().title('Report Details').body(bodyText);
+  const form = new ActionFormBuilder().title('Report Details').body(bodyText);
 
-    form.button('Assign To Me', 'textures/ui/color_plus', async () => {
-        reportManager.assignReport(reportId, player.id);
-        player.sendMessage('§2Report assigned to you.');
-        await showReportActionsPanel(player, reportId);
-    });
+  form.button('Assign To Me', 'textures/ui/color_plus', async () => {
+    reportManager.assignReport(reportId, player.id);
+    player.sendMessage('§2Report assigned to you.');
+    await showReportActionsPanel(player, reportId);
+  });
 
-    form.button('Manage Player', 'textures/ui/op', async () => {
-        const { showPlayerActionsPanel } = await import('@core/ui/panels/playerPanel.js');
-        await showPlayerActionsPanel(player, targetReport.reportedPlayerId, targetReport.reportedPlayerName);
-    });
+  form.button('Manage Player', 'textures/ui/op', async () => {
+    const { showPlayerActionsPanel } = await import('@core/ui/panels/playerPanel.js');
+    await showPlayerActionsPanel(player, targetReport.reportedPlayerId, targetReport.reportedPlayerName);
+  });
 
-    form.button('Resolve', 'textures/ui/realms_green_check', async () => {
-        reportManager.resolveReport(reportId);
-        player.sendMessage('§2Report marked as resolved.');
-        await showReportListPanel(player, 1);
-    });
+  form.button('Resolve', 'textures/ui/realms_green_check', async () => {
+    reportManager.resolveReport(reportId);
+    player.sendMessage('§2Report marked as resolved.');
+    await showReportListPanel(player, 1);
+  });
 
-    form.button('Clear', 'textures/ui/trash', async () => {
-        reportManager.clearReport(reportId);
-        player.sendMessage('§2Report cleared.');
-        await showReportListPanel(player, 1);
-    });
+  form.button('Clear', 'textures/ui/trash', async () => {
+    reportManager.clearReport(reportId);
+    player.sendMessage('§2Report cleared.');
+    await showReportListPanel(player, 1);
+  });
 
-    form.addBackButton(async () => {
-        await showReportListPanel(player, 1);
-    });
+  form.addBackButton(async () => {
+    await showReportListPanel(player, 1);
+  });
 
-    await form.show(player);
+  await form.show(player);
 }
 
 // These functions will replace the action registry entries for moderation actions.
 
 export async function handleWarnPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const target = getPlayerFromCache(targetPlayerId);
-    if (!isDefined(target)) {
-        player.sendMessage('§4Player is offline.');
-        return;
-    }
+  const target = getPlayerFromCache(targetPlayerId);
+  if (!isDefined(target)) {
+    player.sendMessage('§4Player is offline.');
+    return;
+  }
 
-    const form = new CustomFormBuilder<{ reasonRaw: string }>(`Warn ${target.name}`).textField('reasonRaw', 'Warning Reason', 'Enter reason', 'Rule violation').submitButton('Issue Warning');
+  const form = new CustomFormBuilder<{ reasonRaw: string }>(`Warn ${target.name}`)
+    .textField('reasonRaw', 'Warning Reason', 'Enter reason', 'Rule violation')
+    .submitButton('Issue Warning');
 
-    const res = await form.show(player);
-    if (!res) {
-        return;
-    }
+  const res = await form.show(player);
+  if (!res) {
+    return;
+  }
 
-    const reason = sanitizeString(res.reasonRaw, true);
-    const { warnPlayer } = await import('@features/moderation/commands/warn.js');
-    warnPlayer(player, target, reason);
+  const reason = sanitizeString(res.reasonRaw, true);
+  const { warnPlayer } = await import('@features/moderation/commands/warn.js');
+  warnPlayer(player, target, reason);
 }
 
 export async function handleKickPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/data/playerDataManager.js');
-    const targetData = getPlayer(targetPlayerId);
+  const { getPlayer } = await import('@core/data/playerDataManager.js');
+  const targetData = getPlayer(targetPlayerId);
 
-    if (!isDefined(targetData)) {
-        player.sendMessage('§4Player data not found.');
-        return;
+  if (!isDefined(targetData)) {
+    player.sendMessage('§4Player data not found.');
+    return;
+  }
+
+  const form = new CustomFormBuilder<{ reasonRaw: string }>(`Kick ${targetData.name}`)
+    .textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules')
+    .submitButton('Kick');
+
+  const res = await form.show(player);
+  if (!res) {
+    return;
+  }
+
+  const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
+  const target = getPlayerFromCache(targetPlayerId);
+  if (isDefined(target)) {
+    try {
+      const { escapeCommandArg } = await import('@core/utils/sanitization.js');
+      const escapedTargetName = escapeCommandArg(target.name);
+      const escapedReason = escapeCommandArg(`§4You have been kicked.\nReason: ${reason}`);
+      player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
+      player.sendMessage(`§2Kicked ${targetData.name}.`);
+    } catch {
+      player.sendMessage(`§4Failed to kick ${targetData.name}.`);
     }
-
-    const form = new CustomFormBuilder<{ reasonRaw: string }>(`Kick ${targetData.name}`).textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules').submitButton('Kick');
-
-    const res = await form.show(player);
-    if (!res) {
-        return;
-    }
-
-    const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
-    const target = getPlayerFromCache(targetPlayerId);
-    if (isDefined(target)) {
-        try {
-            const { escapeCommandArg } = await import('@core/utils/sanitization.js');
-            const escapedTargetName = escapeCommandArg(target.name);
-            const escapedReason = escapeCommandArg(`§4You have been kicked.\nReason: ${reason}`);
-            player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
-            player.sendMessage(`§2Kicked ${targetData.name}.`);
-        } catch {
-            player.sendMessage(`§4Failed to kick ${targetData.name}.`);
-        }
-    } else {
-        player.sendMessage('§4Player is offline.');
-    }
+  } else {
+    player.sendMessage('§4Player is offline.');
+  }
 }
 
 export async function handleMutePlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/data/playerDataManager.js');
-    const targetData = getPlayer(targetPlayerId);
+  const { getPlayer } = await import('@core/data/playerDataManager.js');
+  const targetData = getPlayer(targetPlayerId);
 
-    if (!isDefined(targetData)) {
-        player.sendMessage('§4Player data not found.');
-        return;
-    }
+  if (!isDefined(targetData)) {
+    player.sendMessage('§4Player data not found.');
+    return;
+  }
 
-    const form = new CustomFormBuilder<{ durationStr: string; reasonRaw: string }>(`Mute ${targetData.name}`)
-        .textField('durationStr', 'Duration (minutes)', 'e.g., 60', '60')
-        .textField('reasonRaw', 'Reason', 'Enter reason', 'Spam/Toxicity')
-        .submitButton('Mute');
+  const form = new CustomFormBuilder<{ durationStr: string; reasonRaw: string }>(`Mute ${targetData.name}`)
+    .textField('durationStr', 'Duration (minutes)', 'e.g., 60', '60')
+    .textField('reasonRaw', 'Reason', 'Enter reason', 'Spam/Toxicity')
+    .submitButton('Mute');
 
-    const res = await form.show(player);
-    if (!res) {
-        return;
-    }
+  const res = await form.show(player);
+  if (!res) {
+    return;
+  }
 
-    const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
-    const durationMins = Number.parseInt(res.durationStr);
+  const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
+  const durationMins = Number.parseInt(res.durationStr);
 
-    if (Number.isNaN(durationMins) || durationMins <= 0) {
-        player.sendMessage('§4Invalid duration.');
-        return;
-    }
+  if (Number.isNaN(durationMins) || durationMins <= 0) {
+    player.sendMessage('§4Invalid duration.');
+    return;
+  }
 
-    const expires = Date.now() + durationMins * 60 * 1000;
+  const expires = Date.now() + durationMins * 60 * 1000;
 
-    punishmentManager.addPunishment(
-        targetPlayerId,
-        targetData.name,
-        {
-            type: 'mute',
-            expires,
-            reason
-        },
-        player.name
-    );
+  punishmentManager.addPunishment(
+    targetPlayerId,
+    targetData.name,
+    {
+      type: 'mute',
+      expires,
+      reason,
+    },
+    player.name,
+  );
 
-    player.sendMessage(`§2Muted ${targetData.name} for ${durationMins} minutes.`);
-    const target = getPlayerFromCache(targetPlayerId);
-    if (target) {
-        target.sendMessage(`§4You have been muted for ${durationMins} minutes. Reason: ${reason}`);
-    }
+  player.sendMessage(`§2Muted ${targetData.name} for ${durationMins} minutes.`);
+  const target = getPlayerFromCache(targetPlayerId);
+  if (target) {
+    target.sendMessage(`§4You have been muted for ${durationMins} minutes. Reason: ${reason}`);
+  }
 }
 
 export async function handleUnmutePlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    await Promise.resolve();
-    const punishment = punishmentManager.getPunishment(targetPlayerId, 'mute');
-    if (!isDefined(punishment)) {
-        player.sendMessage('§4Player is not muted.');
-        return;
-    }
+  await Promise.resolve();
+  const punishment = punishmentManager.getPunishment(targetPlayerId, 'mute');
+  if (!isDefined(punishment)) {
+    player.sendMessage('§4Player is not muted.');
+    return;
+  }
 
-    punishmentManager.removePunishment(targetPlayerId, 'mute');
-    player.sendMessage(`§2Unmuted player.`);
+  punishmentManager.removePunishment(targetPlayerId, 'mute');
+  player.sendMessage(`§2Unmuted player.`);
 
-    const target = getPlayerFromCache(targetPlayerId);
-    if (isDefined(target)) {
-        target.sendMessage('§2You have been unmuted.');
-    }
+  const target = getPlayerFromCache(targetPlayerId);
+  if (isDefined(target)) {
+    target.sendMessage('§2You have been unmuted.');
+  }
 }
 
 export async function handleBanPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/data/playerDataManager.js');
-    const targetData = getPlayer(targetPlayerId);
+  const { getPlayer } = await import('@core/data/playerDataManager.js');
+  const targetData = getPlayer(targetPlayerId);
 
-    if (!isDefined(targetData)) {
-        player.sendMessage('§4Player data not found.');
-        return;
+  if (!isDefined(targetData)) {
+    player.sendMessage('§4Player data not found.');
+    return;
+  }
+
+  const form = new CustomFormBuilder<{ durationStr: string; reasonRaw: string }>(`Ban ${targetData.name}`)
+    .textField('durationStr', 'Duration (hours, 0 = permanent)', 'e.g., 24', '0')
+    .textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules')
+    .submitButton('Ban');
+
+  const res = await form.show(player);
+  if (!res) {
+    return;
+  }
+
+  const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
+  const durationHours = Number.parseInt(res.durationStr);
+
+  if (Number.isNaN(durationHours) || durationHours < 0) {
+    player.sendMessage('§4Invalid duration.');
+    return;
+  }
+
+  const expires =
+    durationHours === 0 ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000 : Date.now() + durationHours * 60 * 60 * 1000;
+
+  punishmentManager.addPunishment(
+    targetPlayerId,
+    targetData.name,
+    {
+      type: 'ban',
+      expires,
+      reason,
+    },
+    player.name,
+  );
+
+  const target = getPlayerFromCache(targetPlayerId);
+  if (isDefined(target)) {
+    try {
+      const { escapeCommandArg } = await import('@core/utils/sanitization.js');
+      const escapedTargetName = escapeCommandArg(target.name);
+      const escapedReason = escapeCommandArg(
+        `§4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`,
+      );
+      player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
+    } catch {
+      // Ignore if kick fails
     }
-
-    const form = new CustomFormBuilder<{ durationStr: string; reasonRaw: string }>(`Ban ${targetData.name}`)
-        .textField('durationStr', 'Duration (hours, 0 = permanent)', 'e.g., 24', '0')
-        .textField('reasonRaw', 'Reason', 'Enter reason', 'Violation of rules')
-        .submitButton('Ban');
-
-    const res = await form.show(player);
-    if (!res) {
-        return;
-    }
-
-    const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
-    const durationHours = Number.parseInt(res.durationStr);
-
-    if (Number.isNaN(durationHours) || durationHours < 0) {
-        player.sendMessage('§4Invalid duration.');
-        return;
-    }
-
-    const expires = durationHours === 0 ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000 : Date.now() + durationHours * 60 * 60 * 1000;
-
-    punishmentManager.addPunishment(
-        targetPlayerId,
-        targetData.name,
-        {
-            type: 'ban',
-            expires,
-            reason
-        },
-        player.name
-    );
-
-    const target = getPlayerFromCache(targetPlayerId);
-    if (isDefined(target)) {
-        try {
-            const { escapeCommandArg } = await import('@core/utils/sanitization.js');
-            const escapedTargetName = escapeCommandArg(target.name);
-            const escapedReason = escapeCommandArg(`§4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`);
-            player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
-        } catch {
-            // Ignore if kick fails
-        }
-    }
-    player.sendMessage(`§2Banned ${targetData.name}.`);
+  }
+  player.sendMessage(`§2Banned ${targetData.name}.`);
 }
 
 export async function handleReportPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
-    const { getPlayer } = await import('@core/data/playerDataManager.js');
-    const targetData = getPlayer(targetPlayerId);
-    if (!isDefined(targetData)) {
-        player.sendMessage('§4Player data not found.');
-        return;
-    }
+  const { getPlayer } = await import('@core/data/playerDataManager.js');
+  const targetData = getPlayer(targetPlayerId);
+  if (!isDefined(targetData)) {
+    player.sendMessage('§4Player data not found.');
+    return;
+  }
 
-    const form = new CustomFormBuilder<{ reasonRaw: string }>(`Report ${targetData.name}`).textField('reasonRaw', 'Reason', 'Why are you reporting this player?', '').submitButton('Submit Report');
+  const form = new CustomFormBuilder<{ reasonRaw: string }>(`Report ${targetData.name}`)
+    .textField('reasonRaw', 'Reason', 'Why are you reporting this player?', '')
+    .submitButton('Submit Report');
 
-    const res = await form.show(player);
-    if (!res) {
-        return;
-    }
+  const res = await form.show(player);
+  if (!res) {
+    return;
+  }
 
-    if (!isNonEmptyString(res.reasonRaw)) {
-        player.sendMessage('§4Reason is required.');
-        return;
-    }
-    const reason = sanitizeString(res.reasonRaw, true);
+  if (!isNonEmptyString(res.reasonRaw)) {
+    player.sendMessage('§4Reason is required.');
+    return;
+  }
+  const reason = sanitizeString(res.reasonRaw, true);
 
-    reportManager.createReport(player, targetPlayerId, targetData.name, reason);
-    player.sendMessage('§2Report sent successfully. Admins have been notified.');
+  reportManager.createReport(player, targetPlayerId, targetData.name, reason);
+  player.sendMessage('§2Report sent successfully. Admins have been notified.');
 }
 
 export async function handleUnbanForm(player: mc.Player): Promise<void> {
-    const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
-    const activeBans = punishmentManager.getActivePunishmentsByType('ban');
+  const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
+  const activeBans = punishmentManager.getActivePunishmentsByType('ban');
 
-    const form = new ActionFormBuilder()
-        .title(`Unban Player (${activeBans.length} Active)`)
-        .body('Select a banned player below to unban immediately, or type a name manually:')
-        .button('§l§6Type Player Name Manually\n§r§7Unban by exact username', 'textures/ui/book_edit_default', async () => {
-            const modal = new CustomFormBuilder<{ name: string }>('Unban Player by Name').textField('name', 'Player Name (exact)', 'Enter the name of the banned player', '').submitButton('Unban');
-            const res = await modal.show(player);
-            if (res && isNonEmptyString(res.name.trim())) {
-                const targetId = getPlayerIdByName(res.name.trim());
-                if (isNonEmptyString(targetId)) {
-                    punishmentManager.removePunishment(targetId, 'ban');
-                    player.sendMessage(`§2Unbanned ${res.name.trim()}.`);
-                } else {
-                    player.sendMessage('§4Player not found in database.');
-                }
-            }
-            await showModerationPanel(player);
-        });
-
-    for (const entry of activeBans) {
-        const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
-        const expText = entry.punishment.expires === Infinity || entry.punishment.expires > Date.now() + 50 * 365 * 86_400_000 ? 'Permanent' : new Date(entry.punishment.expires).toLocaleDateString();
-        form.button(`§l§c${pName}§r §8(${expText})\n§7${entry.punishment.reason}`, 'textures/ui/refresh_light', async () => {
-            punishmentManager.removePunishment(entry.playerId, 'ban');
-            player.sendMessage(`§2Unbanned ${pName}.`);
-            await handleUnbanForm(player);
-        });
-    }
-
-    form.addBackButton(async () => {
-        await showModerationPanel(player);
+  const form = new ActionFormBuilder()
+    .title(`Unban Player (${activeBans.length} Active)`)
+    .body('Select a banned player below to unban immediately, or type a name manually:')
+    .button('§l§6Type Player Name Manually\n§r§7Unban by exact username', 'textures/ui/book_edit_default', async () => {
+      const modal = new CustomFormBuilder<{ name: string }>('Unban Player by Name')
+        .textField('name', 'Player Name (exact)', 'Enter the name of the banned player', '')
+        .submitButton('Unban');
+      const res = await modal.show(player);
+      if (res && isNonEmptyString(res.name.trim())) {
+        const targetId = getPlayerIdByName(res.name.trim());
+        if (isNonEmptyString(targetId)) {
+          punishmentManager.removePunishment(targetId, 'ban');
+          player.sendMessage(`§2Unbanned ${res.name.trim()}.`);
+        } else {
+          player.sendMessage('§4Player not found in database.');
+        }
+      }
+      await showModerationPanel(player);
     });
 
-    await form.show(player);
+  for (const entry of activeBans) {
+    const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
+    const expText =
+      entry.punishment.expires === Infinity || entry.punishment.expires > Date.now() + 50 * 365 * 86_400_000
+        ? 'Permanent'
+        : new Date(entry.punishment.expires).toLocaleDateString();
+    form.button(
+      `§l§c${pName}§r §8(${expText})\n§7${entry.punishment.reason}`,
+      'textures/ui/refresh_light',
+      async () => {
+        punishmentManager.removePunishment(entry.playerId, 'ban');
+        player.sendMessage(`§2Unbanned ${pName}.`);
+        await handleUnbanForm(player);
+      },
+    );
+  }
+
+  form.addBackButton(async () => {
+    await showModerationPanel(player);
+  });
+
+  await form.show(player);
 }
 
 export async function handleUnmuteForm(player: mc.Player): Promise<void> {
-    const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
-    const activeMutes = punishmentManager.getActivePunishmentsByType('mute');
+  const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
+  const activeMutes = punishmentManager.getActivePunishmentsByType('mute');
 
-    const form = new ActionFormBuilder()
-        .title(`Unmute Player (${activeMutes.length} Active)`)
-        .body('Select a muted player below to unmute immediately, or type a name manually:')
-        .button('§l§6Type Player Name Manually\n§r§7Unmute by exact username', 'textures/ui/book_edit_default', async () => {
-            const modal = new CustomFormBuilder<{ name: string }>('Unmute Player by Name').textField('name', 'Player Name (exact)', 'Enter the name of the muted player', '').submitButton('Unmute');
-            const res = await modal.show(player);
-            if (res && isNonEmptyString(res.name.trim())) {
-                const targetId = getPlayerIdByName(res.name.trim());
-                if (isNonEmptyString(targetId)) {
-                    punishmentManager.removePunishment(targetId, 'mute');
-                    player.sendMessage(`§2Unmuted ${res.name.trim()}.`);
-                } else {
-                    player.sendMessage('§4Player not found in database.');
-                }
-            }
-            await showModerationPanel(player);
-        });
-
-    for (const entry of activeMutes) {
-        const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
-        const expText = entry.punishment.expires === Infinity ? 'Permanent' : new Date(entry.punishment.expires).toLocaleTimeString();
-        form.button(`§l§e${pName}§r §8(Until ${expText})\n§7${entry.punishment.reason}`, 'textures/ui/mute_off', async () => {
-            punishmentManager.removePunishment(entry.playerId, 'mute');
-            const onlineTarget = getPlayerFromCache(entry.playerId);
-            if (isDefined(onlineTarget)) {
-                onlineTarget.sendMessage('§2You have been unmuted.');
-            }
-            player.sendMessage(`§2Unmuted ${pName}.`);
-            await handleUnmuteForm(player);
-        });
-    }
-
-    form.addBackButton(async () => {
+  const form = new ActionFormBuilder()
+    .title(`Unmute Player (${activeMutes.length} Active)`)
+    .body('Select a muted player below to unmute immediately, or type a name manually:')
+    .button(
+      '§l§6Type Player Name Manually\n§r§7Unmute by exact username',
+      'textures/ui/book_edit_default',
+      async () => {
+        const modal = new CustomFormBuilder<{ name: string }>('Unmute Player by Name')
+          .textField('name', 'Player Name (exact)', 'Enter the name of the muted player', '')
+          .submitButton('Unmute');
+        const res = await modal.show(player);
+        if (res && isNonEmptyString(res.name.trim())) {
+          const targetId = getPlayerIdByName(res.name.trim());
+          if (isNonEmptyString(targetId)) {
+            punishmentManager.removePunishment(targetId, 'mute');
+            player.sendMessage(`§2Unmuted ${res.name.trim()}.`);
+          } else {
+            player.sendMessage('§4Player not found in database.');
+          }
+        }
         await showModerationPanel(player);
-    });
+      },
+    );
 
-    await form.show(player);
+  for (const entry of activeMutes) {
+    const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
+    const expText =
+      entry.punishment.expires === Infinity ? 'Permanent' : new Date(entry.punishment.expires).toLocaleTimeString();
+    form.button(
+      `§l§e${pName}§r §8(Until ${expText})\n§7${entry.punishment.reason}`,
+      'textures/ui/mute_off',
+      async () => {
+        punishmentManager.removePunishment(entry.playerId, 'mute');
+        const onlineTarget = getPlayerFromCache(entry.playerId);
+        if (isDefined(onlineTarget)) {
+          onlineTarget.sendMessage('§2You have been unmuted.');
+        }
+        player.sendMessage(`§2Unmuted ${pName}.`);
+        await handleUnmuteForm(player);
+      },
+    );
+  }
+
+  form.addBackButton(async () => {
+    await showModerationPanel(player);
+  });
+
+  await form.show(player);
 }
 
 export async function showModerationPanel(player: mc.Player): Promise<void> {
-    const form = new ActionFormBuilder().title('Moderation Tools');
+  const form = new ActionFormBuilder().title('Moderation Tools');
 
-    form.button('§l§fPlayer Moderation\n§r§7Inspect, warn & punish', 'textures/ui/WarningGlyph', async () => {
-        const { showPlayerManagementPanel } = await import('@core/ui/panels/playerPanel.js');
-        await showPlayerManagementPanel(player);
-    });
+  form.button('§l§fPlayer Moderation\n§r§7Inspect, warn & punish', 'textures/ui/WarningGlyph', async () => {
+    const { showPlayerManagementPanel } = await import('@core/ui/panels/playerPanel.js');
+    await showPlayerManagementPanel(player);
+  });
 
-    form.button('Unban Player', 'textures/ui/refresh_light', async () => {
-        await handleUnbanForm(player);
-    });
+  form.button('Unban Player', 'textures/ui/refresh_light', async () => {
+    await handleUnbanForm(player);
+  });
 
-    form.button('Unmute Player', 'textures/ui/mute_off', async () => {
-        await handleUnmuteForm(player);
-    });
+  form.button('Unmute Player', 'textures/ui/mute_off', async () => {
+    await handleUnmuteForm(player);
+  });
 
-    form.addBackButton(async () => {
-        const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
-        await showStaffDashboardPanel(player);
-    });
+  form.addBackButton(async () => {
+    const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
+    await showStaffDashboardPanel(player);
+  });
 
-    await form.show(player);
+  await form.show(player);
 }

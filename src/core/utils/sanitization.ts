@@ -6,23 +6,23 @@
  * @returns The sanitized string.
  */
 export function sanitizeString(input: string, allowColors = false): string {
-    if (!input) {
-        return '';
-    }
-    let result = input;
+  if (!input) {
+    return '';
+  }
+  let result = input;
 
-    // Remove color codes if not allowed
-    if (!allowColors) {
-        // oxlint-disable-next-line eslint/no-control-regex
-        result = result.replaceAll(/§[0-9a-fklmnor]/g, '');
-    }
+  // Remove color codes if not allowed
+  if (!allowColors) {
+    // oxlint-disable-next-line eslint/no-control-regex
+    result = result.replaceAll(/§[0-9a-fklmnor]/g, '');
+  }
 
-    // Remove non-printable characters (basic control chars, keeping newlines/returns)
+  // Remove non-printable characters (basic control chars, keeping newlines/returns)
 
-    // oxlint-disable-next-line
-    result = result.replaceAll(/[\u0000-\u0009\u000B\u000C\u000E-\u001F]/g, '');
+  // oxlint-disable-next-line
+  result = result.replaceAll(/[\u0000-\u0009\u000B\u000C\u000E-\u001F]/g, '');
 
-    return result.trim();
+  return result.trim();
 }
 
 /**
@@ -33,25 +33,26 @@ export function sanitizeString(input: string, allowColors = false): string {
  * @returns True if valid.
  */
 export function validateInput(input: string, maxLength = 256): boolean {
-    if (!input) {
-        return true;
-    }
-    if (input.length > maxLength) {
-        return false;
-    }
+  if (!input) {
     return true;
+  }
+  if (input.length > maxLength) {
+    return false;
+  }
+  return true;
 }
 
 /**
- * Escapes a string to be safely used as an argument in a Minecraft command. It replaces double quotes with single quotes, removes backslashes to prevent escaping the closing quote, and replaces
- * newlines with spaces. The resulting string should be wrapped in double quotes in the command.
+ * Escapes a string to be safely used as an argument in a Minecraft command. It replaces double quotes with single
+ * quotes, removes backslashes to prevent escaping the closing quote, and replaces newlines with spaces. The resulting
+ * string should be wrapped in double quotes in the command.
  *
  * @param input The string to escape.
  * @returns The escaped string.
  */
 export function escapeCommandArg(input: string): string {
-    if (!input) {
-        return '';
-    }
-    return input.replaceAll('\\', '').replaceAll('"', "'").replaceAll('\n', ' ');
+  if (!input) {
+    return '';
+  }
+  return input.replaceAll('\\', '').replaceAll('"', "'").replaceAll('\n', ' ');
 }

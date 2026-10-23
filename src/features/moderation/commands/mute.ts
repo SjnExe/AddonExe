@@ -9,148 +9,153 @@ import { addPunishment, removePunishment } from '@features/moderation/punishment
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
-export function mutePlayer(executor: CommandExecutor, targetPlayer: mc.Player, duration: string | undefined, reason: string) {
-    if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
-        sendMessage('§cYou cannot mute yourself.', executor);
-        playSound(executor, soundError);
-        return;
-    }
+export function mutePlayer(
+  executor: CommandExecutor,
+  targetPlayer: mc.Player,
+  duration: string | undefined,
+  reason: string,
+) {
+  if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
+    sendMessage('§cYou cannot mute yourself.', executor);
+    playSound(executor, soundError);
+    return;
+  }
 
-    if (!canTarget(executor, targetPlayer.id)) {
-        if (executor instanceof mc.Player) {
-            sendMessage('§cYou cannot mute a player with the same or higher rank than you.', executor);
-            playSound(executor, soundError);
-        } else {
-            executor.sendMessage('§cYou cannot mute a player with the same or higher rank than you.');
-        }
-        return;
-    }
-    const durationString = isDefined(duration) ? duration : 'perm';
-    const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
-    const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
-    const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
-    addPunishment(
-        targetPlayer.id,
-        targetPlayer.name,
-        {
-            type: 'mute',
-            expires,
-            reason
-        },
-        announcer
-    );
-    const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
-
+  if (!canTarget(executor, targetPlayer.id)) {
     if (executor instanceof mc.Player) {
-        sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`, executor);
-        playSound(executor, soundTeleport);
+      sendMessage('§cYou cannot mute a player with the same or higher rank than you.', executor);
+      playSound(executor, soundError);
     } else {
-        executor.sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`);
+      executor.sendMessage('§cYou cannot mute a player with the same or higher rank than you.');
     }
-    sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`, targetPlayer);
-    playSound(targetPlayer, 'mob.villager.no');
+    return;
+  }
+  const durationString = isDefined(duration) ? duration : 'perm';
+  const durationMs = isDefined(duration) ? parseDuration(duration) : Infinity;
+  const expires = durationMs === Infinity ? Infinity : Date.now() + durationMs;
+  const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
+  addPunishment(
+    targetPlayer.id,
+    targetPlayer.name,
+    {
+      type: 'mute',
+      expires,
+      reason,
+    },
+    announcer,
+  );
+  const durationText = durationMs === Infinity ? 'permanently' : `for ${durationString}`;
+
+  if (executor instanceof mc.Player) {
+    sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`, executor);
+    playSound(executor, soundTeleport);
+  } else {
+    executor.sendMessage(`§aSuccessfully muted ${targetPlayer.name} ${durationText}. Reason: ${reason}`);
+  }
+  sendMessage(`§cYou have been muted ${durationText} by ${announcer}.`, targetPlayer);
+  playSound(targetPlayer, 'mob.villager.no');
 }
 
 interface MuteCommandArgs {
-    target?: mc.Player[];
-    duration?: string;
-    reason?: string;
+  target?: mc.Player[];
+  duration?: string;
+  reason?: string;
 }
 
 const muteCommand: CustomCommand = {
-    name: 'mute',
-    description: 'Mutes a player for a specified duration with a reason.',
-    category: 'Moderation',
-    aliases: ['silence'],
-    permissionNode: 'cmd.mute.mod',
-    allowConsole: true,
-    parameters: [
-        { name: 'target', type: 'player' },
-        { name: 'duration', type: 'string', optional: true },
-        { name: 'reason', type: 'text', optional: true }
-    ],
-    execute: (executor: CommandExecutor, args: MuteCommandArgs) => {
-        const targetPlayers = args.target;
-        let { duration, reason } = args;
+  name: 'mute',
+  description: 'Mutes a player for a specified duration with a reason.',
+  category: 'Moderation',
+  aliases: ['silence'],
+  permissionNode: 'cmd.mute.mod',
+  allowConsole: true,
+  parameters: [
+    { name: 'target', type: 'player' },
+    { name: 'duration', type: 'string', optional: true },
+    { name: 'reason', type: 'text', optional: true },
+  ],
+  execute: (executor: CommandExecutor, args: MuteCommandArgs) => {
+    const targetPlayers = args.target;
+    let { duration, reason } = args;
 
-        if (!isDefined(targetPlayers) || targetPlayers.length === 0) {
-            if (executor instanceof mc.Player) {
-                sendMessage('§cPlayer not found.', executor);
-            } else {
-                executor.sendMessage('§cPlayer not found.');
-            }
-            return;
-        }
-        const targetPlayer = targetPlayers[0];
-        if (!targetPlayer) {
-            if (executor instanceof mc.Player) {
-                sendMessage('§cPlayer not found.', executor);
-            } else {
-                executor.sendMessage('§cPlayer not found.');
-            }
-            return;
-        }
-
-        if (isDefined(duration) && parseDuration(duration) === 0) {
-            reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
-            duration = undefined;
-        }
-
-        mutePlayer(executor, targetPlayer, duration, isDefined(reason) ? reason : 'No reason provided.');
+    if (!isDefined(targetPlayers) || targetPlayers.length === 0) {
+      if (executor instanceof mc.Player) {
+        sendMessage('§cPlayer not found.', executor);
+      } else {
+        executor.sendMessage('§cPlayer not found.');
+      }
+      return;
     }
+    const targetPlayer = targetPlayers[0];
+    if (!targetPlayer) {
+      if (executor instanceof mc.Player) {
+        sendMessage('§cPlayer not found.', executor);
+      } else {
+        executor.sendMessage('§cPlayer not found.');
+      }
+      return;
+    }
+
+    if (isDefined(duration) && parseDuration(duration) === 0) {
+      reason = `${duration}${isDefined(reason) ? ' ' + reason : ''}`;
+      duration = undefined;
+    }
+
+    mutePlayer(executor, targetPlayer, duration, isDefined(reason) ? reason : 'No reason provided.');
+  },
 };
 
 export function unmutePlayer(executor: CommandExecutor, targetName: string) {
-    const targetId = getPlayerIdByName(targetName);
+  const targetId = getPlayerIdByName(targetName);
 
-    if (!isDefined(targetId)) {
-        if (executor instanceof mc.Player) {
-            sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`, executor);
-        } else {
-            executor.sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`);
-        }
-        return;
-    }
-    if (executor instanceof mc.Player && targetId === executor.id) {
-        sendMessage('§cYou cannot unmute yourself.', executor);
-        return;
-    }
-
-    if (!canTarget(executor, targetId)) {
-        if (executor instanceof mc.Player) {
-            sendMessage('§cYou cannot unmute a player with the same or higher rank than you.', executor);
-        } else {
-            executor.sendMessage('§cYou cannot unmute a player with the same or higher rank than you.');
-        }
-        return;
-    }
-    removePunishment(targetId, 'mute');
-
+  if (!isDefined(targetId)) {
     if (executor instanceof mc.Player) {
-        sendMessage(`§aSuccessfully unmuted ${targetName}.`, executor);
-        playSound(executor, soundTeleport);
+      sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`, executor);
     } else {
-        executor.sendMessage(`§aSuccessfully unmuted ${targetName}.`);
+      executor.sendMessage(`§cPlayer "${targetName}" has never joined the server or name is misspelled.`);
     }
+    return;
+  }
+  if (executor instanceof mc.Player && targetId === executor.id) {
+    sendMessage('§cYou cannot unmute yourself.', executor);
+    return;
+  }
 
-    const targetPlayer = findPlayerByName(targetName);
-    if (targetPlayer) {
-        sendMessage('§aYou have been unmuted and can now chat again.', targetPlayer);
-        playSound(targetPlayer, 'random.levelup');
+  if (!canTarget(executor, targetId)) {
+    if (executor instanceof mc.Player) {
+      sendMessage('§cYou cannot unmute a player with the same or higher rank than you.', executor);
+    } else {
+      executor.sendMessage('§cYou cannot unmute a player with the same or higher rank than you.');
     }
+    return;
+  }
+  removePunishment(targetId, 'mute');
+
+  if (executor instanceof mc.Player) {
+    sendMessage(`§aSuccessfully unmuted ${targetName}.`, executor);
+    playSound(executor, soundTeleport);
+  } else {
+    executor.sendMessage(`§aSuccessfully unmuted ${targetName}.`);
+  }
+
+  const targetPlayer = findPlayerByName(targetName);
+  if (targetPlayer) {
+    sendMessage('§aYou have been unmuted and can now chat again.', targetPlayer);
+    playSound(targetPlayer, 'random.levelup');
+  }
 }
 
 const unmuteCommand: CustomCommand = {
-    name: 'unmute',
-    description: 'Unmutes a player.',
-    category: 'Moderation',
-    aliases: ['um'],
-    permissionNode: 'cmd.unmute.mod',
-    allowConsole: true,
-    parameters: [{ name: 'target', type: 'string' }],
-    execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
-        unmutePlayer(executor, args.target as string);
-    }
+  name: 'unmute',
+  description: 'Unmutes a player.',
+  category: 'Moderation',
+  aliases: ['um'],
+  permissionNode: 'cmd.unmute.mod',
+  allowConsole: true,
+  parameters: [{ name: 'target', type: 'string' }],
+  execute: (executor: CommandExecutor, args: Record<string, unknown>) => {
+    unmutePlayer(executor, args.target as string);
+  },
 };
 
 export default [muteCommand, unmuteCommand];

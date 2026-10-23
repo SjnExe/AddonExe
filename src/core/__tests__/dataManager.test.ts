@@ -8,96 +8,101 @@ const mockStorageLoad = mock();
 import { initializeConfigManager } from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
 import { saveAllData, saveAllDataJob } from '@core/data/dataManager.js';
-import { cleanupPlayerDataManager, getOrCreatePlayer, getPlayer, updatePlayerData } from '@core/data/playerDataManager.js';
+import {
+  cleanupPlayerDataManager,
+  getOrCreatePlayer,
+  getPlayer,
+  updatePlayerData,
+} from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 
 const mockPlayer = (id: string, name: string) =>
-    ({
-        id,
-        name,
-        isValid: true,
-        sendMessage: mock(),
-        getGameMode: mock(),
-        getComponent: mock()
-    }) as unknown as mc.Player;
+  ({
+    id,
+    name,
+    isValid: true,
+    sendMessage: mock(),
+    getGameMode: mock(),
+    getComponent: mock(),
+  }) as unknown as mc.Player;
 
 describe('DataManager - saveAllData & saveAllDataJob', () => {
-    let getEconomyConfigSpy: any;
-    let loadSpy: any;
-    let saveSpy: any;
+  let getEconomyConfigSpy: any;
+  let loadSpy: any;
+  let saveSpy: any;
 
-    beforeEach(async () => {
-        cleanupPlayerDataManager();
-        await initializeConfigManager(false);
-        getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
-            enabled: true,
-            startingBalance: 0,
-            minBalance: -1000,
-            maxBalance: 1_000_000
-        } as any);
-        mockStorageSave.mockReset();
-        mockStorageLoad.mockReset();
-        mockStorageLoad.mockImplementation(() => undefined);
-        loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
-            return mockStorageLoad(this.dbName);
-        });
-        saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
-            return mockStorageSave(this.dbName, data);
-        });
+  beforeEach(async () => {
+    cleanupPlayerDataManager();
+    await initializeConfigManager(false);
+    getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+      enabled: true,
+      startingBalance: 0,
+      minBalance: -1000,
+      maxBalance: 1_000_000,
+    } as any);
+    mockStorageSave.mockReset();
+    mockStorageLoad.mockReset();
+    mockStorageLoad.mockImplementation(() => undefined);
+    loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
+      return mockStorageLoad(this.dbName);
+    });
+    saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
+      return mockStorageSave(this.dbName, data);
+    });
+  });
+
+  afterEach(() => {
+    cleanupPlayerDataManager();
+    getEconomyConfigSpy?.mockRestore();
+    loadSpy?.mockRestore();
+    saveSpy?.mockRestore();
+  });
+
+  it('saveAllData should save dirty player data synchronously', () => {
+    const p1 = mockPlayer('p1', 'PlayerOne');
+    getOrCreatePlayer(p1);
+
+    updatePlayerData('p1', (pData) => {
+      pData.kills = 5;
     });
 
-    afterEach(() => {
-        cleanupPlayerDataManager();
-        getEconomyConfigSpy?.mockRestore();
-        loadSpy?.mockRestore();
-        saveSpy?.mockRestore();
+    expect(getPlayer('p1')?.needsSave).toBe(true);
+
+    const saved = saveAllData({ log: false });
+
+    expect(saved).toBe(true);
+    expect(getPlayer('p1')?.needsSave).toBe(false);
+    expect(mockStorageSave).toHaveBeenCalled();
+  });
+
+  it('saveAllDataJob generator should iterate and save dirty player data across ticks', () => {
+    const p1 = mockPlayer('p1', 'PlayerOne');
+    const p2 = mockPlayer('p2', 'PlayerTwo');
+    getOrCreatePlayer(p1);
+    getOrCreatePlayer(p2);
+
+    updatePlayerData('p1', (pData) => {
+      pData.kills = 10;
+    });
+    updatePlayerData('p2', (pData) => {
+      pData.deaths = 2;
     });
 
-    it('saveAllData should save dirty player data synchronously', () => {
-        const p1 = mockPlayer('p1', 'PlayerOne');
-        getOrCreatePlayer(p1);
+    expect(getPlayer('p1')?.needsSave).toBe(true);
+    expect(getPlayer('p2')?.needsSave).toBe(true);
 
-        updatePlayerData('p1', (pData) => {
-            pData.kills = 5;
-        });
+    const job = saveAllDataJob({ log: false });
 
-        expect(getPlayer('p1')?.needsSave).toBe(true);
+    let result = job.next();
+    let steps = 0;
+    while (!result.done) {
+      steps++;
+      result = job.next();
+    }
 
-        const saved = saveAllData({ log: false });
-
-        expect(saved).toBe(true);
-        expect(getPlayer('p1')?.needsSave).toBe(false);
-        expect(mockStorageSave).toHaveBeenCalled();
-    });
-
-    it('saveAllDataJob generator should iterate and save dirty player data across ticks', () => {
-        const p1 = mockPlayer('p1', 'PlayerOne');
-        const p2 = mockPlayer('p2', 'PlayerTwo');
-        getOrCreatePlayer(p1);
-        getOrCreatePlayer(p2);
-
-        updatePlayerData('p1', (pData) => {
-            pData.kills = 10;
-        });
-        updatePlayerData('p2', (pData) => {
-            pData.deaths = 2;
-        });
-
-        expect(getPlayer('p1')?.needsSave).toBe(true);
-        expect(getPlayer('p2')?.needsSave).toBe(true);
-
-        const job = saveAllDataJob({ log: false });
-
-        let result = job.next();
-        let steps = 0;
-        while (!result.done) {
-            steps++;
-            result = job.next();
-        }
-
-        expect(steps).toBeGreaterThan(0);
-        expect(getPlayer('p1')?.needsSave).toBe(false);
-        expect(getPlayer('p2')?.needsSave).toBe(false);
-        expect(mockStorageSave).toHaveBeenCalled();
-    });
+    expect(steps).toBeGreaterThan(0);
+    expect(getPlayer('p1')?.needsSave).toBe(false);
+    expect(getPlayer('p2')?.needsSave).toBe(false);
+    expect(mockStorageSave).toHaveBeenCalled();
+  });
 });

@@ -1,284 +1,284 @@
 name: Build
 
 on:
-    push:
-        tags:
-            - 'v*'
-        branches:
-            - main
-    workflow_dispatch:
-    pull_request:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+  pull_request:
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    lint:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun lint
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: bun install --frozen-lockfile
+      - run: bun lint
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    format:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun format:check
+      - run: bun install --frozen-lockfile
+      - run: bun format:check
 
-    typecheck:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun check-types
+      - run: bun install --frozen-lockfile
+      - run: bun check-types
 
-    test:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun test --parallel
+      - run: bun install --frozen-lockfile
+      - run: bun test --parallel
 
-    build:
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
-              with:
-                  fetch-depth: 1
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - name: Install dependencies
-              run: bun install --frozen-lockfile
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-            - name: Determine Build Type
-              id: build_type
-              run: |
-                  if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-                      echo "type=stable" >> $GITHUB_OUTPUT
-                  else
-                      echo "type=nightly" >> $GITHUB_OUTPUT
-                  fi
+      - name: Determine Build Type
+        id: build_type
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+              echo "type=stable" >> $GITHUB_OUTPUT
+          else
+              echo "type=nightly" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Build TypeScript (Nightly)
-              if: steps.build_type.outputs.type == 'nightly'
-              run: |
-                  bun run build:nightly -- -b ${{ github.run_number }}
-              env:
-                  IS_BETA_RELEASE: 'true'
+      - name: Build TypeScript (Nightly)
+        if: steps.build_type.outputs.type == 'nightly'
+        run: |
+          bun run build:nightly -- -b ${{ github.run_number }}
+        env:
+          IS_BETA_RELEASE: 'true'
 
-            - name: Build TypeScript (Stable)
-              if: steps.build_type.outputs.type == 'stable'
-              run: |
-                  TAG_VER="${{ github.ref_name }}"
-                  CLEAN_TAG="${TAG_VER#v}"
-                  bun run build:release -- -v "$CLEAN_TAG"
+      - name: Build TypeScript (Stable)
+        if: steps.build_type.outputs.type == 'stable'
+        run: |
+          TAG_VER="${{ github.ref_name }}"
+          CLEAN_TAG="${TAG_VER#v}"
+          bun run build:release -- -v "$CLEAN_TAG"
 
-            - name: Load Build Meta into GITHUB_ENV
-              run: |
-                  cat build_meta.env >> $GITHUB_ENV
+      - name: Load Build Meta into GITHUB_ENV
+        run: |
+          cat build_meta.env >> $GITHUB_ENV
 
-            - name: Verify Staged Packs
-              run: |
-                  if [ ! -d "packs/behavior/scripts" ]; then
-                    echo "Error: Scripts directory missing from behavior pack."
-                    exit 1
-                  fi
+      - name: Verify Staged Packs
+        run: |
+          if [ ! -d "packs/behavior/scripts" ]; then
+            echo "Error: Scripts directory missing from behavior pack."
+            exit 1
+          fi
 
-            - name: Upload Raw Build Directory
-              uses: actions/upload-artifact@v7
-              with:
-                  name: build-dir
-                  path: packs/
-                  retention-days: 1
+      - name: Upload Raw Build Directory
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-dir
+          path: packs/
+          retention-days: 1
 
-            - name: Upload Build Artifacts
-              uses: actions/upload-artifact@v7
-              with:
-                  name: release-archives
-                  path: |
-                      AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon
-                      AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack
-                      AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
-                  retention-days: 7
-                  compression-level: 0
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-archives
+          path: |
+            AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon
+            AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack
+            AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
+          retention-days: 7
+          compression-level: 0
 
-            - name: Upload build meta
-              uses: actions/upload-artifact@v7
-              with:
-                  name: build-meta
-                  path: build_meta.env
-                  retention-days: 7
+      - name: Upload build meta
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-meta
+          path: build_meta.env
+          retention-days: 7
 
-            - name: Validate build
-              run: bun run validate
+      - name: Validate build
+        run: bun run validate
 
-    release:
-        needs: [build, lint, format, typecheck, test]
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        permissions:
-            contents: write
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
-              with:
-                  fetch-depth: 1
+  release:
+    needs: [build, lint, format, typecheck, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Download Build Meta
-              uses: actions/download-artifact@v8
-              with:
-                  name: build-meta
+      - name: Download Build Meta
+        uses: actions/download-artifact@v8
+        with:
+          name: build-meta
 
-            - name: Download Release Archives
-              uses: actions/download-artifact@v8
-              with:
-                  name: release-archives
+      - name: Download Release Archives
+        uses: actions/download-artifact@v8
+        with:
+          name: release-archives
 
-            - name: Load Build Meta
-              run: |
-                  cat build_meta.env >> $GITHUB_ENV
+      - name: Load Build Meta
+        run: |
+          cat build_meta.env >> $GITHUB_ENV
 
-            - name: Clean Old Nightly Assets
-              if: env.BUILD_TYPE == 'nightly'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  gh release delete nightly --cleanup-tag --yes || true
+      - name: Clean Old Nightly Assets
+        if: env.BUILD_TYPE == 'nightly'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete nightly --cleanup-tag --yes || true
 
-            - name: Publish Nightly Release
-              if: env.BUILD_TYPE == 'nightly'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  cat <<EOF > release_notes.md
-                  **Latest Nightly Build**
-                  Version: \`${{ env.VERSION_STRING }}\`
-                  Commit: \`${{ github.sha }}\`
-                  Date: \`${{ env.BUILD_DATE }}\`
+      - name: Publish Nightly Release
+        if: env.BUILD_TYPE == 'nightly'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat <<EOF > release_notes.md
+          **Latest Nightly Build**
+          Version: \`${{ env.VERSION_STRING }}\`
+          Commit: \`${{ github.sha }}\`
+          Date: \`${{ env.BUILD_DATE }}\`
 
-                  *This is an automated development build. It may contain bugs.*
-                  EOF
-                  gh release create nightly \
-                      --title "Nightly Build (Latest Dev)" \
-                      --prerelease \
-                      --notes-file release_notes.md \
-                      AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
-                      AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack \
-                      AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
+          *This is an automated development build. It may contain bugs.*
+          EOF
+          gh release create nightly \
+              --title "Nightly Build (Latest Dev)" \
+              --prerelease \
+              --notes-file release_notes.md \
+              AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
+              AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack \
+              AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
 
-            - name: Generate Changelog & Upload Stable Release to CurseForge
-              if: env.BUILD_TYPE == 'stable'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-              run: |
-                  gh api repos/${{ github.repository }}/releases/generate-notes \
-                      -f tag_name="${{ github.ref_name }}" \
-                      --jq .body > release_notes.md
-                  bun scripts/build/curseforgeUpload.ts
+      - name: Generate Changelog & Upload Stable Release to CurseForge
+        if: env.BUILD_TYPE == 'stable'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/releases/generate-notes \
+              -f tag_name="${{ github.ref_name }}" \
+              --jq .body > release_notes.md
+          bun scripts/build/curseforgeUpload.ts
 
-            - name: Publish Stable Release Link on GitHub
-              if: env.BUILD_TYPE == 'stable'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  cat <<EOF > github_release_notes.md
-                  ## 📥 [Download AddonExe v${{ env.ARCHIVE_VERSION }} on CurseForge](${{ env.CF_DOWNLOAD_URL }})
+      - name: Publish Stable Release Link on GitHub
+        if: env.BUILD_TYPE == 'stable'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat <<EOF > github_release_notes.md
+          ## 📥 [Download AddonExe v${{ env.ARCHIVE_VERSION }} on CurseForge](${{ env.CF_DOWNLOAD_URL }})
 
-                  ---
+          ---
 
-                  $(cat release_notes.md)
-                  EOF
-                  if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
-                      gh release edit "${{ github.ref_name }}" \
-                          --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
-                          --notes-file github_release_notes.md
-                  else
-                      gh release create "${{ github.ref_name }}" \
-                          --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
-                          --notes-file github_release_notes.md
-                  fi
+          $(cat release_notes.md)
+          EOF
+          if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+              gh release edit "${{ github.ref_name }}" \
+                  --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
+                  --notes-file github_release_notes.md
+          else
+              gh release create "${{ github.ref_name }}" \
+                  --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
+                  --notes-file github_release_notes.md
+          fi
