@@ -119,7 +119,10 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
       if (mineNeighborIdx !== undefined) {
         for (const nIdx of neighbors) {
           if (nIdx !== mineNeighborIdx) {
-            game.cells[nIdx]!.revealed = true;
+            if (!game.cells[nIdx]!.revealed) {
+              game.cells[nIdx]!.revealed = true;
+              game.safeCleared++;
+            }
             game.cells[nIdx]!.flagged = false;
           } else {
             game.cells[nIdx]!.revealed = false;

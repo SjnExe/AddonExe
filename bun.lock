@@ -15,7 +15,6 @@
         "@minecraft/server": "2.11.0-beta.1.26.52-stable",
         "@minecraft/server-ui": "2.3.0-beta.1.26.52-stable",
         "@types/bun": "latest",
-        "ajv": "latest",
         "oxlint": "latest",
       },
     },

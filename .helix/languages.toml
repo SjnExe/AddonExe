@@ -1,0 +1,37 @@
+# Helix Editor Workspace Configuration for AddonExe
+# Provides TypeScript + Bedrock JSON Schema autocompletion via @minecraft/bedrock-schemas
+
+[language-server.typescript-language-server]
+command = "typescript-language-server"
+args = ["--stdio"]
+
+[language-server.vscode-json-language-server]
+command = "vscode-json-language-server"
+args = ["--stdio"]
+
+[language-server.vscode-json-language-server.config]
+provideFormatter = true
+
+[language-server.vscode-json-language-server.config.json]
+validate = { enable = true }
+schemas = [
+  { fileMatch = ["packs/behavior/entities/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/bp/entities/index.schema.json" },
+  { fileMatch = ["packs/behavior/items/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/bp/items/index.schema.json" },
+  { fileMatch = ["packs/behavior/loot_tables/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/bp/loot_tables/index.schema.json" },
+  { fileMatch = ["packs/behavior/recipes/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/bp/recipes/index.schema.json" },
+  { fileMatch = ["packs/resource/entity/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/rp/entity/index.schema.json" },
+  { fileMatch = ["packs/resource/models/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/rp/models/index.schema.json" },
+  { fileMatch = ["packs/resource/render_controllers/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/rp/render_controllers/index.schema.json" },
+  { fileMatch = ["packs/resource/ui/**/*.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/rp/ui/index.schema.json" },
+  { fileMatch = ["packs/resource/global_variables.json"], url = "./node_modules/@minecraft/bedrock-schemas/schemas/rp/ui/global_variables.schema.json" },
+]
+
+[[language]]
+name = "typescript"
+language-servers = ["typescript-language-server"]
+auto-format = false
+
+[[language]]
+name = "json"
+language-servers = ["vscode-json-language-server"]
+auto-format = false
