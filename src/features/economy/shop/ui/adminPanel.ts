@@ -84,7 +84,7 @@ export async function showShopManagementPanel(player: mc.Player, page: number = 
 export async function showShopAdminCategoryActionPanel(player: mc.Player, categoryName: string): Promise<void> {
   const form = new ActionFormBuilder()
     .title(`Edit ${categoryName}`)
-    .button('Open Category', 'textures/ui/inventory_icon', () => {
+    .button('Open Category', 'textures/ui/icon_recipe_equipment', () => {
       void showShopAdminCategoryPanel(player, categoryName, 1);
     })
     .button('Edit Settings', 'textures/ui/icon_setting', () => {
@@ -193,7 +193,7 @@ export async function showShopAdminSubCategoryActionPanel(
 ): Promise<void> {
   const form = new ActionFormBuilder()
     .title(`Edit ${subCategoryName}`)
-    .button('Open Sub-Category', 'textures/ui/inventory_icon', () => {
+    .button('Open Sub-Category', 'textures/ui/icon_recipe_equipment', () => {
       void showShopAdminSubCategoryItemPanel(player, categoryName, subCategoryName, 1);
     })
     .button('Edit Settings', 'textures/ui/icon_setting', () => {
@@ -278,7 +278,7 @@ export async function showShopAddItemPanel(
 ): Promise<void> {
   const form = new ActionFormBuilder()
     .title('Add Item')
-    .button('§6Add Item From List', 'textures/ui/inventory_icon', () => {
+    .button('§6Add Item From List', 'textures/ui/icon_recipe_equipment', () => {
       void showAddItemFromListPanel(player, categoryName, subCategoryName, 1);
     })
     .button('§2Add Custom Item (Manual)', 'textures/ui/color_plus', () => {

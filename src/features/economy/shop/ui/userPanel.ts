@@ -415,15 +415,15 @@ export async function showBuyOrSellPanel(
   }
 
   if (sellPrice > 0) {
-    form.button(formatTwoLineButton('§cSell 1', formatCurrency(sellPrice)), 'textures/ui/minus', () => {
+    form.button(formatTwoLineButton('§cSell 1', formatCurrency(sellPrice)), 'textures/ui/cancel', () => {
       player.sendMessage(sellItem(player, itemKey, 1).message);
       void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
     });
-    form.button(formatTwoLineButton('§cSell 16', formatCurrency(sellPrice * 16)), 'textures/ui/minus', () => {
+    form.button(formatTwoLineButton('§cSell 16', formatCurrency(sellPrice * 16)), 'textures/ui/cancel', () => {
       player.sendMessage(sellItem(player, itemKey, 16).message);
       void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
     });
-    form.button(formatTwoLineButton('§cSell 64', formatCurrency(sellPrice * 64)), 'textures/ui/minus', () => {
+    form.button(formatTwoLineButton('§cSell 64', formatCurrency(sellPrice * 64)), 'textures/ui/cancel', () => {
       player.sendMessage(sellItem(player, itemKey, 64).message);
       void showBuyOrSellPanel(player, itemKey, resolvedInfo, returnCtx);
     });

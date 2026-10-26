@@ -103,7 +103,7 @@ async function showSlotActionPanel(
     });
 
   if (canEdit) {
-    form.button('§6Confiscate (Move to My Inventory)', 'textures/ui/inventory_icon', async () => {
+    form.button('§6Confiscate (Move to My Inventory)', 'textures/ui/icon_recipe_equipment', async () => {
       const myInv = (staff.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
         ?.container;
       if (!isDefined(myInv) || myInv.emptySlotsCount === 0) {
@@ -209,7 +209,7 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
 
   const itemsPerPage = 36;
   if (page > 1) {
-    form.button('§6< Previous Page', 'textures/gui/newgui/UpArrow', async () => {
+    form.button('§6< Previous Page', 'textures/ui/up_arrow', async () => {
       await showInventoryPanel(player, targetPlayerId, page - 1);
     });
   }
@@ -230,7 +230,7 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
         },
       );
     } else {
-      form.button(`Slot ${data.slot}: §8Empty`, 'textures/ui/inventory_icon', async () => {
+      form.button(`Slot ${data.slot}: §8Empty`, 'textures/ui/icon_recipe_equipment', async () => {
         await showInventoryPanel(player, targetPlayerId, page);
       });
     }
@@ -238,7 +238,7 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
 
   const totalPages = Math.ceil(items.length / itemsPerPage);
   if (page < totalPages) {
-    form.button('§6Next Page >', 'textures/gui/newgui/DownArrow', async () => {
+    form.button('§6Next Page >', 'textures/ui/down_arrow', async () => {
       await showInventoryPanel(player, targetPlayerId, page + 1);
     });
   }
@@ -280,7 +280,7 @@ export async function showEnderChestPanel(player: mc.Player, targetPlayerId: str
         await showSlotActionPanel(player, targetPlayerId, 'enderchest', slotIdx, 1);
       });
     } else {
-      form.button(`Slot ${slotIdx}: §8Empty`, 'textures/ui/inventory_icon', async () => {
+      form.button(`Slot ${slotIdx}: §8Empty`, 'textures/ui/icon_recipe_equipment', async () => {
         await showEnderChestPanel(player, targetPlayerId);
       });
     }

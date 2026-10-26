@@ -1,24 +1,39 @@
-const glob = new Bun.Glob('src/**/*.ts');
-const ALLOWED_EXACT_STRINGS = new Set(['minecraft:', 'minecraft:script_unload']);
-const UNNECESSARY_COMMANDS_REGEX =
+import path from 'node:path';
+
+const srcGlob = new Bun.Glob('src/**/*.ts');
+const scriptsGlob = new Bun.Glob('scripts/**/*.ts');
+const allowedExactStrings = new Set(['minecraft:', 'minecraft:script_unload']);
+const unnecessaryCommandsRegex =
   /\.runCommand\(\s*['"\x60]\/?(?:tp|teleport|tag|xp|effect|gamemode|setblock|fill|clear|kill|playsound|say|tell|w|msg|title|summon|time|weather|gamerule|scoreboard)\b/;
 
+const camelCaseFileRegex = /^[a-z][a-zA-Z0-9]*(?:\.(?:test|d))?\.ts$/;
+const snakeCaseDeclRegex =
+  /^\s*(?:export\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([a-zA-Z0-9_$]+_[a-zA-Z0-9_$]*)/;
+
 export async function validateMinecraftRules(): Promise<number> {
-  const filePaths = Array.from(glob.scanSync('.')).filter((p) => !p.includes('__mocks__'));
+  const srcPaths = Array.from(srcGlob.scanSync('.'));
+  const scriptPaths = Array.from(scriptsGlob.scanSync('.'));
+  const allPaths = [...srcPaths, ...scriptPaths];
   let errors = 0;
 
-  await Promise.all(
-    filePaths.map(async (filePath) => {
-      const content = await Bun.file(filePath).text();
-      if (
-        !content.includes('runCommandAsync(') &&
-        !content.includes('runCommand(') &&
-        !content.includes('minecraft:')
-      ) {
-        return;
-      }
+  for (const filePath of allPaths) {
+    const baseName = path.basename(filePath);
+    if (baseName === 'pre-commit.ts') {
+      continue;
+    }
+    if (!camelCaseFileRegex.test(baseName)) {
+      console.error(`❌ ${filePath} -> Filename '${baseName}' must be camelCase.`);
+      errors++;
+    }
+  }
 
+  const runtimePaths = srcPaths.filter((p) => !p.includes('__mocks__') && !p.includes('__tests__'));
+
+  await Promise.all(
+    runtimePaths.map(async (filePath) => {
+      const content = await Bun.file(filePath).text();
       const lines = content.split('\n');
+
       for (let idx = 0; idx < lines.length; idx++) {
         const line = lines[idx]!;
         const trimmed = line.trim();
@@ -26,12 +41,23 @@ export async function validateMinecraftRules(): Promise<number> {
           continue;
         }
 
+        const declMatch = snakeCaseDeclRegex.exec(line);
+        if (declMatch && declMatch[1]) {
+          const ident = declMatch[1];
+          if (!ident.startsWith('__')) {
+            console.error(
+              `❌ ${filePath}:${idx + 1} -> Identifier '${ident}' uses snake_case/UPPER_SNAKE_CASE. Use camelCase or PascalCase.`,
+            );
+            errors++;
+          }
+        }
+
         if (line.includes('.runCommandAsync(')) {
           console.error(`❌ ${filePath}:${idx + 1} -> runCommandAsync is deprecated. Use native APIs.`);
           errors++;
         }
 
-        if (UNNECESSARY_COMMANDS_REGEX.test(line)) {
+        if (unnecessaryCommandsRegex.test(line)) {
           console.error(
             `❌ ${filePath}:${idx + 1} -> Avoid unnecessary command in runCommand(). Use native @minecraft/server APIs instead.`,
           );
@@ -42,7 +68,7 @@ export async function validateMinecraftRules(): Promise<number> {
           const matches = line.matchAll(/['"\x60](minecraft:[^'"\x60]*)['"\x60]/g);
           for (const match of matches) {
             const str = match[1];
-            if (!str || ALLOWED_EXACT_STRINGS.has(str)) {
+            if (!str || allowedExactStrings.has(str)) {
               continue;
             }
             if (['getComponent', 'hasComponent', 'getComponentNet'].some((fn) => line.includes(`${fn}(`))) {
@@ -61,7 +87,7 @@ export async function validateMinecraftRules(): Promise<number> {
   if (errors > 0) {
     console.error(`\n💥 Minecraft custom rule validation failed with ${errors} error(s).`);
   } else {
-    console.log('✅ Custom Minecraft rules passed cleanly.');
+    console.log('✅ Custom Minecraft & casing rules passed cleanly.');
   }
 
   return errors;

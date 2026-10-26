@@ -199,7 +199,7 @@ export async function showRpsMenu(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder()
     .title('Rock Paper Scissors')
     .body(bodyLines.join('\n'))
-    .button('§l§aPlay vs Bot\n§r§7Solo practice match', 'textures/ui/user_icon', async () => {
+    .button('§l§aPlay vs Bot\n§r§7Solo practice match', 'textures/ui/FriendsIcon', async () => {
       const match = startRpsBotMatch(player);
       await showRpsMatchPanel(player, match.id);
     })

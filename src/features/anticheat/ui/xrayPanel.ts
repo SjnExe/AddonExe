@@ -6,7 +6,7 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 
-const DIMENSION_OPTIONS = [
+const dimensionOptions = [
   MinecraftDimensionTypes.Overworld,
   MinecraftDimensionTypes.Nether,
   MinecraftDimensionTypes.TheEnd,
@@ -62,7 +62,7 @@ export async function showAddXrayOrePanel(player: mc.Player): Promise<void> {
     .textField('id', 'Internal ID (no spaces)', 'diamond', '')
     .textField('name', 'Display Name', 'Diamond Ore', '')
     .textField('blockId', 'Block ID', MinecraftBlockTypes.DiamondOre, MinecraftBlockTypes.DiamondOre)
-    .dropdown('dimId', 'Dimension', DIMENSION_OPTIONS, 0)
+    .dropdown('dimId', 'Dimension', dimensionOptions, 0)
     .textField('minY', 'Min Y', '-64', '-64')
     .textField('maxY', 'Max Y', '16', '16')
     .submitButton('Add Ore');
@@ -184,7 +184,7 @@ async function showEditXrayBlockRuleModal(player: mc.Player, key: string, blockI
   const block = isEdit
     ? ore.blocks[blockIndex]!
     : { blockId: MinecraftBlockTypes.DiamondOre, dimensionId: MinecraftDimensionTypes.Overworld, minY: -64, maxY: 16 };
-  const dimIdx = Math.max(0, DIMENSION_OPTIONS.indexOf(block.dimensionId as MinecraftDimensionTypes));
+  const dimIdx = Math.max(0, dimensionOptions.indexOf(block.dimensionId as MinecraftDimensionTypes));
 
   const modal = new CustomFormBuilder<{
     blockId: string;
@@ -194,7 +194,7 @@ async function showEditXrayBlockRuleModal(player: mc.Player, key: string, blockI
     deleteRule?: boolean;
   }>(isEdit ? `Edit Block Rule #${blockIndex! + 1}` : `Add Block to ${ore.oreName}`)
     .textField('blockId', 'Block ID', MinecraftBlockTypes.DiamondOre, block.blockId)
-    .dropdown('dimId', 'Dimension', DIMENSION_OPTIONS, dimIdx)
+    .dropdown('dimId', 'Dimension', dimensionOptions, dimIdx)
     .textField('minY', 'Min Y', '-64', String(block.minY))
     .textField('maxY', 'Max Y', '16', String(block.maxY));
 

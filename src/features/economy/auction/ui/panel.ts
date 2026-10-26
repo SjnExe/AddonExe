@@ -97,12 +97,12 @@ export async function showAuctionHouse(
   );
 
   if (clampedPage > 1) {
-    form.button('§6< Previous Page', 'textures/gui/controls/up', async () =>
+    form.button('§6< Previous Page', 'textures/ui/up_arrow', async () =>
       showAuctionHouse(player, clampedPage - 1, searchQuery, sort),
     );
   }
   if (clampedPage < totalPages) {
-    form.button('§6Next Page >', 'textures/gui/controls/down', async () =>
+    form.button('§6Next Page >', 'textures/ui/down_arrow', async () =>
       showAuctionHouse(player, clampedPage + 1, searchQuery, sort),
     );
   }

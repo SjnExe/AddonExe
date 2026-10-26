@@ -96,7 +96,7 @@ export function checkItem(
 ) {
   const bannedItems = config.bannedItems;
 
-  const MAX_ENCHANT_LEVEL = config.maxEnchantLevel ?? 5;
+  const maxEnchantLevel = config.maxEnchantLevel ?? 5;
   let modified = false;
 
   // Check Stack Size
@@ -116,7 +116,7 @@ export function checkItem(
     for (const enchant of enchants) {
       const vanillaMax = enchant.type.maxLevel;
       // Allow whichever is higher: Config limit or Vanilla limit.
-      const allowed = Math.max(MAX_ENCHANT_LEVEL, vanillaMax);
+      const allowed = Math.max(maxEnchantLevel, vanillaMax);
 
       if (enchant.level > allowed && config.illegalEnchantments === true) {
         flag(player, 'itemCheck', `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`);

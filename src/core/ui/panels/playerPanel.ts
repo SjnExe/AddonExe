@@ -126,15 +126,15 @@ export async function showPlayerActionsPanel(
         await showRankManagementPanel(player, targetPlayerId);
       });
     }
-    form.button('Manage Stats', 'textures/ui/Scaffolding', async () => {
+    form.button('Manage Stats', 'textures/blocks/scaffolding_top', async () => {
       const { showStatsPanel } = await import('@core/ui/panels/statsPanel.js');
       await showStatsPanel(player, targetPlayerId);
     });
-    form.button('See Inventory', 'textures/ui/inventory_icon', async () => {
+    form.button('See Inventory', 'textures/ui/icon_recipe_equipment', async () => {
       const { showInventoryPanel } = await import('@core/ui/panels/inventoryPanel.js');
       await showInventoryPanel(player, targetPlayerId);
     });
-    form.button('See Ender Chest', 'textures/ui/inventory_icon', async () => {
+    form.button('See Ender Chest', 'textures/ui/icon_recipe_equipment', async () => {
       const { showEnderChestPanel } = await import('@core/ui/panels/inventoryPanel.js');
       await showEnderChestPanel(player, targetPlayerId);
     });
@@ -201,7 +201,7 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
     form.button(`§6Rank: §r${data.rankId}`, 'textures/ui/permissions_op_crown');
     form.button(`${formatDuration(data.totalPlayTime)}`, 'textures/items/clock_item');
     form.button(`§4Kills: §r${data.kills}`, 'textures/items/iron_sword');
-    form.button(`§4Deaths: §r${data.deaths}`, 'textures/items/skull_pottery_sherd');
+    form.button(`§4Deaths: §r${data.deaths}`, 'textures/items/mourner_pottery_sherd');
   }
 
   form.addBackButton(async () => {

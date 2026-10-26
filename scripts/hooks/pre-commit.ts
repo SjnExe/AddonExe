@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { $ } from 'bun';
 
+import { validateMinecraftRules } from '../lint/minecraftRules.ts';
+
 const homeDir = os.homedir();
 const termuxBinDir = '/data/data/com.termux/files/usr/bin';
 const cargoBinDir = `${homeDir}/.cargo/bin`;
@@ -11,7 +13,6 @@ const paths = [cargoBinDir, termuxBinDir, process.env.PATH].filter(Boolean);
 process.env.PATH = paths.join(path.delimiter);
 
 try {
-  // 1. Native single-pass staged linter/formatter (bypasses external lint-staged)
   const stagedOutput = await $`git diff --cached --name-only --diff-filter=ACMR`.text();
   const stagedFiles = stagedOutput
     .split('\n')
@@ -29,13 +30,21 @@ try {
     const codeFiles = existingFiles.filter((f) => /\.(js|ts)$/.test(f));
 
     if (codeFiles.length > 0) {
-      await $`bun scripts/lint/oxlint.ts --fix ${codeFiles}`.quiet();
+      const ruleErrors = await validateMinecraftRules();
+      if (ruleErrors > 0) {
+        process.exit(1);
+      }
+      const termuxOxlint = '/data/data/com.termux/files/usr/bin/oxlint';
+      if (await Bun.file(termuxOxlint).exists()) {
+        await $`${termuxOxlint} --fix ${codeFiles}`.quiet();
+      } else {
+        await $`./node_modules/.bin/oxlint --fix ${codeFiles}`.quiet();
+      }
       await $`git add ${codeFiles}`.quiet();
     }
     await $`bun fmt --staged`.quiet();
   }
 
-  // 2. Fast Incremental Type Check
   console.log('⚡ Running incremental type check...');
   const checkTypes = await $`bun check`.nothrow().quiet();
 
@@ -45,7 +54,6 @@ try {
     process.exit(1);
   }
 
-  // 3. Fast Unit Test Suite
   console.log('🧪 Running unit tests...');
   const runTests = await $`bun test --parallel`.nothrow().quiet();
 

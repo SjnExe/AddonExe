@@ -18,7 +18,7 @@ export async function showStatsPanel(player: mc.Player, targetPlayerId: string):
     await editStat(player, targetPlayerId, 'kills', targetData.kills);
   });
 
-  form.button(`Edit Deaths\n§7Current: ${targetData.deaths}`, 'textures/items/skull_pottery_sherd', async () => {
+  form.button(`Edit Deaths\n§7Current: ${targetData.deaths}`, 'textures/items/mourner_pottery_sherd', async () => {
     await editStat(player, targetPlayerId, 'deaths', targetData.deaths);
   });
 

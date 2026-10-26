@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { getVersionContext, parseCliArgs } from './cli-utils.ts';
-import { updateManifests } from './update-manifests.ts';
+import { getVersionContext, parseCliArgs } from './cliUtils.ts';
+import { updateManifests } from './updateManifests.ts';
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
 
@@ -17,60 +17,6 @@ async function getVersionParts() {
     isRelease,
   });
 }
-
-export const iconIndexPlugin = {
-  name: 'generate-icon-index',
-  setup(build: import('bun').PluginBuilder) {
-    build.onResolve({ filter: /^virtual:icon-index$/ }, (args) => {
-      return {
-        path: args.path,
-        namespace: 'virtual-icon-index',
-      };
-    });
-
-    build.onLoad({ filter: /.*/, namespace: 'virtual-icon-index' }, async () => {
-      console.log('[Plugin] Generating virtual icon index...');
-      const SRC_DIR = path.resolve(ROOT_DIR, 'src');
-
-      const globScanner = new Bun.Glob('**/*.ts');
-      const tsFiles = Array.from(globScanner.scanSync({ cwd: SRC_DIR, absolute: true }));
-      const textures = new Set<string>();
-      const _regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
-
-      await Promise.all(
-        tsFiles.map(async (file) => {
-          if (file.includes('virtual:icon-index')) {
-            return;
-          }
-          try {
-            const content = await Bun.file(file).text();
-            if (!content.includes('textures/')) {
-              return;
-            }
-            const localRegex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
-            let match;
-            while ((match = localRegex.exec(content)) !== null) {
-              const iconPath = match[1] || match[2] || match[3];
-              if (iconPath) {
-                textures.add(iconPath);
-              }
-            }
-          } catch {
-            // Ignore read errors
-          }
-        }),
-      );
-
-      const iconList = Array.from(textures);
-      console.log(`[Plugin] Found ${iconList.length} unique icon paths.`);
-
-      return {
-        contents: `export const usedIcons = ${JSON.stringify(iconList)};`,
-        loader: 'ts',
-      };
-    });
-  },
-};
 
 export const commandIndexPlugin = {
   name: 'generate-command-index',
@@ -349,7 +295,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
       __IS_NIGHTLY__: String(isNightly),
       __VERSION__: JSON.stringify(versionStr),
     },
-    plugins: [commandIndexPlugin, iconIndexPlugin],
+    plugins: [commandIndexPlugin],
     external: externalModules,
   });
 

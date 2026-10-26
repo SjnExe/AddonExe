@@ -179,9 +179,28 @@ export function createSinglePlayerGame(player: mc.Player, wordLength: number = 5
 export function getPlayerActiveGame(player: mc.Player): WordleGame | undefined {
   const gameId = playerGameMap.get(player.id);
   if (isNonEmptyString(gameId)) {
-    return activeGames.get(gameId);
+    const game = activeGames.get(gameId);
+    if (isDefined(game) && game.status === 'active' && game.maxGuesses > 0) {
+      return game;
+    }
+    playerGameMap.delete(player.id);
+    activeGames.delete(gameId);
   }
   return undefined;
+}
+
+export function forfeitPlayerGame(player: mc.Player): WordleGame | undefined {
+  const gameId = playerGameMap.get(player.id);
+  if (!isNonEmptyString(gameId)) {
+    return undefined;
+  }
+  const game = activeGames.get(gameId);
+  playerGameMap.delete(player.id);
+  activeGames.delete(gameId);
+  if (isDefined(game)) {
+    game.status = 'lost';
+  }
+  return game;
 }
 
 export function getStaffHostedGame(): WordleGame | undefined {

@@ -45,7 +45,7 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
     );
 
     if (team.home) {
-      form.button('Teleport to Team Home', 'textures/ui/portalBg', () => {
+      form.button('Teleport to Team Home', 'textures/blocks/portal', () => {
         teamManager.teleportToTeamHome(player);
       });
     }
@@ -167,7 +167,7 @@ export async function showTeamMemberActionPanel(
 
   if (isOwner) {
     if (isTargetAdmin) {
-      form.button('Demote to Member', 'textures/ui/minus', async () => {
+      form.button('Demote to Member', 'textures/ui/cancel', async () => {
         const res = teamManager.demoteMember(team.id, targetId);
         player.sendMessage(res.message ?? '§aDemoted member.');
         await showTeamMembersPanel(player, 1);
@@ -225,10 +225,10 @@ export async function showTeamManagePanel(player: mc.Player): Promise<void> {
     .button('Invite Player', 'textures/ui/color_plus', async () => {
       await showTeamInvitePlayerModal(player);
     })
-    .button(`Join Requests (${team.applications.length})`, 'textures/ui/user_icon', async () => {
+    .button(`Join Requests (${team.applications.length})`, 'textures/ui/FriendsIcon', async () => {
       await showTeamRequestsPanel(player, 1);
     })
-    .button('Manage Team Home', 'textures/ui/portalBg', async () => {
+    .button('Manage Team Home', 'textures/blocks/portal', async () => {
       await showTeamHomePanel(player);
     })
     .button('Team Settings', 'textures/ui/settings_glyph_color_2x', async () => {
@@ -407,7 +407,7 @@ export async function showTeamHomePanel(player: mc.Player): Promise<void> {
 
   const form = new ActionFormBuilder()
     .title('Manage Team Home')
-    .button('Set Home Here', 'textures/ui/plus', async () => {
+    .button('Set Home Here', 'textures/ui/color_plus', async () => {
       const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
       player.sendMessage(res.message ?? 'Done');
       await showTeamHomePanel(player);

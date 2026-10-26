@@ -10,7 +10,7 @@ import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 export async function showInfoPanel(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder().title('Info');
 
-  form.button('My Stats', 'textures/ui/profile_glyph_color', async () => {
+  form.button('My Stats', 'textures/ui/FriendsIcon', async () => {
     await showPanel(player, 'profileMainPanel');
   });
 

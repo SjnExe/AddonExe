@@ -8,10 +8,10 @@ import * as mc from '@minecraft/server';
 
 import { addTest, assert } from '../testRunner.js';
 
-const SUITE_NAME = 'runtime';
+const suiteName = 'runtime';
 
 export function registerCoreTests(): void {
-  addTest(SUITE_NAME, 'Live configs, topological feature registry, ranks, and slash commands are active', () => {
+  addTest(suiteName, 'Live configs, topological feature registry, ranks, and slash commands are active', () => {
     assert.ok(
       getConfig() && configs.getEconomyConfig() && configs.getShopConfig() && configs.getRanksConfig(),
       'Core configs missing',
@@ -43,7 +43,7 @@ export function registerCoreTests(): void {
     assert.ok(commandManager.getAllCommands().length > 20, 'Slash commands failed to register');
   });
 
-  addTest(SUITE_NAME, 'Live player data and economy transfer guard against invalid mutations', () => {
+  addTest(suiteName, 'Live player data and economy transfer guard against invalid mutations', () => {
     const player = mc.world.getAllPlayers()[0];
     if (!player) {
       return;

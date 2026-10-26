@@ -20,7 +20,7 @@ export async function showFriendMainPanel(player: mc.Player): Promise<void> {
     .button(`List Friends (${pData.friends?.length ?? 0})`, 'textures/ui/multiplayer_glyph_color', async () => {
       await showFriendListPanel(player, 1);
     })
-    .button('Add Friend', 'textures/ui/plus', async () => {
+    .button('Add Friend', 'textures/ui/color_plus', async () => {
       await showFriendAddPanel(player);
     })
     .button(`Requests (${validReqs.length})`, 'textures/ui/invite_base', async () => {

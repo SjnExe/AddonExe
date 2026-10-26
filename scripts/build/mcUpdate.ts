@@ -7,18 +7,16 @@ function compareVersions(v1: string, v2: string) {
 }
 
 async function autoAlignDependencies() {
-  console.log(`🌐 Synchronizing Minecraft Ecosystem Engine configurations to match latest beta versions...`);
+  console.log('🌐 Synchronizing Minecraft Ecosystem Engine configurations to match latest beta versions...');
 
   const packageJsonPath = path.join(process.cwd(), 'package.json');
   const packageJsonFile = Bun.file(packageJsonPath);
   const packageJson = await packageJsonFile.json();
   let changesMade = false;
-  const session = typeof Bun.FetchSession === 'function' ? new Bun.FetchSession() : undefined;
-  const doFetch = session ? session.fetch.bind(session) : fetch;
 
   for (const pkg of targetPackages) {
     try {
-      const response = await doFetch(`https://registry.npmjs.org/${pkg}`, {
+      const response = await fetch(`https://registry.npmjs.org/${pkg}`, {
         headers: { Accept: 'application/vnd.npm.install-v1+json' },
       });
       if (!response.ok) {
@@ -52,7 +50,6 @@ async function autoAlignDependencies() {
           changesMade = true;
         }
 
-        // Update overrides if present
         if (packageJson.overrides?.[pkg] && packageJson.overrides[pkg] !== matchedVersion) {
           packageJson.overrides[pkg] = matchedVersion;
           console.log(`🎯 Version Mismatch Resolved in overrides: ${pkg} -> ${matchedVersion}`);
@@ -65,8 +62,8 @@ async function autoAlignDependencies() {
   }
 
   if (changesMade) {
-    await Bun.write(packageJsonPath, JSON.stringify(packageJson, null, 4));
-    console.log('📝 package.json updated successfully with modern target structures.');
+    await Bun.write(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    console.log('📝 package.json updated successfully.');
   } else {
     console.log('✅ Local dependencies match your target version context.');
   }

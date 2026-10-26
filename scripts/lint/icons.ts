@@ -1,22 +1,23 @@
 import path from 'node:path';
 
-import ignoredTextures from './ignored-textures.json';
+const rootDir = path.resolve(import.meta.dirname, '../..');
+const cacheFile = path.resolve(rootDir, '.cache/vanilla_textures.json');
+const srcDir = path.resolve(rootDir, 'src');
+const resourcePackDir = path.resolve(rootDir, 'packs/resource/textures');
 
-const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
-const CACHE_FILE = path.resolve(ROOT_DIR, '.cache/vanilla_textures.json');
-const SRC_DIR = path.resolve(ROOT_DIR, 'src');
-const RESOURCE_PACK_DIR = path.resolve(ROOT_DIR, 'packs/resource/textures');
-
-async function fetchVanillaTextures(): Promise<Set<string>> {
+export async function fetchVanillaTextures(): Promise<Set<string>> {
   const validTextures = new Set<string>();
 
   try {
-    const cacheFile = Bun.file(CACHE_FILE);
-    if (await cacheFile.exists()) {
-      const data = await cacheFile.json();
+    const file = Bun.file(cacheFile);
+    if (await file.exists()) {
+      const data = await file.json();
       if (Array.isArray(data) && data.length > 0) {
         console.log('[IconLint] Using cached vanilla textures.');
-        data.forEach((t) => validTextures.add(t));
+        for (const t of data) {
+          validTextures.add(t);
+          validTextures.add(String(t).toLowerCase());
+        }
         return validTextures;
       }
     }
@@ -26,16 +27,12 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
 
   console.log('[IconLint] Fetching vanilla textures from GitHub...');
   const texturesToCache: string[] = [];
-  const session = typeof Bun.FetchSession === 'function' ? new Bun.FetchSession() : undefined;
-  const ghFetch = session ? session.fetch.bind(session) : fetch;
 
   try {
-    // 1. Fetch item textures
-    const itemRes = await ghFetch(
+    const itemRes = await fetch(
       'https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/item_texture.json',
     );
-    const itemText = await itemRes.text();
-    const itemJson = Bun.JSON5.parse(itemText) as any;
+    const itemJson = Bun.JSON5.parse(await itemRes.text()) as any;
     for (const key in itemJson.texture_data) {
       const tex = itemJson.texture_data[key].textures;
       if (Array.isArray(tex)) {
@@ -45,12 +42,10 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
       }
     }
 
-    // 2. Fetch terrain textures
-    const terrainRes = await ghFetch(
+    const terrainRes = await fetch(
       'https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/terrain_texture.json',
     );
-    const terrainText = await terrainRes.text();
-    const terrainJson = Bun.JSON5.parse(terrainText) as any;
+    const terrainJson = Bun.JSON5.parse(await terrainRes.text()) as any;
     for (const key in terrainJson.texture_data) {
       const tex = terrainJson.texture_data[key].textures;
       if (Array.isArray(tex)) {
@@ -60,24 +55,23 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
       }
     }
 
-    // 3. Fetch texture list
-    const listRes = await ghFetch(
+    const listRes = await fetch(
       'https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/textures/texture_list.json',
     );
-    const listText = await listRes.text();
-    const listJson = Bun.JSON5.parse(listText) as any;
+    const listJson = Bun.JSON5.parse(await listRes.text()) as any;
     if (Array.isArray(listJson)) {
       listJson.forEach((t: string) => texturesToCache.push(t));
     }
 
-    // 4. Fetch UI textures from Git tree or extract from Bedrock UI JSON files if rate limited
     let uiTexturesFound = false;
     try {
-      const headers = process.env.GITHUB_TOKEN ? { Authorization: 'token ' + process.env.GITHUB_TOKEN } : {};
+      const headers: Record<string, string> = process.env.GITHUB_TOKEN
+        ? { Authorization: 'token ' + process.env.GITHUB_TOKEN }
+        : {};
       const treeRes = await fetch('https://api.github.com/repos/Mojang/bedrock-samples/git/trees/main?recursive=1', {
         headers,
       });
-      const treeJson = await treeRes.json();
+      const treeJson = (await treeRes.json()) as any;
       if (treeJson.tree && Array.isArray(treeJson.tree)) {
         for (const node of treeJson.tree) {
           if (node.path && node.path.startsWith('resource_pack/textures/ui/') && node.path.endsWith('.png')) {
@@ -88,15 +82,12 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
         }
       }
     } catch {
-      // Rate limit or network error
+      // Fallback below
     }
 
     if (!uiTexturesFound) {
-      console.log(
-        '[IconLint] GitHub tree API unaccessible, extracting UI texture references from Bedrock UI JSON files via _ui_defs.json...',
-      );
       try {
-        const defsRes = await ghFetch(
+        const defsRes = await fetch(
           'https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/ui/_ui_defs.json',
         );
         if (defsRes.ok) {
@@ -105,7 +96,7 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
           await Promise.all(
             uiFiles.map(async (file) => {
               try {
-                const res = await ghFetch(
+                const res = await fetch(
                   `https://raw.githubusercontent.com/Mojang/bedrock-samples/main/resource_pack/${file}`,
                 );
                 if (res.ok) {
@@ -126,10 +117,12 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
       }
     }
 
-    await Bun.write(CACHE_FILE, JSON.stringify(texturesToCache, null, 2));
-
-    texturesToCache.forEach((t) => validTextures.add(t));
-    console.log(`[IconLint] Cached ${validTextures.size} vanilla textures.`);
+    await Bun.write(cacheFile, JSON.stringify(texturesToCache, null, 2));
+    for (const t of texturesToCache) {
+      validTextures.add(t);
+      validTextures.add(t.toLowerCase());
+    }
+    console.log(`[IconLint] Cached ${texturesToCache.length} vanilla textures.`);
   } catch (e) {
     console.error('[IconLint] Failed to fetch vanilla textures:', e);
     process.exit(1);
@@ -141,26 +134,24 @@ async function fetchVanillaTextures(): Promise<Set<string>> {
 async function getCustomTextures(): Promise<Set<string>> {
   const customTextures = new Set<string>();
   const pngGlob = new Bun.Glob('**/*.png');
-  const pngFiles = Array.from(pngGlob.scanSync({ cwd: RESOURCE_PACK_DIR, absolute: false }));
+  const pngFiles = Array.from(pngGlob.scanSync({ cwd: resourcePackDir, absolute: false }));
 
   for (const file of pngFiles) {
-    // e.g. "ui/my_icon.png" -> "textures/ui/my_icon"
     const noExt = file.replace(/\.png$/, '');
-    // standard bedorck path delimiter is forward slash
     const normalized = noExt.split(path.sep).join('/');
     customTextures.add(`textures/${normalized}`);
+    customTextures.add(`textures/${normalized}`.toLowerCase());
   }
 
-  console.log(`[IconLint] Found ${customTextures.size} custom textures in local resource pack.`);
+  console.log(`[IconLint] Found ${pngFiles.length} custom textures in local resource pack.`);
   return customTextures;
 }
 
 async function extractUsedIcons(): Promise<Map<string, string[]>> {
   const tsGlob = new Bun.Glob('**/*.ts');
-  const tsFiles = Array.from(tsGlob.scanSync({ cwd: SRC_DIR, absolute: true }));
-  const _regex = /'((?:textures\/)[^']+)'|"((?:textures\/)[^"]+)"|`((?:textures\/)[^`]+)`/g;
-
-  // Map of icon path to array of files it was found in
+  const tsFiles = Array.from(tsGlob.scanSync({ cwd: srcDir, absolute: true })).filter(
+    (f) => !f.includes('__mocks__') && !f.includes('__tests__'),
+  );
   const usedIcons = new Map<string, string[]>();
 
   await Promise.all(
@@ -174,12 +165,12 @@ async function extractUsedIcons(): Promise<Map<string, string[]>> {
         let match;
         while ((match = localRegex.exec(content)) !== null) {
           const iconPath = match[1] || match[2] || match[3];
-          if (iconPath) {
+          if (iconPath && !iconPath.includes('${') && !iconPath.endsWith('/')) {
             const cleanPath = iconPath.replace(/\.png$/, '');
             if (!usedIcons.has(cleanPath)) {
               usedIcons.set(cleanPath, []);
             }
-            usedIcons.get(cleanPath)!.push(file.replace(SRC_DIR, 'src'));
+            usedIcons.get(cleanPath)!.push(file.replace(srcDir, 'src'));
           }
         }
       } catch {
@@ -191,10 +182,8 @@ async function extractUsedIcons(): Promise<Map<string, string[]>> {
   return usedIcons;
 }
 
-const IGNORED_TEXTURES = new Set<string>(ignoredTextures);
-
 export async function validateIcons() {
-  console.log('--- Starting Icon Validation ---');
+  console.log('--- Starting Strict Icon Validation ---');
 
   const [vanillaTextures, customTextures, usedIcons] = await Promise.all([
     fetchVanillaTextures(),
@@ -205,16 +194,16 @@ export async function validateIcons() {
   let errors = 0;
 
   for (const [icon, files] of usedIcons.entries()) {
-    // Skip dynamically interpolated string templates like `textures/blocks/${id}` since we can't validate them statically
-    if (icon.includes('${')) {
-      continue;
-    }
-
-    if (!vanillaTextures.has(icon) && !customTextures.has(icon) && !IGNORED_TEXTURES.has(icon)) {
-      console.error(`\x1b[31m[Error] Invalid texture path:\x1b[0m ${icon}`);
-      console.error(`  Found in:`);
-      const uniqueFiles = Array.from(new Set(files));
-      for (const file of uniqueFiles) {
+    const lower = icon.toLowerCase();
+    if (
+      !vanillaTextures.has(icon) &&
+      !vanillaTextures.has(lower) &&
+      !customTextures.has(icon) &&
+      !customTextures.has(lower)
+    ) {
+      console.error(`\x1b[31m[Error] Non-existent texture path:\x1b[0m ${icon}`);
+      console.error('  Found in:');
+      for (const file of new Set(files)) {
         console.error(`    - ${file}`);
       }
       errors++;
@@ -225,7 +214,7 @@ export async function validateIcons() {
     console.error(`\n\x1b[31m[IconLint] Validation failed. Found ${errors} invalid texture path(s).\x1b[0m`);
     process.exit(1);
   } else {
-    console.log(`\n\x1b[32m[IconLint] All ${usedIcons.size} texture paths are valid!\x1b[0m`);
+    console.log(`\n\x1b[32m[IconLint] All ${usedIcons.size} texture paths are strictly verified!\x1b[0m`);
   }
 }
 

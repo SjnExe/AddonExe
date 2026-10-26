@@ -7,7 +7,7 @@ This document is the single source of truth for the architecture, coding standar
 - **Runtime & Package Manager:** Bun (`bun`, `bun test`, `bun scripts/build/build.ts`).
 - **Language:** TypeScript (strictly typed, bundled into `packs/behavior/scripts/main.js`).
 - **Minecraft Target:** Latest Minecraft Bedrock Edition (`@minecraft/server`, `@minecraft/server-ui`, `@minecraft/vanilla-data`, `@minecraft/math`).
-- **Linter & Validator:** Oxlint (`.oxlintrc.json`), custom Minecraft AST rules (`scripts/lint/minecraft-rules.ts`), Ajv JSON schema validator (`scripts/lint/schemas.ts`), icon verifier (`scripts/lint/icons.ts`), and TypeScript typecheck (`scripts/lint/run.ts`).
+- **Linter & Validator:** Oxlint (`.oxlintrc.json`), custom Minecraft & casing rules (`scripts/lint/minecraftRules.ts`), `@minecraft/bedrock-schemas` + Ajv JSON validator (`scripts/lint/schemas.ts`), strict vanilla/custom icon verifier (`scripts/lint/icons.ts`), and Bun built-in typecheck (`bun check` via `scripts/lint/run.ts`).
 
 ## 2. Build, Test & Verification Commands
 
@@ -15,6 +15,7 @@ This document is the single source of truth for the architecture, coding standar
 - **Package `.mcaddon` Archive:** `bun scripts/build/build.ts --zip`
 - **Lint & Validate (Read-Only Check):** `bun run lint:check`
 - **Lint & Auto-Fix:** `bun run lint`
+- **Typecheck (Bun Built-In Only):** `bun check` (never use `tsc` or external typecheckers)
 - **Format Modified Files Only:** `bun fmt <file1> <file2>`
 - **Run Unit Tests:** `bun test`
 - **Check Code Duplication (Explicit Only):** `bun run test:dupe`
@@ -24,7 +25,7 @@ This document is the single source of truth for the architecture, coding standar
 
 - **Never Edit Build Artifacts:** Never manually edit `packs/behavior/scripts/` or generated `manifest.json` files. Edit `src/` and run `bun run build`.
 - **Naming Conventions:**
-  - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraft-rules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
+  - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraftRules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
   - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
 - **Formatting (`bun fmt`):** 2-space indentation, single quotes for TS, sorted imports, semicolons required, curly braces `{}` required on all control flow blocks (`bun fmt <files>` / `bun fmt --check`).
 - **Path Aliases:** Use aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).

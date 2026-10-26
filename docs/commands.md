@@ -149,6 +149,5 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/xreload`** — Reloads and priority-merges configuration changes from disk and refreshes player ranks.
 - **`/xsave`** — Manually flushes all cached world and player data to dynamic properties.
 - **`/restart`** — Starts a countdown and kicks players for a scheduled server restart.
-- **`/newui [testOption]`** — Opens the UI test panel.
 - **`/status`** _(Owner)_ — Shows current player count and server tick status.
 - **`/debug`** _(Owner)_ — Shows tick count, active timers, intervals, and jobs.

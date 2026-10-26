@@ -7,7 +7,7 @@ import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
-const DIMENSION_OPTIONS = [
+const dimensionOptions = [
   MinecraftDimensionTypes.Overworld,
   MinecraftDimensionTypes.Nether,
   MinecraftDimensionTypes.TheEnd,
@@ -101,7 +101,7 @@ async function showWarpActionModal(player: mc.Player, warpName: string): Promise
 
 async function showEditWarpModal(player: mc.Player, existingWarpName?: string): Promise<void> {
   const existing = existingWarpName ? warpsManager.getWarp(existingWarpName) : undefined;
-  const dimIdx = existing ? Math.max(0, DIMENSION_OPTIONS.indexOf(existing.dimensionId as MinecraftDimensionTypes)) : 0;
+  const dimIdx = existing ? Math.max(0, dimensionOptions.indexOf(existing.dimensionId as MinecraftDimensionTypes)) : 0;
 
   const modal = new CustomFormBuilder<{
     name: string;
@@ -114,7 +114,7 @@ async function showEditWarpModal(player: mc.Player, existingWarpName?: string): 
     .textField('x', 'X Coordinate', '0', existing ? String(existing.x) : String(Math.floor(player.location.x)))
     .textField('y', 'Y Coordinate', '64', existing ? String(existing.y) : String(Math.floor(player.location.y)))
     .textField('z', 'Z Coordinate', '0', existing ? String(existing.z) : String(Math.floor(player.location.z)))
-    .dropdown('dim', 'Dimension', DIMENSION_OPTIONS, dimIdx)
+    .dropdown('dim', 'Dimension', dimensionOptions, dimIdx)
     .submitButton('Save Warp');
 
   const res = await modal.show(player);

@@ -6,8 +6,8 @@ import { isDefined } from '@lib/guards.js';
 export function isFeatureActive(featureId: string): boolean {
   const feature = featureRegistry.find((f) => f.id === featureId);
 
-  const CORE_FEATURES = ['essentials', 'mod', 'ranks', 'ac', 'test'];
-  if (CORE_FEATURES.includes(featureId)) {
+  const coreFeatures = ['essentials', 'mod', 'ranks', 'ac', 'test'];
+  if (coreFeatures.includes(featureId)) {
     return true;
   }
 

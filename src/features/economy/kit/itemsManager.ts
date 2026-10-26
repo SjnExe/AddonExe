@@ -5,7 +5,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 
-const MAX_KIT_SLOTS = 36;
+const maxKitSlots = 36;
 
 export interface EnchantmentInfo {
   id: string;
@@ -41,7 +41,7 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
     return { success: false, message: `Kit '${kitName}' not found.` };
   }
 
-  if (kit.items.length >= MAX_KIT_SLOTS) {
+  if (kit.items.length >= maxKitSlots) {
     return { success: false, message: `Kit '${kitName}' is full. Cannot add more items.` };
   }
 

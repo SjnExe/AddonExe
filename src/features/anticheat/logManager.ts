@@ -30,10 +30,10 @@ export function initializeLogManager() {
   punishLogs = punishStorage.load<PunishmentLog[]>() ?? [];
 
   // Prune old logs (7 days default)
-  const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+  const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
   const now = Date.now();
-  flagLogs = flagLogs.filter((l) => now - l.timestamp < ONE_WEEK);
-  punishLogs = punishLogs.filter((l) => now - l.timestamp < ONE_WEEK);
+  flagLogs = flagLogs.filter((l) => now - l.timestamp < oneWeekMs);
+  punishLogs = punishLogs.filter((l) => now - l.timestamp < oneWeekMs);
 
   // Auto-save every 30 seconds
   mc.system.runInterval(() => saveLogs(), 600);

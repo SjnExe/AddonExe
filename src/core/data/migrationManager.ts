@@ -3,8 +3,8 @@ import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
-const VERSION_KEY = 'exe:version';
-const LEGACY_VERSION_KEY = 'exe:lastVersion';
+const versionKey = 'exe:version';
+const legacyVersionKey = 'exe:lastVersion';
 
 export interface MigrationStep {
   version: string;
@@ -54,7 +54,7 @@ const migrations: MigrationStep[] = [
         new StorageManager(key).delete();
       }
       mc.world.setDynamicProperty('exe:data_version', undefined);
-      mc.world.setDynamicProperty(LEGACY_VERSION_KEY, undefined);
+      mc.world.setDynamicProperty(legacyVersionKey, undefined);
     },
   },
 ];
@@ -63,8 +63,8 @@ export async function initializeMigration(currentVersion = '0.8.0'): Promise<boo
   debugLog('[MigrationManager] Checking addon version for pending migrations...');
 
   const storedVersionRaw =
-    (mc.world.getDynamicProperty(VERSION_KEY) as string | undefined) ??
-    (mc.world.getDynamicProperty(LEGACY_VERSION_KEY) as string | undefined);
+    (mc.world.getDynamicProperty(versionKey) as string | undefined) ??
+    (mc.world.getDynamicProperty(legacyVersionKey) as string | undefined);
 
   const storedVersion = isNonEmptyString(storedVersionRaw) ? storedVersionRaw : '0.0.0';
 
@@ -84,7 +84,7 @@ export async function initializeMigration(currentVersion = '0.8.0'): Promise<boo
       }
     }
 
-    mc.world.setDynamicProperty(VERSION_KEY, currentVersion);
+    mc.world.setDynamicProperty(versionKey, currentVersion);
     infoLog(`[MigrationManager] Successfully migrated world to v${currentVersion}.`);
     return true;
   } catch (error: unknown) {

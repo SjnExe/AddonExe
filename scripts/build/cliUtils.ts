@@ -6,6 +6,7 @@ export interface ParsedArgs {
   isNightly: boolean;
   isZip: boolean;
   isMinify: boolean;
+  sourcemap?: boolean;
   buildNumber: number;
   customVersion?: string;
 }
@@ -17,6 +18,7 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
   let isZip = false;
   let isMinify = false;
   let noMinify = false;
+  let sourcemap = false;
   let buildNumber = 0;
   let customVersion: string | undefined;
 
@@ -35,18 +37,20 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
       isMinify = true;
     } else if (arg === '--no-minify') {
       noMinify = true;
+    } else if (arg === '--sourcemap') {
+      sourcemap = true;
     } else if (arg === '-b' || arg === '--build-number') {
-      if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) {
-        buildNumber = Number.parseInt(argv[++i], 10) || 0;
+      if (i + 1 < argv.length && !argv[i + 1]!.startsWith('-')) {
+        buildNumber = Number.parseInt(argv[++i]!, 10) || 0;
       }
-    } else if (arg.startsWith('-b=') || arg.startsWith('--build-number=')) {
-      const val = arg.split('=')[1];
+    } else if (arg?.startsWith('-b=') || arg?.startsWith('--build-number=')) {
+      const val = arg.split('=')[1] ?? '0';
       buildNumber = Number.parseInt(val, 10) || 0;
     } else if (arg === '-v' || arg === '--version') {
-      if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) {
+      if (i + 1 < argv.length && !argv[i + 1]!.startsWith('-')) {
         customVersion = argv[++i];
       }
-    } else if (arg.startsWith('-v=') || arg.startsWith('--version=')) {
+    } else if (arg?.startsWith('-v=') || arg?.startsWith('--version=')) {
       customVersion = arg.split('=')[1];
     }
   }
@@ -60,6 +64,7 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
     isNightly,
     isZip,
     isMinify,
+    sourcemap,
     buildNumber,
     customVersion,
   };
@@ -95,9 +100,9 @@ export async function getVersionContext(
   }
 
   const parts = baseVersionStr.split('.').map((p) => Number.parseInt(p, 10));
-  const major = Number.isNaN(parts[0]) ? 0 : parts[0];
-  const minor = Number.isNaN(parts[1]) ? 0 : parts[1];
-  const patch = Number.isNaN(parts[2]) ? 0 : parts[2];
+  const major = Number.isNaN(parts[0]) ? 0 : parts[0]!;
+  const minor = Number.isNaN(parts[1]) ? 0 : parts[1]!;
+  const patch = Number.isNaN(parts[2]) ? 0 : parts[2]!;
 
   let finalParts = [major, minor, patch];
   let finalStr = `${major}.${minor}.${patch}`;
