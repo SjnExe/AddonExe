@@ -21,6 +21,7 @@ import {
   createStaffHostedGame,
   endStaffHostedGame,
   evaluateGuess,
+  forfeitPlayerGame,
   forfeitWordleDuel,
   formatGuess,
   getPlayerActiveGame,
@@ -51,7 +52,7 @@ export async function showWordleMainPanel(player: mc.Player): Promise<void> {
 
   const form = new ActionFormBuilder()
     .title('Wordle Menu')
-    .body('§7Green = Correct spot §8| §eYellow = Wrong spot §8| §fWhite = Not in word')
+    .body('\u200B§aGreen§7 = Correct spot §8| §eYellow§7 = Wrong spot §8| §fWhite§7 = Not in word')
     .button(`§l§aSingle Player Wordle\n§r${spSubtitle}`, 'textures/ui/icon_recipe_item', async () => {
       await showSinglePlayerWordle(player);
     })
@@ -165,6 +166,7 @@ export async function showWordleDuelPanel(player: mc.Player, errorMsg?: string):
 
   const lines = [
     `§7Opponent: §e${oppName} §8(${oppGuesses.length}/${match.maxGuesses} guesses) §8| §7Time Left: §b${remSec}s`,
+    '\u200B§aGreen§7 = Correct spot §8| §eYellow§7 = Wrong spot §8| §fWhite§7 = Not in word',
     ...(match.status !== 'active' ? [`\n${match.endReason ?? 'Match complete.'}`] : []),
     '',
     ...boardRows,
@@ -173,48 +175,65 @@ export async function showWordleDuelPanel(player: mc.Player, errorMsg?: string):
     lines.push('', `§c⚠ ${errorMsg}`);
   }
 
-  const form = new ActionFormBuilder().grid(1).title(`§l§bWordle 2P vs ${oppName}`).body(lines.join('\n'));
+  let selectedAction: 'guess' | 'refresh' | 'forfeit' | 'menu' | undefined;
+  const form = new ActionFormBuilder().grid(2).title(`§l§bWordle 2P vs ${oppName}`).body(lines.join('\n'));
 
   if (match.status === 'active' && myGuesses.length < match.maxGuesses) {
     form.button(
       `§l§2Submit Guess (${myGuesses.length + 1}/${match.maxGuesses})`,
       'textures/ui/book_edit_default',
-      async () => {
-        const modal = new CustomFormBuilder<{ guess: string }>('2P Wordle Guess')
-          .textField('guess', `Enter a ${match.word.length}-letter word`, 'apple', '')
-          .submitButton('Submit Guess');
-        const res = await modal.show(player);
-        if (!res || !isNonEmptyString(res.guess.trim())) {
-          await showWordleDuelPanel(player);
-          return;
-        }
-        const out = submitWordleDuelGuess(player, res.guess.trim());
-        if (typeof out === 'string') {
-          await showWordleDuelPanel(player, out);
-          return;
-        }
-        await showWordleDuelPanel(player);
+      () => {
+        selectedAction = 'guess';
       },
     );
   }
 
   if (match.status === 'active') {
-    form.button('§bRefresh Opponent Progress', 'textures/ui/refresh_light', async () => {
-      await showWordleDuelPanel(player);
+    form.button('§bRefresh Opponent Progress', 'textures/ui/refresh_light', () => {
+      selectedAction = 'refresh';
     });
-    form.button('§cForfeit Match', 'textures/ui/cancel', async () => {
-      forfeitWordleDuel(match.id, player.id, 'forfeited the match');
-      clearPlayerWordleDuel(player.id);
-      await showWordleMultiplayerMenu(player);
+    form.button('§cForfeit Match', 'textures/ui/cancel', () => {
+      selectedAction = 'forfeit';
     });
   } else {
-    form.button('§eReturn to Wordle Menu', 'textures/ui/arrow_left', async () => {
-      clearPlayerWordleDuel(player.id);
-      await showWordleMultiplayerMenu(player);
+    form.button('§eReturn to Wordle Menu', 'textures/ui/arrow_left', () => {
+      selectedAction = 'menu';
     });
   }
 
   await form.show(player, { wait: true });
+
+  if (selectedAction === 'guess') {
+    const refLines = [
+      `§7Attempt §e${myGuesses.length + 1}§7 of §e${match.maxGuesses} §8| §7Opponent: §e${oppName} (${oppGuesses.length}/${match.maxGuesses})`,
+      '\u200B§aGreen§7 = Correct spot §8| §eYellow§7 = Wrong spot §8| §fWhite§7 = Not in word',
+      '',
+      ...boardRows,
+    ];
+    const modal = new CustomFormBuilder<{ guess: string }>('2P Wordle Guess')
+      .textField('guess', `${refLines.join('\n')}\n\n§eEnter a ${match.word.length}-letter word:`, 'e.g. apple', '')
+      .submitButton('Submit Guess');
+    const res = await modal.show(player);
+    if (!res || !isNonEmptyString(res.guess.trim())) {
+      await showWordleDuelPanel(player);
+      return;
+    }
+    const out = submitWordleDuelGuess(player, res.guess.trim());
+    if (typeof out === 'string') {
+      await showWordleDuelPanel(player, out);
+      return;
+    }
+    await showWordleDuelPanel(player);
+  } else if (selectedAction === 'refresh') {
+    await showWordleDuelPanel(player);
+  } else if (selectedAction === 'forfeit') {
+    forfeitWordleDuel(match.id, player.id, 'forfeited the match');
+    clearPlayerWordleDuel(player.id);
+    await showWordleMultiplayerMenu(player);
+  } else if (selectedAction === 'menu') {
+    clearPlayerWordleDuel(player.id);
+    await showWordleMultiplayerMenu(player);
+  }
 }
 
 export async function showSinglePlayerWordle(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
@@ -224,8 +243,11 @@ export async function showSinglePlayerWordle(player: mc.Player, context: Record<
     return;
   }
 
+  if (context.forceNew === true) {
+    forfeitPlayerGame(player);
+  }
   let game = getPlayerActiveGame(player);
-  if (!isDefined(game)) {
+  if (!isDefined(game) || game.status !== 'active' || game.maxGuesses <= 0) {
     const entryCost = Math.max(0, Number(config.singlePlayer.cost) || 0);
     if (entryCost > 0 && isFeatureActive('eco')) {
       const bal = getBalance(player.id) ?? 0;
@@ -259,7 +281,7 @@ export async function showSinglePlayerWordle(player: mc.Player, context: Record<
   const errorVal = context.error;
   const bodyLines = [
     `§7Guesses: §e${activeGame.guesses.length}§7/§e${activeGame.maxGuesses} §8| §7Length: §b${activeGame.word.length} letters`,
-    '§aGreen§7 = Exact §8| §eYellow§7 = Misplaced §8| §fWhite§7 = Absent',
+    '\u200B§aGreen§7 = Correct spot §8| §eYellow§7 = Wrong spot §8| §fWhite§7 = Not in word',
     '',
     ...boardRows,
   ];
@@ -268,58 +290,71 @@ export async function showSinglePlayerWordle(player: mc.Player, context: Record<
     bodyLines.push('', `§c⚠ ${errorVal}`);
   }
 
+  let selectedAction: 'guess' | 'giveUp' | 'back' | undefined;
   const form = new ActionFormBuilder()
-    .grid(1)
+    .grid(2)
     .title('§l§aSingle Player Wordle')
     .body(bodyLines.join('\n'))
     .button(
       `§l§2Enter Guess (${activeGame.guesses.length + 1}/${activeGame.maxGuesses})\n§r§7Submit ${activeGame.word.length}-letter word`,
       'textures/ui/book_edit_default',
-      async () => {
-        await promptSinglePlayerGuess(player, activeGame, context);
+      () => {
+        selectedAction = 'guess';
       },
     )
-    .button('§l§cGive Up\n§r§7Reveal secret word', 'textures/ui/cancel', async () => {
-      const answer = activeGame.word;
-      const guessesSnapshot = [...activeGame.guesses];
-      activeGame.status = 'lost';
-      activeGame.maxGuesses = 0;
-      submitGuess(activeGame.id, player, answer);
-      await showWordleResultPanel(player, false, answer, guessesSnapshot);
+    .button('§l§cGive Up\n§r§7Reveal secret word', 'textures/ui/cancel', () => {
+      selectedAction = 'giveUp';
     });
 
-  form.addBackButton(async () => {
-    await showWordleMainPanel(player);
+  form.addBackButton(() => {
+    selectedAction = 'back';
   });
 
   await form.show(player, { wait: true });
+
+  if (selectedAction === 'guess') {
+    await promptSinglePlayerGuess(player, activeGame, boardRows);
+  } else if (selectedAction === 'giveUp') {
+    const answer = activeGame.word;
+    const guessesSnapshot = [...activeGame.guesses];
+    forfeitPlayerGame(player);
+    await showWordleResultPanel(player, false, answer, guessesSnapshot);
+  } else if (selectedAction === 'back') {
+    await showWordleMainPanel(player);
+  }
 }
 
 async function promptSinglePlayerGuess(
   player: mc.Player,
   game: NonNullable<ReturnType<typeof getPlayerActiveGame>>,
-  context: Record<string, unknown>,
+  boardRows: string[],
 ): Promise<void> {
+  const referenceHeader = [
+    `§7Attempt §e${game.guesses.length + 1}§7 of §e${game.maxGuesses} §8| §7Length: §b${game.word.length} letters`,
+    '\u200B§aGreen§7 = Correct spot §8| §eYellow§7 = Wrong spot §8| §fWhite§7 = Not in word',
+    '',
+    ...boardRows,
+  ].join('\n');
+
   const modal = new CustomFormBuilder<{ guess: string }>('Wordle Guess')
-    .label(`Attempt ${game.guesses.length + 1} of ${game.maxGuesses} (Enter a ${game.word.length}-letter word)`)
-    .textField('guess', 'Your Guess', 'e.g. apple', '')
+    .textField('guess', `${referenceHeader}\n\n§eYour Guess (${game.word.length} letters):`, 'e.g. apple', '')
     .submitButton('Submit Guess');
 
   const res = await modal.show(player);
   if (!res) {
-    await showSinglePlayerWordle(player, context);
+    await showSinglePlayerWordle(player);
     return;
   }
 
   const rawGuess = res.guess.trim();
   if (!isNonEmptyString(rawGuess)) {
-    await showSinglePlayerWordle(player, { ...context, error: 'Please type a word before submitting.' });
+    await showSinglePlayerWordle(player, { error: 'Please type a word before submitting.' });
     return;
   }
 
   const result = submitGuess(game.id, player, rawGuess);
   if (typeof result === 'string') {
-    await showSinglePlayerWordle(player, { ...context, error: result });
+    await showSinglePlayerWordle(player, { error: result });
     return;
   }
 
@@ -333,7 +368,7 @@ async function promptSinglePlayerGuess(
     return;
   }
 
-  await showSinglePlayerWordle(player, { ...context, error: undefined });
+  await showSinglePlayerWordle(player);
 }
 
 export async function showWordleResultPanel(
@@ -352,19 +387,26 @@ export async function showWordleResultPanel(
     ? `§aCongratulations! You solved the word in ${guesses.length} guess(es)!`
     : `§cGame Over! The secret word was §e${word.toUpperCase()}§c.`;
 
+  let action: 'playAgain' | 'back' | undefined;
   const form = new ActionFormBuilder()
-    .grid(1)
+    .grid(2)
     .title(isWin ? '§l§aYou Won!' : '§l§cGame Over!')
     .body(`${resultMsg}\n\n${history}`)
-    .button('§2Play Again\n§r§7Start a new word', 'textures/ui/refresh_light', async () => {
-      await showSinglePlayerWordle(player);
+    .button('§l§2Play Again\n§r§7Start a new word immediately', 'textures/ui/refresh_light', () => {
+      action = 'playAgain';
     });
 
-  form.addBackButton(async () => {
-    await showWordleMainPanel(player);
+  form.addBackButton(() => {
+    action = 'back';
   });
 
   await form.show(player, { wait: true });
+
+  if (action === 'playAgain') {
+    await showSinglePlayerWordle(player, { forceNew: true });
+  } else if (action === 'back') {
+    await showWordleMainPanel(player);
+  }
 }
 
 export async function showWordleStaffGamePanel(player: mc.Player): Promise<void> {

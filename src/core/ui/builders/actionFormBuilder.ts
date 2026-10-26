@@ -149,7 +149,7 @@ export class ActionFormBuilder {
     const itemsToShow = items.slice(startIndex, startIndex + itemsPerPage);
 
     if (totalPages > 1 && currentPage > 1) {
-      this.button('§6< Previous Page', 'textures/gui/controls/up', () => onPageChange(currentPage - 1));
+      this.button('§6< Previous Page', 'textures/ui/up_arrow', () => onPageChange(currentPage - 1));
     }
 
     for (const item of itemsToShow) {
@@ -157,7 +157,7 @@ export class ActionFormBuilder {
     }
 
     if (totalPages > 1 && currentPage < totalPages) {
-      this.button('§6Next Page >', 'textures/gui/controls/down', () => onPageChange(currentPage + 1));
+      this.button('§6Next Page >', 'textures/ui/down_arrow', () => onPageChange(currentPage + 1));
     }
     return this;
   }

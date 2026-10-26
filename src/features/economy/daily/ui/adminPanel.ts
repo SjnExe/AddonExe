@@ -101,7 +101,7 @@ export async function showEditDailyRewardDayPanel(player: mc.Player, index: numb
     .button('Edit Reward Values', 'textures/ui/book_edit_default', async () => {
       await showEditDailyRewardModal(player, index);
     })
-    .button(`Manage Items (${itemCount})`, 'textures/ui/inventory_icon', async () => {
+    .button(`Manage Items (${itemCount})`, 'textures/ui/icon_recipe_equipment', async () => {
       await showDailyRewardItemsPanel(player, index);
     })
     .button('§4Delete Day Reward', 'textures/ui/trash', async () => {
@@ -198,7 +198,7 @@ async function showDailyRewardItemsPanel(player: mc.Player, index: number): Prom
       }
       await showDailyRewardItemsPanel(player, index);
     })
-    .button('§6+ Add Held Item From Hand', 'textures/ui/inventory_icon', async () => {
+    .button('§6+ Add Held Item From Hand', 'textures/ui/icon_recipe_equipment', async () => {
       const inv = player.getComponent(EntityComponentTypes.Inventory)?.container;
       const held = inv?.getItem(player.selectedSlotIndex);
       if (!held) {

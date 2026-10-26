@@ -1,7 +1,7 @@
 import { errorLog } from '@core/utils/logger.js';
 import * as mc from '@minecraft/server';
 
-const CHUNK_SIZE = 30_000; // Safe limit below 32kb
+const chunkSize = 30_000; // Safe limit below 32kb
 
 export class StorageManager {
   private readonly dbName: string;
@@ -15,13 +15,13 @@ export class StorageManager {
     try {
       const jsonString = JSON.stringify(data);
       const totalLength = jsonString.length;
-      const chunks = Math.ceil(totalLength / CHUNK_SIZE);
+      const chunks = Math.ceil(totalLength / chunkSize);
 
       // Save chunk count
       mc.world.setDynamicProperty(`${this.dbName}:meta`, chunks);
 
       for (let i = 0; i < chunks; i++) {
-        const chunk = jsonString.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+        const chunk = jsonString.slice(i * chunkSize, (i + 1) * chunkSize);
         mc.world.setDynamicProperty(`${this.dbName}:${i}`, chunk);
       }
 
@@ -46,14 +46,14 @@ export class StorageManager {
       yield; // Yield after stringify (heavy op)
 
       const totalLength = jsonString.length;
-      const chunks = Math.ceil(totalLength / CHUNK_SIZE);
+      const chunks = Math.ceil(totalLength / chunkSize);
 
       // Save chunk count
       mc.world.setDynamicProperty(`${this.dbName}:meta`, chunks);
       yield;
 
       for (let i = 0; i < chunks; i++) {
-        const chunk = jsonString.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+        const chunk = jsonString.slice(i * chunkSize, (i + 1) * chunkSize);
         mc.world.setDynamicProperty(`${this.dbName}:${i}`, chunk);
         if (i % 2 === 0) {
           yield;

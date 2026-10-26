@@ -3,8 +3,8 @@ import { StorageManager } from '@core/data/storageManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
-const WARPS_PROPERTY_ID = 'exe:warps';
-const storage = new StorageManager(WARPS_PROPERTY_ID);
+const warpsPropertyId = 'exe:warps';
+const storage = new StorageManager(warpsPropertyId);
 
 interface ActionResult {
   success: boolean;

@@ -35,7 +35,7 @@ function getCategorizedCommands(): Map<string, CustomCommand[]> {
 }
 
 // Preferred sort order
-const CATEGORY_ORDER = [
+const categoryOrder = [
   'General',
   'Transportation',
   'Economy',
@@ -47,8 +47,8 @@ const CATEGORY_ORDER = [
 
 function getSortedCategories(availableCategories: string[]): string[] {
   return [...availableCategories].sort((a, b) => {
-    const idxA = CATEGORY_ORDER.indexOf(a);
-    const idxB = CATEGORY_ORDER.indexOf(b);
+    const idxA = categoryOrder.indexOf(a);
+    const idxB = categoryOrder.indexOf(b);
     if (idxA !== -1 && idxB !== -1) {
       return idxA - idxB;
     }

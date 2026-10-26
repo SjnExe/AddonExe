@@ -13,7 +13,9 @@ import {
   _clearMinesweeperForTest,
   calculateSoloTimeReward,
   getCellVisual,
+  getMinesweeperBoardProgress,
   getNeighborIndices,
+  getPlayerMinesweeperStats,
   handleMinesweeperCellTap,
   initializeMinesweeper,
   startMinesweeperGame,
@@ -81,7 +83,7 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
     const game = startMinesweeperGame(player, 'easy');
 
     const unminedVis = getCellVisual(game, game.cells[0]!);
-    expect(unminedVis.icon).toBe('textures/blocks/grass_side_carried');
+    expect(unminedVis.icon).toBe('textures/blocks/grass_carried');
 
     toggleMinesweeperFlagMode(player.id);
     handleMinesweeperCellTap(player, 0);
@@ -98,6 +100,48 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
       const minedNumberVis = getCellVisual(game, numberedCell);
       expect(minedNumberVis.icon).toBe('textures/blocks/dirt');
       expect(minedNumberVis.label).toContain(String(numberedCell.adjacentMines));
+    }
+
+    const progress = getMinesweeperBoardProgress(game);
+    expect(progress.safeCleared).toBeGreaterThan(0);
+    expect(progress.percent).toBeGreaterThan(0);
+  });
+
+  it('supports smart auto-flagging on revealed numbers and marks misplaced flags on loss', () => {
+    const player = createMockPlayer('ms_smart', 'SmartSweeper');
+    const game = startMinesweeperGame(player, 'easy');
+    handleMinesweeperCellTap(player, 40);
+
+    const targetCell = game.cells.find((c) => c.revealed && c.adjacentMines === 1);
+    if (targetCell) {
+      const neighbors = getNeighborIndices(targetCell.index, game.cols, game.rows);
+      const mineNeighborIdx = neighbors.find((idx) => game.cells[idx]?.hasMine);
+      if (mineNeighborIdx !== undefined) {
+        for (const nIdx of neighbors) {
+          if (nIdx !== mineNeighborIdx) {
+            game.cells[nIdx]!.revealed = true;
+            game.cells[nIdx]!.flagged = false;
+          } else {
+            game.cells[nIdx]!.revealed = false;
+            game.cells[nIdx]!.flagged = false;
+          }
+        }
+        const autoFlagRes = handleMinesweeperCellTap(player, targetCell.index);
+        expect(autoFlagRes.status).toBe('active');
+        expect(game.cells[mineNeighborIdx]?.flagged).toBe(true);
+      }
+    }
+
+    const safeHidden = game.cells.find((c) => !c.revealed && !c.hasMine && !c.flagged);
+    const mineHidden = game.cells.find((c) => !c.revealed && c.hasMine);
+    if (safeHidden && mineHidden) {
+      safeHidden.flagged = true;
+      mineHidden.flagged = false;
+      handleMinesweeperCellTap(player, mineHidden.index);
+      const wrongFlagVis = getCellVisual(game, safeHidden);
+      expect(wrongFlagVis.label).toBe('§4§r§l§c*');
+      expect(wrongFlagVis.icon).toBe('textures/blocks/tnt_side');
+      expect(getPlayerMinesweeperStats(player.id).losses).toBe(1);
     }
   });
 

@@ -55,7 +55,7 @@ export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void
     )
     .button(
       `Configure Overworld + Nether\n§7OW: ${cfg.overworldRadius} | Nether: ${netherRadius}`,
-      'textures/blocks/grass_side_carried',
+      'textures/blocks/grass_carried',
       async () => {
         await showEditOverworldBorderModal(player);
       },

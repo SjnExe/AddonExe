@@ -17,12 +17,19 @@ import {
   forfeitMinesweeperRace,
   getCellVisual,
   getDifficultySettings,
+  getMinesweeperBoardProgress,
   getMinesweeperRaceMatch,
   getPlayerMinesweeperGame,
+  getPlayerMinesweeperStats,
   handleMinesweeperCellTap,
   startMinesweeperGame,
   toggleMinesweeperFlagMode,
 } from '@features/games/minesweeper/manager.js';
+
+function buildProgressBar(percent: number, segments = 8): string {
+  const filled = Math.max(0, Math.min(segments, Math.round((percent / 100) * segments)));
+  return `§8[§a${'■'.repeat(filled)}§7${'□'.repeat(segments - filled)}§8]`;
+}
 import { showInviteFriendToGameModal } from '@features/games/tictactoe/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -44,11 +51,16 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
   const incoming = getIncomingGameInvites(player.id).filter((i) => i.gameId === 'minesweeper');
   const outgoing = getOutgoingGameInvite(player.id);
 
+  const stats = getPlayerMinesweeperStats(player.id);
+  const bestEasy = isDefined(stats.bestTimes.easy) ? `§b${stats.bestTimes.easy.toFixed(1)}s` : '§8--';
+  const bestMed = isDefined(stats.bestTimes.medium) ? `§b${stats.bestTimes.medium.toFixed(1)}s` : '§8--';
+  const bestHard = isDefined(stats.bestTimes.hard) ? `§b${stats.bestTimes.hard.toFixed(1)}s` : '§8--';
+
   const bodyLines = [
     '§7Uncover all safe Grass tiles without detonating a hidden mine!',
-    '§8• §aGrass§7 = Unmined §8| §6Dirt§7 = Mined §8| §cTNT ⚑§7 = Flagged',
-    '§8• §7Solo: Earn base cash + speed bonus for finishing under par time!',
-    '§8• §72P Race: Fastest clear wins — or win instantly if your opponent hits a mine!',
+    '§8• §aGrass§7 = Unmined §8| §6Dirt§7 = Dug §8| §e⚑ Flag§7 = Marked Mine',
+    '§8• §bSmart Number Tap: §7Tap a revealed number to §aChord-Dig§7 or §eAuto-Flag§7!',
+    `§8• §7Session: §a${stats.wins}W§7/§c${stats.losses}L §8(§6Streak: ${stats.currentStreak}§8) §7| Best: §a9x9 ${bestEasy} §8• §e12x12 ${bestMed} §8• §c16x12 ${bestHard}`,
   ];
 
   if (incoming.length > 0) {
@@ -61,8 +73,9 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder().title('Minesweeper').body(bodyLines.join('\n'));
 
   if (isDefined(active) && active.status === 'active') {
+    const activeProg = getMinesweeperBoardProgress(active);
     form.button(
-      `§l§aResume (${active.cols}x${active.rows})\n§r§7Continue active board`,
+      `§l§aResume (${active.cols}x${active.rows} • ${activeProg.percent}%)\n§r§7${activeProg.remainingMines} mines left`,
       'textures/ui/refresh_light',
       async () => {
         await showMinesweeperBoard(player);
@@ -72,7 +85,7 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
 
   form.button(
     `§l§aBeginner (9x9)\n§r§710 Mines • §6${formatCurrency(easy.baseReward)} §a+${formatCurrency(easy.maxSpeedBonus)}`,
-    'textures/blocks/grass_side_carried',
+    'textures/blocks/grass_carried',
     async () => {
       startMinesweeperGame(player, 'easy');
       await showMinesweeperBoard(player);
@@ -170,30 +183,33 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     game.status = raceMatch.winnerId === player.id ? 'won' : 'lost';
   }
 
-  const flaggedCount = game.cells.reduce((acc, c) => acc + (c.flagged ? 1 : 0), 0);
-  const remainingMines = Math.max(0, game.totalMines - flaggedCount);
+  const progress = getMinesweeperBoardProgress(game);
   const elapsedSec = game.netElapsedSeconds ?? calculateNetElapsedSeconds(game);
-  const modeLabel = game.flagMode ? '§e[⚑ FLAG MODE]' : '§a[DIG MODE]';
+  const modeLabel = game.flagMode ? '§e[⚑ FLAG]' : '§a[DIG]';
+  const progBar = buildProgressBar(progress.percent);
 
-  let statusLine = `§7Mines: §c${remainingMines} §8| §7Time: §b${elapsedSec.toFixed(1)}s §8| ${modeLabel}`;
+  let statusLine = `${progBar} §f${progress.percent}% §8| §7Mines: §c${progress.remainingMines} §8| §7Time: §b${elapsedSec.toFixed(1)}s §8| ${modeLabel}`;
   if (isDefined(raceMatch)) {
+    const oppId = player.id === raceMatch.player1Id ? raceMatch.player2Id : raceMatch.player1Id;
     const oppName = player.id === raceMatch.player1Id ? raceMatch.player2Name : raceMatch.player1Name;
-    statusLine = `§d[2P Race vs ${oppName}] §r${statusLine}`;
+    const oppGame = getPlayerMinesweeperGame(oppId);
+    const oppPercent = isDefined(oppGame) ? getMinesweeperBoardProgress(oppGame).percent : 0;
+    statusLine = `§d[VS ${oppName}: ${oppPercent}%] §r${statusLine}`;
   }
 
   if (game.status === 'won') {
     const winText = isDefined(raceMatch)
       ? (raceMatch.endReason ?? 'You won the race!')
       : (notice ?? 'All mines cleared!');
-    statusLine = `§a§lVICTORY! §r${winText} §7(Tap any tile to continue)`;
+    statusLine = `§a§lVICTORY! §r${winText}`;
   } else if (game.status === 'lost') {
     const loseText =
       isDefined(raceMatch) && isNonEmptyString(raceMatch.endReason)
         ? raceMatch.endReason
         : (notice ?? 'You hit a mine!');
-    statusLine = `§c§lGAME OVER! §r${loseText} §7(Tap any tile to continue)`;
+    statusLine = `§c§lGAME OVER! §r${loseText} §8(${progress.percent}% cleared)`;
   } else if (isNonEmptyString(notice)) {
-    statusLine = `${statusLine} §8| ${notice}`;
+    statusLine = `${statusLine}\n${notice}`;
   }
 
   const form = new ActionFormBuilder()
@@ -203,6 +219,7 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
 
   let tappedCell: number | undefined;
   let tappedToolbar = false;
+  let tappedPlayAgain = false;
 
   for (let i = 0; i < game.totalCells; i++) {
     const idx = i;
@@ -213,16 +230,30 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     });
   }
 
-  const toolbarText =
-    game.status !== 'active'
-      ? '\uE101§r§l§e[ Play Again / Menu ]'
-      : game.flagMode
-        ? '\uE101§r§l§e[ ⚑ FLAG MODE: ON ] §7(Tap to switch to Dig)'
-        : '\uE101§r§l§a[ ⛏ DIG MODE: ON ] §7(Tap to switch to Flag)';
-
-  form.button(toolbarText, undefined, () => {
-    tappedToolbar = true;
-  });
+  if (game.status === 'active') {
+    const toolbarText = game.flagMode
+      ? '\uE101§r§l§e[⚑ MODE: FLAG MINE] §r§7(Tap here to switch to Dig Mode)'
+      : '\uE101§r§l§a[⛏ MODE: DIG TILE] §r§7(Tap here to switch to Flag Mode)';
+    const toolbarIcon = game.flagMode ? 'textures/blocks/tnt_side' : 'textures/items/iron_pickaxe';
+    form.button(toolbarText, toolbarIcon, () => {
+      tappedToolbar = true;
+    });
+  } else if (!isDefined(raceMatch)) {
+    form.button(
+      `\uE101§r§l§a[Play Again: ${game.cols}x${game.rows} ${game.difficulty.toUpperCase()}]`,
+      'textures/ui/refresh_light',
+      () => {
+        tappedPlayAgain = true;
+      },
+    );
+    form.button('\uE101§r§l§e[Minesweeper Menu]', 'textures/ui/arrow_left', () => {
+      tappedToolbar = true;
+    });
+  } else {
+    form.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left', () => {
+      tappedToolbar = true;
+    });
+  }
 
   const response = await form.show(player, { wait: true });
 
@@ -245,6 +276,11 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
   }
 
   if (game.status !== 'active' || (isDefined(freshRace) && freshRace.status !== 'active')) {
+    if (tappedPlayAgain && !isDefined(freshRace)) {
+      startMinesweeperGame(player, game.difficulty);
+      await showMinesweeperBoard(player);
+      return;
+    }
     clearPlayerMinesweeperGame(player.id);
     await showMinesweeperMenu(player);
     return;

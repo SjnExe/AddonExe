@@ -67,7 +67,7 @@ export function getSystemRegistry(): SystemDefinition[] {
     {
       id: 'kits',
       title: 'Kit System',
-      icon: 'textures/ui/inventory_icon',
+      icon: 'textures/ui/icon_recipe_equipment',
       showFunction: async (player) => {
         const { showKitManagementPanel } = await import('@features/economy/kit/ui/panel.js');
         await showKitManagementPanel(player);

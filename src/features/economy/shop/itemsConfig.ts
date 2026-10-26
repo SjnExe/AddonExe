@@ -86,7 +86,7 @@ export const items: Record<string, ItemData> = {
   },
   lapisLazuli: {
     itemId: MinecraftItemTypes.LapisLazuli,
-    icon: 'textures/blocks/lapis_ore',
+    icon: 'textures/items/dye_powder_blue',
     buyPrice: 20,
     sellPrice: 10,
     category: 'Ores & Minerals',

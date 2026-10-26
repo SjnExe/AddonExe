@@ -18,7 +18,7 @@ const playerIdNameMapKey = 'exe:playerIdNameMap';
 // Sharded keys
 const playerNameIdMapShardPrefix = 'exe:nameIdMap_';
 const playerIdNameMapShardPrefix = 'exe:idNameMap_';
-const MAP_SHARD_SIZE = 200; // Entries per shard - reduced to prevent 32KB overflow
+const mapShardSize = 200; // Entries per shard - reduced to prevent 32KB overflow
 
 export interface HomeLocation {
   x: number;
@@ -168,12 +168,12 @@ export function cleanupPlayerDataManager() {
 /** Helper to save a map across multiple dynamic properties (shards). */
 function saveShardedMap(map: Map<string, string>, prefix: string) {
   const entries = [...map.entries()];
-  const totalShards = Math.ceil(entries.length / MAP_SHARD_SIZE);
+  const totalShards = Math.ceil(entries.length / mapShardSize);
   const world = mc.world;
 
   for (let i = 0; i < totalShards; i++) {
-    const start = i * MAP_SHARD_SIZE;
-    const chunk = entries.slice(start, start + MAP_SHARD_SIZE);
+    const start = i * mapShardSize;
+    const chunk = entries.slice(start, start + mapShardSize);
     world.setDynamicProperty(`${prefix}${i}`, JSON.stringify(chunk));
   }
 

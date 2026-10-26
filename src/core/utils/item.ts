@@ -32,7 +32,7 @@ const familyIconFallbacks: [string, string][] = [
   ['iron_shovel', 'textures/items/iron_shovel'],
   ['iron_chestplate', 'textures/items/iron_chestplate'],
   ['iron', 'textures/items/iron_ingot'],
-  ['lapis', 'textures/blocks/lapis_ore'],
+  ['lapis', 'textures/items/dye_powder_blue'],
   ['quartz', 'textures/items/quartz'],
   ['totem', 'textures/items/totem'],
   ['nether_star', 'textures/items/nether_star'],
@@ -135,7 +135,7 @@ export function generateDisplayName(typeId: string): string {
 
 export function resolveIcon(typeId: string): string {
   if (!typeId || typeId.trim().length === 0) {
-    return 'textures/ui/inventory_icon';
+    return 'textures/ui/icon_recipe_equipment';
   }
 
   const cached = iconCache.get(typeId);

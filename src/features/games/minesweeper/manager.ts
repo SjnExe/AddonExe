@@ -75,13 +75,29 @@ export interface MinesweeperRaceMatch {
   refreshingPlayers: Set<string>;
 }
 
+export interface MinesweeperPlayerStats {
+  wins: number;
+  losses: number;
+  currentStreak: number;
+  bestStreak: number;
+  bestTimes: Partial<Record<MinesweeperDifficulty, number>>;
+}
+
+export interface MinesweeperBoardProgress {
+  safeCleared: number;
+  totalSafe: number;
+  percent: number;
+  flaggedCount: number;
+  remainingMines: number;
+}
+
 export const minesweeperCols = 12;
 export const minesweeperRows = 12;
 export const minesweeperTotalCells = 144;
 
 const uiLatencyCompensationMsPerTap = 250;
 
-const unminedGrassTexture = 'textures/blocks/grass_side_carried';
+const unminedGrassTexture = 'textures/blocks/grass_carried';
 const minedDirtTexture = 'textures/blocks/dirt';
 const flaggedTntTexture = 'textures/blocks/tnt_side';
 const explodedMineTexture = 'textures/ui/WarningGlyph';
@@ -100,6 +116,7 @@ const numberColors: Record<number, string> = {
 const activeGames = new Map<string, MinesweeperGame>();
 const activeRaceMatches = new Map<string, MinesweeperRaceMatch>();
 const playerRaceMap = new Map<string, string>();
+const playerSessionStats = new Map<string, MinesweeperPlayerStats>();
 let minesweeperInitialized = false;
 
 export function initializeMinesweeper(): void {
@@ -304,6 +321,44 @@ export function getMinesweeperRaceMatch(matchId: string): MinesweeperRaceMatch |
 
 export function clearPlayerMinesweeperGame(playerId: string): void {
   activeGames.delete(playerId);
+}
+
+export function getPlayerMinesweeperStats(playerId: string): MinesweeperPlayerStats {
+  let stats = playerSessionStats.get(playerId);
+  if (!isDefined(stats)) {
+    stats = {
+      wins: 0,
+      losses: 0,
+      currentStreak: 0,
+      bestStreak: 0,
+      bestTimes: {},
+    };
+    playerSessionStats.set(playerId, stats);
+  }
+  return stats;
+}
+
+export function getMinesweeperBoardProgress(game: MinesweeperGame): MinesweeperBoardProgress {
+  let safeCleared = 0;
+  let flaggedCount = 0;
+  for (const cell of game.cells) {
+    if (cell.flagged) {
+      flaggedCount++;
+    }
+    if (!cell.hasMine && cell.revealed) {
+      safeCleared++;
+    }
+  }
+  const totalSafe = Math.max(1, game.totalCells - game.totalMines);
+  const percent = Math.min(100, Math.floor((safeCleared / totalSafe) * 100));
+  const remainingMines = Math.max(0, game.totalMines - flaggedCount);
+  return {
+    safeCleared,
+    totalSafe,
+    percent,
+    flaggedCount,
+    remainingMines,
+  };
 }
 
 function triggerRaceOpponentRefresh(match: MinesweeperRaceMatch, targetPlayerId: string): void {
@@ -520,6 +575,10 @@ function handleMineDetonation(
   revealAllMines(game);
   playSound(player, 'random.explode');
 
+  const stats = getPlayerMinesweeperStats(player.id);
+  stats.losses++;
+  stats.currentStreak = 0;
+
   if (isDefined(game.multiplayerMatchId)) {
     forfeitMinesweeperRace(game.multiplayerMatchId, player.id, 'detonated a mine');
   }
@@ -547,10 +606,16 @@ export function handleMinesweeperCellTap(
     if (cell.adjacentMines > 0) {
       const neighbors = getNeighborIndices(cellIndex, game.cols, game.rows);
       const flaggedCount = neighbors.reduce((acc, idx) => acc + (game.cells[idx]?.flagged ? 1 : 0), 0);
-      if (flaggedCount === cell.adjacentMines) {
-        for (const nIdx of neighbors) {
+      const hiddenNeighbors = neighbors.filter((idx) => {
+        const nCell = game.cells[idx];
+        return isDefined(nCell) && !nCell.revealed;
+      });
+      const unflaggedHidden = hiddenNeighbors.filter((idx) => !game.cells[idx]?.flagged);
+
+      if (flaggedCount === cell.adjacentMines && unflaggedHidden.length > 0) {
+        for (const nIdx of unflaggedHidden) {
           const nCell = game.cells[nIdx];
-          if (isDefined(nCell) && !nCell.revealed && !nCell.flagged) {
+          if (isDefined(nCell)) {
             if (nCell.hasMine) {
               return handleMineDetonation(player, game, nIdx, '§cBOOM! A misplaced flag triggered a mine!');
             }
@@ -561,7 +626,21 @@ export function handleMinesweeperCellTap(
           return completeWin(player, game);
         }
         playSound(player, 'random.click');
-        return { status: 'active', message: '§aChord revealed adjacent tiles!' };
+        return { status: 'active', message: '§a⚡ Chord revealed adjacent tiles!' };
+      }
+
+      if (hiddenNeighbors.length === cell.adjacentMines && unflaggedHidden.length > 0) {
+        for (const nIdx of unflaggedHidden) {
+          const nCell = game.cells[nIdx];
+          if (isDefined(nCell)) {
+            nCell.flagged = true;
+          }
+        }
+        playSound(player, 'random.orb');
+        return {
+          status: 'active',
+          message: `§e⚑ Auto-flagged ${unflaggedHidden.length} adjacent mine${unflaggedHidden.length === 1 ? '' : 's'}!`,
+        };
       }
     }
     return { status: 'active' };
@@ -603,6 +682,17 @@ function completeWin(player: mc.Player, game: MinesweeperGame): { status: 'won';
   const netSeconds = calculateNetElapsedSeconds(game);
   game.netElapsedSeconds = netSeconds;
 
+  const stats = getPlayerMinesweeperStats(player.id);
+  stats.wins++;
+  stats.currentStreak++;
+  if (stats.currentStreak > stats.bestStreak) {
+    stats.bestStreak = stats.currentStreak;
+  }
+  const prevBest = stats.bestTimes[game.difficulty];
+  if (!isDefined(prevBest) || netSeconds < prevBest) {
+    stats.bestTimes[game.difficulty] = netSeconds;
+  }
+
   for (const cell of game.cells) {
     if (cell.hasMine) {
       cell.flagged = true;
@@ -640,19 +730,25 @@ function completeWin(player: mc.Player, game: MinesweeperGame): { status: 'won';
 export function getCellVisual(game: MinesweeperGame, cell: MinesweeperCell): { label: string; icon?: string } {
   if (!cell.revealed) {
     if (cell.flagged) {
-      return { label: '§l§e⚑', icon: flaggedTntTexture };
+      if (game.status === 'lost' && !cell.hasMine) {
+        return { label: '§4§r§l§c*', icon: flaggedTntTexture };
+      }
+      if (game.status === 'won') {
+        return { label: '§6§r§l§a⚑', icon: flaggedTntTexture };
+      }
+      return { label: '§6§r§l§e⚑', icon: flaggedTntTexture };
     }
-    return { label: ' ', icon: unminedGrassTexture };
+    return { label: '§a§r ', icon: unminedGrassTexture };
   }
   if (cell.hasMine) {
     const isExploded = game.explodedIndex === cell.index;
-    return { label: isExploded ? '§l§4✸' : '§l§c✸', icon: explodedMineTexture };
+    return { label: isExploded ? '§4§r§l§4*' : '§4§r§l§c*', icon: explodedMineTexture };
   }
   if (cell.adjacentMines === 0) {
-    return { label: ' ', icon: minedDirtTexture };
+    return { label: '§8§r ', icon: minedDirtTexture };
   }
   return {
-    label: numberColors[cell.adjacentMines] ?? String(cell.adjacentMines),
+    label: `§8§r${numberColors[cell.adjacentMines] ?? String(cell.adjacentMines)}`,
     icon: minedDirtTexture,
   };
 }
@@ -661,4 +757,5 @@ export function _clearMinesweeperForTest(): void {
   activeGames.clear();
   activeRaceMatches.clear();
   playerRaceMap.clear();
+  playerSessionStats.clear();
 }

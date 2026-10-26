@@ -81,10 +81,6 @@ mock.module('@minecraft/common', () => ({
   },
 }));
 
-mock.module('virtual:icon-index', () => ({
-  usedIcons: ['textures/ui/color_plus', 'textures/items/diamond'],
-}));
-
 mock.module('virtual:command-index', () => ({
   loadCommands: async () => {
     const glob = new Bun.Glob('src/features/**/commands/*.ts');

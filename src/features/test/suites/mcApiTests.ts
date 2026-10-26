@@ -8,10 +8,10 @@ import { MinecraftDimensionTypes, MinecraftEnchantmentTypes, MinecraftItemTypes 
 
 import { addTest, assert } from '../testRunner.js';
 
-const SUITE_NAME = 'mc_api';
+const suiteName = 'mc_api';
 
 export function registerMcApiTests(): void {
-  addTest(SUITE_NAME, 'World dimensions, ticks, and >30KB sharded dynamic properties work in live engine', () => {
+  addTest(suiteName, 'World dimensions, ticks, and >30KB sharded dynamic properties work in live engine', () => {
     assert.ok(mc.world.getDimension(MinecraftDimensionTypes.Overworld), 'Overworld dimension missing');
     assert.ok(mc.world.getDimension(MinecraftDimensionTypes.Nether), 'Nether dimension missing');
     assert.ok(mc.world.getDimension(MinecraftDimensionTypes.TheEnd), 'The End dimension missing');
@@ -31,7 +31,7 @@ export function registerMcApiTests(): void {
     assert.equal(storage.load(), undefined, 'Storage should be undefined after delete()');
   });
 
-  addTest(SUITE_NAME, 'Pack registries resolve custom entities, kit items, and X-Ray blocks', () => {
+  addTest(suiteName, 'Pack registries resolve custom entities, kit items, and X-Ray blocks', () => {
     if (mc.EntityTypes && typeof mc.EntityTypes.get === 'function') {
       assert.ok(
         mc.EntityTypes.get(floatingTextId as Parameters<typeof mc.EntityTypes.get>[0]),
@@ -56,7 +56,7 @@ export function registerMcApiTests(): void {
     }
   });
 
-  addTest(SUITE_NAME, 'ItemStack serializeItem and deserializeItem roundtrip preserves component metadata', () => {
+  addTest(suiteName, 'ItemStack serializeItem and deserializeItem roundtrip preserves component metadata', () => {
     if (!mc.ItemTypes || typeof mc.ItemTypes.get !== 'function') {
       return;
     }

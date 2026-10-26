@@ -1,27 +1,25 @@
+import path from 'node:path';
+
+import { getVersionContext, parseCliArgs } from './cliUtils.ts';
+
 function getEngineVersion(serverVersion?: string): [number, number, number] {
   const match = serverVersion?.match(/\b(1)\.(\d+)\.(\d+)/);
   if (!match) {
     return [1, 26, 50];
   }
-  const major = Number.parseInt(match[1], 10);
-  const minor = Number.parseInt(match[2], 10);
-  const patch = Number.parseInt(match[3], 10);
+  const major = Number.parseInt(match[1]!, 10);
+  const minor = Number.parseInt(match[2]!, 10);
+  const patch = Number.parseInt(match[3]!, 10);
   return [major, minor, Math.floor(patch / 10) * 10];
 }
 
-import path from 'node:path';
-
-import { getVersionContext, parseCliArgs } from './cli-utils.ts';
-
-const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
-const pkgPath = path.resolve(ROOT_DIR, 'package.json');
-
+const rootDir = path.resolve(import.meta.dirname, '../..');
+const pkgPath = path.resolve(rootDir, 'package.json');
 const cliArgs = parseCliArgs(process.argv.slice(2));
 
-/** Fetches the latest stable version of a package from the npm registry. */
 async function fetchLatestVersion(pkgName: string): Promise<string> {
   try {
-    const localPkg = Bun.file(path.join(ROOT_DIR, 'node_modules', pkgName, 'package.json'));
+    const localPkg = Bun.file(path.join(rootDir, 'node_modules', pkgName, 'package.json'));
     if (await localPkg.exists()) {
       const localData = await localPkg.json();
       if (localData.version) {
@@ -39,14 +37,11 @@ async function fetchLatestVersion(pkgName: string): Promise<string> {
     const data = await response.json();
     return data['dist-tags'].latest || '1.0.0';
   } catch (err: any) {
-    console.warn(
-      `[Prebuild] Failed to fetch version for ${pkgName} from registry: ${err.message}. Defaulting to 1.0.0.`,
-    );
+    console.warn(`[Prebuild] Failed to fetch version for ${pkgName}: ${err.message}. Defaulting to 1.0.0.`);
     return '1.0.0';
   }
 }
 
-/** Resolves the module version from the NPM version string. */
 async function resolveModuleVersion(pkgName: string, npmVersion: string): Promise<string> {
   if (!npmVersion) {
     return '1.0.0';
@@ -55,10 +50,8 @@ async function resolveModuleVersion(pkgName: string, npmVersion: string): Promis
     return 'beta';
   }
   if (npmVersion === 'latest') {
-    const version = await fetchLatestVersion(pkgName);
-    return version;
+    return fetchLatestVersion(pkgName);
   }
-
   const cleanVersion = npmVersion.replace(/^[^\d]*/, '');
   if (cleanVersion.includes('-beta.') && cleanVersion.includes('-stable')) {
     return 'beta';
@@ -68,7 +61,7 @@ async function resolveModuleVersion(pkgName: string, npmVersion: string): Promis
 
 export async function updateManifests(options = cliArgs) {
   const pkg = await Bun.file(pkgPath).json();
-  const { versionStr: finalStr, versionArray: finalParts } = await getVersionContext(ROOT_DIR, {
+  const { versionStr: finalStr, versionArray: finalParts } = await getVersionContext(rootDir, {
     customVersion: options.customVersion,
     isNightly: options.isNightly,
     buildNumber: options.buildNumber,
@@ -77,7 +70,7 @@ export async function updateManifests(options = cliArgs) {
 
   console.log(`[Prebuild] Updating manifests to version ${finalStr} -> [${finalParts.join(', ')}]`);
 
-  const UUIDS = {
+  const uuids = {
     bp: {
       header: '1564bfa3-6796-4b67-826a-03ca1ac2f3c1',
       dataModule: '623bbed8-14c8-45c3-893b-c0492855b668',
@@ -92,51 +85,51 @@ export async function updateManifests(options = cliArgs) {
   const allDeps = { ...pkg.devDependencies, ...pkg.dependencies };
   const modulesToInclude = ['@minecraft/server', '@minecraft/server-ui'];
 
-  const dependencies: any[] = [];
-  const modulePromises = modulesToInclude
-    .filter((mod) => allDeps[mod])
-    .map(async (mod) => {
-      const version = await resolveModuleVersion(mod, allDeps[mod]);
-      return {
+  const resolvedModules = await Promise.all(
+    modulesToInclude
+      .filter((mod) => allDeps[mod])
+      .map(async (mod) => ({
         module_name: mod,
-        version: version,
-      };
-    });
+        version: await resolveModuleVersion(mod, allDeps[mod]),
+      })),
+  );
 
-  const resolvedModules = await Promise.all(modulePromises);
-  dependencies.push(...resolvedModules, {
-    uuid: UUIDS.rp.header,
-    version: finalParts,
-  });
+  const dependencies = [
+    ...resolvedModules,
+    {
+      uuid: uuids.rp.header,
+      version: finalParts,
+    },
+  ];
 
   const minEngineVersion = getEngineVersion(allDeps['@minecraft/server']);
 
   const bpManifest = {
     format_version: 2,
     header: {
-      name: `§l§cAddonExe§6 §2BP§r`,
+      name: '§l§cAddonExe§6 §2BP§r',
       description: `§aThe core behavior pack for AddonExe. Version §uv${finalStr}§r`,
-      uuid: UUIDS.bp.header,
+      uuid: uuids.bp.header,
       version: finalParts,
       min_engine_version: minEngineVersion,
     },
     modules: [
       {
-        description: `Scripting module`,
+        description: 'Scripting module',
         type: 'script',
         language: 'javascript',
-        uuid: UUIDS.bp.scriptModule,
+        uuid: uuids.bp.scriptModule,
         version: finalParts,
         entry: 'scripts/main.js',
       },
       {
-        description: `Data module`,
+        description: 'Data module',
         type: 'data',
-        uuid: UUIDS.bp.dataModule,
+        uuid: uuids.bp.dataModule,
         version: finalParts,
       },
     ],
-    dependencies: dependencies,
+    dependencies,
     metadata: {
       authors: ['SjnExe'],
       license: 'MIT',
@@ -147,23 +140,23 @@ export async function updateManifests(options = cliArgs) {
   const rpManifest = {
     format_version: 2,
     header: {
-      name: `§l§cAddonExe§6 §9RP§r`,
+      name: '§l§cAddonExe§6 §9RP§r',
       description: `§bThe core resource pack for AddonExe. Version §uv${finalStr}§r`,
-      uuid: UUIDS.rp.header,
+      uuid: uuids.rp.header,
       version: finalParts,
       min_engine_version: minEngineVersion,
     },
     modules: [
       {
-        description: `Resources`,
+        description: 'Resources',
         type: 'resources',
-        uuid: UUIDS.rp.module,
+        uuid: uuids.rp.module,
         version: finalParts,
       },
     ],
     dependencies: [
       {
-        uuid: UUIDS.bp.header,
+        uuid: uuids.bp.header,
         version: finalParts,
       },
     ],
@@ -174,8 +167,8 @@ export async function updateManifests(options = cliArgs) {
     },
   };
 
-  await Bun.write(path.join(ROOT_DIR, 'packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 4));
-  await Bun.write(path.join(ROOT_DIR, 'packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 4));
+  await Bun.write(path.join(rootDir, 'packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 2) + '\n');
+  await Bun.write(path.join(rootDir, 'packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 2) + '\n');
 }
 
 if (import.meta.main) {

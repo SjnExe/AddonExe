@@ -1,5 +1,5 @@
-const MIN_TOKENS = 50;
-const MIN_LINES = 5;
+const minTokens = 50;
+const minLines = 5;
 
 interface WindowHit {
   file: string;
@@ -58,22 +58,22 @@ export async function checkDuplication(): Promise<void> {
 
   for (const { file, hashes, lines } of fileData) {
     totalTokens += hashes.length;
-    if (hashes.length < MIN_TOKENS) {
+    if (hashes.length < minTokens) {
       continue;
     }
 
     let lastReportedLine = -1;
-    const limit = hashes.length - MIN_TOKENS;
-    const buf = new BigUint64Array(MIN_TOKENS);
+    const limit = hashes.length - minTokens;
+    const buf = new BigUint64Array(minTokens);
 
     for (let i = 0; i <= limit; i++) {
       const startLine = lines[i]!;
-      const endLine = lines[i + MIN_TOKENS - 1]!;
-      if (endLine - startLine + 1 < MIN_LINES) {
+      const endLine = lines[i + minTokens - 1]!;
+      if (endLine - startLine + 1 < minLines) {
         continue;
       }
 
-      for (let k = 0; k < MIN_TOKENS; k++) {
+      for (let k = 0; k < minTokens; k++) {
         buf[k] = hashes[i + k]!;
       }
       const windowHash = BigInt(Bun.hash.wyhash(new Uint8Array(buf.buffer)));
@@ -81,7 +81,7 @@ export async function checkDuplication(): Promise<void> {
 
       if (existing) {
         if (
-          (existing.file !== file || Math.abs(existing.startLine - startLine) > MIN_LINES) &&
+          (existing.file !== file || Math.abs(existing.startLine - startLine) > minLines) &&
           startLine > lastReportedLine
         ) {
           duplicates.push({

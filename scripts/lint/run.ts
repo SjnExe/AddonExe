@@ -1,7 +1,7 @@
 import { $ } from 'bun';
 
 import { validateIcons } from './icons.ts';
-import { validateMinecraftRules } from './minecraft-rules.ts';
+import { validateMinecraftRules } from './minecraftRules.ts';
 import { validateSchemas } from './schemas.ts';
 
 interface TaskResult {

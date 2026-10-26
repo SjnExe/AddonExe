@@ -23,7 +23,7 @@ export function _resetMovementCheckForTest() {
 }
 
 // Slippery blocks that allow faster movement
-const ICE_BLOCKS = new Set<string>([
+const iceBlocks = new Set<string>([
   MinecraftBlockTypes.Ice,
   MinecraftBlockTypes.PackedIce,
   MinecraftBlockTypes.BlueIce,
@@ -153,8 +153,8 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
       });
 
       if (
-        (isDefined(blockBelow) && ICE_BLOCKS.has(blockBelow.typeId)) ||
-        (isDefined(blockBelow2) && ICE_BLOCKS.has(blockBelow2.typeId))
+        (isDefined(blockBelow) && iceBlocks.has(blockBelow.typeId)) ||
+        (isDefined(blockBelow2) && iceBlocks.has(blockBelow2.typeId))
       ) {
         limit = config.maxSpeedIce;
       }
@@ -223,9 +223,9 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   }
 
   // Threshold for flagging
-  const FLAGGING_THRESHOLD = 20;
+  const flaggingThreshold = 20;
 
-  if (state.violationLevel > FLAGGING_THRESHOLD) {
+  if (state.violationLevel > flaggingThreshold) {
     flagManager.flag(
       player,
       'movementCheck',

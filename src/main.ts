@@ -17,7 +17,7 @@ import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { loadCommands } from 'virtual:command-index';
 
-const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1'; // Current Addon Version
+const addonVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1'; // Current Addon Version
 
 // Load Commands immediately to register slash commands during startup
 loadCommands();
@@ -27,7 +27,7 @@ export async function initializeAddon() {
   infoLog('[AddonExe] Initializing...');
 
   // Version Check & Migration Flag
-  const newVersionStr = VERSION;
+  const newVersionStr = addonVersion;
   const lastVersionStr =
     (mc.world.getDynamicProperty('exe:version') as string | undefined) ??
     (mc.world.getDynamicProperty('exe:lastVersion') as string | undefined);

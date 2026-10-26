@@ -49,7 +49,7 @@ export function createKit(kitName: string, options: KitOptions = {}): ActionResu
     cooldown = 3600,
     permission = 'ui.panel.member', // Default to Member
     price = 0,
-    icon = 'textures/ui/inventory_icon',
+    icon = 'textures/ui/icon_recipe_equipment',
     description = 'A new custom kit.',
   } = options;
 

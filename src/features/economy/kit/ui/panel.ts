@@ -33,7 +33,7 @@ export async function showKitClaimPanel(player: mc.Player, page: number = 1): Pr
         parts.push(`§6${formatCurrency(kit.price)}`);
       }
       parts.push(kit.cooldown > 0 ? `§cWait: ${formatCooldown(kit.cooldown)}` : '§2Ready');
-      formBuilder.button(parts.join('\n'), kit.icon || 'textures/ui/inventory_icon', () => {
+      formBuilder.button(parts.join('\n'), kit.icon || 'textures/ui/icon_recipe_equipment', () => {
         const result = kitsManager.giveKit(player, kit.name);
         player.sendMessage(result.success ? `§a${result.message}` : `§c${result.message}`);
       });
@@ -100,7 +100,7 @@ export async function showKitManagementPanel(player: mc.Player, page: number = 1
       if (kit) {
         formBuilder.button(
           `${kitName}\n${kit.enabled ? '§2[Enabled]' : '§4[Disabled]'}`,
-          'textures/ui/inventory_icon',
+          'textures/ui/icon_recipe_equipment',
           async () => {
             await showKitActionMenu(player, kitName);
           },
@@ -126,7 +126,7 @@ export async function showKitActionMenu(player: mc.Player, kitName: string): Pro
     .button('Edit Settings', 'textures/ui/icon_setting', async () => {
       await showKitSettingsPanel(player, kitName);
     })
-    .button('Edit Items', 'textures/ui/inventory_icon', async () => {
+    .button('Edit Items', 'textures/ui/icon_recipe_equipment', async () => {
       await showKitItemsPanel(player, kitName, 1);
     })
     .button('§4Delete Kit', 'textures/ui/cancel', async () => {
@@ -221,7 +221,7 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
       }
       await showKitItemsPanel(player, kitName, page);
     })
-    .button('§l§6+ Add Item From Hand', 'textures/ui/inventory_icon', async () => {
+    .button('§l§6+ Add Item From Hand', 'textures/ui/icon_recipe_equipment', async () => {
       const result = kitItemsManager.addItemFromHandToKit(kitName, player);
       player.sendMessage(result.message);
       await showKitItemsPanel(player, kitName, page);
@@ -237,7 +237,7 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
       ({ item, index }, formBuilder) => {
         formBuilder.button(
           `${index + 1}. ${item.typeId.replace(/^minecraft:/, '')} x${item.amount}`,
-          'textures/items/item_frame',
+          'textures/items/book_normal',
           async () => {
             const manageForm = new ActionFormBuilder()
               .title('Manage Item')

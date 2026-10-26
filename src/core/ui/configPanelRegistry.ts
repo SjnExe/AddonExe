@@ -484,7 +484,7 @@ export const configPanelSchema: ConfigCategory[] = [
   {
     id: 'economyGeneralSettings',
     title: 'Economy Settings',
-    icon: 'textures/ui/Scaffolding',
+    icon: 'textures/blocks/scaffolding_top',
     configSource: 'economy',
     category: 'Economy',
     settings: [

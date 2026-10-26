@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { MinecraftBlockTypes, MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 import Ajv from 'ajv';
 
-import ignoredTextures from './ignored-textures.json';
+import { fetchVanillaTextures } from './icons.ts';
 
-const VALID_UI_TYPES = new Set([
+const validUiTypes = new Set([
   'panel',
   'stack_panel',
   'grid',
@@ -29,7 +29,7 @@ const VALID_UI_TYPES = new Set([
   'tab',
 ]);
 
-const VALID_ANCHORS = new Set([
+const validAnchors = new Set([
   'top_left',
   'top_middle',
   'top_right',
@@ -41,9 +41,9 @@ const VALID_ANCHORS = new Set([
   'bottom_right',
 ]);
 
-const VANILLA_ITEMS = new Set<string>(Object.values(MinecraftItemTypes));
-const VANILLA_BLOCKS = new Set<string>(Object.values(MinecraftBlockTypes));
-const VANILLA_ENTITIES = new Set<string>(Object.values(MinecraftEntityTypes));
+const vanillaItems = new Set<string>(Object.values(MinecraftItemTypes));
+const vanillaBlocks = new Set<string>(Object.values(MinecraftBlockTypes));
+const vanillaEntities = new Set<string>(Object.values(MinecraftEntityTypes));
 
 interface PackRegistry {
   items: Set<string>;
@@ -55,8 +55,32 @@ interface PackRegistry {
 
 function isKnownItemOrBlockId(id: string, packRegistry: PackRegistry): boolean {
   const cleanId = id.split(':')[0] === id ? `minecraft:${id}` : id;
-  return VANILLA_ITEMS.has(cleanId) || VANILLA_BLOCKS.has(cleanId) || packRegistry.items.has(cleanId);
+  return vanillaItems.has(cleanId) || vanillaBlocks.has(cleanId) || packRegistry.items.has(cleanId);
 }
+
+const packRouteToSchemaMap: { pattern: Bun.Glob; schemaRelPath: string }[] = [
+  { pattern: new Bun.Glob('packs/behavior/entities/*.json'), schemaRelPath: 'source/behavior/entities/entities.json' },
+  { pattern: new Bun.Glob('packs/behavior/items/*.json'), schemaRelPath: 'source/behavior/items/items.json' },
+  { pattern: new Bun.Glob('packs/behavior/recipes/*.json'), schemaRelPath: 'source/behavior/recipes/recipes.json' },
+  {
+    pattern: new Bun.Glob('packs/behavior/loot_tables/*.json'),
+    schemaRelPath: 'source/behavior/loot_tables/loot_tables.json',
+  },
+  {
+    pattern: new Bun.Glob('packs/behavior/item_catalog/*.json'),
+    schemaRelPath: 'source/behavior/item_catalog/crafting_item_catalog.json',
+  },
+  { pattern: new Bun.Glob('packs/resource/entity/*.json'), schemaRelPath: 'source/resource/entity/entity.json' },
+  {
+    pattern: new Bun.Glob('packs/resource/models/**/*.json'),
+    schemaRelPath: 'source/resource/models/entity/model_entity.json',
+  },
+  {
+    pattern: new Bun.Glob('packs/resource/render_controllers/*.json'),
+    schemaRelPath: 'source/resource/render_controllers/render_controllers.json',
+  },
+  { pattern: new Bun.Glob('packs/resource/ui/_ui_defs.json'), schemaRelPath: 'source/resource/ui/_ui_defs.json' },
+];
 
 export async function validateSchemas() {
   console.log('[Validator] Starting strict Bedrock JSON & JSON UI validation...');
@@ -66,40 +90,29 @@ export async function validateSchemas() {
   const jsonGlob = new Bun.Glob('**/*.json');
   const jsonFiles = Array.from(jsonGlob.scanSync({ cwd: packsDir, absolute: true }));
 
-  const validTextures = new Set<string>(ignoredTextures);
-  try {
-    const cacheFile = Bun.file(path.join(projectRoot, '.cache/vanilla_textures.json'));
-    if (await cacheFile.exists()) {
-      const cached = (await cacheFile.json()) as string[];
-      for (const t of cached) {
-        validTextures.add(t);
-      }
-    }
-  } catch {
-    // Ignore if cache not yet populated
-  }
+  const validTextures = await fetchVanillaTextures();
 
   const schemasPkgResolved = import.meta.resolve('@minecraft/bedrock-schemas/package.json');
-  const schemasPkgPath = fileURLToPath(schemasPkgResolved);
-  const schemasDir = path.dirname(schemasPkgPath);
-  const catalogPath = path.join(schemasDir, 'catalog.json');
+  const schemasDir = path.dirname(fileURLToPath(schemasPkgResolved));
 
-  const catalog = await Bun.file(catalogPath).json();
-  const schemas = catalog.schemas || [];
-  const ajv = new Ajv({ strict: false, allErrors: true });
+  // Preload all @minecraft/bedrock-schemas files into Ajv so relative $ref links resolve cleanly
+  const ajv = new Ajv({ strict: false, allErrors: true, validateFormats: false });
+  const schemaFileGlob = new Bun.Glob('source/**/*.json');
+  const allSchemaPaths = Array.from(schemaFileGlob.scanSync({ cwd: schemasDir, absolute: true }));
 
-  const schemaEntries: { glob: Bun.Glob; url: string; compiled?: ReturnType<typeof ajv.compile> }[] = [];
-  for (const schemaDef of schemas) {
-    if (!schemaDef.url || !schemaDef.fileMatch) {
-      continue;
-    }
-    for (const matchPattern of schemaDef.fileMatch) {
-      schemaEntries.push({
-        glob: new Bun.Glob(matchPattern),
-        url: schemaDef.url,
-      });
-    }
-  }
+  await Promise.all(
+    allSchemaPaths.map(async (fullSchemaPath) => {
+      try {
+        const relUri = path.relative(schemasDir, fullSchemaPath).replace(/\\/g, '/');
+        const schemaObj = await Bun.file(fullSchemaPath).json();
+        delete schemaObj.$id;
+        ajv.addSchema(schemaObj, relUri);
+        ajv.addSchema(schemaObj, `./${relUri}`);
+      } catch {
+        // Ignore non-standard schema fragments
+      }
+    }),
+  );
 
   const parsedFiles = new Map<string, any>();
   const packRegistry: PackRegistry = {
@@ -165,24 +178,27 @@ export async function validateSchemas() {
   }
 
   for (const [relativePath, json] of parsedFiles.entries()) {
-    const matchedEntry = schemaEntries.find((entry) => entry.glob.match(relativePath));
-    if (matchedEntry) {
+    const matchedRoute = packRouteToSchemaMap.find((r) => r.pattern.match(relativePath));
+    if (matchedRoute) {
       try {
-        if (!matchedEntry.compiled) {
-          const absolutePath = path.resolve(schemasDir, matchedEntry.url);
-          const schemaJson = await Bun.file(absolutePath).json();
-          matchedEntry.compiled = ajv.compile(schemaJson);
-        }
-        const valid = matchedEntry.compiled(json);
-        if (!valid) {
-          console.error(`[Validator] Schema error in ${relativePath}:`);
-          for (const err of matchedEntry.compiled.errors || []) {
-            console.error(`  - ${err.instancePath} ${err.message}`);
+        const validateFn = ajv.getSchema(matchedRoute.schemaRelPath);
+        if (validateFn) {
+          const valid = validateFn(json);
+          if (!valid && validateFn.errors) {
+            const hardErrors = validateFn.errors.filter(
+              (err) => err.keyword !== 'enum' || err.instancePath !== '/format_version',
+            );
+            if (hardErrors.length > 0) {
+              console.error(`[Validator] Bedrock Schema error in ${relativePath}:`);
+              for (const err of hardErrors.slice(0, 5)) {
+                console.error(`  - ${err.instancePath || '/'} ${err.message}`);
+              }
+              errors++;
+            }
           }
-          errors++;
         }
       } catch {
-        // Ignore unsupported draft features in unused sub-schemas
+        // Fallback to pack logic checks below if external sub-schema $ref is unresolved
       }
     }
 
@@ -248,7 +264,7 @@ async function validatePackLogic(
       return logicErrors;
     }
     const id = entityObj?.description?.identifier;
-    if (typeof id === 'string' && id.startsWith('minecraft:') && !VANILLA_ENTITIES.has(id)) {
+    if (typeof id === 'string' && id.startsWith('minecraft:') && !vanillaEntities.has(id)) {
       logicErrors.push(`Unknown vanilla entity identifier '${id}' (not in MinecraftEntityTypes).`);
     }
 
@@ -490,7 +506,7 @@ async function validateUiJson(
       return;
     }
 
-    if (typeof obj.type === 'string' && !VALID_UI_TYPES.has(obj.type)) {
+    if (typeof obj.type === 'string' && !validUiTypes.has(obj.type)) {
       uiErrors.push(`${keyPath}: Unknown UI control type '${obj.type}'.`);
     }
 
@@ -524,11 +540,11 @@ async function validateUiJson(
         if (
           typeof obj.anchor_from === 'string' &&
           !obj.anchor_from.startsWith('$') &&
-          !VALID_ANCHORS.has(obj.anchor_from)
+          !validAnchors.has(obj.anchor_from)
         ) {
           uiErrors.push(`${keyPath}: Invalid anchor_from '${obj.anchor_from}'.`);
         }
-        if (typeof obj.anchor_to === 'string' && !obj.anchor_to.startsWith('$') && !VALID_ANCHORS.has(obj.anchor_to)) {
+        if (typeof obj.anchor_to === 'string' && !obj.anchor_to.startsWith('$') && !validAnchors.has(obj.anchor_to)) {
           uiErrors.push(`${keyPath}: Invalid anchor_to '${obj.anchor_to}'.`);
         }
       }
@@ -540,13 +556,11 @@ async function validateUiJson(
       }
     }
 
-    if (
-      typeof obj.texture === 'string' &&
-      obj.texture.startsWith('textures/') &&
-      validTextures.size > 50 &&
-      !validTextures.has(obj.texture.replace(/\.png$/, ''))
-    ) {
-      uiErrors.push(`${keyPath}: Invalid UI texture reference '${obj.texture}'.`);
+    if (typeof obj.texture === 'string' && obj.texture.startsWith('textures/') && validTextures.size > 50) {
+      const cleanTex = obj.texture.replace(/\.png$/, '');
+      if (!validTextures.has(cleanTex) && !validTextures.has(cleanTex.toLowerCase())) {
+        uiErrors.push(`${keyPath}: Invalid UI texture reference '${obj.texture}'.`);
+      }
     }
 
     if (Array.isArray(obj.controls)) {

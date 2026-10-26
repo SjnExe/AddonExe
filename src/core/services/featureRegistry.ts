@@ -11,7 +11,7 @@ export interface RawFeatureDef {
 }
 
 // The raw list of features
-export const RAW_FEATURES: RawFeatureDef[] = [
+export const rawFeatures: RawFeatureDef[] = [
   {
     id: 'ac',
     name: 'Anti-Cheat',
@@ -80,7 +80,7 @@ export const RAW_FEATURES: RawFeatureDef[] = [
   },
 ];
 
-RAW_FEATURES.push(
+rawFeatures.push(
   {
     id: 'game',
     name: 'Games',
@@ -108,7 +108,7 @@ RAW_FEATURES.push(
 );
 
 if (typeof __IS_NIGHTLY__ !== 'undefined' && __IS_NIGHTLY__) {
-  RAW_FEATURES.push({
+  rawFeatures.push({
     id: 'test',
     name: 'Testing Framework',
     dependencies: [],
@@ -124,7 +124,7 @@ export interface ProcessedFeature {
 }
 
 function processFeatures(): ProcessedFeature[] {
-  const enabledFeatures = RAW_FEATURES;
+  const enabledFeatures = rawFeatures;
 
   const featureMap = new Map<string, RawFeatureDef>();
   for (const f of enabledFeatures) {
