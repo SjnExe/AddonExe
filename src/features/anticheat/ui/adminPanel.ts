@@ -29,7 +29,7 @@ export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<voi
       },
     )
     .button('§l§bWorld Border Manager\n§r§7Overworld, Nether & End', 'textures/blocks/beacon', async () => {
-      const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
+      const { showWorldBorderAdminPanel } = await import('@features/essentials/worldBorder/ui/panel.js');
       await showWorldBorderAdminPanel(player);
     });
 

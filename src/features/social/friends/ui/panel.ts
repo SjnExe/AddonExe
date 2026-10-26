@@ -4,7 +4,7 @@ import { getOrCreatePlayer, getPlayer, getPlayerNameById, loadPlayerData } from 
 import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as friendManager from '@features/social/friends/manager.js';
-import * as tpaManager from '@features/teleport/tpaManager.js';
+import * as tpaManager from '@features/teleport/tpa/manager.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';

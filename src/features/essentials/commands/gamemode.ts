@@ -3,7 +3,7 @@ import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { canTarget } from '@core/permissions/rankManager.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { handleGameModeInventorySwap } from '@features/moderation/staffInventoryManager.js';
+import { handleGameModeInventorySwap } from '@features/moderation/staffInv/manager.js';
 import * as mc from '@minecraft/server';
 
 const gamemodes: Record<string, mc.GameMode> = {

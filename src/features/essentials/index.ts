@@ -1,5 +1,5 @@
-import { initialize as initializeFloatingText } from '@features/essentials/floatingTextManager.js';
-import { initializeWorldBorder } from '@features/essentials/worldBorderManager.js';
+import { initialize as initializeFloatingText } from '@features/essentials/floatingText/manager.js';
+import { initializeWorldBorder } from '@features/essentials/worldBorder/manager.js';
 
 export async function initialize(_isMigration: boolean) {
   initializeWorldBorder();

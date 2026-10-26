@@ -5,7 +5,7 @@ import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
 import { rawLog } from '@core/utils/logger.js';
-import { addChatLog } from '@features/moderation/chatLogManager.js';
+import { addChatLog } from '@features/moderation/chatLog.js';
 import {
   isStaffChatEnabled,
   sendStaffChatMessage,

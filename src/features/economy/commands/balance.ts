@@ -9,7 +9,7 @@ import {
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { getLeaderboard } from '@features/economy/leaderboardManager.js';
+import { getLeaderboard } from '@features/economy/leaderboard.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

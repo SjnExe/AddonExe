@@ -7,7 +7,7 @@ import { formatCooldown, formatCurrency, playSound } from '@core/utils/index.js'
 import { errorLog } from '@core/utils/logger.js';
 import * as messaging from '@core/utils/messaging.js';
 import * as teleportLogicModule from '@core/utils/teleportLogic.js';
-import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import * as mc from '@minecraft/server';
 
 interface BackConfig {

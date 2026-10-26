@@ -12,7 +12,7 @@ import {
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { errorLog, infoLog } from '@core/utils/logger.js';
-import { processBountyAndSteal, resolveKiller } from '@features/essentials/combatManager.js';
+import { processBountyAndSteal, resolveKiller } from '@features/essentials/combat/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';

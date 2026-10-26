@@ -7,7 +7,7 @@ import { showPanel } from '@core/ui/uiManager.js';
 import { frozenTag } from '@core/utils/constants.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
-import { getBounty } from '@features/economy/bountyManager.js';
+import { getBounty } from '@features/economy/bounty/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -164,14 +164,14 @@ export async function showPlayerActionsPanel(
   });
 
   form.button('Place Bounty', 'textures/items/netherite_sword', async () => {
-    const { showBountyPlayer } = await import('@features/economy/ui/bountyPanel.js');
+    const { showBountyPlayer } = await import('@features/economy/bounty/ui/panel.js');
     await showBountyPlayer(player, { targetPlayerId });
   });
 
   const activeBounty = getBounty(targetPlayerId);
   if (isDefined(activeBounty) && activeBounty.amount > 0) {
     form.button(`Pay Off Bounty (${formatCurrency(activeBounty.amount)})`, 'textures/items/emerald', async () => {
-      const { showRemovePlayerBounty } = await import('@features/economy/ui/bountyPanel.js');
+      const { showRemovePlayerBounty } = await import('@features/economy/bounty/ui/panel.js');
       await showRemovePlayerBounty(player, { targetPlayerId });
     });
   }

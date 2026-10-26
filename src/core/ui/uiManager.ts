@@ -192,7 +192,7 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
     }
 
     if (panelId === 'bountyListPanel') {
-      const { showBountyListPanel } = await import('@features/economy/ui/bountyPanel.js');
+      const { showBountyListPanel } = await import('@features/economy/bounty/ui/panel.js');
       await showBountyListPanel(player, _context);
       return;
     }
@@ -204,13 +204,13 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
     }
 
     if (panelId === 'addWorldProtectionPanel') {
-      const { showAddWorldProtectionPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
+      const { showAddWorldProtectionPanel } = await import('@features/essentials/protection/ui/panel.js');
       await showAddWorldProtectionPanel(player, _context);
       return;
     }
 
     if (panelId === 'editWorldProtectionPanel') {
-      const { showEditWorldProtectionPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
+      const { showEditWorldProtectionPanel } = await import('@features/essentials/protection/ui/panel.js');
       await showEditWorldProtectionPanel(player, _context);
       return;
     }

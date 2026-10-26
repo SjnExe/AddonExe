@@ -10,7 +10,7 @@ import {
 } from '@core/data/playerDataManager.js';
 import { debugLog, infoLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
-import { initializeLeaderboard } from '@features/economy/leaderboardManager.js';
+import { initializeLeaderboard } from '@features/economy/leaderboard.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

@@ -6,7 +6,7 @@ import { formatLocation, formatString } from '@core/utils/index.js';
 import { debugLog, infoLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getKit, giveKitItems } from '@features/economy/kit/manager.js';
-import { handleCombatPlayerJoin } from '@features/essentials/combatManager.js';
+import { handleCombatPlayerJoin } from '@features/essentials/combat/manager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEffectTypes } from '@minecraft/vanilla-data';

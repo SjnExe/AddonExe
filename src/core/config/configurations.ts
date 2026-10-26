@@ -1,11 +1,11 @@
 import createConfigManager, { ConfigManager } from '@core/config/configManagerFactory.js';
 import { type AnticheatConfig, anticheatConfig } from '@features/anticheat/config.js';
-import { xrayConfig } from '@features/anticheat/xrayConfig.js';
+import { xrayConfig } from '@features/anticheat/xray/config.js';
 import { auctionHouseConfig } from '@features/economy/auction/config.js';
 import { economyConfig } from '@features/economy/config.js';
 import { dailyRewardsConfig } from '@features/economy/daily/config.js';
 import { shopConfig } from '@features/economy/shop/config.js';
-import { type WorldProtectionConfig, worldProtectionConfig } from '@features/essentials/config.js';
+import { type WorldProtectionConfig, worldProtectionConfig } from '@features/essentials/protection/config.js';
 import { type GamesConfig, gamesConfig } from '@features/games/config.js';
 import { type WordleConfig, wordleConfig } from '@features/games/wordle/config.js';
 import ranksConfig from '@features/ranks/config.js';

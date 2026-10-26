@@ -1,4 +1,4 @@
-import { setLastHit } from '@features/essentials/combatManager.js';
+import { setLastHit } from '@features/essentials/combat/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 

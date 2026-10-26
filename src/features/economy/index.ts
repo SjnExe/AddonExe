@@ -1,7 +1,7 @@
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { loadBounties } from '@features/economy/bountyManager.js';
-import { getLeaderboard } from '@features/economy/leaderboardManager.js';
-import { initializePlaytimeRewards } from '@features/economy/playtimeRewardsManager.js';
+import { loadBounties } from '@features/economy/bounty/manager.js';
+import { getLeaderboard } from '@features/economy/leaderboard.js';
+import { initializePlaytimeRewards } from '@features/economy/playtime/manager.js';
 
 export async function initialize(_isMigration: boolean) {
   loadBounties();
