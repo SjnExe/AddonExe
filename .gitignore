@@ -20,3 +20,4 @@ validation_report/
 # Caches & State
 .cache/
 *.tsbuildinfo
+.helix/
