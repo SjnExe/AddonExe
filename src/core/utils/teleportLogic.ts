@@ -3,7 +3,7 @@ import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { errorLog } from '@core/utils/logger.js';
 import { playSound } from '@core/utils/sound.js';
 import { getCountdownColor } from '@core/utils/ui.js';
-import { getRemainingCombatCooldown } from '@features/essentials/combatManager.js';
+import { getRemainingCombatCooldown } from '@features/essentials/combat/manager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';

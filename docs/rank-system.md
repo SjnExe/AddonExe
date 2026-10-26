@@ -1,6 +1,6 @@
 # Rank and Permission System
 
-AddonExe uses a priority-based Rank and Permission Engine defined in `src/features/ranks/ranksConfig.ts` and managed in-game via `/rank`, `/listranks`, or `/panel`.
+AddonExe uses a priority-based Rank and Permission Engine defined in `src/features/ranks/config.ts` and managed in-game via `/rank`, `/listranks`, or `/panel`.
 
 ---
 

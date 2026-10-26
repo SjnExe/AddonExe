@@ -7,7 +7,7 @@ import { formatCooldown, playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
-import { initializeSpawnProtection } from '@features/essentials/spawnProtection.js';
+import { initializeSpawnProtection } from '@features/essentials/protection/spawnProtection.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 

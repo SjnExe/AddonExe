@@ -6,7 +6,7 @@ import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission, invalidatePlayerPermissionCache } from '@core/permissions/permissionEngine.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
-import { updateAndSaveLeaderboard } from '@features/economy/leaderboardManager.js';
+import { updateAndSaveLeaderboard } from '@features/economy/leaderboard.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 

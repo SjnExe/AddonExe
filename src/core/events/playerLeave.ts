@@ -3,7 +3,7 @@ import * as playerCache from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { formatString } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
-import { handleCombatPlayerLeave } from '@features/essentials/combatManager.js';
+import { handleCombatPlayerLeave } from '@features/essentials/combat/manager.js';
 import * as mc from '@minecraft/server';
 
 export const eventName = 'playerLeave';

@@ -12,7 +12,7 @@ const { mockStorageLoad, mockStorageSave } = {
 
 import * as configManager from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
-import * as leaderboardManager from '@features/economy/leaderboardManager.js';
+import * as leaderboardManager from '@features/economy/leaderboard.js';
 
 const {
   cleanupPlayerDataManager,

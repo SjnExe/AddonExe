@@ -5,7 +5,7 @@ import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { formatCooldown } from '@core/utils/time.js';
-import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes } from '@minecraft/vanilla-data';

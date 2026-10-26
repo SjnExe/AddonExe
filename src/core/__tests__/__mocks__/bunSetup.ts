@@ -116,7 +116,7 @@ beforeEach(async () => {
     const { invalidateAllRankCaches } = await import('@core/permissions/permissionEngine.js');
     const { cleanupTimers } = await import('@core/utils/timerManager.js');
     const { clearCategorizedCache } = await import('@features/essentials/commands/help.js');
-    const { _clearBountiesForTest } = await import('@features/economy/bountyManager.js');
+    const { _clearBountiesForTest } = await import('@features/economy/bounty/manager.js');
 
     clearPlayerCache();
     cleanupPlayerDataManager();

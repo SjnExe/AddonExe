@@ -196,7 +196,7 @@ export function initializeDefaultMenuItems(): void {
     featureId: 'eco.playtime',
     order: 45,
     action: async (p) => {
-      const { showPlaytimeRewardsPanel } = await import('@features/economy/commands/playtime.js');
+      const { showPlaytimeRewardsPanel } = await import('@features/economy/playtime/commands/playtime.js');
       await showPlaytimeRewardsPanel(p);
     },
   });
@@ -487,7 +487,7 @@ export function initializeDefaultMenuItems(): void {
     hub: 'profile',
     order: 40,
     action: async (p) => {
-      const { showTpaSettingsPanel } = await import('@features/teleport/ui/panel.js');
+      const { showTpaSettingsPanel } = await import('@features/teleport/tpa/ui/panel.js');
       await showTpaSettingsPanel(p);
     },
   });
@@ -583,7 +583,7 @@ export function initializeDefaultMenuItems(): void {
     permissionNode: 'ui.panel.mod',
     order: 28,
     action: async (p) => {
-      const { toggleStaffInventory } = await import('@features/moderation/staffInventoryManager.js');
+      const { toggleStaffInventory } = await import('@features/moderation/staffInv/manager.js');
       toggleStaffInventory(p);
     },
   });
@@ -597,7 +597,7 @@ export function initializeDefaultMenuItems(): void {
     permissionNode: 'ui.panel.admin',
     order: 30,
     action: async (p) => {
-      const { showXrayOresPanel } = await import('@features/anticheat/ui/xrayPanel.js');
+      const { showXrayOresPanel } = await import('@features/anticheat/xray/ui/panel.js');
       await showXrayOresPanel(p);
     },
   });
@@ -655,7 +655,7 @@ export function initializeDefaultMenuItems(): void {
     permissionNode: 'ui.panel.admin',
     order: 20,
     action: async (p) => {
-      const { showWorldProtectionListPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
+      const { showWorldProtectionListPanel } = await import('@features/essentials/protection/ui/panel.js');
       await showWorldProtectionListPanel(p);
     },
   });
@@ -669,7 +669,7 @@ export function initializeDefaultMenuItems(): void {
     permissionNode: 'ui.panel.admin',
     order: 30,
     action: async (p) => {
-      const { showWarpsAdminPanel } = await import('@features/teleport/ui/warpAdminPanel.js');
+      const { showWarpsAdminPanel } = await import('@features/teleport/warp/ui/adminPanel.js');
       await showWarpsAdminPanel(p);
     },
   });
@@ -683,7 +683,7 @@ export function initializeDefaultMenuItems(): void {
     permissionNode: 'ui.panel.admin',
     order: 40,
     action: async (p) => {
-      const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
+      const { showWorldBorderAdminPanel } = await import('@features/essentials/worldBorder/ui/panel.js');
       await showWorldBorderAdminPanel(p);
     },
   });

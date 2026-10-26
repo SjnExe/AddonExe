@@ -91,7 +91,7 @@ export function getSystemRegistry(): SystemDefinition[] {
       title: 'X-Ray Ores',
       icon: 'textures/blocks/diamond_ore',
       showFunction: async (player) => {
-        const { showXrayOresPanel } = await import('@features/anticheat/ui/xrayPanel.js');
+        const { showXrayOresPanel } = await import('@features/anticheat/xray/ui/panel.js');
         await showXrayOresPanel(player);
       },
       category: 'Moderation & Rules',
@@ -102,7 +102,7 @@ export function getSystemRegistry(): SystemDefinition[] {
       title: 'World Protection System',
       icon: 'textures/ui/icon_recipe_nature',
       showFunction: async (player) => {
-        const { showWorldProtectionListPanel } = await import('@features/essentials/ui/worldProtectionPanel.js');
+        const { showWorldProtectionListPanel } = await import('@features/essentials/protection/ui/panel.js');
         await showWorldProtectionListPanel(player);
       },
       category: 'Teleportation & World',
@@ -113,7 +113,7 @@ export function getSystemRegistry(): SystemDefinition[] {
       title: 'World Border Manager',
       icon: 'textures/blocks/beacon',
       showFunction: async (player) => {
-        const { showWorldBorderAdminPanel } = await import('@features/essentials/ui/worldBorderPanel.js');
+        const { showWorldBorderAdminPanel } = await import('@features/essentials/worldBorder/ui/panel.js');
         await showWorldBorderAdminPanel(player);
       },
       category: 'Teleportation & World',
@@ -124,7 +124,7 @@ export function getSystemRegistry(): SystemDefinition[] {
       title: 'Warps Manager',
       icon: 'textures/blocks/portal',
       showFunction: async (player) => {
-        const { showWarpsAdminPanel } = await import('@features/teleport/ui/warpAdminPanel.js');
+        const { showWarpsAdminPanel } = await import('@features/teleport/warp/ui/adminPanel.js');
         await showWarpsAdminPanel(player);
       },
       category: 'Teleportation & World',

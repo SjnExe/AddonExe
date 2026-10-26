@@ -5,7 +5,7 @@ import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
 import { rawLog } from '@core/utils/logger.js';
-import { addChatLog } from '@features/moderation/chatLogManager.js';
+import { addChatLog } from '@features/moderation/chatLog.js';
 import { isTeamChatEnabled, setTeamChatState } from '@features/social/team/commands/team.js';
 import { getTeamByPlayer } from '@features/social/team/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';

@@ -5,7 +5,7 @@ import { escapeCommandArg, formatCooldown, playSound } from '@core/utils/index.j
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
-import { getEffectiveBorderForDimension, isWithinWorldBorder } from '@features/essentials/worldBorderManager.js';
+import { getEffectiveBorderForDimension, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { isSafeTeleportColumn, saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';

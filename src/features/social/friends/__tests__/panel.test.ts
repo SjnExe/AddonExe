@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:te
 
 import * as configManager from '@core/config/configManager.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
-import * as tpaManager from '@features/teleport/tpaManager.js';
+import * as tpaManager from '@features/teleport/tpa/manager.js';
 import * as mc from '@minecraft/server';
 
 import defaultConfig from '../../../../config.js';

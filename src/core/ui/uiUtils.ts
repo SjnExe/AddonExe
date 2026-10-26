@@ -32,11 +32,11 @@ import {
   SidebarConfig,
 } from '@core/config/configurations.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
-import { xrayConfig } from '@features/anticheat/xrayConfig.js';
+import { xrayConfig } from '@features/anticheat/xray/config.js';
 import { auctionHouseConfig } from '@features/economy/auction/config.js';
 import { economyConfig } from '@features/economy/config.js';
 import { shopConfig } from '@features/economy/shop/config.js';
-import { WorldProtectionConfig } from '@features/essentials/config.js';
+import { WorldProtectionConfig } from '@features/essentials/protection/config.js';
 import { gamesConfig } from '@features/games/config.js';
 import { wordleConfig } from '@features/games/wordle/config.js';
 import ranksConfig from '@features/ranks/config.js';
