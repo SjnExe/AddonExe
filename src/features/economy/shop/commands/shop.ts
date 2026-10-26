@@ -3,7 +3,6 @@ import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency, parseCurrency } from '@core/utils/index.js';
 import * as shopAdminManager from '@features/economy/shop/adminManager.js';
-import { items as allItems } from '@features/economy/shop/itemsConfig.js';
 import * as shopManager from '@features/economy/shop/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
@@ -38,22 +37,14 @@ const tryOpenHandItemPanel = async (player: mc.Player): Promise<boolean> => {
     return false;
   }
 
-  const itemTypeId = item.typeId;
-  const shopItemKey = Object.keys(allItems).find((key) => {
-    const entry = (allItems as Record<string, { itemId: string }>)[key];
-    return isDefined(entry) && entry.itemId === itemTypeId;
-  });
-
-  if (isNonEmptyString(shopItemKey)) {
-    const itemData = shopManager.findShopItem(shopItemKey);
-    if (isDefined(itemData)) {
-      await showPanel(player, 'shopBuyOrSellPanel', {
-        itemKey: shopItemKey,
-        itemData,
-        returnCtx: { returnTo: 'main', page: 1 },
-      });
-      return true;
-    }
+  const match = shopManager.findShopItemByTypeId(item.typeId);
+  if (isDefined(match)) {
+    await showPanel(player, 'shopBuyOrSellPanel', {
+      itemKey: match.itemKey,
+      itemData: match.shopItem,
+      returnCtx: { returnTo: 'main', page: 1 },
+    });
+    return true;
   }
   return false;
 };
@@ -128,17 +119,13 @@ const sellHandCommand: CustomCommand = {
       return;
     }
 
-    const shopItemKey = Object.keys(allItems).find((key) => {
-      const entry = (allItems as Record<string, { itemId: string }>)[key];
-      return isDefined(entry) && entry.itemId === heldItem.typeId;
-    });
-
-    if (!isNonEmptyString(shopItemKey) || !isDefined(shopManager.findShopItem(shopItemKey))) {
+    const match = shopManager.findShopItemByTypeId(heldItem.typeId);
+    if (!isDefined(match)) {
       executor.sendMessage('§cThe item in your hand cannot be sold to the shop.');
       return;
     }
 
-    const result = shopManager.sellItem(executor, shopItemKey, heldItem.amount);
+    const result = shopManager.sellItem(executor, match.itemKey, heldItem.amount);
     executor.sendMessage(result.message);
   },
 };

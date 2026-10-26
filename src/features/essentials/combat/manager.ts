@@ -217,6 +217,24 @@ function executeCombatLogPenalty(victimId: string, victimName: string, attackerI
 }
 
 export function handleCombatPlayerLeave(playerId: string, playerName: string): void {
+  // 0. Clean up any pending incoming or outgoing /pvp requests
+  if (pvpRequests.has(playerId)) {
+    clearRequest(playerId, true);
+  }
+  for (const [targetId, req] of pvpRequests.entries()) {
+    if (req.requesterId === playerId) {
+      if (req.amount > 0) {
+        incrementPlayerBalance(playerId, req.amount);
+      }
+      mc.system.clearRun(req.timeoutId);
+      pvpRequests.delete(targetId);
+      const target = getPlayerFromCache(targetId);
+      if (isDefined(target)) {
+        sendMessage(`§c${playerName} disconnected. Their PvP duel request was cancelled.`, target);
+      }
+    }
+  }
+
   // 1. If in an active duel, forfeit immediately
   const duel = activeDuels.get(playerId);
   if (isDefined(duel)) {

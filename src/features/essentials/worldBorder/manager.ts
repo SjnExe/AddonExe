@@ -196,6 +196,7 @@ function normalizeLoadedConfig(raw: Partial<WorldBorderConfig>): WorldBorderConf
 }
 
 export function initializeWorldBorder(): void {
+  lastSafePositions.clear();
   const loadedConfig = storage.load<Partial<WorldBorderConfig>>();
   if (isDefined(loadedConfig)) {
     config = normalizeLoadedConfig(loadedConfig);
@@ -340,6 +341,10 @@ export function clampToWorldBorder(
   return { x: safeX, z: safeZ };
 }
 
+export function clearPlayerSafeBorderPosition(playerId: string): void {
+  lastSafePositions.delete(playerId);
+}
+
 export function canBypassWorldBorder(player: mc.Player): boolean {
   if (!config.adminBypass) {
     return false;
@@ -458,8 +463,17 @@ function checkWorldBorder(): void {
       const dx = Math.abs(loc.x - border.centerX);
       const dz = Math.abs(loc.z - border.centerZ);
 
-      // Fast path for in-bounds players (zero allocations, zero permission checks)
+      // Fast path for in-bounds players
       if (dx <= border.radius && dz <= border.radius) {
+        const prev = lastSafePositions.get(player.id);
+        if (isDefined(prev)) {
+          prev.x = loc.x;
+          prev.y = loc.y;
+          prev.z = loc.z;
+          prev.dimensionId = dimId;
+        } else {
+          lastSafePositions.set(player.id, { x: loc.x, y: loc.y, z: loc.z, dimensionId: dimId });
+        }
         continue;
       }
 

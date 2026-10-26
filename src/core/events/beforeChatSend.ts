@@ -19,6 +19,11 @@ import * as mc from '@minecraft/server';
 const lastChatTimestamp = new Map<string, number>();
 const lastChatMessage = new Map<string, string>();
 
+export function clearPlayerChatFilterState(playerId: string): void {
+  lastChatTimestamp.delete(playerId);
+  lastChatMessage.delete(playerId);
+}
+
 export function _clearChatFilterStateForTest(): void {
   lastChatTimestamp.clear();
   lastChatMessage.clear();

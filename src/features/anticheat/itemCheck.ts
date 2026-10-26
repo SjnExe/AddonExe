@@ -1,6 +1,7 @@
 import { AnticheatConfig, getAnticheatConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { errorLog } from '@core/utils/logger.js';
+import { setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import { flag } from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
@@ -9,7 +10,7 @@ import * as mc from '@minecraft/server';
 let isChecking = false;
 
 export function startItemCheckLoop() {
-  mc.system.runInterval(() => {
+  setTrackedInterval(() => {
     if (isChecking) {
       return;
     }
@@ -19,7 +20,7 @@ export function startItemCheckLoop() {
         return;
       }
 
-      mc.system.runJob(checkInventoryGenerator(config));
+      setTrackedJob(checkInventoryGenerator(config));
     } catch (error) {
       errorLog('Anticheat Item Loop Error', error);
     }

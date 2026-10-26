@@ -75,13 +75,22 @@ export const resetWorldProtectionConfig = () =>
     'WorldProtection',
   ).reset();
 
-export const loadShopConfig = async (isMigration: boolean) =>
+export const loadShopConfig = async (isMigration: boolean) => {
   initManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop', isMigration);
+  const { invalidateShopLookupCache } = await import('@features/economy/shop/manager.js');
+  invalidateShopLookupCache();
+};
 export const getShopConfig = (): ShopConfig =>
   getOrCreateManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop').get();
-export const saveShopConfig = (cfg: ShopConfig) =>
+export const saveShopConfig = (cfg: ShopConfig) => {
   getOrCreateManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop').set(cfg);
-export const resetShopConfig = () => getOrCreateManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop').reset();
+  void import('@features/economy/shop/manager.js').then((m) => m.invalidateShopLookupCache());
+};
+export const resetShopConfig = async () => {
+  await getOrCreateManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop').reset();
+  const { invalidateShopLookupCache } = await import('@features/economy/shop/manager.js');
+  invalidateShopLookupCache();
+};
 
 export const loadRanksConfig = async (isMigration: boolean) =>
   initManager('ranks', 'exe:ranksConfig', ranksConfig, 'Ranks', isMigration);
@@ -198,6 +207,7 @@ export function registerConfigResetCallback(key: string, callback: (player?: mc.
 
 export function _clearConfigManagersForTest(): void {
   managers.clear();
+  void import('@features/economy/shop/manager.js').then((m) => m.invalidateShopLookupCache());
 }
 
 export async function reloadAllConfigs(): Promise<void> {

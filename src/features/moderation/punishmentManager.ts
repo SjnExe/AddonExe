@@ -1,8 +1,10 @@
 import { getConfig } from '@core/config/configManager.js';
+import { registerDataSaver } from '@core/data/dataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -248,10 +250,14 @@ export function getActivePunishmentsByType(type: PunishmentType): { playerId: st
 
 /** Initializes the punishment manager's periodic tasks. */
 export function initializePunishmentManager() {
+  registerDataSaver(savePunishments);
   // Periodically clear expired punishments and save to the world
   const config = getConfig();
-  mc.system.runInterval(() => {
-    clearExpiredPunishments();
-    savePunishments();
-  }, config.data.autoSaveIntervalSeconds * 20);
+  setTrackedInterval(
+    () => {
+      clearExpiredPunishments();
+      savePunishments();
+    },
+    Math.max(20, config.data.autoSaveIntervalSeconds * 20),
+  );
 }

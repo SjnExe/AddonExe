@@ -4,6 +4,7 @@ import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
+import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -35,7 +36,7 @@ const outgoingRequests = new Map<string, TpaRequest>();
 const incomingRequests = new Map<string, TpaRequest[]>();
 
 // Global interval to clean up expired requests
-mc.system.runInterval(() => {
+setTrackedInterval(() => {
   const now = Date.now();
   for (const [sourceId, request] of outgoingRequests.entries()) {
     if (request.expiryTimestamp <= now) {

@@ -6,6 +6,7 @@ import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatCurrency, getIdTimestamp } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import { setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { generateId } from '@lib/id.js';
 import * as mc from '@minecraft/server';
@@ -50,8 +51,8 @@ export function initializeAuctionHouse() {
   loadAuctions();
 
   // Start Expiry Loop (Every minute)
-  mc.system.runInterval(() => {
-    mc.system.runJob(checkExpiredAuctionsJob());
+  setTrackedInterval(() => {
+    setTrackedJob(checkExpiredAuctionsJob());
   }, 1200); // 60 seconds * 20 ticks
 }
 

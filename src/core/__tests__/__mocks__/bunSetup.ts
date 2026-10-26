@@ -52,15 +52,6 @@ console.error = (...args: unknown[]) => {
   }
 };
 
-// Suppress [DEBUG] stdout spam during unit test cleanup
-const _origConsoleLog = console.log.bind(console);
-console.log = (...args: unknown[]) => {
-  if (typeof args[0] === 'string' && args[0].includes('[DEBUG]')) {
-    return;
-  }
-  _origConsoleLog(...args);
-};
-
 import { beforeEach, mock } from 'bun:test';
 
 // Global Minecraft Engine API Mocks

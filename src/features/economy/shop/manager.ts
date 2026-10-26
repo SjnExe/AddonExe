@@ -76,43 +76,88 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
  * @param itemId The item ID to look up.
  * @returns The item definition or undefined if not found.
  */
-export function findShopItem(itemKey: string): ItemInfo | undefined {
+let cachedItemByKeyMap: Map<string, ItemInfo> | undefined;
+let cachedItemByTypeIdMap: Map<string, { itemKey: string; shopItem: ItemInfo }> | undefined;
+let cachedReverseSellMap: Map<string, { itemKey: string; shopItem: ItemInfo }> | undefined;
+
+export function invalidateShopLookupCache(): void {
+  cachedItemByKeyMap = undefined;
+  cachedItemByTypeIdMap = undefined;
+  cachedReverseSellMap = undefined;
+}
+
+function ensureShopLookupCaches(): void {
+  if (isDefined(cachedItemByKeyMap) && isDefined(cachedItemByTypeIdMap) && isDefined(cachedReverseSellMap)) {
+    return;
+  }
+
+  const byKey = new Map<string, ItemInfo>();
+  const byTypeId = new Map<string, { itemKey: string; shopItem: ItemInfo }>();
+  const sellMap = new Map<string, { itemKey: string; shopItem: ItemInfo }>();
+
   const shopConfig = getShopConfig();
   const categories = shopConfig.categories;
   const items = allItems as Record<string, ItemInfo>;
+
+  const registerEntry = (itemKey: string, rawEntry: unknown) => {
+    const raw = { ...items[itemKey], ...(rawEntry as Record<string, unknown>) };
+    const meta = resolveTradeItemMetadata(itemKey, raw);
+    const resolved: ItemInfo = {
+      ...raw,
+      itemId: meta.itemId,
+      displayName: meta.displayName,
+      ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}),
+    };
+    if (!byKey.has(itemKey)) {
+      byKey.set(itemKey, resolved);
+    }
+    if (!isDefined(resolved.enchantment) && !byTypeId.has(resolved.itemId)) {
+      byTypeId.set(resolved.itemId, { itemKey, shopItem: resolved });
+    }
+    if (
+      isDefined(resolved.sellPrice) &&
+      resolved.sellPrice > 0 &&
+      !isDefined(resolved.enchantment) &&
+      !sellMap.has(resolved.itemId)
+    ) {
+      sellMap.set(resolved.itemId, { itemKey, shopItem: resolved });
+    }
+  };
 
   for (const categoryName in categories) {
     const category = categories[categoryName];
     if (!isDefined(category)) {
       continue;
     }
-    if (isDefined(category.items) && isDefined(category.items[itemKey])) {
-      const raw = { ...items[itemKey], ...category.items[itemKey] };
-      const meta = resolveTradeItemMetadata(itemKey, raw);
-      return {
-        ...raw,
-        itemId: meta.itemId,
-        displayName: meta.displayName,
-        ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}),
-      };
+    if (isDefined(category.items)) {
+      for (const [k, v] of Object.entries(category.items)) {
+        registerEntry(k, v);
+      }
     }
     if (isDefined(category.subCategories)) {
-      for (const subCategoryName in category.subCategories) {
-        const subCategory = category.subCategories[subCategoryName];
-        if (isDefined(subCategory) && isDefined(subCategory.items) && isDefined(subCategory.items[itemKey])) {
-          const raw = { ...items[itemKey], ...subCategory.items[itemKey] };
-          const meta = resolveTradeItemMetadata(itemKey, raw);
-          return {
-            ...raw,
-            itemId: meta.itemId,
-            displayName: meta.displayName,
-            ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}),
-          };
+      for (const subCategory of Object.values(category.subCategories)) {
+        if (isDefined(subCategory?.items)) {
+          for (const [k, v] of Object.entries(subCategory.items)) {
+            registerEntry(k, v);
+          }
         }
       }
     }
   }
-  return undefined;
+
+  cachedItemByKeyMap = byKey;
+  cachedItemByTypeIdMap = byTypeId;
+  cachedReverseSellMap = sellMap;
+}
+
+export function findShopItem(itemKey: string): ItemInfo | undefined {
+  ensureShopLookupCaches();
+  return cachedItemByKeyMap?.get(itemKey);
+}
+
+export function findShopItemByTypeId(typeId: string): { itemKey: string; shopItem: ItemInfo } | undefined {
+  ensureShopLookupCaches();
+  return cachedItemByTypeIdMap?.get(typeId);
 }
 
 export function getPlayerInventoryShopItemCount(player: mc.Player, itemKey: string): number {
@@ -414,47 +459,8 @@ export interface SellAllPreview {
 }
 
 function buildReverseSellMap(): Map<string, { itemKey: string; shopItem: ItemInfo }> {
-  const shopConfig = getShopConfig();
-  const categories = shopConfig.categories;
-  const items = allItems as Record<string, ItemInfo>;
-  const map = new Map<string, { itemKey: string; shopItem: ItemInfo }>();
-
-  const registerItemKey = (itemKey: string, rawItem: unknown) => {
-    const base = { ...items[itemKey], ...(rawItem as Record<string, unknown>) };
-    const meta = resolveTradeItemMetadata(itemKey, base);
-    const shopItem: ItemInfo = {
-      ...base,
-      itemId: meta.itemId,
-      displayName: meta.displayName,
-      ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}),
-    };
-    if (
-      isDefined(shopItem.sellPrice) &&
-      shopItem.sellPrice > 0 &&
-      !isDefined(shopItem.enchantment) &&
-      !map.has(shopItem.itemId)
-    ) {
-      map.set(shopItem.itemId, { itemKey, shopItem });
-    }
-  };
-
-  for (const category of Object.values(categories)) {
-    if (!isDefined(category)) {
-      continue;
-    }
-    for (const [k, v] of Object.entries(category.items ?? {})) {
-      registerItemKey(k, v);
-    }
-    for (const sub of Object.values(category.subCategories ?? {})) {
-      if (!isDefined(sub)) {
-        continue;
-      }
-      for (const [k, v] of Object.entries(sub.items ?? {})) {
-        registerItemKey(k, v);
-      }
-    }
-  }
-  return map;
+  ensureShopLookupCaches();
+  return cachedReverseSellMap ?? new Map();
 }
 
 export function previewSellAllInventory(player: mc.Player): SellAllPreview {

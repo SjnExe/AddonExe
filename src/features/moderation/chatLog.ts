@@ -1,7 +1,8 @@
 import { getConfig } from '@core/config/configManager.js';
+import { registerDataSaver } from '@core/data/dataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
+import { setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
-import * as mc from '@minecraft/server';
 
 export interface ChatLog {
   timestamp: number;
@@ -31,8 +32,16 @@ export function initializeChatLogger() {
   // Prune on init
   pruneOldLogs();
 
+  registerDataSaver(() => {
+    if (isDirty) {
+      const storage = new StorageManager(`exe:logs:chat:${today}`);
+      storage.save(currentDayLogs);
+      isDirty = false;
+    }
+  });
+
   // Auto-save loop
-  mc.system.runInterval(() => {
+  setTrackedInterval(() => {
     const newDay = getTodayDateString();
     if (newDay === today) {
       saveChatLogs();
@@ -63,7 +72,7 @@ function saveChatLogs() {
     return;
   }
   const storage = new StorageManager(`exe:logs:chat:${today}`);
-  mc.system.runJob(storage.saveJob(currentDayLogs));
+  setTrackedJob(storage.saveJob(currentDayLogs));
   isDirty = false;
 }
 

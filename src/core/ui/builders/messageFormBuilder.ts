@@ -42,13 +42,10 @@ export class MessageFormBuilder {
       return response;
     }
 
-    if (response.selection === 0 && this.button2Callback) {
-      // Yes, button2 is selection 0 and button1 is selection 1 in Bedrock UI API (bottom to top usually)
-      // Wait, MessageFormData button1 is selection 1? Let me check standard.
-      // Actually button2 is selection 0, button1 is selection 1.
-      await this.button2Callback();
-    } else if (response.selection === 1 && this.button1Callback) {
+    if (response.selection === 0 && this.button1Callback) {
       await this.button1Callback();
+    } else if (response.selection === 1 && this.button2Callback) {
+      await this.button2Callback();
     }
 
     return response;
