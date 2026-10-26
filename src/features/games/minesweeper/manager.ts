@@ -48,6 +48,8 @@ export interface MinesweeperGame {
   maxSpeedBonus: number;
   parSeconds: number;
   cells: MinesweeperCell[];
+  safeCleared: number;
+  flaggedCount: number;
   minesPlaced: boolean;
   flagMode: boolean;
   status: 'active' | 'won' | 'lost';
@@ -102,16 +104,59 @@ const minedDirtTexture = 'textures/blocks/dirt';
 const flaggedTntTexture = 'textures/blocks/tnt_side';
 const explodedMineTexture = 'textures/ui/WarningGlyph';
 
-const numberColors: Record<number, string> = {
-  1: '§l§b1',
-  2: '§l§a2',
-  3: '§l§e3',
-  4: '§l§d4',
-  5: '§l§c5',
-  6: '§l§36',
-  7: '§l§57',
-  8: '§l§f8',
+const unminedCellVisual = { label: '§a§r ', icon: unminedGrassTexture };
+const minedEmptyCellVisual = { label: '§8§r ', icon: minedDirtTexture };
+const flaggedActiveCellVisual = { label: '§6§r§l§e⚑', icon: flaggedTntTexture };
+const flaggedWonCellVisual = { label: '§6§r§l§a⚑', icon: flaggedTntTexture };
+const wrongFlagCellVisual = { label: '§4§r§l§c*', icon: flaggedTntTexture };
+const explodedMineCellVisual = { label: '§4§r§l§4*', icon: explodedMineTexture };
+const revealedMineCellVisual = { label: '§4§r§l§c*', icon: explodedMineTexture };
+
+const numberCellVisuals: Record<number, { label: string; icon: string }> = {
+  1: { label: '§8§r§l§b1', icon: minedDirtTexture },
+  2: { label: '§8§r§l§a2', icon: minedDirtTexture },
+  3: { label: '§8§r§l§e3', icon: minedDirtTexture },
+  4: { label: '§8§r§l§d4', icon: minedDirtTexture },
+  5: { label: '§8§r§l§c5', icon: minedDirtTexture },
+  6: { label: '§8§r§l§36', icon: minedDirtTexture },
+  7: { label: '§8§r§l§57', icon: minedDirtTexture },
+  8: { label: '§8§r§l§f8', icon: minedDirtTexture },
 };
+
+const neighborCache = new Map<string, number[][]>();
+
+function computeNeighborTable(cols: number, rows: number): number[][] {
+  const key = `${cols}x${rows}`;
+  const existing = neighborCache.get(key);
+  if (isDefined(existing)) {
+    return existing;
+  }
+  const total = cols * rows;
+  const table: number[][] = Array.from({ length: total }, () => []);
+  for (let idx = 0; idx < total; idx++) {
+    const r = Math.floor(idx / cols);
+    const c = idx % cols;
+    const list = table[idx]!;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) {
+          continue;
+        }
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+          list.push(nr * cols + nc);
+        }
+      }
+    }
+  }
+  neighborCache.set(key, table);
+  return table;
+}
+
+computeNeighborTable(9, 9);
+computeNeighborTable(12, 12);
+computeNeighborTable(16, 12);
 
 const activeGames = new Map<string, MinesweeperGame>();
 const activeRaceMatches = new Map<string, MinesweeperRaceMatch>();
@@ -188,23 +233,7 @@ export function getDifficultySettings(difficulty: MinesweeperDifficulty): Minesw
 }
 
 export function getNeighborIndices(index: number, cols = 9, rows = 9): number[] {
-  const r = Math.floor(index / cols);
-  const c = index % cols;
-  const neighbors: number[] = [];
-
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) {
-        continue;
-      }
-      const nr = r + dr;
-      const nc = c + dc;
-      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-        neighbors.push(nr * cols + nc);
-      }
-    }
-  }
-  return neighbors;
+  return computeNeighborTable(cols, rows)[index] ?? [];
 }
 
 export function calculateNetElapsedSeconds(game: MinesweeperGame, nowMs = Date.now()): number {
@@ -256,6 +285,8 @@ export function startMinesweeperGame(
     maxSpeedBonus: spec.maxSpeedBonus,
     parSeconds: spec.parSeconds,
     cells,
+    safeCleared: 0,
+    flaggedCount: 0,
     minesPlaced: false,
     flagMode: false,
     status: 'active',
@@ -338,10 +369,11 @@ export function getPlayerMinesweeperStats(playerId: string): MinesweeperPlayerSt
   return stats;
 }
 
-export function getMinesweeperBoardProgress(game: MinesweeperGame): MinesweeperBoardProgress {
+function syncBoardCounts(game: MinesweeperGame): void {
   let safeCleared = 0;
   let flaggedCount = 0;
-  for (const cell of game.cells) {
+  for (let i = 0; i < game.cells.length; i++) {
+    const cell = game.cells[i]!;
     if (cell.flagged) {
       flaggedCount++;
     }
@@ -349,14 +381,20 @@ export function getMinesweeperBoardProgress(game: MinesweeperGame): MinesweeperB
       safeCleared++;
     }
   }
+  game.safeCleared = safeCleared;
+  game.flaggedCount = flaggedCount;
+}
+
+export function getMinesweeperBoardProgress(game: MinesweeperGame): MinesweeperBoardProgress {
+  syncBoardCounts(game);
   const totalSafe = Math.max(1, game.totalCells - game.totalMines);
-  const percent = Math.min(100, Math.floor((safeCleared / totalSafe) * 100));
-  const remainingMines = Math.max(0, game.totalMines - flaggedCount);
+  const percent = Math.min(100, Math.floor((game.safeCleared / totalSafe) * 100));
+  const remainingMines = Math.max(0, game.totalMines - game.flaggedCount);
   return {
-    safeCleared,
+    safeCleared: game.safeCleared,
     totalSafe,
     percent,
-    flaggedCount,
+    flaggedCount: game.flaggedCount,
     remainingMines,
   };
 }
@@ -511,24 +549,30 @@ export function placeMinesSafely(game: MinesweeperGame, safeIndex: number): void
 }
 
 function floodReveal(game: MinesweeperGame, startIndex: number): void {
+  const neighborTable = computeNeighborTable(game.cols, game.rows);
   const queue: number[] = [startIndex];
-  const visited = new Set<number>([startIndex]);
+  let head = 0;
 
-  while (queue.length > 0) {
-    const currentIdx = queue.shift()!;
+  while (head < queue.length) {
+    const currentIdx = queue[head++]!;
     const cell = game.cells[currentIdx];
-    if (!isDefined(cell) || cell.hasMine) {
+    if (!isDefined(cell) || cell.hasMine || cell.revealed) {
       continue;
     }
 
     cell.revealed = true;
-    cell.flagged = false;
+    if (cell.flagged) {
+      cell.flagged = false;
+      game.flaggedCount = Math.max(0, game.flaggedCount - 1);
+    }
+    game.safeCleared++;
 
     if (cell.adjacentMines === 0) {
-      for (const nIdx of getNeighborIndices(currentIdx, game.cols, game.rows)) {
+      const neighbors = neighborTable[currentIdx] ?? [];
+      for (let i = 0; i < neighbors.length; i++) {
+        const nIdx = neighbors[i]!;
         const neighbor = game.cells[nIdx];
-        if (isDefined(neighbor) && !neighbor.revealed && !neighbor.flagged && !neighbor.hasMine && !visited.has(nIdx)) {
-          visited.add(nIdx);
+        if (isDefined(neighbor) && !neighbor.revealed && !neighbor.flagged && !neighbor.hasMine) {
           queue.push(nIdx);
         }
       }
@@ -537,12 +581,8 @@ function floodReveal(game: MinesweeperGame, startIndex: number): void {
 }
 
 function checkWinCondition(game: MinesweeperGame): boolean {
-  for (const cell of game.cells) {
-    if (!cell.hasMine && !cell.revealed) {
-      return false;
-    }
-  }
-  return true;
+  syncBoardCounts(game);
+  return game.safeCleared >= game.totalCells - game.totalMines;
 }
 
 function revealAllMines(game: MinesweeperGame): void {
@@ -731,26 +771,19 @@ export function getCellVisual(game: MinesweeperGame, cell: MinesweeperCell): { l
   if (!cell.revealed) {
     if (cell.flagged) {
       if (game.status === 'lost' && !cell.hasMine) {
-        return { label: '§4§r§l§c*', icon: flaggedTntTexture };
+        return wrongFlagCellVisual;
       }
-      if (game.status === 'won') {
-        return { label: '§6§r§l§a⚑', icon: flaggedTntTexture };
-      }
-      return { label: '§6§r§l§e⚑', icon: flaggedTntTexture };
+      return game.status === 'won' ? flaggedWonCellVisual : flaggedActiveCellVisual;
     }
-    return { label: '§a§r ', icon: unminedGrassTexture };
+    return unminedCellVisual;
   }
   if (cell.hasMine) {
-    const isExploded = game.explodedIndex === cell.index;
-    return { label: isExploded ? '§4§r§l§4*' : '§4§r§l§c*', icon: explodedMineTexture };
+    return game.explodedIndex === cell.index ? explodedMineCellVisual : revealedMineCellVisual;
   }
   if (cell.adjacentMines === 0) {
-    return { label: '§8§r ', icon: minedDirtTexture };
+    return minedEmptyCellVisual;
   }
-  return {
-    label: `§8§r${numberColors[cell.adjacentMines] ?? String(cell.adjacentMines)}`,
-    icon: minedDirtTexture,
-  };
+  return numberCellVisuals[cell.adjacentMines] ?? minedEmptyCellVisual;
 }
 
 export function _clearMinesweeperForTest(): void {

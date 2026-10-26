@@ -217,17 +217,9 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     .title(`§r§l§bMinesweeper ${game.cols}x${game.rows} §8(${game.difficulty.toUpperCase()})`)
     .body(statusLine);
 
-  let tappedCell: number | undefined;
-  let tappedToolbar = false;
-  let tappedPlayAgain = false;
-
   for (let i = 0; i < game.totalCells; i++) {
-    const idx = i;
-    const cell = game.cells[idx]!;
-    const visual = getCellVisual(game, cell);
-    form.button(visual.label, visual.icon, () => {
-      tappedCell = idx;
-    });
+    const visual = getCellVisual(game, game.cells[i]!);
+    form.button(visual.label, visual.icon);
   }
 
   if (game.status === 'active') {
@@ -235,24 +227,15 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
       ? '\uE101§r§l§e[⚑ MODE: FLAG MINE] §r§7(Tap here to switch to Dig Mode)'
       : '\uE101§r§l§a[⛏ MODE: DIG TILE] §r§7(Tap here to switch to Flag Mode)';
     const toolbarIcon = game.flagMode ? 'textures/blocks/tnt_side' : 'textures/items/iron_pickaxe';
-    form.button(toolbarText, toolbarIcon, () => {
-      tappedToolbar = true;
-    });
+    form.button(toolbarText, toolbarIcon);
   } else if (!isDefined(raceMatch)) {
     form.button(
       `\uE101§r§l§a[Play Again: ${game.cols}x${game.rows} ${game.difficulty.toUpperCase()}]`,
       'textures/ui/refresh_light',
-      () => {
-        tappedPlayAgain = true;
-      },
     );
-    form.button('\uE101§r§l§e[Minesweeper Menu]', 'textures/ui/arrow_left', () => {
-      tappedToolbar = true;
-    });
+    form.button('\uE101§r§l§e[Minesweeper Menu]', 'textures/ui/arrow_left');
   } else {
-    form.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left', () => {
-      tappedToolbar = true;
-    });
+    form.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left');
   }
 
   const response = await form.show(player, { wait: true });
@@ -274,6 +257,11 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     }
     return;
   }
+
+  const selection = response.selection;
+  const tappedPlayAgain = game.status !== 'active' && !isDefined(freshRace) && selection === game.totalCells;
+  const tappedToolbar = selection !== undefined && selection >= game.totalCells && !tappedPlayAgain;
+  const tappedCell = selection !== undefined && selection >= 0 && selection < game.totalCells ? selection : undefined;
 
   if (game.status !== 'active' || (isDefined(freshRace) && freshRace.status !== 'active')) {
     if (tappedPlayAgain && !isDefined(freshRace)) {

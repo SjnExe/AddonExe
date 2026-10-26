@@ -219,7 +219,7 @@
                   { "binding_name": "#title_text" },
                   {
                     "binding_type": "view",
-                    "source_property_name": "((not ((#title_text - '') = #title_text)) or (not ((#title_text - '§8§0§9§f§r') = #title_text)) or (not ((#title_text - '§8§1§2§f§r') = #title_text)) or (not ((#title_text - '§8§1§6§f§r') = #title_text)) or ((#title_text - '§f§r') = #title_text))",
+                    "source_property_name": "((not ((#title_text - '') = #title_text)) or ((#title_text - '§f§r') = #title_text))",
                     "target_property_name": "#visible"
                   }
                 ]
@@ -2530,97 +2530,24 @@
     "size": ["100%", "100%"],
     "controls": [
       {
-        "unmined_grass_top": {
+        "tile_bg": {
           "type": "image",
-          "texture": "textures/blocks/grass_carried",
-          "color": [0.42, 0.78, 0.3],
-          "alpha": 1,
           "layer": 6,
           "size": ["100%", "100%"],
           "anchor_from": "center",
           "anchor_to": "center",
           "bindings": [
             {
-              "binding_name": "#form_button_text",
+              "binding_name": "#form_button_texture",
+              "binding_name_override": "#texture",
               "binding_type": "collection",
               "binding_collection_name": "form_buttons"
             },
             {
-              "binding_type": "view",
-              "source_property_name": "(not ((#form_button_text - '§a§r') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      },
-      {
-        "mined_dirt_fill": {
-          "type": "image",
-          "texture": "textures/blocks/dirt",
-          "color": [0.58, 0.42, 0.28],
-          "alpha": 1,
-          "layer": 6,
-          "size": ["100%", "100%"],
-          "anchor_from": "center",
-          "anchor_to": "center",
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
+              "binding_name": "#form_button_texture_file_system",
+              "binding_name_override": "#texture_file_system",
               "binding_type": "collection",
               "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#form_button_text - '§8§r') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      },
-      {
-        "flagged_fill": {
-          "type": "image",
-          "texture": "textures/blocks/grass_carried",
-          "color": [0.85, 0.62, 0.2],
-          "alpha": 1,
-          "layer": 6,
-          "size": ["100%", "100%"],
-          "anchor_from": "center",
-          "anchor_to": "center",
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#form_button_text - '§6§r') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
-      },
-      {
-        "mine_fill": {
-          "type": "image",
-          "texture": "textures/blocks/dirt",
-          "color": [0.75, 0.16, 0.16],
-          "alpha": 1,
-          "layer": 6,
-          "size": ["100%", "100%"],
-          "anchor_from": "center",
-          "anchor_to": "center",
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#form_button_text - '§4§r') = #form_button_text))",
-              "target_property_name": "#visible"
             }
           ]
         }
