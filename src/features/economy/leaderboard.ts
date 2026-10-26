@@ -1,4 +1,5 @@
 import { getConfig } from '@core/config/configManager.js';
+import { registerDataSaver } from '@core/data/dataManager.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
@@ -44,6 +45,10 @@ export function initializeLeaderboard() {
     }
 
     // Start periodic save loop (every 30 seconds)
+    if (isDefined(saveIntervalId)) {
+      clearTrackedInterval(saveIntervalId);
+    }
+    registerDataSaver(saveLeaderboardIfDirty);
     saveIntervalId = setTrackedInterval(saveLeaderboardIfDirty, 30 * 20);
   } catch (error: unknown) {
     const stack = error instanceof Error ? error.stack : String(error);

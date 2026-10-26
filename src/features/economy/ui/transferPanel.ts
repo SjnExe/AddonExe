@@ -3,7 +3,8 @@ import { getPlayer, getPlayerNameById, transfer } from '@core/data/playerDataMan
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { economyDisabled } from '@core/utils/constants.js';
-import { formatCurrency } from '@core/utils/index.js';
+import { formatCurrency, validateCurrencyAmount } from '@core/utils/index.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
@@ -42,15 +43,9 @@ export async function showTransferPanel(player: mc.Player, targetPlayerId: strin
     return showPanel(player, 'playerActionsPanel', { targetPlayerId });
   }
 
-  let amount = parseFloat(res.amount);
-  if (res.amount.toLowerCase().endsWith('k')) {
-    amount = parseFloat(res.amount.slice(0, -1)) * 1000;
-  } else if (res.amount.toLowerCase().endsWith('m')) {
-    amount = parseFloat(res.amount.slice(0, -1)) * 1000000;
-  }
-
-  if (isNaN(amount) || amount <= 0) {
-    player.sendMessage('§cInvalid amount. Must be positive.');
+  const amount = validateCurrencyAmount(res.amount, true);
+  if (!isDefined(amount)) {
+    player.sendMessage('§cInvalid amount. Must be positive with at most 2 decimal places (supports k, m, b, t).');
     return showTransferPanel(player, targetPlayerId);
   }
 

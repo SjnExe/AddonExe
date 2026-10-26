@@ -192,6 +192,12 @@ export function isPlayerIdleAfk(playerId: string): boolean {
   return (playerIdleMinutes.get(playerId) ?? 0) > maxIdle;
 }
 
+export function clearPlayerPlaytimeState(playerId: string): void {
+  sessionOnlineMinutes.delete(playerId);
+  playerIdleMinutes.delete(playerId);
+  lastPlayerLocations.delete(playerId);
+}
+
 export function _resetPlaytimeRewardsForTest(): void {
   sessionOnlineMinutes.clear();
   playerIdleMinutes.clear();

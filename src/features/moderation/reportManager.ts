@@ -1,7 +1,9 @@
 import { getConfig } from '@core/config/configManager.js';
+import { registerDataSaver } from '@core/data/dataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { getIdTimestamp } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined } from '@lib/guards.js';
 import { generateId } from '@lib/id.js';
 import * as mc from '@minecraft/server';
@@ -21,9 +23,17 @@ export interface Report {
 
 let reports: Report[] = [];
 let needsSave = false;
+let reportCleanupIntervalId: number | undefined;
 
 /** Loads reports from world dynamic properties. */
 export function loadReports() {
+  if (isDefined(reportCleanupIntervalId)) {
+    clearTrackedInterval(reportCleanupIntervalId);
+  }
+  registerDataSaver(() => saveReports());
+  reportCleanupIntervalId = setTrackedInterval(() => {
+    clearOldResolvedReports();
+  }, 36_000);
   debugLog('[ReportManager] Loading reports...');
   const loaded = storage.load<Report[]>();
   if (isDefined(loaded)) {
@@ -170,8 +180,3 @@ export function clearOldResolvedReports() {
     debugLog(`[ReportManager] Cleared ${clearedCount} old resolved reports.`);
   }
 }
-
-// Periodically clean up old reports. Saving is now handled by the central dataManager.
-mc.system.runInterval(() => {
-  clearOldResolvedReports();
-}, 36_000); // Clean up every 30 minutes (36000 ticks)

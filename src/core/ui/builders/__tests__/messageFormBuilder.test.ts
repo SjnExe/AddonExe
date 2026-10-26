@@ -9,7 +9,17 @@ describe('MessageFormBuilder', () => {
 
     const mockPlayer = {} as Player;
 
+    let btn1Clicked = false;
+    let btn2Clicked = false;
+    builder.button1('Btn 1', () => {
+      btn1Clicked = true;
+    });
+    builder.button2('Btn 2', () => {
+      btn2Clicked = true;
+    });
     const res = await builder.show(mockPlayer);
     expect(res).toBeDefined();
+    expect(btn1Clicked).toBe(true);
+    expect(btn2Clicked).toBe(false);
   });
 });

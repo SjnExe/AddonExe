@@ -5,6 +5,7 @@ import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
+import { setTeamChatState } from '@features/social/team/commands/team.js';
 import { TeamData } from '@features/social/team/types.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -26,6 +27,7 @@ interface ActionResult {
 
 // In-memory cache
 const activeTeam = new Map<number, TeamData>();
+const playerTeamMap = new Map<string, number>();
 let nextTeamId = 1;
 
 function* loadTeamJob(allIds: number[]) {
@@ -36,6 +38,9 @@ function* loadTeamJob(allIds: number[]) {
       if (isNonEmptyString(teamDataStr)) {
         const team = JSON.parse(teamDataStr) as TeamData;
         activeTeam.set(id, team);
+        for (const memberId of team.members) {
+          playerTeamMap.set(memberId, id);
+        }
         loadedCount++;
       }
     } catch (error) {
@@ -303,6 +308,7 @@ export function deleteTeam(teamId: number): boolean {
   // Remove all members
   for (const memberId of team.members) {
     setPlayerTeam(memberId, undefined);
+    setTeamChatState(memberId, false);
     // Optimization: Use cached lookup
     const p = getPlayerFromCache(memberId);
     if (isDefined(p)) {
@@ -328,7 +334,10 @@ export function getAllTeam(): TeamData[] {
 
 export function getPlayerTeamId(playerId: string): number | undefined {
   const pData = playerDataManager.getPlayer(playerId);
-  return pData?.teamId ?? undefined;
+  if (isDefined(pData)) {
+    return pData.teamId;
+  }
+  return playerTeamMap.get(playerId);
 }
 
 export function isTeamAdminOrOwner(team: TeamData, playerId: string): boolean {
@@ -370,6 +379,12 @@ export function getTeamByPlayer(playerId: string): TeamData | undefined {
  * @param teamId The team ID or undefined to remove.
  */
 export function setPlayerTeam(playerId: string, teamId: number | undefined) {
+  if (isDefined(teamId)) {
+    playerTeamMap.set(playerId, teamId);
+  } else {
+    playerTeamMap.delete(playerId);
+    setTeamChatState(playerId, false);
+  }
   playerDataManager.updatePlayerData(playerId, (data) => {
     data.teamId = teamId;
   });
@@ -535,6 +550,7 @@ export function acceptInvite(player: mc.Player, teamId: number): ActionResult {
   broadcastTeamMessage(teamId, `§b[Team] §e${player.name} §ajoined the team!`);
 
   // Update player
+  playerTeamMap.set(player.id, teamId);
   playerDataManager.updatePlayerData(player.id, (d) => {
     d.teamId = teamId;
     d.pendingInvites = []; // Clear all invites on join

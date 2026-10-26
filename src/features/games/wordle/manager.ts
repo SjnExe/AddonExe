@@ -269,6 +269,7 @@ export function createStaffHostedGame(
 }
 
 export function endStaffHostedGame(winnerId?: string, expired = false): void {
+  void import('@features/games/wordle/commands/guess.js').then((m) => m.clearAllWordleConfirmations());
   if (isDefined(staffExpiryTimeoutId)) {
     clearTrackedTimeout(staffExpiryTimeoutId);
     staffExpiryTimeoutId = undefined;

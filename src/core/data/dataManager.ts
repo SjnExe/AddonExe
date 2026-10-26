@@ -1,5 +1,5 @@
 import { getConfig } from '@core/config/configManager.js';
-import { loadCooldowns } from '@core/data/cooldownManager.js';
+import { loadCooldowns, saveCooldowns } from '@core/data/cooldownManager.js';
 import {
   clearExpiredPayments,
   getAllPlayerData,
@@ -61,6 +61,10 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
     anythingWasSaved = true;
   }
 
+  if (saveCooldowns()) {
+    anythingWasSaved = true;
+  }
+
   // Save data for online players whose data is dirty
   const allPlayerData = getAllPlayerData();
   let savedPlayerCount = 0;
@@ -108,6 +112,11 @@ export function* saveAllDataJob(options: { log?: boolean } = {}): Generator<void
 
   if (isNameIdMapDirty === true) {
     saveNameIdMap();
+    anythingWasSaved = true;
+    yield;
+  }
+
+  if (saveCooldowns()) {
     anythingWasSaved = true;
     yield;
   }
@@ -163,11 +172,15 @@ export function loadPersistentData() {
 }
 
 export function registerDataLoader(handler: () => void) {
-  loadDataHandlers.push(handler);
+  if (!loadDataHandlers.includes(handler)) {
+    loadDataHandlers.push(handler);
+  }
 }
 
 export function registerDataSaver(handler: () => void) {
-  saveDataHandlers.push(handler);
+  if (!saveDataHandlers.includes(handler)) {
+    saveDataHandlers.push(handler);
+  }
 }
 
 export const dataManager = {

@@ -1,5 +1,6 @@
 import { debugLog, errorLog } from '@core/utils/logger.js';
-import { isNumber } from '@lib/guards.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
+import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 const cooldownDbKey = 'exe:cooldowns';
@@ -8,9 +9,17 @@ const saveIntervalTicks = 6000; // Every 5 minutes
 /** Map<"playerId:identifier", expiryTimestamp> */
 let cooldowns = new Map<string, number>();
 let needsSave = false;
+let cooldownIntervalId: number | undefined;
 
 /** Loads cooldowns from world dynamic properties. */
 export function loadCooldowns() {
+  if (isDefined(cooldownIntervalId)) {
+    clearTrackedInterval(cooldownIntervalId);
+  }
+  cooldownIntervalId = setTrackedInterval(() => {
+    clearExpiredCooldowns();
+    saveCooldowns();
+  }, saveIntervalTicks);
   debugLog('[CooldownManager] Loading cooldowns...');
   const dataStr = mc.world.getDynamicProperty(cooldownDbKey);
   if (typeof dataStr === 'string') {
@@ -27,9 +36,9 @@ export function loadCooldowns() {
 }
 
 /** Saves cooldowns to world dynamic properties if a change has occurred. */
-function saveCooldowns() {
+export function saveCooldowns(): boolean {
   if (!needsSave) {
-    return;
+    return false;
   }
   try {
     // Convert Map to an array for JSON serialization
@@ -37,8 +46,10 @@ function saveCooldowns() {
     mc.world.setDynamicProperty(cooldownDbKey, JSON.stringify(dataToSave));
     needsSave = false;
     debugLog('[CooldownManager] Saved cooldowns to world properties.');
+    return true;
   } catch (error) {
     errorLog('[CooldownManager] Failed to save cooldowns.', error);
+    return false;
   }
 }
 
@@ -107,9 +118,3 @@ export function getCooldown(playerId: string, identifier: string): number {
 
   return Math.ceil((expiry - now) / 1000);
 }
-
-// Periodically clear expired cooldowns and save to the world
-mc.system.runInterval(() => {
-  clearExpiredCooldowns();
-  saveCooldowns();
-}, saveIntervalTicks);

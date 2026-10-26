@@ -1,5 +1,5 @@
 import * as mc from '@minecraft/server';
-import { MessageFormData } from '@minecraft/server-ui';
+import { MessageFormBuilder } from '@ui/builders/messageFormBuilder.js';
 
 export interface ConfirmationDialogOptions {
   title: string;
@@ -27,25 +27,16 @@ export async function showConfirmationDialog(
     cancelButtonText = '§cCancel',
   }: ConfirmationDialogOptions,
 ) {
-  const form = new MessageFormData().title(title).body(body).button1(confirmButtonText).button2(cancelButtonText);
+  const form = new MessageFormBuilder()
+    .title(title)
+    .body(body)
+    .button1(confirmButtonText, onConfirm)
+    .button2(cancelButtonText, onCancel);
 
   try {
-    const { canceled, selection } = await form.show(player);
-    if (canceled) {
-      if (onCancel) {
-        await onCancel();
-      }
-      return;
-    }
-
-    if (selection === 0) {
-      // button1 was pressed
-      await onConfirm();
-    } else {
-      // button2 was pressed
-      if (onCancel) {
-        await onCancel();
-      }
+    const { canceled } = await form.show(player, { wait: true });
+    if (canceled && onCancel) {
+      await onCancel();
     }
   } catch {
     // Log error if needed, but components shouldn't crash the addon

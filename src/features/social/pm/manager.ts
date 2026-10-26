@@ -89,6 +89,10 @@ export function replyPrivateMessage(sender: mc.Player, rawMessage: string): { su
   return sendPrivateMessage(sender, target, rawMessage);
 }
 
+export function clearPlayerReplyPartner(playerId: string): void {
+  lastReplyPartner.delete(playerId);
+}
+
 export function clearReplyPartnerForTest(): void {
   lastReplyPartner.clear();
 }

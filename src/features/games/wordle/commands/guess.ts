@@ -14,6 +14,14 @@ import * as mc from '@minecraft/server';
 
 const pendingConfirmations = new Map<string, string>();
 
+export function clearPlayerWordleConfirmation(playerId: string): void {
+  pendingConfirmations.delete(playerId);
+}
+
+export function clearAllWordleConfirmations(): void {
+  pendingConfirmations.clear();
+}
+
 const guessCommand: CustomCommand = {
   name: 'guess',
   aliases: ['gs'],

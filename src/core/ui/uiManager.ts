@@ -1,4 +1,8 @@
 const uiOpenTimestamps = new Map<string, number>();
+
+export function clearPlayerUiTimestamp(playerId: string): void {
+  uiOpenTimestamps.delete(playerId);
+}
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import type { ReturnContext } from '@features/economy/shop/ui/userPanel.js';
 import { isDefined } from '@lib/guards.js';
