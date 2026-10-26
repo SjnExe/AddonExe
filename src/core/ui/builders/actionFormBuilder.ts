@@ -6,7 +6,7 @@ export type GridColumns = 1 | 2 | 3 | 4 | 'board' | 'minesweeper' | 'ms9' | 'ms1
 
 export class ActionFormBuilder {
   private readonly form: ActionFormData;
-  private readonly callbacks: Map<number, () => void | Promise<void>>;
+  private readonly callbacks: Map<number, (() => void | Promise<void>) | undefined>;
   private gridColumns: GridColumns = 2;
   private rawTitle = '';
 
@@ -96,13 +96,9 @@ export class ActionFormBuilder {
     }
 
     if (onClick) {
-      const index = this.callbacks.size;
-      this.callbacks.set(index, onClick);
+      this.callbacks.set(this.callbacks.size, onClick);
     } else {
-      this.callbacks.set(this.callbacks.size, () => {});
-    }
-    if (this.rawTitle) {
-      this.applyTitleWithGrid();
+      this.callbacks.set(this.callbacks.size, undefined);
     }
     return this;
   }
