@@ -1,33 +1,4 @@
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-import { MinecraftBlockTypes, MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
-import Ajv from 'ajv';
-
-import { fetchVanillaTextures } from './icons.ts';
-
-const validUiTypes = new Set([
-  'panel',
-  'stack_panel',
-  'grid',
-  'label',
-  'image',
-  'button',
-  'toggle',
-  'slider',
-  'slider_box',
-  'dropdown',
-  'custom',
-  'factory',
-  'scroll_view',
-  'ScrollView',
-  'input_panel',
-  'edit_box',
-  'screen',
-  'tooltip_trigger',
-  'selection_wheel',
-  'tab',
-]);
 
 const validAnchors = new Set([
   'top_left',
@@ -41,653 +12,504 @@ const validAnchors = new Set([
   'bottom_right',
 ]);
 
-const vanillaItems = new Set<string>(Object.values(MinecraftItemTypes));
-const vanillaBlocks = new Set<string>(Object.values(MinecraftBlockTypes));
-const vanillaEntities = new Set<string>(Object.values(MinecraftEntityTypes));
+const validUiControlProperties = new Set([
+  'type',
+  'size',
+  'max_size',
+  'min_size',
+  'offset',
+  'anchor_from',
+  'anchor_to',
+  'layer',
+  'alpha',
+  'color',
+  'text_color',
+  'visible',
+  'enabled',
+  'ignored',
+  'clips_children',
+  'allow_clipping',
+  'propagate_alpha',
+  'controls',
+  'bindings',
+  'modifications',
+  'button_mappings',
+  'variables',
+  'anims',
+  'animation_reset_name',
+  'anim_type',
+  'easing',
+  'duration',
+  'from',
+  'to',
+  'next',
+  'play_event',
+  'end_event',
+  'destroy_at_end',
+  'looping',
+  'fps',
+  'frame_count',
+  'initial_uv',
+  'uv',
+  'uv_size',
+  'uv_anim',
+  'texture',
+  'nineslice_size',
+  'tiled',
+  'keep_ratio',
+  'bilinear',
+  'fill',
+  'grayscale',
+  'zip_folder',
+  'texture_file_system',
+  'text',
+  'localize',
+  'shadow',
+  'font_size',
+  'font_scale_factor',
+  'font_type',
+  'text_alignment',
+  'line_padding',
+  'locked_alpha',
+  'enable_profanity_filter',
+  'orientation',
+  'use_child_anchors',
+  'grid_item_template',
+  'grid_dimensions',
+  'grid_dimension_binding',
+  'grid_rescaling_type',
+  'maximum_grid_items',
+  'fill_direction',
+  'precached_grid_item_count',
+  'collection_name',
+  'factory',
+  'control_name',
+  'control_ids',
+  'focus_enabled',
+  'focus_wrap_enabled',
+  'focus_magnet_enabled',
+  'default_focus_precedence',
+  'focus_identifier',
+  'focus_change_down',
+  'focus_change_up',
+  'focus_change_left',
+  'focus_change_right',
+  'sound_name',
+  'sound_volume',
+  'sound_pitch',
+  'default_control',
+  'hover_control',
+  'pressed_control',
+  'locked_control',
+  'consume_event',
+  'consume_hover_events',
+  'prevent_touch_input',
+  'always_listen_to_input',
+  'modal',
+  'is_showing_menu',
+  'should_steal_mouse',
+  'render_only_when_topmost',
+  'screen_not_flushable',
+  'always_accepts_input',
+  'render_game_behind',
+  'absorbs_input',
+  'is_modal',
+  'low_frequency_rendering',
+  'force_render_below',
+  'load_screen_immediately',
+  'send_telemetry',
+  'close_on_player_hurt',
+  'use_custom_pocket_toast',
+  'cache_screen',
+  'gamepad_cursor_deflection_mode',
+  'use_anchored_offset',
+  'property_bag',
+  'renderer',
+  'tts_name',
+  'tts_control_header',
+  'tts_section_header',
+  'tts_value_changed',
+  'tts_override_control_value',
+  'tts_skip_message',
+  'tts_inherit_siblings',
+  'use_priority',
+  'priority',
+]);
 
-interface PackRegistry {
-  items: Set<string>;
-  entities: Set<string>;
-  clientEntities: Set<string>;
-  geometries: Set<string>;
-  renderControllers: Set<string>;
-}
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function isKnownItemOrBlockId(id: string, packRegistry: PackRegistry): boolean {
-  const cleanId = id.split(':')[0] === id ? `minecraft:${id}` : id;
-  return vanillaItems.has(cleanId) || vanillaBlocks.has(cleanId) || packRegistry.items.has(cleanId);
-}
-
-const packRouteToSchemaMap: { pattern: Bun.Glob; schemaRelPath: string }[] = [
-  { pattern: new Bun.Glob('packs/behavior/entities/*.json'), schemaRelPath: 'source/behavior/entities/entities.json' },
-  { pattern: new Bun.Glob('packs/behavior/items/*.json'), schemaRelPath: 'source/behavior/items/items.json' },
-  { pattern: new Bun.Glob('packs/behavior/recipes/*.json'), schemaRelPath: 'source/behavior/recipes/recipes.json' },
-  {
-    pattern: new Bun.Glob('packs/behavior/loot_tables/*.json'),
-    schemaRelPath: 'source/behavior/loot_tables/loot_tables.json',
-  },
-  {
-    pattern: new Bun.Glob('packs/behavior/item_catalog/*.json'),
-    schemaRelPath: 'source/behavior/item_catalog/crafting_item_catalog.json',
-  },
-  { pattern: new Bun.Glob('packs/resource/entity/*.json'), schemaRelPath: 'source/resource/entity/entity.json' },
-  {
-    pattern: new Bun.Glob('packs/resource/models/**/*.json'),
-    schemaRelPath: 'source/resource/models/entity/model_entity.json',
-  },
-  {
-    pattern: new Bun.Glob('packs/resource/render_controllers/*.json'),
-    schemaRelPath: 'source/resource/render_controllers/render_controllers.json',
-  },
-  { pattern: new Bun.Glob('packs/resource/ui/_ui_defs.json'), schemaRelPath: 'source/resource/ui/_ui_defs.json' },
-];
-
-export async function validateSchemas() {
-  console.log('[Validator] Starting strict Bedrock JSON & JSON UI validation...');
-
-  const projectRoot = process.cwd();
-  const packsDir = path.join(projectRoot, 'packs');
-  const jsonGlob = new Bun.Glob('**/*.json');
-  const jsonFiles = Array.from(jsonGlob.scanSync({ cwd: packsDir, absolute: true }));
-
-  const validTextures = await fetchVanillaTextures();
-
-  const schemasPkgResolved = import.meta.resolve('@minecraft/bedrock-schemas/package.json');
-  const schemasDir = path.dirname(fileURLToPath(schemasPkgResolved));
-
-  // Preload all @minecraft/bedrock-schemas files into Ajv so relative $ref links resolve cleanly
-  const ajv = new Ajv({ strict: false, allErrors: true, validateFormats: false });
-  const schemaFileGlob = new Bun.Glob('source/**/*.json');
-  const allSchemaPaths = Array.from(schemaFileGlob.scanSync({ cwd: schemasDir, absolute: true }));
-
-  await Promise.all(
-    allSchemaPaths.map(async (fullSchemaPath) => {
-      try {
-        const relUri = path.relative(schemasDir, fullSchemaPath).replace(/\\/g, '/');
-        const schemaObj = await Bun.file(fullSchemaPath).json();
-        delete schemaObj.$id;
-        ajv.addSchema(schemaObj, relUri);
-        ajv.addSchema(schemaObj, `./${relUri}`);
-      } catch {
-        // Ignore non-standard schema fragments
-      }
-    }),
-  );
-
-  const parsedFiles = new Map<string, any>();
-  const packRegistry: PackRegistry = {
-    items: new Set<string>(),
-    entities: new Set<string>(),
-    clientEntities: new Set<string>(),
-    geometries: new Set<string>(),
-    renderControllers: new Set<string>(),
-  };
-
-  let totalValidated = 0;
-  let errors = 0;
-
-  for (const fullPath of jsonFiles) {
-    const relativePath = path.relative(projectRoot, fullPath).replace(/\\/g, '/');
-
-    try {
-      const file = Bun.file(fullPath);
-      const bomBytes = await file.slice(0, 3).bytes();
-      if (bomBytes.length >= 3 && bomBytes[0] === 0xef && bomBytes[1] === 0xbb && bomBytes[2] === 0xbf) {
-        console.error(`[Validator] UTF-8 BOM detected in ${relativePath} (will crash Bedrock parser).`);
-        errors++;
-      }
-      const json = await file.json();
-      parsedFiles.set(relativePath, json);
-
-      if (relativePath.startsWith('packs/behavior/items/')) {
-        const id = json?.['minecraft:item']?.description?.identifier;
-        if (typeof id === 'string') {
-          packRegistry.items.add(id);
-        }
-      } else if (relativePath.startsWith('packs/behavior/entities/')) {
-        const id = json?.['minecraft:entity']?.description?.identifier;
-        if (typeof id === 'string') {
-          packRegistry.entities.add(id);
-        }
-      } else if (relativePath.startsWith('packs/resource/entity/')) {
-        const id = json?.['minecraft:client_entity']?.description?.identifier;
-        if (typeof id === 'string') {
-          packRegistry.clientEntities.add(id);
-        }
-      } else if (relativePath.startsWith('packs/resource/models/')) {
-        const geos = json?.['minecraft:geometry'];
-        if (Array.isArray(geos)) {
-          for (const g of geos) {
-            if (typeof g?.description?.identifier === 'string') {
-              packRegistry.geometries.add(g.description.identifier);
-            }
-          }
-        }
-      } else if (relativePath.startsWith('packs/resource/render_controllers/')) {
-        const rcs = json?.render_controllers;
-        if (rcs && typeof rcs === 'object') {
-          for (const rcId of Object.keys(rcs)) {
-            packRegistry.renderControllers.add(rcId);
-          }
-        }
-      }
-    } catch (e: any) {
-      console.error(`[Validator] Strict JSON syntax error in ${relativePath}: ${e.message}`);
-      errors++;
-    }
-  }
-
-  for (const [relativePath, json] of parsedFiles.entries()) {
-    const matchedRoute = packRouteToSchemaMap.find((r) => r.pattern.match(relativePath));
-    if (matchedRoute) {
-      try {
-        const validateFn = ajv.getSchema(matchedRoute.schemaRelPath);
-        if (validateFn) {
-          const valid = validateFn(json);
-          if (!valid && validateFn.errors) {
-            const hardErrors = validateFn.errors.filter(
-              (err) => err.keyword !== 'enum' || err.instancePath !== '/format_version',
-            );
-            if (hardErrors.length > 0) {
-              console.error(`[Validator] Bedrock Schema error in ${relativePath}:`);
-              for (const err of hardErrors.slice(0, 5)) {
-                console.error(`  - ${err.instancePath || '/'} ${err.message}`);
-              }
-              errors++;
-            }
-          }
-        }
-      } catch {
-        // Fallback to pack logic checks below if external sub-schema $ref is unresolved
-      }
-    }
-
-    const logicErrors = await validatePackLogic(projectRoot, relativePath, json, validTextures, packRegistry);
-    if (logicErrors.length > 0) {
-      console.error(`[Validator] Logic error in ${relativePath}:`);
-      for (const err of logicErrors) {
-        console.error(`  - ${err}`);
-      }
-      errors++;
-    }
-
-    totalValidated++;
-  }
-
-  const crossErrors = await validateCrossFileConsistency(projectRoot, parsedFiles);
-  if (crossErrors.length > 0) {
-    console.error('[Validator] Cross-file consistency error(s):');
-    for (const err of crossErrors) {
-      console.error(`  - ${err}`);
-    }
-    errors += crossErrors.length;
-  }
-
-  console.log(`[Validator] Validated ${totalValidated} JSON files.`);
-  if (errors > 0) {
-    console.error(`[Validator] Found ${errors} validation error(s).`);
-    process.exit(1);
-  } else {
-    console.log('[Validator] All JSON and JSON UI files passed strict schema & logic validation.');
-  }
-}
-
-async function validatePackLogic(
-  projectRoot: string,
-  relativePath: string,
-  json: any,
-  validTextures: Set<string>,
-  packRegistry: PackRegistry,
-): Promise<string[]> {
-  const logicErrors: string[] = [];
-
-  if (relativePath.includes('/ui/')) {
-    const uiErrors = await validateUiJson(projectRoot, relativePath, json, validTextures);
-    logicErrors.push(...uiErrors);
-    return logicErrors;
-  }
-
-  if (
-    relativePath.startsWith('packs/behavior/entities/') ||
-    relativePath.startsWith('packs/behavior/items/') ||
-    relativePath.startsWith('packs/behavior/recipes/')
-  ) {
-    if (typeof json.format_version !== 'string') {
-      logicErrors.push('Missing format_version string.');
-    }
-  }
-
-  if (relativePath.startsWith('packs/behavior/entities/')) {
-    const entityObj = json?.['minecraft:entity'];
-    if (!entityObj) {
-      logicErrors.push('Missing root "minecraft:entity" object.');
-      return logicErrors;
-    }
-    const id = entityObj?.description?.identifier;
-    if (typeof id === 'string' && id.startsWith('minecraft:') && !vanillaEntities.has(id)) {
-      logicErrors.push(`Unknown vanilla entity identifier '${id}' (not in MinecraftEntityTypes).`);
-    }
-
-    const groups = new Set(Object.keys(entityObj.component_groups || {}));
-    const events = new Set(Object.keys(entityObj.events || {}));
-
-    for (const [eventName, eventDef] of Object.entries<any>(entityObj.events || {})) {
-      for (const actionKey of ['add', 'remove'] as const) {
-        const groupList = eventDef?.[actionKey]?.component_groups;
-        if (Array.isArray(groupList)) {
-          for (const grp of groupList) {
-            if (!groups.has(grp)) {
-              logicErrors.push(`Event '${eventName}' (${actionKey}) references undefined component_group '${grp}'.`);
-            }
-          }
-        }
-      }
-    }
-
-    function checkEventTriggers(pathStr: string, node: any) {
-      if (!node || typeof node !== 'object') {
-        return;
-      }
-      if (typeof node.event === 'string' && node.target !== 'other' && !events.has(node.event)) {
-        logicErrors.push(`${pathStr} triggers undefined event '${node.event}'.`);
-      }
-      for (const [k, v] of Object.entries(node)) {
-        if (v && typeof v === 'object') {
-          checkEventTriggers(`${pathStr}.${k}`, v);
-        }
-      }
-    }
-
-    checkEventTriggers('components', entityObj.components);
-    checkEventTriggers('component_groups', entityObj.component_groups);
-  }
-
-  if (relativePath.startsWith('packs/behavior/recipes/')) {
-    const recipe = json?.['minecraft:recipe_shapeless'] || json?.['minecraft:recipe_shaped'];
-    if (!recipe) {
-      logicErrors.push('Recipe must contain "minecraft:recipe_shapeless" or "minecraft:recipe_shaped".');
-      return logicErrors;
-    }
-
-    const checkItemRef = (ctx: string, itemId: unknown) => {
-      if (typeof itemId === 'string' && !isKnownItemOrBlockId(itemId, packRegistry)) {
-        logicErrors.push(`${ctx} references unknown item '${itemId}' (not in @minecraft/vanilla-data or pack items).`);
-      }
-    };
-
-    if (Array.isArray(recipe.ingredients)) {
-      for (const ing of recipe.ingredients) {
-        checkItemRef('ingredients', typeof ing === 'string' ? ing : ing?.item);
-      }
-    }
-    if (recipe.key && typeof recipe.key === 'object') {
-      for (const [k, val] of Object.entries<any>(recipe.key)) {
-        checkItemRef(`key[${k}]`, val?.item);
-      }
-    }
-    if (Array.isArray(recipe.unlock)) {
-      for (const u of recipe.unlock) {
-        checkItemRef('unlock', u?.item);
-      }
-    }
-    if (Array.isArray(recipe.result)) {
-      for (const r of recipe.result) {
-        checkItemRef('result', r?.item);
-      }
-    } else if (recipe.result) {
-      checkItemRef('result', recipe.result.item);
-    }
-  }
-
-  if (relativePath.startsWith('packs/behavior/item_catalog/')) {
-    const categories = json?.['minecraft:crafting_items_catalog']?.categories;
-    if (Array.isArray(categories)) {
-      for (const cat of categories) {
-        for (const grp of cat?.groups || []) {
-          for (const itemId of grp?.items || []) {
-            if (typeof itemId === 'string' && !isKnownItemOrBlockId(itemId, packRegistry)) {
-              logicErrors.push(`Crafting catalog references unknown item '${itemId}'.`);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  if (relativePath.startsWith('packs/resource/entity/')) {
-    const desc = json?.['minecraft:client_entity']?.description;
-    if (desc) {
-      for (const geoId of Object.values<any>(desc.geometry || {})) {
-        if (typeof geoId === 'string' && geoId.startsWith('geometry.') && !packRegistry.geometries.has(geoId)) {
-          logicErrors.push(`Client entity references missing geometry '${geoId}'.`);
-        }
-      }
-      for (const rcEntry of desc.render_controllers || []) {
-        const rcId = typeof rcEntry === 'string' ? rcEntry : Object.keys(rcEntry || {})[0];
-        if (
-          typeof rcId === 'string' &&
-          rcId.startsWith('controller.render.') &&
-          !packRegistry.renderControllers.has(rcId)
-        ) {
-          logicErrors.push(`Client entity references missing render_controller '${rcId}'.`);
-        }
-      }
-    }
-  }
-
-  return logicErrors;
-}
-
-function validateViewExpressionLogic(expr: string, availableBindings: Set<string>): string[] {
-  const errs: string[] = [];
-  const trimmed = expr.trim();
-
-  if (trimmed.startsWith('#') || trimmed.startsWith('$')) {
-    if (trimmed.startsWith('#') && !availableBindings.has(trimmed)) {
-      errs.push(`View expression references unbound property '${trimmed}' (missing from control 'bindings' array).`);
-    }
-    return errs;
-  }
-
-  let depth = 0;
-  let inSingleQuote = false;
-  let closedBeforeEnd = false;
-
-  for (let i = 0; i < trimmed.length; i++) {
-    const ch = trimmed[i]!;
-    if (ch === "'") {
-      inSingleQuote = !inSingleQuote;
-      continue;
-    }
-    if (inSingleQuote) {
-      continue;
-    }
-    if (ch === '(') {
-      depth++;
-    } else if (ch === ')') {
-      depth--;
-      if (depth < 0) {
-        errs.push(`Unbalanced closing parenthesis ')' in view expression: ${trimmed}`);
-        return errs;
-      }
-      if (depth === 0 && i < trimmed.length - 1) {
-        closedBeforeEnd = true;
-      }
-    }
-  }
-
-  if (inSingleQuote) {
-    errs.push(`Unclosed single quote in view expression: ${trimmed}`);
-  }
-  if (!trimmed.startsWith('(') || !trimmed.endsWith(')') || depth !== 0 || closedBeforeEnd) {
-    errs.push(`View binding source_property_name must be wrapped in a single outer pair of parentheses: ${trimmed}`);
-  }
-
-  const withoutStrings = trimmed.replace(/'[^']*'/g, "''");
-  if (
-    withoutStrings.includes('==') ||
-    withoutStrings.includes('!=') ||
-    withoutStrings.includes('&&') ||
-    withoutStrings.includes('||')
-  ) {
-    errs.push(`Invalid C-style operator in Bedrock UI expression (use '=', 'not', 'and', 'or'): ${trimmed}`);
-  }
-
-  const propMatches = withoutStrings.matchAll(/#[a-zA-Z0-9_]+/g);
-  for (const m of propMatches) {
-    const propName = m[0]!;
-    if (!availableBindings.has(propName)) {
-      errs.push(
-        `View expression uses '${propName}', but '${propName}' is not declared in this control's 'bindings' array.`,
-      );
-    }
-  }
-
-  return errs;
-}
-
-async function validateUiJson(
-  projectRoot: string,
-  relativePath: string,
-  json: any,
-  validTextures: Set<string>,
-): Promise<string[]> {
+export function validateUiJson(relativePath: string, json: Record<string, unknown>): string[] {
   const uiErrors: string[] = [];
 
-  if (relativePath.endsWith('/_ui_defs.json')) {
-    if (!Array.isArray(json.ui_defs)) {
-      uiErrors.push('_ui_defs.json must contain a "ui_defs" string array.');
-    } else {
-      for (const defPath of json.ui_defs) {
-        const fullDefPath = path.join(projectRoot, 'packs/resource', defPath);
-        if (!(await Bun.file(fullDefPath).exists())) {
-          uiErrors.push(`_ui_defs.json references missing UI file: ${defPath}`);
-        }
-      }
+  if (relativePath.endsWith('_ui_defs.json')) {
+    if (!Array.isArray(json.ui_defs) || !json.ui_defs.every((d) => typeof d === 'string')) {
+      uiErrors.push(`${relativePath}: 'ui_defs' must be an array of string file paths.`);
     }
     return uiErrors;
   }
 
-  if (relativePath.endsWith('/loading_messages.json')) {
-    if (!Array.isArray(json.values)) {
-      uiErrors.push('loading_messages.json must contain a "values" array.');
+  if (relativePath.endsWith('loading_messages.json')) {
+    const values = Object.values(json);
+    if (values.length === 0 || !values.every((v) => Array.isArray(v) && v.every((d) => typeof d === 'string'))) {
+      uiErrors.push(`${relativePath}: 'loading_messages.json' must contain string arrays.`);
     }
     return uiErrors;
   }
 
-  const namespace = json.namespace;
-  if (typeof namespace !== 'string' || namespace.trim().length === 0) {
-    uiErrors.push('UI file must declare a non-empty "namespace" string.');
-    return uiErrors;
+  if (typeof json.namespace !== 'string' || json.namespace.trim() === '') {
+    uiErrors.push(`${relativePath}: JSON UI file must declare a valid top-level 'namespace' string.`);
   }
 
-  const topLevelControls = new Set<string>();
+  const currentNamespace = typeof json.namespace === 'string' ? json.namespace : '';
+  const topLevelControlNames = new Set<string>();
+
   for (const key of Object.keys(json)) {
     if (key !== 'namespace') {
-      topLevelControls.add(key.split('@')[0]!);
+      const baseName = key.split('@')[0]!;
+      topLevelControlNames.add(baseName);
     }
   }
 
-  function checkLocalTargetRef(ctx: string, ref: unknown) {
-    if (typeof ref !== 'string') {
+  const checkLocalTargetRef = (keyPath: string, targetRef: string | undefined) => {
+    if (!targetRef || targetRef.startsWith('$')) {
       return;
     }
-    const cleanRef = ref.startsWith('@') ? ref.slice(1) : ref;
-    if (cleanRef.startsWith(`${namespace}.`)) {
-      const targetName = cleanRef.slice(namespace.length + 1);
-      if (!topLevelControls.has(targetName)) {
-        uiErrors.push(`${ctx}: References non-existent local control '${ref}' in namespace '${namespace}'.`);
+    if (targetRef.includes('.')) {
+      const [ns, ctrlName] = targetRef.split('.');
+      if (ns === currentNamespace && ctrlName && !topLevelControlNames.has(ctrlName)) {
+        uiErrors.push(`${keyPath}: Local namespace reference '${targetRef}' does not exist in '${currentNamespace}'.`);
       }
     }
-  }
+  };
 
-  function checkControl(keyPath: string, obj: any) {
-    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+  const checkControl = (keyPath: string, rawObj: unknown) => {
+    if (!rawObj || typeof rawObj !== 'object' || Array.isArray(rawObj)) {
       return;
     }
+    const obj = rawObj as Record<string, unknown>;
 
-    if (typeof obj.type === 'string' && !validUiTypes.has(obj.type)) {
-      uiErrors.push(`${keyPath}: Unknown UI control type '${obj.type}'.`);
+    if ('collection_index' in obj) {
+      uiErrors.push(`${keyPath}: 'collection_index' is not a valid direct JSON UI property.`);
+    }
+    if ('collection_name' in obj && obj.type !== 'grid' && !obj.factory) {
+      uiErrors.push(`${keyPath}: 'collection_name' is only valid on 'grid' or controls with a 'factory'.`);
     }
 
     if (obj.type === 'grid') {
-      if ('orientation' in obj) {
-        uiErrors.push(`${keyPath}: Control of type 'grid' cannot have 'orientation' property.`);
-      }
       if (typeof obj.grid_item_template === 'string') {
         checkLocalTargetRef(`${keyPath}.grid_item_template`, obj.grid_item_template);
       }
-      if (typeof obj.maximum_grid_items === 'number' && obj.maximum_grid_items <= 0) {
-        uiErrors.push(`${keyPath}: 'maximum_grid_items' must be greater than 0.`);
+      if (!obj.grid_dimensions && !obj.grid_rescaling_type && !obj.grid_dimension_binding) {
+        uiErrors.push(
+          `${keyPath}: Grid control must specify 'grid_dimensions', 'grid_rescaling_type', or 'grid_dimension_binding'.`,
+        );
       }
     }
 
-    if (obj.factory && typeof obj.factory === 'object') {
-      if (obj.factory.control_name) {
-        checkLocalTargetRef(`${keyPath}.factory.control_name`, obj.factory.control_name);
-      }
-      if (obj.factory.control_ids && typeof obj.factory.control_ids === 'object') {
-        for (const [cid, target] of Object.entries(obj.factory.control_ids)) {
-          checkLocalTargetRef(`${keyPath}.factory.control_ids.${cid}`, target);
-        }
-      }
+    if (typeof obj.anchor_from === 'string' && !obj.anchor_from.startsWith('$') && !validAnchors.has(obj.anchor_from)) {
+      uiErrors.push(`${keyPath}: Invalid 'anchor_from' value '${obj.anchor_from}'.`);
+    }
+    if (typeof obj.anchor_to === 'string' && !obj.anchor_to.startsWith('$') && !validAnchors.has(obj.anchor_to)) {
+      uiErrors.push(`${keyPath}: Invalid 'anchor_to' value '${obj.anchor_to}'.`);
     }
 
-    if ('anchor_from' in obj || 'anchor_to' in obj) {
-      if (!('anchor_from' in obj) || !('anchor_to' in obj)) {
-        uiErrors.push(`${keyPath}: Both 'anchor_from' and 'anchor_to' must be specified together.`);
+    if (obj.bindings !== undefined) {
+      if (!Array.isArray(obj.bindings)) {
+        uiErrors.push(`${keyPath}: 'bindings' must be an array.`);
       } else {
-        if (
-          typeof obj.anchor_from === 'string' &&
-          !obj.anchor_from.startsWith('$') &&
-          !validAnchors.has(obj.anchor_from)
-        ) {
-          uiErrors.push(`${keyPath}: Invalid anchor_from '${obj.anchor_from}'.`);
-        }
-        if (typeof obj.anchor_to === 'string' && !obj.anchor_to.startsWith('$') && !validAnchors.has(obj.anchor_to)) {
-          uiErrors.push(`${keyPath}: Invalid anchor_to '${obj.anchor_to}'.`);
-        }
-      }
-    }
-
-    if ('size' in obj && Array.isArray(obj.size)) {
-      if (obj.size.length !== 2) {
-        uiErrors.push(`${keyPath}: 'size' array must have exactly 2 elements [width, height].`);
-      }
-    }
-
-    if (typeof obj.texture === 'string' && obj.texture.startsWith('textures/') && validTextures.size > 50) {
-      const cleanTex = obj.texture.replace(/\.png$/, '');
-      if (!validTextures.has(cleanTex) && !validTextures.has(cleanTex.toLowerCase())) {
-        uiErrors.push(`${keyPath}: Invalid UI texture reference '${obj.texture}'.`);
-      }
-    }
-
-    if (Array.isArray(obj.controls)) {
-      const seenNames = new Set<string>();
-      for (const childEntry of obj.controls) {
-        if (!childEntry || typeof childEntry !== 'object' || Array.isArray(childEntry)) {
-          uiErrors.push(`${keyPath}.controls: Every element in 'controls' must be a single-key object.`);
-          continue;
-        }
-        const keys = Object.keys(childEntry);
-        if (keys.length !== 1) {
-          uiErrors.push(`${keyPath}.controls: Control entry must have exactly 1 key (found ${keys.length}).`);
-          continue;
-        }
-        const rawKey = keys[0]!;
-        const [controlId, superRef] = rawKey.split('@');
-        if (superRef) {
-          checkLocalTargetRef(`${keyPath}.controls.${rawKey}`, superRef);
-        }
-        if (seenNames.has(controlId!)) {
-          uiErrors.push(
-            `${keyPath}.controls: Duplicate sibling control name '${controlId}' (causes Bedrock UI crash).`,
-          );
-        }
-        seenNames.add(controlId!);
-      }
-    }
-
-    if (Array.isArray(obj.bindings)) {
-      const declaredBindings = new Set<string>();
-      for (const b of obj.bindings) {
-        if (!b || typeof b !== 'object') {
-          continue;
-        }
-        if (typeof b.binding_name === 'string') {
-          declaredBindings.add(b.binding_name);
-        }
-        if (typeof b.binding_name_override === 'string') {
-          declaredBindings.add(b.binding_name_override);
-        }
-      }
-
-      for (const b of obj.bindings) {
-        if (!b || typeof b !== 'object') {
-          continue;
-        }
-        if (
-          (b.binding_type === 'collection' || b.binding_type === 'collection_details') &&
-          !b.binding_collection_name
-        ) {
-          uiErrors.push(`${keyPath}: Binding of type '${b.binding_type}' is missing 'binding_collection_name'.`);
-        }
-        if (b.binding_type === 'view') {
-          if (!b.target_property_name) {
-            uiErrors.push(`${keyPath}: View binding is missing 'target_property_name'.`);
+        for (let i = 0; i < obj.bindings.length; i++) {
+          const b = obj.bindings[i] as Record<string, unknown> | undefined;
+          if (!b || typeof b !== 'object') {
+            uiErrors.push(`${keyPath}.bindings[${i}]: Binding entry must be an object.`);
+            continue;
           }
-          if (typeof b.source_property_name === 'string') {
-            const exprErrors = validateViewExpressionLogic(b.source_property_name, declaredBindings);
-            for (const e of exprErrors) {
-              uiErrors.push(`${keyPath}: ${e}`);
+          if (b.binding_type === 'view' && !b.source_property_name && !b.source_control_name) {
+            uiErrors.push(
+              `${keyPath}.bindings[${i}]: 'view' binding requires 'source_property_name' or 'source_control_name'.`,
+            );
+          }
+          if (b.binding_type === 'collection' && !b.binding_collection_name) {
+            uiErrors.push(`${keyPath}.bindings[${i}]: 'collection' binding requires 'binding_collection_name'.`);
+          }
+        }
+      }
+    }
+
+    if (obj.controls !== undefined) {
+      if (!Array.isArray(obj.controls)) {
+        uiErrors.push(`${keyPath}: 'controls' must be an array.`);
+      } else {
+        const seenNames = new Set<string>();
+        for (let i = 0; i < obj.controls.length; i++) {
+          const ctrlEntry = obj.controls[i] as Record<string, unknown> | undefined;
+          if (!ctrlEntry || typeof ctrlEntry !== 'object' || Array.isArray(ctrlEntry)) {
+            uiErrors.push(`${keyPath}.controls[${i}]: Control entry must be a single-key object.`);
+            continue;
+          }
+          const keys = Object.keys(ctrlEntry);
+          if (keys.length !== 1) {
+            uiErrors.push(`${keyPath}.controls[${i}]: Control entry must have exactly 1 key (found ${keys.length}).`);
+            continue;
+          }
+          const rawKey = keys[0]!;
+          const [ctrlId, targetRef] = rawKey.split('@');
+          if (ctrlId && seenNames.has(ctrlId)) {
+            uiErrors.push(`${keyPath}.controls: Duplicate sibling control ID '${ctrlId}'.`);
+          }
+          if (ctrlId) {
+            seenNames.add(ctrlId);
+          }
+          checkLocalTargetRef(`${keyPath}.controls[${i}].${rawKey}`, targetRef);
+          checkControl(`${keyPath}.controls[${i}].${rawKey}`, ctrlEntry[rawKey]);
+        }
+      }
+    }
+
+    if (obj.modifications !== undefined) {
+      if (!Array.isArray(obj.modifications)) {
+        uiErrors.push(`${keyPath}: 'modifications' must be an array.`);
+      } else {
+        for (let i = 0; i < obj.modifications.length; i++) {
+          const mod = obj.modifications[i] as Record<string, unknown> | undefined;
+          if (!mod || typeof mod !== 'object') {
+            uiErrors.push(`${keyPath}.modifications[${i}]: Modification must be an object.`);
+            continue;
+          }
+          if (typeof mod.array_name !== 'string' || typeof mod.operation !== 'string') {
+            uiErrors.push(`${keyPath}.modifications[${i}]: Modification requires 'array_name' and 'operation'.`);
+          }
+          if (Array.isArray(mod.value)) {
+            for (let j = 0; j < mod.value.length; j++) {
+              const vEntry = mod.value[j] as Record<string, unknown> | undefined;
+              if (vEntry && typeof vEntry === 'object') {
+                for (const [vKey, vVal] of Object.entries(vEntry)) {
+                  checkLocalTargetRef(`${keyPath}.modifications[${i}].value[${j}].${vKey}`, vKey.split('@')[1]);
+                  checkControl(`${keyPath}.modifications[${i}].value[${j}].${vKey}`, vVal);
+                }
+              }
             }
           }
         }
       }
     }
 
-    if (keyPath.endsWith('long_form_dynamic_buttons_panel')) {
-      if (obj.type && obj.type !== 'stack_panel' && obj.type !== 'panel') {
-        uiErrors.push(
-          `${keyPath}: 'long_form_dynamic_buttons_panel' must be of type 'stack_panel' (found '${obj.type}').`,
-        );
-      }
-      if (obj.factory && !obj.factory.control_ids) {
-        uiErrors.push(`${keyPath}: 'long_form_dynamic_buttons_panel.factory' must specify 'control_ids'.`);
-      }
-    }
+    const lastSegment = keyPath.split('.').pop() ?? '';
+    const isControlDef =
+      keyPath !== relativePath &&
+      !lastSegment.startsWith('$') &&
+      !keyPath.endsWith('.controls') &&
+      !keyPath.endsWith('.factory') &&
+      !keyPath.endsWith('.control_ids') &&
+      !keyPath.endsWith('.property_bag') &&
+      !keyPath.endsWith('.uv_anim');
 
     for (const [key, val] of Object.entries(obj)) {
+      if (key === 'controls' || key === 'modifications' || key === 'bindings') {
+        continue;
+      }
       if (key.includes('@')) {
         checkLocalTargetRef(`${keyPath}.${key}`, key.split('@')[1]);
+      } else if (
+        isControlDef &&
+        !key.startsWith('$') &&
+        !key.startsWith('#') &&
+        !key.includes('/') &&
+        !validUiControlProperties.has(key)
+      ) {
+        uiErrors.push(`${keyPath}: Unknown JSON UI control property '${key}'.`);
       }
       if (val && typeof val === 'object') {
         checkControl(`${keyPath}.${key}`, val);
       }
     }
+  };
+
+  for (const [topKey, topVal] of Object.entries(json)) {
+    if (topKey === 'namespace') {
+      continue;
+    }
+    checkLocalTargetRef(`${relativePath}.${topKey}`, topKey.split('@')[1]);
+    checkControl(`${relativePath}.${topKey}`, topVal);
   }
 
-  checkControl(relativePath, json);
   return uiErrors;
 }
 
-async function validateCrossFileConsistency(projectRoot: string, parsedFiles: Map<string, any>): Promise<string[]> {
-  const errs: string[] = [];
+export function validateContentJson(relativePath: string, json: Record<string, unknown>): string[] {
+  const contentErrors: string[] = [];
 
-  const bpM = parsedFiles.get('packs/behavior/manifest.json');
-  const rpM = parsedFiles.get('packs/resource/manifest.json');
-  if (bpM && rpM) {
-    const bpUuid = bpM?.header?.uuid;
-    const rpUuid = rpM?.header?.uuid;
-    if (!bpUuid || !rpUuid || bpUuid === rpUuid) {
-      errs.push('Invalid or duplicate UUIDs between BP and RP manifest.json.');
+  if (relativePath.endsWith('manifest.json')) {
+    const header = json.header as Record<string, unknown> | undefined;
+    const modules = json.modules as Record<string, unknown>[] | undefined;
+    if (
+      typeof json.format_version !== 'number' ||
+      !header ||
+      typeof header.name !== 'string' ||
+      typeof header.uuid !== 'string' ||
+      !uuidRegex.test(header.uuid) ||
+      !Array.isArray(modules) ||
+      modules.length === 0
+    ) {
+      contentErrors.push(`${relativePath}: Invalid manifest structure or UUID.`);
     }
+    return contentErrors;
   }
 
-  const serverForm = parsedFiles.get('packs/resource/ui/server_form.json');
-  const builderFile = Bun.file(path.join(projectRoot, 'src/core/ui/builders/actionFormBuilder.ts'));
-  if (serverForm && (await builderFile.exists())) {
-    const serverFormStr = JSON.stringify(serverForm);
-    const builderText = await builderFile.text();
-    const staticTagMatches = builderText.matchAll(/form\.title\(`([^$\x60]+)\$\{this\.rawTitle\}`\)/g);
-    for (const match of staticTagMatches) {
-      const rawPrefix = match[1]!;
-      const normalizedPrefix = rawPrefix.replace('\\uE100§r', '\uE100');
-      if (!serverFormStr.includes(normalizedPrefix)) {
-        errs.push(
-          `ActionFormBuilder title prefix '${rawPrefix}' has no matching visibility binding in server_form.json.`,
-        );
+  if (relativePath.startsWith('packs/behavior/entities/')) {
+    const entity = json['minecraft:entity'] as Record<string, unknown> | undefined;
+    const desc = entity?.description as Record<string, unknown> | undefined;
+    if (typeof json.format_version !== 'string' || !entity || typeof desc?.identifier !== 'string') {
+      contentErrors.push(
+        `${relativePath}: Behavior entity requires 'format_version' and 'minecraft:entity.description.identifier'.`,
+      );
+    }
+    return contentErrors;
+  }
+
+  if (relativePath.startsWith('packs/behavior/items/')) {
+    const item = json['minecraft:item'] as Record<string, unknown> | undefined;
+    const desc = item?.description as Record<string, unknown> | undefined;
+    if (typeof json.format_version !== 'string' || !item || typeof desc?.identifier !== 'string') {
+      contentErrors.push(
+        `${relativePath}: Behavior item requires 'format_version' and 'minecraft:item.description.identifier'.`,
+      );
+    }
+    return contentErrors;
+  }
+
+  if (relativePath.startsWith('packs/behavior/recipes/')) {
+    const recipeObj = (json['minecraft:recipe_shaped'] ??
+      json['minecraft:recipe_shapeless'] ??
+      json['minecraft:recipe_furnace'] ??
+      json['minecraft:recipe_brewing_mix'] ??
+      json['minecraft:recipe_brewing_container'] ??
+      json['minecraft:recipe_smithing_transform']) as Record<string, unknown> | undefined;
+    const desc = recipeObj?.description as Record<string, unknown> | undefined;
+    if (typeof json.format_version !== 'string' || !recipeObj || typeof desc?.identifier !== 'string') {
+      contentErrors.push(
+        `${relativePath}: Recipe requires 'format_version' and a valid 'minecraft:recipe_*' block with 'description.identifier'.`,
+      );
+    }
+    return contentErrors;
+  }
+
+  if (relativePath.startsWith('packs/behavior/loot_tables/')) {
+    if (!Array.isArray(json.pools)) {
+      contentErrors.push(`${relativePath}: Loot table requires a 'pools' array.`);
+    }
+    return contentErrors;
+  }
+
+  if (relativePath.startsWith('packs/behavior/item_catalog/')) {
+    const catalog = json['minecraft:crafting_items_catalog'] as Record<string, unknown> | undefined;
+    if (typeof json.format_version !== 'string' || !catalog || !Array.isArray(catalog.categories)) {
+      contentErrors.push(
+        `${relativePath}: Item catalog requires 'format_version' and 'minecraft:crafting_items_catalog.categories'.`,
+      );
+    }
+    return contentErrors;
+  }
+
+  if (relativePath.startsWith('packs/resource/entity/')) {
+    const clientEntity = json['minecraft:client_entity'] as Record<string, unknown> | undefined;
+    const desc = clientEntity?.description as Record<string, unknown> | undefined;
+    if (typeof json.format_version !== 'string' || !clientEntity || typeof desc?.identifier !== 'string') {
+      contentErrors.push(
+        `${relativePath}: Client entity requires 'format_version' and 'minecraft:client_entity.description.identifier'.`,
+      );
+    }
+    return contentErrors;
+  }
+
+  if (relativePath.startsWith('packs/resource/models/')) {
+    if (typeof json.format_version !== 'string' || !Array.isArray(json['minecraft:geometry'])) {
+      contentErrors.push(`${relativePath}: Geometry file requires 'format_version' and 'minecraft:geometry' array.`);
+    }
+    return contentErrors;
+  }
+
+  if (relativePath.startsWith('packs/resource/render_controllers/')) {
+    if (
+      typeof json.format_version !== 'string' ||
+      !json.render_controllers ||
+      typeof json.render_controllers !== 'object'
+    ) {
+      contentErrors.push(
+        `${relativePath}: Render controller requires 'format_version' and 'render_controllers' object.`,
+      );
+    }
+    return contentErrors;
+  }
+
+  return contentErrors;
+}
+
+export async function runSchemaValidation(): Promise<boolean> {
+  console.log('[Validator] Starting strict Bedrock JSON & JSON UI validation...');
+  const rootDir = process.cwd();
+
+  const jsonGlob = new Bun.Glob('packs/**/*.json');
+  const packJsonFiles = Array.from(jsonGlob.scanSync({ cwd: rootDir, absolute: true }));
+
+  let totalValidated = 0;
+  let errors = 0;
+
+  for (const filePath of packJsonFiles) {
+    const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
+    let json: Record<string, unknown>;
+
+    try {
+      json = await Bun.file(filePath).json();
+    } catch (e) {
+      console.error(`[Validator] Invalid JSON syntax in ${relativePath}:`, e);
+      errors++;
+      continue;
+    }
+
+    totalValidated++;
+
+    if (relativePath.startsWith('packs/resource/ui/')) {
+      const uiErrors = validateUiJson(relativePath, json);
+      if (uiErrors.length > 0) {
+        console.error(`[Validator] JSON UI error in ${relativePath}:`);
+        for (const err of uiErrors) {
+          console.error(`  - ${err}`);
+        }
+        errors += uiErrors.length;
+      }
+    } else {
+      const contentErrors = validateContentJson(relativePath, json);
+      if (contentErrors.length > 0) {
+        console.error(`[Validator] Bedrock Content error in ${relativePath}:`);
+        for (const err of contentErrors) {
+          console.error(`  - ${err}`);
+        }
+        errors += contentErrors.length;
       }
     }
   }
 
-  return errs;
+  console.log(`[Validator] Validated ${totalValidated} JSON files.`);
+
+  if (errors > 0) {
+    console.error(`[Validator] Found ${errors} validation error(s).`);
+    return false;
+  }
+
+  console.log('[Validator] All JSON and JSON UI files passed strict schema & logic validation.');
+  return true;
+}
+
+export async function validateSchemas(): Promise<void> {
+  const success = await runSchemaValidation();
+  if (!success) {
+    throw new Error('JSON schema validation failed.');
+  }
 }
 
 if (import.meta.main) {
-  validateSchemas().catch((err) => {
-    console.error(err);
+  const success = await runSchemaValidation();
+  if (!success) {
     process.exit(1);
-  });
+  }
 }

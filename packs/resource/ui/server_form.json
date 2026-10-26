@@ -2227,46 +2227,26 @@
     "size": [24, 17],
     "controls": [
       {
-        "card_inner": {
-          "type": "panel",
-          "size": [24, 17],
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "((not (#form_button_text = '')) and ((#form_button_text - '') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "form_button@common_buttons.dark_text_button": {
-                "$pressed_button_name": "button.form_button_click",
-                "size": [23, 16],
-                "anchor_from": "center",
-                "anchor_to": "center",
-                "layer": 1,
-                "$button_text": "#form_button_text",
-                "$button_text_binding_type": "collection",
-                "$button_text_grid_collection_name": "form_buttons",
-                "$button_content": "server_form.ms_empty_button_content",
-                "bindings": [{ "binding_type": "collection_details", "binding_collection_name": "form_buttons" }]
-              }
-            },
-            {
-              "tile_visual@server_form.ms_button_content": {
-                "size": [23, 16],
-                "anchor_from": "center",
-                "anchor_to": "center",
-                "layer": 6,
-                "$exe_font_scale": 0.88
-              }
-            }
-          ]
+        "form_button@common_buttons.dark_text_button": {
+          "$pressed_button_name": "button.form_button_click",
+          "size": [23, 16],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "layer": 1,
+          "$button_text": "#form_button_text",
+          "$button_text_binding_type": "collection",
+          "$button_text_grid_collection_name": "form_buttons",
+          "$button_content": "server_form.ms_empty_button_content",
+          "bindings": [{ "binding_type": "collection_details", "binding_collection_name": "form_buttons" }]
+        }
+      },
+      {
+        "tile_visual@server_form.ms_button_content": {
+          "size": [23, 16],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "layer": 6,
+          "$exe_font_scale": 0.88
         }
       }
     ]
@@ -2276,46 +2256,26 @@
     "size": [20, 14],
     "controls": [
       {
-        "card_inner": {
-          "type": "panel",
-          "size": [20, 14],
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "((not (#form_button_text = '')) and ((#form_button_text - '') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "form_button@common_buttons.dark_text_button": {
-                "$pressed_button_name": "button.form_button_click",
-                "size": [19, 13],
-                "anchor_from": "center",
-                "anchor_to": "center",
-                "layer": 1,
-                "$button_text": "#form_button_text",
-                "$button_text_binding_type": "collection",
-                "$button_text_grid_collection_name": "form_buttons",
-                "$button_content": "server_form.ms_empty_button_content",
-                "bindings": [{ "binding_type": "collection_details", "binding_collection_name": "form_buttons" }]
-              }
-            },
-            {
-              "tile_visual@server_form.ms_button_content": {
-                "size": [19, 13],
-                "anchor_from": "center",
-                "anchor_to": "center",
-                "layer": 6,
-                "$exe_font_scale": 0.78
-              }
-            }
-          ]
+        "form_button@common_buttons.dark_text_button": {
+          "$pressed_button_name": "button.form_button_click",
+          "size": [19, 13],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "layer": 1,
+          "$button_text": "#form_button_text",
+          "$button_text_binding_type": "collection",
+          "$button_text_grid_collection_name": "form_buttons",
+          "$button_content": "server_form.ms_empty_button_content",
+          "bindings": [{ "binding_type": "collection_details", "binding_collection_name": "form_buttons" }]
+        }
+      },
+      {
+        "tile_visual@server_form.ms_button_content": {
+          "size": [19, 13],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "layer": 6,
+          "$exe_font_scale": 0.78
         }
       }
     ]
@@ -2325,46 +2285,26 @@
     "size": [20, 14],
     "controls": [
       {
-        "card_inner": {
-          "type": "panel",
-          "size": [20, 14],
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "((not (#form_button_text = '')) and ((#form_button_text - '') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ],
-          "controls": [
-            {
-              "form_button@common_buttons.dark_text_button": {
-                "$pressed_button_name": "button.form_button_click",
-                "size": [19, 13],
-                "anchor_from": "center",
-                "anchor_to": "center",
-                "layer": 1,
-                "$button_text": "#form_button_text",
-                "$button_text_binding_type": "collection",
-                "$button_text_grid_collection_name": "form_buttons",
-                "$button_content": "server_form.ms_empty_button_content",
-                "bindings": [{ "binding_type": "collection_details", "binding_collection_name": "form_buttons" }]
-              }
-            },
-            {
-              "tile_visual@server_form.ms_button_content": {
-                "size": [19, 13],
-                "anchor_from": "center",
-                "anchor_to": "center",
-                "layer": 6,
-                "$exe_font_scale": 0.75
-              }
-            }
-          ]
+        "form_button@common_buttons.dark_text_button": {
+          "$pressed_button_name": "button.form_button_click",
+          "size": [19, 13],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "layer": 1,
+          "$button_text": "#form_button_text",
+          "$button_text_binding_type": "collection",
+          "$button_text_grid_collection_name": "form_buttons",
+          "$button_content": "server_form.ms_empty_button_content",
+          "bindings": [{ "binding_type": "collection_details", "binding_collection_name": "form_buttons" }]
+        }
+      },
+      {
+        "tile_visual@server_form.ms_button_content": {
+          "size": [19, 13],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "layer": 6,
+          "$exe_font_scale": 0.75
         }
       }
     ]
@@ -2600,23 +2540,14 @@
   "ms_toolbar_item": {
     "type": "panel",
     "size": ["100%", "100%c"],
-    "controls": [
+    "bindings": [
+      { "binding_name": "#form_button_text", "binding_type": "collection", "binding_collection_name": "form_buttons" },
       {
-        "toolbar_inner@server_form.button_ms_toolbar": {
-          "bindings": [
-            {
-              "binding_name": "#form_button_text",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_type": "view",
-              "source_property_name": "(not ((#form_button_text - '') = #form_button_text))",
-              "target_property_name": "#visible"
-            }
-          ]
-        }
+        "binding_type": "view",
+        "source_property_name": "(not ((#form_button_text - '') = #form_button_text))",
+        "target_property_name": "#visible"
       }
-    ]
+    ],
+    "controls": [{ "toolbar_inner@server_form.button_ms_toolbar": {} }]
   }
 }

@@ -386,7 +386,6 @@ function syncBoardCounts(game: MinesweeperGame): void {
 }
 
 export function getMinesweeperBoardProgress(game: MinesweeperGame): MinesweeperBoardProgress {
-  syncBoardCounts(game);
   const totalSafe = Math.max(1, game.totalCells - game.totalMines);
   const percent = Math.min(100, Math.floor((game.safeCleared / totalSafe) * 100));
   const remainingMines = Math.max(0, game.totalMines - game.flaggedCount);
@@ -581,8 +580,11 @@ function floodReveal(game: MinesweeperGame, startIndex: number): void {
 }
 
 function checkWinCondition(game: MinesweeperGame): boolean {
-  syncBoardCounts(game);
-  return game.safeCleared >= game.totalCells - game.totalMines;
+  if (game.safeCleared >= game.totalCells - game.totalMines) {
+    syncBoardCounts(game);
+    return game.safeCleared >= game.totalCells - game.totalMines;
+  }
+  return false;
 }
 
 function revealAllMines(game: MinesweeperGame): void {
@@ -672,8 +674,9 @@ export function handleMinesweeperCellTap(
       if (hiddenNeighbors.length === cell.adjacentMines && unflaggedHidden.length > 0) {
         for (const nIdx of unflaggedHidden) {
           const nCell = game.cells[nIdx];
-          if (isDefined(nCell)) {
+          if (isDefined(nCell) && !nCell.flagged) {
             nCell.flagged = true;
+            game.flaggedCount++;
           }
         }
         playSound(player, 'random.orb');
@@ -688,6 +691,7 @@ export function handleMinesweeperCellTap(
 
   if (game.flagMode) {
     cell.flagged = !cell.flagged;
+    game.flaggedCount = Math.max(0, game.flaggedCount + (cell.flagged ? 1 : -1));
     playSound(player, 'random.click');
     return {
       status: 'active',
@@ -734,8 +738,9 @@ function completeWin(player: mc.Player, game: MinesweeperGame): { status: 'won';
   }
 
   for (const cell of game.cells) {
-    if (cell.hasMine) {
+    if (cell.hasMine && !cell.flagged) {
       cell.flagged = true;
+      game.flaggedCount++;
     }
   }
 

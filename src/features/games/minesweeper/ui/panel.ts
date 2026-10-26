@@ -33,8 +33,37 @@ function buildProgressBar(percent: number, segments = 8): string {
 import { showInviteFriendToGameModal } from '@features/games/tictactoe/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { FormCancelationReason } from '@minecraft/server-ui';
+import { ActionFormData, ActionFormResponse, FormCancelationReason } from '@minecraft/server-ui';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+
+const msGridTitlePrefix: Record<'ms9' | 'ms12' | 'ms16', string> = {
+  ms9: '§8§0§9§f§r',
+  ms12: '§8§1§2§f§r',
+  ms16: '§8§1§6§f§r',
+};
+
+async function showMinesweeperFast(player: mc.Player, form: ActionFormData): Promise<ActionFormResponse> {
+  if (!player.isValid) {
+    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed };
+  }
+  const first = await form.show(player);
+  if (first.cancelationReason !== FormCancelationReason.UserBusy) {
+    return first;
+  }
+  for (let retry = 0; retry < 15; retry++) {
+    if (!player.isValid) {
+      break;
+    }
+    if (mc.system && typeof mc.system.runTimeout === 'function') {
+      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 1));
+    }
+    const attempt = await form.show(player);
+    if (attempt.cancelationReason !== FormCancelationReason.UserBusy) {
+      return attempt;
+    }
+  }
+  return { canceled: true, cancelationReason: FormCancelationReason.UserBusy };
+}
 
 export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
   const gamesCfg = getGamesConfig();
@@ -212,33 +241,40 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     statusLine = `${statusLine}\n${notice}`;
   }
 
-  const form = new ActionFormBuilder()
-    .grid(game.gridMode)
-    .title(`§r§l§bMinesweeper ${game.cols}x${game.rows} §8(${game.difficulty.toUpperCase()})`)
+  const rawForm = new ActionFormData()
+    .title(
+      `${msGridTitlePrefix[game.gridMode]}§r§l§bMinesweeper ${game.cols}x${game.rows} §8(${game.difficulty.toUpperCase()})`,
+    )
     .body(statusLine);
 
-  for (let i = 0; i < game.totalCells; i++) {
-    const visual = getCellVisual(game, game.cells[i]!);
-    form.button(visual.label, visual.icon);
+  const cells = game.cells;
+  const cellCount = game.totalCells;
+  for (let i = 0; i < cellCount; i++) {
+    const visual = getCellVisual(game, cells[i]!);
+    if (visual.icon) {
+      rawForm.button(visual.label, visual.icon);
+    } else {
+      rawForm.button(visual.label);
+    }
   }
 
   if (game.status === 'active') {
     const toolbarText = game.flagMode
-      ? '\uE101§r§l§e[⚑ MODE: FLAG MINE] §r§7(Tap here to switch to Dig Mode)'
-      : '\uE101§r§l§a[⛏ MODE: DIG TILE] §r§7(Tap here to switch to Flag Mode)';
+      ? '\uE101§r§l§e[⚑ MODE: FLAG MINE] §r§7(Tap to Dig)'
+      : '\uE101§r§l§a[⛏ MODE: DIG TILE] §r§7(Tap to Flag)';
     const toolbarIcon = game.flagMode ? 'textures/blocks/tnt_side' : 'textures/items/iron_pickaxe';
-    form.button(toolbarText, toolbarIcon);
+    rawForm.button(toolbarText, toolbarIcon);
   } else if (!isDefined(raceMatch)) {
-    form.button(
+    rawForm.button(
       `\uE101§r§l§a[Play Again: ${game.cols}x${game.rows} ${game.difficulty.toUpperCase()}]`,
       'textures/ui/refresh_light',
     );
-    form.button('\uE101§r§l§e[Minesweeper Menu]', 'textures/ui/arrow_left');
+    rawForm.button('\uE101§r§l§e[Minesweeper Menu]', 'textures/ui/arrow_left');
   } else {
-    form.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left');
+    rawForm.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left');
   }
 
-  const response = await form.show(player, { wait: true });
+  const response = await showMinesweeperFast(player, rawForm);
 
   const freshRace = isDefined(game.multiplayerMatchId) ? getMinesweeperRaceMatch(game.multiplayerMatchId) : undefined;
   if (isDefined(freshRace) && freshRace.refreshingPlayers.has(player.id)) {
@@ -259,9 +295,9 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
   }
 
   const selection = response.selection;
-  const tappedPlayAgain = game.status !== 'active' && !isDefined(freshRace) && selection === game.totalCells;
-  const tappedToolbar = selection !== undefined && selection >= game.totalCells && !tappedPlayAgain;
-  const tappedCell = selection !== undefined && selection >= 0 && selection < game.totalCells ? selection : undefined;
+  const tappedPlayAgain = game.status !== 'active' && !isDefined(freshRace) && selection === cellCount;
+  const tappedToolbar = selection !== undefined && selection >= cellCount && !tappedPlayAgain;
+  const tappedCell = selection !== undefined && selection >= 0 && selection < cellCount ? selection : undefined;
 
   if (game.status !== 'active' || (isDefined(freshRace) && freshRace.status !== 'active')) {
     if (tappedPlayAgain && !isDefined(freshRace)) {
