@@ -1,13 +1,7 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/config/configurations.js';
 import { resolveTarget } from '@core/utils/index.js';
-import {
-  acceptGameInvite,
-  cancelGameInvite,
-  denyGameInvite,
-  joinMatchmakingQueue,
-  sendGameInvite,
-} from '@features/games/matchmakingManager.js';
+import { handleCommonGameSubcommand, sendGameInvite } from '@features/games/matchmakingManager.js';
 import { startRpsBotMatch } from '@features/games/rps/manager.js';
 import { showRpsMatchPanel, showRpsMenu } from '@features/games/rps/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -50,31 +44,7 @@ const rpsCommand: CustomCommand = {
       return;
     }
 
-    if (sub === 'queue' || sub === 'random' || sub === 'matchmake') {
-      const res = joinMatchmakingQueue(executor, 'rps');
-      if (isNonEmptyString(res.message)) {
-        executor.sendMessage(res.message);
-      }
-      return;
-    }
-
-    if (sub === 'accept' || sub === 'yes') {
-      const res = acceptGameInvite(executor, secondArg);
-      if (isNonEmptyString(res.message)) {
-        executor.sendMessage(res.message);
-      }
-      return;
-    }
-
-    if (sub === 'deny' || sub === 'no' || sub === 'decline') {
-      const res = denyGameInvite(executor, secondArg);
-      executor.sendMessage(res.message);
-      return;
-    }
-
-    if (sub === 'cancel') {
-      const res = cancelGameInvite(executor);
-      executor.sendMessage(res.message);
+    if (handleCommonGameSubcommand(executor, 'rps', sub, secondArg)) {
       return;
     }
 

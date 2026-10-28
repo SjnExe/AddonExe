@@ -4,15 +4,7 @@ import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency } from '@core/utils/index.js';
-import {
-  acceptGameInvite,
-  cancelGameInvite,
-  denyGameInvite,
-  getIncomingGameInvites,
-  getOutgoingGameInvite,
-  isPlayerInQueue,
-  joinMatchmakingQueue,
-} from '@features/games/matchmakingManager.js';
+import { appendGameInviteButtons, isPlayerInQueue, joinMatchmakingQueue } from '@features/games/matchmakingManager.js';
 import { showInviteFriendToGameModal } from '@features/games/tictactoe/ui/panel.js';
 import {
   broadcastWordleMessage,
@@ -79,8 +71,6 @@ export async function showWordleMultiplayerMenu(player: mc.Player): Promise<void
   }
 
   const activeDuel = getPlayerWordleDuel(player.id);
-  const incoming = getIncomingGameInvites(player.id).filter((i) => i.gameId === 'wordle');
-  const outgoing = getOutgoingGameInvite(player.id);
 
   const form = new ActionFormBuilder()
     .title('Multiplayer Wordle (2P Race)')
@@ -113,26 +103,7 @@ export async function showWordleMultiplayerMenu(player: mc.Player): Promise<void
     },
   );
 
-  for (const inv of incoming) {
-    const wagerStr = inv.wager > 0 ? ` (${formatCurrency(inv.wager)})` : '';
-    form.button(`§aAccept: ${inv.senderName}${wagerStr}`, 'textures/ui/realms_green_check', () => {
-      const res = acceptGameInvite(player, inv.senderName, 'wordle');
-      if (isNonEmptyString(res.message)) {
-        player.sendMessage(res.message);
-      }
-    });
-    form.button(`§cDeny: ${inv.senderName}`, 'textures/ui/cancel', async () => {
-      player.sendMessage(denyGameInvite(player, inv.senderName, 'wordle').message);
-      await showWordleMultiplayerMenu(player);
-    });
-  }
-
-  if (isDefined(outgoing) && outgoing.gameId === 'wordle') {
-    form.button(`§cCancel Invite to ${outgoing.targetName}`, 'textures/ui/cancel', async () => {
-      player.sendMessage(cancelGameInvite(player).message);
-      await showWordleMultiplayerMenu(player);
-    });
-  }
+  appendGameInviteButtons(form, player, 'wordle', showWordleMultiplayerMenu);
 
   form.addBackButton(async () => {
     await showWordleMainPanel(player);

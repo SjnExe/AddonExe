@@ -13,7 +13,7 @@ const command: CustomCommand = {
   name: 'reload',
   slashName: 'xreload',
   aliases: ['xreload'],
-  description: 'Reloads the addon configuration from the config file.',
+  description: 'Reloads stored configurations and re-evaluates online player ranks.',
   category: 'Administration',
   permissionNode: 'cmd.reload.admin', // Admins only
   allowConsole: true,

@@ -3,11 +3,8 @@ import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
-import { formatCurrency } from '@core/utils/index.js';
 import {
-  acceptGameInvite,
-  cancelGameInvite,
-  denyGameInvite,
+  appendGameInviteButtons,
   getIncomingGameInvites,
   getOutgoingGameInvite,
   isPlayerInQueue,
@@ -185,32 +182,7 @@ export async function showTicTacToeMenu(player: mc.Player): Promise<void> {
       },
     );
 
-  for (const inv of incoming) {
-    const wagerStr = inv.wager > 0 ? ` (${formatCurrency(inv.wager)})` : '';
-    form.button(
-      `§aAccept: ${inv.senderName}${wagerStr}\n§7Click to start match`,
-      'textures/ui/realms_green_check',
-      () => {
-        const res = acceptGameInvite(player, inv.senderName);
-        if (isNonEmptyString(res.message)) {
-          player.sendMessage(res.message);
-        }
-      },
-    );
-    form.button(`§cDeny: ${inv.senderName}`, 'textures/ui/cancel', async () => {
-      const res = denyGameInvite(player, inv.senderName);
-      player.sendMessage(res.message);
-      await showTicTacToeMenu(player);
-    });
-  }
-
-  if (isDefined(outgoing)) {
-    form.button(`§cCancel Invite to ${outgoing.targetName}`, 'textures/ui/cancel', async () => {
-      const res = cancelGameInvite(player);
-      player.sendMessage(res.message);
-      await showTicTacToeMenu(player);
-    });
-  }
+  appendGameInviteButtons(form, player, 'tictactoe', showTicTacToeMenu);
 
   form.button(
     invitesDisabled ? '§l§cInvites: OFF\n§r§7Tap to allow' : '§l§2Invites: ON\n§r§7Tap to block',

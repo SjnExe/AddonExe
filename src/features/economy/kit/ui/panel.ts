@@ -235,13 +235,49 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
       items,
       page,
       ({ item, index }, formBuilder) => {
+        const customLabel = item.nameTag ? ` (${item.nameTag}§r)` : '';
+        const enchCount = item.enchantments?.length ? ` §d[${item.enchantments.length} ench]` : '';
         formBuilder.button(
-          `${index + 1}. ${item.typeId.replace(/^minecraft:/, '')} x${item.amount}`,
+          `${index + 1}. ${item.typeId.replace(/^minecraft:/, '')} x${item.amount}${customLabel}${enchCount}`,
           'textures/items/book_normal',
           async () => {
             const manageForm = new ActionFormBuilder()
-              .title('Manage Item')
-              .button('Delete Item', 'textures/ui/trash', async () => {
+              .title(`Manage Item #${index + 1}`)
+              .body(
+                [
+                  `§7Type: §f${item.typeId}`,
+                  `§7Quantity: §ex${item.amount}`,
+                  ...(item.nameTag ? [`§7Custom Name: §r${item.nameTag}`] : []),
+                  ...(item.enchantments?.length
+                    ? [`§7Enchantments: §d${item.enchantments.map((e) => `${e.id} ${e.level}`).join(', ')}`]
+                    : []),
+                ].join('\n'),
+              )
+              .button('Edit Quantity / Custom Name', 'textures/ui/book_edit_default', async () => {
+                const editModal = new CustomFormBuilder<{ typeId: string; amount: string; nameTag: string }>(
+                  `Edit Kit Item #${index + 1}`,
+                )
+                  .textField('typeId', 'Item ID', item.typeId, item.typeId)
+                  .textField('amount', 'Amount (0 to remove)', String(item.amount), String(item.amount))
+                  .textField('nameTag', 'Custom NameTag (Optional)', '', item.nameTag ?? '')
+                  .submitButton('Save Item');
+                const editRes = await editModal.show(player);
+                if (editRes) {
+                  const parsedAmt = Number.parseInt(editRes.amount, 10);
+                  const updatedItem = {
+                    ...item,
+                    typeId: editRes.typeId.trim() || item.typeId,
+                    amount: Number.isNaN(parsedAmt) ? item.amount : parsedAmt,
+                    ...(editRes.nameTag.trim().length > 0
+                      ? { nameTag: editRes.nameTag.trim() }
+                      : { nameTag: undefined }),
+                  };
+                  const result = kitItemsManager.updateItemInKit(kitName, index, updatedItem);
+                  player.sendMessage(result.message);
+                }
+                await showKitItemsPanel(player, kitName, page);
+              })
+              .button('§4Delete Item', 'textures/ui/trash', async () => {
                 const result = kitItemsManager.removeItemFromKit(kitName, index);
                 player.sendMessage(result.message);
                 await showKitItemsPanel(player, kitName, page);

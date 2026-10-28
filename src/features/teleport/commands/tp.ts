@@ -1,6 +1,8 @@
 import { CustomCommand } from '@commands/commandManager.js';
-import { findPlayerByName } from '@core/data/playerCache.js';
+import { soundTeleport } from '@core/utils/constants.js';
+import { playSound, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -33,13 +35,14 @@ const command: CustomCommand = {
         if (!isNonEmptyString(targetName)) {
           return;
         }
-        const destPlayer1 = findPlayerByName(targetName);
+        const destPlayer1 = resolveTarget(targetName, executor)[0];
         if (!isDefined(destPlayer1)) {
           sendMessage(`§cPlayer '${targetName}' not found.`, executor);
           return;
         }
         saveLastLocation(executor);
         executor.teleport(destPlayer1.location, { dimension: destPlayer1.dimension });
+        playSound(executor, soundTeleport);
         sendMessage(`§aTeleported to ${destPlayer1.name}.`, executor);
         break;
       }
@@ -51,8 +54,8 @@ const command: CustomCommand = {
           return;
         }
 
-        const playerToMove = findPlayerByName(p1Name);
-        const destPlayer2 = findPlayerByName(p2Name);
+        const playerToMove = resolveTarget(p1Name, executor)[0];
+        const destPlayer2 = resolveTarget(p2Name, executor)[0];
         if (!isDefined(playerToMove)) {
           sendMessage(`§cPlayer '${p1Name}' not found.`, executor);
           return;
@@ -63,6 +66,7 @@ const command: CustomCommand = {
         }
         saveLastLocation(playerToMove);
         playerToMove.teleport(destPlayer2.location, { dimension: destPlayer2.dimension });
+        playSound(playerToMove, soundTeleport);
         sendMessage(`§aTeleported ${playerToMove.name} to ${destPlayer2.name}.`, executor);
         break;
       }
@@ -76,8 +80,13 @@ const command: CustomCommand = {
           sendMessage('§cInvalid coordinates provided.', executor);
           return;
         }
+        if (!isWithinWorldBorder({ x: x3, z: z3 }, executor.dimension.id) && !canBypassWorldBorder(executor)) {
+          sendMessage('§cTarget coordinates are outside the active world border.', executor);
+          return;
+        }
         saveLastLocation(executor);
         executor.teleport({ x: x3, y: y3, z: z3 });
+        playSound(executor, soundTeleport);
         sendMessage(`§aTeleported to ${x3}, ${y3}, ${z3}.`, executor);
         break;
       }
@@ -87,7 +96,7 @@ const command: CustomCommand = {
         if (!isNonEmptyString(tName)) {
           return;
         }
-        const targetPlayer = findPlayerByName(tName);
+        const targetPlayer = resolveTarget(tName, executor)[0];
         if (!isDefined(targetPlayer)) {
           sendMessage(`§cPlayer '${tName}' not found.`, executor);
           return;
@@ -100,8 +109,13 @@ const command: CustomCommand = {
           sendMessage('§cInvalid coordinates provided.', executor);
           return;
         }
+        if (!isWithinWorldBorder({ x: x4, z: z4 }, targetPlayer.dimension.id) && !canBypassWorldBorder(executor)) {
+          sendMessage('§cTarget coordinates are outside the active world border.', executor);
+          return;
+        }
         saveLastLocation(targetPlayer);
         targetPlayer.teleport({ x: x4, y: y4, z: z4 }, { dimension: targetPlayer.dimension });
+        playSound(targetPlayer, soundTeleport);
         sendMessage(`§aTeleported ${targetPlayer.name} to ${x4}, ${y4}, ${z4}.`, executor);
         break;
       }

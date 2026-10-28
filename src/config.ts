@@ -1,4 +1,9 @@
-import { MinecraftDimensionTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+import { economyMainDefaults } from '@features/economy/config.js';
+import { kitsConfig } from '@features/economy/kit/config.js';
+import { essentialsConfig } from '@features/essentials/config.js';
+import { moderationMainDefaults } from '@features/moderation/config.js';
+import { socialMainDefaults } from '@features/social/config.js';
+import { teleportConfig } from '@features/teleport/config.js';
 
 export const config = {
   // --- System & Core Settings ---
@@ -6,311 +11,57 @@ export const config = {
   defaultGamemode: 'survival',
   logLevel: 2, // 0=ERROR, 1=WARN, 2=INFO, 3=DEBUG
   exeGlobalNotificationsDefaultOn: true,
-
-  // --- Data Management ---
   data: {
-    autoSaveIntervalSeconds: 30, // Time in seconds. Set to 0 to disable. Default is 30 seconds.
+    autoSaveIntervalSeconds: 30,
   },
-
-  // --- Restart Settings ---
   restart: {
     countdownSeconds: 30,
     kickMessage: 'Server is restarting. Please rejoin in a moment.',
     subtitle: '§eServer Restarting...',
   },
 
-  // --- Spawn Settings ---
-  spawn: {
-    cooldownSeconds: 60,
-    teleportWarmupSeconds: 10,
-    syncWorldSpawn: true,
-    worldSpawnRadius: 1,
-    spawnLocation: {
-      x: undefined as number | undefined,
-      y: undefined as number | undefined,
-      z: undefined as number | undefined,
-      dimensionId: MinecraftDimensionTypes.Overworld,
-    },
-  },
-  spawnProtection: {
-    enabled: false,
-    protectionRadius: 32,
-    allowAdminBypass: true,
-    preventPvP: true,
-    preventHostileDamage: true,
-    preventHostileMobSpawning: true,
-    preventBlockBreaking: true,
-    preventBlockPlacing: true,
-    preventExplosions: true,
-    preventBlockInteraction: true,
-    preventItemPickup: true,
-    preventFallDamage: true,
-    preventMagicDamage: true,
-    preventMobGriefing: true,
-    preventEntityInteraction: true,
-    preventProjectileUsage: true,
-  },
+  // --- Spawn, World & Teleportation ---
+  spawn: essentialsConfig.spawn,
+  spawnProtection: essentialsConfig.spawnProtection,
+  ...teleportConfig,
 
-  // --- Feature Toggles & Settings ---
-  tpa: {
-    enabled: true,
-    requestTimeoutSeconds: 60,
-    cooldownSeconds: 30,
-    teleportWarmupSeconds: 10,
-  },
-  homes: {
-    enabled: true,
-    maxHomes: 5,
-    cooldownSeconds: 60, // 1 minute
-    teleportWarmupSeconds: 10,
-  },
-  warps: {
-    enabled: true,
-    cooldownSeconds: 60, // 1 minute
-    teleportWarmupSeconds: 10,
-  },
-  rtp: {
-    enabled: true,
-    minRange: 1000,
-    maxRange: 10_000,
-    cooldownSeconds: 600, // 10 minutes
-    teleportWarmupSeconds: 10,
-  },
-  back: {
-    enabled: true,
-    cooldownSeconds: 60,
-    teleportWarmupSeconds: 10,
-    cost: 0,
-    saveOnDeath: true,
-    saveOnTeleport: true,
-  },
-  kits: {
-    enabled: false,
-    starterKit: {
-      enabled: false,
-      kitName: 'starter',
-    },
-    kitDefinitions: {
-      starter: {
-        enabled: true,
-        description: 'A basic kit to get you started.',
-        cooldownSeconds: 3600, // 1 hour
-        icon: 'textures/items/stone_sword',
-        price: 0,
-        permission: 'ui.panel.member',
-        items: [
-          { typeId: MinecraftItemTypes.StoneSword, amount: 1 },
-          { typeId: MinecraftItemTypes.StonePickaxe, amount: 1 },
-          { typeId: MinecraftItemTypes.StoneAxe, amount: 1 },
-          { typeId: MinecraftItemTypes.StoneShovel, amount: 1 },
-          { typeId: MinecraftItemTypes.Bread, amount: 16 },
-        ],
-      },
-      food: {
-        enabled: true,
-        description: 'A hearty food refill.',
-        cooldownSeconds: 900, // 15 minutes
-        icon: 'textures/items/beef_cooked',
-        price: 25,
-        permission: 'ui.panel.member',
-        items: [{ typeId: MinecraftItemTypes.CookedBeef, amount: 16 }],
-      },
-      warrior: {
-        enabled: true,
-        description: 'A kit for the aspiring warrior.',
-        cooldownSeconds: 86_400, // 24 hours
-        icon: 'textures/items/iron_sword',
-        price: 350,
-        permission: 'ui.panel.member',
-        items: [
-          { typeId: MinecraftItemTypes.IronSword, amount: 1 },
-          { typeId: MinecraftItemTypes.IronHelmet, amount: 1 },
-          { typeId: MinecraftItemTypes.IronChestplate, amount: 1 },
-          { typeId: MinecraftItemTypes.IronLeggings, amount: 1 },
-          { typeId: MinecraftItemTypes.IronBoots, amount: 1 },
-          { typeId: MinecraftItemTypes.Shield, amount: 1 },
-          { typeId: MinecraftItemTypes.CookedBeef, amount: 16 },
-        ],
-      },
-      archer: {
-        enabled: true,
-        description: 'A kit for the skilled archer.',
-        cooldownSeconds: 86_400, // 24 hours
-        icon: 'textures/items/bow_standby',
-        price: 250,
-        permission: 'ui.panel.member',
-        items: [
-          { typeId: MinecraftItemTypes.Bow, amount: 1 },
-          { typeId: MinecraftItemTypes.Arrow, amount: 64 },
-          { typeId: MinecraftItemTypes.LeatherHelmet, amount: 1 },
-          { typeId: MinecraftItemTypes.LeatherChestplate, amount: 1 },
-          { typeId: MinecraftItemTypes.LeatherLeggings, amount: 1 },
-          { typeId: MinecraftItemTypes.LeatherBoots, amount: 1 },
-          { typeId: MinecraftItemTypes.CookedChicken, amount: 16 },
-        ],
-      },
-      miner: {
-        enabled: true,
-        description: 'A kit for the dedicated miner.',
-        cooldownSeconds: 43_200, // 12 hours
-        icon: 'textures/items/iron_pickaxe',
-        price: 150,
-        permission: 'ui.panel.member',
-        items: [
-          { typeId: MinecraftItemTypes.IronPickaxe, amount: 1 },
-          { typeId: MinecraftItemTypes.IronShovel, amount: 1 },
-          { typeId: MinecraftItemTypes.Torch, amount: 64 },
-          { typeId: MinecraftItemTypes.Coal, amount: 16 },
-          { typeId: MinecraftItemTypes.Bread, amount: 16 },
-        ],
-      },
-      builder: {
-        enabled: true,
-        description: 'A kit for the creative builder.',
-        cooldownSeconds: 86_400, // 24 hours
-        icon: 'textures/blocks/planks_oak',
-        price: 300,
-        permission: 'ui.panel.member',
-        items: [
-          { typeId: MinecraftItemTypes.OakLog, amount: 64 },
-          { typeId: MinecraftItemTypes.OakLog, amount: 64 },
-          { typeId: MinecraftItemTypes.Glass, amount: 64 },
-          { typeId: MinecraftItemTypes.StoneBricks, amount: 64 },
-        ],
-      },
-    },
-  },
-  shop: {
-    enabled: false,
-  },
-  auctionHouse: {
-    enabled: false,
-  },
-  dailyRewards: {
-    enabled: false,
-  },
-  playtimeRewards: {
-    enabled: false,
-    afkIntervalMinutes: 15,
-    afkRewardMoney: 50,
-    afkRewardXpLevels: 0,
-    notifyOnAfkReward: true,
-    requireActiveMovement: false,
-    maxIdleMinutes: 10,
-  },
-  voting: {
-    enabled: false,
-    rewardMoney: 50,
-  },
-  reports: {
-    resolvedReportLifetimeDays: 7,
-  },
-  chat: {
-    enabled: true,
-    allowMentions: true,
-    logToConsole: false,
-    loggingEnabled: true,
-    logExpirationDays: 7,
-    cooldownSeconds: 2,
-    preventDuplicateMessages: true,
-    maxCapsPercentage: 70,
-    blockedWords: ['badword1', 'badword2'],
-  },
+  // --- Economy, Shop, Kits & Rewards ---
+  kits: kitsConfig,
+  shop: { enabled: false },
+  auctionHouse: { enabled: false },
+  dailyRewards: { enabled: false },
+  playtimeRewards: economyMainDefaults.playtimeRewards,
   economy: {
     enabled: false,
     baltopLimit: 10,
-    paymentConfirmationThreshold: 10_000, // Payments over this amount require confirmation
-    paymentConfirmationTimeout: 60, // Seconds to confirm a payment
+    paymentConfirmationThreshold: 10_000,
+    paymentConfirmationTimeout: 60,
   },
-  combat: {
-    enabled: true,
-    tagDurationSeconds: 15,
-    blockTeleportInCombat: true,
-    combatLogPenalty: true,
-    reconnectGraceSeconds: 30,
-    killOnRejoin: false,
-  },
-  bounties: {
-    enabled: false,
-    minimumBounty: 10,
-    // How long (in seconds) after the last hit from a player that they can still be credited for the kill.
-    bountyCreditTimeoutSeconds: 15,
-  },
-  announcements: {
-    enabled: false,
-    message: '§2Welcome to the server! Enjoy your stay.',
-    interval: 300, // Time in seconds
-  },
-  dimensionLock: {
-    allowAdminBypass: true,
-    netherLock: false,
-    endLock: false,
-  },
-  playerInfo: {
-    enableWelcomer: false,
-    // Available placeholders: {playerName}, {serverName}, {discordLink}, {websiteLink}. Use \n for a new line.
-    welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.',
-    notifyAdminOnNewPlayer: true,
-    enableDeathCoords: false,
-    deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.',
-    customJoinLeave: {
-      enabled: false,
-      joinMessage: '§e{playerName} joined the game',
-      leaveMessage: '§e{playerName} left the game',
-    },
-  },
-  ranks: {
-    nameTagStyle: 'above', // Options: 'above', 'before', 'after', 'under'
-  },
+  bounties: economyMainDefaults.bounties,
+  trading: economyMainDefaults.trading,
 
-  // --- Player Defaults ---
+  // --- Social, Chat & Moderation ---
+  voting: socialMainDefaults.voting,
+  mail: socialMainDefaults.mail,
+  afk: essentialsConfig.afk,
+  playerUtilities: essentialsConfig.playerUtilities,
+  reports: moderationMainDefaults.reports,
+  chat: moderationMainDefaults.chat,
+  combat: essentialsConfig.combat,
+  announcements: essentialsConfig.announcements,
+  dimensionLock: essentialsConfig.dimensionLock,
+  playerInfo: essentialsConfig.playerInfo,
+  ranks: {
+    nameTagStyle: 'above',
+  },
   playerDefaults: {
     ranks: ['member'],
     rankId: 'member',
     xrayNotificationsEnabled: false,
   },
-
-  // --- Server Information ---
-  serverInfo: {
-    discordLink: 'https://discord.gg/example',
-    websiteLink: 'https://example.com',
-    rules: [
-      '§e1. §rBe respectful to all players and staff.',
-      '§e2. §rNo cheating, hacking, or using exploits (e.g., §cX-Ray§r, §cduping§r).',
-      '§e3. §rDo not spam chat or use excessive caps.',
-      '§e4. §rNo griefing or stealing from other players.',
-      '§e5. §rRespect player builds. Do not alter or destroy them without permission.',
-      '§e6. §rNo advertising other servers or websites.',
-      '§e7. §rKeep conversations in English.',
-      '§e8. §rFollow directions from staff members.',
-      '§e9. §rDo not use offensive language, skins, or usernames.',
-    ],
-    helpfulLinks: [
-      {
-        title: '§9Discord Server',
-        url: 'https://discord.gg/example',
-      },
-      {
-        title: '§aWebsite',
-        url: 'https://example.com',
-      },
-    ],
-  },
-
-  // --- Miscellaneous ---
-
-  // --- Help System ---
-  helpSystem: {
-    defaultMode: 'chat', // Options: 'chat', 'ui'
-  },
-
-  // --- Sound Events ---
-  soundEvents: {
-    tpaRequestReceived: { enabled: true, soundId: 'random.orb', volume: 1, pitch: 1.2 },
-    adminNotificationReceived: { enabled: true, soundId: 'note.pling', volume: 0.8, pitch: 1.5 },
-    playerWarningReceived: { enabled: true, soundId: 'note.bass', volume: 1, pitch: 0.8 },
-    commandError: { enabled: true, soundId: 'mob.villager.no', volume: 1, pitch: 0.9 },
-  },
+  serverInfo: essentialsConfig.serverInfo,
+  helpSystem: essentialsConfig.helpSystem,
+  soundEvents: essentialsConfig.soundEvents,
 };
 
 export default config;

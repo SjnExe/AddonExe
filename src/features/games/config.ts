@@ -1,5 +1,11 @@
 export const gamesConfig = {
   enabled: true,
+  wagerTaxPercentage: 5,
+  coinFlip: {
+    enabled: true,
+    cooldownSeconds: 3,
+    allowWagers: true,
+  },
   wordle: {
     enabled: true,
   },
@@ -28,6 +34,50 @@ export const gamesConfig = {
     hardSpeedBonusMax: 250,
     hardParSeconds: 480,
     allowWagers: true,
+  },
+  game2048: {
+    enabled: true,
+    winReward2048: 300,
+  },
+  connect4: {
+    enabled: true,
+    turnTimeoutSeconds: 45,
+    allowWagers: true,
+  },
+  codebreaker: {
+    enabled: true,
+    maxAttempts: 8,
+    soloReward: 120,
+    allowWagers: true,
+  },
+  scramble: {
+    enabled: true,
+    defaultEntryCost: 25,
+    defaultPrizePool: 100,
+    taxRatePercentage: 10,
+    timeLimitSeconds: 180,
+    guessCooldownSeconds: 3,
+    guessLimit: 5,
+  },
+  fastMath: {
+    enabled: true,
+    defaultEntryCost: 25,
+    defaultPrizePool: 100,
+    taxRatePercentage: 10,
+    timeLimitSeconds: 120,
+    guessCooldownSeconds: 3,
+    guessLimit: 3,
+  },
+  numberGuess: {
+    enabled: true,
+    defaultMin: 1,
+    defaultMax: 100,
+    defaultEntryCost: 25,
+    defaultPrizePool: 100,
+    taxRatePercentage: 10,
+    timeLimitSeconds: 180,
+    guessCooldownSeconds: 2,
+    guessLimit: 8,
   },
 };
 

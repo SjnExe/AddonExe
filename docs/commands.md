@@ -26,7 +26,11 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/version`** (Alias: `/ver`) — Displays the active AddonExe version.
 - **`/sidebar [toggle|ui|right|left|bottom|default|on|off]`** (Alias: `/sb`) — Toggles your personal HUD/Sidebar, switches screen layout, or opens the HUD settings UI.
 - **`/fixplayer`** — Resets your player state if stuck in spawn protection or frozen flags.
-- **`/vote`** — Opens the active server poll / voting menu.
+- **`/vote [ui|results|end|create] [question | opt1 | opt2]`** — Opens the active server poll menu, views poll results, or manages polls (Admin).
+- **`/afk [reason]`** — Toggles your Away-From-Keyboard (AFK) status.
+- **`/trash`** (Aliases: `/dispose`, `/bin`) — Opens the safe item disposal UI.
+- **`/near`** (Alias: `/nearby`) — Lists nearby visible players and their distances.
+- **`/heal [target]`** / **`/feed [target]`** / **`/repair`** (Alias: `/fix`) — Restores health, hunger, or held item durability.
 
 ### Teleportation & Homes
 
@@ -62,7 +66,8 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/buy`** / **`/sell`** — Opens the shop item trade menu (or inspects held item).
 - **`/sellhand`** (Alias: `/sh`) — Quickly sells the stackable item in your main hand.
 - **`/sellall [confirm]`** (Alias: `/sa`) — Sells all sellable shop items in your inventory with a confirmation prompt.
-- **`/ah [sell|search|help] [price|query] [bin|bid]`** (Alias: `/auction`) — Opens the Auction House UI or lists the item in your hand.
+- **`/trade <player|accept|deny|cancel>`** — Sends or responds to a safe 1-on-1 item and money trade offer.
+- **`/ah [sell|collect|listings|cancel|search|help] [price|id|query] [bin|bid]`** (Alias: `/auction`) — Opens the Auction House UI, lists held items, claims Collection Bin items, or manages active listings.
 - **`/kit [kitName]`** — Opens the Kits menu or claims a specific kit.
 - **`/daily`** (Alias: `/reward`) — Claims your daily login reward.
 - **`/playtime`** (Aliases: `/pt`, `/milestones`, `/afkrewards`) — Views your total playtime, stay-online/AFK reward timer, and playtime milestones.
@@ -77,6 +82,15 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/teamchat [toggle|on|off|status]`** (Alias: `/tc`) — Toggles Team Chat mode or checks your active chat channel.
 - **`/xmsg <target> <message>`** (Aliases: `/tell`, `/w`, `/whisper`, `/pm`, `/dm`) — Sends a private message to an online player.
 - **`/reply <message>`** (Alias: `/r`) — Replies to the last player who private messaged you.
+- **`/mail [read|send|clear|ui] [target] [message]`** (Alias: `/inbox`) — Reads or sends offline mail messages.
+- **`/coinflip [heads|tails|player|ui] [wager]`** (Aliases: `/cf`, `/flip`) — Flips a random 50/50 coin in chat, wagers solo, or challenges another player.
+- **`/2048 [play|new|menu]`** — Plays the 4x4 2048 puzzle game with Endless Mode support.
+- **`/connect4 [actionOrFriend] [wager]`** (Alias: `/c4`) — Plays 2-player 7x6 Connect 4.
+- **`/codebreaker [actionOrFriend] [wager]`** (Aliases: `/cb`, `/mastermind`) — Plays Solo or 2P Codebreaker (Mastermind).
+- **`/scramble [word]`** (Alias: `/unscramble`) — Submits an answer to an active staff-hosted Scramble round.
+- **`/math [answer]`** (Aliases: `/fastmath`, `/solve`) — Submits an answer to an active staff-hosted Fast Math round.
+- **`/numguess [number]`** (Aliases: `/ng`, `/numberguess`) — Submits a number in an active Number Guess round via Game Chat.
+- **`/gamechat [toggle|join|leave|on|off|status]`** (Alias: `/gc`) — Joins, leaves, or toggles talking in the active Game Chat channel.
 - **`/pvp <target|accept|deny> [amount]`** — Challenges a player to a PvP duel with an optional money wager.
 - **`/ttt [actionOrFriend] [wagerOrPlayer]`** (Alias: `/tictactoe`) — Opens Tic-Tac-Toe, joins the 2P queue, or invites a friend.
 - **`/rps [actionOrFriend] [wagerOrPlayer]`** (Alias: `/rockpaperscissors`) — Plays Rock Paper Scissors solo vs Bot, in 2P queue, or against a friend.
@@ -101,6 +115,8 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/invsee <player>`** — Displays a player's inventory, hotbar, armor, and offhand contents.
 - **`/ecsee <player> [chat|ui]`** (Aliases: `/enderchestsee`, `/viewec`) — Views a player's 27 Ender Chest slots in chat or UI.
 - **`/socialspy [toggle|on|off|status]`** (Alias: `/ss`) — Toggles viewing private messages sent between players.
+- **`/mutechat [toggle|on|off]`** / **`/slowmode [seconds]`** — Toggles global chat mute or sets live chat slowmode.
+- **`/history <player>`** — Views a player's past punishment and anti-cheat flag history.
 - **`/watch <target>`** / **`/listwatched`** — Toggles or lists players on the staff watchlist.
 - **`/notify`** — Toggles Anti-Cheat violation alerts for yourself (or console).
 - **`/xraynotify`** (Alias: `/xray`) — Toggles X-Ray mining notifications for yourself (or console).
@@ -142,6 +158,7 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/setspawn [x] [y] [z]`** — Sets the server spawn point and updates spawn protection.
 - **`/addwarp <warpName> [x] [y] [z]`** (Alias: `/setwarp`) / **`/delwarp [warpName]`** — Creates or deletes server warps.
 - **`/worldborder [ui|info|overworld|end|on|off|set] [radius|on|off] [x] [z]`** (Alias: `/wb`) — Opens the World Border Manager UI or configures the linked Overworld+Nether (8:1) and End borders.
+- **`/zonewand [wand|pos1|pos2|clear|status]`** (Aliases: `/wand`, `/pos1`, `/pos2`) — Gives the World Protection Selection Wand or sets Pos1/Pos2 at your feet.
 - **`/netherlock [true|false]`** / **`/endlock [true|false]`** — Locks or unlocks the Nether and End dimensions.
 - **`/floatingtext <create|delete|list|tp> <id> [text]`** — Manages floating text holograms.
 - **`/announce <message>`** — Broadcasts a server-wide announcement.

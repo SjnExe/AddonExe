@@ -103,4 +103,13 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     expect(extractedTs).toBeGreaterThanOrEqual(before);
     expect(extractedTs).toBeLessThanOrEqual(after);
   });
+
+  it('protectionService fast path returns frozen defaultFlags when no zones or spawn protection are active', async () => {
+    const { getProtectionFlags, invalidateProtectionZoneCache } = await import('@core/events/protectionService.js');
+    invalidateProtectionZoneCache();
+    const f1 = getProtectionFlags({ x: 0, y: 64, z: 0 }, 'minecraft:overworld');
+    const f2 = getProtectionFlags({ x: 100, y: 64, z: 100 }, 'minecraft:overworld');
+    expect(f1).toBe(f2);
+    expect(f1.preventBlockBreaking).toBe(false);
+  });
 });

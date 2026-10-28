@@ -39,6 +39,22 @@ export interface FriendRequest {
   timestamp: number;
 }
 
+export interface PlayerGameStats {
+  minesweeper?: {
+    wins: number;
+    losses: number;
+    currentStreak: number;
+    bestStreak: number;
+    bestTimes: Partial<Record<'easy' | 'medium' | 'hard', number>>;
+  };
+  ttt?: { wins: number; losses: number; draws: number };
+  rps?: { wins: number; losses: number };
+  wordle?: { wins: number; losses: number };
+  game2048?: { bestScore: number; bestTile: number; wins: number };
+  connect4?: { wins: number; losses: number; draws: number };
+  codebreaker?: { wins: number; losses: number };
+}
+
 export interface PlayerData {
   name: string;
   ranks: string[];
@@ -76,6 +92,7 @@ export interface PlayerData {
   friends?: string[];
   friendRequests?: FriendRequest[];
   friendSettings?: { autoTpAccept: boolean };
+  gameStats?: PlayerGameStats;
   needsSave?: boolean;
 }
 

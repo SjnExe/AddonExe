@@ -17,6 +17,10 @@ interface PlayerMovementState {
 const movementStates = new Map<string, PlayerMovementState>();
 let isChecking = false;
 
+export function clearPlayerMovementState(playerId: string): void {
+  movementStates.delete(playerId);
+}
+
 export function _resetMovementCheckForTest() {
   movementStates.clear();
   isChecking = false;

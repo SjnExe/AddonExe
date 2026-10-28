@@ -1,6 +1,8 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
 import { setPlayerLastLocation } from '@core/data/playerDataManager.js';
+import { soundTeleport } from '@core/utils/constants.js';
+import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
@@ -183,6 +185,7 @@ export function executeTeleport(params: ExecuteTeleportParams): void {
       }
       saveLastLocation(executor);
       executor.teleport(location, { dimension });
+      playSound(executor, soundTeleport);
       sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.`, executor);
       setCooldown(executor.id, cooldownKey, cooldownSeconds);
     } catch (error: unknown) {

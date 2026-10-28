@@ -2,7 +2,7 @@ import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
-export type GridColumns = 1 | 2 | 3 | 4 | 'board' | 'minesweeper' | 'ms9' | 'ms12' | 'ms16';
+export type GridColumns = 1 | 2 | 3 | 4 | 'board' | '2048' | 'c4' | 'minesweeper' | 'ms9' | 'ms12' | 'ms16';
 
 export class ActionFormBuilder {
   private readonly form: ActionFormData;
@@ -36,6 +36,14 @@ export class ActionFormBuilder {
     }
     if (this.gridColumns === 'board') {
       this.form.title(`§9§0§0§f§r${this.rawTitle}`);
+      return;
+    }
+    if (this.gridColumns === '2048') {
+      this.form.title(`§7§0§4§f§r${this.rawTitle}`);
+      return;
+    }
+    if (this.gridColumns === 'c4') {
+      this.form.title(`§7§0§7§f§r${this.rawTitle}`);
       return;
     }
     if (this.gridColumns === 'ms9') {

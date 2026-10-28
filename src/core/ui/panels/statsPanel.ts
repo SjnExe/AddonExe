@@ -1,5 +1,6 @@
-import { getPlayerNameById, loadPlayerData, savePlayerData } from '@core/data/playerDataManager.js';
+import { getPlayerNameById, loadPlayerData, setPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { formatCurrency } from '@core/utils/economy.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
@@ -23,6 +24,14 @@ export async function showStatsPanel(player: mc.Player, targetPlayerId: string):
   });
 
   form.button(
+    `Edit Kill Streak\n§7Current: ${targetData.killStreak ?? 0}`,
+    'textures/items/diamond_sword',
+    async () => {
+      await editStat(player, targetPlayerId, 'killStreak', targetData.killStreak ?? 0);
+    },
+  );
+
+  form.button(
     `Edit Playtime\n§7Current: ${Math.floor(targetData.totalPlayTime / 60000)} mins`,
     'textures/items/clock_item',
     async () => {
@@ -30,7 +39,7 @@ export async function showStatsPanel(player: mc.Player, targetPlayerId: string):
     },
   );
 
-  form.button(`Edit Balance\n§7Current: ${targetData.balance}`, 'textures/items/emerald', async () => {
+  form.button(`Edit Balance\n§7Current: ${formatCurrency(targetData.balance)}`, 'textures/items/emerald', async () => {
     await editStat(player, targetPlayerId, 'balance', targetData.balance);
   });
 
@@ -44,7 +53,7 @@ export async function showStatsPanel(player: mc.Player, targetPlayerId: string):
 async function editStat(
   player: mc.Player,
   targetPlayerId: string,
-  statType: 'kills' | 'deaths' | 'playtime' | 'balance',
+  statType: 'kills' | 'deaths' | 'killStreak' | 'playtime' | 'balance',
   currentValue: number,
 ): Promise<void> {
   const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
@@ -69,16 +78,18 @@ async function editStat(
     return showStatsPanel(player, targetPlayerId);
   }
 
-  const targetData = loadPlayerData(targetPlayerId);
-  if (targetData) {
-    if (statType === 'playtime') {
-      targetData.totalPlayTime = newValue * 60000;
-    } else {
-      targetData[statType] = newValue;
-    }
-    savePlayerData(targetPlayerId);
-    player.sendMessage(`§aSuccessfully updated ${targetName}'s ${statType} to ${newValue}.`);
+  if (statType === 'balance') {
+    setPlayerBalance(targetPlayerId, newValue);
+  } else {
+    updatePlayerData(targetPlayerId, (d) => {
+      if (statType === 'playtime') {
+        d.totalPlayTime = Math.floor(newValue) * 60000;
+      } else {
+        d[statType] = Math.floor(newValue);
+      }
+    });
   }
+  player.sendMessage(`§aSuccessfully updated ${targetName}'s ${statType} to ${newValue}.`);
 
   await showStatsPanel(player, targetPlayerId);
 }

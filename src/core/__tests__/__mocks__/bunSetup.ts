@@ -96,26 +96,24 @@ mock.module('virtual:command-index', () => ({
 
 import { _resetMinecraftMocks } from './minecraftMock.ts';
 
-beforeEach(async () => {
+(globalThis as unknown as Record<string, unknown>).__DEV__ = true;
+
+const { _clearConfigManagersForTest } = await import('@core/config/configurations.js');
+const { clearPlayerCache } = await import('@core/data/playerCache.js');
+const { cleanupPlayerDataManager } = await import('@core/data/playerDataManager.js');
+const { invalidateAllRankCaches } = await import('@core/permissions/permissionEngine.js');
+const { cleanupTimers } = await import('@core/utils/timerManager.js');
+const { clearCategorizedCache } = await import('@features/essentials/commands/help.js');
+const { _clearBountiesForTest } = await import('@features/economy/bounty/manager.js');
+
+beforeEach(() => {
   mock.restore();
   _resetMinecraftMocks();
-  try {
-    const { _clearConfigManagersForTest } = await import('@core/config/configurations.js');
-    _clearConfigManagersForTest();
-    const { clearPlayerCache } = await import('@core/data/playerCache.js');
-    const { cleanupPlayerDataManager } = await import('@core/data/playerDataManager.js');
-    const { invalidateAllRankCaches } = await import('@core/permissions/permissionEngine.js');
-    const { cleanupTimers } = await import('@core/utils/timerManager.js');
-    const { clearCategorizedCache } = await import('@features/essentials/commands/help.js');
-    const { _clearBountiesForTest } = await import('@features/economy/bounty/manager.js');
-
-    clearPlayerCache();
-    cleanupPlayerDataManager();
-    invalidateAllRankCaches();
-    cleanupTimers();
-    clearCategorizedCache();
-    _clearBountiesForTest();
-  } catch {
-    // Ignore if initial load
-  }
+  _clearConfigManagersForTest();
+  clearPlayerCache();
+  cleanupPlayerDataManager();
+  invalidateAllRankCaches();
+  cleanupTimers();
+  clearCategorizedCache();
+  _clearBountiesForTest();
 });

@@ -3,8 +3,11 @@ import { getPlayerFromCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
+import { soundTeleport } from '@core/utils/constants.js';
+import { playSound } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { setTeamChatState } from '@features/social/team/commands/team.js';
 import { TeamData } from '@features/social/team/types.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -333,7 +336,7 @@ export function getAllTeam(): TeamData[] {
 }
 
 export function getPlayerTeamId(playerId: string): number | undefined {
-  const pData = playerDataManager.getPlayer(playerId);
+  const pData = playerDataManager.getPlayer(playerId) ?? playerDataManager.loadPlayerData(playerId);
   if (isDefined(pData)) {
     return pData.teamId;
   }
@@ -745,11 +748,15 @@ export function depositToTeam(player: mc.Player, amount: number): ActionResult {
     return { success: false, message: '§cInsufficient funds.' };
   }
 
-  playerDataManager.incrementPlayerBalance(player.id, -amount);
-  team.balance += amount;
+  const rounded = Math.floor(amount * 100) / 100;
+  if (rounded <= 0) {
+    return { success: false, message: '§cInvalid amount.' };
+  }
+  playerDataManager.incrementPlayerBalance(player.id, -rounded);
+  team.balance = Number.parseFloat((team.balance + rounded).toFixed(2));
   saveTeam(team.id);
 
-  return { success: true, message: `§aDeposited $${amount} to the team.` };
+  return { success: true, message: `§aDeposited $${rounded} to the team.` };
 }
 
 export function withdrawFromTeam(player: mc.Player, amount: number): ActionResult {
@@ -787,6 +794,11 @@ export function teleportToTeamHome(player: mc.Player): void {
   }
 
   const { x, y, z, dimensionId } = team.home;
+  if (!isWithinWorldBorder({ x, z }, dimensionId) && !canBypassWorldBorder(player)) {
+    player.sendMessage('§cCannot teleport: Your team home is outside the active world border.');
+    return;
+  }
+
   const teamConfig = configurations.getTeamConfig();
   const warmup = teamConfig.teleportWarmupSeconds;
 
@@ -795,12 +807,16 @@ export function teleportToTeamHome(player: mc.Player): void {
     warmup,
     () => {
       try {
+        if (!player.isValid) {
+          return;
+        }
         const dim = mc.world.getDimension(dimensionId);
         const teleportUtils = serviceLocator.getService<TeleportUtilsService>('teleport.utils');
         if (teleportUtils) {
           teleportUtils.saveLastLocation(player);
         }
         player.teleport({ x, y, z }, { dimension: dim });
+        playSound(player, soundTeleport);
         player.sendMessage('§aTeleported to team home!');
       } catch {
         player.sendMessage('§cTeleport failed: Dimension not loaded or invalid.');

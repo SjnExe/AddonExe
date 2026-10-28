@@ -7,6 +7,7 @@ import { formatString } from '@core/utils/index.js';
 import { warnLog } from '@core/utils/logger.js';
 import { setTrackedTimeout } from '@core/utils/timerManager.js';
 import { MonitoredOreType } from '@features/anticheat/xray/config.js';
+import { isWatched } from '@features/moderation/watchManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -78,7 +79,9 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
     z: location.z.toFixed(2),
   };
 
-  const message = formatString('§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r', context);
+  const watchPrefix = isWatched(player.id) ? '§6[WATCHED] ' : '';
+  const message =
+    watchPrefix + formatString('§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r', context);
 
   if (xrayConfig.notifications.logToConsole === true) {
     warnLog(`[X-Ray] ${message.replaceAll(/§./g, '')}`);
@@ -202,11 +205,5 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
 
 export function initializeXrayDetection(): void {
   refreshXrayCache();
-  const monitoredBlockIds = [...oreCache.keys()];
-  registerEvent(
-    mc.world.afterEvents.playerBreakBlock,
-    handleBlockBreak,
-    'xrayDetection',
-    monitoredBlockIds.length > 0 ? { blockTypes: monitoredBlockIds } : undefined,
-  );
+  registerEvent(mc.world.afterEvents.playerBreakBlock, handleBlockBreak, 'xrayDetection');
 }

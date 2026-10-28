@@ -1,8 +1,13 @@
+import { CommandExecutor } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { registerDataSaver } from '@core/data/dataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
+import { canTarget } from '@core/permissions/rankManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
+import { soundError } from '@core/utils/constants.js';
+import { playSound } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -246,6 +251,32 @@ export function getActivePunishmentsByType(type: PunishmentType): { playerId: st
     }
   }
   return list;
+}
+
+/** Validates self-targeting and rank hierarchy for moderation actions. */
+export function validateModerationTarget(
+  executor: CommandExecutor,
+  targetId: string,
+  actionVerb: string,
+  playErrorSoundOnFail = false,
+): boolean {
+  if (executor instanceof mc.Player && executor.id === targetId) {
+    sendMessage(`§cYou cannot ${actionVerb} yourself.`, executor);
+    if (playErrorSoundOnFail) {
+      playSound(executor, soundError);
+    }
+    return false;
+  }
+
+  if (!canTarget(executor, targetId)) {
+    sendMessage(`§cYou cannot ${actionVerb} a player with the same or higher rank than you.`, executor);
+    if (playErrorSoundOnFail && executor instanceof mc.Player) {
+      playSound(executor, soundError);
+    }
+    return false;
+  }
+
+  return true;
 }
 
 /** Initializes the punishment manager's periodic tasks. */

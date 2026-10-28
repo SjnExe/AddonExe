@@ -1,4 +1,5 @@
 import { getXrayConfig, saveXrayConfig } from '@core/config/configurations.js';
+import { refreshXrayCache } from '@features/anticheat/xray/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -94,6 +95,7 @@ export async function showAddXrayOrePanel(player: mc.Player): Promise<void> {
       ],
     };
     saveXrayConfig(config);
+    refreshXrayCache();
     player.sendMessage('§aOre added.');
   }
   await showXrayOresPanel(player, 1);
@@ -118,6 +120,7 @@ export async function showEditXrayOrePanel(player: mc.Player, key: string): Prom
       async () => {
         ore.enabled = !ore.enabled;
         saveXrayConfig(config);
+        refreshXrayCache();
         player.sendMessage(`§a${ore.oreName} alerts ${ore.enabled ? 'enabled' : 'disabled'}.`);
         await showEditXrayOrePanel(player, key);
       },
@@ -130,6 +133,7 @@ export async function showEditXrayOrePanel(player: mc.Player, key: string): Prom
       if (res && isNonEmptyString(res.name)) {
         ore.oreName = res.name.trim();
         saveXrayConfig(config);
+        refreshXrayCache();
         player.sendMessage('§aOre display name updated.');
       }
       await showEditXrayOrePanel(player, key);
@@ -156,6 +160,7 @@ export async function showEditXrayOrePanel(player: mc.Player, key: string): Prom
       onConfirm: async () => {
         delete config.monitoredOreTypes[key];
         saveXrayConfig(config);
+        refreshXrayCache();
         player.sendMessage(`§aDeleted monitored ore '${ore.oreName}'.`);
         await showXrayOresPanel(player, 1);
       },
@@ -213,6 +218,7 @@ async function showEditXrayBlockRuleModal(player: mc.Player, key: string, blockI
   if (isEdit && res.deleteRule && isDefined(blockIndex)) {
     ore.blocks.splice(blockIndex, 1);
     saveXrayConfig(config);
+    refreshXrayCache();
     player.sendMessage('§aRemoved block rule.');
     await showEditXrayOrePanel(player, key);
     return;
@@ -232,6 +238,7 @@ async function showEditXrayBlockRuleModal(player: mc.Player, key: string, blockI
   }
 
   saveXrayConfig(config);
+  refreshXrayCache();
   player.sendMessage('§aSaved X-Ray block rule.');
   await showEditXrayOrePanel(player, key);
 }

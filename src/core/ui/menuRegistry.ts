@@ -382,6 +382,17 @@ export function initializeDefaultMenuItems(): void {
 
   // --- GAMES HUB ITEMS ---
   registerMenuItem({
+    id: 'games_coinflip',
+    title: 'Coin Flip',
+    description: 'Solo & 2P 50/50 flips',
+    icon: 'textures/items/gold_nugget',
+    hub: 'games',
+    featureId: 'game.coinflip',
+    order: 3,
+    action: async (p) => showPanel(p, 'coinFlipMainPanel'),
+  });
+
+  registerMenuItem({
     id: 'games_tictactoe',
     title: 'Tic-Tac-Toe',
     description: '2P 3x3 board matches',
@@ -412,6 +423,50 @@ export function initializeDefaultMenuItems(): void {
     featureId: 'game.minesweeper',
     order: 9,
     action: async (p) => showPanel(p, 'minesweeperMainPanel'),
+  });
+
+  registerMenuItem({
+    id: 'games_2048',
+    title: '2048 Puzzle',
+    description: '4x4 square tile merger',
+    icon: 'textures/items/emerald',
+    hub: 'games',
+    featureId: 'game.2048',
+    order: 6,
+    action: async (p) => showPanel(p, 'game2048MainPanel'),
+  });
+
+  registerMenuItem({
+    id: 'games_connect4',
+    title: 'Connect 4',
+    description: '2P 7x6 disc drop board',
+    icon: 'textures/items/redstone_dust',
+    hub: 'games',
+    featureId: 'game.connect4',
+    order: 7,
+    action: async (p) => showPanel(p, 'connect4MainPanel'),
+  });
+
+  registerMenuItem({
+    id: 'games_codebreaker',
+    title: 'Codebreaker',
+    description: 'Solo & 2P 4-color code',
+    icon: 'textures/items/comparator',
+    hub: 'games',
+    featureId: 'game.codebreaker',
+    order: 8.5,
+    action: async (p) => showPanel(p, 'codebreakerMainPanel'),
+  });
+
+  registerMenuItem({
+    id: 'games_staff_rounds',
+    title: 'Scramble, Math & # Guess',
+    description: 'Global & /gc prize rounds',
+    icon: 'textures/items/book_writable',
+    hub: 'games',
+    featureId: 'game',
+    order: 12,
+    action: async (p) => showPanel(p, 'staffRoundsMainPanel'),
   });
 
   registerMenuItem({

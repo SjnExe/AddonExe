@@ -98,6 +98,38 @@ export function isFeatureActive(featureId: string): boolean {
       const gCfg = configs.getGamesConfig();
       return isDefined(gCfg) ? gCfg.enabled === true && gCfg.minesweeper?.enabled !== false : false;
     }
+    case 'game.coinflip': {
+      const gCfg = configs.getGamesConfig();
+      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.coinFlip?.enabled !== false : false;
+    }
+    case 'game.2048': {
+      const gCfg = configs.getGamesConfig();
+      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.game2048?.enabled !== false : false;
+    }
+    case 'game.connect4': {
+      const gCfg = configs.getGamesConfig();
+      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.connect4?.enabled !== false : false;
+    }
+    case 'game.codebreaker': {
+      const gCfg = configs.getGamesConfig();
+      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.codebreaker?.enabled !== false : false;
+    }
+    case 'game.scramble': {
+      const gCfg = configs.getGamesConfig();
+      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.scramble?.enabled !== false : false;
+    }
+    case 'game.fastmath': {
+      const gCfg = configs.getGamesConfig();
+      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.fastMath?.enabled !== false : false;
+    }
+    case 'game.numberguess': {
+      const gCfg = configs.getGamesConfig();
+      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.numberGuess?.enabled !== false : false;
+    }
+    case 'eco.trade':
+      return mainConfig ? mainConfig.trading?.enabled === true : false;
+    case 'soc.mail':
+      return mainConfig ? mainConfig.mail?.enabled === true : false;
     case 'eco.playtime':
       return mainConfig ? mainConfig.playtimeRewards?.enabled === true : false;
     case 'game.wordle': {

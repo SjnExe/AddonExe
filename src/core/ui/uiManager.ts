@@ -1,15 +1,85 @@
-const uiOpenTimestamps = new Map<string, number>();
-
-export function clearPlayerUiTimestamp(playerId: string): void {
-  uiOpenTimestamps.delete(playerId);
-}
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import type { ReturnContext } from '@features/economy/shop/ui/userPanel.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
+const uiOpenTimestamps = new Map<string, number>();
+
+export function clearPlayerUiTimestamp(playerId: string): void {
+  uiOpenTimestamps.delete(playerId);
+}
+
+type PanelRouteHandler = (player: mc.Player, context: Record<string, unknown>) => Promise<void>;
+
+const panelRoutes: Record<string, PanelRouteHandler> = {
+  mainPanel: async (p) => (await import('@core/ui/panels/mainPanel.js')).showMainPanel(p),
+  economyHub: async (p) => (await import('@core/ui/panels/mainPanel.js')).showEconomyHub(p),
+  teleportHub: async (p) => (await import('@core/ui/panels/mainPanel.js')).showTeleportHub(p),
+  socialHub: async (p) => (await import('@core/ui/panels/mainPanel.js')).showSocialHub(p),
+  gamesHub: async (p) => (await import('@core/ui/panels/mainPanel.js')).showGamesHub(p),
+  gamesMainPanel: async (p) => (await import('@core/ui/panels/mainPanel.js')).showGamesHub(p),
+  profileHub: async (p) => (await import('@core/ui/panels/mainPanel.js')).showProfileHub(p),
+  staffHub: async (p) => (await import('@core/ui/panels/adminPanel.js')).showStaffDashboardPanel(p),
+  staffModerationHub: async (p) => (await import('@core/ui/panels/adminPanel.js')).showStaffModerationHub(p),
+  staffPlayerHub: async (p) => (await import('@core/ui/panels/adminPanel.js')).showStaffPlayerHub(p),
+  staffWorldHub: async (p) => (await import('@core/ui/panels/adminPanel.js')).showStaffWorldHub(p),
+  staffConfigHub: async (p) => (await import('@core/ui/panels/adminPanel.js')).showStaffConfigHub(p),
+  game2048MainPanel: async (p) => (await import('@features/games/game2048/ui/panel.js')).show2048Menu(p),
+  connect4MainPanel: async (p) => (await import('@features/games/connect4/ui/panel.js')).showConnect4Menu(p),
+  codebreakerMainPanel: async (p) => (await import('@features/games/codebreaker/ui/panel.js')).showCodebreakerMenu(p),
+  staffRoundsMainPanel: async (p) =>
+    (await import('@features/games/staffRounds/ui/panel.js')).showStaffGamesHubPanel(p),
+  coinFlipMainPanel: async (p) => (await import('@features/games/coinflip/ui/panel.js')).showCoinFlipMenu(p),
+  ticTacToeMainPanel: async (p) => (await import('@features/games/tictactoe/ui/panel.js')).showTicTacToeMenu(p),
+  rpsMainPanel: async (p) => (await import('@features/games/rps/ui/panel.js')).showRpsMenu(p),
+  minesweeperMainPanel: async (p) => (await import('@features/games/minesweeper/ui/panel.js')).showMinesweeperMenu(p),
+  wordleMainPanel: async (p) => (await import('@features/games/wordle/ui/panel.js')).showWordleMainPanel(p),
+  wordleSinglePlayerPanel: async (p, ctx) =>
+    (await import('@features/games/wordle/ui/panel.js')).showSinglePlayerWordle(p, ctx),
+  wordleStaffGamePanel: async (p) => (await import('@features/games/wordle/ui/panel.js')).showWordleStaffGamePanel(p),
+  infoPanel: async (p) => (await import('@core/ui/panels/serverInfoPanel.js')).showInfoPanel(p),
+  profileMainPanel: async (p) => (await import('@core/ui/panels/playerPanel.js')).showMyStatsPanel(p),
+  playerListPanel: async (p) => (await import('@core/ui/panels/playerPanel.js')).showPlayerListPanel(p),
+  playerActionsPanel: async (p, ctx) => {
+    const targetPlayerId = ctx.targetPlayerId as string | undefined;
+    if (!targetPlayerId) {
+      p.sendMessage('§cMissing target player context.');
+      return;
+    }
+    const { getPlayerNameById } = await import('@core/data/playerDataManager.js');
+    const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
+    const { showPlayerActionsPanel } = await import('@core/ui/panels/playerPanel.js');
+    await showPlayerActionsPanel(p, targetPlayerId, targetName);
+  },
+  reportListPanel: async (p) => (await import('@features/moderation/ui/panel.js')).showReportListPanel(p),
+  shopMainPanel: async (p) => (await import('@features/economy/shop/ui/userPanel.js')).showShopMainPanel(p),
+  shopBuyOrSellPanel: async (p, ctx) => {
+    const { showBuyOrSellPanel, showShopMainPanel } = await import('@features/economy/shop/ui/userPanel.js');
+    if (isDefined(ctx.itemKey) && isDefined(ctx.itemData)) {
+      const fallbackReturn: ReturnContext = { returnTo: 'main', page: 1 };
+      await showBuyOrSellPanel(
+        p,
+        ctx.itemKey as string,
+        ctx.itemData,
+        isDefined(ctx.returnCtx) ? (ctx.returnCtx as ReturnContext) : fallbackReturn,
+      );
+    } else {
+      await showShopMainPanel(p);
+    }
+  },
+  teamMainPanel: async (p) => (await import('@features/social/team/ui/panel.js')).showTeamMainPanel(p),
+  friendMainPanel: async (p) => (await import('@features/social/friends/ui/panel.js')).showFriendMainPanel(p),
+  bountyListPanel: async (p, ctx) => (await import('@features/economy/bounty/ui/panel.js')).showBountyListPanel(p, ctx),
+  moderationPanel: async (p) => (await import('@features/moderation/ui/panel.js')).showModerationPanel(p),
+  addWorldProtectionPanel: async (p, ctx) =>
+    (await import('@features/essentials/protection/ui/panel.js')).showAddWorldProtectionPanel(p, ctx),
+  editWorldProtectionPanel: async (p, ctx) =>
+    (await import('@features/essentials/protection/ui/panel.js')).showEditWorldProtectionPanel(p, ctx),
+  configCategoryPanel: async (p) => (await import('@core/ui/panels/configPanel.js')).showConfigCategoryPanel(p),
+};
+
 /** Main entry point for showing a UI panel to a player. */
-export async function showPanel(player: mc.Player, panelId: string, _context: Record<string, unknown> = {}) {
+export async function showPanel(player: mc.Player, panelId: string, context: Record<string, unknown> = {}) {
   try {
     const now = Date.now();
     const lastOpen = uiOpenTimestamps.get(player.id) ?? 0;
@@ -19,209 +89,9 @@ export async function showPanel(player: mc.Player, panelId: string, _context: Re
     uiOpenTimestamps.set(player.id, now);
 
     debugLog(`[UIManager] Routing panel '${panelId}'...`);
-
-    if (panelId === 'mainPanel') {
-      const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
-      await showMainPanel(player);
-      return;
-    }
-
-    if (panelId === 'economyHub') {
-      const { showEconomyHub } = await import('@core/ui/panels/mainPanel.js');
-      await showEconomyHub(player);
-      return;
-    }
-
-    if (panelId === 'teleportHub') {
-      const { showTeleportHub } = await import('@core/ui/panels/mainPanel.js');
-      await showTeleportHub(player);
-      return;
-    }
-
-    if (panelId === 'socialHub') {
-      const { showSocialHub } = await import('@core/ui/panels/mainPanel.js');
-      await showSocialHub(player);
-      return;
-    }
-
-    if (panelId === 'gamesHub' || panelId === 'gamesMainPanel') {
-      const { showGamesHub } = await import('@core/ui/panels/mainPanel.js');
-      await showGamesHub(player);
-      return;
-    }
-
-    if (panelId === 'profileHub') {
-      const { showProfileHub } = await import('@core/ui/panels/mainPanel.js');
-      await showProfileHub(player);
-      return;
-    }
-
-    if (panelId === 'staffHub') {
-      const { showStaffDashboardPanel } = await import('@core/ui/panels/adminPanel.js');
-      await showStaffDashboardPanel(player);
-      return;
-    }
-
-    if (panelId === 'staffModerationHub') {
-      const { showStaffModerationHub } = await import('@core/ui/panels/adminPanel.js');
-      await showStaffModerationHub(player);
-      return;
-    }
-
-    if (panelId === 'staffPlayerHub') {
-      const { showStaffPlayerHub } = await import('@core/ui/panels/adminPanel.js');
-      await showStaffPlayerHub(player);
-      return;
-    }
-
-    if (panelId === 'staffWorldHub') {
-      const { showStaffWorldHub } = await import('@core/ui/panels/adminPanel.js');
-      await showStaffWorldHub(player);
-      return;
-    }
-
-    if (panelId === 'staffConfigHub') {
-      const { showStaffConfigHub } = await import('@core/ui/panels/adminPanel.js');
-      await showStaffConfigHub(player);
-      return;
-    }
-
-    if (panelId === 'ticTacToeMainPanel') {
-      const { showTicTacToeMenu } = await import('@features/games/tictactoe/ui/panel.js');
-      await showTicTacToeMenu(player);
-      return;
-    }
-
-    if (panelId === 'rpsMainPanel') {
-      const { showRpsMenu } = await import('@features/games/rps/ui/panel.js');
-      await showRpsMenu(player);
-      return;
-    }
-
-    if (panelId === 'minesweeperMainPanel') {
-      const { showMinesweeperMenu } = await import('@features/games/minesweeper/ui/panel.js');
-      await showMinesweeperMenu(player);
-      return;
-    }
-
-    if (panelId === 'wordleMainPanel') {
-      const { showWordleMainPanel } = await import('@features/games/wordle/ui/panel.js');
-      await showWordleMainPanel(player);
-      return;
-    }
-
-    if (panelId === 'wordleSinglePlayerPanel') {
-      const { showSinglePlayerWordle } = await import('@features/games/wordle/ui/panel.js');
-      await showSinglePlayerWordle(player, _context);
-      return;
-    }
-
-    if (panelId === 'wordleStaffGamePanel') {
-      const { showWordleStaffGamePanel } = await import('@features/games/wordle/ui/panel.js');
-      await showWordleStaffGamePanel(player);
-      return;
-    }
-
-    if (panelId === 'infoPanel') {
-      const { showInfoPanel } = await import('@core/ui/panels/serverInfoPanel.js');
-      await showInfoPanel(player);
-      return;
-    }
-
-    if (panelId === 'profileMainPanel') {
-      const { showMyStatsPanel } = await import('@core/ui/panels/playerPanel.js');
-      // Check if profile exists, if not, fallback to main
-      await showMyStatsPanel(player);
-      return;
-    }
-
-    if (panelId === 'playerListPanel') {
-      const { showPlayerListPanel } = await import('@core/ui/panels/playerPanel.js');
-      await showPlayerListPanel(player);
-      return;
-    }
-
-    if (panelId === 'playerActionsPanel') {
-      const targetPlayerId = _context.targetPlayerId as string;
-      if (targetPlayerId) {
-        const { getPlayerNameById } = await import('@core/data/playerDataManager.js');
-        const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
-        const { showPlayerActionsPanel } = await import('@core/ui/panels/playerPanel.js');
-        await showPlayerActionsPanel(player, targetPlayerId, targetName);
-      } else {
-        player.sendMessage('§cMissing target player context.');
-      }
-      return;
-    }
-
-    if (panelId === 'reportListPanel') {
-      const { showReportListPanel } = await import('@features/moderation/ui/panel.js');
-      await showReportListPanel(player);
-      return;
-    }
-
-    if (panelId === 'shopMainPanel') {
-      const { showShopMainPanel } = await import('@features/economy/shop/ui/userPanel.js');
-      await showShopMainPanel(player);
-      return;
-    }
-
-    if (panelId === 'shopBuyOrSellPanel') {
-      const { showBuyOrSellPanel } = await import('@features/economy/shop/ui/userPanel.js');
-      if (isDefined(_context.itemKey) && isDefined(_context.itemData)) {
-        const fallbackReturn: ReturnContext = { returnTo: 'main', page: 1 };
-        await showBuyOrSellPanel(
-          player,
-          _context.itemKey as string,
-          _context.itemData,
-          isDefined(_context.returnCtx) ? (_context.returnCtx as ReturnContext) : fallbackReturn,
-        );
-      } else {
-        const { showShopMainPanel } = await import('@features/economy/shop/ui/userPanel.js');
-        await showShopMainPanel(player);
-      }
-      return;
-    }
-
-    if (panelId === 'teamMainPanel') {
-      const { showTeamMainPanel } = await import('@features/social/team/ui/panel.js');
-      await showTeamMainPanel(player);
-      return;
-    }
-
-    if (panelId === 'friendMainPanel') {
-      const { showFriendMainPanel } = await import('@features/social/friends/ui/panel.js');
-      await showFriendMainPanel(player);
-      return;
-    }
-
-    if (panelId === 'bountyListPanel') {
-      const { showBountyListPanel } = await import('@features/economy/bounty/ui/panel.js');
-      await showBountyListPanel(player, _context);
-      return;
-    }
-
-    if (panelId === 'moderationPanel') {
-      const { showModerationPanel } = await import('@features/moderation/ui/panel.js');
-      await showModerationPanel(player);
-      return;
-    }
-
-    if (panelId === 'addWorldProtectionPanel') {
-      const { showAddWorldProtectionPanel } = await import('@features/essentials/protection/ui/panel.js');
-      await showAddWorldProtectionPanel(player, _context);
-      return;
-    }
-
-    if (panelId === 'editWorldProtectionPanel') {
-      const { showEditWorldProtectionPanel } = await import('@features/essentials/protection/ui/panel.js');
-      await showEditWorldProtectionPanel(player, _context);
-      return;
-    }
-
-    if (panelId === 'configCategoryPanel') {
-      const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
-      await showConfigCategoryPanel(player);
+    const route = panelRoutes[panelId];
+    if (isDefined(route)) {
+      await route(player, context);
       return;
     }
 

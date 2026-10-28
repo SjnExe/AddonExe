@@ -11,22 +11,31 @@ interface ActionResult {
   message: string;
 }
 
+let warpsCache: Record<string, HomeLocation> | undefined;
+
+export function invalidateWarpsCache(): void {
+  warpsCache = undefined;
+}
+
 /**
- * Gets all warps from dynamic properties.
+ * Gets all warps from memory cache or dynamic properties.
  *
  * @returns A record of warp names to their locations.
  */
 function getWarps(): Record<string, HomeLocation> {
-  const warps = storage.load<Record<string, HomeLocation>>();
-  return warps ?? {};
+  if (!isDefined(warpsCache)) {
+    warpsCache = storage.load<Record<string, HomeLocation>>() ?? {};
+  }
+  return warpsCache;
 }
 
 /**
- * Saves all warps to dynamic properties.
+ * Saves all warps to dynamic properties and updates the cache.
  *
  * @param warps The record of warps to save.
  */
 function saveWarps(warps: Record<string, HomeLocation>) {
+  warpsCache = warps;
   storage.save(warps);
 }
 
@@ -38,15 +47,23 @@ function saveWarps(warps: Record<string, HomeLocation>) {
  * @param dimensionId The dimension of the warp.
  * @returns The result of the operation.
  */
-export function setWarp(warpName: string, location: mc.Vector3, dimensionId: string): ActionResult {
-  const warps = getWarps();
-  const lowerCaseWarpName = warpName.toLowerCase();
-
-  if (isDefined(warps[lowerCaseWarpName])) {
-    return { success: false, message: `A warp named '${warpName}' already exists.` };
+export function setWarp(
+  warpName: string,
+  location: mc.Vector3,
+  dimensionId: string,
+  allowOverwrite = false,
+): ActionResult {
+  const cleanName = warpName.trim();
+  if (cleanName.length === 0 || cleanName.length > 20) {
+    return { success: false, message: 'Warp name must be between 1 and 20 characters.' };
   }
-  if (warpName.length > 20) {
-    return { success: false, message: 'Warp name cannot be longer than 20 characters.' };
+
+  const warps = getWarps();
+  const lowerCaseWarpName = cleanName.toLowerCase();
+  const isUpdating = isDefined(warps[lowerCaseWarpName]);
+
+  if (isUpdating && !allowOverwrite) {
+    return { success: false, message: `A warp named '${cleanName}' already exists.` };
   }
 
   warps[lowerCaseWarpName] = {
@@ -57,7 +74,10 @@ export function setWarp(warpName: string, location: mc.Vector3, dimensionId: str
   };
 
   saveWarps(warps);
-  return { success: true, message: `Warp '${warpName}' has been set.` };
+  return {
+    success: true,
+    message: isUpdating ? `Warp '${cleanName}' has been updated.` : `Warp '${cleanName}' has been set.`,
+  };
 }
 
 /**

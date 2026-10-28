@@ -8,6 +8,7 @@ import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { initializeSpawnProtection } from '@features/essentials/protection/spawnProtection.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
@@ -55,10 +56,22 @@ const spawnCommand: CustomCommand = {
       return;
     }
 
+    if (
+      typeof spawnLocation.z === 'number' &&
+      !isWithinWorldBorder({ x: spawnLocation.x, z: spawnLocation.z }, spawnLocation.dimensionId) &&
+      !canBypassWorldBorder(executor)
+    ) {
+      sendMessage('§cCannot teleport: The server spawn point is outside the active world border.', executor);
+      return;
+    }
+
     const warmupSeconds = config.spawn.teleportWarmupSeconds;
 
     const teleportLogic = () => {
       try {
+        if (!executor.isValid) {
+          return;
+        }
         const dimension = mc.world.getDimension(spawnLocation.dimensionId);
         const teleportUtils = serviceLocator.getService<TeleportUtilsService>('teleport.utils');
         if (teleportUtils) {

@@ -1,11 +1,10 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/data/playerDataManager.js';
-import { canTarget } from '@core/permissions/rankManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils/index.js';
 import { errorLog, warnLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
-import { addPunishment, removePunishment } from '@features/moderation/punishmentManager.js';
+import { addPunishment, removePunishment, validateModerationTarget } from '@features/moderation/punishmentManager.js';
 import { isDefined } from '@lib/guards.js';
 // FIXED
 import * as mc from '@minecraft/server';
@@ -17,17 +16,7 @@ export function banPlayer(
   duration: string | undefined,
   reason: string,
 ) {
-  if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
-    sendMessage('§cYou cannot ban yourself.', executor);
-    return;
-  }
-
-  if (!canTarget(executor, targetPlayer.id)) {
-    if (executor instanceof mc.Player) {
-      sendMessage('§cYou cannot ban a player with the same or higher rank than you.', executor);
-    } else {
-      executor.sendMessage('§cYou cannot ban a player with the same or higher rank than you.');
-    }
+  if (!validateModerationTarget(executor, targetPlayer.id, 'ban')) {
     return;
   }
 
@@ -132,17 +121,7 @@ export function unbanPlayer(executor: CommandExecutor, targetName: string) {
     return;
   }
 
-  if (executor instanceof mc.Player && executor.id === targetId) {
-    sendMessage('§cYou cannot unban yourself.', executor);
-    return;
-  }
-
-  if (!canTarget(executor, targetId)) {
-    if (executor instanceof mc.Player) {
-      sendMessage('§cYou cannot unban a player with the same or higher rank than you.', executor);
-    } else {
-      executor.sendMessage('§cYou cannot unban a player with the same or higher rank than you.');
-    }
+  if (!validateModerationTarget(executor, targetId, 'unban')) {
     return;
   }
 
@@ -175,17 +154,7 @@ export function offlineBanPlayer(
   duration: string | undefined,
   reason: string,
 ) {
-  if (executor instanceof mc.Player && executor.id === targetId) {
-    sendMessage('§cYou cannot ban yourself.', executor);
-    return;
-  }
-
-  if (!canTarget(executor, targetId)) {
-    if (executor instanceof mc.Player) {
-      sendMessage('§cYou cannot ban a player with the same or higher rank than you.', executor);
-    } else {
-      executor.sendMessage('§cYou cannot ban a player with the same or higher rank than you.');
-    }
+  if (!validateModerationTarget(executor, targetId, 'ban')) {
     return;
   }
 

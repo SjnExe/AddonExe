@@ -58,5 +58,5 @@ To enable them:
 
 ## How do I customize settings without losing in-game data?
 
-- **In-Game (Recommended):** Use `/panel` -> **Staff Dashboard** -> **Addon Configuration**. All changes save immediately to world dynamic properties.
-- **Config Files:** If you edit compiled `*Config.js` files on disk and run `/xreload`, AddonExe only updates the specific properties you changed on disk while keeping all other in-game settings intact.
+- **In-Game (`/panel`):** All default configurations are bundled into `main.js` and edited live in-game via `/panel` -> **Staff Dashboard** -> **Addon Configuration**. All changes save immediately to sharded world dynamic properties and persist across addon updates.
+- **Backup & Transfer:** You can export or import your JSON configuration strings anytime in `/panel` -> **Staff Dashboard** -> **Addon Configuration** -> **System Configs** -> **Danger Zone & Backup** -> **Transfer Config**.

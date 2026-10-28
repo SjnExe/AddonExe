@@ -30,11 +30,18 @@ export function setTrackedInterval(callback: () => void, tickInterval: number): 
 }
 
 export function setTrackedTimeout(callback: () => void, tickDelay: number): number {
-  const id = mc.system.runTimeout(() => {
-    timeoutIds.delete(id);
+  let id: number | undefined;
+  let ranSync = false;
+  id = mc.system.runTimeout(() => {
+    ranSync = true;
+    if (id !== undefined) {
+      timeoutIds.delete(id);
+    }
     callback();
   }, tickDelay);
-  timeoutIds.add(id);
+  if (!ranSync) {
+    timeoutIds.add(id);
+  }
   return id;
 }
 
@@ -87,8 +94,6 @@ export function cleanupTimers(): void {
 
   debugLog('[TimerManager] All tracked timers and jobs have been cleared.');
 }
-
-export function startSystemTimers() {}
 
 export function getTimerStats(): { intervals: number; timeouts: number; jobs: number } {
   return {

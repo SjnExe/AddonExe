@@ -1,11 +1,11 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
-import { canTarget } from '@core/permissions/rankManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { soundError } from '@core/utils/constants.js';
 import { playSound, playSoundFromConfig, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getPunishmentLogs } from '@features/anticheat/logManager.js';
+import { validateModerationTarget } from '@features/moderation/punishmentManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -30,17 +30,7 @@ export function warnPlayer(executor: CommandExecutor, target: mc.Player | undefi
     return false;
   }
 
-  if (executor instanceof mc.Player && executor.id === target.id) {
-    sendMessage('§cYou cannot warn yourself.', executor);
-    playSound(executor, soundError);
-    return false;
-  }
-
-  if (!canTarget(executor, target.id)) {
-    sendMessage('§cYou cannot warn a player with the same or higher rank than you.', executor);
-    if (executor instanceof mc.Player) {
-      playSound(executor, soundError);
-    }
+  if (!validateModerationTarget(executor, target.id, 'warn', true)) {
     return false;
   }
 

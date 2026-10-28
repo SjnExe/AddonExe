@@ -121,7 +121,7 @@ function internalLog(method: ConsoleMethod, message: string): void {
  * @param {string} message The message to log.
  */
 export function debugLog(message: string): void {
-  if (externalDebugHandler) {
+  if (__DEV__ && externalDebugHandler) {
     externalDebugHandler(message);
   }
   if (currentLogLevel >= LogLevels.DEBUG) {

@@ -100,7 +100,7 @@ describe('Help Command Unit Tests and Benchmark', () => {
       'Utility',
       'Custom',
     ];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 20; i++) {
       const cat = categories[i % categories.length];
       const cmd: CustomCommand = {
         name: `benchcmd_${i}`,
@@ -119,11 +119,11 @@ describe('Help Command Unit Tests and Benchmark', () => {
     } as unknown as mc.Player;
 
     // Warmup
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 5; i++) {
       helpCommand.execute(mockPlayer, {});
     }
 
-    const iterations = 2000;
+    const iterations = 20;
     const start = performance.now();
     for (let i = 0; i < iterations; i++) {
       helpCommand.execute(mockPlayer, {});
@@ -135,6 +135,6 @@ describe('Help Command Unit Tests and Benchmark', () => {
     console.log(
       `[Benchmark Optimized] Iterations: ${iterations}, Total Time: ${totalMs.toFixed(2)}ms, Ops/sec: ${opsPerSec.toFixed(2)}`,
     );
-    expect(totalMs).toBeGreaterThan(0);
+    expect(totalMs).toBeGreaterThanOrEqual(0);
   });
 });

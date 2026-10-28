@@ -104,4 +104,25 @@ export const economyConfig: EconomyConfig = {
   },
 };
 
+export const economyMainDefaults = {
+  playtimeRewards: {
+    enabled: false,
+    afkIntervalMinutes: 15,
+    afkRewardMoney: 50,
+    afkRewardXpLevels: 0,
+    notifyOnAfkReward: true,
+    requireActiveMovement: false,
+    maxIdleMinutes: 10,
+  },
+  bounties: {
+    enabled: false,
+    minimumBounty: 10,
+    bountyCreditTimeoutSeconds: 15,
+  },
+  trading: {
+    enabled: false,
+    requestTimeoutSeconds: 60,
+  },
+};
+
 export default economyConfig;

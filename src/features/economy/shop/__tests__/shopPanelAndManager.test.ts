@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as configurations from '@core/config/configurations.js';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
+import { resolveTradeItemMetadata } from '../../tradeUtils.js';
 import { setItem, updateShopItem } from '../adminManager.js';
-import { parseRankOverrides } from '../utils.js';
+import { formatItemName, parseRankOverrides, resolveTexturePath } from '../utils.js';
 
 const mockConfig = {
   categories: {} as Record<string, any>,
@@ -39,7 +41,21 @@ describe('Shop Admin Manager & Utils - Key Updates and Overrides', () => {
     saveShopConfigSpy?.mockRestore();
   });
 
-  it('should parse rank override string correctly', () => {
+  it('should convert camelCase and snake_case item keys into Title Case names and resolve icons', () => {
+    expect(formatItemName('goldIngot')).toBe('Gold Ingot');
+    expect(formatItemName('witherSkeletonSkull')).toBe('Wither Skeleton Skull');
+    expect(formatItemName(MinecraftItemTypes.StoneBrickStairs)).toBe('Stone Brick Stairs');
+    const meta = resolveTradeItemMetadata('goldIngot', { buyPrice: 100, sellPrice: 50 } as any);
+    expect(meta.displayName).toBe('Gold Ingot');
+    expect(meta.icon).toBe('textures/items/gold_ingot');
+    expect(resolveTexturePath(MinecraftItemTypes.StoneBrickStairs)).toBe('textures/blocks/stonebrick');
+  });
+
+  it('should parse rank override string correctly (including colon format)', () => {
+    expect(parseRankOverrides('vip:100:50,vip2:200:100')).toEqual({
+      vip: { buy: 100, sell: 50 },
+      vip2: { buy: 200, sell: 100 },
+    });
     const overrides = parseRankOverrides('vip=0.8,1.2;mvp=0.5,1.5');
     expect(overrides).toEqual({
       vip: { buy: 0.8, sell: 1.2 },

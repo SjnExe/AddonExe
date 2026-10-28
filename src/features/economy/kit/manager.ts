@@ -162,7 +162,33 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
   }
   const inventory = inventoryComp.container;
 
-  if (inventory.emptySlotsCount < kit.items.length) {
+  let requiredEmptySlots = 0;
+  for (const kitItem of kit.items) {
+    let remainingToFit = kitItem.amount;
+    const hasCustomMeta =
+      isNonEmptyString(kitItem.nameTag) ||
+      (isDefined(kitItem.lore) && kitItem.lore.length > 0) ||
+      (isDefined(kitItem.enchantments) && kitItem.enchantments.length > 0);
+    if (!hasCustomMeta) {
+      for (let slotIdx = 0; slotIdx < inventory.size && remainingToFit > 0; slotIdx++) {
+        const existing = inventory.getItem(slotIdx);
+        if (
+          isDefined(existing) &&
+          existing.typeId === kitItem.typeId &&
+          !isNonEmptyString(existing.nameTag) &&
+          existing.getLore().length === 0 &&
+          existing.amount < existing.maxAmount
+        ) {
+          remainingToFit -= existing.maxAmount - existing.amount;
+        }
+      }
+    }
+    if (remainingToFit > 0) {
+      requiredEmptySlots++;
+    }
+  }
+
+  if (inventory.emptySlotsCount < requiredEmptySlots) {
     return {
       success: false,
       message: 'You do not have enough inventory space to claim this kit.',

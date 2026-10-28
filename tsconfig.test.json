@@ -1,11 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/tests",
-    "types": ["bun", "node"],
-    "noEmit": true,
-    "isolatedModules": true
+    "types": ["bun", "node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/vanilla-data", "@minecraft/math"]
   },
-  "include": ["src/**/__tests__/**/*.ts", "src/**/__mocks__/**/*.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }

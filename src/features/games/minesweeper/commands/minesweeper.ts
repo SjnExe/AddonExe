@@ -1,13 +1,7 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/config/configurations.js';
 import { resolveTarget } from '@core/utils/index.js';
-import {
-  acceptGameInvite,
-  cancelGameInvite,
-  denyGameInvite,
-  joinMatchmakingQueue,
-  sendGameInvite,
-} from '@features/games/matchmakingManager.js';
+import { handleCommonGameSubcommand, sendGameInvite } from '@features/games/matchmakingManager.js';
 import { startMinesweeperGame } from '@features/games/minesweeper/manager.js';
 import { showMinesweeperBoard, showMinesweeperMenu } from '@features/games/minesweeper/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -68,31 +62,7 @@ const minesweeperCommand: CustomCommand = {
       return;
     }
 
-    if (sub === 'queue' || sub === 'random' || sub === 'matchmake') {
-      const res = joinMatchmakingQueue(executor, 'minesweeper');
-      if (isNonEmptyString(res.message)) {
-        executor.sendMessage(res.message);
-      }
-      return;
-    }
-
-    if (sub === 'accept' || sub === 'yes') {
-      const res = acceptGameInvite(executor, secondArg, 'minesweeper');
-      if (isNonEmptyString(res.message)) {
-        executor.sendMessage(res.message);
-      }
-      return;
-    }
-
-    if (sub === 'deny' || sub === 'no' || sub === 'decline') {
-      const res = denyGameInvite(executor, secondArg, 'minesweeper');
-      executor.sendMessage(res.message);
-      return;
-    }
-
-    if (sub === 'cancel') {
-      const res = cancelGameInvite(executor);
-      executor.sendMessage(res.message);
+    if (handleCommonGameSubcommand(executor, 'minesweeper', sub, secondArg)) {
       return;
     }
 

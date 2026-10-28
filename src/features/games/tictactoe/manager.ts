@@ -4,6 +4,8 @@ import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import {
+  payoutWagerPot,
+  recordSimpleGameStat,
   registerActiveMatchSession,
   registerMultiplayerGame,
   unregisterActiveMatchSession,
@@ -199,17 +201,17 @@ export function makeTicTacToeMove(
     match.status = 'won';
     match.winnerId = playerId;
     match.winningLine = evalResult.winningLine;
+    recordSimpleGameStat(playerId, 'ttt', 'wins');
+    recordSimpleGameStat(opponentId, 'ttt', 'losses');
     const winnerName = playerId === match.playerXId ? match.playerXName : match.playerOName;
     const loserName = playerId === match.playerXId ? match.playerOName : match.playerXName;
     match.endReason = `§a${winnerName} §7connected 3 in a row against §c${loserName}§7!`;
 
-    if (match.wager > 0) {
-      incrementPlayerBalance(playerId, match.wager * 2);
-    }
+    const payout = match.wager > 0 ? payoutWagerPot(playerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
     const pX = getPlayerFromCache(match.playerXId);
     const pO = getPlayerFromCache(match.playerOId);
-    const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})§r` : '';
+    const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
     if (isDefined(pX)) {
       pX.sendMessage(`§e[Tic-Tac-Toe] §a${winnerName} §fwon the match!${prizeText}`);
       playSound(pX, playerId === match.playerXId ? 'random.levelup' : 'note.bass');
@@ -282,11 +284,9 @@ export function forfeitTicTacToeMatch(
   match.winnerId = winnerId;
   match.endReason = `§c${loserName} §7${reason}. §a${winnerName} §7wins by forfeit!`;
 
-  if (match.wager > 0) {
-    incrementPlayerBalance(winnerId, match.wager * 2);
-  }
+  const payout = match.wager > 0 ? payoutWagerPot(winnerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
-  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})§r` : '';
+  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
   const winnerPlayer = getPlayerFromCache(winnerId);
   const loserPlayer = getPlayerFromCache(forfeitingPlayerId);
 

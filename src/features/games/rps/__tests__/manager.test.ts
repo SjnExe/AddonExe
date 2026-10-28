@@ -78,7 +78,7 @@ describe('Rock Paper Scissors Manager', () => {
     expect(r2p2.matchEnded).toBe(true);
     expect(match!.status).toBe('won');
     expect(match!.winnerId).toBe(p1.id);
-    expect(getBalance(p1.id)).toBe(600);
+    expect(getBalance(p1.id)).toBe(590);
     expect(getBalance(p2.id)).toBe(400);
   });
 

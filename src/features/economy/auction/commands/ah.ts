@@ -3,7 +3,13 @@ import { getAuctionHouseConfig } from '@core/config/configurations.js';
 import { serializeItem } from '@core/data/itemSerializer.js';
 import { parseCurrency } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { createListing } from '@features/economy/auction/manager.js';
+import {
+  cancelListing,
+  claimMailbox,
+  createListing,
+  getListings,
+  SortOption,
+} from '@features/economy/auction/manager.js';
 import { showAuctionHouse } from '@features/economy/auction/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -16,7 +22,12 @@ const mainCommand: CustomCommand = {
   category: 'Economy',
   permissionNode: 'cmd.ah.member',
   parameters: [
-    { name: 'subcommand', type: 'string', optional: true, enumOptions: ['sell', 'help', 'search'] },
+    {
+      name: 'subcommand',
+      type: 'string',
+      optional: true,
+      enumOptions: ['sell', 'collect', 'listings', 'cancel', 'help', 'search'],
+    },
     { name: 'price', type: 'string', optional: true },
     { name: 'type', type: 'string', optional: true, enumOptions: ['bin', 'bid'] },
   ],
@@ -83,9 +94,47 @@ const mainCommand: CustomCommand = {
       return;
     }
 
+    if (sub === 'collect' || sub === 'claim' || sub === 'mailbox') {
+      const res = claimMailbox(executor);
+      sendMessage(res.message, executor);
+      return;
+    }
+
+    if (sub === 'listings' || sub === 'my' || sub === 'mine') {
+      const myListings = getListings(1, 50, undefined, SortOption.Newest, executor.id);
+      if (myListings.length === 0) {
+        sendMessage('§7You have no active Auction House listings.', executor);
+        return;
+      }
+      const lines = myListings.map(
+        (l, idx) =>
+          `§e#${idx + 1} §7[ID: §b${l.id}§7] §f${l.item.nameTag ?? l.item.typeId.replace(/^minecraft:/, '')} x${l.item.amount} §7- §a$${l.bidPrice ?? l.price}`,
+      );
+      sendMessage(`§6--- Your Active Listings (${myListings.length}) ---\n${lines.join('\n')}`, executor);
+      return;
+    }
+
+    if (sub === 'cancel') {
+      const myListings = getListings(1, 50, undefined, SortOption.Newest, executor.id);
+      if (myListings.length === 0) {
+        sendMessage('§cYou have no active listings to cancel.', executor);
+        return;
+      }
+      const targetListing = isNonEmptyString(args.price)
+        ? myListings.find((l, idx) => l.id === args.price || String(idx + 1) === args.price)
+        : myListings[0];
+      if (!isDefined(targetListing)) {
+        sendMessage('§cListing not found. Use /ah listings to check your active listings.', executor);
+        return;
+      }
+      const res = cancelListing(executor, targetListing.id);
+      sendMessage(res.message, executor);
+      return;
+    }
+
     if (sub === 'help') {
       sendMessage(
-        '§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item',
+        '§eAuction House Commands:\n§f/ah - Open Menu\n/ah sell <price> [bin/bid] - Sell held item\n/ah collect - Claim Collection Bin items\n/ah listings - View your active listings\n/ah cancel [id|#] - Cancel a listing',
         executor,
       );
       return;
