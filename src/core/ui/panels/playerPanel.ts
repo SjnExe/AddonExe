@@ -125,6 +125,10 @@ export async function showPlayerActionsPanel(
       const { showEnderChestPanel } = await import('@core/ui/panels/inventoryPanel.js');
       await showEnderChestPanel(player, targetPlayerId);
     });
+    form.button('Moderation History', 'textures/ui/icon_book_writable', async () => {
+      const { showPlayerModerationHistoryPanel } = await import('@features/moderation/ui/panel.js');
+      await showPlayerModerationHistoryPanel(player, targetPlayerName, targetPlayerId);
+    });
     form.button('Teleport To', 'textures/ui/icon_map', () => {
       const target = getPlayerFromCache(targetPlayerId);
       if (isDefined(target)) {

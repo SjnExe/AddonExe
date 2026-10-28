@@ -64,7 +64,9 @@ export function clearTrackedTimeout(id: number): void {
 
 export function clearTrackedJob(id: number): void {
   if (jobIds.has(id)) {
-    mc.system.clearJob(id);
+    if (typeof mc.system.clearJob === 'function') {
+      mc.system.clearJob(id);
+    }
     jobIds.delete(id);
   }
 }
@@ -87,8 +89,10 @@ export function cleanupTimers(): void {
   }
   timeoutIds.clear();
 
-  for (const id of jobIds) {
-    mc.system.clearJob(id);
+  if (typeof mc.system.clearJob === 'function') {
+    for (const id of jobIds) {
+      mc.system.clearJob(id);
+    }
   }
   jobIds.clear();
 

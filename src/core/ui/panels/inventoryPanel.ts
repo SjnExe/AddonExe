@@ -1,5 +1,6 @@
+import { deserializeItem } from '@core/data/itemSerializer.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { getPlayerNameById } from '@core/data/playerDataManager.js';
+import { getPlayerNameById, loadPlayerData, updatePlayerData } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { canTarget } from '@core/permissions/rankManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
@@ -165,8 +166,66 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
   const targetPlayer = getPlayerFromCache(targetPlayerId);
 
   if (!targetPlayer) {
-    player.sendMessage(`§cCannot view inventory. Player ${targetName} is offline.`);
-    return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    const offlineData = loadPlayerData(targetPlayerId);
+    const invSnap = offlineData?.offlineInventory ?? {};
+    const eqSnap = offlineData?.offlineEquipment ?? {};
+    const canEdit = canModifyTargetInventory(player, targetPlayerId);
+
+    const form = new ActionFormBuilder()
+      .title(`${targetName}'s Offline Inventory`)
+      .body('§7Viewing saved offline snapshot (tap any item to clone a copy to your inventory):');
+
+    if (canEdit) {
+      form.button('§l§4Clear Offline Inventory (On Next Join)', 'textures/ui/trash', async () => {
+        updatePlayerData(targetPlayerId, (d) => {
+          d.offlineInventory = {};
+          d.offlineEquipment = {};
+          d.pendingInventoryClear = true;
+        });
+        player.sendMessage(`§aCleared ${targetName}'s offline inventory (will apply when they next join).`);
+        await showInventoryPanel(player, targetPlayerId, page);
+      });
+    }
+
+    for (const [eqSlot, item] of Object.entries(eqSnap)) {
+      if (isDefined(item)) {
+        const name = isNonEmptyString(item.nameTag) ? item.nameTag : resolveTradeItemDisplayName(item.typeId);
+        form.button(`§6[${eqSlot}] §f${name} x${item.amount}`, resolveTradeItemIcon(item.typeId), async () => {
+          const myInv = (player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
+            ?.container;
+          const stack = deserializeItem(item);
+          if (isDefined(myInv) && isDefined(stack)) {
+            myInv.addItem(stack);
+            player.sendMessage(`§aCloned ${name} x${item.amount} to your inventory.`);
+          }
+          await showInventoryPanel(player, targetPlayerId, page);
+        });
+      }
+    }
+
+    for (let i = 0; i < 36; i++) {
+      const item = invSnap[i];
+      if (isDefined(item)) {
+        const displayName = isNonEmptyString(item.nameTag) ? item.nameTag : resolveTradeItemDisplayName(item.typeId);
+        form.button(`Slot ${i}: ${displayName} x${item.amount}`, resolveTradeItemIcon(item.typeId), async () => {
+          const myInv = (player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
+            ?.container;
+          const stack = deserializeItem(item);
+          if (isDefined(myInv) && isDefined(stack)) {
+            myInv.addItem(stack);
+            player.sendMessage(`§aCloned ${displayName} x${item.amount} to your inventory.`);
+          }
+          await showInventoryPanel(player, targetPlayerId, page);
+        });
+      }
+    }
+
+    form.addBackButton(async () => {
+      await showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    });
+
+    await form.show(player);
+    return;
   }
 
   const inventoryComponent = targetPlayer.getComponent(EntityComponentTypes.Inventory) as
@@ -255,8 +314,48 @@ export async function showEnderChestPanel(player: mc.Player, targetPlayerId: str
   const targetPlayer = getPlayerFromCache(targetPlayerId);
 
   if (!targetPlayer) {
-    player.sendMessage(`§cCannot view Ender Chest. Player ${targetName} is offline.`);
-    return showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    const offlineData = loadPlayerData(targetPlayerId);
+    const ecSnap = offlineData?.offlineEnderChest ?? {};
+    const canEdit = canModifyTargetInventory(player, targetPlayerId);
+
+    const form = new ActionFormBuilder()
+      .title(`${targetName}'s Offline Ender Chest`)
+      .body('§7Viewing saved offline Ender Chest snapshot (tap an item to clone a copy):');
+
+    if (canEdit) {
+      form.button('§l§4Wipe Offline Ender Chest (On Next Join)', 'textures/ui/trash', async () => {
+        updatePlayerData(targetPlayerId, (d) => {
+          d.offlineEnderChest = {};
+          d.pendingEnderChestWipe = true;
+        });
+        player.sendMessage(`§aWiped ${targetName}'s offline Ender Chest (will apply when they next join).`);
+        await showEnderChestPanel(player, targetPlayerId);
+      });
+    }
+
+    for (let i = 0; i < 27; i++) {
+      const item = ecSnap[i];
+      if (isDefined(item)) {
+        const displayName = isNonEmptyString(item.nameTag) ? item.nameTag : resolveTradeItemDisplayName(item.typeId);
+        form.button(`Slot ${i}: ${displayName} x${item.amount}`, resolveTradeItemIcon(item.typeId), async () => {
+          const myInv = (player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
+            ?.container;
+          const stack = deserializeItem(item);
+          if (isDefined(myInv) && isDefined(stack)) {
+            myInv.addItem(stack);
+            player.sendMessage(`§aCloned ${displayName} x${item.amount} to your inventory.`);
+          }
+          await showEnderChestPanel(player, targetPlayerId);
+        });
+      }
+    }
+
+    form.addBackButton(async () => {
+      await showPanel(player, 'playerActionsPanel', { targetPlayerId });
+    });
+
+    await form.show(player);
+    return;
   }
 
   const enderComponent = targetPlayer.getComponent(EntityComponentTypes.EnderInventory) as

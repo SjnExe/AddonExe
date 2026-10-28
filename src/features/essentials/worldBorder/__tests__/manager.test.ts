@@ -17,7 +17,11 @@ describe('worldBorderManager', () => {
     initializePlayerCache();
 
     runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
-      intervalCallback = cb;
+      intervalCallback = () => {
+        for (let i = 0; i < 20; i++) {
+          cb();
+        }
+      };
       return 1;
     });
 

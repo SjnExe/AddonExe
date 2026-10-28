@@ -14,7 +14,7 @@ export const essentialsConfig = {
     },
   },
   spawnProtection: {
-    enabled: false,
+    enabled: true,
     protectionRadius: 32,
     allowAdminBypass: true,
     preventPvP: true,

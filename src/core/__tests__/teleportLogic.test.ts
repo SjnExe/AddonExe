@@ -22,6 +22,7 @@ let clearRunSpy: any;
 let subscribeSpy: any;
 let unsubscribeSpy: any;
 
+import { cleanupTimers } from '@core/utils/timerManager.js';
 const { startTeleportWarmup } = await import('@core/utils/teleportLogic.js');
 
 describe('startTeleportWarmup', () => {
@@ -30,6 +31,7 @@ describe('startTeleportWarmup', () => {
   let onCancel: ReturnType<typeof mock>;
 
   beforeEach(() => {
+    cleanupTimers();
     mockPlaySound.mockReset();
     mockGetCountdownColor.mockReset();
     mockDistance.mockReset();
@@ -102,20 +104,24 @@ describe('startTeleportWarmup', () => {
     expect(subscribeSpy).toHaveBeenCalled();
     expect(runIntervalSpy).toHaveBeenCalled();
 
-    const intervalCallback = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const stepSecond = () => {
+      for (let i = 0; i < 20; i++) {
+        masterTick();
+      }
+    };
 
-    // First tick (remaining: 1)
-    intervalCallback();
+    // First second (remaining: 1)
+    stepSecond();
     expect(setActionBarOverrideSpy).toHaveBeenCalledWith(mockPlayer, '§aTeleporting in 1...', 1100);
     expect(mockPlaySound).toHaveBeenCalledWith(mockPlayer, 'note.pling', { volume: 0.5, pitch: expect.any(Number) });
     expect(onWarmupComplete).not.toHaveBeenCalled();
 
-    // Second tick (remaining: 0)
-    intervalCallback();
+    // Second second (remaining: 0)
+    stepSecond();
     expect(setActionBarOverrideSpy).toHaveBeenCalledWith(mockPlayer, '§aTeleporting...', 2000);
     expect(mockPlaySound).toHaveBeenCalledWith(mockPlayer, 'random.levelup', { volume: 0.5, pitch: 1 });
     expect(onWarmupComplete).toHaveBeenCalled();
-    expect(clearRunSpy).toHaveBeenCalledWith(123);
     expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
@@ -143,10 +149,12 @@ describe('startTeleportWarmup', () => {
   it('should cancel if player moves too far', () => {
     startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-    const intervalCallback = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
 
     mockDistance.mockReturnValue(3); // Moved more than 2 blocks
-    intervalCallback();
+    for (let i = 0; i < 20; i++) {
+      masterTick();
+    }
 
     expect(setActionBarOverrideSpy).toHaveBeenCalledWith(mockPlayer, '§cTeleport canceled because you moved.', 3000);
     expect(mockPlaySound).toHaveBeenCalledWith(mockPlayer, 'note.bass', { volume: 1, pitch: 0.5 });
@@ -156,10 +164,12 @@ describe('startTeleportWarmup', () => {
   it('should cancel if player changes dimension', () => {
     startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-    const intervalCallback = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
 
     mockPlayer.dimension.id = MinecraftDimensionTypes.Nether;
-    intervalCallback();
+    for (let i = 0; i < 20; i++) {
+      masterTick();
+    }
 
     expect(setActionBarOverrideSpy).toHaveBeenCalledWith(mockPlayer, '§cTeleport canceled because you moved.', 3000);
     expect(onCancel).toHaveBeenCalled();
@@ -168,10 +178,12 @@ describe('startTeleportWarmup', () => {
   it('should cancel if player becomes invalid', () => {
     startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-    const intervalCallback = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
 
     mockPlayer.isValid = false;
-    intervalCallback();
+    for (let i = 0; i < 20; i++) {
+      masterTick();
+    }
 
     expect(onCancel).toHaveBeenCalled();
   });
@@ -179,14 +191,16 @@ describe('startTeleportWarmup', () => {
   it('should handle interval exceptions gracefully', () => {
     startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-    const intervalCallback = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
 
     // Cause an exception by making distance function throw
     mockDistance.mockImplementation(() => {
       throw new Error('Test error');
     });
 
-    intervalCallback();
+    for (let i = 0; i < 20; i++) {
+      masterTick();
+    }
 
     expect(errorLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('Error during warmup interval for TestPlayer: Error: Test error'),
@@ -202,11 +216,15 @@ describe('startTeleportWarmup', () => {
 
     startTeleportWarmup(mockPlayer, 5, onWarmupComplete, 'spawn', onCancel);
 
-    const intervalCallback = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
     mockPlayer.isValid = false;
 
     // This should trigger cleanup which will throw, but it should be caught
-    expect(() => intervalCallback()).not.toThrow();
+    expect(() => {
+      for (let i = 0; i < 20; i++) {
+        masterTick();
+      }
+    }).not.toThrow();
     expect(onCancel).toHaveBeenCalled();
   });
 });

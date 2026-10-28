@@ -1,5 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getAuctionHouseConfig } from '@core/config/configurations.js';
+import { recordEscrow, releaseEscrow } from '@core/data/escrowManager.js';
 import { deserializeItem, type SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
@@ -28,6 +29,7 @@ const pendingTradesByTarget = new Map<string, TradeProposal>();
 const outgoingTradeBySender = new Map<string, string>();
 
 function returnSenderEscrow(proposal: TradeProposal): void {
+  releaseEscrow(proposal.id);
   if (proposal.offeredMoney > 0) {
     incrementPlayerBalance(proposal.senderId, proposal.offeredMoney);
   }
@@ -131,6 +133,16 @@ export function createTradeOffer(
     return { success: false, message: '§cCannot send an empty trade offer.' };
   }
 
+  const proposalId = `trade_${Date.now()}_${sender.id}`;
+  recordEscrow({
+    id: proposalId,
+    playerId: sender.id,
+    ...(offerMoney > 0 ? { money: offerMoney } : {}),
+    ...(isDefined(offeredItem) ? { item: offeredItem } : {}),
+    reason: 'trade',
+    timestamp: Date.now(),
+  });
+
   // Escrow sender's money & item immediately so they cannot be duped
   if (offerMoney > 0) {
     incrementPlayerBalance(sender.id, -offerMoney);
@@ -152,7 +164,7 @@ export function createTradeOffer(
   }, timeoutSec * 20);
 
   const proposal: TradeProposal = {
-    id: `trade_${Date.now()}_${sender.id}`,
+    id: proposalId,
     senderId: sender.id,
     senderName: sender.name,
     targetId: target.id,
@@ -233,6 +245,7 @@ export function acceptTradeOffer(target: mc.Player): { success: boolean; message
   clearTrackedTimeout(proposal.expiryTimerId);
   pendingTradesByTarget.delete(target.id);
   outgoingTradeBySender.delete(proposal.senderId);
+  releaseEscrow(proposal.id);
 
   if (proposal.requestedMoney > 0) {
     incrementPlayerBalance(target.id, -proposal.requestedMoney);

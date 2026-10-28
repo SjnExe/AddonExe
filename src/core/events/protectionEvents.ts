@@ -1,6 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { hasTeleportProtection } from '@core/utils/teleportLogic.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/protection/zoneSelectionManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined } from '@lib/guards.js';
@@ -29,6 +30,13 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
   if (!isDefined(player) || !isDefined(block)) {
     return;
   }
+  if (hasTeleportProtection(player.id)) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§ePost-teleport protection active — actions locked briefly.', 1500);
+    });
+    return;
+  }
   if (handleWandBreakBlock(event)) {
     return;
   }
@@ -49,6 +57,13 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
   if (!isDefined(player) || !isDefined(block)) {
     return;
   }
+  if (hasTeleportProtection(player.id)) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§ePost-teleport protection active — actions locked briefly.', 1500);
+    });
+    return;
+  }
 
   const flags = getProtectionFlags(block.location, player.dimension.id);
   if (flags.preventBlockPlacing) {
@@ -62,49 +77,54 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
 }
 
 export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
-  // If explosion is prevented at the source, cancel it entirely
-  const blocks = event.getImpactedBlocks();
-  const loc = event.source?.location ?? (blocks.length > 0 ? blocks[0]!.location : undefined);
+  const impactedBlocks = event.getImpactedBlocks();
+  const loc = event.source?.location ?? (impactedBlocks.length > 0 ? impactedBlocks[0]?.location : undefined);
   if (!loc) {
     return;
   }
-  const flags = getProtectionFlags(loc, event.dimension.id);
+  const dimId = event.dimension.id;
+  const isMobSource = isDefined(event.source) && event.source.typeId !== MinecraftEntityTypes.Player;
+  const sourceFlags = getProtectionFlags(loc, dimId);
 
-  // Prevent Mob Griefing logic (Creepers, Withers)
-  if (flags.preventMobGriefing && event.source && event.source.typeId !== MinecraftEntityTypes.Player) {
-    // Prevent block damage from mob explosions
+  if (sourceFlags.preventMobGriefing && isMobSource) {
     event.setImpactedBlocks([]);
     return;
   }
 
-  // As a fallback/more precise method, we could filter impacted blocks,
-  // but beforeExplosion lets us cancel or modify impacted blocks.
-  if (flags.preventExplosions) {
+  if (sourceFlags.preventExplosions) {
     event.cancel = true;
     return;
   }
 
-  // Filter out blocks that are in protected areas from being destroyed
-  const impactedBlocks = event.getImpactedBlocks();
+  if (impactedBlocks.length === 0) {
+    return;
+  }
+
   const allowedBlocks: mc.Block[] = [];
   for (const block of impactedBlocks) {
     if (!isDefined(block)) {
       continue;
     }
-    const blockFlags = getProtectionFlags(block.location, event.dimension.id);
-    if (
-      !blockFlags.preventExplosions &&
-      (!blockFlags.preventMobGriefing || !event.source || event.source.typeId === MinecraftEntityTypes.Player)
-    ) {
+    const blockFlags = getProtectionFlags(block.location, dimId);
+    if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !isMobSource)) {
       allowedBlocks.push(block);
     }
   }
-  event.setImpactedBlocks(allowedBlocks);
+  if (allowedBlocks.length !== impactedBlocks.length) {
+    event.setImpactedBlocks(allowedBlocks);
+  }
 }
 
 export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
   const player = event.source;
   if (!(player instanceof mc.Player)) {
+    return;
+  }
+  if (hasTeleportProtection(player.id) && event.itemStack.typeId !== 'exe:panel') {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§ePost-teleport protection active — item use locked briefly.', 1500);
+    });
     return;
   }
 
@@ -246,6 +266,16 @@ export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEnt
   if (!isDefined(player) || !isDefined(targetEntity)) {
     return;
   }
+  if (
+    hasTeleportProtection(player.id) ||
+    (targetEntity.typeId === MinecraftEntityTypes.Player && hasTeleportProtection(targetEntity.id))
+  ) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§ePost-teleport protection active — combat locked briefly.', 1500);
+    });
+    return;
+  }
 
   const flags = getProtectionFlags(targetEntity.location, targetEntity.dimension.id);
   if (flags.preventPvP && targetEntity.typeId === MinecraftEntityTypes.Player && targetEntity.id !== player.id) {
@@ -272,6 +302,17 @@ export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEnt
 export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
   const { damageSource } = event;
   const victim = event.hurtEntity;
+
+  if (victim.typeId === MinecraftEntityTypes.Player && hasTeleportProtection(victim.id)) {
+    event.cancel = true;
+    return;
+  }
+  const projComp = damageSource.damagingEntity?.getComponent(EntityComponentTypes.Projectile);
+  const damager = projComp?.owner ?? damageSource.damagingEntity;
+  if (isDefined(damager) && damager.typeId === MinecraftEntityTypes.Player && hasTeleportProtection(damager.id)) {
+    event.cancel = true;
+    return;
+  }
 
   const flags = getProtectionFlags(victim.location, victim.dimension.id);
   const cause = damageSource.cause;

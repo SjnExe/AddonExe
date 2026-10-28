@@ -1,4 +1,3 @@
-import { getConfig } from '@core/config/configManager.js';
 import { getEconomyConfig } from '@core/config/configurations.js';
 import {
   getOrCreatePlayer,
@@ -23,22 +22,19 @@ export const eventName = 'entityDie';
 export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
   try {
     const { deadEntity, damageSource } = event;
-    const config = getConfig();
     const killer = resolveKiller(deadEntity, damageSource.damagingEntity);
 
     if (deadEntity.typeId === MinecraftEntityTypes.Player) {
       const deadPlayer = deadEntity as mc.Player;
       saveLastLocation(deadPlayer, 'death');
 
-      if (config.playerInfo.enableDeathCoords) {
-        getOrCreatePlayer(deadPlayer);
-        setPlayerLastDeathLocation(deadPlayer.id, {
-          x: deadPlayer.location.x,
-          y: deadPlayer.location.y,
-          z: deadPlayer.location.z,
-          dimensionId: deadPlayer.dimension.id,
-        });
-      }
+      getOrCreatePlayer(deadPlayer);
+      setPlayerLastDeathLocation(deadPlayer.id, {
+        x: deadPlayer.location.x,
+        y: deadPlayer.location.y,
+        z: deadPlayer.location.z,
+        dimensionId: deadPlayer.dimension.id,
+      });
 
       resetKillStreak(deadPlayer.id);
 

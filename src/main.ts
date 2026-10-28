@@ -84,9 +84,11 @@ function initializeManagers() {
 }
 
 /** Updates all player ranks. This is useful when ranks are changed via commands. */
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+
 export function updateAllPlayerRanks() {
   const config = getConfig();
-  for (const player of mc.world.getAllPlayers()) {
+  for (const player of getAllPlayersFromCache()) {
     rankManager.updatePlayerNameTag(player, config);
   }
 }

@@ -3,8 +3,9 @@ import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { getPlayerRank, updatePlayerNameTag } from '@core/permissions/rankManager.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { frozenTag, vanishedTag } from '@core/utils/constants.js';
-import { formatLocation, formatString } from '@core/utils/index.js';
+import { formatCurrency, formatLocation, formatString } from '@core/utils/index.js';
 import { debugLog, infoLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getKit, giveKitItems } from '@features/economy/kit/manager.js';
@@ -13,6 +14,7 @@ import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager
 import { isWatched } from '@features/moderation/watchManager.js';
 import { getUnreadMailCount } from '@features/social/mail/manager.js';
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 export function handlePlayerJoin(player: mc.Player) {
@@ -66,6 +68,50 @@ export function handlePlayerJoin(player: mc.Player) {
 
   handleCombatPlayerJoin(player);
 
+  if (pData.pendingInventoryClear === true) {
+    try {
+      const inv = (player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
+        ?.container;
+      inv?.clearAll();
+      const eq = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+      if (eq) {
+        for (const s of [
+          mc.EquipmentSlot.Head,
+          mc.EquipmentSlot.Chest,
+          mc.EquipmentSlot.Legs,
+          mc.EquipmentSlot.Feet,
+          mc.EquipmentSlot.Offhand,
+        ]) {
+          eq.setEquipment(s, undefined);
+        }
+      }
+      updatePlayerData(player.id, (d) => {
+        d.pendingInventoryClear = false;
+        d.offlineInventory = {};
+        d.offlineEquipment = {};
+      });
+      sendMessage('§eYour inventory was cleared by an administrator while you were offline.', player);
+    } catch {
+      // Ignore
+    }
+  }
+
+  if (pData.pendingEnderChestWipe === true) {
+    try {
+      const ec = (
+        player.getComponent(EntityComponentTypes.EnderInventory) as mc.EntityEnderInventoryComponent | undefined
+      )?.container;
+      ec?.clearAll();
+      updatePlayerData(player.id, (d) => {
+        d.pendingEnderChestWipe = false;
+        d.offlineEnderChest = {};
+      });
+      sendMessage('§eYour Ender Chest was wiped by an administrator while you were offline.', player);
+    } catch {
+      // Ignore
+    }
+  }
+
   // Re-apply freeze if needed
   if (player.hasTag(frozenTag)) {
     player.inputPermissions.setPermissionCategory(mc.InputPermissionCategory.Camera, false);
@@ -110,8 +156,10 @@ export function handlePlayerJoin(player: mc.Player) {
   }
 
   if (pData.lastDeathLocation && !pData.deathNotificationSent) {
-    const formattedCoords = formatLocation(pData.lastDeathLocation);
-    sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.`, player);
+    if (config.playerInfo.enableDeathCoords) {
+      const formattedCoords = formatLocation(pData.lastDeathLocation);
+      sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.`, player);
+    }
     pData.deathNotificationSent = true;
   }
 
@@ -151,5 +199,26 @@ export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
 
   if (initialSpawn) {
     handlePlayerJoin(player);
+    return;
+  }
+
+  const config = getConfig();
+  const pData = getOrCreatePlayer(player);
+
+  if (pData.lastDeathLocation && !pData.deathNotificationSent) {
+    if (config.playerInfo.enableDeathCoords) {
+      const formattedCoords = formatLocation(pData.lastDeathLocation);
+      sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.`, player);
+    }
+    updatePlayerData(player.id, (d) => {
+      d.deathNotificationSent = true;
+    });
+  }
+
+  if (config.back?.enabled && config.back?.saveOnDeath && pData.lastLocation) {
+    const cost = Number(config.back.cost ?? 0);
+    const hasCost = isFeatureActive('eco') && cost > 0;
+    const costSuffix = hasCost ? ` §6(Cost: ${formatCurrency(cost)})§7` : '';
+    sendMessage(`§7Use §e/back§7 to return to your death location${costSuffix}.`, player);
   }
 }

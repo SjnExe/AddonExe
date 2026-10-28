@@ -35,7 +35,14 @@ export const defaultChatFormatting: Required<ChatFormatting> = {
 export const permissionGroups: Record<string, string[]> = {
   default: ['**.member'],
   vip: ['**.vip'],
-  builder: ['**.builder', 'cmd.gmc.builder', 'cmd.gms.builder', 'cmd.gamemode.builder', 'bypass.spawnprotection'],
+  builder: [
+    '**.builder',
+    'cmd.gmc.builder',
+    'cmd.gms.builder',
+    'cmd.gamemode.builder',
+    'cmd.top.builder',
+    'bypass.spawnprotection',
+  ],
   helper: [
     '**.helper',
     'cmd.kick.mod',
@@ -49,7 +56,16 @@ export const permissionGroups: Record<string, string[]> = {
     'cmd.listwatched.mod',
   ],
   mod: ['**.mod', '**.helper'],
-  admin: ['**.admin', '**.mod', '**.helper', '**.builder', '**.vip'],
+  admin: [
+    '**.admin',
+    '**.mod',
+    '**.helper',
+    '**.builder',
+    '**.vip',
+    'cmd.deathcoords.others',
+    'cmd.clear.others',
+    'cmd.zonewand.admin',
+  ],
   owner: ['**.owner', '*'],
 };
 

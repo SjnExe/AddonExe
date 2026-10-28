@@ -3,6 +3,7 @@ import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -205,13 +206,9 @@ export function initializeWorldBorder(): void {
   }
 
   if (isDefined(borderIntervalId)) {
-    try {
-      mc.system.clearRun(borderIntervalId);
-    } catch {
-      // Ignore
-    }
+    clearTrackedInterval(borderIntervalId);
   }
-  borderIntervalId = mc.system.runInterval(() => checkWorldBorder(), 20);
+  borderIntervalId = setTrackedInterval(() => checkWorldBorder(), 20);
 }
 
 function saveConfig(): void {

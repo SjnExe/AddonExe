@@ -1,5 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getDailyRewardsConfig } from '@core/config/configurations.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { dailyDisabled } from '@core/utils/constants.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { claimDailyReward } from '@features/economy/daily/manager.js';
@@ -17,7 +18,7 @@ const dailyCommand: CustomCommand = {
     }
 
     const config = getDailyRewardsConfig();
-    if (!config.enabled) {
+    if (!isFeatureActive('util.daily') || !config.enabled) {
       sendMessage(dailyDisabled, executor);
       return;
     }

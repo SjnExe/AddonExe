@@ -1,6 +1,5 @@
 import { registerEvent } from '@core/events/eventManager.js';
 import { frozenTag } from '@core/utils/constants.js';
-import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 export function initializeFreezeListener() {
@@ -57,30 +56,5 @@ export function initializeFreezeListener() {
       }
     },
     'freezeInteractBlock',
-  );
-
-  // Block Chat Commands (except allowed)
-  registerEvent(
-    mc.world.beforeEvents.chatSend,
-    (event) => {
-      if (event.sender.hasTag(frozenTag)) {
-        const msg = event.message.trim();
-        if (msg.startsWith('!') || msg.startsWith('?') || msg.startsWith('/')) {
-          // Check multiple prefixes
-          const part = msg.split(' ')[0];
-          if (!isNonEmptyString(part)) {
-            return;
-          }
-          const cmd = part.toLowerCase();
-          // Allow /msg, /tell, /w for communication with staff
-          if (cmd.includes('msg') || cmd.includes('tell') || cmd.includes('w')) {
-            return;
-          }
-          event.cancel = true;
-          event.sender.sendMessage('§cYou cannot use commands while frozen (except /msg).');
-        }
-      }
-    },
-    'freezeChat',
   );
 }

@@ -1,6 +1,7 @@
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayerIdByName } from '@core/data/playerDataManager.js';
 import { getIdTimestamp, sanitizeString } from '@core/utils/index.js';
+import { getFlagLogs, getPunishmentLogs } from '@features/anticheat/logManager.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -397,6 +398,76 @@ export async function handleUnmuteForm(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+export async function showPlayerModerationHistoryPanel(
+  player: mc.Player,
+  targetName: string,
+  targetPlayerId?: string,
+): Promise<void> {
+  const query = targetName.trim().toLowerCase();
+  const punishments = getPunishmentLogs()
+    .filter((l) => l.playerName.toLowerCase() === query)
+    .toSorted((a, b) => b.timestamp - a.timestamp);
+  const flags = getFlagLogs()
+    .filter((l) => l.playerName.toLowerCase() === query)
+    .toSorted((a, b) => b.timestamp - a.timestamp);
+
+  const activeBan = isNonEmptyString(targetPlayerId)
+    ? punishmentManager.getPunishment(targetPlayerId, 'ban')
+    : undefined;
+  const activeMute = isNonEmptyString(targetPlayerId)
+    ? punishmentManager.getPunishment(targetPlayerId, 'mute')
+    : undefined;
+
+  const lines: string[] = [
+    `§7Target: §e${targetName}`,
+    `§7Active Ban: ${activeBan ? `§cYES (${activeBan.reason})` : '§aNone'} §8| §7Active Mute: ${activeMute ? `§eYES (${activeMute.reason})` : '§aNone'}`,
+    `§7Past Sanctions: §f${punishments.length} §8| §7Anti-Cheat Flags: §f${flags.length}`,
+    '',
+  ];
+
+  if (punishments.length === 0 && flags.length === 0) {
+    lines.push('§aNo recorded punishments or anti-cheat flags.');
+  } else {
+    for (const p of punishments.slice(0, 8)) {
+      const dateStr = new Date(p.timestamp).toLocaleDateString();
+      lines.push(`§c[${p.type.toUpperCase()}] §7(${dateStr}) by §f${p.adminName}§7: §e${p.reason}`);
+    }
+    for (const f of flags.slice(0, 6)) {
+      const timeStr = new Date(f.timestamp).toLocaleTimeString();
+      lines.push(`§d[FLAG: ${f.checkName} VL:${f.vl}] §7(${timeStr}): §f${f.details}`);
+    }
+  }
+
+  const form = new ActionFormBuilder().grid(1).title(`History: ${targetName}`).body(lines.join('\n'));
+
+  if (isDefined(activeBan) && isNonEmptyString(targetPlayerId)) {
+    form.button('§2Revoke Active Ban', 'textures/ui/refresh_light', async () => {
+      punishmentManager.removePunishment(targetPlayerId, 'ban');
+      player.sendMessage(`§aUnbanned ${targetName}.`);
+      await showPlayerModerationHistoryPanel(player, targetName, targetPlayerId);
+    });
+  }
+
+  if (isDefined(activeMute) && isNonEmptyString(targetPlayerId)) {
+    form.button('§2Revoke Active Mute', 'textures/ui/mute_off', async () => {
+      punishmentManager.removePunishment(targetPlayerId, 'mute');
+      player.sendMessage(`§aUnmuted ${targetName}.`);
+      await showPlayerModerationHistoryPanel(player, targetName, targetPlayerId);
+    });
+  }
+
+  form.addBackButton(async () => {
+    if (isNonEmptyString(targetPlayerId)) {
+      const { showPlayerActionsPanel } = await import('@core/ui/panels/playerPanel.js');
+      await showPlayerActionsPanel(player, targetPlayerId, targetName);
+    } else {
+      await showModerationPanel(player);
+    }
+  });
+
+  await form.show(player);
+}
+
 export async function showModerationPanel(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder().title('Moderation Tools');
 
@@ -404,6 +475,23 @@ export async function showModerationPanel(player: mc.Player): Promise<void> {
     const { showPlayerManagementPanel } = await import('@core/ui/panels/playerPanel.js');
     await showPlayerManagementPanel(player);
   });
+
+  form.button(
+    '§l§eLookup Player History\n§r§7View sanctions & AC flags',
+    'textures/ui/icon_book_writable',
+    async () => {
+      const modal = new CustomFormBuilder<{ name: string }>('Player History Lookup')
+        .textField('name', 'Player Name', 'Enter username', '')
+        .submitButton('Search History');
+      const res = await modal.show(player);
+      if (res && isNonEmptyString(res.name.trim())) {
+        const targetId = getPlayerIdByName(res.name.trim());
+        await showPlayerModerationHistoryPanel(player, res.name.trim(), targetId);
+        return;
+      }
+      await showModerationPanel(player);
+    },
+  );
 
   form.button('Unban Player', 'textures/ui/refresh_light', async () => {
     await handleUnbanForm(player);

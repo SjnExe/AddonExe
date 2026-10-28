@@ -2,6 +2,7 @@ import { getConfig } from '@core/config/configManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { errorLog } from '@core/utils/logger.js';
 import { playSound } from '@core/utils/sound.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { getCountdownColor } from '@core/utils/ui.js';
 import { getRemainingCombatCooldown } from '@features/essentials/combat/manager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
@@ -11,6 +12,38 @@ import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 const activePlayerWarmups = new Map<string, () => void>();
+const postTeleportImmunity = new Map<string, number>();
+
+export function grantTeleportProtection(player: mc.Player, durationSeconds?: number): void {
+  let seconds = durationSeconds;
+  if (seconds === undefined) {
+    try {
+      seconds = Number(getConfig().teleportProtectionSeconds ?? 3);
+    } catch {
+      seconds = 3;
+    }
+  }
+  if (!seconds || seconds <= 0) {
+    return;
+  }
+  postTeleportImmunity.set(player.id, Date.now() + seconds * 1000);
+}
+
+export function hasTeleportProtection(playerId: string): boolean {
+  const expiresAt = postTeleportImmunity.get(playerId);
+  if (expiresAt === undefined) {
+    return false;
+  }
+  if (Date.now() >= expiresAt) {
+    postTeleportImmunity.delete(playerId);
+    return false;
+  }
+  return true;
+}
+
+export function clearTeleportProtection(playerId: string): void {
+  postTeleportImmunity.delete(playerId);
+}
 
 export function cancelActiveTeleportWarmup(playerId: string): void {
   const cancelExisting = activePlayerWarmups.get(playerId);
@@ -47,6 +80,7 @@ export function startTeleportWarmup(
 
   if (durationSeconds <= 0) {
     onWarmupComplete();
+    grantTeleportProtection(player);
     return;
   }
 
@@ -59,7 +93,7 @@ export function startTeleportWarmup(
   const cleanup = () => {
     activePlayerWarmups.delete(player.id);
     if (isNumber(intervalId)) {
-      mc.system.clearRun(intervalId);
+      clearTrackedInterval(intervalId);
       intervalId = undefined;
     }
     if (isDefined(hurtListener)) {
@@ -98,7 +132,7 @@ export function startTeleportWarmup(
 
   player.sendMessage(`§aTeleporting to ${teleportName} in ${durationSeconds} seconds. Don't move or take damage!`);
 
-  intervalId = mc.system.runInterval(() => {
+  intervalId = setTrackedInterval(() => {
     try {
       if (!player.isValid) {
         cancel();
@@ -127,6 +161,7 @@ export function startTeleportWarmup(
         playSound(player, 'random.levelup', { volume: 0.5, pitch: 1 });
         cleanup();
         onWarmupComplete();
+        grantTeleportProtection(player);
       }
     } catch (error: unknown) {
       errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(error)}`);

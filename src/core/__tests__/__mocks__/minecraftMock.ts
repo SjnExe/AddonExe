@@ -136,6 +136,7 @@ export const system = {
     return 0;
   }),
   clearRun: mock(),
+  clearJob: mock(),
   currentTick: 0,
   afterEvents: {
     scriptEventReceive: { subscribe: mock(), unsubscribe: mock() },

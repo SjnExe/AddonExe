@@ -1,5 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { loadCooldowns, saveCooldowns } from '@core/data/cooldownManager.js';
+import { recoverPendingEscrowsOnStartup } from '@core/data/escrowManager.js';
 import {
   clearExpiredPayments,
   getAllPlayerData,
@@ -166,6 +167,7 @@ export function loadPersistentData() {
   loadNameIdMap();
   loadCooldowns();
   initializeLeaderboard();
+  recoverPendingEscrowsOnStartup();
   for (const handler of loadDataHandlers) {
     handler();
   }
