@@ -116,13 +116,11 @@ export class ActionFormBuilder {
     return this;
   }
 
-  public async show(player: Player, options?: { wait?: boolean }): Promise<ActionFormResponse> {
+  public async show(player: Player, _options?: { wait?: boolean }): Promise<ActionFormResponse> {
     if (this.rawTitle) {
       this.applyTitleWithGrid();
     }
-    const response = options?.wait
-      ? ((await uiWait(player, this.form)) as ActionFormResponse)
-      : await this.form.show(player);
+    const response = (await uiWait(player, this.form)) as ActionFormResponse;
 
     if (response.canceled) {
       return response;

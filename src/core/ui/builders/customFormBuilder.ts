@@ -1,6 +1,6 @@
 import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
-import { FormCancelationReason, ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
+import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
 interface DropdownMeta {
   type: 'dropdown';
@@ -204,10 +204,7 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
       form.submitButton(this.submitText);
     }
 
-    let response = await form.show(player);
-    if (response.cancelationReason === FormCancelationReason.UserBusy && player.isValid !== false) {
-      response = (await uiWait(player, form)) as ModalFormResponse;
-    }
+    const response = (await uiWait(player, form)) as ModalFormResponse;
     if (response.canceled || !response.formValues) {
       return undefined;
     }
