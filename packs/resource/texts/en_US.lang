@@ -1,15 +1,26 @@
-## This file is for localization of text in the resource pack.
+## Resource Pack Localization (en_US)
 
-## Item Names
-item.exe:panel.name=Panel
+## Pack Metadata
+pack.name=§l§cAddonExe§6 §9RP§r
+pack.description=§bThe core resource pack for AddonExe.§r
 
-## Errors
+## Items & Entities
+item.exe:panel.name=Admin Panel
+entity.exe:floating_text.name=Floating Text
+
+## Common & System Errors
 error.no_permission=§cYou do not have permission to use this command.
-error.homes_disabled=§cThe homes system is currently disabled.
-error.tpa_disabled=§cThe TPA system is currently disabled (Globally).
-error.economy_disabled=§cThe economy system is currently disabled.
-error.rtp_disabled=§cThe Random Teleport system is currently disabled.
-error.warps_disabled=§cThe warps system is currently disabled.
+error.homes_disabled=§cThe Homes system is currently disabled globally.
+error.tpa_disabled=§cThe TPA system is currently disabled globally.
+error.economy_disabled=§cThe Economy system is currently disabled globally.
+error.rtp_disabled=§cThe RTP system is currently disabled globally.
+error.warps_disabled=§cThe Warps system is currently disabled globally.
+error.shop_disabled=§cThe Shop system is currently disabled globally.
+error.kits_disabled=§cThe Kits system is currently disabled globally.
+error.bounties_disabled=§cThe Bounties system is currently disabled globally.
+error.ah_disabled=§cThe Auction House system is currently disabled globally.
+error.daily_disabled=§cThe Daily Rewards system is currently disabled globally.
+error.back_disabled=§cThe Back system is currently disabled globally.
 
 ## Hide Vanilla Join/Leave Messages (Handled by AddonExe Script)
 multiplayer.player.joined=

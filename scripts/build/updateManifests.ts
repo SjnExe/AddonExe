@@ -5,7 +5,7 @@ import { getVersionContext, parseCliArgs } from './cliUtils.ts';
 function getEngineVersion(serverVersion?: string): [number, number, number] {
   const match = serverVersion?.match(/\b(1)\.(\d+)\.(\d+)/);
   if (!match) {
-    return [1, 26, 50];
+    return [1, 26, 60];
   }
   const major = Number.parseInt(match[1]!, 10);
   const minor = Number.parseInt(match[2]!, 10);

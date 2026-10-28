@@ -13,8 +13,8 @@ This document is the single source of truth for the architecture, coding standar
 
 - **Build (Local):** `bun run build`
 - **Package `.mcaddon` Archive:** `bun scripts/build/build.ts --zip`
-- **Lint & Validate (Read-Only Check):** `bun run lint:check`
-- **Lint & Auto-Fix:** `bun run lint`
+- **Lint & Validate (Read-Only Check):** `bun lint:check`
+- **Lint & Auto-Fix:** `bun lint`
 - **Typecheck (Bun Built-In Only):** `bun check` (never use `tsc` or external typecheckers)
 - **Format Modified Files Only:** `bun fmt <file1> <file2>`
 - **Run Unit Tests:** `bun test`

@@ -171,7 +171,8 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
       // Allow interactions if it can be tamed or ridden (pets/mounts)
       const canRide = target.hasComponent(EntityComponentTypes.Rideable);
       const canTame = target.hasComponent(EntityComponentTypes.Tameable);
-      const isTamed = target.hasComponent(EntityComponentTypes.IsTamed); // already tamed
+      const tameComp = target.getComponent(EntityComponentTypes.IsTamed) as mc.EntityIsTamedComponent | undefined;
+      const isTamed = isDefined(tameComp?.tamedToPlayerId) || target.hasComponent(EntityComponentTypes.IsTamed);
 
       if (!canRide && !canTame && !isTamed) {
         if (!canBypass(player)) {
@@ -236,6 +237,35 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
     }
   } catch {
     // Ignore InvalidEntityError
+  }
+}
+
+export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEntityBeforeEvent) {
+  const player = event.player;
+  const targetEntity = event.target;
+  if (!isDefined(player) || !isDefined(targetEntity)) {
+    return;
+  }
+
+  const flags = getProtectionFlags(targetEntity.location, targetEntity.dimension.id);
+  if (flags.preventPvP && targetEntity.typeId === MinecraftEntityTypes.Player && targetEntity.id !== player.id) {
+    if (!canBypass(player)) {
+      event.cancel = true;
+      mc.system.run(() => {
+        setActionBarOverride(player, '§cPvP is disabled in this area.', 2500);
+      });
+    }
+    return;
+  }
+
+  if (flags.preventEntityInteraction && targetEntity.typeId !== MinecraftEntityTypes.Player) {
+    const familyTypes = targetEntity.getComponent(EntityComponentTypes.TypeFamily);
+    if (!familyTypes?.hasTypeFamily('monster') && !canBypass(player)) {
+      event.cancel = true;
+      mc.system.run(() => {
+        setActionBarOverride(player, '§cYou cannot attack non-hostile entities here.', 2500);
+      });
+    }
   }
 }
 

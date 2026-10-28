@@ -7,6 +7,7 @@ import {
   incrementPlayerBalance,
 } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
+import { bountiesDisabled, economyDisabled } from '@core/utils/constants.js';
 import { validateCurrencyAmount } from '@core/utils/economy.js';
 import { resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
@@ -18,9 +19,9 @@ function checkBountyEnabled(executor: CommandExecutor): boolean {
   const config = getConfig();
   if (!isFeatureActive('eco') || config.bounties.enabled !== true) {
     if (executor instanceof mc.Player) {
-      sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+      sendMessage(bountiesDisabled, executor);
     } else {
-      executor.sendMessage('§cThe Bounties system is currently disabled globally.');
+      executor.sendMessage(bountiesDisabled);
     }
     return false;
   }
@@ -39,12 +40,12 @@ function placeBounty(executor: mc.Player, targetId: string, targetName: string, 
   const config = getConfig();
 
   if (!isFeatureActive('eco')) {
-    sendMessage('§cThe Economy system is currently disabled globally.', executor);
+    sendMessage(economyDisabled, executor);
     return;
   }
 
   if (config.bounties.enabled !== true) {
-    sendMessage('§cThe Bounties system is currently disabled globally.', executor);
+    sendMessage(bountiesDisabled, executor);
     return;
   }
 

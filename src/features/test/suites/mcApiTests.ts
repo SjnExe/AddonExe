@@ -80,5 +80,12 @@ export function registerMcApiTests(): void {
     assert.equal(restored!.nameTag, '§bExcalibur', 'Restored nameTag mismatch');
     assert.deepEqual(restored!.getLore(), ['§7Line 1', '§eLine 2'], 'Restored lore mismatch');
     assert.equal(restored!.keepOnDeath, true, 'Restored keepOnDeath mismatch');
+
+    const serializedWithContainer = {
+      ...serializeItem(stack),
+      containerItems: [{ slot: 0, item: { typeId: MinecraftItemTypes.Diamond, amount: 64 } }],
+    };
+    const restoredContainerItem = deserializeItem(serializedWithContainer);
+    assert.ok(restoredContainerItem, 'Container item deserialization should succeed');
   });
 }

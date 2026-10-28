@@ -658,11 +658,9 @@ export function getAllValidItems(): string[] {
       return cachedValidItems;
     }
   } catch {
-    // Fallback to vanilla-data in unit tests
+    // Return empty in mock test environment
   }
 
-  cachedValidItems = (Object.values(MinecraftItemTypes) as string[])
-    .filter((id) => isSurvivalObtainableItem(id))
-    .toSorted();
+  cachedValidItems = [];
   return cachedValidItems;
 }

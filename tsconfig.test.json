@@ -1,8 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "rootDir": ".",
     "types": ["bun", "node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/vanilla-data", "@minecraft/math"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "scripts/**/*.ts"],
   "exclude": ["node_modules"]
 }

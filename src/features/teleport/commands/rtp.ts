@@ -6,6 +6,7 @@ import * as playerDataManager from '@core/data/playerDataManager.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
+import { rtpDisabled } from '@core/utils/constants.js';
 import { escapeCommandArg, formatCooldown, formatCurrency, playSound } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
@@ -104,7 +105,7 @@ const rtpCommand: CustomCommand = {
 
     const config = configManager.getConfig();
     if (!config?.rtp?.enabled) {
-      sendMessage('§cThe RTP system is currently disabled globally.', executor);
+      sendMessage(rtpDisabled, executor);
       return;
     }
 

@@ -112,6 +112,7 @@ export const world = {
     itemUse: { subscribe: mock(), unsubscribe: mock() },
     playerBreakBlock: { subscribe: mock(), unsubscribe: mock() },
     playerPlaceBlock: { subscribe: mock(), unsubscribe: mock() },
+    playerItemAttackEntity: { subscribe: mock(), unsubscribe: mock() },
   },
   sendMessage: mock(),
 };
@@ -614,4 +615,5 @@ export const EntityComponentTypes = {
 export const ItemComponentTypes = {
   Durability: 'minecraft:durability',
   Enchantable: 'minecraft:enchantable',
+  Inventory: 'minecraft:inventory',
 } as const;

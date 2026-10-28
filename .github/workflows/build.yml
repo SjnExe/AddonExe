@@ -34,7 +34,7 @@ jobs:
             ${{ runner.os }}-bun-
 
       - run: bun install --frozen-lockfile
-      - run: bun run lint:check
+      - run: bun lint:check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

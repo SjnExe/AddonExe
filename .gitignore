@@ -16,6 +16,7 @@ build_meta.env
 # Tool Reports (scripts/lint/oxlint.ts & mct validate)
 oxlint_report.json
 validation_report/
+bundle-meta.md
 
 # Caches & State
 .cache/

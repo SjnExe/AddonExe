@@ -3,6 +3,7 @@ import * as configManager from '@core/config/configManager.js';
 import * as cooldownManager from '@core/data/cooldownManager.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
+import { backDisabled } from '@core/utils/constants.js';
 import { formatCooldown, formatCurrency, playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import * as messaging from '@core/utils/messaging.js';
@@ -33,7 +34,7 @@ const backCommand: CustomCommand = {
 
     // Check global feature toggle first
     if (!backConfig || !backConfig.enabled) {
-      messaging.sendMessage('§cThe Back system is currently disabled globally.', executor);
+      messaging.sendMessage(backDisabled, executor);
       return;
     }
 

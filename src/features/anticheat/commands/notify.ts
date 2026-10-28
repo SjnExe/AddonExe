@@ -2,6 +2,7 @@ import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getAnticheatConfig, saveAnticheatConfig } from '@core/config/configurations.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { noPermission } from '@core/utils/constants.js';
 import * as mc from '@minecraft/server';
 
 const notifyCommand: CustomCommand = {
@@ -13,7 +14,7 @@ const notifyCommand: CustomCommand = {
     if (executor instanceof mc.Player) {
       const pData = getPlayer(executor.id);
       if (!pData || !hasPermission(executor, 'cmd.notify.mod')) {
-        executor.sendMessage('§cYou do not have permission to use this command.');
+        executor.sendMessage(noPermission);
         return;
       }
 
