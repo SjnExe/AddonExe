@@ -148,6 +148,17 @@ export function validateUiJson(relativePath: string, json: Record<string, unknow
     return uiErrors;
   }
 
+  if (relativePath.endsWith('texts/languages.json')) {
+    if (
+      !Array.isArray(json) ||
+      json.length === 0 ||
+      !json.every((l) => typeof l === 'string' && /^[a-z]{2}_[A-Z]{2}$/.test(l))
+    ) {
+      uiErrors.push(`${relativePath}: 'languages.json' must be a non-empty array of locale codes (e.g. "en_US").`);
+    }
+    return uiErrors;
+  }
+
   if (relativePath.endsWith('loading_messages.json')) {
     const values = Object.values(json);
     if (values.length === 0 || !values.every((v) => Array.isArray(v) && v.every((d) => typeof d === 'string'))) {
@@ -335,8 +346,48 @@ export function validateUiJson(relativePath: string, json: Record<string, unknow
   return uiErrors;
 }
 
+export function validateLangFile(relativePath: string, rawText: string): { errors: string[]; keys: Set<string> } {
+  const errors: string[] = [];
+  const keys = new Set<string>();
+  const lines = rawText.split(/\r?\n/);
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!;
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || trimmed.startsWith('#')) {
+      continue;
+    }
+    const eqIdx = line.indexOf('=');
+    if (eqIdx <= 0) {
+      errors.push(`${relativePath}:${i + 1}: Invalid .lang entry (missing '=' separator).`);
+      continue;
+    }
+    const key = line.slice(0, eqIdx).trim();
+    if (!/^[a-zA-Z0-9_.:-]+$/.test(key)) {
+      errors.push(`${relativePath}:${i + 1}: Invalid translation key '${key}'.`);
+    }
+    if (keys.has(key)) {
+      errors.push(`${relativePath}:${i + 1}: Duplicate translation key '${key}'.`);
+    }
+    keys.add(key);
+  }
+
+  return { errors, keys };
+}
+
 export function validateContentJson(relativePath: string, json: Record<string, unknown>): string[] {
   const contentErrors: string[] = [];
+
+  if (relativePath.endsWith('texts/languages.json')) {
+    if (
+      !Array.isArray(json) ||
+      json.length === 0 ||
+      !json.every((l) => typeof l === 'string' && /^[a-z]{2}_[A-Z]{2}$/.test(l))
+    ) {
+      contentErrors.push(`${relativePath}: 'languages.json' must be a non-empty array of locale codes (e.g. "en_US").`);
+    }
+    return contentErrors;
+  }
 
   if (relativePath.endsWith('manifest.json')) {
     const header = json.header as Record<string, unknown> | undefined;
@@ -362,6 +413,28 @@ export function validateContentJson(relativePath: string, json: Record<string, u
       contentErrors.push(
         `${relativePath}: Behavior entity requires 'format_version' and 'minecraft:entity.description.identifier'.`,
       );
+      return contentErrors;
+    }
+    const checkTimerComponent = (container: Record<string, unknown> | undefined, pathLabel: string) => {
+      const timer = container?.['minecraft:timer'] as Record<string, unknown> | undefined;
+      if (!timer || timer.time === undefined) {
+        return;
+      }
+      if (typeof timer.time === 'object' && timer.time !== null && !Array.isArray(timer.time)) {
+        const timeObj = timer.time as Record<string, unknown>;
+        if (typeof timeObj.range_min !== 'number' || typeof timeObj.range_max !== 'number') {
+          contentErrors.push(
+            `${relativePath} (${pathLabel}): 'minecraft:timer.time' object must specify numeric 'range_min' and 'range_max'.`,
+          );
+        }
+      }
+    };
+    checkTimerComponent(entity.components as Record<string, unknown> | undefined, 'components');
+    const groups = entity.component_groups as Record<string, Record<string, unknown>> | undefined;
+    if (groups && typeof groups === 'object') {
+      for (const [gName, gVal] of Object.entries(groups)) {
+        checkTimerComponent(gVal, `component_groups.${gName}`);
+      }
     }
     return contentErrors;
   }
@@ -489,7 +562,60 @@ export async function runSchemaValidation(): Promise<boolean> {
     }
   }
 
-  console.log(`[Validator] Validated ${totalValidated} JSON files.`);
+  const langGlob = new Bun.Glob('packs/**/*.lang');
+  const langFiles = Array.from(langGlob.scanSync({ cwd: rootDir, absolute: true }));
+  const rpLangKeys = new Set<string>();
+
+  for (const langPath of langFiles) {
+    const relLang = path.relative(rootDir, langPath).replace(/\\/g, '/');
+    const rawLang = await Bun.file(langPath).text();
+    const { errors: langErrs, keys } = validateLangFile(relLang, rawLang);
+    if (relLang === 'packs/resource/texts/en_US.lang') {
+      for (const k of keys) {
+        rpLangKeys.add(k);
+      }
+    }
+    if (langErrs.length > 0) {
+      for (const err of langErrs) {
+        console.error(`  - ${err}`);
+      }
+      errors += langErrs.length;
+    }
+  }
+
+  const requiredLangFiles = [
+    'packs/behavior/texts/languages.json',
+    'packs/behavior/texts/en_US.lang',
+    'packs/resource/texts/languages.json',
+    'packs/resource/texts/en_US.lang',
+  ];
+  for (const reqFile of requiredLangFiles) {
+    if (!(await Bun.file(path.join(rootDir, reqFile)).exists())) {
+      console.error(`[Validator] Missing required localization file: ${reqFile}`);
+      errors++;
+    }
+  }
+
+  const tsGlob = new Bun.Glob('src/**/*.ts');
+  for (const tsFile of tsGlob.scanSync({ cwd: rootDir, absolute: true })) {
+    if (tsFile.includes('__tests__') || tsFile.includes('__mocks__')) {
+      continue;
+    }
+    const tsContent = await Bun.file(tsFile).text();
+    const matches = tsContent.matchAll(/\b(?:tr\(\s*|translate:\s*)['"]([^'"]+)['"]/g);
+    for (const m of matches) {
+      const key = m[1];
+      if (key && !rpLangKeys.has(key)) {
+        const relTs = path.relative(rootDir, tsFile).replace(/\\/g, '/');
+        console.error(
+          `[Validator] Missing translation key '${key}' in packs/resource/texts/en_US.lang (used in ${relTs}).`,
+        );
+        errors++;
+      }
+    }
+  }
+
+  console.log(`[Validator] Validated ${totalValidated} JSON files and ${langFiles.length} .lang files.`);
 
   if (errors > 0) {
     console.error(`[Validator] Found ${errors} validation error(s).`);

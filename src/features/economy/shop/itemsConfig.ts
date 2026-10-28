@@ -731,7 +731,7 @@ export const items: Record<string, ItemData> = {
     category: 'Enchantments',
     subCategory: 'Bow',
     displayName: 'Infinity',
-    enchantment: { id: MinecraftEnchantmentTypes['BowInfinity'], level: 1 },
+    enchantment: { id: MinecraftEnchantmentTypes.BowInfinity, level: 1 },
   },
   enchantFlame: {
     _comment: 'Note: sellPrice changed from 500 to -1',

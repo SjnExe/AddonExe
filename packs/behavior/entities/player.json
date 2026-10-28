@@ -20,7 +20,10 @@
           "remove_effects": "bad_omen"
         },
         "minecraft:timer": {
-          "time": [0, 0],
+          "time": {
+            "range_min": 0,
+            "range_max": 0
+          },
           "looping": false,
           "time_down_event": {
             "event": "minecraft:clear_add_raid_omen",
@@ -165,7 +168,7 @@
         "walk": 0,
         "sprint": 0.1,
         "swim": 0.01,
-        "lunge": 4.0
+        "lunge": 4
       },
       "minecraft:player.saturation": {
         "value": 5,

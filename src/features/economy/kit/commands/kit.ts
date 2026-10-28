@@ -1,5 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
+import { kitsDisabled } from '@core/utils/constants.js';
 import { createKit, getAllKits } from '@features/economy/kit/adminManager.js';
 import { addItemToKit } from '@features/economy/kit/itemsManager.js';
 import * as kitsManager from '@features/economy/kit/manager.js';
@@ -36,7 +37,7 @@ const kitCommand: CustomCommand = {
     }
     const config = getConfig();
     if (!config.kits.enabled) {
-      executor.sendMessage('§cThe Kits system is currently disabled globally.');
+      executor.sendMessage(kitsDisabled);
       return;
     }
 
@@ -72,7 +73,7 @@ const addKitCommand: CustomCommand = {
 
     const config = getConfig();
     if (!config.kits.enabled) {
-      executor.sendMessage('§cThe Kits system is currently disabled globally.');
+      executor.sendMessage(kitsDisabled);
       return;
     }
 

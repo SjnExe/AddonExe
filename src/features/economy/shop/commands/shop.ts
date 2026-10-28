@@ -1,6 +1,7 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { shopDisabled } from '@core/utils/constants.js';
 import { formatCurrency, parseCurrency } from '@core/utils/index.js';
 import * as shopAdminManager from '@features/economy/shop/adminManager.js';
 import * as shopManager from '@features/economy/shop/manager.js';
@@ -20,7 +21,7 @@ const shopCommand: CustomCommand = {
       return;
     }
     if (!isFeatureActive('eco.shop')) {
-      return executor.sendMessage('§cThe Shop system is currently disabled globally.');
+      return executor.sendMessage(shopDisabled);
     }
     await showPanel(executor, 'shopMainPanel', { view: 'shop' });
   },
@@ -60,7 +61,7 @@ const buyCommand: CustomCommand = {
       return;
     }
     if (!isFeatureActive('eco.shop')) {
-      return executor.sendMessage('§cThe Shop system is currently disabled globally.');
+      return executor.sendMessage(shopDisabled);
     }
 
     const opened = await tryOpenHandItemPanel(executor);
@@ -81,7 +82,7 @@ const sellCommand: CustomCommand = {
       return;
     }
     if (!isFeatureActive('eco.shop')) {
-      return executor.sendMessage('§cThe Shop system is currently disabled globally.');
+      return executor.sendMessage(shopDisabled);
     }
 
     const opened = await tryOpenHandItemPanel(executor);
@@ -103,7 +104,7 @@ const sellHandCommand: CustomCommand = {
       return;
     }
     if (!isFeatureActive('eco.shop')) {
-      executor.sendMessage('§cThe Shop system is currently disabled globally.');
+      executor.sendMessage(shopDisabled);
       return;
     }
 
@@ -142,7 +143,7 @@ const shopEditCommand: CustomCommand = {
       return;
     }
     if (!isFeatureActive('eco.shop')) {
-      return executor.sendMessage('§cThe Shop system is currently disabled globally.');
+      return executor.sendMessage(shopDisabled);
     }
     const { showShopManagementPanel } = await import('@features/economy/shop/ui/adminPanel.js');
     await showShopManagementPanel(executor, 1);
@@ -174,7 +175,7 @@ const addShopCommand: CustomCommand = {
     }
 
     if (!isFeatureActive('eco.shop')) {
-      return executor.sendMessage('§cThe Shop system is currently disabled globally.');
+      return executor.sendMessage(shopDisabled);
     }
 
     const {
@@ -251,7 +252,7 @@ const sellAllCommand: CustomCommand = {
       return;
     }
     if (!isFeatureActive('eco.shop')) {
-      executor.sendMessage('§cThe Shop system is currently disabled globally.');
+      executor.sendMessage(shopDisabled);
       return;
     }
 

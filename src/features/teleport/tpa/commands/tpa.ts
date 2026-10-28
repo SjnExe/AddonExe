@@ -7,7 +7,7 @@ import {
   removeTpaBlockedPlayer,
   setTpaRequestsDisabled,
 } from '@core/data/playerDataManager.js';
-import { soundTeleport } from '@core/utils/constants.js';
+import { soundTeleport, tpaDisabled } from '@core/utils/constants.js';
 import { playSound, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import {
@@ -24,7 +24,7 @@ import * as mc from '@minecraft/server';
 function handleTpaRequest(executor: mc.Player, args: Record<string, unknown>, type: 'tpa' | 'tpahere'): void {
   const config = getConfig();
   if (!config.tpa.enabled) {
-    sendMessage('§cThe TPA system is currently disabled globally.', executor);
+    sendMessage(tpaDisabled, executor);
     return;
   }
 
@@ -85,7 +85,7 @@ interface TpaResponseArgs {
 function handleTpaResponse(executor: mc.Player, args: Record<string, unknown>, action: 'accept' | 'deny'): void {
   const config = getConfig();
   if (!config.tpa.enabled) {
-    sendMessage('§cThe TPA system is currently disabled globally.', executor);
+    sendMessage(tpaDisabled, executor);
     return;
   }
 
@@ -177,7 +177,7 @@ const tpaCancelCommand: CustomCommand = {
     }
     const config = getConfig();
     if (!config.tpa.enabled) {
-      sendMessage('§cThe TPA system is currently disabled globally.', executor);
+      sendMessage(tpaDisabled, executor);
       return;
     }
 
@@ -197,7 +197,7 @@ const tpaStatusCommand: CustomCommand = {
 
     const config = getConfig();
     if (!config.tpa.enabled) {
-      sendMessage('§cThe TPA system is currently disabled globally.', executor);
+      sendMessage(tpaDisabled, executor);
       return;
     }
 
@@ -246,7 +246,7 @@ const tpaStopCommand: CustomCommand = {
 
     const config = getConfig();
     if (!config.tpa.enabled) {
-      sendMessage('§cThe TPA system is currently disabled globally.', executor);
+      sendMessage(tpaDisabled, executor);
       return;
     }
 
@@ -283,7 +283,7 @@ const tpaStartCommand: CustomCommand = {
 
     const config = getConfig();
     if (!config.tpa.enabled) {
-      sendMessage('§cThe TPA system is currently disabled globally.', executor);
+      sendMessage(tpaDisabled, executor);
       return;
     }
 
@@ -311,7 +311,7 @@ const tpaStartCommand: CustomCommand = {
 function handleOfflineTpaBlock(executor: mc.Player, args: Record<string, unknown>, action: 'block' | 'unblock'): void {
   const config = getConfig();
   if (!config.tpa.enabled) {
-    sendMessage('§cThe TPA system is currently disabled globally.', executor);
+    sendMessage(tpaDisabled, executor);
     return;
   }
 

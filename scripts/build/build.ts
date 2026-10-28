@@ -18,6 +18,68 @@ async function getVersionParts() {
   });
 }
 
+import * as vanillaDataModule from '@minecraft/vanilla-data';
+
+export const vanillaDataInlinerPlugin = {
+  name: 'inline-vanilla-data',
+  setup(build: import('bun').PluginBuilder) {
+    build.onLoad({ filter: /\.(ts|js)$/ }, async (args) => {
+      if (args.path.includes('node_modules') || args.path.includes('scripts/')) {
+        return undefined;
+      }
+      const raw = await Bun.file(args.path).text();
+      if (!raw.includes('@minecraft/vanilla-data')) {
+        return undefined;
+      }
+
+      let modified = raw;
+      const enumNames = [
+        'MinecraftItemTypes',
+        'MinecraftBlockTypes',
+        'MinecraftEntityTypes',
+        'MinecraftDimensionTypes',
+        'MinecraftEffectTypes',
+        'MinecraftEnchantmentTypes',
+        'MinecraftBiomeTypes',
+      ];
+
+      for (const enumName of enumNames) {
+        if (!modified.includes(enumName)) {
+          continue;
+        }
+        const enumObj = (vanillaDataModule as Record<string, unknown>)[enumName] as Record<string, string> | undefined;
+        if (!enumObj) {
+          continue;
+        }
+
+        const dotRegex = new RegExp(`\\b${enumName}\\.([a-zA-Z0-9_]+)\\b`, 'g');
+        modified = modified.replace(dotRegex, (_match, propName) => {
+          if (Object.prototype.hasOwnProperty.call(enumObj, propName)) {
+            return JSON.stringify(enumObj[propName]);
+          }
+          throw new Error(`[inline-vanilla-data] Unknown member ${enumName}.${propName} in ${args.path}`);
+        });
+
+        const bracketRegex = new RegExp(`\\b${enumName}\\[['"\\x60]([a-zA-Z0-9_]+)['"\\x60]\\]`, 'g');
+        modified = modified.replace(bracketRegex, (_match, propName) => {
+          if (Object.prototype.hasOwnProperty.call(enumObj, propName)) {
+            return JSON.stringify(enumObj[propName]);
+          }
+          throw new Error(`[inline-vanilla-data] Unknown member ${enumName}["${propName}"] in ${args.path}`);
+        });
+      }
+
+      // Strip unused imports of @minecraft/vanilla-data
+      modified = modified.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"];?\r?\n?/g, '');
+
+      return {
+        contents: modified,
+        loader: 'ts',
+      };
+    });
+  },
+};
+
 export const commandIndexPlugin = {
   name: 'generate-command-index',
   setup(build: import('bun').PluginBuilder) {
@@ -117,7 +179,10 @@ function prepareZipEntry(content: string | Uint8Array): PrecompressedEntry {
   };
 }
 
-async function collectPackFiles(sourceDir: string, excludeExts = ['.map']): Promise<Map<string, PrecompressedEntry>> {
+async function collectPackFiles(
+  sourceDir: string,
+  excludeExts = ['.map', '.md'],
+): Promise<Map<string, PrecompressedEntry>> {
   const entries = new Map<string, PrecompressedEntry>();
   const glob = new Bun.Glob('**/*');
   const files = Array.from(glob.scanSync({ cwd: sourceDir, absolute: false, dot: true, onlyFiles: true }));
@@ -247,6 +312,51 @@ async function createArchives(versionStr: string) {
 
   const [bpEntries, rpEntries] = await Promise.all([collectPackFiles(behaviorDir), collectPackFiles(resourceDir)]);
 
+  const bedrockLocales = [
+    'en_US',
+    'en_GB',
+    'de_DE',
+    'es_ES',
+    'es_MX',
+    'fr_FR',
+    'fr_CA',
+    'it_IT',
+    'ja_JP',
+    'ko_KR',
+    'pt_BR',
+    'pt_PT',
+    'ru_RU',
+    'zh_CN',
+    'zh_TW',
+    'nl_NL',
+    'bg_BG',
+    'cs_CZ',
+    'da_DK',
+    'el_GR',
+    'fi_FI',
+    'hu_HU',
+    'id_ID',
+    'nb_NO',
+    'pl_PL',
+    'sk_SK',
+    'sv_SE',
+    'tr_TR',
+    'uk_UA',
+  ];
+  const joinLeaveSuppression = [
+    'multiplayer.player.joined=',
+    'multiplayer.player.left=',
+    'multiplayer.player.joined.renamed=',
+    'multiplayer.player.left.renamed=',
+  ].join('\n');
+  rpEntries.set('texts/languages.json', prepareZipEntry(JSON.stringify(bedrockLocales)));
+  for (const locale of bedrockLocales) {
+    const langPath = `texts/${locale}.lang`;
+    if (!rpEntries.has(langPath)) {
+      rpEntries.set(langPath, prepareZipEntry(joinLeaveSuppression));
+    }
+  }
+
   const mcaddonEntries = new Map<string, PrecompressedEntry>();
   for (const [relPath, content] of bpEntries) {
     mcaddonEntries.set(`behavior/${relPath}`, content);
@@ -286,18 +396,25 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
     root: './src',
     target: 'browser',
     format: 'esm',
-    minify: isMinify || isRelease ? { whitespace: true, identifiers: true, syntax: true } : false,
+    env: 'disable',
+    minify:
+      isMinify || isRelease
+        ? { whitespace: true, identifiers: true, syntax: true }
+        : { whitespace: false, identifiers: false, syntax: true },
     treeShaking: true,
     sourcemap: process.argv.includes('--sourcemap') || cliArgs.sourcemap ? 'external' : 'none',
     drop: isRelease ? ['debugger', 'console'] : isMinify ? ['debugger'] : [],
     splitting: false,
+    allowUnresolved: [],
+    metafile: process.argv.includes('--analyze') ? { markdown: 'bundle-meta.md' } : true,
+    noDeprecatedNamespaceObjectSetters: true,
     naming: '[dir]/[name].[ext]',
     define: {
       __IS_NIGHTLY__: String(isNightly),
       __VERSION__: JSON.stringify(versionStr),
       __DEV__: JSON.stringify(!isRelease),
     },
-    plugins: [commandIndexPlugin],
+    plugins: [commandIndexPlugin, vanillaDataInlinerPlugin],
     external: externalModules,
   });
 
@@ -309,7 +426,36 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
     process.exit(1);
   }
 
-  console.log(`[Build] Scripts compiled successfully.`);
+  const inputCount = coreResult.metafile ? Object.keys(coreResult.metafile.inputs).length : 0;
+  const outputBytes = coreResult.outputs[0]?.size ?? 0;
+  const sizeKb = (outputBytes / 1024).toFixed(2);
+  console.log(`[Build] Scripts compiled successfully (${inputCount} modules -> ${sizeKb} KB main.js).`);
+
+  if (process.argv.includes('--analyze')) {
+    const mdFile = Bun.file(path.resolve(ROOT_DIR, 'bundle-meta.md'));
+    if (await mdFile.exists()) {
+      const mdText = await mdFile.text();
+      console.log('\n' + mdText.trim() + '\n');
+    } else if (coreResult.metafile) {
+      const outputEntries = Object.entries(coreResult.metafile.outputs);
+      const mainOutput = outputEntries.find(([outPath]) => outPath.endsWith('main.js'))?.[1] ?? outputEntries[0]?.[1];
+      const bundledInputs = mainOutput?.inputs ?? {};
+      const sorted = Object.entries(bundledInputs)
+        .map(([modPath, info]) => ({
+          path: modPath.replace(/^node_modules\/\.bun\/[^/]+\/node_modules\//, 'node_modules/'),
+          bytes: info.bytesInOutput,
+        }))
+        .filter((m) => m.bytes > 0)
+        .sort((a, b) => b.bytes - a.bytes);
+      const totalBundled = sorted.reduce((acc, m) => acc + m.bytes, 0) || outputBytes || 1;
+      console.log(`\n📊 Bundled Modules Breakdown (${sorted.length} modules -> ${sizeKb} KB):`);
+      for (const item of sorted) {
+        const pct = ((item.bytes / totalBundled) * 100).toFixed(1).padStart(5);
+        console.log(`  ${(item.bytes / 1024).toFixed(2).padStart(7)} KB (${pct}%)  ${item.path}`);
+      }
+      console.log('');
+    }
+  }
 }
 
 async function main() {

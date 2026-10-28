@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import path from 'node:path';
 
-import { validateContentJson, validateUiJson } from '../../scripts/lint/schemas.js';
+import { validateContentJson, validateLangFile, validateUiJson } from '../../scripts/lint/schemas.js';
 
 describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negative Checks)', () => {
   it('validates all existing pack JSON and JSON UI files with zero false positives', async () => {
@@ -68,5 +68,26 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
       modules: [],
     };
     expect(validateContentJson('packs/behavior/manifest.json', badManifest).length).toBeGreaterThan(0);
+  });
+
+  it('ensures no bracket-accessed @minecraft/vanilla-data enums exist in src/', async () => {
+    const glob = new Bun.Glob('src/**/*.ts');
+    const bracketEnumRegex = /\bMinecraft(?:Item|Block|Entity|Dimension|Effect|Enchantment|Biome)Types\s*\[/;
+    for (const file of glob.scanSync('.')) {
+      const text = await Bun.file(file).text();
+      expect(bracketEnumRegex.test(text)).toBe(false);
+    }
+  });
+
+  it('validates .lang files and catches duplicate or malformed translation keys', async () => {
+    const rpLang = await Bun.file('packs/resource/texts/en_US.lang').text();
+    const validRes = validateLangFile('packs/resource/texts/en_US.lang', rpLang);
+    expect(validRes.errors).toEqual([]);
+    expect(validRes.keys.has('item.exe:panel.name')).toBe(true);
+    expect(validRes.keys.has('entity.exe:floating_text.name')).toBe(true);
+
+    const badLang = 'valid.key=Hello\nbad line without equals\nvalid.key=Duplicate';
+    const badRes = validateLangFile('packs/resource/texts/en_US.lang', badLang);
+    expect(badRes.errors.length).toBe(2);
   });
 });

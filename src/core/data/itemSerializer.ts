@@ -23,6 +23,7 @@ export interface SerializedItem {
   canDestroy?: string[];
   canPlaceOn?: string[];
   dynamicProperties?: Record<string, boolean | number | string | mc.Vector3>;
+  containerItems?: { slot: number; item: SerializedItem }[];
 }
 
 /** Serializes an ItemStack into a JSON-compatible object. Warning: Does not support container contents (Shulker Boxes). */
@@ -106,6 +107,26 @@ export function serializeItem(itemStack: mc.ItemStack): SerializedItem {
     }
   }
 
+  // Container Contents (1.26.60+ Shulker Box ItemInventoryComponent support)
+  try {
+    const invComp = itemStack.getComponent(ItemComponentTypes.Inventory) as mc.ItemInventoryComponent | undefined;
+    const container = invComp?.container;
+    if (isDefined(container)) {
+      const containerItems: { slot: number; item: SerializedItem }[] = [];
+      for (let i = 0; i < container.size; i++) {
+        const slotItem = container.getItem(i);
+        if (isDefined(slotItem)) {
+          containerItems.push({ slot: i, item: serializeItem(slotItem) });
+        }
+      }
+      if (containerItems.length > 0) {
+        serialized.containerItems = containerItems;
+      }
+    }
+  } catch {
+    // Ignore if item does not have an inventory component
+  }
+
   return serialized;
 }
 
@@ -187,6 +208,23 @@ export function deserializeItem(data: SerializedItem): mc.ItemStack | undefined 
         } catch {
           // Ignore unsupported dynamic property
         }
+      }
+    }
+
+    if (isDefined(data.containerItems) && data.containerItems.length > 0) {
+      try {
+        const invComp = itemStack.getComponent(ItemComponentTypes.Inventory) as mc.ItemInventoryComponent | undefined;
+        const container = invComp?.container;
+        if (isDefined(container)) {
+          for (const entry of data.containerItems) {
+            const nested = deserializeItem(entry.item);
+            if (isDefined(nested) && entry.slot >= 0 && entry.slot < container.size) {
+              container.setItem(entry.slot, nested);
+            }
+          }
+        }
+      } catch {
+        // Ignore if container population fails
       }
     }
 

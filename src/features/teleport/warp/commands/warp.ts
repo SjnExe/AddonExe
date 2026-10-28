@@ -1,5 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
+import { warpsDisabled } from '@core/utils/constants.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { executeTeleport } from '@features/teleport/utils.js';
@@ -38,7 +39,7 @@ const warpCommand: CustomCommand = {
     }
     const config = getConfig();
     if (!config.warps.enabled) {
-      sendMessage('§cThe Warps system is currently disabled globally.', executor);
+      sendMessage(warpsDisabled, executor);
       return;
     }
 
@@ -122,7 +123,7 @@ const addWarpCommand: CustomCommand = {
 
     const config = getConfig();
     if (!config.warps.enabled) {
-      sendMessage('§cThe Warps system is currently disabled globally.', executor);
+      sendMessage(warpsDisabled, executor);
       return;
     }
 
@@ -173,7 +174,7 @@ const delWarpCommand: CustomCommand = {
 
     const config = getConfig();
     if (!config.warps.enabled) {
-      sendMessage('§cThe Warps system is currently disabled globally.', executor);
+      sendMessage(warpsDisabled, executor);
       return;
     }
 

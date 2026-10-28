@@ -1,5 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
+import { homesDisabled } from '@core/utils/constants.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import * as homesManager from '@features/teleport/home/manager.js';
@@ -25,7 +26,7 @@ const homeCommand: CustomCommand = {
     const config = getConfig();
     // Check global feature toggle first
     if (!config.homes.enabled) {
-      sendMessage('§cThe Homes system is currently disabled globally.', executor);
+      sendMessage(homesDisabled, executor);
       return;
     }
 
@@ -94,7 +95,7 @@ const homesCommand: CustomCommand = {
     }
     const config = getConfig();
     if (!config.homes.enabled) {
-      sendMessage('§cThe Homes system is currently disabled globally.', executor);
+      sendMessage(homesDisabled, executor);
       return;
     }
 
@@ -123,7 +124,7 @@ const delHomeCommand: CustomCommand = {
     }
     const config = getConfig();
     if (!config.homes.enabled) {
-      sendMessage('§cThe Homes system is currently disabled globally.', executor);
+      sendMessage(homesDisabled, executor);
       return;
     }
 
@@ -180,7 +181,7 @@ const setHomeCommand: CustomCommand = {
     }
     const config = getConfig();
     if (!config.homes.enabled) {
-      sendMessage('§cThe Homes system is currently disabled globally.', executor);
+      sendMessage(homesDisabled, executor);
       return;
     }
 

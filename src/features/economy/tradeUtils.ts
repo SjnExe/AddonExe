@@ -105,6 +105,14 @@ export function formatSerializedItemSummary(item: SerializedItem): { title: stri
   if (isDefined(item.lore) && item.lore.length > 0) {
     details.push(`§7Lore: §5${item.lore.join(' | ')}`);
   }
+  if (isDefined(item.containerItems) && item.containerItems.length > 0) {
+    const preview = item.containerItems
+      .slice(0, 4)
+      .map((entry) => `${resolveTradeItemDisplayName(entry.item.typeId)} x${entry.item.amount}`)
+      .join(', ');
+    const more = item.containerItems.length > 4 ? ` +${item.containerItems.length - 4} more` : '';
+    details.push(`§7Contents (${item.containerItems.length} slots): §b${preview}${more}`);
+  }
 
   return { title, icon, details };
 }

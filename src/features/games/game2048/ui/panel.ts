@@ -12,7 +12,34 @@ import {
 } from '@features/games/game2048/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
+import { ActionFormData, ActionFormResponse, FormCancelationReason } from '@minecraft/server-ui';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+
+const grid2048Title = '§7§0§4§f§r§l§b2048';
+const dpadDirections: Direction2048[] = ['up', 'left', 'right', 'down'];
+
+async function show2048Fast(player: mc.Player, form: ActionFormData): Promise<ActionFormResponse> {
+  if (!player.isValid) {
+    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed };
+  }
+  const first = await form.show(player);
+  if (first.cancelationReason !== FormCancelationReason.UserBusy) {
+    return first;
+  }
+  for (let retry = 0; retry < 15; retry++) {
+    if (!player.isValid) {
+      break;
+    }
+    if (mc.system && typeof mc.system.runTimeout === 'function') {
+      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 1));
+    }
+    const attempt = await form.show(player);
+    if (attempt.cancelationReason !== FormCancelationReason.UserBusy) {
+      return attempt;
+    }
+  }
+  return { canceled: true, cancelationReason: FormCancelationReason.UserBusy };
+}
 
 export async function show2048Menu(player: mc.Player): Promise<void> {
   const cfg = getGamesConfig();
@@ -56,88 +83,98 @@ export async function show2048Menu(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
-export async function show2048Board(player: mc.Player, notice?: string): Promise<void> {
-  if (!player.isValid) {
-    return;
-  }
+export async function show2048Board(player: mc.Player, initialNotice?: string): Promise<void> {
+  let notice = initialNotice;
 
-  const session = getPlayer2048Game(player.id) ?? start2048Game(player);
+  while (player.isValid) {
+    const session = getPlayer2048Game(player.id) ?? start2048Game(player);
 
-  if (session.status === 'won_prompt') {
-    const winForm = new ActionFormBuilder()
-      .title('§l§2You Reached 2048!')
-      .body(
-        `§aCongratulations! You formed the §l§22048§r§a tile!\n§7Score: §b${session.score} §8| §7Moves: §e${session.moves}\n\n§fWould you like to continue in §dEndless Mode§f (to 4096, 8192+) or start a new game?`,
-      )
-      .button('§l§aContinue (Endless Mode)', 'textures/ui/realms_green_check', async () => {
+    if (session.status === 'won_prompt') {
+      let winChoice: 'endless' | 'new' | 'menu' | undefined;
+      const winForm = new ActionFormBuilder()
+        .title('§l§2You Reached 2048!')
+        .body(
+          `§aCongratulations! You formed the §l§22048§r§a tile!\n§7Score: §b${session.score} §8| §7Moves: §e${session.moves}\n\n§fWould you like to continue in §dEndless Mode§f (to 4096, 8192+) or start a new game?`,
+        )
+        .button('§l§aContinue (Endless Mode)', 'textures/ui/realms_green_check', () => {
+          winChoice = 'endless';
+        })
+        .button('§l§eNew Game', 'textures/ui/refresh_light', () => {
+          winChoice = 'new';
+        })
+        .addBackButton(() => {
+          winChoice = 'menu';
+        });
+      await winForm.show(player, { wait: true });
+
+      if (winChoice === 'endless') {
         continue2048Endless(player.id);
-        await show2048Board(player, '§dEndless Mode unlocked! Keep merging!');
-      })
-      .button('§l§eNew Game', 'textures/ui/refresh_light', async () => {
+        notice = '§dEndless Mode unlocked! Keep merging!';
+        continue;
+      }
+      if (winChoice === 'new') {
         start2048Game(player);
-        await show2048Board(player);
-      })
-      .addBackButton(async () => {
+        notice = undefined;
+        continue;
+      }
+      if (winChoice === 'menu') {
         await show2048Menu(player);
-      });
-    await winForm.show(player, { wait: true });
-    return;
+      }
+      return;
+    }
+
+    const pData = getOrCreatePlayer(player);
+    const bestScore = Math.max(session.score, pData.gameStats?.game2048?.bestScore ?? 0);
+
+    let statusLine = `§7Score: §b${session.score} §8| §7Best: §e${bestScore} §8| §7Max Tile: §a${session.maxTile} §8| §7Moves: §f${session.moves}`;
+    if (session.status === 'gameover') {
+      statusLine = `§c§lGAME OVER! §r${statusLine}`;
+    } else if (isNonEmptyString(notice)) {
+      statusLine = `${statusLine}\n${notice}`;
+    }
+
+    const rawForm = new ActionFormData().title(grid2048Title).body(statusLine);
+    const board = session.board;
+
+    for (let i = 0; i < 16; i++) {
+      rawForm.button(format2048Tile(board[i] ?? 0));
+    }
+
+    if (session.status === 'active') {
+      rawForm.button('§1§r', 'textures/ui/up_arrow');
+      rawForm.button('§2§r', 'textures/ui/arrow_left');
+      rawForm.button('§3§r', 'textures/ui/arrow_right');
+      rawForm.button('§4§r', 'textures/ui/down_arrow');
+    } else {
+      rawForm.button('§1§r', 'textures/ui/refresh_light');
+    }
+
+    const response = await show2048Fast(player, rawForm);
+    if (response.canceled) {
+      if (response.cancelationReason === FormCancelationReason.UserBusy) {
+        continue;
+      }
+      return;
+    }
+
+    const sel = response.selection;
+    if (session.status !== 'active') {
+      if (sel === 16) {
+        start2048Game(player);
+        notice = undefined;
+        continue;
+      }
+      await show2048Menu(player);
+      return;
+    }
+
+    if (sel !== undefined && sel >= 16 && sel <= 19) {
+      const dir = dpadDirections[sel - 16]!;
+      const res = perform2048Move(player, dir);
+      notice = res.message;
+      continue;
+    }
+
+    notice = '§7Tap the D-Pad arrow keys on the right to slide tiles.';
   }
-
-  const pData = getOrCreatePlayer(player);
-  const bestScore = Math.max(session.score, pData.gameStats?.game2048?.bestScore ?? 0);
-
-  let statusLine = `§7Score: §b${session.score} §8| §7Best: §e${bestScore} §8| §7Max Tile: §a${session.maxTile} §8| §7Moves: §f${session.moves}`;
-  if (session.status === 'gameover') {
-    statusLine = `§c§lGAME OVER! §r${statusLine}`;
-  } else if (isNonEmptyString(notice)) {
-    statusLine = `${statusLine}\n${notice}`;
-  }
-
-  let selectedDir: Direction2048 | undefined;
-  let restartRequested = false;
-
-  const form = new ActionFormBuilder().grid('2048').title('§l§b2048').body(statusLine);
-
-  for (let i = 0; i < 16; i++) {
-    form.button(format2048Tile(session.board[i] ?? 0));
-  }
-
-  if (session.status === 'active') {
-    form.button('§r§l§b▲ UP ▲', 'textures/ui/up_arrow', () => {
-      selectedDir = 'up';
-    });
-    form.button('§r§l§e◀ LEFT', undefined, () => {
-      selectedDir = 'left';
-    });
-    form.button('§r§l§eRIGHT ▶', undefined, () => {
-      selectedDir = 'right';
-    });
-    form.button('§r§l§b▼ DOWN ▼', 'textures/ui/down_arrow', () => {
-      selectedDir = 'down';
-    });
-  } else {
-    form.button('§r§l§a[Play Again]', 'textures/ui/refresh_light', () => {
-      restartRequested = true;
-    });
-  }
-
-  const response = await form.show(player, { wait: true });
-  if (response.canceled) {
-    return;
-  }
-
-  if (restartRequested) {
-    start2048Game(player);
-    await show2048Board(player);
-    return;
-  }
-
-  if (isDefined(selectedDir)) {
-    const res = perform2048Move(player, selectedDir);
-    await show2048Board(player, res.message);
-    return;
-  }
-
-  await show2048Board(player, '§7Use the ▲ UP, ◀ LEFT, RIGHT ▶, or ▼ DOWN buttons below the grid to slide tiles.');
 }

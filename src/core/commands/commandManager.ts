@@ -1,7 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
-import { frozenTag } from '@core/utils/constants.js';
+import { frozenTag, noPermission } from '@core/utils/constants.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -235,7 +235,7 @@ class CommandManager {
 
     // Permission Check
     if (!hasPermission(player, command.permissionNode)) {
-      player.sendMessage('§cYou do not have permission to use this command.');
+      player.sendMessage(noPermission);
       return;
     }
 

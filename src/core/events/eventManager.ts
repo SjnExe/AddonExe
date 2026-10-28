@@ -12,6 +12,7 @@ import {
   handleBeforeItemPickup,
   handleBeforeItemUse,
   handleBeforePlayerBreakBlock,
+  handleBeforePlayerItemAttackEntity,
   handleBeforePlayerPlaceBlock,
   handlePlayerInteractWithBlock,
   handlePlayerInteractWithEntity,
@@ -78,6 +79,13 @@ export function initializeEventManager() {
     'playerInteractWithEntity',
   );
   registerEvent(mc.world.beforeEvents.entityHurt, handleBeforeEntityHurt, 'beforeEntityHurt');
+  if (mc.world.beforeEvents.playerItemAttackEntity) {
+    registerEvent(
+      mc.world.beforeEvents.playerItemAttackEntity,
+      handleBeforePlayerItemAttackEntity,
+      'beforePlayerItemAttackEntity',
+    );
+  }
   registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
   registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
   registerEvent(mc.world.beforeEvents.itemUse, handleBeforeItemUse, 'beforeItemUse');
