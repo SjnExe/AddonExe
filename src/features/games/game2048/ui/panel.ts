@@ -1,7 +1,7 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
-import { formatCurrency } from '@core/utils/index.js';
+import { formatCurrency, uiWait } from '@core/utils/index.js';
 import {
   continue2048Endless,
   type Direction2048,
@@ -17,29 +17,6 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 const grid2048Title = '§7§0§4§f§r§l§b2048';
 const dpadDirections: Direction2048[] = ['up', 'left', 'right', 'down'];
-
-async function show2048Fast(player: mc.Player, form: ActionFormData): Promise<ActionFormResponse> {
-  if (!player.isValid) {
-    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed };
-  }
-  const first = await form.show(player);
-  if (first.cancelationReason !== FormCancelationReason.UserBusy) {
-    return first;
-  }
-  for (let retry = 0; retry < 15; retry++) {
-    if (!player.isValid) {
-      break;
-    }
-    if (mc.system && typeof mc.system.runTimeout === 'function') {
-      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 1));
-    }
-    const attempt = await form.show(player);
-    if (attempt.cancelationReason !== FormCancelationReason.UserBusy) {
-      return attempt;
-    }
-  }
-  return { canceled: true, cancelationReason: FormCancelationReason.UserBusy };
-}
 
 export async function show2048Menu(player: mc.Player): Promise<void> {
   const cfg = getGamesConfig();
@@ -149,7 +126,7 @@ export async function show2048Board(player: mc.Player, initialNotice?: string): 
       rawForm.button('§1§r', 'textures/ui/refresh_light');
     }
 
-    const response = await show2048Fast(player, rawForm);
+    const response = (await uiWait(player, rawForm)) as ActionFormResponse;
     if (response.canceled) {
       if (response.cancelationReason === FormCancelationReason.UserBusy) {
         continue;

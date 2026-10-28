@@ -1,7 +1,7 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
-import { formatCurrency } from '@core/utils/index.js';
+import { formatCurrency, uiWait } from '@core/utils/index.js';
 import {
   appendGameInviteButtons,
   getIncomingGameInvites,
@@ -39,29 +39,6 @@ const msGridTitlePrefix: Record<'ms9' | 'ms12' | 'ms16', string> = {
   ms12: '§8§1§2§f§r',
   ms16: '§8§1§6§f§r',
 };
-
-async function showMinesweeperFast(player: mc.Player, form: ActionFormData): Promise<ActionFormResponse> {
-  if (!player.isValid) {
-    return { canceled: true, cancelationReason: FormCancelationReason.UserClosed };
-  }
-  const first = await form.show(player);
-  if (first.cancelationReason !== FormCancelationReason.UserBusy) {
-    return first;
-  }
-  for (let retry = 0; retry < 15; retry++) {
-    if (!player.isValid) {
-      break;
-    }
-    if (mc.system && typeof mc.system.runTimeout === 'function') {
-      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 1));
-    }
-    const attempt = await form.show(player);
-    if (attempt.cancelationReason !== FormCancelationReason.UserBusy) {
-      return attempt;
-    }
-  }
-  return { canceled: true, cancelationReason: FormCancelationReason.UserBusy };
-}
 
 export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
   const gamesCfg = getGamesConfig();
@@ -247,7 +224,7 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     rawForm.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left');
   }
 
-  const response = await showMinesweeperFast(player, rawForm);
+  const response = (await uiWait(player, rawForm)) as ActionFormResponse;
 
   const freshRace = isDefined(game.multiplayerMatchId) ? getMinesweeperRaceMatch(game.multiplayerMatchId) : undefined;
   if (isDefined(freshRace) && freshRace.refreshingPlayers.has(player.id)) {

@@ -33,10 +33,8 @@ export class MessageFormBuilder {
     return this;
   }
 
-  public async show(player: Player, options?: { wait?: boolean }): Promise<MessageFormResponse> {
-    const response = options?.wait
-      ? ((await uiWait(player, this.form)) as MessageFormResponse)
-      : await this.form.show(player);
+  public async show(player: Player, _options?: { wait?: boolean }): Promise<MessageFormResponse> {
+    const response = (await uiWait(player, this.form)) as MessageFormResponse;
 
     if (response.canceled) {
       return response;
