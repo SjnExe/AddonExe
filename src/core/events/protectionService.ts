@@ -1,5 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getWorldProtectionConfig } from '@core/config/configurations.js';
+import type { WorldProtectionZone } from '@features/essentials/protection/config.js';
 import type { Vector3 } from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
@@ -19,7 +20,7 @@ export type ProtectionFlags = {
   preventProjectileUsage: boolean;
 };
 
-const defaultFlags: ProtectionFlags = {
+const defaultFlags: Readonly<ProtectionFlags> = Object.freeze({
   preventPvP: false,
   preventHostileDamage: false,
   preventHostileMobSpawning: false,
@@ -33,7 +34,7 @@ const defaultFlags: ProtectionFlags = {
   preventMobGriefing: false,
   preventEntityInteraction: false,
   preventProjectileUsage: false,
-};
+});
 
 /**
  * Checks if a coordinate is within a bounding box.
@@ -69,14 +70,47 @@ function isWithinBox(location: Vector3, min: Vector3, max: Vector3): boolean {
  * @param dimensionId The dimension of the coordinate (e.g., MinecraftDimensionTypes.Overworld).
  * @returns The combined active protection flags. If any overlapping zone prevents an action, it is prevented.
  */
-export function getProtectionFlags(location: Vector3, dimensionId: string): ProtectionFlags {
-  const activeFlags: ProtectionFlags = { ...defaultFlags };
+let cachedZonesByDimension: Map<string, WorldProtectionZone[]> | undefined;
+let cachedZonesRef: WorldProtectionZone[] | undefined;
 
-  // 1. Check World Protection Zones
+export function invalidateProtectionZoneCache(): void {
+  cachedZonesByDimension = undefined;
+  cachedZonesRef = undefined;
+}
+
+function getZonesForDimension(zones: WorldProtectionZone[], dimensionId: string): WorldProtectionZone[] {
+  if (!cachedZonesByDimension || cachedZonesRef !== zones) {
+    cachedZonesByDimension = new Map();
+    cachedZonesRef = zones;
+    for (const z of zones) {
+      let list = cachedZonesByDimension.get(z.dimension);
+      if (!list) {
+        list = [];
+        cachedZonesByDimension.set(z.dimension, list);
+      }
+      list.push(z);
+    }
+  }
+  return cachedZonesByDimension.get(dimensionId) ?? [];
+}
+
+export function getProtectionFlags(location: Vector3, dimensionId: string): ProtectionFlags {
   const worldConfig = getWorldProtectionConfig();
-  for (const zone of worldConfig.zones) {
-    if (zone.dimension === dimensionId) {
+  const spawnConfig = getConfig();
+  const dimZones = worldConfig.zones.length > 0 ? getZonesForDimension(worldConfig.zones, dimensionId) : [];
+  const hasSpawnProt = Boolean(spawnConfig.spawnProtection?.enabled);
+
+  if (dimZones.length === 0 && !hasSpawnProt) {
+    return defaultFlags as ProtectionFlags;
+  }
+
+  let activeFlags: ProtectionFlags | undefined;
+
+  // 1. Check World Protection Zones (O(1) dimension bucket)
+  for (const zone of dimZones) {
+    {
       if (isWithinBox(location, zone.box.min, zone.box.max)) {
+        activeFlags ??= { ...defaultFlags };
         // Combine flags (OR logic: if any zone prevents it, it's prevented)
         activeFlags.preventPvP = activeFlags.preventPvP || zone.flags.preventPvP;
         activeFlags.preventHostileDamage = activeFlags.preventHostileDamage || zone.flags.preventHostileDamage;
@@ -98,8 +132,7 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
   }
 
   // 2. Check Spawn Protection Zone
-  const spawnConfig = getConfig();
-  if (spawnConfig.spawnProtection.enabled) {
+  if (hasSpawnProt) {
     const spawnLoc = spawnConfig.spawn.spawnLocation;
     const x = Number(spawnLoc.x);
     const z = Number(spawnLoc.z);
@@ -118,6 +151,7 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
         const maxSpawn = { x: x + radius, y: 320, z: z + radius };
 
         if (isWithinBox(location, minSpawn, maxSpawn)) {
+          activeFlags ??= { ...defaultFlags };
           // Combine spawn protection flags
           activeFlags.preventPvP = activeFlags.preventPvP || spawnConfig.spawnProtection.preventPvP;
           activeFlags.preventHostileDamage =
@@ -149,5 +183,5 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
     }
   }
 
-  return activeFlags;
+  return activeFlags ?? (defaultFlags as ProtectionFlags);
 }

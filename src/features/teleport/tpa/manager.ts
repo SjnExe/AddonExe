@@ -100,6 +100,28 @@ function _findIncomingRequest(
   return requests.at(-1);
 }
 
+export function clearPlayerTpaRequests(playerId: string): void {
+  const outgoing = outgoingRequests.get(playerId);
+  if (isDefined(outgoing)) {
+    clearRequest(outgoing);
+    const target = getPlayerFromCache(outgoing.targetPlayerId);
+    if (isDefined(target)) {
+      target.sendMessage(`§cTPA request from ${outgoing.sourcePlayerName} was cancelled because they left the game.`);
+    }
+  }
+
+  const incoming = incomingRequests.get(playerId);
+  if (isDefined(incoming)) {
+    for (const req of [...incoming]) {
+      clearRequest(req);
+      const source = getPlayerFromCache(req.sourcePlayerId);
+      if (isDefined(source)) {
+        source.sendMessage(`§cYour TPA request to ${req.targetPlayerName} was cancelled because they left the game.`);
+      }
+    }
+  }
+}
+
 export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
   const cd = getCooldown(sourcePlayer.id, 'tpa');
   if (cd > 0) {

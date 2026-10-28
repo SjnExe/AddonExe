@@ -1,19 +1,14 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { canTarget } from '@core/permissions/rankManager.js';
 import { frozenTag } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
+import { validateModerationTarget } from '@features/moderation/punishmentManager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-  if (!canTarget(executor, targetPlayer.id)) {
-    if (executor instanceof mc.Player) {
-      sendMessage('§cYou cannot freeze a player with the same or higher rank than you.', executor);
-    } else {
-      executor.sendMessage('§cYou cannot freeze a player with the same or higher rank than you.');
-    }
+  if (!validateModerationTarget(executor, targetPlayer.id, 'freeze')) {
     return;
   }
 
@@ -58,12 +53,7 @@ export function freezePlayer(executor: CommandExecutor, targetPlayer: mc.Player)
 }
 
 export function unfreezePlayer(executor: CommandExecutor, targetPlayer: mc.Player) {
-  if (!canTarget(executor, targetPlayer.id)) {
-    if (executor instanceof mc.Player) {
-      sendMessage('§cYou cannot unfreeze a player with the same or higher rank than you.', executor);
-    } else {
-      executor.sendMessage('§cYou cannot unfreeze a player with the same or higher rank than you.');
-    }
+  if (!validateModerationTarget(executor, targetPlayer.id, 'unfreeze')) {
     return;
   }
 

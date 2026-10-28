@@ -45,148 +45,146 @@ function initManager<T>(id: string, propKey: string, defaults: T, label: string,
   managers.set(id, mgr as unknown as ConfigManager<unknown>);
 }
 
-export const loadWorldProtectionConfig = async (isMigration: boolean) =>
-  initManager(
-    'worldProtection',
-    'exe:worldProtectionConfig:current',
-    worldProtectionConfig,
-    'WorldProtection',
-    isMigration,
-  );
-export const getWorldProtectionConfig = (): WorldProtectionConfig =>
-  getOrCreateManager(
-    'worldProtection',
-    'exe:worldProtectionConfig:current',
-    worldProtectionConfig,
-    'WorldProtection',
-  ).get();
-export const saveWorldProtectionConfig = (cfg: WorldProtectionConfig) =>
-  getOrCreateManager(
-    'worldProtection',
-    'exe:worldProtectionConfig:current',
-    worldProtectionConfig,
-    'WorldProtection',
-  ).set(cfg);
-export const resetWorldProtectionConfig = () =>
-  getOrCreateManager(
-    'worldProtection',
-    'exe:worldProtectionConfig:current',
-    worldProtectionConfig,
-    'WorldProtection',
-  ).reset();
+function createConfigAccessors<T>(
+  id: string,
+  propKey: string,
+  defaults: T,
+  label: string,
+  hooks?: {
+    onLoadOrReset?: () => Promise<void> | void;
+    onSave?: () => void;
+  },
+) {
+  return {
+    load: async (isMigration: boolean): Promise<void> => {
+      initManager(id, propKey, defaults, label, isMigration);
+      await hooks?.onLoadOrReset?.();
+    },
+    get: (): T => getOrCreateManager(id, propKey, defaults, label).get(),
+    save: (cfg: T): void => {
+      getOrCreateManager(id, propKey, defaults, label).set(cfg);
+      hooks?.onSave?.();
+    },
+    reset: async (): Promise<void> => {
+      await getOrCreateManager(id, propKey, defaults, label).reset();
+      await hooks?.onLoadOrReset?.();
+    },
+  };
+}
 
-export const loadShopConfig = async (isMigration: boolean) => {
-  initManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop', isMigration);
-  const { invalidateShopLookupCache } = await import('@features/economy/shop/manager.js');
-  invalidateShopLookupCache();
-};
-export const getShopConfig = (): ShopConfig =>
-  getOrCreateManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop').get();
-export const saveShopConfig = (cfg: ShopConfig) => {
-  getOrCreateManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop').set(cfg);
-  void import('@features/economy/shop/manager.js').then((m) => m.invalidateShopLookupCache());
-};
-export const resetShopConfig = async () => {
-  await getOrCreateManager('shop', 'exe:shopConfig:current', shopConfig, 'Shop').reset();
-  const { invalidateShopLookupCache } = await import('@features/economy/shop/manager.js');
-  invalidateShopLookupCache();
-};
+const worldProtAcc = createConfigAccessors(
+  'worldProtection',
+  'exe:worldProtectionConfig:current',
+  worldProtectionConfig,
+  'WorldProtection',
+  {
+    onLoadOrReset: async () => {
+      const { invalidateProtectionZoneCache } = await import('@core/events/protectionService.js');
+      invalidateProtectionZoneCache();
+    },
+    onSave: () => {
+      void import('@core/events/protectionService.js').then((m) => m.invalidateProtectionZoneCache());
+    },
+  },
+);
+export const loadWorldProtectionConfig = worldProtAcc.load;
+export const getWorldProtectionConfig = worldProtAcc.get;
+export const saveWorldProtectionConfig = worldProtAcc.save;
+export const resetWorldProtectionConfig = worldProtAcc.reset;
 
-export const loadRanksConfig = async (isMigration: boolean) =>
-  initManager('ranks', 'exe:ranksConfig', ranksConfig, 'Ranks', isMigration);
-export const getRanksConfig = (): RanksConfig =>
-  getOrCreateManager('ranks', 'exe:ranksConfig', ranksConfig, 'Ranks').get();
-export const saveRanksConfig = (cfg: RanksConfig) =>
-  getOrCreateManager('ranks', 'exe:ranksConfig', ranksConfig, 'Ranks').set(cfg);
-export const resetRanksConfig = () => getOrCreateManager('ranks', 'exe:ranksConfig', ranksConfig, 'Ranks').reset();
+const shopAcc = createConfigAccessors('shop', 'exe:shopConfig:current', shopConfig, 'Shop', {
+  onLoadOrReset: async () => {
+    const { invalidateShopLookupCache } = await import('@features/economy/shop/manager.js');
+    const { invalidateShopHydration } = await import('@features/economy/shop/utils.js');
+    invalidateShopLookupCache();
+    invalidateShopHydration();
+  },
+  onSave: () => {
+    void import('@features/economy/shop/manager.js').then((m) => m.invalidateShopLookupCache());
+  },
+});
+export const loadShopConfig = shopAcc.load;
+export const getShopConfig = shopAcc.get;
+export const saveShopConfig = shopAcc.save;
+export const resetShopConfig = shopAcc.reset;
 
-export const loadEconomyConfig = async (isMigration: boolean) =>
-  initManager('economy', 'exe:economyConfig:current', economyConfig, 'Economy', isMigration);
-export const getEconomyConfig = (): EconomyConfig =>
-  getOrCreateManager('economy', 'exe:economyConfig:current', economyConfig, 'Economy').get();
-export const saveEconomyConfig = (cfg: EconomyConfig) =>
-  getOrCreateManager('economy', 'exe:economyConfig:current', economyConfig, 'Economy').set(cfg);
-export const resetEconomyConfig = () =>
-  getOrCreateManager('economy', 'exe:economyConfig:current', economyConfig, 'Economy').reset();
+const ranksAcc = createConfigAccessors('ranks', 'exe:ranksConfig', ranksConfig, 'Ranks');
+export const loadRanksConfig = ranksAcc.load;
+export const getRanksConfig = ranksAcc.get;
+export const saveRanksConfig = ranksAcc.save;
+export const resetRanksConfig = ranksAcc.reset;
 
-export const loadXrayConfig = async (isMigration: boolean) =>
-  initManager('xray', 'exe:xrayConfig:current', xrayConfig, 'X-Ray', isMigration);
-export const getXrayConfig = (): XrayConfig =>
-  getOrCreateManager('xray', 'exe:xrayConfig:current', xrayConfig, 'X-Ray').get();
-export const saveXrayConfig = (cfg: XrayConfig) =>
-  getOrCreateManager('xray', 'exe:xrayConfig:current', xrayConfig, 'X-Ray').set(cfg);
-export const resetXrayConfig = () => getOrCreateManager('xray', 'exe:xrayConfig:current', xrayConfig, 'X-Ray').reset();
+const economyAcc = createConfigAccessors('economy', 'exe:economyConfig:current', economyConfig, 'Economy');
+export const loadEconomyConfig = economyAcc.load;
+export const getEconomyConfig = economyAcc.get;
+export const saveEconomyConfig = economyAcc.save;
+export const resetEconomyConfig = economyAcc.reset;
 
-export const loadTeamConfig = async (isMigration: boolean) =>
-  initManager('team', 'exe:teamConfig:current', teamConfig, 'Team', isMigration);
-export const getTeamConfig = (): TeamConfig =>
-  getOrCreateManager('team', 'exe:teamConfig:current', teamConfig, 'Team').get();
-export const saveTeamConfig = (cfg: TeamConfig) =>
-  getOrCreateManager('team', 'exe:teamConfig:current', teamConfig, 'Team').set(cfg);
-export const resetTeamConfig = () => getOrCreateManager('team', 'exe:teamConfig:current', teamConfig, 'Team').reset();
+const xrayAcc = createConfigAccessors('xray', 'exe:xrayConfig:current', xrayConfig, 'X-Ray');
+export const loadXrayConfig = xrayAcc.load;
+export const getXrayConfig = xrayAcc.get;
+export const saveXrayConfig = xrayAcc.save;
+export const resetXrayConfig = xrayAcc.reset;
 
-export const loadFriendConfig = async (isMigration: boolean) =>
-  initManager('friend', 'exe:friendConfig:current', friendConfig, 'Friends', isMigration);
-export const getFriendConfig = (): FriendConfig =>
-  getOrCreateManager('friend', 'exe:friendConfig:current', friendConfig, 'Friends').get();
-export const saveFriendConfig = (cfg: FriendConfig) =>
-  getOrCreateManager('friend', 'exe:friendConfig:current', friendConfig, 'Friends').set(cfg);
-export const resetFriendConfig = () =>
-  getOrCreateManager('friend', 'exe:friendConfig:current', friendConfig, 'Friends').reset();
+const teamAcc = createConfigAccessors('team', 'exe:teamConfig:current', teamConfig, 'Team');
+export const loadTeamConfig = teamAcc.load;
+export const getTeamConfig = teamAcc.get;
+export const saveTeamConfig = teamAcc.save;
+export const resetTeamConfig = teamAcc.reset;
 
-export const loadSidebarConfig = async (isMigration: boolean) =>
-  initManager('sidebar', 'exe:sidebarConfig:current', sidebarConfig, 'Sidebar', isMigration);
-export const getSidebarConfig = (): SidebarConfig =>
-  getOrCreateManager('sidebar', 'exe:sidebarConfig:current', sidebarConfig, 'Sidebar').get();
-export const saveSidebarConfig = (cfg: SidebarConfig) =>
-  getOrCreateManager('sidebar', 'exe:sidebarConfig:current', sidebarConfig, 'Sidebar').set(cfg);
-export const resetSidebarConfig = () =>
-  getOrCreateManager('sidebar', 'exe:sidebarConfig:current', sidebarConfig, 'Sidebar').reset();
+const friendAcc = createConfigAccessors('friend', 'exe:friendConfig:current', friendConfig, 'Friends');
+export const loadFriendConfig = friendAcc.load;
+export const getFriendConfig = friendAcc.get;
+export const saveFriendConfig = friendAcc.save;
+export const resetFriendConfig = friendAcc.reset;
 
-export const loadAuctionHouseConfig = async (isMigration: boolean) =>
-  initManager('auctionHouse', 'exe:auctionHouseConfig:current', auctionHouseConfig, 'AuctionHouse', isMigration);
-export const getAuctionHouseConfig = (): AuctionHouseConfig =>
-  getOrCreateManager('auctionHouse', 'exe:auctionHouseConfig:current', auctionHouseConfig, 'AuctionHouse').get();
-export const saveAuctionHouseConfig = (cfg: AuctionHouseConfig) =>
-  getOrCreateManager('auctionHouse', 'exe:auctionHouseConfig:current', auctionHouseConfig, 'AuctionHouse').set(cfg);
-export const resetAuctionHouseConfig = () =>
-  getOrCreateManager('auctionHouse', 'exe:auctionHouseConfig:current', auctionHouseConfig, 'AuctionHouse').reset();
+const sidebarAcc = createConfigAccessors('sidebar', 'exe:sidebarConfig:current', sidebarConfig, 'Sidebar');
+export const loadSidebarConfig = sidebarAcc.load;
+export const getSidebarConfig = sidebarAcc.get;
+export const saveSidebarConfig = sidebarAcc.save;
+export const resetSidebarConfig = sidebarAcc.reset;
 
-export const loadDailyRewardsConfig = async (isMigration: boolean) =>
-  initManager('dailyRewards', 'exe:dailyRewardsConfig:current', dailyRewardsConfig, 'DailyRewards', isMigration);
-export const getDailyRewardsConfig = (): DailyRewardsConfig =>
-  getOrCreateManager('dailyRewards', 'exe:dailyRewardsConfig:current', dailyRewardsConfig, 'DailyRewards').get();
-export const saveDailyRewardsConfig = (cfg: DailyRewardsConfig) =>
-  getOrCreateManager('dailyRewards', 'exe:dailyRewardsConfig:current', dailyRewardsConfig, 'DailyRewards').set(cfg);
-export const resetDailyRewardsConfig = () =>
-  getOrCreateManager('dailyRewards', 'exe:dailyRewardsConfig:current', dailyRewardsConfig, 'DailyRewards').reset();
+const auctionHouseAcc = createConfigAccessors(
+  'auctionHouse',
+  'exe:auctionHouseConfig:current',
+  auctionHouseConfig,
+  'AuctionHouse',
+);
+export const loadAuctionHouseConfig = auctionHouseAcc.load;
+export const getAuctionHouseConfig = auctionHouseAcc.get;
+export const saveAuctionHouseConfig = auctionHouseAcc.save;
+export const resetAuctionHouseConfig = auctionHouseAcc.reset;
 
-export const loadGamesConfig = async (isMigration: boolean) =>
-  initManager('games', 'exe:gamesConfig:current', gamesConfig, 'Games', isMigration);
-export const getGamesConfig = (): GamesConfig =>
-  getOrCreateManager('games', 'exe:gamesConfig:current', gamesConfig, 'Games').get();
-export const saveGamesConfig = (cfg: GamesConfig) =>
-  getOrCreateManager('games', 'exe:gamesConfig:current', gamesConfig, 'Games').set(cfg);
-export const resetGamesConfig = () =>
-  getOrCreateManager('games', 'exe:gamesConfig:current', gamesConfig, 'Games').reset();
+const dailyRewardsAcc = createConfigAccessors(
+  'dailyRewards',
+  'exe:dailyRewardsConfig:current',
+  dailyRewardsConfig,
+  'DailyRewards',
+);
+export const loadDailyRewardsConfig = dailyRewardsAcc.load;
+export const getDailyRewardsConfig = dailyRewardsAcc.get;
+export const saveDailyRewardsConfig = dailyRewardsAcc.save;
+export const resetDailyRewardsConfig = dailyRewardsAcc.reset;
 
-export const loadWordleConfig = async (isMigration: boolean) =>
-  initManager('wordle', 'exe:wordleConfig:current', wordleConfig, 'Wordle', isMigration);
-export const getWordleConfig = (): WordleConfig =>
-  getOrCreateManager('wordle', 'exe:wordleConfig:current', wordleConfig, 'Wordle').get();
-export const saveWordleConfig = (cfg: WordleConfig) =>
-  getOrCreateManager('wordle', 'exe:wordleConfig:current', wordleConfig, 'Wordle').set(cfg);
-export const resetWordleConfig = () =>
-  getOrCreateManager('wordle', 'exe:wordleConfig:current', wordleConfig, 'Wordle').reset();
+const gamesAcc = createConfigAccessors('games', 'exe:gamesConfig:current', gamesConfig, 'Games');
+export const loadGamesConfig = gamesAcc.load;
+export const getGamesConfig = gamesAcc.get;
+export const saveGamesConfig = gamesAcc.save;
+export const resetGamesConfig = gamesAcc.reset;
 
-export const loadAnticheatConfig = (isMigration: boolean) =>
+const wordleAcc = createConfigAccessors('wordle', 'exe:wordleConfig:current', wordleConfig, 'Wordle');
+export const loadWordleConfig = wordleAcc.load;
+export const getWordleConfig = wordleAcc.get;
+export const saveWordleConfig = wordleAcc.save;
+export const resetWordleConfig = wordleAcc.reset;
+
+const anticheatAcc = createConfigAccessors('anticheat', 'exe:anticheatConfig:current', anticheatConfig, 'AntiCheat');
+export const loadAnticheatConfig = (isMigration: boolean): void => {
   initManager('anticheat', 'exe:anticheatConfig:current', anticheatConfig, 'AntiCheat', isMigration);
-export const getAnticheatConfig = (): AnticheatConfig =>
-  getOrCreateManager('anticheat', 'exe:anticheatConfig:current', anticheatConfig, 'AntiCheat').get();
-export const saveAnticheatConfig = (cfg: AnticheatConfig) =>
-  getOrCreateManager('anticheat', 'exe:anticheatConfig:current', anticheatConfig, 'AntiCheat').set(cfg);
-export const resetAnticheatConfig = () =>
-  getOrCreateManager('anticheat', 'exe:anticheatConfig:current', anticheatConfig, 'AntiCheat').reset();
+};
+export const getAnticheatConfig = anticheatAcc.get;
+export const saveAnticheatConfig = anticheatAcc.save;
+export const resetAnticheatConfig = anticheatAcc.reset;
 
 export type ResetRegistryEntry = {
   reset: () => Promise<void>;

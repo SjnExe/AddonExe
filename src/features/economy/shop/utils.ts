@@ -429,7 +429,16 @@ function hydrateItemMap(itemMap: Record<string, ShopItem>): boolean {
   return modified;
 }
 
+let isShopHydrated = false;
+
+export function invalidateShopHydration(): void {
+  isShopHydrated = false;
+}
+
 export async function ensureItemsConfig(): Promise<Record<string, ItemData>> {
+  if (isShopHydrated) {
+    return items;
+  }
   await Promise.resolve();
   try {
     const shopCfg = getShopConfig();
@@ -536,6 +545,7 @@ export async function ensureItemsConfig(): Promise<Record<string, ItemData>> {
       }
     }
 
+    isShopHydrated = true;
     if (changed) {
       saveShopConfig(shopCfg);
     }

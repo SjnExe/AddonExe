@@ -4,6 +4,8 @@ import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/
 import { formatCurrency } from '@core/utils/index.js';
 import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager.js';
 import {
+  payoutWagerPot,
+  recordSimpleGameStat,
   registerActiveMatchSession,
   registerMultiplayerGame,
   unregisterActiveMatchSession,
@@ -332,6 +334,7 @@ export function submitGuess(gameId: string, player: mc.Player, guess: string): G
   if (result.isWin) {
     game.status = 'won';
     game.winnerId = player.id;
+    recordSimpleGameStat(player.id, 'wordle', 'wins');
     if (!game.isStaffHosted) {
       playerGameMap.delete(player.id);
       const config = getWordleConfig();
@@ -489,13 +492,11 @@ export function forfeitWordleDuel(matchId: string, losingPlayerId: string, reaso
   match.winnerId = winnerId;
   match.endReason = `§c${loserName} §7${reason}! §a${winnerName} §7wins the Wordle Race!`;
 
-  if (match.wager > 0) {
-    incrementPlayerBalance(winnerId, match.wager * 2);
-  }
+  const payout = match.wager > 0 ? payoutWagerPot(winnerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
   const p1 = getPlayerFromCache(match.player1Id);
   const p2 = getPlayerFromCache(match.player2Id);
-  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})` : '';
+  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})` : '';
   if (isDefined(p1)) {
     p1.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
   }
@@ -548,11 +549,9 @@ export function submitWordleDuelGuess(player: mc.Player, rawGuess: string): Gues
     const loserName = isP1 ? match.player2Name : match.player1Name;
     match.endReason = `§a${player.name} §7solved §e${match.word.toUpperCase()} §7in ${myGuesses.length} guess(es) against §c${loserName}§7!`;
 
-    if (match.wager > 0) {
-      incrementPlayerBalance(player.id, match.wager * 2);
-    }
+    const payout = match.wager > 0 ? payoutWagerPot(player.id, match.wager) : { netPrize: 0, taxRate: 0 };
 
-    const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})` : '';
+    const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})` : '';
     const p1 = getPlayerFromCache(match.player1Id);
     const p2 = getPlayerFromCache(match.player2Id);
     if (isDefined(p1)) {

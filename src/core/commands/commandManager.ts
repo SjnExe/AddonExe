@@ -1,6 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { frozenTag } from '@core/utils/constants.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -224,6 +225,14 @@ class CommandManager {
   }
 
   private _executePlayerCommand(player: mc.Player, command: CustomCommand, args: Record<string, unknown>) {
+    if (typeof player.hasTag === 'function' && player.hasTag(frozenTag)) {
+      const allowedWhenFrozen = new Set(['msg', 'reply', 'report', 'fixplayer']);
+      if (!allowedWhenFrozen.has(command.name.toLowerCase()) && !hasPermission(player, 'group.admin')) {
+        player.sendMessage('§cYou cannot use commands while frozen (except /xmsg, /r, and /report).');
+        return;
+      }
+    }
+
     // Permission Check
     if (!hasPermission(player, command.permissionNode)) {
       player.sendMessage('§cYou do not have permission to use this command.');

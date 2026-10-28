@@ -79,7 +79,7 @@ async function showWarpActionModal(player: mc.Player, warpName: string): Promise
       });
     })
     .button('Move Warp to My Current Position', 'textures/ui/refresh_light', async () => {
-      const res = warpsManager.setWarp(warpName, player.location, player.dimension.id);
+      const res = warpsManager.setWarp(warpName, player.location, player.dimension.id, true);
       player.sendMessage(res.success ? `§a${res.message}` : `§c${res.message}`);
       await showWarpActionModal(player, warpName);
     })
@@ -138,7 +138,12 @@ async function showEditWarpModal(player: mc.Player, existingWarpName?: string): 
     warpsManager.deleteWarp(existingWarpName);
   }
 
-  const saveRes = warpsManager.setWarp(name, { x, y, z }, res.dim || MinecraftDimensionTypes.Overworld);
+  const saveRes = warpsManager.setWarp(
+    name,
+    { x, y, z },
+    res.dim || MinecraftDimensionTypes.Overworld,
+    Boolean(existingWarpName),
+  );
   player.sendMessage(saveRes.success ? `§a${saveRes.message}` : `§c${saveRes.message}`);
   await showWarpsAdminPanel(player);
 }

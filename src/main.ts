@@ -6,7 +6,7 @@ import { cleanupEventManager, initializeEventManager } from '@core/events/eventM
 import * as rankManager from '@core/permissions/rankManager.js';
 import { reinitializeOnlinePlayers } from '@core/utils/index.js';
 import { errorLog, infoLog, setLogLevel } from '@core/utils/logger.js';
-import { cleanupTimers, startSystemTimers } from '@core/utils/timerManager.js';
+import { cleanupTimers } from '@core/utils/timerManager.js';
 import { initializeXrayDetection } from '@features/anticheat/xray/manager.js';
 import { cleanupLeaderboardManager } from '@features/economy/leaderboard.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
@@ -76,7 +76,6 @@ export async function initializeAddon() {
 
   reinitializeOnlinePlayers();
 
-  startSystemTimers();
   infoLog('[AddonExe] Addon initialized successfully.');
 }
 

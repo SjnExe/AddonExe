@@ -6,6 +6,7 @@ import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as permissionEngine from '@core/permissions/permissionEngine.js';
 import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import { isPlayerAfk } from '@features/essentials/afk/manager.js';
 import { RankDefinition } from '@features/ranks/config.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -204,9 +205,10 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config = g
   const nameTagStyle = (isDefined(config.ranks) ? config.ranks.nameTagStyle : undefined) ?? 'above';
 
   // Hardcoded brackets: §e[§r PREFIX §e]§r
+  const afkPrefix = isPlayerAfk(player.id) ? '§7[AFK]§r' : '';
   const devPrefix = isDeveloperPlayer(player.name) ? developerBadge : '';
   const baseRankPrefix = rankPrefix === '' ? '' : `§e[§r${rankPrefix}§e]§r`;
-  const finalPrefix = [devPrefix, baseRankPrefix].filter(Boolean).join(' ');
+  const finalPrefix = [afkPrefix, devPrefix, baseRankPrefix].filter(Boolean).join(' ');
 
   let newNameTag: string;
 

@@ -1,12 +1,18 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
+import {
+  getOrCreatePlayer,
+  getPlayer,
+  incrementPlayerBalance,
+  updatePlayerData,
+} from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isFriend } from '@features/social/friends/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
+import type { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
 export interface MultiplayerGameDefinition {
   id: string;
@@ -380,20 +386,25 @@ export function setGameInvitesStopped(
   return stopped ? '§cIncoming game invitations are now STOPPED.' : '§aIncoming game invitations are now ALLOWED.';
 }
 
-/** Shared wager escrow utility for solo, 1v1, and staff-hosted games. */
-export function escrowGameWager(player: mc.Player, amount: number): { success: boolean; message?: string } {
-  if (amount <= 0) {
-    return { success: true };
+/** Records a win/loss/draw outcome for a player's mini-game stats. */
+export function recordSimpleGameStat(
+  playerId: string,
+  gameKey: 'ttt' | 'connect4' | 'rps' | 'wordle' | 'codebreaker',
+  outcome: 'wins' | 'losses' | 'draws',
+): void {
+  if (!isDefined(getPlayer(playerId))) {
+    return;
   }
-  if (!isFeatureActive('eco')) {
-    return { success: false, message: '§cEconomy is disabled.' };
-  }
-  const pData = getOrCreatePlayer(player);
-  if (pData.balance < amount) {
-    return { success: false, message: `§cInsufficient funds (${formatCurrency(amount)} required).` };
-  }
-  incrementPlayerBalance(player.id, -amount);
-  return { success: true };
+  updatePlayerData(playerId, (d) => {
+    d.gameStats ??= {};
+    if (gameKey === 'ttt' || gameKey === 'connect4') {
+      const cur = d.gameStats[gameKey] ?? { wins: 0, losses: 0, draws: 0 };
+      d.gameStats[gameKey] = { ...cur, [outcome]: cur[outcome] + 1 };
+    } else if (outcome !== 'draws') {
+      const cur = d.gameStats[gameKey] ?? { wins: 0, losses: 0 };
+      d.gameStats[gameKey] = { ...cur, [outcome]: cur[outcome] + 1 };
+    }
+  });
 }
 
 /** Shared prize payout utility with optional tax deduction. */
@@ -401,12 +412,35 @@ export function payoutGamePrize(winnerId: string, grossPool: number, taxRatePerc
   if (grossPool <= 0 || !isFeatureActive('eco')) {
     return 0;
   }
-  const tax = taxRatePercent > 0 ? Math.floor(grossPool * (taxRatePercent / 100)) : 0;
-  const netPrize = Math.max(0, grossPool - tax);
+  const safeTax = Math.max(0, Math.min(100, taxRatePercent));
+  const tax = safeTax > 0 ? Math.round(grossPool * (safeTax / 100) * 100) / 100 : 0;
+  const netPrize = Math.max(0, Math.round((grossPool - tax) * 100) / 100);
   if (netPrize > 0) {
     incrementPlayerBalance(winnerId, netPrize);
   }
   return netPrize;
+}
+
+export function getWagerTaxPercentage(): number {
+  const raw = Number(getGamesConfig().wagerTaxPercentage ?? 0);
+  return Number.isNaN(raw) ? 0 : Math.max(0, Math.min(100, raw));
+}
+
+export function payoutWagerPot(winnerId: string, wagerPerPlayer: number): { netPrize: number; taxRate: number } {
+  if (wagerPerPlayer <= 0) {
+    return { netPrize: 0, taxRate: 0 };
+  }
+  const grossPot = Math.round(wagerPerPlayer * 2 * 100) / 100;
+  const taxRate = getWagerTaxPercentage();
+  if (!isFeatureActive('eco')) {
+    const safeTax = Math.max(0, Math.min(100, taxRate));
+    const tax = safeTax > 0 ? Math.round(grossPot * (safeTax / 100) * 100) / 100 : 0;
+    const netPrize = Math.max(0, Math.round((grossPot - tax) * 100) / 100);
+    incrementPlayerBalance(winnerId, netPrize);
+    return { netPrize, taxRate };
+  }
+  const netPrize = payoutGamePrize(winnerId, grossPot, taxRate);
+  return { netPrize, taxRate };
 }
 
 /** Joins or toggles the random matchmaking queue for a multiplayer game. */
@@ -488,6 +522,75 @@ export function isPlayerInQueue(playerId: string, gameId?: string): boolean {
     if (queue.includes(playerId)) {
       return true;
     }
+  }
+  return false;
+}
+
+/** Appends incoming and outgoing multiplayer game invitation buttons to an ActionFormBuilder. */
+export function appendGameInviteButtons(
+  form: ActionFormBuilder,
+  player: mc.Player,
+  gameId: string,
+  reopenMenu: (p: mc.Player) => Promise<void> | void,
+  acceptLabelPrefix = 'Accept',
+): void {
+  const incoming = getIncomingGameInvites(player.id).filter((i) => i.gameId === gameId);
+  const outgoing = getOutgoingGameInvite(player.id);
+
+  for (const inv of incoming) {
+    const wagerStr = inv.wager > 0 ? ` (${formatCurrency(inv.wager)})` : '';
+    form.button(
+      `§a${acceptLabelPrefix}: ${inv.senderName}${wagerStr}\n§7Click to start match`,
+      'textures/ui/realms_green_check',
+      () => {
+        const res = acceptGameInvite(player, inv.senderName, gameId);
+        if (isNonEmptyString(res.message)) {
+          player.sendMessage(res.message);
+        }
+      },
+    );
+    form.button(`§cDeny: ${inv.senderName}`, 'textures/ui/cancel', async () => {
+      player.sendMessage(denyGameInvite(player, inv.senderName, gameId).message);
+      await reopenMenu(player);
+    });
+  }
+
+  if (isDefined(outgoing) && outgoing.gameId === gameId) {
+    form.button(`§cCancel Invite to ${outgoing.targetName}`, 'textures/ui/cancel', async () => {
+      player.sendMessage(cancelGameInvite(player).message);
+      await reopenMenu(player);
+    });
+  }
+}
+
+/** Handles common queue, accept, deny, and cancel subcommands for multiplayer games. Returns true if handled. */
+export function handleCommonGameSubcommand(
+  player: mc.Player,
+  gameId: string,
+  sub: string,
+  secondArg?: string,
+): boolean {
+  if (sub === 'queue' || sub === 'random' || sub === 'matchmake') {
+    const res = joinMatchmakingQueue(player, gameId);
+    if (isNonEmptyString(res.message)) {
+      player.sendMessage(res.message);
+    }
+    return true;
+  }
+  if (sub === 'accept' || sub === 'yes') {
+    const res = acceptGameInvite(player, secondArg, gameId);
+    if (isNonEmptyString(res.message)) {
+      player.sendMessage(res.message);
+    }
+    return true;
+  }
+  if (sub === 'deny' || sub === 'no' || sub === 'decline') {
+    player.sendMessage(denyGameInvite(player, secondArg, gameId).message);
+    return true;
+  }
+  if (sub === 'cancel') {
+    player.sendMessage(cancelGameInvite(player).message);
+    return true;
   }
   return false;
 }

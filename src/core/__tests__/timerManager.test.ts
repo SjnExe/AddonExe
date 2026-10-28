@@ -16,7 +16,6 @@ import {
   setTrackedInterval,
   setTrackedJob,
   setTrackedTimeout,
-  startSystemTimers,
 } from '@core/utils/timerManager.js';
 
 describe('timerManager', () => {
@@ -205,12 +204,6 @@ describe('timerManager', () => {
       expect(getTimerStats().intervals).toBe(0);
       expect(getTimerStats().timeouts).toBe(0);
       expect(getTimerStats().jobs).toBe(0);
-    });
-  });
-
-  describe('startSystemTimers()', () => {
-    it('should execute without errors (placeholder function)', () => {
-      expect(() => startSystemTimers()).not.toThrow();
     });
   });
 });

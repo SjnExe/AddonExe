@@ -240,8 +240,7 @@ export async function handleBanPlayer(player: mc.Player, targetPlayerId: string)
     return;
   }
 
-  const expires =
-    durationHours === 0 ? Date.now() + 100 * 365 * 24 * 60 * 60 * 1000 : Date.now() + durationHours * 60 * 60 * 1000;
+  const expires = durationHours === 0 ? Infinity : Date.now() + durationHours * 60 * 60 * 1000;
 
   punishmentManager.addPunishment(
     targetPlayerId,
@@ -259,9 +258,8 @@ export async function handleBanPlayer(player: mc.Player, targetPlayerId: string)
     try {
       const { escapeCommandArg } = await import('@core/utils/sanitization.js');
       const escapedTargetName = escapeCommandArg(target.name);
-      const escapedReason = escapeCommandArg(
-        `§4You have been banned.\nReason: ${reason}\nExpires: ${new Date(expires).toLocaleString()}`,
-      );
+      const expiresText = expires === Infinity ? 'Permanent' : new Date(expires).toLocaleString();
+      const escapedReason = escapeCommandArg(`§4You have been banned.\nReason: ${reason}\nExpires: ${expiresText}`);
       player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
     } catch {
       // Ignore if kick fails

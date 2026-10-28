@@ -178,6 +178,6 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
     expect(boomRes.status).toBe('lost');
     expect(raceMatch!.status).toBe('forfeit');
     expect(raceMatch!.winnerId).toBe(p2.id);
-    expect(getBalance(p2.id)).toBe(120);
+    expect(getBalance(p2.id)).toBe(118);
   });
 });

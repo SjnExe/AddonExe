@@ -1,11 +1,11 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
-import { canTarget } from '@core/permissions/rankManager.js';
 import { soundError, soundTeleport } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { validateModerationTarget } from '@features/moderation/punishmentManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -21,19 +21,7 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | 
     return;
   }
 
-  if (executor instanceof mc.Player && executor.id === targetPlayer.id) {
-    sendMessage('§cYou cannot kick yourself.', executor);
-    playSound(executor, soundError);
-    return;
-  }
-
-  if (!canTarget(executor, targetPlayer.id)) {
-    if (executor instanceof mc.Player) {
-      sendMessage('§cYou cannot kick a player with the same or higher rank than you.', executor);
-      playSound(executor, soundError);
-    } else {
-      executor.sendMessage('§cYou cannot kick a player with the same or higher rank than you.');
-    }
+  if (!validateModerationTarget(executor, targetPlayer.id, 'kick', true)) {
     return;
   }
 

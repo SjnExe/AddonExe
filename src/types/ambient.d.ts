@@ -1,15 +1,17 @@
-declare const __IS_NIGHTLY__: boolean | undefined;
-declare const __VERSION__: string | undefined;
+declare const __IS_NIGHTLY__: boolean;
+declare const __VERSION__: string;
+declare const __DEV__: boolean;
 
 interface Console {
-  log(...args: unknown[]): void;
-  info(...args: unknown[]): void;
-  warn(...args: unknown[]): void;
-  error(...args: unknown[]): void;
+  log(...data: unknown[]): void;
+  error(...data: unknown[]): void;
+  warn(...data: unknown[]): void;
+  info(...data: unknown[]): void;
+  debug(...data: unknown[]): void;
 }
 
-declare const console: Console;
+declare let console: Console;
 
 declare module 'virtual:command-index' {
-  export function loadCommands(): void;
+  export function loadCommands(): Promise<void>;
 }

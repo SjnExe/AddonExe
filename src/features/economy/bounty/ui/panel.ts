@@ -7,7 +7,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
-import { getPaginatedItems, itemsPerPage } from '@ui/uiUtils.js';
+import { itemsPerPage } from '@ui/uiUtils.js';
 
 export async function showBountyListPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
   const page = (context.page as number) || 1;
@@ -20,26 +20,24 @@ export async function showBountyListPanel(player: mc.Player, context: Record<str
   if (bounties.length === 0) {
     form.button('§8No active bounties', 'textures/ui/infobulb');
   } else {
-    const paginated = getPaginatedItems(bounties, page);
-
-    for (const b of paginated) {
-      form.button(`${b.name}\n${formatCurrency(b.amount)}`, 'textures/items/netherite_sword', async () => {
-        await showPanel(player, 'playerActionsPanel', {
-          ...context,
-          page: 1,
-          targetPlayerId: b.playerId,
-          fromPanel: 'bountyListPanel',
+    form.addPaginatedButtons(
+      bounties,
+      page,
+      (b, formBuilder) => {
+        formBuilder.button(`${b.name}\n${formatCurrency(b.amount)}`, 'textures/items/netherite_sword', async () => {
+          await showPanel(player, 'playerActionsPanel', {
+            ...context,
+            page: 1,
+            targetPlayerId: b.playerId,
+            fromPanel: 'bountyListPanel',
+          });
         });
-      });
-    }
-
-    const totalItems = bounties.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    if (page < totalPages) {
-      form.button('§6Next Page >', 'textures/ui/down_arrow', async () => {
-        await showBountyListPanel(player, { ...context, page: page + 1 });
-      });
-    }
+      },
+      async (newPage) => {
+        await showBountyListPanel(player, { ...context, page: newPage });
+      },
+      itemsPerPage,
+    );
   }
 
   form.addBackButton(async () => {

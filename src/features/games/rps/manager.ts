@@ -4,6 +4,8 @@ import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import {
+  payoutWagerPot,
+  recordSimpleGameStat,
   registerActiveMatchSession,
   registerMultiplayerGame,
   unregisterActiveMatchSession,
@@ -338,16 +340,24 @@ export function submitRpsChoice(
     match.status = 'won';
     const p1Won = match.p1Wins >= match.targetWins;
     match.winnerId = p1Won ? match.player1Id : match.player2Id;
+    const loserId = p1Won ? match.player2Id : match.player1Id;
+    if (match.winnerId !== botPlayerId) {
+      recordSimpleGameStat(match.winnerId, 'rps', 'wins');
+    }
+    if (loserId !== botPlayerId) {
+      recordSimpleGameStat(loserId, 'rps', 'losses');
+    }
     const winnerName = p1Won ? match.player1Name : match.player2Name;
     const loserName = p1Won ? match.player2Name : match.player1Name;
 
     match.endReason = `§a${winnerName} §7defeated §c${loserName} §7(${match.p1Wins} - ${match.p2Wins})!`;
 
-    if (match.wager > 0 && isDefined(match.winnerId) && match.winnerId !== botPlayerId) {
-      incrementPlayerBalance(match.winnerId, match.wager * 2);
-    }
+    const payout =
+      match.wager > 0 && isDefined(match.winnerId) && match.winnerId !== botPlayerId
+        ? payoutWagerPot(match.winnerId, match.wager)
+        : { netPrize: 0, taxRate: 0 };
 
-    const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})§r` : '';
+    const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
     const p1 = getPlayerFromCache(match.player1Id);
     const p2 = getPlayerFromCache(match.player2Id);
 
@@ -417,11 +427,9 @@ export function forfeitRpsMatch(matchId: string, forfeitingPlayerId: string, rea
   match.winnerId = winnerId;
   match.endReason = `§c${loserName} §7${reason}. §a${winnerName} §7wins by forfeit!`;
 
-  if (match.wager > 0) {
-    incrementPlayerBalance(winnerId, match.wager * 2);
-  }
+  const payout = match.wager > 0 ? payoutWagerPot(winnerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
-  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})§r` : '';
+  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
   const winnerPlayer = getPlayerFromCache(winnerId);
   const loserPlayer = getPlayerFromCache(forfeitingPlayerId);
 

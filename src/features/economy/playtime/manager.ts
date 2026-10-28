@@ -9,6 +9,7 @@ import {
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, formatDuration, playSound } from '@core/utils/index.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
+import { isPlayerAfk, setPlayerAfk } from '@features/essentials/afk/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -76,6 +77,9 @@ export function processPlaytimeTick(): void {
         }
       } else {
         playerIdleMinutes.set(player.id, 0);
+        if (isPlayerAfk(player.id)) {
+          setPlayerAfk(player, false);
+        }
       }
     }
 

@@ -3,9 +3,7 @@ import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency } from '@core/utils/index.js';
 import {
-  acceptGameInvite,
-  cancelGameInvite,
-  denyGameInvite,
+  appendGameInviteButtons,
   getIncomingGameInvites,
   getOutgoingGameInvite,
   isPlayerInQueue,
@@ -156,32 +154,7 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
     },
   );
 
-  for (const inv of incoming) {
-    const wagerStr = inv.wager > 0 ? ` (${formatCurrency(inv.wager)})` : '';
-    form.button(
-      `§aAccept Race: ${inv.senderName}${wagerStr}\n§7Click to start 2P Race`,
-      'textures/ui/realms_green_check',
-      () => {
-        const res = acceptGameInvite(player, inv.senderName, 'minesweeper');
-        if (isNonEmptyString(res.message)) {
-          player.sendMessage(res.message);
-        }
-      },
-    );
-    form.button(`§cDeny: ${inv.senderName}`, 'textures/ui/cancel', async () => {
-      const res = denyGameInvite(player, inv.senderName, 'minesweeper');
-      player.sendMessage(res.message);
-      await showMinesweeperMenu(player);
-    });
-  }
-
-  if (isDefined(outgoing) && outgoing.gameId === 'minesweeper') {
-    form.button(`§cCancel Invite to ${outgoing.targetName}`, 'textures/ui/cancel', async () => {
-      const res = cancelGameInvite(player);
-      player.sendMessage(res.message);
-      await showMinesweeperMenu(player);
-    });
-  }
+  appendGameInviteButtons(form, player, 'minesweeper', showMinesweeperMenu, 'Accept Race');
 
   if (pData.gameInvitesDisabled === true) {
     form.button('§7Note: Incoming Game Invites are currently disabled', 'textures/ui/WarningGlyph', async () => {

@@ -24,6 +24,7 @@ export class BlockVolume {
 
 // Stateful Dynamic Property Store
 const _testDynamicProperties = new Map();
+let _actionFormDepth = 0;
 
 export function _clearTestDynamicProperties(): void {
   _testDynamicProperties.clear();
@@ -34,6 +35,7 @@ export function setCurrentTickForTest(tick: number): void {
 }
 
 export function _resetMinecraftMocks(): void {
+  _actionFormDepth = 0;
   _clearTestDynamicProperties();
 
   world.getDynamicProperty.mockImplementation((key: string) => _testDynamicProperties.get(key));
@@ -556,7 +558,15 @@ export class ActionFormData {
   }
 
   show = mock().mockImplementation(async () => {
-    return { selection: 0, canceled: false };
+    if (_actionFormDepth >= 2) {
+      return { selection: undefined, canceled: true };
+    }
+    _actionFormDepth++;
+    try {
+      return { selection: 0, canceled: false };
+    } finally {
+      _actionFormDepth--;
+    }
   });
 }
 

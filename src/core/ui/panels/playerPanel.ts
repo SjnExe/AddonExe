@@ -6,82 +6,69 @@ import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { frozenTag } from '@core/utils/constants.js';
 import { formatCurrency } from '@core/utils/economy.js';
+import { formatDuration } from '@core/utils/time.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import { getBounty } from '@features/economy/bounty/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
+import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
-function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  if (h > 0) {
-    return `${h}h ${m}m`;
-  }
-  return `${m}m ${s}s`;
+async function showPaginatedOnlinePlayers(
+  player: mc.Player,
+  title: string,
+  page: number,
+  onPageChange: (newPage: number) => Promise<void>,
+  onBack: () => Promise<void>,
+): Promise<void> {
+  const form = new ActionFormBuilder().title(title);
+  const config = getConfig();
+  const players = getVisiblePlayers(player);
+
+  form.addPaginatedButtons(
+    players,
+    page,
+    (p, formBuilder) => {
+      const targetRank = getPlayerRank(p, config);
+      const rankText = targetRank.chatFormatting?.prefixText
+        ? `[${targetRank.chatFormatting.prefixText}]`
+        : `[${targetRank.name}]`;
+      formBuilder.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
+        void showPlayerActionsPanel(player, p.id, p.name);
+      });
+    },
+    onPageChange,
+  );
+
+  form.addBackButton(onBack);
+  await form.show(player);
 }
 
 export async function showPlayerListPanel(player: mc.Player, page: number = 1): Promise<void> {
-  const form = new ActionFormBuilder().title('Online Players');
-  const config = getConfig();
-  const players = getVisiblePlayers(player);
-
-  form.addPaginatedButtons(
-    players,
+  await showPaginatedOnlinePlayers(
+    player,
+    'Online Players',
     page,
-    (p, formBuilder) => {
-      const targetRank = getPlayerRank(p, config);
-      const rankText = targetRank.chatFormatting?.prefixText
-        ? `[${targetRank.chatFormatting.prefixText}]`
-        : `[${targetRank.name}]`;
-      formBuilder.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
-        void showPlayerActionsPanel(player, p.id, p.name);
-      });
-    },
-    async (newPage) => {
-      await showPlayerListPanel(player, newPage);
+    (newPage) => showPlayerListPanel(player, newPage),
+    async () => {
+      const { showMainPanel } = await import('./mainPanel.js');
+      await showMainPanel(player);
     },
   );
-
-  form.addBackButton(async () => {
-    const { showMainPanel } = await import('./mainPanel.js');
-    await showMainPanel(player);
-  });
-
-  await form.show(player);
 }
 
 export async function showPlayerManagementPanel(player: mc.Player, page: number = 1): Promise<void> {
-  const form = new ActionFormBuilder().title('Player Management');
-  const config = getConfig();
-  const players = getVisiblePlayers(player);
-
-  form.addPaginatedButtons(
-    players,
+  await showPaginatedOnlinePlayers(
+    player,
+    'Player Management',
     page,
-    (p, formBuilder) => {
-      const targetRank = getPlayerRank(p, config);
-      const rankText = targetRank.chatFormatting?.prefixText
-        ? `[${targetRank.chatFormatting.prefixText}]`
-        : `[${targetRank.name}]`;
-      formBuilder.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
-        void showPlayerActionsPanel(player, p.id, p.name);
-      });
-    },
-    async (newPage) => {
-      await showPlayerManagementPanel(player, newPage);
+    (newPage) => showPlayerManagementPanel(player, newPage),
+    async () => {
+      const { showStaffDashboardPanel } = await import('./adminPanel.js');
+      await showStaffDashboardPanel(player);
     },
   );
-
-  form.addBackButton(async () => {
-    const { showStaffDashboardPanel } = await import('./adminPanel.js');
-    await showStaffDashboardPanel(player);
-  });
-
-  await form.show(player);
 }
 
 export async function showPlayerActionsPanel(
@@ -154,6 +141,23 @@ export async function showPlayerActionsPanel(
     });
   }
 
+  if (isDefined(onlineTarget) && onlineTarget.id !== player.id) {
+    form.button('Send Private Message', 'textures/ui/message', async () => {
+      const modal = new CustomFormBuilder<{ msg: string }>(`Message ${targetPlayerName}`)
+        .textField('msg', 'Private Message', 'Type your message...', '')
+        .submitButton('Send Message');
+      const res = await modal.show(player);
+      if (res && res.msg.trim().length > 0) {
+        const { sendPrivateMessage } = await import('@features/social/pm/manager.js');
+        const out = sendPrivateMessage(player, onlineTarget, res.msg.trim());
+        if (!out.success && out.message) {
+          player.sendMessage(out.message);
+        }
+      }
+      await showPlayerActionsPanel(player, targetPlayerId, targetPlayerName);
+    });
+  }
+
   form.button('Send Friend Request', 'textures/ui/color_plus', () => {
     void import('@features/social/friends/ui/panel.js').then((m) => m.addFriendAction(player, targetPlayerId));
   });
@@ -197,11 +201,27 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
   const data = loadPlayerData(player.id);
 
   if (data) {
+    const rank = getPlayerRank(player, getConfig());
+    const rankDisplay = rank.chatFormatting?.prefixText ?? rank.nametagPrefix ?? rank.name;
+    const kdr = data.deaths === 0 ? data.kills.toFixed(2) : (data.kills / data.deaths).toFixed(2);
     form.button(`§2Balance: §r${formatCurrency(data.balance)}`, 'textures/items/emerald');
-    form.button(`§6Rank: §r${data.rankId}`, 'textures/ui/permissions_op_crown');
-    form.button(`${formatDuration(data.totalPlayTime)}`, 'textures/items/clock_item');
-    form.button(`§4Kills: §r${data.kills}`, 'textures/items/iron_sword');
-    form.button(`§4Deaths: §r${data.deaths}`, 'textures/items/mourner_pottery_sherd');
+    form.button(`§6Rank: §r${rankDisplay}`, 'textures/ui/permissions_op_crown');
+    form.button(
+      `§bPlaytime: §r${formatDuration(data.totalPlayTime)}\n§7Daily Streak: §e${data.dailyStreak ?? 0}d`,
+      'textures/items/clock_item',
+    );
+    form.button(`§cKills: §r${data.kills} §8| §7Streak: §6${data.killStreak ?? 0}`, 'textures/items/iron_sword');
+    form.button(`§4Deaths: §r${data.deaths} §8| §7KDR: §b${kdr}`, 'textures/items/mourner_pottery_sherd');
+    const msWins = data.gameStats?.minesweeper?.wins ?? 0;
+    const tttWins = data.gameStats?.ttt?.wins ?? 0;
+    const rpsWins = data.gameStats?.rps?.wins ?? 0;
+    const wrdWins = data.gameStats?.wordle?.wins ?? 0;
+    const c4Wins = data.gameStats?.connect4?.wins ?? 0;
+    const best2048 = data.gameStats?.game2048?.bestTile ?? 0;
+    form.button(
+      `§bMini-Game Stats\n§7MS:${msWins} TTT:${tttWins} C4:${c4Wins} RPS:${rpsWins} WRD:${wrdWins} 2048:${best2048}`,
+      'textures/ui/controller_glyph_color',
+    );
   }
 
   form.addBackButton(async () => {

@@ -9,6 +9,7 @@ import { debugLog, errorLog, warnLog } from '@core/utils/logger.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { BaseCheckConfig } from '@features/anticheat/config.js';
 import { addFlagLog } from '@features/anticheat/logManager.js';
+import { isWatched } from '@features/moderation/watchManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -96,10 +97,11 @@ export function flag(player: mc.Player, checkName: string, message: string) {
 }
 
 function notifyAdmins(suspect: mc.Player, check: string, vl: number, info: string) {
+  const watchBadge = isWatched(suspect.id) ? '§6[WATCHED] ' : '';
   for (const admin of getAllPlayersFromCache()) {
     const pData = getPlayer(admin.id);
     if (isDefined(pData) && hasPermission(admin, 'group.mod') && !admin.hasTag('exe:ac_notify_off')) {
-      admin.sendMessage(`§c[AC] §e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
+      admin.sendMessage(`§c[AC] ${watchBadge}§e${suspect.name} §7failed §b${check} §7(VL: ${vl}): §f${info}`);
     }
   }
 }

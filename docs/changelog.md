@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Features
 
-- **Mini-Games Hub (`/panel` -> Mini-Games):** Added multiplayer & solo **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), and **Minesweeper** (`/ms` — Beginner 9x9, Intermediate 12x12, Expert 16x12, and 2P Race) alongside **Wordle** (`/wordle`, `/guess`).
+- **Mini-Games Hub (`/panel` -> Mini-Games):** Added **Coin Flip** (`/cf`), **2048** (`/2048`), **Connect 4** (`/c4`), **Codebreaker** (`/cb`), **Scramble** (`/scramble`), **Fast Math** (`/math`), **Number Guess** (`/numguess` + `/gamechat`), **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), and **Minesweeper** (`/ms`) alongside **Wordle** (`/wordle`, `/guess`) with configurable 2P wager taxes.
+- **Essentials, Social & Moderation Utilities:** Added **AFK System** (`/afk`), **Player Utilities** (`/heal`, `/feed`, `/repair`, `/trash`, `/near`), **Direct Player Trading** (`/trade`), **Offline Mail** (`/mail`), **Chat Controls** (`/mutechat`, `/slowmode`), and **Punishment History** (`/history`).
 - **Playtime & AFK Rewards (`/playtime`):** Added recurring stay-online payouts and unlockable playtime milestones.
 - **Combat Tag & Anti-Combat-Log:** Added configurable PvP combat tagging, teleport blocking in combat, and disconnect grace-period penalties.
 - **World Border Manager (`/worldborder`, `/wb`):** Added linked Overworld + Nether (8:1) and End borders with safe knockback buffers and an in-game admin UI.
-- **Staff & Social Enhancements:** Added **Staff Inventory Swap** (`/staffinv`, `/sinv`), **Ender Chest Inspector** (`/ecsee`), **Private Messaging & Social Spy** (`/xmsg`, `/r`, `/socialspy`), and **Bulk Shop Selling** (`/sellall`).
+- **Staff & Social Enhancements:** Added **Staff Inventory Swap** (`/staffinv`, `/sinv`), **Ender Chest Inspector** (`/ecsee`), **Private Messaging & Social Spy** (`/xmsg`, `/r`, `/socialspy`, plus UI direct messaging), **Zone Selection Wand** (`/zonewand`), **Auction House Subcommands** (`/ah collect|listings|cancel`), **Poll Creation Subcommands** (`/vote create|results`), **Watchlist Staff Alerts**, and **Bulk Shop Selling** (`/sellall`).
 - **Adaptive Sidebar & HUD Layouts (`/sidebar`):** Added Top-Right Card, Top-Left Touch-Friendly Card, and Bottom Compact Bar layouts with theme presets.
 
 ## [0.7.0] - 2025-10-28

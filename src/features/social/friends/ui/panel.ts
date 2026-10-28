@@ -204,6 +204,20 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
       const result = tpaManager.createRequest(player, onlineP, 'tpa');
       player.sendMessage(result.message);
     });
+    form.button('Send Private Message', 'textures/ui/message', async () => {
+      const modal = new CustomFormBuilder<{ msg: string }>(`Message ${friendName}`)
+        .textField('msg', 'Private Message', 'Type your message...', '')
+        .submitButton('Send Message');
+      const res = await modal.show(player);
+      if (res && res.msg.trim().length > 0) {
+        const { sendPrivateMessage } = await import('@features/social/pm/manager.js');
+        const out = sendPrivateMessage(player, onlineP, res.msg.trim());
+        if (!out.success && out.message) {
+          player.sendMessage(out.message);
+        }
+      }
+      await showManageFriendPanel(player, friendId, friendName);
+    });
     form.button('Teleport Here (TPAHere)', 'textures/items/ender_pearl', () => {
       const result = tpaManager.createRequest(player, onlineP, 'tpahere');
       player.sendMessage(result.message);

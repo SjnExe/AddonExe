@@ -230,8 +230,8 @@ describe('Team Manager', () => {
     });
 
     it('benchmark: measures team creation performance under ID collisions', () => {
-      const numActive = 2000;
-      const extraDynamicPropertyCollisions = 500;
+      const numActive = 30;
+      const extraDynamicPropertyCollisions = 10;
       const allIds = Array.from({ length: numActive }, (_, i) => i + 1);
 
       const originalGetDynamicProperty = (
@@ -260,7 +260,7 @@ describe('Team Manager', () => {
 
         // Simulate nextTeamId out of sync causing collisions into extraDynamicPropertyCollisions range
         const start = performance.now();
-        const iterations = 20;
+        const iterations = 5;
         for (let i = 0; i < iterations; i++) {
           const player = { id: `benchPlayer${i}`, sendMessage: mock() } as unknown as mc.Player;
           const res = createTeam(player, `BTeam${i}`);

@@ -18,6 +18,7 @@ smol = false
 onlyFailures = true
 isolate = false
 randomize = true
+timeout = 5000
 
 [fmt]
 tabWidth = 2

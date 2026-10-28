@@ -5,6 +5,8 @@ import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
 import { stripColorCodes } from '@core/utils/formatting.js';
 import { rawLog } from '@core/utils/logger.js';
+import { isPlayerAfk, setPlayerAfk } from '@features/essentials/afk/manager.js';
+import { handleGameChatInput, isGameChatTalkingEnabled } from '@features/games/gameChat/manager.js';
 import { addChatLog } from '@features/moderation/chatLog.js';
 import {
   isStaffChatEnabled,
@@ -12,12 +14,31 @@ import {
   setStaffChatState,
 } from '@features/moderation/commands/staffchat.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
+import { isWatched } from '@features/moderation/watchManager.js';
 import { isTeamChatEnabled, sendTeamChatMessage } from '@features/social/team/commands/team.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 const lastChatTimestamp = new Map<string, number>();
 const lastChatMessage = new Map<string, string>();
+let globalChatMuted = false;
+let slowmodeOverrideSeconds: number | undefined;
+
+export function isGlobalChatMuted(): boolean {
+  return globalChatMuted;
+}
+
+export function setGlobalChatMuted(muted: boolean): void {
+  globalChatMuted = muted;
+}
+
+export function getSlowmodeOverrideSeconds(): number | undefined {
+  return slowmodeOverrideSeconds;
+}
+
+export function setSlowmodeOverrideSeconds(seconds: number | undefined): void {
+  slowmodeOverrideSeconds = seconds;
+}
 
 export function clearPlayerChatFilterState(playerId: string): void {
   lastChatTimestamp.delete(playerId);
@@ -27,6 +48,8 @@ export function clearPlayerChatFilterState(playerId: string): void {
 export function _clearChatFilterStateForTest(): void {
   lastChatTimestamp.clear();
   lastChatMessage.clear();
+  globalChatMuted = false;
+  slowmodeOverrideSeconds = undefined;
 }
 
 /**
@@ -36,6 +59,10 @@ export function _clearChatFilterStateForTest(): void {
 export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
   const config = getConfig();
   const player = event.sender;
+
+  if (isPlayerAfk(player.id)) {
+    setPlayerAfk(player, false);
+  }
 
   // Staff Chat Routing (Always intercept before general chat)
   if (isStaffChatEnabled(player.id)) {
@@ -75,6 +102,14 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     return;
   }
 
+  // Game Chat Routing (Visible only to active Game Chat participants)
+  if (isGameChatTalkingEnabled(player.id)) {
+    event.cancel = true;
+    handleGameChatInput(player, event.message);
+    addChatLog(player.name, `[GameChat] ${event.message}`, rank.name);
+    return;
+  }
+
   if (config.chat.enabled !== true) {
     return;
   }
@@ -83,8 +118,15 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
   const isStaffBypass = hasPermission(player, 'group.mod');
 
   if (!isStaffBypass) {
+    if (globalChatMuted) {
+      event.cancel = true;
+      player.sendMessage('§cGlobal chat is currently muted by staff.');
+      return;
+    }
     const now = Date.now();
-    const cooldownSec = Number(config.chat.cooldownSeconds ?? 0);
+    const cooldownSec = isDefined(slowmodeOverrideSeconds)
+      ? slowmodeOverrideSeconds
+      : Number(config.chat.cooldownSeconds ?? 0);
     if (cooldownSec > 0) {
       const prevTime = lastChatTimestamp.get(player.id) ?? 0;
       const elapsedMs = now - prevTime;
@@ -136,7 +178,8 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     lastChatMessage.set(player.id, normalizedMsg);
   }
 
-  addChatLog(player.name, finalMessageText, rank.name);
+  const watchPrefix = isWatched(player.id) ? '[WATCHED] ' : '';
+  addChatLog(player.name, `${watchPrefix}${finalMessageText}`, rank.name);
 
   // Apply Rank Formatting
   const chatFormatting = rank.chatFormatting;

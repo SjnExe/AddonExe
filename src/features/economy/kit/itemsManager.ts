@@ -32,6 +32,25 @@ interface ActionResult {
  * @param itemInfo - The item to add.
  * @returns The result of the operation.
  */
+function validateAndClampKitItem(kitName: string, itemInfo: ItemInfo): ActionResult | null {
+  try {
+    const itemStack = new mc.ItemStack(itemInfo.typeId, 1);
+    const maxAmount = itemStack.maxAmount;
+    if (itemInfo.amount > maxAmount) {
+      itemInfo.amount = maxAmount;
+      debugLog(
+        `[KitItemsManager] Item amount for ${itemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`,
+      );
+    }
+    return null;
+  } catch (error: unknown) {
+    errorLog(
+      `[KitItemsManager] Failed to validate item in kit: ${error instanceof Error ? error.stack : String(error)}`,
+    );
+    return { success: false, message: `Invalid item type ID: ${itemInfo.typeId}` };
+  }
+}
+
 export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult {
   const config = configManager.getConfig();
   const kitDefinitions = config.kits.kitDefinitions as Record<string, Kit>;
@@ -45,36 +64,21 @@ export function addItemToKit(kitName: string, itemInfo: ItemInfo): ActionResult 
     return { success: false, message: `Kit '${kitName}' is full. Cannot add more items.` };
   }
 
-  try {
-    // Use an item stack to validate the item and get its max stack size
-    const itemStack = new mc.ItemStack(itemInfo.typeId, 1);
-    const maxAmount = itemStack.maxAmount;
-
-    if (itemInfo.amount > maxAmount) {
-      itemInfo.amount = maxAmount;
-      debugLog(
-        `[KitItemsManager] Item amount for ${itemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`,
-      );
-    }
-
-    if (itemInfo.amount <= 0) {
-      return { success: false, message: 'Item amount must be greater than 0.' };
-    }
-
-    kit.items.push(itemInfo);
-    configManager.updateMultipleConfig({
-      'kits.kitDefinitions': kitDefinitions,
-    });
-    debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
-    return { success: true, message: 'Item added successfully.' };
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      errorLog(`[KitItemsManager] Failed to add item to kit: ${error.stack}`);
-    } else {
-      errorLog(`[KitItemsManager] Failed to add item to kit: ${String(error)}`);
-    }
-    return { success: false, message: `Invalid item type ID: ${itemInfo.typeId}` };
+  if (itemInfo.amount <= 0) {
+    return { success: false, message: 'Item amount must be greater than 0.' };
   }
+
+  const validationError = validateAndClampKitItem(kitName, itemInfo);
+  if (validationError) {
+    return validationError;
+  }
+
+  kit.items.push(itemInfo);
+  configManager.updateMultipleConfig({
+    'kits.kitDefinitions': kitDefinitions,
+  });
+  debugLog(`[KitItemsManager] Added item ${itemInfo.typeId} x${itemInfo.amount} to kit ${kitName}`);
+  return { success: true, message: 'Item added successfully.' };
 }
 
 /** Adds the item currently held by the player to a kit. Preserves Name, Lore, and Enchantments. */
@@ -163,29 +167,15 @@ export function updateItemInKit(kitName: string, itemIndex: number, newItemInfo:
     return removeItemFromKit(kitName, itemIndex);
   }
 
-  try {
-    const itemStack = new mc.ItemStack(newItemInfo.typeId, 1);
-    const maxAmount = itemStack.maxAmount;
-
-    if (newItemInfo.amount > maxAmount) {
-      newItemInfo.amount = maxAmount;
-      debugLog(
-        `[KitItemsManager] Item amount for ${newItemInfo.typeId} in kit ${kitName} exceeded max stack size. Capping at ${maxAmount}.`,
-      );
-    }
-
-    kit.items[itemIndex] = newItemInfo;
-    configManager.updateMultipleConfig({
-      'kits.kitDefinitions': kitDefinitions,
-    });
-    debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);
-    return { success: true, message: 'Item updated successfully.' };
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      errorLog(`[KitItemsManager] Failed to update item in kit: ${error.stack}`);
-    } else {
-      errorLog(`[KitItemsManager] Failed to update item in kit: ${String(error)}`);
-    }
-    return { success: false, message: `Invalid item type ID: ${newItemInfo.typeId}` };
+  const validationError = validateAndClampKitItem(kitName, newItemInfo);
+  if (validationError) {
+    return validationError;
   }
+
+  kit.items[itemIndex] = newItemInfo;
+  configManager.updateMultipleConfig({
+    'kits.kitDefinitions': kitDefinitions,
+  });
+  debugLog(`[KitItemsManager] Updated item at index ${itemIndex} in kit ${kitName}`);
+  return { success: true, message: 'Item updated successfully.' };
 }

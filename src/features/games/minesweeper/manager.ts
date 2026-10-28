@@ -1,9 +1,10 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import {
+  payoutWagerPot,
   registerActiveMatchSession,
   registerMultiplayerGame,
   unregisterActiveMatchSession,
@@ -357,16 +358,42 @@ export function clearPlayerMinesweeperGame(playerId: string): void {
 export function getPlayerMinesweeperStats(playerId: string): MinesweeperPlayerStats {
   let stats = playerSessionStats.get(playerId);
   if (!isDefined(stats)) {
-    stats = {
-      wins: 0,
-      losses: 0,
-      currentStreak: 0,
-      bestStreak: 0,
-      bestTimes: {},
-    };
+    const pData = getPlayer(playerId);
+    const saved = pData?.gameStats?.minesweeper;
+    stats = saved
+      ? {
+          wins: saved.wins ?? 0,
+          losses: saved.losses ?? 0,
+          currentStreak: saved.currentStreak ?? 0,
+          bestStreak: saved.bestStreak ?? 0,
+          bestTimes: { ...(saved.bestTimes ?? {}) },
+        }
+      : {
+          wins: 0,
+          losses: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          bestTimes: {},
+        };
     playerSessionStats.set(playerId, stats);
   }
   return stats;
+}
+
+function persistMinesweeperStats(playerId: string, stats: MinesweeperPlayerStats): void {
+  if (!isDefined(getPlayer(playerId))) {
+    return;
+  }
+  updatePlayerData(playerId, (d) => {
+    d.gameStats ??= {};
+    d.gameStats.minesweeper = {
+      wins: stats.wins,
+      losses: stats.losses,
+      currentStreak: stats.currentStreak,
+      bestStreak: stats.bestStreak,
+      bestTimes: { ...stats.bestTimes },
+    };
+  });
 }
 
 function syncBoardCounts(game: MinesweeperGame): void {
@@ -441,11 +468,9 @@ export function forfeitMinesweeperRace(matchId: string, losingPlayerId: string, 
     winnerGame.status = 'won';
   }
 
-  if (match.wager > 0) {
-    incrementPlayerBalance(winnerId, match.wager * 2);
-  }
+  const payout = match.wager > 0 ? payoutWagerPot(winnerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
-  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})§r` : '';
+  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
   const winnerPlayer = getPlayerFromCache(winnerId);
   const loserPlayer = getPlayerFromCache(losingPlayerId);
 
@@ -488,11 +513,9 @@ function handleRaceBoardCleared(matchId: string, finisherId: string, netSeconds:
     oppGame.status = 'lost';
   }
 
-  if (match.wager > 0) {
-    incrementPlayerBalance(finisherId, match.wager * 2);
-  }
+  const payout = match.wager > 0 ? payoutWagerPot(finisherId, match.wager) : { netPrize: 0, taxRate: 0 };
 
-  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(match.wager * 2)})§r` : '';
+  const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
   const p1 = getPlayerFromCache(match.player1Id);
   const p2 = getPlayerFromCache(match.player2Id);
 
@@ -620,6 +643,7 @@ function handleMineDetonation(
   const stats = getPlayerMinesweeperStats(player.id);
   stats.losses++;
   stats.currentStreak = 0;
+  persistMinesweeperStats(player.id, stats);
 
   if (isDefined(game.multiplayerMatchId)) {
     forfeitMinesweeperRace(game.multiplayerMatchId, player.id, 'detonated a mine');
@@ -736,6 +760,7 @@ function completeWin(player: mc.Player, game: MinesweeperGame): { status: 'won';
   if (!isDefined(prevBest) || netSeconds < prevBest) {
     stats.bestTimes[game.difficulty] = netSeconds;
   }
+  persistMinesweeperStats(player.id, stats);
 
   for (const cell of game.cells) {
     if (cell.hasMine && !cell.flagged) {
