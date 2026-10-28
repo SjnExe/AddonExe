@@ -4,6 +4,8 @@ import { StorageManager } from '@core/data/storageManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { debugLog } from '@core/utils/logger.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 export interface VoteOption {
@@ -25,17 +27,19 @@ export interface ActiveVote {
 
 const storage = new StorageManager('exe:voting');
 let currentVote: ActiveVote | undefined;
+let voteIntervalId: number | undefined;
 
 export function initializeVoting() {
   currentVote = storage.load<ActiveVote>();
   if (currentVote && currentVote.status === 'active') {
     debugLog('[Voting] Loaded active vote.');
-    // If expired while offline, end it?
     checkVoteExpiry();
   }
 
-  // Check expiry loop
-  mc.system.runInterval(() => {
+  if (isDefined(voteIntervalId)) {
+    clearTrackedInterval(voteIntervalId);
+  }
+  voteIntervalId = setTrackedInterval(() => {
     checkVoteExpiry();
   }, 200); // 10 seconds
 }

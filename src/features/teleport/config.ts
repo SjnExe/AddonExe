@@ -1,4 +1,5 @@
 export const teleportConfig = {
+  teleportProtectionSeconds: 3,
   tpa: {
     enabled: true,
     requestTimeoutSeconds: 60,

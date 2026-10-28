@@ -1,6 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getEconomyConfig } from '@core/config/configurations.js';
-import { SerializedItem } from '@core/data/itemSerializer.js';
+import { SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission, invalidatePlayerPermissionCache } from '@core/permissions/permissionEngine.js';
@@ -9,6 +9,7 @@ import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { updateAndSaveLeaderboard } from '@features/economy/leaderboard.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 
 const playerPropertyPrefix = 'exe:player.';
 // Legacy keys (kept for migration)
@@ -93,6 +94,11 @@ export interface PlayerData {
   friendRequests?: FriendRequest[];
   friendSettings?: { autoTpAccept: boolean };
   gameStats?: PlayerGameStats;
+  offlineInventory?: Record<number, SerializedItem>;
+  offlineEquipment?: Partial<Record<mc.EquipmentSlot, SerializedItem>>;
+  offlineEnderChest?: Record<number, SerializedItem>;
+  pendingInventoryClear?: boolean;
+  pendingEnderChestWipe?: boolean;
   needsSave?: boolean;
 }
 
@@ -263,6 +269,59 @@ export function loadNameIdMap() {
  * @param playerId The ID of the player to save.
  * @returns True if successful, false otherwise.
  */
+export function snapshotOnlinePlayerContainers(player: mc.Player, pData: PlayerData): void {
+  try {
+    if (!player.isValid) {
+      return;
+    }
+    const invComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+    if (isDefined(invComp?.container)) {
+      const slots: Record<number, SerializedItem> = {};
+      for (let i = 0; i < invComp.container.size; i++) {
+        const item = invComp.container.getItem(i);
+        if (isDefined(item)) {
+          slots[i] = serializeItem(item);
+        }
+      }
+      pData.offlineInventory = slots;
+    }
+
+    const equipComp = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+    if (isDefined(equipComp)) {
+      const equip: Partial<Record<mc.EquipmentSlot, SerializedItem>> = {};
+      const eqSlots = [
+        mc.EquipmentSlot.Head,
+        mc.EquipmentSlot.Chest,
+        mc.EquipmentSlot.Legs,
+        mc.EquipmentSlot.Feet,
+        mc.EquipmentSlot.Offhand,
+      ];
+      for (const slot of eqSlots) {
+        const eqItem = equipComp.getEquipment(slot);
+        if (isDefined(eqItem)) {
+          equip[slot] = serializeItem(eqItem);
+        }
+      }
+      pData.offlineEquipment = equip;
+    }
+
+    const enderComp = player.getComponent(EntityComponentTypes.EnderInventory) as
+      mc.EntityEnderInventoryComponent | undefined;
+    if (isDefined(enderComp?.container)) {
+      const ecSlots: Record<number, SerializedItem> = {};
+      for (let i = 0; i < enderComp.container.size; i++) {
+        const item = enderComp.container.getItem(i);
+        if (isDefined(item)) {
+          ecSlots[i] = serializeItem(item);
+        }
+      }
+      pData.offlineEnderChest = ecSlots;
+    }
+  } catch {
+    // Ignore container snapshot errors in mock/early states
+  }
+}
+
 export function savePlayerData(playerId: string): boolean {
   if (!activePlayerData.has(playerId)) {
     errorLog(`[PlayerDataManager] Attempted to save data for non-cached player: ${playerId}`);
@@ -271,6 +330,10 @@ export function savePlayerData(playerId: string): boolean {
   try {
     const playerData = activePlayerData.get(playerId);
     if (isDefined(playerData)) {
+      const onlinePlayer = getPlayerFromCache(playerId);
+      if (isDefined(onlinePlayer)) {
+        snapshotOnlinePlayerContainers(onlinePlayer, playerData);
+      }
       // Update Playtime before saving
       const now = Date.now();
       const sessionStart = sessionStartTimes.get(playerId);

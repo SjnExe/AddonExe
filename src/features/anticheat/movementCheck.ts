@@ -3,6 +3,7 @@ import * as configLoader from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { errorLog } from '@core/utils/logger.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
@@ -16,6 +17,7 @@ interface PlayerMovementState {
 
 const movementStates = new Map<string, PlayerMovementState>();
 let isChecking = false;
+let movementIntervalId: number | undefined;
 
 export function clearPlayerMovementState(playerId: string): void {
   movementStates.delete(playerId);
@@ -24,6 +26,10 @@ export function clearPlayerMovementState(playerId: string): void {
 export function _resetMovementCheckForTest() {
   movementStates.clear();
   isChecking = false;
+  if (isDefined(movementIntervalId)) {
+    clearTrackedInterval(movementIntervalId);
+    movementIntervalId = undefined;
+  }
 }
 
 // Slippery blocks that allow faster movement
@@ -36,9 +42,10 @@ const iceBlocks = new Set<string>([
 ]);
 
 export function startMovementCheckLoop() {
-  // Check world border/roof/movement every few ticks
-  // Using runJob to spread execution across ticks to prevent lag with many players.
-  mc.system.runInterval(() => {
+  if (isDefined(movementIntervalId)) {
+    clearTrackedInterval(movementIntervalId);
+  }
+  movementIntervalId = setTrackedInterval(() => {
     if (isChecking) {
       return;
     }
@@ -48,7 +55,7 @@ export function startMovementCheckLoop() {
         return;
       }
 
-      mc.system.runJob(checkPlayersGenerator(config));
+      setTrackedJob(checkPlayersGenerator(config));
     } catch (error) {
       errorLog('Anticheat Movement Loop Error', error);
     }

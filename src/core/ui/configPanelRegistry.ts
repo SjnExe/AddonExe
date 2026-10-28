@@ -126,6 +126,13 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'main',
       },
       {
+        key: 'teleportProtectionSeconds',
+        label: 'Post-Teleport Immunity Seconds',
+        type: 'textField',
+        configSource: 'main',
+        description: 'Seconds of damage immunity and action lock after completing a teleport (0 to disable).',
+      },
+      {
         key: 'tpa.enabled',
         label: 'Enable TPA System (/tpa)',
         type: 'toggle',
@@ -339,9 +346,10 @@ export const configPanelSchema: ConfigCategory[] = [
     category: 'Economy',
     settings: [
       {
-        key: 'enabled',
+        key: 'dailyRewards.enabled',
         label: 'Enable Daily Rewards',
         type: 'toggle',
+        configSource: 'main',
         description: 'Enables or disables the daily rewards system.',
       },
       {
@@ -438,9 +446,10 @@ export const configPanelSchema: ConfigCategory[] = [
     category: 'Economy',
     settings: [
       {
-        key: 'enabled',
+        key: 'auctionHouse.enabled',
         label: 'Auction House Enabled',
         type: 'toggle',
+        configSource: 'main',
         description: 'Enables or disables the entire auction house system.',
       },
       {

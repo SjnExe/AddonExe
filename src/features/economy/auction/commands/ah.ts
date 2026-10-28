@@ -1,6 +1,7 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getAuctionHouseConfig } from '@core/config/configurations.js';
 import { serializeItem } from '@core/data/itemSerializer.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { ahDisabled } from '@core/utils/constants.js';
 import { parseCurrency } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
@@ -38,7 +39,7 @@ const mainCommand: CustomCommand = {
     }
 
     const config = getAuctionHouseConfig();
-    if (!config.enabled) {
+    if (!isFeatureActive('eco.ah') || !config.enabled) {
       sendMessage(ahDisabled, executor);
       return;
     }

@@ -563,12 +563,6 @@ async function findSafeLocationAndTeleport(player: mc.Player, settings: Resolved
   try {
     const cachedSpot = popValidCachedLocation(player, settings);
     if (isDefined(cachedSpot)) {
-      await createTickingAreaFast(
-        player.dimension,
-        tickingAreaName,
-        Math.floor(cachedSpot.x),
-        Math.floor(cachedSpot.z),
-      );
       initiateRtpWarmup(player, cachedSpot, tickingAreaName, settings);
       return;
     }

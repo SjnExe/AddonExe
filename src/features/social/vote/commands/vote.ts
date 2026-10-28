@@ -11,19 +11,20 @@ const voteCommand: CustomCommand = {
   description: 'Participate in server votes or manage polls.',
   category: 'General',
   permissionNode: 'cmd.vote.member',
+  allowConsole: true,
   parameters: [
     { name: 'subcommand', type: 'string', optional: true, enumOptions: ['ui', 'results', 'end', 'create'] },
     { name: 'payload', type: 'text', optional: true },
   ],
   execute: async (executor: CommandExecutor, args: { subcommand?: string; payload?: string }) => {
-    if (!(executor instanceof mc.Player)) {
-      return;
-    }
-
     const sub = args.subcommand?.toLowerCase();
 
     if (!isNonEmptyString(sub) || sub === 'ui') {
-      await showVoteMenu(executor);
+      if (executor instanceof mc.Player) {
+        await showVoteMenu(executor);
+      } else {
+        executor.sendMessage('§cConsole usage: /vote <results|end|create> [Question | Opt1 | Opt2]');
+      }
       return;
     }
 
@@ -42,7 +43,10 @@ const voteCommand: CustomCommand = {
       return;
     }
 
-    const isAdmin = hasPermission(executor, 'cmd.vote.admin') || hasPermission(executor, 'ui.panel.admin');
+    const isAdmin =
+      !(executor instanceof mc.Player) ||
+      hasPermission(executor, 'cmd.vote.admin') ||
+      hasPermission(executor, 'ui.panel.admin');
 
     if (sub === 'end') {
       if (!isAdmin) {
@@ -76,11 +80,14 @@ const voteCommand: CustomCommand = {
         return;
       }
       const [question, ...options] = parts;
-      createVote(executor, question!, options, 600);
+      const creatorObj = executor instanceof mc.Player ? executor : ({ name: 'Console' } as mc.Player);
+      createVote(creatorObj, question!, options, 600);
       return;
     }
 
-    await showVoteMenu(executor);
+    if (executor instanceof mc.Player) {
+      await showVoteMenu(executor);
+    }
   },
 };
 

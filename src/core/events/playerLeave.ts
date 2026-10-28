@@ -6,7 +6,7 @@ import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { clearPlayerUiTimestamp } from '@core/ui/uiManager.js';
 import { formatString } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
-import { cancelActiveTeleportWarmup } from '@core/utils/teleportLogic.js';
+import { cancelActiveTeleportWarmup, clearTeleportProtection } from '@core/utils/teleportLogic.js';
 import { clearPlayerMovementState } from '@features/anticheat/movementCheck.js';
 import { clearPlayerPlaytimeState } from '@features/economy/playtime/manager.js';
 import { clearPlayerTradeOffers } from '@features/economy/trade/manager.js';
@@ -43,6 +43,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   }
 
   cancelActiveTeleportWarmup(event.playerId);
+  clearTeleportProtection(event.playerId);
   clearPlayerTpaRequests(event.playerId);
   setStaffChatState(event.playerId, false);
   setTeamChatState(event.playerId, false);

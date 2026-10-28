@@ -23,7 +23,11 @@ describe('Vote Manager', () => {
 
   beforeEach(() => {
     runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
-      intervalCallback = cb;
+      intervalCallback = () => {
+        for (let i = 0; i < 200; i++) {
+          cb();
+        }
+      };
       return 1 as any;
     });
     sendMessageSpy = spyOn(mc.world, 'sendMessage').mockImplementation(() => {});

@@ -13,7 +13,7 @@ const zoneWandCommand: CustomCommand = {
   aliases: ['wand', 'pos1', 'pos2'],
   description: 'Gives the World Protection Selection Wand or sets Pos1/Pos2 at your feet.',
   category: 'Administration',
-  permissionNode: 'cmd.worldborder.admin',
+  permissionNode: 'cmd.zonewand.admin',
   parameters: [
     {
       name: 'action',

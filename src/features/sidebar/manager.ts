@@ -136,6 +136,10 @@ let lastTpsTick = 0;
 let cachedTps = '20.0';
 let cachedTpsNum = 20;
 
+export function getCurrentTps(): { tps: string; tpsNum: number } {
+  return { tps: cachedTps, tpsNum: cachedTpsNum };
+}
+
 export function initializeSidebar() {
   if (sidebarInterval !== undefined) {
     clearTrackedInterval(sidebarInterval);
