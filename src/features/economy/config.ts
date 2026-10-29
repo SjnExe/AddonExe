@@ -6,6 +6,24 @@ export interface EconomyConfig {
   minBalance: number;
   maxBalance: number;
   logToConsole: boolean;
+  transferTax: {
+    ratePercent: number;
+    tierThreshold: number;
+    aboveTierRatePercent: number;
+    minTax: number;
+    maxTax: number;
+  };
+  deathTax: {
+    enabled: boolean;
+    ratePercent: number;
+    minTax: number;
+    maxTax: number;
+  };
+  mobFarmCap: {
+    enabled: boolean;
+    maxKillsPerWindow: number;
+    windowSeconds: number;
+  };
   mobMoney: Record<string, number>;
   steal: {
     enabled: boolean;
@@ -15,6 +33,7 @@ export interface EconomyConfig {
   pvp: {
     enabled: boolean;
     defaultWinPercent: number;
+    wagerTaxPercentage: number;
     requestTimeout: number;
     duelTimeout: number;
     maxConcurrentDuels: number;
@@ -27,6 +46,24 @@ export const economyConfig: EconomyConfig = {
   minBalance: -1_000_000,
   maxBalance: 1_000_000_000,
   logToConsole: false,
+  transferTax: {
+    ratePercent: 5,
+    tierThreshold: 10_000,
+    aboveTierRatePercent: 2.5,
+    minTax: 0,
+    maxTax: 500,
+  },
+  deathTax: {
+    enabled: true,
+    ratePercent: 3,
+    minTax: 0,
+    maxTax: 500,
+  },
+  mobFarmCap: {
+    enabled: true,
+    maxKillsPerWindow: 25,
+    windowSeconds: 180,
+  },
   mobMoney: {
     // Low reward for common/farmable mobs
     [MinecraftEntityTypes.Zombie]: 2,
@@ -98,6 +135,7 @@ export const economyConfig: EconomyConfig = {
   pvp: {
     enabled: true,
     defaultWinPercent: 100,
+    wagerTaxPercentage: 8,
     requestTimeout: 60,
     duelTimeout: 300,
     maxConcurrentDuels: 1,
@@ -108,20 +146,41 @@ export const economyMainDefaults = {
   playtimeRewards: {
     enabled: false,
     afkIntervalMinutes: 15,
-    afkRewardMoney: 50,
+    afkRewardMoney: 25,
     afkRewardXpLevels: 0,
     notifyOnAfkReward: true,
-    requireActiveMovement: false,
+    requireActiveMovement: true,
     maxIdleMinutes: 10,
   },
   bounties: {
     enabled: false,
-    minimumBounty: 10,
+    minimumBounty: 50,
+    placementTaxPercentage: 10,
+    minTax: 5,
+    maxTax: 500,
     bountyCreditTimeoutSeconds: 15,
   },
   trading: {
     enabled: false,
     requestTimeoutSeconds: 60,
+    flatFee: 10,
+    moneyTaxPercentage: 5,
+    maxTax: 250,
+  },
+  bank: {
+    enabled: true,
+    savingsInterestPercent: 2,
+    interestCycleHours: 24,
+    maxInterestCapPerCycle: 500,
+    minPlaytimeMinutesForInterest: 30,
+    freeWithdrawalsPerDay: 3,
+    withdrawalFeePercent: 2,
+    withdrawalMinFee: 5,
+    withdrawalMaxFee: 200,
+    earlyBreakPenaltyPercent: 10,
+    maxActiveFixedDeposits: 3,
+    minFixedDepositAmount: 100,
+    maxFixedDepositAmount: 100_000,
   },
 };
 

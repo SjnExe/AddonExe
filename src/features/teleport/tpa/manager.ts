@@ -1,8 +1,11 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
+import { formatCurrency } from '@core/utils/economy.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -143,6 +146,13 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
   }
 
   const config = getConfig();
+  const tpaCost = Math.max(0, Number(config.tpa.cost ?? 0));
+  if (isFeatureActive('eco') && tpaCost > 0 && !hasPermission(sourcePlayer, 'group.admin')) {
+    const sourceData = getOrCreatePlayer(sourcePlayer);
+    if (sourceData.balance < tpaCost) {
+      return { success: false, message: `§cInsufficient funds for TPA. Cost: ${formatCurrency(tpaCost)}.` };
+    }
+  }
   const timeoutSeconds = config.tpa.requestTimeoutSeconds;
   const expiryTimestamp = Date.now() + timeoutSeconds * 1000;
 
@@ -259,6 +269,16 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
       freshSource.sendMessage('§cTeleport cancelled: No safe location found near target.');
       freshTarget.sendMessage('§cTeleport cancelled: No safe location found near you.');
       return;
+    }
+
+    const tpaCost = Math.max(0, Number(config.tpa.cost ?? 0));
+    if (isFeatureActive('eco') && tpaCost > 0 && !hasPermission(freshSource, 'group.admin')) {
+      const sData = getOrCreatePlayer(freshSource);
+      if (sData.balance < tpaCost) {
+        freshSource.sendMessage(`§cTPA cancelled: Insufficient funds (${formatCurrency(tpaCost)} required).`);
+        return;
+      }
+      incrementPlayerBalance(freshSource.id, -tpaCost);
     }
 
     saveLastLocation(mover);

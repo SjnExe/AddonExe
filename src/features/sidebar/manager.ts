@@ -540,6 +540,10 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
       }
       case 'money':
         return formatCurrency(pData.balance);
+      case 'bank':
+        return formatCurrency(pData.bank?.savingsBalance ?? 0);
+      case 'fd':
+        return formatCurrency((pData.bank?.fixedDeposits ?? []).reduce((sum, fd) => sum + fd.principal, 0));
       case 'bounty':
         return formatCurrency(getBounty(player.id)?.amount ?? 0);
       case 'kills':

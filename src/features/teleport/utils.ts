@@ -1,7 +1,10 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
-import { setPlayerLastLocation } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastLocation } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { soundTeleport } from '@core/utils/constants.js';
+import { formatCurrency } from '@core/utils/economy.js';
 import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
@@ -150,6 +153,7 @@ export interface ExecuteTeleportParams {
   warmupSeconds: number;
   cooldownSeconds: number;
   cooldownKey: string;
+  cost?: number;
 }
 
 /**
@@ -158,6 +162,22 @@ export interface ExecuteTeleportParams {
  */
 export function executeTeleport(params: ExecuteTeleportParams): void {
   const { executor, location, destinationName, teleportType, warmupSeconds, cooldownSeconds, cooldownKey } = params;
+  const rawCost =
+    params.cost ??
+    (teleportType === 'home'
+      ? Number(getConfig().homes?.cost ?? 0)
+      : teleportType === 'warp'
+        ? Number(getConfig().warps?.cost ?? 0)
+        : 0);
+  const chargeCost = isFeatureActive('eco') && rawCost > 0 && !hasPermission(executor, 'group.admin') ? rawCost : 0;
+
+  if (chargeCost > 0) {
+    const pData = getOrCreatePlayer(executor);
+    if (pData.balance < chargeCost) {
+      sendMessage(`§cInsufficient funds for /${teleportType}. Cost: §e${formatCurrency(chargeCost)}§c.`, executor);
+      return;
+    }
+  }
 
   const remainingCd = getCooldown(executor.id, cooldownKey);
   if (remainingCd > 0) {
@@ -183,10 +203,19 @@ export function executeTeleport(params: ExecuteTeleportParams): void {
         sendMessage(`§cError: Dimension '${location.dimensionId}' not found.`, executor);
         return;
       }
+      if (chargeCost > 0) {
+        const curData = getOrCreatePlayer(executor);
+        if (curData.balance < chargeCost) {
+          sendMessage(`§cTeleport cancelled: Insufficient funds (${formatCurrency(chargeCost)} required).`, executor);
+          return;
+        }
+        incrementPlayerBalance(executor.id, -chargeCost);
+      }
       saveLastLocation(executor);
       executor.teleport(location, { dimension });
       playSound(executor, soundTeleport);
-      sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.`, executor);
+      const costSuffix = chargeCost > 0 ? ` §7(-${formatCurrency(chargeCost)})` : '';
+      sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.${costSuffix}`, executor);
       setCooldown(executor.id, cooldownKey, cooldownSeconds);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);

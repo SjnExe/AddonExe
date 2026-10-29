@@ -12,8 +12,8 @@ export interface AuctionHouseConfig {
 
 export const auctionHouseConfig: AuctionHouseConfig = {
   enabled: true,
-  taxRate: 0.05,
-  listingFee: 0,
+  taxRate: 0.08,
+  listingFee: 15,
   maxListingsPerPlayer: 5,
   defaultDurationSeconds: 86_400, // 24 Hours
   allowBidding: true,

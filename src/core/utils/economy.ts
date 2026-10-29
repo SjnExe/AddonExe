@@ -106,6 +106,53 @@ export function parseCurrency(input: string | number): number {
  * Validates a currency amount string input from commands or UI. Ensures the value is a valid positive/non-negative
  * number with at most 2 decimal places.
  */
+export interface TaxPolicy {
+  flatFee?: number;
+  ratePercent?: number;
+  tierThreshold?: number;
+  aboveTierRatePercent?: number;
+  minTax?: number;
+  maxTax?: number;
+}
+
+/** Calculates tax and net amount using an optional flat fee, continuous 2-tier percentage bracket, and min/max clamps. */
+export function calculateTaxWithPolicy(
+  grossAmount: number,
+  policy: TaxPolicy,
+): { tax: number; netAmount: number; totalCost: number } {
+  if (grossAmount <= 0) {
+    return { tax: 0, netAmount: 0, totalCost: 0 };
+  }
+
+  const flat = Math.max(0, Number(policy.flatFee ?? 0));
+  const baseRate = Math.max(0, Number(policy.ratePercent ?? 0)) / 100;
+  const threshold = Number(policy.tierThreshold ?? 0);
+  const aboveRate =
+    policy.aboveTierRatePercent !== undefined ? Math.max(0, Number(policy.aboveTierRatePercent)) / 100 : baseRate;
+
+  let pctTax = 0;
+  if (threshold > 0 && grossAmount > threshold) {
+    pctTax = threshold * baseRate + (grossAmount - threshold) * aboveRate;
+  } else {
+    pctTax = grossAmount * baseRate;
+  }
+
+  let totalTax = flat + pctTax;
+  const minTax = Number(policy.minTax ?? 0);
+  const maxTax = Number(policy.maxTax ?? 0);
+  if (minTax > 0 && totalTax > 0) {
+    totalTax = Math.max(minTax, totalTax);
+  }
+  if (maxTax > 0) {
+    totalTax = Math.min(maxTax, totalTax);
+  }
+
+  const roundedTax = Math.max(0, Math.round(totalTax * 100) / 100);
+  const netAmount = Math.max(0, Math.round((grossAmount - roundedTax) * 100) / 100);
+  const totalCost = Math.round((grossAmount + roundedTax) * 100) / 100;
+  return { tax: roundedTax, netAmount, totalCost };
+}
+
 export function validateCurrencyAmount(amountStr: string, requirePositive = true): number | undefined {
   if (typeof amountStr !== 'string' || amountStr.trim().length === 0) {
     return undefined;

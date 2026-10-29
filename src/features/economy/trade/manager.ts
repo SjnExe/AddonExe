@@ -5,7 +5,7 @@ import { deserializeItem, type SerializedItem, serializeItem } from '@core/data/
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { formatCurrency, playSound } from '@core/utils/index.js';
+import { calculateTaxWithPolicy, formatCurrency, playSound } from '@core/utils/index.js';
 import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager.js';
 import { formatSerializedItemSummary } from '@features/economy/tradeUtils.js';
 import { isDefined } from '@lib/guards.js';
@@ -108,9 +108,13 @@ export function createTradeOffer(
     return { success: false, message: '§cMoney trades require Economy to be enabled.' };
   }
 
+  const flatFee = isFeatureActive('eco') ? Math.max(0, Number(cfg.trading?.flatFee ?? 0)) : 0;
   const senderData = getOrCreatePlayer(sender);
-  if (offerMoney > 0 && senderData.balance < offerMoney) {
-    return { success: false, message: `§cInsufficient funds (${formatCurrency(offerMoney)} required).` };
+  if (offerMoney + flatFee > 0 && senderData.balance < offerMoney + flatFee) {
+    return {
+      success: false,
+      message: `§cInsufficient funds (${formatCurrency(offerMoney + flatFee)} required including ${formatCurrency(flatFee)} trade fee).`,
+    };
   }
 
   let offeredItem: SerializedItem | undefined;
@@ -247,9 +251,17 @@ export function acceptTradeOffer(target: mc.Player): { success: boolean; message
   outgoingTradeBySender.delete(proposal.senderId);
   releaseEscrow(proposal.id);
 
+  const tradeCfg = getConfig().trading;
+  const tradeRate = Number(tradeCfg?.moneyTaxPercentage ?? 0);
+  const tradeMaxTax = Number(tradeCfg?.maxTax ?? 0);
+
   if (proposal.requestedMoney > 0) {
     incrementPlayerBalance(target.id, -proposal.requestedMoney);
-    incrementPlayerBalance(proposal.senderId, proposal.requestedMoney);
+    const { netAmount } = calculateTaxWithPolicy(proposal.requestedMoney, {
+      ratePercent: tradeRate,
+      maxTax: tradeMaxTax,
+    });
+    incrementPlayerBalance(proposal.senderId, netAmount);
   }
   if (isDefined(targetHeldSerialized) && isDefined(targetInv)) {
     targetInv.setItem(target.selectedSlotIndex, undefined);
@@ -257,7 +269,11 @@ export function acceptTradeOffer(target: mc.Player): { success: boolean; message
   }
 
   if (proposal.offeredMoney > 0) {
-    incrementPlayerBalance(target.id, proposal.offeredMoney);
+    const { netAmount } = calculateTaxWithPolicy(proposal.offeredMoney, {
+      ratePercent: tradeRate,
+      maxTax: tradeMaxTax,
+    });
+    incrementPlayerBalance(target.id, netAmount);
   }
   if (isDefined(proposal.offeredItem)) {
     deliverItemSafely(target.id, proposal.offeredItem);

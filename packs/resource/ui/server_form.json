@@ -2579,32 +2579,26 @@
     ]
   },
   "ms_button_content": {
-    "type": "panel",
+    "type": "image",
+    "layer": 6,
     "size": ["100%", "100%"],
-    "controls": [
+    "anchor_from": "center",
+    "anchor_to": "center",
+    "bindings": [
       {
-        "tile_bg": {
-          "type": "image",
-          "layer": 6,
-          "size": ["100%", "100%"],
-          "anchor_from": "center",
-          "anchor_to": "center",
-          "bindings": [
-            {
-              "binding_name": "#form_button_texture",
-              "binding_name_override": "#texture",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            },
-            {
-              "binding_name": "#form_button_texture_file_system",
-              "binding_name_override": "#texture_file_system",
-              "binding_type": "collection",
-              "binding_collection_name": "form_buttons"
-            }
-          ]
-        }
+        "binding_name": "#form_button_texture",
+        "binding_name_override": "#texture",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
       },
+      {
+        "binding_name": "#form_button_texture_file_system",
+        "binding_name_override": "#texture_file_system",
+        "binding_type": "collection",
+        "binding_collection_name": "form_buttons"
+      }
+    ],
+    "controls": [
       {
         "cell_label": {
           "type": "label",
@@ -2656,17 +2650,7 @@
   "ms_empty_button_content": {
     "type": "panel",
     "size": [0, 0],
-    "ignored": true,
-    "controls": [
-      {
-        "button_label": {
-          "type": "label",
-          "text": "",
-          "size": [0, 0],
-          "ignored": true
-        }
-      }
-    ]
+    "ignored": true
   },
   "ms_toolbar_item": {
     "type": "panel",

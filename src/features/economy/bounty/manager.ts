@@ -4,9 +4,12 @@
  * @module bountyManager
  */
 
+import { getConfig } from '@core/config/configManager.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
+import { calculateTaxWithPolicy, formatCurrency } from '@core/utils/economy.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import { economyMainDefaults } from '@features/economy/config.js';
 
 const bountyDataKey = 'exe:bountyData';
 const storage = new StorageManager(bountyDataKey);
@@ -144,8 +147,31 @@ export function placeBounty(
   if (!pData) {
     return { success: false, message: 'Could not find your data.' };
   }
-  if (pData.balance < amount) {
-    return { success: false, message: 'Insufficient funds.' };
+
+  let bountyCfg = economyMainDefaults.bounties;
+  try {
+    bountyCfg = getConfig().bounties ?? economyMainDefaults.bounties;
+  } catch {
+    bountyCfg = economyMainDefaults.bounties;
+  }
+  const tax =
+    Number(bountyCfg.placementTaxPercentage ?? 0) > 0
+      ? calculateTaxWithPolicy(amount, {
+          ratePercent: bountyCfg.placementTaxPercentage,
+          minTax: bountyCfg.minTax ?? 0,
+          maxTax: bountyCfg.maxTax ?? 0,
+        }).tax
+      : 0;
+
+  const totalCost = Math.round((amount + tax) * 100) / 100;
+  if (pData.balance < totalCost) {
+    return {
+      success: false,
+      message:
+        tax > 0
+          ? `Insufficient funds (requires ${formatCurrency(totalCost)} including ${formatCurrency(tax)} tax).`
+          : 'Insufficient funds.',
+    };
   }
 
   // Verify target (offline supported)
@@ -154,13 +180,14 @@ export function placeBounty(
     return { success: false, message: 'Target not found.' };
   }
 
-  // Deduct Money
-  playerDataManager.incrementPlayerBalance(sourcePlayerId, -amount);
+  // Deduct Money (bounty + placement tax)
+  playerDataManager.incrementPlayerBalance(sourcePlayerId, -totalCost);
 
   // Add Bounty
   incrementBounty(targetPlayerId, amount);
 
-  return { success: true, message: `Placed bounty of $${amount} on ${targetData.name}.` };
+  const taxNote = tax > 0 ? ` (+${formatCurrency(tax)} fee)` : '';
+  return { success: true, message: `Placed bounty of $${amount}${taxNote} on ${targetData.name}.` };
 }
 
 /** Resets active bounties in-memory cache for unit tests. */

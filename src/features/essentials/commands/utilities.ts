@@ -50,11 +50,22 @@ const healCommand: CustomCommand = {
       return;
     }
 
+    const healCost = Math.max(0, Number(cfg.playerUtilities?.healCost ?? 0));
+    const chargeHeal = isFeatureActive('eco') && healCost > 0 && !hasPermission(executor, 'group.admin');
+    if (chargeHeal) {
+      if (getOrCreatePlayer(executor).balance < healCost) {
+        executor.sendMessage(`§cInsufficient funds for /heal (${formatCurrency(healCost)} required).`);
+        return;
+      }
+      incrementPlayerBalance(executor.id, -healCost);
+    }
+
     healthComp.resetToMaxValue();
     playSound(target, 'random.orb');
 
     if (target.id === executor.id) {
-      executor.sendMessage('§aYour health has been fully restored!');
+      const costTag = chargeHeal ? ` §7(-${formatCurrency(healCost)})` : '';
+      executor.sendMessage(`§aYour health has been fully restored!${costTag}`);
     } else {
       executor.sendMessage(`§aHealed §e${target.name}§a to full health.`);
       target.sendMessage(`§aYou have been healed by §e${executor.name}§a!`);
@@ -94,11 +105,22 @@ const feedCommand: CustomCommand = {
       target = found;
     }
 
+    const feedCost = Math.max(0, Number(cfg.playerUtilities?.feedCost ?? 0));
+    const chargeFeed = isFeatureActive('eco') && feedCost > 0 && !hasPermission(executor, 'group.admin');
+    if (chargeFeed) {
+      if (getOrCreatePlayer(executor).balance < feedCost) {
+        executor.sendMessage(`§cInsufficient funds for /feed (${formatCurrency(feedCost)} required).`);
+        return;
+      }
+      incrementPlayerBalance(executor.id, -feedCost);
+    }
+
     target.addEffect(MinecraftEffectTypes.Saturation, 2, { amplifier: 255, showParticles: false });
     playSound(target, 'random.burp');
 
     if (target.id === executor.id) {
-      executor.sendMessage('§aYour appetite has been fully satisfied!');
+      const costTag = chargeFeed ? ` §7(-${formatCurrency(feedCost)})` : '';
+      executor.sendMessage(`§aYour appetite has been fully satisfied!${costTag}`);
     } else {
       executor.sendMessage(`§aFed §e${target.name}§a.`);
       target.sendMessage(`§aYour hunger was restored by §e${executor.name}§a!`);

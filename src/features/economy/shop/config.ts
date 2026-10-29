@@ -7,6 +7,9 @@ export interface ShopItem {
   itemId?: string;
   enchantment?: { id: string; level: number };
   rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
+  dailyBuyLimit?: number;
+  dailySellLimit?: number;
+  limitScope?: 'player' | 'global';
 }
 
 export type ShopItemInfo = ShopItem;
@@ -31,27 +34,27 @@ export const shopConfig: ShopConfig = {
     'Ores & Minerals': {
       icon: 'textures/ui/icon_iron_pickaxe',
       items: {
-        diamond: { buyPrice: 1000, sellPrice: 500 },
-        emerald: { buyPrice: 800, sellPrice: 400 },
-        goldIngot: { buyPrice: 100, sellPrice: 50 },
-        ironIngot: { buyPrice: 50, sellPrice: 25 },
-        netheriteIngot: { buyPrice: 10_000, sellPrice: 5000 },
-        netheriteScrap: { buyPrice: 2000, sellPrice: 1000 },
-        ancientDebris: { buyPrice: 1800, sellPrice: 900 },
-        lapisLazuli: { buyPrice: 20, sellPrice: 10 },
-        quartz: { buyPrice: 30, sellPrice: 15 },
+        diamond: { buyPrice: 600, sellPrice: 200, dailySellLimit: 128 },
+        emerald: { buyPrice: 120, sellPrice: 12, dailySellLimit: 256 },
+        goldIngot: { buyPrice: 45, sellPrice: 6, dailySellLimit: 512 },
+        ironIngot: { buyPrice: 30, sellPrice: 4, dailySellLimit: 512 },
+        netheriteIngot: { buyPrice: 6500, sellPrice: 2200, dailySellLimit: 32 },
+        netheriteScrap: { buyPrice: 1500, sellPrice: 500, dailySellLimit: 64 },
+        ancientDebris: { buyPrice: 1400, sellPrice: 450, dailySellLimit: 64 },
+        lapisLazuli: { buyPrice: 15, sellPrice: 4, dailySellLimit: 512 },
+        quartz: { buyPrice: 20, sellPrice: 5, dailySellLimit: 512 },
       },
       subCategories: {},
     },
     'Special Items': {
       icon: 'textures/ui/filledStar',
       items: {
-        totemOfUndying: { buyPrice: 5000, sellPrice: 2500 },
-        netherStar: { buyPrice: 20_000, sellPrice: -1 },
-        shulkerShell: { buyPrice: 750, sellPrice: 300 },
-        elytra: { buyPrice: 15_000, sellPrice: -1 },
-        witherSkeletonSkull: { buyPrice: 8000, sellPrice: 2000 },
-        enchantedGoldenApple: { buyPrice: 25_000, sellPrice: -1 },
+        totemOfUndying: { buyPrice: 3000, sellPrice: 120, dailyBuyLimit: 4, dailySellLimit: 8 },
+        netherStar: { buyPrice: 15_000, sellPrice: -1, dailyBuyLimit: 2 },
+        shulkerShell: { buyPrice: 600, sellPrice: 120, dailySellLimit: 64 },
+        elytra: { buyPrice: 15_000, sellPrice: -1, dailyBuyLimit: 1 },
+        witherSkeletonSkull: { buyPrice: 5000, sellPrice: 400, dailySellLimit: 16 },
+        enchantedGoldenApple: { buyPrice: 20_000, sellPrice: -1, dailyBuyLimit: 2 },
       },
       subCategories: {},
     },
@@ -154,18 +157,18 @@ export const shopConfig: ShopConfig = {
     Farming: {
       icon: 'textures/items/diamond_hoe',
       items: {
-        wheat: { buyPrice: 5, sellPrice: 2 },
-        carrot: { buyPrice: 5, sellPrice: 2 },
-        potato: { buyPrice: 5, sellPrice: 2 },
-        melonSlice: { buyPrice: 3, sellPrice: 1 },
-        pumpkin: { buyPrice: 10, sellPrice: 5 },
-        sugarCane: { buyPrice: 8, sellPrice: 4 },
+        wheat: { buyPrice: 5, sellPrice: 1, dailySellLimit: 1024 },
+        carrot: { buyPrice: 5, sellPrice: 1, dailySellLimit: 1024 },
+        potato: { buyPrice: 5, sellPrice: 1, dailySellLimit: 1024 },
+        melonSlice: { buyPrice: 3, sellPrice: 0.25, dailySellLimit: 2048 },
+        pumpkin: { buyPrice: 8, sellPrice: 0.75, dailySellLimit: 1024 },
+        sugarCane: { buyPrice: 6, sellPrice: 0.5, dailySellLimit: 1024 },
       },
       subCategories: {
         Potions: {
           icon: 'textures/items/potion_bottle_empty',
           items: {
-            netherWart: { buyPrice: 25, sellPrice: 10 },
+            netherWart: { buyPrice: 20, sellPrice: 2, dailySellLimit: 512 },
           },
         },
       },

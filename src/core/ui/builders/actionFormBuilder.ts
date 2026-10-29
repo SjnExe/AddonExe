@@ -1,3 +1,4 @@
+import { escapeBedrockPercent } from '@core/utils/formatting.js';
 import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
@@ -16,7 +17,7 @@ export class ActionFormBuilder {
   }
 
   public title(titleText: string): this {
-    this.rawTitle = titleText;
+    this.rawTitle = escapeBedrockPercent(titleText);
     this.applyTitleWithGrid();
     return this;
   }
@@ -71,20 +72,20 @@ export class ActionFormBuilder {
   }
 
   public body(bodyText: string): this {
-    this.form.body(bodyText);
+    this.form.body(escapeBedrockPercent(bodyText));
     return this;
   }
 
   public header(headerText: string): this {
     if (typeof this.form.header === 'function') {
-      this.form.header(headerText);
+      this.form.header(escapeBedrockPercent(headerText));
     }
     return this;
   }
 
   public label(labelText: string): this {
     if (typeof this.form.label === 'function') {
-      this.form.label(labelText);
+      this.form.label(escapeBedrockPercent(labelText));
     }
     return this;
   }
@@ -97,10 +98,11 @@ export class ActionFormBuilder {
   }
 
   public button(text: string, iconPath?: string | null, onClick?: () => void | Promise<void>): this {
+    const safeText = escapeBedrockPercent(text);
     if (iconPath) {
-      this.form.button(text, iconPath);
+      this.form.button(safeText, iconPath);
     } else {
-      this.form.button(text);
+      this.form.button(safeText);
     }
 
     if (onClick) {

@@ -3,8 +3,12 @@ import {
   deletePlayerHome as deletePlayerDataHome,
   getOrCreatePlayer,
   HomeLocation,
+  incrementPlayerBalance,
   setPlayerHome as setPlayerDataHome,
 } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
+import { formatCurrency } from '@core/utils/economy.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -46,6 +50,15 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
 
   if (homeName.length > 20) {
     return { success: false, message: 'Home name cannot be longer than 20 characters.' };
+  }
+
+  const setHomeCost = Math.max(0, Number(config.homes.setHomeCost ?? 0));
+  const shouldCharge = isFeatureActive('eco') && setHomeCost > 0 && !hasPermission(player, 'group.admin');
+  if (shouldCharge) {
+    if (pData.balance < setHomeCost) {
+      return { success: false, message: `Insufficient funds to set a home. Cost: ${formatCurrency(setHomeCost)}.` };
+    }
+    incrementPlayerBalance(player.id, -setHomeCost);
   }
 
   const location: HomeLocation = {

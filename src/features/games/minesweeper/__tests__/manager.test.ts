@@ -107,7 +107,7 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
     expect(progress.percent).toBeGreaterThan(0);
   });
 
-  it('supports smart auto-flagging on revealed numbers and marks misplaced flags on loss', () => {
+  it('supports classic chording on revealed numbers and marks misplaced flags on loss', () => {
     const player = createMockPlayer('ms_smart', 'SmartSweeper');
     const game = startMinesweeperGame(player, 'easy');
     handleMinesweeperCellTap(player, 40);
@@ -116,22 +116,14 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
     if (targetCell) {
       const neighbors = getNeighborIndices(targetCell.index, game.cols, game.rows);
       const mineNeighborIdx = neighbors.find((idx) => game.cells[idx]?.hasMine);
-      if (mineNeighborIdx !== undefined) {
-        for (const nIdx of neighbors) {
-          if (nIdx !== mineNeighborIdx) {
-            if (!game.cells[nIdx]!.revealed) {
-              game.cells[nIdx]!.revealed = true;
-              game.safeCleared++;
-            }
-            game.cells[nIdx]!.flagged = false;
-          } else {
-            game.cells[nIdx]!.revealed = false;
-            game.cells[nIdx]!.flagged = false;
-          }
-        }
-        const autoFlagRes = handleMinesweeperCellTap(player, targetCell.index);
-        expect(autoFlagRes.status).toBe('active');
-        expect(game.cells[mineNeighborIdx]?.flagged).toBe(true);
+      const safeNeighborIdx = neighbors.find((idx) => !game.cells[idx]?.hasMine);
+      if (mineNeighborIdx !== undefined && safeNeighborIdx !== undefined) {
+        game.cells[mineNeighborIdx]!.flagged = true;
+        game.cells[safeNeighborIdx]!.revealed = false;
+        game.cells[safeNeighborIdx]!.flagged = false;
+        const chordRes = handleMinesweeperCellTap(player, targetCell.index);
+        expect(chordRes.status).toBe('active');
+        expect(game.cells[safeNeighborIdx]?.revealed).toBe(true);
       }
     }
 
@@ -159,10 +151,17 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
     setPlayerBalance(p2.id, 100);
 
     const soloGame = startMinesweeperGame(p1, 'easy');
+    handleMinesweeperCellTap(p1, 40);
+    soloGame.turnShownAt = Date.now() - 8000;
+    toggleMinesweeperFlagMode(p1.id);
+    toggleMinesweeperFlagMode(p1.id);
+    expect(soloGame.activeThinkMs).toBeGreaterThanOrEqual(7900);
+
+    soloGame.effectiveMoves = 20;
     const fastReward = calculateSoloTimeReward(soloGame, 30);
-    expect(fastReward.base).toBe(50);
-    expect(fastReward.bonus).toBeGreaterThan(0);
-    expect(fastReward.total).toBeGreaterThan(50);
+    expect(fastReward.base).toBe(20);
+    expect(fastReward.bonus).toBeGreaterThan(25);
+    expect(fastReward.total).toBeGreaterThan(45);
 
     const raceMatch = startMinesweeperRaceMatch(p1, p2, 20, 'easy');
     expect(raceMatch).toBeDefined();

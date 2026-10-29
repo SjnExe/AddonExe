@@ -11,7 +11,7 @@ import {
   resetKillStreak,
 } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { formatCurrency } from '@core/utils/economy.js';
+import { calculateTaxWithPolicy, formatCurrency } from '@core/utils/economy.js';
 import { debugLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager.js';
@@ -250,13 +250,17 @@ export function handleCombatPlayerLeave(playerId: string, playerName: string): v
     clearLastHit(playerId);
 
     const opponent = getPlayerFromCache(opponentId);
-    if (amount > 0) {
-      incrementPlayerBalance(opponentId, amount * 2);
+    const { netAmount: forfeitWinnings } =
+      amount > 0
+        ? calculateTaxWithPolicy(amount * 2, { ratePercent: getEconomyConfig().pvp?.wagerTaxPercentage ?? 8 })
+        : { netAmount: 0 };
+    if (forfeitWinnings > 0) {
+      incrementPlayerBalance(opponentId, forfeitWinnings);
     }
     if (isDefined(opponent) && opponent.isValid) {
       sendMessage(
-        amount > 0
-          ? `§6VICTORY! §e${playerName} §cdisconnected during the duel! You won §a${formatCurrency(amount * 2)}§c!`
+        forfeitWinnings > 0
+          ? `§6VICTORY! §e${playerName} §cdisconnected during the duel! You won §a${formatCurrency(forfeitWinnings)}§c!`
           : `§6VICTORY! §e${playerName} §cdisconnected during the duel!`,
         opponent,
       );
@@ -534,9 +538,12 @@ export function handlePvPDeath(victim: mc.Player, killer: mc.Player): boolean {
   activeDuels.delete(killer.id);
 
   if (amount > 0) {
-    const winnings = amount * 2;
+    const { netAmount: winnings, tax } = calculateTaxWithPolicy(amount * 2, {
+      ratePercent: config.wagerTaxPercentage ?? 8,
+    });
     incrementPlayerBalance(killer.id, winnings);
-    sendMessage(`§6VICTORY! §aYou won the duel and earned ${formatCurrency(winnings)}!`, killer);
+    const taxSuffix = tax > 0 ? ` §7(after ${formatCurrency(tax)} tax)` : '';
+    sendMessage(`§6VICTORY! §aYou won the duel and earned ${formatCurrency(winnings)}${taxSuffix}!`, killer);
     sendMessage(`§cDEFEAT! §7You lost the duel and ${formatCurrency(amount)}.`, victim);
   } else {
     const victimData = getPlayer(victim.id);

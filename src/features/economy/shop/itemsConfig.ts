@@ -25,23 +25,23 @@ const eBook = (buyPrice: number, displayName: string, id: string, level: number)
 
 export const items: Record<string, ItemData> = {
   // Ores & Minerals
-  diamond: { itemId: MinecraftItemTypes.Diamond, buyPrice: 1000, sellPrice: 500 },
-  emerald: { itemId: MinecraftItemTypes.Emerald, buyPrice: 800, sellPrice: 400 },
-  goldIngot: { itemId: MinecraftItemTypes.GoldIngot, buyPrice: 100, sellPrice: 50 },
-  ironIngot: { itemId: MinecraftItemTypes.IronIngot, buyPrice: 50, sellPrice: 25 },
-  netheriteIngot: { itemId: MinecraftItemTypes.NetheriteIngot, buyPrice: 10_000, sellPrice: 5000 },
-  netheriteScrap: { itemId: MinecraftItemTypes.NetheriteScrap, buyPrice: 2000, sellPrice: 1000 },
-  ancientDebris: { itemId: MinecraftItemTypes.AncientDebris, buyPrice: 1800, sellPrice: 900 },
-  lapisLazuli: { itemId: MinecraftItemTypes.LapisLazuli, buyPrice: 20, sellPrice: 10 },
-  quartz: { itemId: MinecraftItemTypes.Quartz, buyPrice: 30, sellPrice: 15 },
+  diamond: { itemId: MinecraftItemTypes.Diamond, buyPrice: 600, sellPrice: 200 },
+  emerald: { itemId: MinecraftItemTypes.Emerald, buyPrice: 120, sellPrice: 12 },
+  goldIngot: { itemId: MinecraftItemTypes.GoldIngot, buyPrice: 45, sellPrice: 6 },
+  ironIngot: { itemId: MinecraftItemTypes.IronIngot, buyPrice: 30, sellPrice: 4 },
+  netheriteIngot: { itemId: MinecraftItemTypes.NetheriteIngot, buyPrice: 6500, sellPrice: 2200 },
+  netheriteScrap: { itemId: MinecraftItemTypes.NetheriteScrap, buyPrice: 1500, sellPrice: 500 },
+  ancientDebris: { itemId: MinecraftItemTypes.AncientDebris, buyPrice: 1400, sellPrice: 450 },
+  lapisLazuli: { itemId: MinecraftItemTypes.LapisLazuli, buyPrice: 15, sellPrice: 4 },
+  quartz: { itemId: MinecraftItemTypes.Quartz, buyPrice: 20, sellPrice: 5 },
 
   // Special Items
-  totemOfUndying: { itemId: MinecraftItemTypes.TotemOfUndying, buyPrice: 5000, sellPrice: 2500 },
-  netherStar: { itemId: MinecraftItemTypes.NetherStar, buyPrice: 20_000, sellPrice: -1 },
-  shulkerShell: { itemId: MinecraftItemTypes.ShulkerShell, buyPrice: 750, sellPrice: 300 },
+  totemOfUndying: { itemId: MinecraftItemTypes.TotemOfUndying, buyPrice: 3000, sellPrice: 120 },
+  netherStar: { itemId: MinecraftItemTypes.NetherStar, buyPrice: 15_000, sellPrice: -1 },
+  shulkerShell: { itemId: MinecraftItemTypes.ShulkerShell, buyPrice: 600, sellPrice: 120 },
   elytra: { itemId: MinecraftItemTypes.Elytra, buyPrice: 15_000, sellPrice: -1 },
-  witherSkeletonSkull: { itemId: MinecraftItemTypes.WitherSkeletonSkull, buyPrice: 8000, sellPrice: 2000 },
-  enchantedGoldenApple: { itemId: MinecraftItemTypes.EnchantedGoldenApple, buyPrice: 25_000, sellPrice: -1 },
+  witherSkeletonSkull: { itemId: MinecraftItemTypes.WitherSkeletonSkull, buyPrice: 5000, sellPrice: 400 },
+  enchantedGoldenApple: { itemId: MinecraftItemTypes.EnchantedGoldenApple, buyPrice: 20_000, sellPrice: -1 },
 
   // Tools & Weapons
   diamondSword: { itemId: MinecraftItemTypes.DiamondSword, buyPrice: 2500, sellPrice: 1000 },
@@ -100,13 +100,13 @@ export const items: Record<string, ItemData> = {
   chorusFruit: { itemId: MinecraftItemTypes.ChorusFruit, buyPrice: 50, sellPrice: 25 },
 
   // Farming
-  wheat: { itemId: MinecraftItemTypes.Wheat, buyPrice: 5, sellPrice: 2 },
-  carrot: { itemId: MinecraftItemTypes.Carrot, buyPrice: 5, sellPrice: 2 },
-  potato: { itemId: MinecraftItemTypes.Potato, buyPrice: 5, sellPrice: 2 },
-  melonSlice: { itemId: MinecraftItemTypes.MelonSlice, buyPrice: 3, sellPrice: 1 },
-  pumpkin: { itemId: MinecraftItemTypes.Pumpkin, buyPrice: 10, sellPrice: 5 },
-  sugarCane: { itemId: MinecraftItemTypes.SugarCane, buyPrice: 8, sellPrice: 4 },
-  netherWart: { itemId: MinecraftItemTypes.NetherWart, buyPrice: 25, sellPrice: 10 },
+  wheat: { itemId: MinecraftItemTypes.Wheat, buyPrice: 5, sellPrice: 1 },
+  carrot: { itemId: MinecraftItemTypes.Carrot, buyPrice: 5, sellPrice: 1 },
+  potato: { itemId: MinecraftItemTypes.Potato, buyPrice: 5, sellPrice: 1 },
+  melonSlice: { itemId: MinecraftItemTypes.MelonSlice, buyPrice: 3, sellPrice: 0.25 },
+  pumpkin: { itemId: MinecraftItemTypes.Pumpkin, buyPrice: 8, sellPrice: 0.75 },
+  sugarCane: { itemId: MinecraftItemTypes.SugarCane, buyPrice: 6, sellPrice: 0.5 },
+  netherWart: { itemId: MinecraftItemTypes.NetherWart, buyPrice: 20, sellPrice: 2 },
 
   // Enchantment Books
   enchantMending: eBook(8000, 'Mending', MinecraftEnchantmentTypes.Mending, 1),

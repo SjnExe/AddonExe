@@ -24,6 +24,9 @@ export interface RankDefinition {
     buy: number;
     sell: number;
   };
+  shopLimitMultiplier?: number;
+  bankInterestMultiplier?: number;
+  extraFreeWithdrawals?: number;
 }
 
 export const defaultChatFormatting: Required<ChatFormatting> = {
@@ -161,6 +164,9 @@ export const rankDefinitions: RankDefinition[] = [
     allow: [],
     deny: [],
     shopMultiplier: { buy: 0.85, sell: 1.15 },
+    shopLimitMultiplier: 1.5,
+    bankInterestMultiplier: 1.25,
+    extraFreeWithdrawals: 2,
   },
   {
     id: 'verified',
@@ -192,6 +198,9 @@ export const rankDefinitions: RankDefinition[] = [
     allow: [],
     deny: [],
     shopMultiplier: { buy: 0.75, sell: 1.25 },
+    shopLimitMultiplier: 2.0,
+    bankInterestMultiplier: 1.5,
+    extraFreeWithdrawals: 4,
   },
   {
     id: 'vip',
@@ -208,6 +217,9 @@ export const rankDefinitions: RankDefinition[] = [
     allow: [],
     deny: [],
     shopMultiplier: { buy: 0.8, sell: 1.2 },
+    shopLimitMultiplier: 1.5,
+    bankInterestMultiplier: 1.25,
+    extraFreeWithdrawals: 2,
   },
   {
     id: 'donator',
@@ -224,6 +236,9 @@ export const rankDefinitions: RankDefinition[] = [
     allow: [],
     deny: [],
     shopMultiplier: { buy: 0.9, sell: 1.1 },
+    shopLimitMultiplier: 1.25,
+    bankInterestMultiplier: 1.1,
+    extraFreeWithdrawals: 1,
   },
   {
     id: 'member',

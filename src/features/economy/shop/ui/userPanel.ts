@@ -8,6 +8,7 @@ import {
   executeSellAllInventory,
   getPlayerInventoryShopItemCount,
   getPlayerShopItemPrice,
+  getRemainingDailyShopQuota,
   previewSellAllInventory,
   sellItem,
 } from '@features/economy/shop/manager.js';
@@ -369,10 +370,21 @@ export async function showBuyOrSellPanel(
   const pData = getOrCreatePlayer(player);
   const ownedCount = getPlayerInventoryShopItemCount(player, itemKey);
 
+  const remBuy = getRemainingDailyShopQuota(player, itemKey, resolvedInfo, 'buy');
+  const remSell = getRemainingDailyShopQuota(player, itemKey, resolvedInfo, 'sell');
+  const quotaParts: string[] = [];
+  if (Number.isFinite(remBuy)) {
+    quotaParts.push(`§2Daily Buy Left: §f${remBuy}`);
+  }
+  if (Number.isFinite(remSell)) {
+    quotaParts.push(`§eDaily Sell Left: §f${remSell}`);
+  }
+
   const bodyLines = [
     `§7Item: §b${meta.displayName}`,
     `§7Your Balance: §a${formatCurrency(pData.balance)} §8| §7In Inventory: §ex${ownedCount}`,
     `§7Unit Price: ${formatShopPriceSubtitle(buyPrice, sellPrice)}`,
+    ...(quotaParts.length > 0 ? [`§7Quota: ${quotaParts.join(' §8| ')}`] : []),
   ];
 
   const form = new ActionFormBuilder().grid(2).title(`Trade: ${meta.displayName}`).body(bodyLines.join('\n'));

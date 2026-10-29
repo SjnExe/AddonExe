@@ -1,3 +1,4 @@
+import { escapeBedrockPercent } from '@core/utils/formatting.js';
 import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { MessageFormData, MessageFormResponse } from '@minecraft/server-ui';
@@ -12,23 +13,23 @@ export class MessageFormBuilder {
   }
 
   public title(titleText: string): this {
-    this.form.title(titleText);
+    this.form.title(escapeBedrockPercent(titleText));
     return this;
   }
 
   public body(bodyText: string): this {
-    this.form.body(bodyText);
+    this.form.body(escapeBedrockPercent(bodyText));
     return this;
   }
 
   public button1(text: string, onClick?: () => void | Promise<void>): this {
-    this.form.button1(text);
+    this.form.button1(escapeBedrockPercent(text));
     this.button1Callback = onClick;
     return this;
   }
 
   public button2(text: string, onClick?: () => void | Promise<void>): this {
-    this.form.button2(text);
+    this.form.button2(escapeBedrockPercent(text));
     this.button2Callback = onClick;
     return this;
   }

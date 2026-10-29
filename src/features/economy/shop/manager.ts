@@ -20,6 +20,67 @@ export interface ItemInfo {
   buyPrice?: number;
   sellPrice?: number;
   rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
+  dailyBuyLimit?: number;
+  dailySellLimit?: number;
+  limitScope?: 'player' | 'global';
+}
+
+let currentLimitDayKey = '';
+const dailyShopUsage = new Map<string, number>();
+
+function getTodayLimitKey(): string {
+  const day = new Date().toISOString().slice(0, 10);
+  if (day !== currentLimitDayKey) {
+    currentLimitDayKey = day;
+    dailyShopUsage.clear();
+  }
+  return day;
+}
+
+export function getPlayerShopLimitMultiplier(player: mc.Player): number {
+  const ranks = getPlayerRanks(player);
+  let best = 1;
+  for (const r of ranks) {
+    if (isDefined(r.shopLimitMultiplier) && r.shopLimitMultiplier > best) {
+      best = r.shopLimitMultiplier;
+    }
+  }
+  return best;
+}
+
+export function getRemainingDailyShopQuota(
+  player: mc.Player,
+  itemKey: string,
+  shopItem: ItemInfo,
+  mode: 'buy' | 'sell',
+): number {
+  const baseLimit = mode === 'buy' ? Number(shopItem.dailyBuyLimit ?? 0) : Number(shopItem.dailySellLimit ?? 0);
+  if (!baseLimit || baseLimit <= 0) {
+    return Infinity;
+  }
+  getTodayLimitKey();
+  const isGlobal = shopItem.limitScope === 'global';
+  const effectiveMax = isGlobal ? Math.floor(baseLimit) : Math.floor(baseLimit * getPlayerShopLimitMultiplier(player));
+  const mapKey = isGlobal ? `global:${mode}:${itemKey}` : `${player.id}:${mode}:${itemKey}`;
+  const used = dailyShopUsage.get(mapKey) ?? 0;
+  return Math.max(0, effectiveMax - used);
+}
+
+function recordDailyShopUsage(
+  player: mc.Player,
+  itemKey: string,
+  shopItem: ItemInfo,
+  mode: 'buy' | 'sell',
+  amount: number,
+): void {
+  const baseLimit = mode === 'buy' ? Number(shopItem.dailyBuyLimit ?? 0) : Number(shopItem.dailySellLimit ?? 0);
+  if (!baseLimit || baseLimit <= 0 || amount <= 0) {
+    return;
+  }
+  getTodayLimitKey();
+  const isGlobal = shopItem.limitScope === 'global';
+  const mapKey = isGlobal ? `global:${mode}:${itemKey}` : `${player.id}:${mode}:${itemKey}`;
+  dailyShopUsage.set(mapKey, (dailyShopUsage.get(mapKey) ?? 0) + amount);
 }
 
 interface ShopTransactionResult {
@@ -84,6 +145,7 @@ export function invalidateShopLookupCache(): void {
   cachedItemByKeyMap = undefined;
   cachedItemByTypeIdMap = undefined;
   cachedReverseSellMap = undefined;
+  dailyShopUsage.clear();
 }
 
 function ensureShopLookupCaches(): void {
@@ -246,6 +308,14 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     return { success: false, message: '§cYou cannot purchase items while your balance is negative.' };
   }
 
+  const remainingBuyQuota = getRemainingDailyShopQuota(player, itemId, shopItem, 'buy');
+  if (remainingBuyQuota <= 0) {
+    return {
+      success: false,
+      message: `§cDaily buy limit reached for ${shopItem.displayName ?? itemId}. Try again tomorrow!`,
+    };
+  }
+
   let targetQuantity = quantity;
 
   // Handle Buy Max (-1)
@@ -254,7 +324,10 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     if (maxAffordable <= 0) {
       return { success: false, message: '§cInsufficient funds to buy any items.' };
     }
-    targetQuantity = maxAffordable;
+    targetQuantity = Math.min(maxAffordable, remainingBuyQuota);
+  } else if (targetQuantity > remainingBuyQuota) {
+    targetQuantity = remainingBuyQuota;
+    player.sendMessage(`§eNotice: Capped purchase to your remaining daily buy limit (${remainingBuyQuota}).`);
   }
 
   const initialCost = buyPrice * targetQuantity;
@@ -333,6 +406,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     };
   }
 
+  recordDailyShopUsage(player, itemId, shopItem, 'buy', finalQuantity - failedCount);
   return {
     success: true,
     message: `§2Successfully purchased ${finalQuantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(finalCost)}§2.`,
@@ -409,9 +483,20 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     }
   }
 
+  const remainingSellQuota = getRemainingDailyShopQuota(player, itemId, shopItem, 'sell');
+  if (remainingSellQuota <= 0) {
+    return {
+      success: false,
+      message: `§cDaily sell limit reached for ${shopItem.displayName ?? itemId}. Higher ranks unlock larger daily limits!`,
+    };
+  }
+
   let targetQuantity = quantity;
   if (targetQuantity === -1) {
-    targetQuantity = count;
+    targetQuantity = Math.min(count, remainingSellQuota);
+  } else if (targetQuantity > remainingSellQuota) {
+    targetQuantity = remainingSellQuota;
+    player.sendMessage(`§eNotice: Capped sale to your remaining daily sell limit (${remainingSellQuota}).`);
   }
 
   if (targetQuantity === 0) {
@@ -442,7 +527,8 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
   }
 
   // Success
-  const totalGain = sellPrice * targetQuantity;
+  recordDailyShopUsage(player, itemId, shopItem, 'sell', targetQuantity);
+  const totalGain = Math.round(sellPrice * targetQuantity * 100) / 100;
   incrementPlayerBalance(player.id, totalGain);
 
   return {

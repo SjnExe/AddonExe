@@ -4,7 +4,7 @@ import { SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission, invalidatePlayerPermissionCache } from '@core/permissions/permissionEngine.js';
-import { formatCurrency } from '@core/utils/economy.js';
+import { calculateTaxWithPolicy, formatCurrency } from '@core/utils/economy.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { updateAndSaveLeaderboard } from '@features/economy/leaderboard.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -56,12 +56,31 @@ export interface PlayerGameStats {
   codebreaker?: { wins: number; losses: number };
 }
 
+export interface FixedDepositEntry {
+  id: string;
+  principal: number;
+  ratePercent: number;
+  createdAt: number;
+  maturesAt: number;
+  planId: string;
+}
+
+export interface PlayerBankData {
+  savingsBalance: number;
+  ambBalance: number;
+  lastCycleAt: number;
+  dailyWithdrawDay: string;
+  dailyWithdrawCount: number;
+  fixedDeposits: FixedDepositEntry[];
+}
+
 export interface PlayerData {
   name: string;
   ranks: string[];
   rankId: string;
   homes: Record<string, HomeLocation>;
   balance: number;
+  bank?: PlayerBankData;
   kitCooldowns: Record<string, number>;
   xrayNotificationsEnabled: boolean;
   lastDeathLocation: HomeLocation | undefined;
@@ -838,10 +857,20 @@ export function transfer(
     };
   }
 
-  // 3. Execute Transaction (Atomic In-Memory)
+  // 3. Execute Transaction (Atomic In-Memory with configurable Transfer Tax)
   try {
+    const taxPolicy = economyConfig.transferTax;
+    const { tax, netAmount } = isDefined(taxPolicy)
+      ? calculateTaxWithPolicy(amount, taxPolicy)
+      : { tax: 0, netAmount: amount };
+    if (netAmount <= 0) {
+      if (!targetIsCached) {
+        activePlayerData.delete(targetPlayerId);
+      }
+      return { success: false, message: 'Transfer amount is too small after tax.' };
+    }
     const newSourceBal = Number.parseFloat((currentSourceBal - amount).toFixed(2));
-    const newTargetBal = Number.parseFloat((safeTargetBal + amount).toFixed(2));
+    const newTargetBal = Number.parseFloat((safeTargetBal + netAmount).toFixed(2));
 
     // Apply Source
     sourceData.balance = newSourceBal;
@@ -875,7 +904,8 @@ export function transfer(
       );
     }
 
-    return { success: true, message: 'Transfer successful.' };
+    const taxMsg = tax > 0 ? ` (Tax: ${formatCurrency(tax)}, Received: ${formatCurrency(netAmount)})` : '';
+    return { success: true, message: `Transfer successful.${taxMsg}` };
   } catch (error) {
     errorLog(`[Economy] Transfer transaction error: ${String(error)}`);
     return { success: false, message: 'An internal error occurred during transfer.' };

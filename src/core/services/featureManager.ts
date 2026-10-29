@@ -22,6 +22,8 @@ export function isFeatureActive(featureId: string): boolean {
       return ecoOn && mainConfig?.bounties?.enabled === true;
     case 'eco.trade':
       return ecoOn && mainConfig?.trading?.enabled === true;
+    case 'eco.bank':
+      return ecoOn && mainConfig?.bank?.enabled !== false;
     case 'eco.playtime':
       return ecoOn && mainConfig?.playtimeRewards?.enabled === true;
 

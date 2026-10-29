@@ -2,7 +2,7 @@ import { getGamesConfig } from '@core/config/configurations.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
 import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { formatCurrency, playSound } from '@core/utils/index.js';
+import { calculateTaxWithPolicy, formatCurrency, playSound } from '@core/utils/index.js';
 import { payoutWagerPot, registerMultiplayerGame } from '@features/games/matchmakingManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -29,7 +29,7 @@ export function initializeCoinFlip(): void {
   registerMultiplayerGame({
     id: 'coinflip',
     name: 'Coin Flip',
-    icon: 'textures/items/gold_nugget',
+    icon: 'textures/ui/MCoin',
     isEnabled: () => {
       const cfg = getGamesConfig();
       return cfg.enabled === true && cfg.coinFlip?.enabled !== false;
@@ -97,7 +97,8 @@ export function playSoloWagerCoinFlip(player: mc.Player, calledSide: CoinSide, w
   const won = landed === calledSide;
 
   if (won) {
-    const payout = Math.round(cleanWager * 2 * 100) / 100;
+    const soloTaxRate = Math.max(0, Number(cfg.coinFlip?.soloWinTaxPercentage ?? 0));
+    const { netAmount: payout } = calculateTaxWithPolicy(cleanWager * 2, { ratePercent: soloTaxRate });
     incrementPlayerBalance(player.id, payout);
     playSound(player, 'random.levelup');
     mc.world.sendMessage(

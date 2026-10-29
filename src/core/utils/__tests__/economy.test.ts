@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
 
 import * as configurations from '@core/config/configurations.js';
 
-const { formatCurrency, parseCurrency } = await import('../economy.ts');
+const { calculateTaxWithPolicy, formatCurrency, parseCurrency } = await import('../economy.ts');
 
 describe('economy utils', () => {
   let getEconomyConfigSpy: any;
@@ -115,6 +115,16 @@ describe('economy utils', () => {
 
     it('should trim inputs before parsing', () => {
       expect(parseCurrency(' 1k ')).toBe(1000);
+    });
+  });
+
+  describe('calculateTaxWithPolicy', () => {
+    it('calculates continuous tiered tax without discontinuity at exact threshold (10k)', () => {
+      const policy = { ratePercent: 5, tierThreshold: 10_000, aboveTierRatePercent: 2.5, minTax: 10, maxTax: 600 };
+      expect(calculateTaxWithPolicy(100, policy).tax).toBe(10); // minTax clamp (5% of 100 = 5 -> clamped to 10)
+      expect(calculateTaxWithPolicy(10_000, policy).tax).toBe(500); // exact threshold: 5% of 10,000 = 500
+      expect(calculateTaxWithPolicy(12_000, policy).tax).toBe(550); // 500 + 2.5% of 2,000 (50) = 550
+      expect(calculateTaxWithPolicy(50_000, policy).tax).toBe(600); // maxTax clamp
     });
   });
 });

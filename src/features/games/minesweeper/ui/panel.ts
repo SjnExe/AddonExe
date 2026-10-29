@@ -1,7 +1,7 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
-import { formatCurrency, uiWait } from '@core/utils/index.js';
+import { escapeBedrockPercent, formatCurrency, uiWait } from '@core/utils/index.js';
 import {
   appendGameInviteButtons,
   getIncomingGameInvites,
@@ -20,6 +20,7 @@ import {
   getPlayerMinesweeperGame,
   getPlayerMinesweeperStats,
   handleMinesweeperCellTap,
+  recordMinesweeperTurnShown,
   startMinesweeperGame,
   toggleMinesweeperFlagMode,
 } from '@features/games/minesweeper/manager.js';
@@ -63,7 +64,7 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
   const bodyLines = [
     '§7Uncover all safe Grass tiles without detonating a hidden mine!',
     '§8• §aGrass§7 = Unmined §8| §6Dirt§7 = Dug §8| §e⚑ Flag§7 = Marked Mine',
-    '§8• §bSmart Number Tap: §7Tap a revealed number to §aChord-Dig§7 or §eAuto-Flag§7!',
+    '§8• §bClassic Chording: §7Tap a revealed number with matching flags to §aChord-Dig§7!',
     `§8• §7Session: §a${stats.wins}W§7/§c${stats.losses}L §8(§6Streak: ${stats.currentStreak}§8) §7| Best: §a9x9 ${bestEasy} §8• §e12x12 ${bestMed} §8• §c16x12 ${bestHard}`,
   ];
 
@@ -195,7 +196,7 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     .title(
       `${msGridTitlePrefix[game.gridMode]}§r§l§bMinesweeper ${game.cols}x${game.rows} §8(${game.difficulty.toUpperCase()})`,
     )
-    .body(statusLine);
+    .body(escapeBedrockPercent(statusLine));
 
   const cells = game.cells;
   const cellCount = game.totalCells;
@@ -224,6 +225,7 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     rawForm.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left');
   }
 
+  recordMinesweeperTurnShown(player.id);
   const response = (await uiWait(player, rawForm)) as ActionFormResponse;
 
   const freshRace = isDefined(game.multiplayerMatchId) ? getMinesweeperRaceMatch(game.multiplayerMatchId) : undefined;
