@@ -62,8 +62,8 @@ describe('timerManager', () => {
 
       const id = setTrackedInterval(callback, tickInterval);
 
-      // Our new multiplexer calls runInterval with tick delay 1
-      expect(runIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 1);
+      // Dynamic GCD multiplexer schedules at the exact GCD of active intervals (20)
+      expect(runIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 20);
       const stats = getTimerStats();
       expect(stats.intervals).toBe(1);
       expect(id).toBe(1); // Since nextIntervalId starts at 1

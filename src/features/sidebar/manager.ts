@@ -18,10 +18,6 @@ interface LeaderboardEntry {
   balance: number;
 }
 
-interface EconomyLeaderboardService {
-  getLeaderboard: () => LeaderboardEntry[];
-}
-
 interface TeamData {
   name: string;
   balance?: number;
@@ -130,6 +126,11 @@ const sidebarObjectiveId = 'exe_sidebar';
 let currentTick = 0;
 let sidebarInterval: number | undefined;
 let scoreboardActive = false;
+let lastScoreboardTitle = '';
+let lastScoreboardLines: string[] = [];
+let cachedTickNumber = -1;
+let cachedTimeString = '';
+let cachedDateString = '';
 
 let lastTpsTime = Date.now();
 let lastTpsTick = 0;
@@ -164,6 +165,8 @@ export function cleanup() {
 
 export function forceUpdate() {
   lastSentHud.clear();
+  lastScoreboardTitle = '';
+  lastScoreboardLines = [];
   updateSidebars(true);
 }
 
@@ -211,6 +214,8 @@ function clearSidebarObjective(force = false) {
       scoreboard.removeObjective(obj);
     }
     scoreboardActive = false;
+    lastScoreboardTitle = '';
+    lastScoreboardLines = [];
   } catch {
     // Ignore restricted execution errors during script unload
   }
@@ -366,6 +371,18 @@ function updateGlobalSidebarObjective(
 
     const rawTitle = globalInfo.title ?? (config as { title?: string }).title ?? '§l§b{server_name}';
     const title = resolveGlobalPlaceholders(rawTitle);
+    const sourceLines = globalInfo.sidebarLines ?? (config as { sidebarLines?: string[] }).sidebarLines ?? [];
+    const resolvedLines = sourceLines.map((rawLine, i) => resolveGlobalPlaceholders(rawLine ?? '') + '§r'.repeat(i));
+
+    const linesUnchanged =
+      scoreboardActive &&
+      lastScoreboardTitle === title &&
+      lastScoreboardLines.length === resolvedLines.length &&
+      resolvedLines.every((l, idx) => l === lastScoreboardLines[idx]);
+
+    if (linesUnchanged && objective) {
+      return;
+    }
 
     if (!objective) {
       objective = scoreboard.addObjective(sidebarObjectiveId, title);
@@ -380,21 +397,17 @@ function updateGlobalSidebarObjective(
       objective.removeParticipant(scoreInfo.participant);
     }
 
-    const sourceLines = globalInfo.sidebarLines ?? (config as { sidebarLines?: string[] }).sidebarLines ?? [];
-    const lineCount = sourceLines.length;
-
+    const lineCount = resolvedLines.length;
     for (let i = 0; i < lineCount; i++) {
-      const rawLine = sourceLines[i] ?? '';
-      let lineText = resolveGlobalPlaceholders(rawLine);
-      lineText = lineText + '§r'.repeat(i);
-      const score = lineCount - i;
-      objective.setScore(lineText, score);
+      objective.setScore(resolvedLines[i]!, lineCount - i);
     }
 
     scoreboard.setObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar, {
       objective: objective,
       sortOrder: mc.ObjectiveSortOrder.Descending,
     });
+    lastScoreboardTitle = title;
+    lastScoreboardLines = resolvedLines;
     scoreboardActive = true;
   } catch (error) {
     debugLog(`Error updating global sidebar objective: ${String(error)}`);
@@ -478,20 +491,33 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
         const tpsColor = cachedTpsNum >= 18 ? '§a' : cachedTpsNum >= 14 ? '§e' : '§c';
         return `${tpsColor}${cachedTps}§r`;
       }
-      case 'time':
-        return new Date().toLocaleTimeString('en-US', { hour12: false });
-      case 'date':
-        return new Date().toISOString().split('T')[0] ?? '';
+      case 'time': {
+        if (cachedTickNumber !== currentTick) {
+          const now = new Date();
+          cachedTimeString = now.toLocaleTimeString('en-US', { hour12: false });
+          cachedDateString = now.toISOString().split('T')[0] ?? '';
+          cachedTickNumber = currentTick;
+        }
+        return cachedTimeString;
+      }
+      case 'date': {
+        if (cachedTickNumber !== currentTick) {
+          const now = new Date();
+          cachedTimeString = now.toLocaleTimeString('en-US', { hour12: false });
+          cachedDateString = now.toISOString().split('T')[0] ?? '';
+          cachedTickNumber = currentTick;
+        }
+        return cachedDateString;
+      }
     }
 
     if (token.startsWith('top_money_')) {
       const idx = Number.parseInt(token.slice(10), 10) - 1;
-      if (!isDefined(cachedLeaderboard)) {
-        const lbService = serviceLocator.getService<EconomyLeaderboardService>('economy.leaderboard');
-        cachedLeaderboard = lbService ? lbService.getLeaderboard() : [];
-      }
-      if (isNumber(idx) && idx >= 0 && idx < cachedLeaderboard.length) {
-        const entry = cachedLeaderboard[idx];
+      const leaderboard =
+        cachedLeaderboard ??
+        (cachedLeaderboard = serviceLocator.getService('economy.leaderboard')?.getLeaderboard() ?? []);
+      if (isNumber(idx) && idx >= 0 && idx < leaderboard.length) {
+        const entry = leaderboard[idx];
         return isDefined(entry) && isDefined(entry.name) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
       }
       return '---';

@@ -1,5 +1,12 @@
 import { findPlayerByName, getAllPlayersFromCache } from '@core/data/playerCache.js';
-import { getPlayer } from '@core/data/playerDataManager.js';
+import {
+  getOrCreatePlayer,
+  getPlayer,
+  getPlayerIdByName,
+  getPlayerNameById,
+  loadPlayerData,
+  type PlayerData,
+} from '@core/data/playerDataManager.js';
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isDefined } from '@lib/guards.js';
@@ -113,6 +120,46 @@ export function getSafeDisplayName(player: mc.Player, observer?: mc.Player): str
     return '§kUnknown§r'; // Obfuscated for non-staff
   }
   return player.name;
+}
+
+export interface ResolvedPlayerRecord {
+  player?: mc.Player;
+  playerId: string;
+  playerName: string;
+  pData?: PlayerData;
+  isOnline: boolean;
+}
+
+/** Resolves an online or offline player by name or selector into a unified record. */
+export function resolvePlayerRecord(input: string, executor?: mc.Player): ResolvedPlayerRecord | undefined {
+  if (!input || input.trim().length === 0) {
+    return undefined;
+  }
+  const clean = input.trim();
+  const onlineMatch = executor ? resolveTarget(clean, executor)[0] : findPlayerByName(clean);
+  if (isDefined(onlineMatch)) {
+    return {
+      player: onlineMatch,
+      playerId: onlineMatch.id,
+      playerName: onlineMatch.name,
+      pData: getPlayer(onlineMatch.id) ?? getOrCreatePlayer(onlineMatch),
+      isOnline: true,
+    };
+  }
+
+  const offlineId = getPlayerIdByName(clean);
+  if (isDefined(offlineId)) {
+    const pData = getPlayer(offlineId) ?? loadPlayerData(offlineId);
+    const displayName = getPlayerNameById(offlineId) ?? pData?.name ?? clean;
+    return {
+      playerId: offlineId,
+      playerName: displayName,
+      ...(isDefined(pData) ? { pData } : {}),
+      isOnline: false,
+    };
+  }
+
+  return undefined;
 }
 
 export function reinitializeOnlinePlayers() {

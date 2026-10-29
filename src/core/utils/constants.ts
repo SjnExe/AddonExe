@@ -5,8 +5,9 @@ import { RawMessage } from '@minecraft/server';
  * code easier to maintain.
  */
 
-// --- Entity Identifiers ---
+// --- Entity & Particle Identifiers ---
 export const floatingTextId = 'exe:floating_text';
+export const villagerHappyParticleId = 'minecraft:' + 'villager_happy';
 
 // --- Common Tags ---
 export const adminTag = 'admin';
@@ -33,6 +34,10 @@ export const bountiesDisabled: RawMessage = tr('error.bounties_disabled');
 export const ahDisabled: RawMessage = tr('error.ah_disabled');
 export const dailyDisabled: RawMessage = tr('error.daily_disabled');
 export const backDisabled: RawMessage = tr('error.back_disabled');
+export const gamesDisabled: RawMessage = tr('error.games_disabled');
+export const mailDisabled: RawMessage = tr('error.mail_disabled');
+export const tradeDisabled: RawMessage = tr('error.trade_disabled');
+export const afkDisabled: RawMessage = tr('error.afk_disabled');
 
 // --- Sound Events ---
 // Note: Migrate to MinecraftSoundTypes when available

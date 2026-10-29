@@ -63,7 +63,7 @@ export async function updateManifests(options = cliArgs) {
   const pkg = await Bun.file(pkgPath).json();
   const { versionStr: finalStr, versionArray: finalParts } = await getVersionContext(rootDir, {
     customVersion: options.customVersion,
-    isNightly: options.isNightly,
+    isCanary: options.isCanary,
     buildNumber: options.buildNumber,
     isRelease: options.isRelease,
   });

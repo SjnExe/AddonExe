@@ -14,6 +14,7 @@ export interface ChatLog {
 const indexStorage = new StorageManager('exe:logs:chat:index');
 let availableDates: string[] = [];
 let today: string = '';
+const maxDailyChatLogs = 1000;
 let currentDayLogs: ChatLog[] = [];
 let isDirty = false;
 
@@ -91,6 +92,9 @@ export function addChatLog(playerName: string, message: string, rank?: string) {
     log.rank = rank;
   }
   currentDayLogs.push(log);
+  if (currentDayLogs.length > maxDailyChatLogs) {
+    currentDayLogs.splice(0, currentDayLogs.length - maxDailyChatLogs);
+  }
   isDirty = true;
 }
 

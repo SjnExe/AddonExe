@@ -56,9 +56,15 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
     if (isNumber(reward) && reward !== 0) {
       incrementPlayerBalance(killer.id, reward);
       if (reward > 0) {
-        infoLog(`Gave ${killer.name} ${formatCurrency(reward)} for killing a ${deadEntity.typeId}.`);
+        if (economyConfig.logToConsole) {
+          infoLog(`[Economy] Gave ${killer.name} ${formatCurrency(reward)} for killing a ${deadEntity.typeId}.`);
+        }
       } else {
-        infoLog(`Took ${formatCurrency(Math.abs(reward))} from ${killer.name} for killing a ${deadEntity.typeId}.`);
+        if (economyConfig.logToConsole) {
+          infoLog(
+            `[Economy] Took ${formatCurrency(Math.abs(reward))} from ${killer.name} for killing a ${deadEntity.typeId}.`,
+          );
+        }
         killer.sendMessage(`§cPenalty: ${formatCurrency(reward)} for killing a ${deadEntity.typeId}.`);
       }
     }

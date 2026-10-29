@@ -85,9 +85,8 @@ export function createListing(
     return { success: false, message: '§cPrice must be positive.' };
   }
 
-  // Check limits
-  const myListings = [...activeListings.values()].filter((l) => l.sellerId === player.id);
-  if (myListings.length >= config.maxListingsPerPlayer) {
+  // Check limits (O(N) without array allocation)
+  if (getListingsCount(undefined, player.id) >= config.maxListingsPerPlayer) {
     return { success: false, message: '§cYou have reached the maximum number of active listings.' };
   }
 

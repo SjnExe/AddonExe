@@ -27,6 +27,28 @@ export async function validateMinecraftRules(): Promise<number> {
     }
   }
 
+  const codePaths = allPaths.filter((p) => !p.includes('__mocks__') && !p.includes('__tests__'));
+  await Promise.all(
+    codePaths.map(async (filePath) => {
+      const content = await Bun.file(filePath).text();
+      const lines = content.split('\n');
+      for (let idx = 0; idx < lines.length; idx++) {
+        const line = lines[idx]!;
+        const trimmed = line.trim();
+        if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) {
+          continue;
+        }
+        const declMatch = snakeCaseDeclRegex.exec(line);
+        if (declMatch && declMatch[1] && !declMatch[1].startsWith('__')) {
+          console.error(
+            `❌ ${filePath}:${idx + 1} -> Identifier '${declMatch[1]}' uses snake_case/UPPER_SNAKE_CASE. Use camelCase or PascalCase.`,
+          );
+          errors++;
+        }
+      }
+    }),
+  );
+
   const runtimePaths = srcPaths.filter((p) => !p.includes('__mocks__') && !p.includes('__tests__'));
 
   await Promise.all(
@@ -39,17 +61,6 @@ export async function validateMinecraftRules(): Promise<number> {
         const trimmed = line.trim();
         if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) {
           continue;
-        }
-
-        const declMatch = snakeCaseDeclRegex.exec(line);
-        if (declMatch && declMatch[1]) {
-          const ident = declMatch[1];
-          if (!ident.startsWith('__')) {
-            console.error(
-              `❌ ${filePath}:${idx + 1} -> Identifier '${ident}' uses snake_case/UPPER_SNAKE_CASE. Use camelCase or PascalCase.`,
-            );
-            errors++;
-          }
         }
 
         if (line.includes('.runCommandAsync(')) {

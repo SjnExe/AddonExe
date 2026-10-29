@@ -1,6 +1,5 @@
-declare const __IS_NIGHTLY__: boolean;
+declare const __CANARY__: boolean;
 declare const __VERSION__: string;
-declare const __DEV__: boolean;
 
 interface Console {
   log(...data: unknown[]): void;
@@ -13,5 +12,5 @@ interface Console {
 declare let console: Console;
 
 declare module 'virtual:command-index' {
-  export function loadCommands(): Promise<void>;
+  export function loadCommands(): void | Promise<void>;
 }

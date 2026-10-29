@@ -71,7 +71,7 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
   let savedPlayerCount = 0;
   for (const [playerId, playerData] of allPlayerData.entries()) {
     if (playerData.needsSave === true) {
-      savePlayerData(playerId);
+      savePlayerData(playerId, true);
       savedPlayerCount++;
     }
   }
@@ -126,7 +126,7 @@ export function* saveAllDataJob(options: { log?: boolean } = {}): Generator<void
   let savedPlayerCount = 0;
   for (const [playerId, playerData] of allPlayerData.entries()) {
     if (playerData.needsSave === true) {
-      savePlayerData(playerId);
+      savePlayerData(playerId, true);
       savedPlayerCount++;
       yield;
     }

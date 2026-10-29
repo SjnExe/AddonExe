@@ -2,6 +2,7 @@ import { getShopConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatCurrency } from '@core/utils/index.js';
+import type { ShopCategory, ShopItemInfo } from '@features/economy/shop/config.js';
 import {
   buyItem,
   executeSellAllInventory,
@@ -22,25 +23,6 @@ import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
-
-interface ShopItemInfo {
-  itemId?: string;
-  buyPrice: number;
-  sellPrice: number;
-  displayName?: string;
-  icon?: string;
-  permission?: string;
-  rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
-}
-interface ShopSubCategory {
-  icon?: string;
-  items: Record<string, ShopItemInfo>;
-}
-interface ShopCategory {
-  icon?: string;
-  subCategories?: Record<string, ShopSubCategory>;
-  items: Record<string, ShopItemInfo>;
-}
 
 export async function showShopMainPanel(player: mc.Player): Promise<void> {
   await ensureItemsConfig();

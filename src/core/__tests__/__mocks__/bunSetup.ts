@@ -96,7 +96,7 @@ mock.module('virtual:command-index', () => ({
 
 import { _resetMinecraftMocks } from './minecraftMock.ts';
 
-(globalThis as unknown as Record<string, unknown>).__DEV__ = true;
+(globalThis as unknown as Record<string, unknown>).__CANARY__ = true;
 
 const { _clearConfigManagersForTest } = await import('@core/config/configurations.js');
 const { clearPlayerCache } = await import('@core/data/playerCache.js');
@@ -105,6 +105,13 @@ const { invalidateAllRankCaches } = await import('@core/permissions/permissionEn
 const { cleanupTimers } = await import('@core/utils/timerManager.js');
 const { clearCategorizedCache } = await import('@features/essentials/commands/help.js');
 const { _clearBountiesForTest } = await import('@features/economy/bounty/manager.js');
+const { _clearChatFilterStateForTest } = await import('@core/events/beforeChatSend.js');
+const { _resetMovementCheckForTest } = await import('@features/anticheat/movementCheck.js');
+const { _resetPlaytimeRewardsForTest } = await import('@features/economy/playtime/manager.js');
+const { _clearTradesForTest } = await import('@features/economy/trade/manager.js');
+const { _clearAfkForTest } = await import('@features/essentials/afk/manager.js');
+const { _clearMailForTest } = await import('@features/social/mail/manager.js');
+const { _clearMatchmakingForTest } = await import('@features/games/matchmakingManager.js');
 
 beforeEach(() => {
   mock.restore();
@@ -116,4 +123,11 @@ beforeEach(() => {
   cleanupTimers();
   clearCategorizedCache();
   _clearBountiesForTest();
+  _clearChatFilterStateForTest();
+  _resetMovementCheckForTest();
+  _resetPlaytimeRewardsForTest();
+  _clearTradesForTest();
+  _clearAfkForTest();
+  _clearMailForTest();
+  _clearMatchmakingForTest();
 });

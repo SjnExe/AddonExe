@@ -1,15 +1,10 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
-import {
-  getOrCreatePlayer,
-  getPlayerIdByName,
-  getPlayerNameById,
-  incrementPlayerBalance,
-} from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { bountiesDisabled, economyDisabled } from '@core/utils/constants.js';
 import { validateCurrencyAmount } from '@core/utils/economy.js';
-import { resolveTarget } from '@core/utils/index.js';
+import { resolvePlayerRecord, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import * as bountyManager from '@features/economy/bounty/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -201,11 +196,11 @@ const oBountyCommand: CustomCommand = {
       return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
     }
 
-    const targetId = getPlayerIdByName(targetName);
-    if (!isNonEmptyString(targetId)) {
+    const record = resolvePlayerRecord(targetName);
+    if (!isDefined(record)) {
       return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
     }
-    const displayName = getPlayerNameById(targetId) ?? targetName;
+    const { playerId: targetId, playerName: displayName } = record;
 
     placeBounty(executor, targetId, displayName, amount);
   },
@@ -246,11 +241,11 @@ const oRemoveBountyCommand: CustomCommand = {
       return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);
     }
 
-    const targetId = getPlayerIdByName(targetName);
-    if (!isNonEmptyString(targetId)) {
+    const record = resolvePlayerRecord(targetName);
+    if (!isDefined(record)) {
       return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
     }
-    const displayName = getPlayerNameById(targetId) ?? targetName;
+    const { playerId: targetId, playerName: displayName } = record;
 
     const targetBounty = bountyManager.getBounty(targetId);
     if (!isDefined(targetBounty)) {
@@ -290,38 +285,18 @@ function handleListAllBounties(executor: CommandExecutor) {
 }
 
 function handleSingleBountyCheck(executor: CommandExecutor, targetName: string) {
-  // Check online match first, else use name directly?
-  let targetId: string | undefined;
-  let targetDisplayName = targetName;
-
-  if (executor instanceof mc.Player) {
-    const targets = resolveTarget(targetName, executor);
-    const firstTarget = targets[0];
-    if (isDefined(firstTarget)) {
-      targetId = firstTarget.id;
-      targetDisplayName = firstTarget.name;
-    } else {
-      // Try offline lookup if online failed
-      targetId = getPlayerIdByName(targetName);
-      if (isNonEmptyString(targetId)) {
-        targetDisplayName = getPlayerNameById(targetId) ?? targetName;
-      }
-    }
-  } else {
-    targetId = getPlayerIdByName(targetName);
-  }
-
-  if (!isNonEmptyString(targetId)) {
+  const record = resolvePlayerRecord(targetName, executor instanceof mc.Player ? executor : undefined);
+  if (!isDefined(record)) {
     sendExecutorMessage(executor, '§cPlayer not found (Online or Offline).');
     return;
   }
 
-  const bounty = bountyManager.getBounty(targetId);
+  const bounty = bountyManager.getBounty(record.playerId);
   if (!isDefined(bounty)) {
-    sendExecutorMessage(executor, `§aThere is no bounty on ${targetDisplayName}.`);
+    sendExecutorMessage(executor, `§aThere is no bounty on ${record.playerName}.`);
     return;
   }
-  sendExecutorMessage(executor, `§aBounty on ${targetDisplayName}: §e${bounty.amount.toFixed(2)}`);
+  sendExecutorMessage(executor, `§aBounty on ${record.playerName}: §e${bounty.amount.toFixed(2)}`);
 }
 
 const listBountyCommand: CustomCommand = {
@@ -367,12 +342,12 @@ const oListBountyCommand: CustomCommand = {
       return;
     }
 
-    const targetId = getPlayerIdByName(targetName);
-    if (!isNonEmptyString(targetId)) {
+    const record = resolvePlayerRecord(targetName);
+    if (!isDefined(record)) {
       sendExecutorMessage(executor, `§cPlayer "${targetName}" never joined.`);
       return;
     }
-    const displayName = getPlayerNameById(targetId) ?? targetName;
+    const { playerId: targetId, playerName: displayName } = record;
 
     const bounty = bountyManager.getBounty(targetId);
     if (!isDefined(bounty)) {

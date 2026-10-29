@@ -3,6 +3,37 @@ import * as mc from '@minecraft/server';
 const displayNameCache = new Map<string, string>();
 const iconCache = new Map<string, string>();
 
+const irregularItemTextures: Record<string, string> = {
+  ancient_debris: 'textures/blocks/ancient_debris_side',
+  totem_of_undying: 'textures/items/totem',
+  lapis_lazuli: 'textures/items/dye_powder_blue',
+  sugar_cane: 'textures/items/reeds',
+  cooked_beef: 'textures/items/beef_cooked',
+  cooked_porkchop: 'textures/items/porkchop_cooked',
+  cooked_salmon: 'textures/items/fish_salmon_cooked',
+  cooked_cod: 'textures/items/fish_cooked',
+  golden_carrot: 'textures/items/carrot_golden',
+  golden_apple: 'textures/items/apple_golden',
+  enchanted_golden_apple: 'textures/items/apple_golden',
+  enchanted_book: 'textures/items/book_enchanted',
+  wither_skeleton_skull: 'textures/items/spawn_eggs/spawn_egg_wither_skeleton',
+  melon_slice: 'textures/items/melon',
+  pumpkin: 'textures/blocks/pumpkin_face_off',
+  hardened_clay: 'textures/blocks/hardened_clay',
+  white_concrete: 'textures/blocks/concrete_white',
+  stone_bricks: 'textures/blocks/stonebrick',
+  oak_log: 'textures/blocks/log_oak_top',
+  spruce_log: 'textures/blocks/log_spruce_top',
+  birch_log: 'textures/blocks/log_birch_top',
+  jungle_log: 'textures/blocks/log_jungle_top',
+  acacia_log: 'textures/blocks/log_acacia_top',
+  dark_oak_log: 'textures/blocks/log_big_oak_top',
+  mangrove_log: 'textures/blocks/mangrove_log_top',
+  cherry_log: 'textures/blocks/cherry_log_top',
+  crimson_stem: 'textures/blocks/huge_fungus/crimson_log_top',
+  warped_stem: 'textures/blocks/huge_fungus/warped_stem_top',
+};
+
 const familyIconFallbacks: [string, string][] = [
   ['netherite_sword', 'textures/items/netherite_sword'],
   ['netherite_pickaxe', 'textures/items/netherite_pickaxe'],
@@ -148,6 +179,12 @@ export function resolveIcon(typeId: string): string {
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     .toLowerCase();
 
+  if (irregularItemTextures[normalized]) {
+    const texPath = irregularItemTextures[normalized]!;
+    iconCache.set(typeId, texPath);
+    return texPath;
+  }
+
   for (const [pattern, texPath] of familyIconFallbacks) {
     if (normalized.includes(pattern)) {
       iconCache.set(typeId, texPath);
@@ -162,7 +199,7 @@ export function resolveIcon(typeId: string): string {
   } else {
     let isBlock = false;
     try {
-      const fullId = typeId.includes(':') ? typeId : ['minecraft', normalized].join(':');
+      const fullId = typeId.includes(':') ? typeId : 'minecraft:' + normalized;
       isBlock = Boolean(mc.BlockTypes?.get?.(fullId));
     } catch {
       isBlock = false;

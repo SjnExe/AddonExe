@@ -1,39 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
 import * as configs from '@core/config/configurations.js';
-import { featureRegistry } from '@core/services/featureRegistry.js';
-import { isDefined } from '@lib/guards.js';
 
 export function isFeatureActive(featureId: string): boolean {
-  const feature = featureRegistry.find((f) => f.id === featureId);
-
-  const coreFeatures = ['essentials', 'mod', 'ranks', 'ac', 'test'];
-  if (coreFeatures.includes(featureId)) {
-    return true;
-  }
-
-  const parts = featureId.split('.');
-  if (parts.length > 1) {
-    let currentPath = parts[0];
-    if (currentPath && !isFeatureActive(currentPath)) {
-      return false;
-    }
-
-    for (let i = 1; i < parts.length - 1; i++) {
-      currentPath += '.' + parts[i];
-      if (currentPath && !isFeatureActive(currentPath)) {
-        return false;
-      }
-    }
-  }
-
-  if (isDefined(feature)) {
-    for (const dep of feature.dependencies) {
-      if (!isFeatureActive(dep)) {
-        return false;
-      }
-    }
-  }
-
   let mainConfig: ReturnType<typeof getConfig> | undefined;
   try {
     mainConfig = getConfig();
@@ -41,117 +9,96 @@ export function isFeatureActive(featureId: string): boolean {
     // Config might not be ready yet
   }
 
+  const ecoOn = mainConfig?.economy?.enabled === true;
+
   switch (featureId) {
     case 'eco':
-      return mainConfig ? mainConfig.economy.enabled === true : false;
-    case 'soc': {
-      const friendCfg = configs.getFriendConfig();
-      return isDefined(friendCfg) ? friendCfg.enabled === true : true;
-    }
-    case 'tp':
-      return true;
-    case 'util':
-      return true;
-    case 'game': {
-      const gamesCfg = configs.getGamesConfig();
-      return isDefined(gamesCfg) ? gamesCfg.enabled === true : false;
-    }
-
+      return ecoOn;
     case 'eco.shop':
-      return mainConfig ? mainConfig.shop.enabled === true : false;
-    case 'eco.ah': {
-      const ahCfg = configs.getAuctionHouseConfig();
-      const mainAh = mainConfig ? mainConfig.auctionHouse.enabled === true : true;
-      return mainAh && (isDefined(ahCfg) ? ahCfg.enabled === true : true);
-    }
+      return ecoOn && mainConfig?.shop?.enabled === true;
+    case 'eco.ah':
+      return ecoOn && mainConfig?.auctionHouse?.enabled === true && (configs.getAuctionHouseConfig()?.enabled ?? true);
     case 'eco.bounty':
-      return mainConfig ? mainConfig.bounties.enabled === true : false;
+      return ecoOn && mainConfig?.bounties?.enabled === true;
+    case 'eco.trade':
+      return ecoOn && mainConfig?.trading?.enabled === true;
+    case 'eco.playtime':
+      return ecoOn && mainConfig?.playtimeRewards?.enabled === true;
 
-    case 'util.daily': {
-      const dailyCfg = configs.getDailyRewardsConfig();
-      const mainDaily = mainConfig ? mainConfig.dailyRewards.enabled === true : true;
-      return mainDaily && (isDefined(dailyCfg) ? dailyCfg.enabled === true : true);
-    }
-    case 'util.vote':
-      return mainConfig ? mainConfig.voting.enabled === true : false;
+    case 'util.daily':
+      return ecoOn && mainConfig?.dailyRewards?.enabled === true && (configs.getDailyRewardsConfig()?.enabled ?? true);
     case 'util.kit':
-      return mainConfig ? mainConfig.kits.enabled === true : false;
-    case 'util.sidebar': {
-      const sidebarCfg = configs.getSidebarConfig();
-      return isDefined(sidebarCfg) ? sidebarCfg.enabled === true : false;
-    }
+      return ecoOn && mainConfig?.kits?.enabled === true;
+    case 'util.vote':
+      return mainConfig?.voting?.enabled === true;
+    case 'util.sidebar':
+      return configs.getSidebarConfig()?.enabled === true;
 
-    case 'soc.team': {
-      const teamCfg = configs.getTeamConfig();
-      return isDefined(teamCfg) ? teamCfg.enabled === true : false;
-    }
+    case 'soc':
+      return configs.getFriendConfig()?.enabled ?? true;
+    case 'soc.team':
+      return ecoOn && (configs.getFriendConfig()?.enabled ?? true) && configs.getTeamConfig()?.enabled === true;
+    case 'soc.mail':
+      return (configs.getFriendConfig()?.enabled ?? true) && mainConfig?.mail?.enabled === true;
 
+    case 'game':
+      return configs.getGamesConfig()?.enabled === true;
     case 'game.tictactoe': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.ticTacToe?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.ticTacToe?.enabled !== false;
     }
     case 'game.rps': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.rps?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.rps?.enabled !== false;
     }
     case 'game.minesweeper': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.minesweeper?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.minesweeper?.enabled !== false;
     }
     case 'game.coinflip': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.coinFlip?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.coinFlip?.enabled !== false;
     }
     case 'game.2048': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.game2048?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.game2048?.enabled !== false;
     }
     case 'game.connect4': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.connect4?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.connect4?.enabled !== false;
     }
     case 'game.codebreaker': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.codebreaker?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.codebreaker?.enabled !== false;
     }
     case 'game.scramble': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.scramble?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.scramble?.enabled !== false;
     }
     case 'game.fastmath': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.fastMath?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.fastMath?.enabled !== false;
     }
     case 'game.numberguess': {
-      const gCfg = configs.getGamesConfig();
-      return isDefined(gCfg) ? gCfg.enabled === true && gCfg.numberGuess?.enabled !== false : false;
+      const g = configs.getGamesConfig();
+      return g?.enabled === true && g.numberGuess?.enabled !== false;
     }
-    case 'eco.trade':
-      return mainConfig ? mainConfig.trading?.enabled === true : false;
-    case 'soc.mail':
-      return mainConfig ? mainConfig.mail?.enabled === true : false;
-    case 'eco.playtime':
-      return mainConfig ? mainConfig.playtimeRewards?.enabled === true : false;
     case 'game.wordle': {
-      const gCfg = configs.getGamesConfig();
-      const wCfg = configs.getWordleConfig();
-      return (
-        (isDefined(gCfg) ? gCfg.wordle?.enabled !== false : true) && (isDefined(wCfg) ? wCfg.enabled === true : false)
-      );
+      const g = configs.getGamesConfig();
+      const w = configs.getWordleConfig();
+      return g?.enabled === true && g.wordle?.enabled !== false && w?.enabled === true;
     }
 
     case 'tp.home':
-      return mainConfig ? mainConfig.homes.enabled === true : false;
+      return mainConfig?.homes?.enabled === true;
     case 'tp.tpa':
-      return mainConfig ? mainConfig.tpa.enabled === true : false;
+      return mainConfig?.tpa?.enabled === true;
     case 'tp.rtp':
-      return mainConfig ? mainConfig.rtp.enabled === true : false;
+      return mainConfig?.rtp?.enabled === true;
     case 'tp.warp':
-      return mainConfig ? mainConfig.warps.enabled === true : false;
+      return mainConfig?.warps?.enabled === true;
     case 'tp.back':
-      return mainConfig ? mainConfig.back.enabled === true : false;
-    case 'tp.spawn':
-      return true;
+      return mainConfig?.back?.enabled === true;
 
     default:
       return true;

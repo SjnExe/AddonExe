@@ -42,12 +42,12 @@ export function reloadRanks() {
 }
 
 /** Initializes the rank manager by loading and sorting ranks. This is called once at startup. */
+export function clearPlayerRankCache(playerId: string): void {
+  rankCache.delete(playerId);
+}
+
 export function initialize() {
   reloadRanks();
-  // Clear cache on player leave to prevent memory leaks
-  mc.world.afterEvents.playerLeave.subscribe((event) => {
-    rankCache.delete(event.playerId);
-  });
   debugLog(`[RankManager] Initialized ${sortedRanks.length} ranks.`);
 }
 

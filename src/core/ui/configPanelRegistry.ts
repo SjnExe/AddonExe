@@ -277,12 +277,6 @@ export const configPanelSchema: ConfigCategory[] = [
         configSource: 'main',
       },
       {
-        key: 'playerInfo.customJoinLeave.enabled',
-        label: 'Enable Custom Join/Leave Messages',
-        type: 'toggle',
-        configSource: 'main',
-      },
-      {
         key: 'afk.enabled',
         label: 'Enable AFK System (/afk)',
         type: 'toggle',
@@ -536,7 +530,10 @@ export const configPanelSchema: ConfigCategory[] = [
         key: 'logLevel',
         label: 'Log Level',
         type: 'dropdown',
-        options: ['0: ERROR', '1: WARN', '2: INFO', '3: DEBUG'],
+        options:
+          typeof __CANARY__ !== 'undefined' && __CANARY__
+            ? ['0: ERROR', '1: WARN', '2: INFO', '3: DEBUG']
+            : ['0: ERROR', '1: WARN', '2: INFO'],
         description: 'Sets the verbosity of the server console logs.',
       },
       {
@@ -1103,12 +1100,6 @@ export const configPanelSchema: ConfigCategory[] = [
         label: 'Death Coords Message',
         type: 'textField',
         description: 'Message format for death coordinates ({x}, {y}, {z}, {dimensionId}).',
-      },
-      {
-        key: 'playerInfo.customJoinLeave.enabled',
-        label: 'Custom Join/Leave',
-        type: 'toggle',
-        description: 'Enables custom join and leave messages.',
       },
       {
         key: 'playerInfo.customJoinLeave.joinMessage',

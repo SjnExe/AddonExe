@@ -13,6 +13,7 @@ export class Dimension {
   getTopmostBlock = mock();
   getBlock = mock();
   playSound = mock();
+  spawnParticle = mock();
 }
 
 export class BlockVolume {
@@ -454,6 +455,18 @@ export class ModalFormData {
   private _controls: Control[] = [];
 
   title(_: string) {
+    return this;
+  }
+  header(label: string) {
+    this._controls.push({ type: 'header', label });
+    return this;
+  }
+  label(label: string) {
+    this._controls.push({ type: 'label', label });
+    return this;
+  }
+  divider() {
+    this._controls.push({ type: 'divider', label: '' });
     return this;
   }
   textField(label: string, placeholder: string, options?: { defaultValue?: string } | string) {

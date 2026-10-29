@@ -22,20 +22,20 @@ export interface Game2048Session {
 const activeSessions = new Map<string, Game2048Session>();
 
 const tileColors: Record<number, string> = {
-  0: '§8·',
+  0: ' ',
   2: '§f§l2',
   4: '§e§l4',
   8: '§6§l8',
   16: '§c§l16',
   32: '§4§l32',
-  64: '§d§l64',
-  128: '§5§l128',
-  256: '§b§l256',
-  512: '§3§l512',
+  64: '§c§l64',
+  128: '§g§l128',
+  256: '§e§l256',
+  512: '§6§l512',
   1024: '§a§l1024',
   2048: '§2§l2048',
-  4096: '§g§l4096',
-  8192: '§g§l8192',
+  4096: '§d§l4096',
+  8192: '§b§l8192',
 };
 
 export function format2048Tile(value: number): string {

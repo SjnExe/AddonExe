@@ -1,6 +1,7 @@
 import * as configurations from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { soundTeleport } from '@core/utils/constants.js';
@@ -10,7 +11,7 @@ import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { setTeamChatState } from '@features/social/team/commands/team.js';
 import { TeamData } from '@features/social/team/types.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 interface TeleportUtilsService {
@@ -19,6 +20,7 @@ interface TeleportUtilsService {
 
 const teamPropertyPrefix = 'exe:team.';
 const nextTeamIdKey = 'exe:nextTeamId';
+const allTeamIdsStorage = new StorageManager('exe:allTeamIds');
 
 // Re-export types for backward compatibility if needed, but prefer importing from teamTypes.ts
 export type { TeamApplication, TeamData } from '@features/social/team/types.js';
@@ -37,9 +39,8 @@ function* loadTeamJob(allIds: number[]) {
   let loadedCount = 0;
   for (const [i, id] of allIds.entries()) {
     try {
-      const teamDataStr = mc.world.getDynamicProperty(`${teamPropertyPrefix}${id}`);
-      if (isNonEmptyString(teamDataStr)) {
-        const team = JSON.parse(teamDataStr) as TeamData;
+      const team = new StorageManager(`${teamPropertyPrefix}${id}`).load<TeamData>();
+      if (isDefined(team)) {
         activeTeam.set(id, team);
         for (const memberId of team.members) {
           playerTeamMap.set(memberId, id);
@@ -67,11 +68,8 @@ export function initialize() {
     }
 
     // Load all team
-    const allIdsStr = mc.world.getDynamicProperty('exe:allTeamIds');
-    let allIds: number[] = [];
-    if (typeof allIdsStr === 'string') {
-      allIds = JSON.parse(allIdsStr) as number[];
-    }
+    const loadedIds = allTeamIdsStorage.load<number[]>();
+    const allIds: number[] = Array.isArray(loadedIds) ? loadedIds : [];
 
     // Safety: Ensure nextTeamId is greater than any existing ID to prevent collisions
     if (allIds.length > 0) {
@@ -99,7 +97,7 @@ function saveTeam(teamId: number) {
     return;
   }
   try {
-    mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, JSON.stringify(team));
+    new StorageManager(`${teamPropertyPrefix}${teamId}`).save(team);
   } catch (error: unknown) {
     if (error instanceof Error) {
       errorLog(`[TeamManager] Failed to save team ${teamId}: ${error.stack}`);
@@ -111,7 +109,7 @@ function saveTeam(teamId: number) {
 
 function saveAllTeamIds() {
   const ids = [...activeTeam.keys()];
-  mc.world.setDynamicProperty('exe:allTeamIds', JSON.stringify(ids));
+  allTeamIdsStorage.save(ids);
 }
 
 function saveNextTeamId() {
@@ -234,17 +232,12 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
         maxId = id;
       }
     }
-    const allIdsStr = mc.world.getDynamicProperty('exe:allTeamIds');
-    if (typeof allIdsStr === 'string') {
-      try {
-        const allIds = JSON.parse(allIdsStr) as number[];
-        for (const id of allIds) {
-          if (id > maxId) {
-            maxId = id;
-          }
+    const allIds = allTeamIdsStorage.load<number[]>();
+    if (Array.isArray(allIds)) {
+      for (const id of allIds) {
+        if (id > maxId) {
+          maxId = id;
         }
-      } catch {
-        // Ignore parse errors
       }
     }
     newTeamId = Math.max(newTeamId + 1, maxId + 1);
@@ -321,7 +314,7 @@ export function deleteTeam(teamId: number): boolean {
 
   activeTeam.delete(teamId);
   // Clean up storage
-  mc.world.setDynamicProperty(`${teamPropertyPrefix}${teamId}`, undefined);
+  new StorageManager(`${teamPropertyPrefix}${teamId}`).delete();
   saveAllTeamIds();
 
   return true;

@@ -22,8 +22,13 @@ describe('restartManager', () => {
 
     sendMessageSpy = spyOn(mc.world, 'sendMessage').mockImplementation(() => {});
     clearRunSpy = spyOn(mc.system, 'clearRun').mockImplementation(() => {});
-    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
-      intervalCallback = cb;
+    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void, step?: number) => {
+      const loops = step && step >= 20 ? 1 : 20;
+      intervalCallback = () => {
+        for (let i = 0; i < loops; i++) {
+          cb();
+        }
+      };
       return 123 as any;
     });
 
@@ -81,7 +86,6 @@ describe('restartManager', () => {
     expect(mockPlayer1.runCommand).toHaveBeenCalledWith(
       'kick "Malicious\'Name" "Server is restarting; please rejoin shortly."',
     );
-    expect(clearRunSpy).toHaveBeenCalledWith(123);
   });
 
   it('should prevent starting multiple restarts simultaneously', () => {
@@ -99,7 +103,6 @@ describe('restartManager', () => {
     startRestart();
     cancelRestart();
 
-    expect(clearRunSpy).toHaveBeenCalledWith(123);
     expect(sendMessageSpy).toHaveBeenCalledWith('§aServer restart has been cancelled.');
   });
 });

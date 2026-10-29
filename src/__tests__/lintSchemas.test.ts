@@ -35,6 +35,19 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
     );
   });
 
+  it('catches scalar $variables and dangling number strings inside JSON UI size arrays', () => {
+    const badSizeUi = {
+      namespace: 'server_form',
+      bad_icon_panel: {
+        type: 'panel',
+        size: ['$icon_panel_w', '42'],
+      },
+    };
+    const errs = validateUiJson('packs/resource/ui/server_form.json', badSizeUi);
+    expect(errs.some((e) => e.includes("Avoid scalar variable '$icon_panel_w' inside size array"))).toBe(true);
+    expect(errs.some((e) => e.includes("Dangling number or invalid size expression '42'"))).toBe(true);
+  });
+
   it('catches unknown JSON UI control properties and broken local @ references', () => {
     const badUi = {
       namespace: 'server_form',

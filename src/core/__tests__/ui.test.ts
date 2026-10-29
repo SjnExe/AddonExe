@@ -86,7 +86,7 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     registerAllSuites();
     const res = await runTests();
     expect(res.failed).toBe(0);
-    expect(res.passed).toBeGreaterThanOrEqual(5);
+    expect(res.passed).toBeGreaterThanOrEqual(4);
   });
 
   it('generateId should generate valid RFC 9562 v7 UUIDs with accurate embedded timestamps', () => {

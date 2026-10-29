@@ -104,9 +104,12 @@ describe('startTeleportWarmup', () => {
     expect(subscribeSpy).toHaveBeenCalled();
     expect(runIntervalSpy).toHaveBeenCalled();
 
-    const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
+    const lastCall = runIntervalSpy.mock.calls.at(-1);
+    const masterTick = lastCall?.[0] as () => void;
+    const stepSize = (lastCall?.[1] as number) || 1;
+    const ticksPerSec = Math.max(1, Math.round(20 / stepSize));
     const stepSecond = () => {
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < ticksPerSec; i++) {
         masterTick();
       }
     };
@@ -152,9 +155,7 @@ describe('startTeleportWarmup', () => {
     const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
 
     mockDistance.mockReturnValue(3); // Moved more than 2 blocks
-    for (let i = 0; i < 20; i++) {
-      masterTick();
-    }
+    masterTick();
 
     expect(setActionBarOverrideSpy).toHaveBeenCalledWith(mockPlayer, '§cTeleport canceled because you moved.', 3000);
     expect(mockPlaySound).toHaveBeenCalledWith(mockPlayer, 'note.bass', { volume: 1, pitch: 0.5 });
@@ -167,9 +168,7 @@ describe('startTeleportWarmup', () => {
     const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
 
     mockPlayer.dimension.id = MinecraftDimensionTypes.Nether;
-    for (let i = 0; i < 20; i++) {
-      masterTick();
-    }
+    masterTick();
 
     expect(setActionBarOverrideSpy).toHaveBeenCalledWith(mockPlayer, '§cTeleport canceled because you moved.', 3000);
     expect(onCancel).toHaveBeenCalled();
@@ -181,9 +180,7 @@ describe('startTeleportWarmup', () => {
     const masterTick = runIntervalSpy.mock.calls.at(-1)?.[0] as () => void;
 
     mockPlayer.isValid = false;
-    for (let i = 0; i < 20; i++) {
-      masterTick();
-    }
+    masterTick();
 
     expect(onCancel).toHaveBeenCalled();
   });
@@ -198,9 +195,7 @@ describe('startTeleportWarmup', () => {
       throw new Error('Test error');
     });
 
-    for (let i = 0; i < 20; i++) {
-      masterTick();
-    }
+    masterTick();
 
     expect(errorLogSpy).toHaveBeenCalledWith(
       expect.stringContaining('Error during warmup interval for TestPlayer: Error: Test error'),

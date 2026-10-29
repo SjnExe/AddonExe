@@ -1,11 +1,12 @@
 import { getConfig } from '@core/config/configManager.js';
 import { registerDataSaver } from '@core/data/dataManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
-import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
-import * as mc from '@minecraft/server';
+import { isDefined, isNumber } from '@lib/guards.js';
 
 const leaderboardKey = 'exe:economyLeaderboard';
+const leaderboardStorage = new StorageManager(leaderboardKey);
 
 export interface LeaderboardEntry {
   playerId: string;
@@ -26,7 +27,7 @@ function saveLeaderboardIfDirty() {
     return;
   }
   try {
-    mc.world.setDynamicProperty(leaderboardKey, JSON.stringify(leaderboardCache));
+    leaderboardStorage.save(leaderboardCache);
     isLeaderboardDirty = false;
   } catch (error: unknown) {
     const stack = error instanceof Error ? error.stack : String(error);
@@ -36,9 +37,9 @@ function saveLeaderboardIfDirty() {
 
 export function initializeLeaderboard() {
   try {
-    const dataString = mc.world.getDynamicProperty(leaderboardKey) as string | undefined;
-    if (isNonEmptyString(dataString)) {
-      leaderboardCache = JSON.parse(dataString) as LeaderboardEntry[];
+    const loaded = leaderboardStorage.load<LeaderboardEntry[]>();
+    if (isDefined(loaded) && Array.isArray(loaded)) {
+      leaderboardCache = loaded;
       debugLog(`[LeaderboardManager] Loaded ${leaderboardCache.length} players into leaderboard cache.`);
     } else {
       leaderboardCache = [];

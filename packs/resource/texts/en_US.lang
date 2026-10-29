@@ -21,6 +21,10 @@ error.bounties_disabled=§cThe Bounties system is currently disabled globally.
 error.ah_disabled=§cThe Auction House system is currently disabled globally.
 error.daily_disabled=§cThe Daily Rewards system is currently disabled globally.
 error.back_disabled=§cThe Back system is currently disabled globally.
+error.games_disabled=§cThe Mini-Games system is currently disabled globally.
+error.mail_disabled=§cThe Mail system is currently disabled globally.
+error.trade_disabled=§cPlayer trading (/trade) is currently disabled globally.
+error.afk_disabled=§cThe AFK system is currently disabled globally.
 
 ## Hide Vanilla Join/Leave Messages (Handled by AddonExe Script)
 multiplayer.player.joined=

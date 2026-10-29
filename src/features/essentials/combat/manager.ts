@@ -113,7 +113,11 @@ export function resolveKiller(
   creditTimeoutSeconds = getCombatTimeoutSeconds(),
 ): mc.Player | undefined {
   if (isDefined(damagingEntity)) {
-    const owner = (damagingEntity as mc.Entity & { owner?: mc.Entity }).owner ?? damagingEntity;
+    const projectileComp = damagingEntity.getComponent(mc.EntityComponentTypes.Projectile) as
+      mc.EntityProjectileComponent | undefined;
+    const tameComp = damagingEntity.getComponent(mc.EntityComponentTypes.Tameable) as
+      mc.EntityTameableComponent | undefined;
+    const owner = projectileComp?.owner ?? tameComp?.tamedToPlayer ?? damagingEntity;
     if (owner.typeId === MinecraftEntityTypes.Player) {
       clearLastHit(deadEntity.id);
       return owner as mc.Player;
@@ -226,7 +230,7 @@ export function handleCombatPlayerLeave(playerId: string, playerName: string): v
       if (req.amount > 0) {
         incrementPlayerBalance(playerId, req.amount);
       }
-      mc.system.clearRun(req.timeoutId);
+      clearTrackedTimeout(req.timeoutId);
       pvpRequests.delete(targetId);
       const target = getPlayerFromCache(targetId);
       if (isDefined(target)) {
@@ -240,7 +244,7 @@ export function handleCombatPlayerLeave(playerId: string, playerName: string): v
   if (isDefined(duel)) {
     const opponentId = duel.opponentId;
     const amount = duel.amount;
-    mc.system.clearRun(duel.timeoutId);
+    clearTrackedTimeout(duel.timeoutId);
     activeDuels.delete(playerId);
     activeDuels.delete(opponentId);
     clearLastHit(playerId);
@@ -316,7 +320,7 @@ export function handleCombatPlayerJoin(player: mc.Player): void {
 
   if (pendingKillOnRejoin.has(player.id)) {
     pendingKillOnRejoin.delete(player.id);
-    mc.system.runTimeout(() => {
+    setTrackedTimeout(() => {
       if (player.isValid) {
         try {
           player.kill();
@@ -361,7 +365,7 @@ export function requestPvP(requester: mc.Player, target: mc.Player, amount: numb
     incrementPlayerBalance(requester.id, -amount);
   }
 
-  const timeoutId = mc.system.runTimeout(() => {
+  const timeoutId = setTrackedTimeout(() => {
     expireRequest(target.id);
   }, config.requestTimeout * 20);
 
@@ -410,10 +414,10 @@ export function acceptPvP(player: mc.Player): void {
     incrementPlayerBalance(player.id, -amount);
   }
 
-  mc.system.clearRun(request.timeoutId);
+  clearTrackedTimeout(request.timeoutId);
   pvpRequests.delete(player.id);
 
-  const duelTimeoutId = mc.system.runTimeout(() => {
+  const duelTimeoutId = setTrackedTimeout(() => {
     timeoutDuel(player.id, requester.id);
   }, config.duelTimeout * 20);
 
@@ -460,7 +464,7 @@ function clearRequest(targetId: string, notifyRequester: boolean): void {
     }
   }
 
-  mc.system.clearRun(request.timeoutId);
+  clearTrackedTimeout(request.timeoutId);
   pvpRequests.delete(targetId);
 }
 
@@ -525,7 +529,7 @@ export function handlePvPDeath(victim: mc.Player, killer: mc.Player): boolean {
   const config = getEconomyConfig().pvp;
   const { amount, timeoutId } = duel;
 
-  mc.system.clearRun(timeoutId);
+  clearTrackedTimeout(timeoutId);
   activeDuels.delete(victim.id);
   activeDuels.delete(killer.id);
 

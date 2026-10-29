@@ -70,7 +70,6 @@ export const essentialsConfig = {
     enableDeathCoords: false,
     deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.',
     customJoinLeave: {
-      enabled: false,
       joinMessage: '§e{playerName} joined the game',
       leaveMessage: '§e{playerName} left the game',
     },

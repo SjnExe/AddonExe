@@ -138,6 +138,205 @@ const validUiControlProperties = new Set([
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+interface JsonSchemaNode {
+  type?: string | string[];
+  properties?: Record<string, JsonSchemaNode>;
+  required?: string[];
+  additionalProperties?: boolean | JsonSchemaNode;
+  allOf?: JsonSchemaNode[];
+  anyOf?: JsonSchemaNode[];
+  oneOf?: JsonSchemaNode[];
+  $ref?: string;
+  definitions?: Record<string, JsonSchemaNode>;
+  $defs?: Record<string, JsonSchemaNode>;
+}
+
+const schemaFileCache = new Map<string, JsonSchemaNode>();
+
+function loadSchemaFile(absPath: string): JsonSchemaNode | undefined {
+  const cached = schemaFileCache.get(absPath);
+  if (cached) {
+    return cached;
+  }
+  try {
+    const raw = require('node:fs').readFileSync(absPath, 'utf8') as string;
+    const parsed = Bun.JSON5.parse(raw) as JsonSchemaNode;
+    if (parsed && typeof parsed === 'object') {
+      schemaFileCache.set(absPath, parsed);
+      return parsed;
+    }
+  } catch {
+    // Ignore missing/unreadable schema file
+  }
+  return undefined;
+}
+
+function resolveSchemaRef(
+  ref: string,
+  currentFilePath: string,
+  rootSchema: JsonSchemaNode,
+): { node?: JsonSchemaNode; filePath: string; root: JsonSchemaNode } {
+  const [filePart, pointerPart] = ref.split('#');
+  let targetFile = currentFilePath;
+  let targetRoot = rootSchema;
+
+  if (filePart && filePart.length > 0) {
+    targetFile = path.resolve(path.dirname(currentFilePath), filePart);
+    const loaded = loadSchemaFile(targetFile);
+    if (!loaded) {
+      return { filePath: targetFile, root: targetRoot };
+    }
+    targetRoot = loaded;
+  }
+
+  if (!pointerPart || pointerPart === '' || pointerPart === '/') {
+    return { node: targetRoot, filePath: targetFile, root: targetRoot };
+  }
+
+  const segments = pointerPart
+    .replace(/^\//, '')
+    .split('/')
+    .map((s) => s.replace(/~1/g, '/').replace(/~0/g, '~'));
+
+  let curr: unknown = targetRoot;
+  for (const seg of segments) {
+    if (curr && typeof curr === 'object' && seg in (curr as Record<string, unknown>)) {
+      curr = (curr as Record<string, unknown>)[seg];
+    } else {
+      return { filePath: targetFile, root: targetRoot };
+    }
+  }
+
+  return {
+    node: curr && typeof curr === 'object' ? (curr as JsonSchemaNode) : undefined,
+    filePath: targetFile,
+    root: targetRoot,
+  };
+}
+
+function collectAllowedPropertiesFromSchema(
+  node: JsonSchemaNode | undefined,
+  filePath: string,
+  rootSchema: JsonSchemaNode,
+  visited = new Set<string>(),
+): { props: Set<string>; hasExplicitProps: boolean } {
+  const props = new Set<string>();
+  let hasExplicitProps = false;
+  if (!node || typeof node !== 'object') {
+    return { props, hasExplicitProps };
+  }
+
+  if (node.$ref) {
+    const visitKey = `${filePath}::${node.$ref}`;
+    if (!visited.has(visitKey)) {
+      visited.add(visitKey);
+      const resolved = resolveSchemaRef(node.$ref, filePath, rootSchema);
+      if (resolved.node) {
+        const sub = collectAllowedPropertiesFromSchema(resolved.node, resolved.filePath, resolved.root, visited);
+        for (const p of sub.props) {
+          props.add(p);
+        }
+        if (sub.hasExplicitProps) {
+          hasExplicitProps = true;
+        }
+      }
+    }
+  }
+
+  if (node.properties && typeof node.properties === 'object') {
+    hasExplicitProps = true;
+    for (const k of Object.keys(node.properties)) {
+      props.add(k);
+    }
+  }
+
+  for (const branchList of [node.allOf, node.anyOf, node.oneOf]) {
+    if (Array.isArray(branchList)) {
+      for (const b of branchList) {
+        const sub = collectAllowedPropertiesFromSchema(b, filePath, rootSchema, visited);
+        for (const p of sub.props) {
+          props.add(p);
+        }
+        if (sub.hasExplicitProps) {
+          hasExplicitProps = true;
+        }
+      }
+    }
+  }
+
+  return { props, hasExplicitProps };
+}
+
+interface BedrockSchemasRegistry {
+  loaded: boolean;
+  entityComponents: Set<string>;
+  itemComponents: Set<string>;
+  recipeTypes: Set<string>;
+}
+
+let cachedBedrockSchemas: BedrockSchemasRegistry | undefined;
+
+function loadBedrockSchemasRegistry(): BedrockSchemasRegistry {
+  if (cachedBedrockSchemas) {
+    return cachedBedrockSchemas;
+  }
+  const registry: BedrockSchemasRegistry = {
+    loaded: false,
+    entityComponents: new Set(),
+    itemComponents: new Set(),
+    recipeTypes: new Set(),
+  };
+
+  try {
+    const schemasBase = path.resolve(process.cwd(), 'node_modules/@minecraft/bedrock-schemas');
+    const schemaGlob = new Bun.Glob('**/*.json');
+    const files = Array.from(schemaGlob.scanSync({ cwd: schemasBase, absolute: true }));
+    if (files.length > 0) {
+      registry.loaded = true;
+      for (const file of files) {
+        const node = loadSchemaFile(file);
+        if (!node) {
+          continue;
+        }
+        const collected = collectAllowedPropertiesFromSchema(node, file, node);
+        for (const prop of collected.props) {
+          if (prop.startsWith('minecraft:')) {
+            if (file.includes('entities') || file.includes('entity')) {
+              registry.entityComponents.add(prop);
+            }
+            if (file.includes('items') || file.includes('item')) {
+              registry.itemComponents.add(prop);
+            }
+            if (file.includes('recipes') || file.includes('recipe')) {
+              registry.recipeTypes.add(prop);
+            }
+          }
+        }
+        const raw = require('node:fs').readFileSync(file, 'utf8') as string;
+        for (const m of raw.matchAll(/"(minecraft:[a-z0-9_.:-]+)"/g)) {
+          const id = m[1];
+          if (id) {
+            if (file.includes('entity') || file.includes('entities')) {
+              registry.entityComponents.add(id);
+            }
+            if (file.includes('item') || file.includes('items')) {
+              registry.itemComponents.add(id);
+            }
+            if (file.includes('recipe')) {
+              registry.recipeTypes.add(id);
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // Fallback if node_modules/@minecraft/bedrock-schemas is unavailable
+  }
+
+  cachedBedrockSchemas = registry;
+  return registry;
+}
+
 export function validateUiJson(relativePath: string, json: Record<string, unknown>): string[] {
   const uiErrors: string[] = [];
 
@@ -214,6 +413,38 @@ export function validateUiJson(relativePath: string, json: Record<string, unknow
         uiErrors.push(
           `${keyPath}: Grid control must specify 'grid_dimensions', 'grid_rescaling_type', or 'grid_dimension_binding'.`,
         );
+      }
+    }
+
+    for (const sizeProp of ['size', 'min_size', 'max_size'] as const) {
+      const sVal = obj[sizeProp];
+      if (Array.isArray(sVal)) {
+        if (sVal.length !== 2) {
+          uiErrors.push(`${keyPath}.${sizeProp}: Size array must have exactly 2 elements.`);
+        } else {
+          for (let idx = 0; idx < 2; idx++) {
+            const dim = sVal[idx];
+            if (typeof dim === 'string') {
+              if (dim.startsWith('$')) {
+                uiErrors.push(
+                  `${keyPath}.${sizeProp}[${idx}]: Avoid scalar variable '${dim}' inside size array (causes 'Dangling number' error in Bedrock UI). Pass a 2-element size array variable to '${sizeProp}' instead.`,
+                );
+              } else if (
+                dim !== 'default' &&
+                dim !== 'fill' &&
+                !dim.includes('%') &&
+                !dim.includes('px') &&
+                !/^-?\d+(\.\d+)?px$/.test(dim)
+              ) {
+                uiErrors.push(
+                  `${keyPath}.${sizeProp}[${idx}]: Dangling number or invalid size expression '${dim}' (missing % or px).`,
+                );
+              }
+            } else if (typeof dim !== 'number') {
+              uiErrors.push(`${keyPath}.${sizeProp}[${idx}]: Size element must be a number or valid size string.`);
+            }
+          }
+        }
       }
     }
 
@@ -377,6 +608,7 @@ export function validateLangFile(relativePath: string, rawText: string): { error
 
 export function validateContentJson(relativePath: string, json: Record<string, unknown>): string[] {
   const contentErrors: string[] = [];
+  const bedrockSchemas = loadBedrockSchemasRegistry();
 
   if (relativePath.endsWith('texts/languages.json')) {
     if (
@@ -429,6 +661,18 @@ export function validateContentJson(relativePath: string, json: Record<string, u
         }
       }
     };
+    if (
+      bedrockSchemas.loaded &&
+      bedrockSchemas.entityComponents.size > 0 &&
+      entity.components &&
+      typeof entity.components === 'object'
+    ) {
+      for (const compKey of Object.keys(entity.components as Record<string, unknown>)) {
+        if (compKey.startsWith('minecraft:') && !bedrockSchemas.entityComponents.has(compKey)) {
+          contentErrors.push(`${relativePath}: Unknown @minecraft/bedrock-schemas entity component '${compKey}'.`);
+        }
+      }
+    }
     checkTimerComponent(entity.components as Record<string, unknown> | undefined, 'components');
     const groups = entity.component_groups as Record<string, Record<string, unknown>> | undefined;
     if (groups && typeof groups === 'object') {
@@ -446,6 +690,19 @@ export function validateContentJson(relativePath: string, json: Record<string, u
       contentErrors.push(
         `${relativePath}: Behavior item requires 'format_version' and 'minecraft:item.description.identifier'.`,
       );
+      return contentErrors;
+    }
+    if (
+      bedrockSchemas.loaded &&
+      bedrockSchemas.itemComponents.size > 0 &&
+      item.components &&
+      typeof item.components === 'object'
+    ) {
+      for (const compKey of Object.keys(item.components as Record<string, unknown>)) {
+        if (compKey.startsWith('minecraft:') && !bedrockSchemas.itemComponents.has(compKey)) {
+          contentErrors.push(`${relativePath}: Unknown @minecraft/bedrock-schemas item component '${compKey}'.`);
+        }
+      }
     }
     return contentErrors;
   }

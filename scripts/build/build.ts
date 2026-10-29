@@ -4,15 +4,15 @@ import path from 'node:path';
 import { getVersionContext, parseCliArgs } from './cliUtils.ts';
 import { updateManifests } from './updateManifests.ts';
 
-const ROOT_DIR = path.resolve(import.meta.dirname, '../..');
+const rootDir = path.resolve(import.meta.dirname, '../..');
 
 const cliArgs = parseCliArgs(process.argv.slice(2));
-const { isWatch, isRelease, isNightly, isZip, isMinify, buildNumber, customVersion } = cliArgs;
+const { isWatch, isRelease, isCanary, isZip, isMinify, buildNumber, customVersion } = cliArgs;
 
 async function getVersionParts() {
-  return getVersionContext(ROOT_DIR, {
+  return getVersionContext(rootDir, {
     customVersion,
-    isNightly,
+    isCanary,
     buildNumber,
     isRelease,
   });
@@ -92,11 +92,11 @@ export const commandIndexPlugin = {
 
     build.onLoad({ filter: /.*/, namespace: 'virtual-command-index' }, async () => {
       console.log('[Plugin] Generating virtual command index...');
-      const SRC_DIR = path.resolve(ROOT_DIR, 'src');
-      const FEATURES_DIR = path.join(SRC_DIR, 'features');
+      const srcDir = path.resolve(rootDir, 'src');
+      const featuresDir = path.join(srcDir, 'features');
 
       const cmdGlob = new Bun.Glob('**/commands/*.ts');
-      const scannedFiles = Array.from(cmdGlob.scanSync({ cwd: FEATURES_DIR, absolute: false }));
+      const scannedFiles = Array.from(cmdGlob.scanSync({ cwd: featuresDir, absolute: false }));
       const commandList: { varName: string; importPath: string }[] = [];
 
       for (const relPath of scannedFiles) {
@@ -104,7 +104,7 @@ export const commandIndexPlugin = {
         if (normalized.endsWith('/index.ts') || normalized.includes('__tests__')) {
           continue;
         }
-        if (normalized.startsWith('test/') && !isNightly) {
+        if ((normalized.startsWith('test/') || normalized === 'essentials/commands/debug.ts') && !isCanary) {
           continue;
         }
 
@@ -306,7 +306,7 @@ function buildZipArchive(entries: Map<string, PrecompressedEntry>): Uint8Array {
 async function createArchives(versionStr: string) {
   console.log(`[Build] Creating release archives (${versionStr})...`);
 
-  const packsDir = path.resolve(ROOT_DIR, 'packs');
+  const packsDir = path.resolve(rootDir, 'packs');
   const behaviorDir = path.join(packsDir, 'behavior');
   const resourceDir = path.join(packsDir, 'resource');
 
@@ -365,9 +365,9 @@ async function createArchives(versionStr: string) {
     mcaddonEntries.set(`resource/${relPath}`, content);
   }
 
-  const mcaddonPath = path.resolve(ROOT_DIR, `AddonExe.${versionStr}.mcaddon`);
-  const bpPath = path.resolve(ROOT_DIR, `AddonExe_BP.${versionStr}.mcpack`);
-  const rpPath = path.resolve(ROOT_DIR, `AddonExe_RP.${versionStr}.mcpack`);
+  const mcaddonPath = path.resolve(rootDir, `AddonExe.${versionStr}.mcaddon`);
+  const bpPath = path.resolve(rootDir, `AddonExe_BP.${versionStr}.mcpack`);
+  const rpPath = path.resolve(rootDir, `AddonExe_RP.${versionStr}.mcpack`);
 
   const mcaddonData = buildZipArchive(mcaddonEntries);
   const bpData = buildZipArchive(bpEntries);
@@ -385,7 +385,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
   console.log(`[Build] Compiling Scripts...`);
 
   const coreEntrypoints = ['src/main.ts'];
-  const outDir = path.resolve(ROOT_DIR, `packs/behavior/scripts${outDirSuffix}`);
+  const outDir = path.resolve(rootDir, `packs/behavior/scripts${outDirSuffix}`);
 
   const externalModules = ['@minecraft/server', '@minecraft/server-ui'];
 
@@ -403,16 +403,15 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
         : { whitespace: false, identifiers: false, syntax: true },
     treeShaking: true,
     sourcemap: process.argv.includes('--sourcemap') || cliArgs.sourcemap ? 'external' : 'none',
-    drop: isRelease ? ['debugger', 'console'] : isMinify ? ['debugger'] : [],
+    drop: !isCanary && (isRelease || isMinify) ? ['debugger', 'debugLog'] : ['debugger'],
     splitting: false,
     allowUnresolved: [],
     metafile: process.argv.includes('--analyze') ? { markdown: 'bundle-meta.md' } : true,
     noDeprecatedNamespaceObjectSetters: true,
     naming: '[dir]/[name].[ext]',
     define: {
-      __IS_NIGHTLY__: String(isNightly),
+      __CANARY__: JSON.stringify(isCanary),
       __VERSION__: JSON.stringify(versionStr),
-      __DEV__: JSON.stringify(!isRelease),
     },
     plugins: [commandIndexPlugin, vanillaDataInlinerPlugin],
     external: externalModules,
@@ -432,7 +431,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
   console.log(`[Build] Scripts compiled successfully (${inputCount} modules -> ${sizeKb} KB main.js).`);
 
   if (process.argv.includes('--analyze')) {
-    const mdFile = Bun.file(path.resolve(ROOT_DIR, 'bundle-meta.md'));
+    const mdFile = Bun.file(path.resolve(rootDir, 'bundle-meta.md'));
     if (await mdFile.exists()) {
       const mdText = await mdFile.text();
       console.log('\n' + mdText.trim() + '\n');
@@ -465,12 +464,10 @@ async function main() {
 
   const { versionStr, versionArray } = await getVersionParts();
 
-  if (isNightly) {
-    console.log('[Build] Mode: Nightly Build');
-  } else if (isRelease) {
-    console.log('[Build] Mode: Public Release');
+  if (isCanary) {
+    console.log('[Build] Mode: Canary Build');
   } else {
-    console.log('[Build] Mode: Local Build');
+    console.log('[Build] Mode: Release Build');
   }
   console.log(`[Build] Version Resolved: ${versionStr} -> [${versionArray.join(', ')}]`);
 
@@ -481,13 +478,13 @@ async function main() {
   }
 
   const buildMetaContent = [
-    `BUILD_TYPE=${isRelease ? 'stable' : isNightly ? 'nightly' : 'local'}`,
+    `BUILD_TYPE=${isCanary ? 'canary' : 'release'}`,
     `ARCHIVE_VERSION=${versionStr}`,
     `VERSION_STRING=${versionStr}`,
     `BUILD_DATE=${new Date().toUTCString()}`,
-    `PREFIX=${isRelease ? 'Release' : isNightly ? 'Nightly' : 'Local'}`,
+    `PREFIX=${isCanary ? 'Canary' : 'Release'}`,
   ].join('\n');
-  await Bun.write(path.resolve(ROOT_DIR, 'build_meta.env'), buildMetaContent);
+  await Bun.write(path.resolve(rootDir, 'build_meta.env'), buildMetaContent);
 
   console.log('--- Build Complete ---');
 
@@ -527,7 +524,7 @@ async function main() {
       }
     };
 
-    watchDir(path.resolve(ROOT_DIR, 'src'));
+    watchDir(path.resolve(rootDir, 'src'));
   }
 }
 

@@ -15,11 +15,11 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent): void {
     return;
   }
 
-  interface EntityWithOwner extends mc.Entity {
-    owner?: mc.Entity;
-  }
-
-  const attacker = (damagingEntity as EntityWithOwner).owner ?? damagingEntity;
+  const projectileComp = damagingEntity.getComponent(mc.EntityComponentTypes.Projectile) as
+    mc.EntityProjectileComponent | undefined;
+  const tameComp = damagingEntity.getComponent(mc.EntityComponentTypes.Tameable) as
+    mc.EntityTameableComponent | undefined;
+  const attacker = projectileComp?.owner ?? tameComp?.tamedToPlayer ?? damagingEntity;
 
   if (attacker.typeId === MinecraftEntityTypes.Player && attacker.id !== victim.id) {
     setLastHit(victim.id, attacker.id);
