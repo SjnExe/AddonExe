@@ -213,6 +213,20 @@ export function initializeDefaultMenuItems(): void {
   });
 
   registerMenuItem({
+    id: 'eco_bank',
+    title: 'Server Bank & FDs',
+    description: 'Savings AMB interest & FDs',
+    icon: 'textures/items/diamond',
+    hub: 'economy',
+    featureId: 'eco.bank',
+    order: 15,
+    action: async (p) => {
+      const { showBankMainPanel } = await import('@features/economy/bank/ui/panel.js');
+      await showBankMainPanel(p);
+    },
+  });
+
+  registerMenuItem({
     id: 'eco_transfer',
     title: 'Send Money',
     description: 'Pay another player',
@@ -385,7 +399,7 @@ export function initializeDefaultMenuItems(): void {
     id: 'games_coinflip',
     title: 'Coin Flip',
     description: 'Solo & 2P 50/50 flips',
-    icon: 'textures/items/gold_nugget',
+    icon: 'textures/ui/MCoin',
     hub: 'games',
     featureId: 'game.coinflip',
     order: 3,

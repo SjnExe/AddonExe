@@ -1,6 +1,6 @@
 export const teamConfig = {
   enabled: true,
-  creationCost: 500,
+  creationCost: 2500,
   maxMembers: 10,
   maxTeamInvites: 10, // Max outgoing invites a team can have pending
   maxPlayerInvites: 5, // Max incoming invites a player can have pending

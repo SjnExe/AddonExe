@@ -4,6 +4,7 @@ export const essentialsConfig = {
   spawn: {
     cooldownSeconds: 60,
     teleportWarmupSeconds: 10,
+    cost: 0,
     syncWorldSpawn: true,
     worldSpawnRadius: 1,
     spawnLocation: {
@@ -38,9 +39,11 @@ export const essentialsConfig = {
   },
   playerUtilities: {
     healEnabled: false,
+    healCost: 50,
     feedEnabled: false,
+    feedCost: 25,
     repairEnabled: false,
-    repairCost: 0,
+    repairCost: 150,
     trashEnabled: false,
     nearEnabled: false,
     nearRadius: 100,

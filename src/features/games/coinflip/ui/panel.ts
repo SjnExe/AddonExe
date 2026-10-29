@@ -45,7 +45,7 @@ export async function showCoinFlipMenu(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder()
     .title('Coin Flip')
     .body(bodyLines.join('\n'))
-    .button('§l§aQuick Flip (Free)\n§r§7Announce 50/50 flip in chat', 'textures/items/gold_nugget', () => {
+    .button('§l§aQuick Flip (Free)\n§r§7Announce 50/50 flip in chat', 'textures/ui/MCoin', () => {
       const res = broadcastRandomCoinFlip(player);
       if (!res.success && isNonEmptyString(res.message)) {
         player.sendMessage(res.message);

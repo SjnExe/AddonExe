@@ -56,6 +56,9 @@ export interface MinesweeperGame {
   flagMode: boolean;
   status: 'active' | 'won' | 'lost';
   startTime: number;
+  activeThinkMs: number;
+  turnShownAt?: number;
+  effectiveMoves: number;
   actionCount: number;
   netElapsedSeconds?: number;
   earnedReward?: number;
@@ -98,8 +101,6 @@ export interface MinesweeperBoardProgress {
 export const minesweeperCols = 12;
 export const minesweeperRows = 12;
 export const minesweeperTotalCells = 144;
-
-const uiLatencyCompensationMsPerTap = 250;
 
 const unminedGrassTexture = 'textures/blocks/grass_carried';
 const minedDirtTexture = 'textures/blocks/dirt';
@@ -238,11 +239,23 @@ export function getNeighborIndices(index: number, cols = 9, rows = 9): number[] 
   return computeNeighborTable(cols, rows)[index] ?? [];
 }
 
+export function recordMinesweeperTurnShown(playerId: string): void {
+  const game = activeGames.get(playerId);
+  if (isDefined(game) && game.status === 'active') {
+    // Only start the turn clock if it isn't already running so non-move actions cannot reset think time
+    game.turnShownAt ??= Date.now();
+  }
+}
+
 export function calculateNetElapsedSeconds(game: MinesweeperGame, nowMs = Date.now()): number {
-  const rawMs = Math.max(0, nowMs - game.startTime);
-  const latencyDiscountMs = game.actionCount * uiLatencyCompensationMsPerTap;
-  const netMs = Math.max(1000, rawMs - latencyDiscountMs);
-  return Math.round((netMs / 1000) * 10) / 10;
+  if (game.activeThinkMs > 0) {
+    return Math.max(0.5, Math.round((game.activeThinkMs / 1000) * 10) / 10);
+  }
+  if (!game.minesPlaced) {
+    return 0;
+  }
+  const rawMs = Math.max(500, nowMs - game.startTime);
+  return Math.round((rawMs / 1000) * 10) / 10;
 }
 
 export function calculateSoloTimeReward(
@@ -250,11 +263,25 @@ export function calculateSoloTimeReward(
   netSeconds: number,
 ): { base: number; bonus: number; total: number } {
   const base = game.baseReward;
-  if (game.maxSpeedBonus <= 0 || netSeconds >= game.parSeconds) {
+  if (game.maxSpeedBonus <= 0) {
     return { base, bonus: 0, total: base };
   }
-  const ratio = Math.max(0, Math.min(1, (game.parSeconds - netSeconds) / game.parSeconds));
-  const bonus = Math.round(game.maxSpeedBonus * ratio * 100) / 100;
+
+  let ratio = 0;
+  if (game.effectiveMoves > 0 && game.activeThinkMs > 0) {
+    const avgSecPerMove = netSeconds / Math.max(1, game.effectiveMoves);
+    const fastTargetSec = 1.5;
+    const slowLimitSec = 6.5;
+    if (avgSecPerMove <= fastTargetSec) {
+      ratio = 1;
+    } else if (avgSecPerMove < slowLimitSec) {
+      ratio = (slowLimitSec - avgSecPerMove) / (slowLimitSec - fastTargetSec);
+    }
+  } else if (netSeconds < game.parSeconds) {
+    ratio = Math.max(0, Math.min(1, (game.parSeconds - netSeconds) / game.parSeconds));
+  }
+
+  const bonus = Math.round(game.maxSpeedBonus * Math.max(0, Math.min(1, ratio)) * 100) / 100;
   return { base, bonus, total: Math.round((base + bonus) * 100) / 100 };
 }
 
@@ -293,6 +320,8 @@ export function startMinesweeperGame(
     flagMode: false,
     status: 'active',
     startTime: Date.now(),
+    activeThinkMs: 0,
+    effectiveMoves: 0,
     actionCount: 0,
     ...(isDefined(multiplayerMatchId) ? { multiplayerMatchId } : {}),
   };
@@ -560,14 +589,23 @@ export function placeMinesSafely(game: MinesweeperGame, safeIndex: number): void
     }
   }
 
-  for (const cell of game.cells) {
+  const neighborTable = computeNeighborTable(game.cols, game.rows);
+  for (let i = 0; i < game.cells.length; i++) {
+    const cell = game.cells[i]!;
     if (cell.hasMine) {
       continue;
     }
-    const neighbors = getNeighborIndices(cell.index, game.cols, game.rows);
-    cell.adjacentMines = neighbors.reduce((count, nIdx) => count + (game.cells[nIdx]?.hasMine ? 1 : 0), 0);
+    const neighbors = neighborTable[i] ?? [];
+    let count = 0;
+    for (let j = 0; j < neighbors.length; j++) {
+      if (game.cells[neighbors[j]!]?.hasMine) {
+        count++;
+      }
+    }
+    cell.adjacentMines = count;
   }
 
+  game.startTime = Date.now();
   game.minesPlaced = true;
 }
 
@@ -624,6 +662,12 @@ export function toggleMinesweeperFlagMode(playerId: string): boolean {
   if (!isDefined(game)) {
     return false;
   }
+  // Bank any think time spent before toggling mode so players cannot reset the timer by toggling Dig/Flag
+  if (game.minesPlaced && isDefined(game.turnShownAt)) {
+    const deltaMs = Math.max(50, Math.min(15_000, Date.now() - game.turnShownAt));
+    game.activeThinkMs += deltaMs;
+  }
+  game.turnShownAt = undefined;
   game.actionCount++;
   game.flagMode = !game.flagMode;
   return game.flagMode;
@@ -667,22 +711,35 @@ export function handleMinesweeperCellTap(
     return { status: game.status };
   }
 
+  const now = Date.now();
+  const turnDeltaMs = isDefined(game.turnShownAt) ? Math.max(50, Math.min(15_000, now - game.turnShownAt)) : 0;
+  game.turnShownAt = undefined;
   game.actionCount++;
 
   if (cell.revealed) {
     if (cell.adjacentMines > 0) {
       const neighbors = getNeighborIndices(cellIndex, game.cols, game.rows);
-      const flaggedCount = neighbors.reduce((acc, idx) => acc + (game.cells[idx]?.flagged ? 1 : 0), 0);
-      const hiddenNeighbors = neighbors.filter((idx) => {
-        const nCell = game.cells[idx];
-        return isDefined(nCell) && !nCell.revealed;
-      });
-      const unflaggedHidden = hiddenNeighbors.filter((idx) => !game.cells[idx]?.flagged);
+      let flaggedCount = 0;
+      let unflaggedHiddenCount = 0;
+      for (let i = 0; i < neighbors.length; i++) {
+        const nCell = game.cells[neighbors[i]!];
+        if (!isDefined(nCell) || nCell.revealed) {
+          continue;
+        }
+        if (nCell.flagged) {
+          flaggedCount++;
+        } else {
+          unflaggedHiddenCount++;
+        }
+      }
 
-      if (flaggedCount === cell.adjacentMines && unflaggedHidden.length > 0) {
-        for (const nIdx of unflaggedHidden) {
+      if (flaggedCount === cell.adjacentMines && unflaggedHiddenCount > 0) {
+        game.effectiveMoves++;
+        game.activeThinkMs += turnDeltaMs;
+        for (let i = 0; i < neighbors.length; i++) {
+          const nIdx = neighbors[i]!;
           const nCell = game.cells[nIdx];
-          if (isDefined(nCell)) {
+          if (isDefined(nCell) && !nCell.revealed && !nCell.flagged) {
             if (nCell.hasMine) {
               return handleMineDetonation(player, game, nIdx, '§cBOOM! A misplaced flag triggered a mine!');
             }
@@ -693,28 +750,14 @@ export function handleMinesweeperCellTap(
           return completeWin(player, game);
         }
         playSound(player, 'random.click');
-        return { status: 'active', message: '§a⚡ Chord revealed adjacent tiles!' };
-      }
-
-      if (hiddenNeighbors.length === cell.adjacentMines && unflaggedHidden.length > 0) {
-        for (const nIdx of unflaggedHidden) {
-          const nCell = game.cells[nIdx];
-          if (isDefined(nCell) && !nCell.flagged) {
-            nCell.flagged = true;
-            game.flaggedCount++;
-          }
-        }
-        playSound(player, 'random.orb');
-        return {
-          status: 'active',
-          message: `§e⚑ Auto-flagged ${unflaggedHidden.length} adjacent mine${unflaggedHidden.length === 1 ? '' : 's'}!`,
-        };
+        return { status: 'active', message: '§aChord revealed adjacent tiles!' };
       }
     }
     return { status: 'active' };
   }
 
   if (game.flagMode) {
+    game.activeThinkMs += turnDeltaMs;
     cell.flagged = !cell.flagged;
     game.flaggedCount = Math.max(0, game.flaggedCount + (cell.flagged ? 1 : -1));
     playSound(player, 'random.click');
@@ -730,7 +773,10 @@ export function handleMinesweeperCellTap(
 
   if (!game.minesPlaced) {
     placeMinesSafely(game, cellIndex);
+  } else {
+    game.activeThinkMs += turnDeltaMs;
   }
+  game.effectiveMoves++;
 
   if (cell.hasMine) {
     return handleMineDetonation(player, game, cellIndex, '§cBOOM! You hit a mine!');

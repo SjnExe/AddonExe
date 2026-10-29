@@ -7,7 +7,7 @@ import {
   updatePlayerData,
 } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { formatCurrency, playSound } from '@core/utils/index.js';
+import { calculateTaxWithPolicy, formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isFriend } from '@features/social/friends/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -431,15 +431,16 @@ export function payoutWagerPot(winnerId: string, wagerPerPlayer: number): { netP
     return { netPrize: 0, taxRate: 0 };
   }
   const grossPot = Math.round(wagerPerPlayer * 2 * 100) / 100;
+  const gamesCfg = getGamesConfig();
   const taxRate = getWagerTaxPercentage();
-  if (!isFeatureActive('eco')) {
-    const safeTax = Math.max(0, Math.min(100, taxRate));
-    const tax = safeTax > 0 ? Math.round(grossPot * (safeTax / 100) * 100) / 100 : 0;
-    const netPrize = Math.max(0, Math.round((grossPot - tax) * 100) / 100);
+  const { netAmount: netPrize } = calculateTaxWithPolicy(grossPot, {
+    ratePercent: taxRate,
+    minTax: gamesCfg.wagerMinTax ?? 0,
+    maxTax: gamesCfg.wagerMaxTax ?? 0,
+  });
+  if (netPrize > 0) {
     incrementPlayerBalance(winnerId, netPrize);
-    return { netPrize, taxRate };
   }
-  const netPrize = payoutGamePrize(winnerId, grossPot, taxRate);
   return { netPrize, taxRate };
 }
 

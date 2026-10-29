@@ -415,14 +415,20 @@ export async function showAddCustomItemPanel(
     icon: string;
     permission: string;
     rankMultiplierOverridesStr: string;
+    dailyBuyLimit: string;
+    dailySellLimit: string;
+    limitScope: string;
   }>('Add Custom Item')
     .textField('itemId', 'Item ID', 'diamond', prefillItemId)
-    .textField('buyPrice', 'Buy Price', '100', '100')
-    .textField('sellPrice', 'Sell Price', '50', '50')
+    .textField('buyPrice', 'Buy Price (-1 to disable buying)', '100', '100')
+    .textField('sellPrice', 'Sell Price (-1 to disable selling)', '50', '50')
     .textField('displayName', 'Display Name', 'Diamond', '')
     .textField('icon', 'Icon Path', '', '')
     .textField('permission', 'Permission', 'ui.panel.member', '')
-    .textField('rankMultiplierOverridesStr', 'Overrides', '', '')
+    .textField('rankMultiplierOverridesStr', 'Overrides (e.g. vip=0.8,1.2)', '', '')
+    .textField('dailyBuyLimit', 'Daily Buy Limit (0 = Unlimited)', '0', '0')
+    .textField('dailySellLimit', 'Daily Sell Limit (0 = Unlimited)', '0', '0')
+    .dropdown('limitScope', 'Limit Scope', ['player', 'global'], 0)
     .submitButton('Add Item');
 
   const res = await modal.show(player);
@@ -431,8 +437,11 @@ export async function showAddCustomItemPanel(
     return;
   }
 
-  const buyPrice = Number.parseInt(res.buyPrice);
-  const sellPrice = Number.parseInt(res.sellPrice);
+  const buyPrice = Number.parseFloat(res.buyPrice);
+  const sellPrice = Number.parseFloat(res.sellPrice);
+  const dailyBuyLimit = Math.max(0, Number.parseInt(res.dailyBuyLimit || '0', 10) || 0);
+  const dailySellLimit = Math.max(0, Number.parseInt(res.dailySellLimit || '0', 10) || 0);
+  const limitScope = res.limitScope === 'global' ? 'global' : 'player';
 
   if (isNonEmptyString(res.itemId) && !Number.isNaN(buyPrice) && !Number.isNaN(sellPrice)) {
     const rankMultiplierOverrides = parseRankOverrides(res.rankMultiplierOverridesStr);
@@ -444,6 +453,9 @@ export async function showAddCustomItemPanel(
       icon: res.icon,
       permission: res.permission,
       ...(rankMultiplierOverrides ? { rankMultiplierOverrides } : {}),
+      ...(dailyBuyLimit > 0 ? { dailyBuyLimit } : {}),
+      ...(dailySellLimit > 0 ? { dailySellLimit } : {}),
+      ...(dailyBuyLimit > 0 || dailySellLimit > 0 ? { limitScope } : {}),
     });
     player.sendMessage(`§2Item added: ${res.itemId}`);
     if (subCategoryName) {
@@ -494,15 +506,21 @@ export async function showEditItemFormPanel(
     icon: string;
     permission: string;
     rankMultiplierOverridesStr: string;
+    dailyBuyLimit: string;
+    dailySellLimit: string;
+    limitScope: string;
     action: string;
   }>('Edit Item')
     .textField('itemId', 'Item ID', 'diamond', item.itemId || itemKey)
-    .textField('buyPrice', 'Buy Price', '100', String(item.buyPrice))
-    .textField('sellPrice', 'Sell Price', '50', String(item.sellPrice))
+    .textField('buyPrice', 'Buy Price (-1 to disable buying)', '100', String(item.buyPrice))
+    .textField('sellPrice', 'Sell Price (-1 to disable selling)', '50', String(item.sellPrice))
     .textField('displayName', 'Display Name', 'Diamond', item.displayName || '')
     .textField('icon', 'Icon Path', '', item.icon || '')
     .textField('permission', 'Permission', 'ui.panel.member', item.permission || '')
     .textField('rankMultiplierOverridesStr', 'Overrides', '', overridesStr)
+    .textField('dailyBuyLimit', 'Daily Buy Limit (0 = Unlimited)', '0', String(item.dailyBuyLimit ?? 0))
+    .textField('dailySellLimit', 'Daily Sell Limit (0 = Unlimited)', '0', String(item.dailySellLimit ?? 0))
+    .dropdown('limitScope', 'Limit Scope', ['player', 'global'], item.limitScope === 'global' ? 1 : 0)
     .dropdown('action', 'Action', ['Save', 'Delete'])
     .submitButton('Submit');
 
@@ -520,8 +538,11 @@ export async function showEditItemFormPanel(
     shopAdminManager.removeItem(categoryName, subCategoryName, itemKey);
     player.sendMessage(`§2Item deleted: ${itemKey}`);
   } else {
-    const buyPrice = Number.parseInt(res.buyPrice);
-    const sellPrice = Number.parseInt(res.sellPrice);
+    const buyPrice = Number.parseFloat(res.buyPrice);
+    const sellPrice = Number.parseFloat(res.sellPrice);
+    const dailyBuyLimit = Math.max(0, Number.parseInt(res.dailyBuyLimit || '0', 10) || 0);
+    const dailySellLimit = Math.max(0, Number.parseInt(res.dailySellLimit || '0', 10) || 0);
+    const limitScope: 'player' | 'global' = res.limitScope === 'global' ? 'global' : 'player';
 
     if (isNonEmptyString(res.itemId) && !Number.isNaN(buyPrice) && !Number.isNaN(sellPrice)) {
       const rankOverrides = parseRankOverrides(res.rankMultiplierOverridesStr);
@@ -532,7 +553,10 @@ export async function showEditItemFormPanel(
         displayName: res.displayName,
         icon: res.icon,
         permission: res.permission,
-        ...(rankOverrides ? { rankMultiplierOverrides: rankOverrides } : {}),
+        ...(rankOverrides ? { rankOverrides } : {}),
+        ...(dailyBuyLimit > 0 ? { dailyBuyLimit } : {}),
+        ...(dailySellLimit > 0 ? { dailySellLimit } : {}),
+        ...(dailyBuyLimit > 0 || dailySellLimit > 0 ? { limitScope } : {}),
       };
       shopAdminManager.updateShopItem(categoryName, subCategoryName, itemKey, newItemData);
       player.sendMessage(`§2Item updated: ${res.itemId}`);

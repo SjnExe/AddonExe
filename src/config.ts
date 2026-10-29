@@ -39,6 +39,7 @@ export const config = {
   },
   bounties: economyMainDefaults.bounties,
   trading: economyMainDefaults.trading,
+  bank: economyMainDefaults.bank,
 
   // --- Social, Chat & Moderation ---
   voting: socialMainDefaults.voting,

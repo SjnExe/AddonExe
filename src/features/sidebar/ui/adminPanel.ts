@@ -265,7 +265,7 @@ export async function showSidebarPlaceholdersGuide(player: mc.Player): Promise<v
         '§l§aPlayer Economy & Social Placeholders:§r',
         '§e{name}§r - Player name',
         '§e{rank}§r / §e{rank_prefix}§r - Player rank name or formatted prefix',
-        '§e{money}§r - Player balance',
+        '§e{money}§r - Player wallet balance\n' + '§e{bank}§r / §e{fd}§r - Player bank savings & locked fixed deposits',
         '§e{bounty}§r - Active bounty on player',
         '§e{team}§r / §e{team_balance}§r - Player team name & team bank balance',
         '§e{homes}§r / §e{max_homes}§r - Current & maximum homes',

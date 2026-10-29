@@ -306,12 +306,16 @@ export async function showRankActionPanel(player: mc.Player, rankId: string): Pr
   const deleteCheck = canDeleteRankDefinition(player, rankId);
   const buyMult = existingRank.shopMultiplier?.buy ?? 1;
   const sellMult = existingRank.shopMultiplier?.sell ?? 1;
+  const limitMult = existingRank.shopLimitMultiplier ?? 1;
+  const bankMult = existingRank.bankInterestMultiplier ?? 1;
+  const extraFreeW = existingRank.extraFreeWithdrawals ?? 0;
 
   const summary = [
     `§7ID: §f${existingRank.id} §8| §7Priority: §f${existingRank.priority}`,
     `§7Nametag: §r${existingRank.nametagPrefix || 'None'} §8| §7Chat Prefix: §r${existingRank.chatFormatting?.prefixText || 'None'}`,
     `§7Name Color: ${existingRank.chatFormatting?.nameColor || '§7'}Sample §8| §7Msg Color: ${existingRank.chatFormatting?.messageColor || '§f'}Sample§r`,
-    `§7Shop Multipliers: §aBuy ${buyMult}x §8/ §6Sell ${sellMult}x`,
+    `§7Shop Multipliers: §aBuy ${buyMult}x §8/ §6Sell ${sellMult}x §8/ §bDaily Limit ${limitMult}x`,
+    `§7Bank Perks: §eInterest ${bankMult}x §8| §a+${extraFreeW} Free Withdrawals/Day`,
     `§7Groups: §e${existingRank.groups.join(', ') || 'None'}`,
     `§7Allow Nodes: §a${existingRank.allow.join(', ') || 'None'}`,
     `§7Deny Nodes: §c${existingRank.deny.join(', ') || 'None'}`,
@@ -410,6 +414,9 @@ export async function showRankEditorPanel(
       nametagPrefix: draftRank.nametagPrefix,
       chatFormatting: draftRank.chatFormatting,
       shopMultiplier: draftRank.shopMultiplier,
+      shopLimitMultiplier: draftRank.shopLimitMultiplier,
+      bankInterestMultiplier: draftRank.bankInterestMultiplier,
+      extraFreeWithdrawals: draftRank.extraFreeWithdrawals,
     };
   } else if (isNew) {
     rank = {
@@ -456,6 +463,9 @@ export async function showRankEditorPanel(
     chatMessageColor: string;
     shopBuyMultiplier: string;
     shopSellMultiplier: string;
+    shopLimitMultiplier: string;
+    bankInterestMultiplier: string;
+    extraFreeWithdrawals: string;
     groups: string;
     allow: string;
     deny: string;
@@ -498,6 +508,24 @@ export async function showRankEditorPanel(
     String(rank.shopMultiplier?.sell ?? 1),
   );
   modal.textField(
+    'shopLimitMultiplier',
+    'Shop Daily Limit Multiplier (e.g. 1.5 = 50% higher daily quota)',
+    '1.0',
+    String(rank.shopLimitMultiplier ?? 1),
+  );
+  modal.textField(
+    'bankInterestMultiplier',
+    'Bank Interest Rate Multiplier (e.g. 1.25 = 25% higher interest)',
+    '1.0',
+    String(rank.bankInterestMultiplier ?? 1),
+  );
+  modal.textField(
+    'extraFreeWithdrawals',
+    'Extra Free Bank Withdrawals / Day',
+    '0',
+    String(rank.extraFreeWithdrawals ?? 0),
+  );
+  modal.textField(
     'groups',
     `Permission Groups (Available: ${availableGroups})`,
     'e.g. default, builder',
@@ -522,8 +550,14 @@ export async function showRankEditorPanel(
   const parsedPriority = Number.parseInt(response.priority, 10);
   const parsedBuy = Number.parseFloat(response.shopBuyMultiplier);
   const parsedSell = Number.parseFloat(response.shopSellMultiplier);
+  const parsedLimitMult = Number.parseFloat(response.shopLimitMultiplier);
+  const parsedBankMult = Number.parseFloat(response.bankInterestMultiplier);
+  const parsedExtraFree = Number.parseInt(response.extraFreeWithdrawals, 10);
   const safeBuy = Number.isNaN(parsedBuy) || parsedBuy < 0 ? 1 : parsedBuy;
   const safeSell = Number.isNaN(parsedSell) || parsedSell < 0 ? 1 : parsedSell;
+  const safeLimitMult = Number.isNaN(parsedLimitMult) || parsedLimitMult <= 0 ? 1 : parsedLimitMult;
+  const safeBankMult = Number.isNaN(parsedBankMult) || parsedBankMult <= 0 ? 1 : parsedBankMult;
+  const safeExtraFree = Number.isNaN(parsedExtraFree) || parsedExtraFree < 0 ? 0 : parsedExtraFree;
 
   const draftState = {
     id: response.id.trim().toLowerCase(),
@@ -539,6 +573,9 @@ export async function showRankEditorPanel(
       buy: safeBuy,
       sell: safeSell,
     },
+    shopLimitMultiplier: safeLimitMult,
+    bankInterestMultiplier: safeBankMult,
+    extraFreeWithdrawals: safeExtraFree,
     groups: response.groups
       .split(',')
       .map((s) => s.trim())
@@ -618,6 +655,9 @@ export async function showRankEditorPanel(
   rank.nametagPrefix = draftState.nametagPrefix;
   rank.chatFormatting = draftState.chatFormatting;
   rank.shopMultiplier = draftState.shopMultiplier;
+  rank.shopLimitMultiplier = draftState.shopLimitMultiplier;
+  rank.bankInterestMultiplier = draftState.bankInterestMultiplier;
+  rank.extraFreeWithdrawals = draftState.extraFreeWithdrawals;
   rank.groups =
     rankId === 'owner' ? ['default', 'vip', 'builder', 'helper', 'mod', 'admin', 'owner'] : draftState.groups;
   rank.allow = rankId === 'owner' ? ['*'] : draftState.allow;

@@ -27,7 +27,13 @@ const balanceCommand: CustomCommand = {
       // Self check
       if (executor instanceof mc.Player) {
         const pData = getOrCreatePlayer(executor);
-        sendMessage(`§aYour balance is: §e${formatCurrency(pData.balance)}`, executor);
+        const savings = pData.bank?.savingsBalance ?? 0;
+        const fdTotal = (pData.bank?.fixedDeposits ?? []).reduce((sum, fd) => sum + fd.principal, 0);
+        const bankSuffix =
+          savings > 0 || fdTotal > 0
+            ? ` §8| §7Bank Savings: §b${formatCurrency(savings)}${fdTotal > 0 ? ` §8| §7Fixed Deposits: §6${formatCurrency(fdTotal)}` : ''}`
+            : '';
+        sendMessage(`§aWallet Balance: §e${formatCurrency(pData.balance)}${bankSuffix}`, executor);
       } else {
         executor.sendMessage('§cConsole must specify a target.');
       }

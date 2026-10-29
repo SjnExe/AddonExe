@@ -1,9 +1,11 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
-import { formatCooldown, playSound } from '@core/utils/index.js';
+import { formatCooldown, formatCurrency, playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
@@ -65,12 +67,27 @@ const spawnCommand: CustomCommand = {
       return;
     }
 
+    const spawnCost = Math.max(0, Number(config.spawn.cost ?? 0));
+    const chargeCost =
+      isFeatureActive('eco') && spawnCost > 0 && !hasPermission(executor, 'group.admin') ? spawnCost : 0;
+    if (chargeCost > 0 && getOrCreatePlayer(executor).balance < chargeCost) {
+      sendMessage(`§cInsufficient funds for /spawn. Cost: §e${formatCurrency(chargeCost)}§c.`, executor);
+      return;
+    }
+
     const warmupSeconds = config.spawn.teleportWarmupSeconds;
 
     const teleportLogic = () => {
       try {
         if (!executor.isValid) {
           return;
+        }
+        if (chargeCost > 0) {
+          if (getOrCreatePlayer(executor).balance < chargeCost) {
+            sendMessage(`§cTeleport cancelled: Insufficient funds (${formatCurrency(chargeCost)} required).`, executor);
+            return;
+          }
+          incrementPlayerBalance(executor.id, -chargeCost);
         }
         const dimension = mc.world.getDimension(spawnLocation.dimensionId);
         const teleportUtils = serviceLocator.getService<TeleportUtilsService>('teleport.utils');

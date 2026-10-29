@@ -1,3 +1,4 @@
+import { escapeBedrockPercent } from '@core/utils/formatting.js';
 import { warnLog } from '@core/utils/logger.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -17,7 +18,7 @@ export function sendMessage(
 
   _options: { raw?: boolean; title?: string | undefined } = {},
 ) {
-  const finalMessage = message;
+  const finalMessage = typeof message === 'string' ? escapeBedrockPercent(message) : message;
 
   try {
     if (target === 'all') {

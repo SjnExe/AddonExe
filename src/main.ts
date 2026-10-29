@@ -4,7 +4,7 @@ import { initializeMigration } from '@core/data/migrationManager.js';
 import { cleanupPlayerDataManager } from '@core/data/playerDataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
-import { reinitializeOnlinePlayers } from '@core/utils/index.js';
+import { escapeBedrockPercent, reinitializeOnlinePlayers } from '@core/utils/index.js';
 import { errorLog, infoLog, setLogLevel } from '@core/utils/logger.js';
 import { cleanupTimers } from '@core/utils/timerManager.js';
 import { cleanupLeaderboardManager } from '@features/economy/leaderboard.js';
@@ -21,7 +21,34 @@ const addonVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1';
 loadCommands();
 
 /** Initializes the addon. This function should be called once at startup. */
+let percentPatchApplied = false;
+function installBedrockPercentChatPatch(): void {
+  if (percentPatchApplied || 'mockImplementation' in mc.world.sendMessage) {
+    return;
+  }
+  percentPatchApplied = true;
+  try {
+    const origPlayerSend = mc.Player.prototype.sendMessage;
+    if (typeof origPlayerSend === 'function') {
+      mc.Player.prototype.sendMessage = function (message: Parameters<typeof origPlayerSend>[0]) {
+        const safeMsg = typeof message === 'string' ? escapeBedrockPercent(message) : message;
+        return origPlayerSend.call(this, safeMsg);
+      };
+    }
+    const origWorldSend = mc.world.sendMessage.bind(mc.world);
+    if (typeof origWorldSend === 'function') {
+      mc.world.sendMessage = (message: Parameters<typeof origWorldSend>[0]) => {
+        const safeMsg = typeof message === 'string' ? escapeBedrockPercent(message) : message;
+        return origWorldSend(safeMsg);
+      };
+    }
+  } catch {
+    // Ignore if prototype is frozen in mock runtime
+  }
+}
+
 export async function initializeAddon() {
+  installBedrockPercentChatPatch();
   infoLog('[AddonExe] Initializing...');
 
   // Version Check & Migration Flag

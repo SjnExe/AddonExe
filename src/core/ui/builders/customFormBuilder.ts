@@ -1,3 +1,4 @@
+import { escapeBedrockPercent } from '@core/utils/formatting.js';
 import { uiWait } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
@@ -157,34 +158,41 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
   }
 
   public async show(player: Player): Promise<T | undefined> {
-    const form = new ModalFormData().title(this.titleText);
+    const form = new ModalFormData().title(escapeBedrockPercent(this.titleText));
     const valueControlOrder: ControlItem[] = [];
     const buttonCallbacks: (() => void)[] = [];
 
     for (const ctrl of this.controls) {
+      const safeLabel = escapeBedrockPercent(ctrl.label ?? '');
       if (ctrl.type === 'toggle' && ctrl.meta?.type === 'toggle') {
-        form.toggle(ctrl.label ?? '', { defaultValue: ctrl.meta.defaultValue });
+        form.toggle(safeLabel, { defaultValue: ctrl.meta.defaultValue });
         valueControlOrder.push(ctrl);
       } else if (ctrl.type === 'slider' && ctrl.meta?.type === 'slider') {
-        form.slider(ctrl.label ?? '', ctrl.meta.min, ctrl.meta.max, {
+        form.slider(safeLabel, ctrl.meta.min, ctrl.meta.max, {
           valueStep: ctrl.meta.step,
           defaultValue: ctrl.meta.defaultValue,
         });
         valueControlOrder.push(ctrl);
       } else if (ctrl.type === 'dropdown' && ctrl.meta?.type === 'dropdown') {
-        form.dropdown(ctrl.label ?? '', ctrl.meta.options, { defaultValueIndex: ctrl.meta.defaultValueIndex });
+        form.dropdown(
+          safeLabel,
+          ctrl.meta.options.map((o) => escapeBedrockPercent(o)),
+          { defaultValueIndex: ctrl.meta.defaultValueIndex },
+        );
         valueControlOrder.push(ctrl);
       } else if (ctrl.type === 'textField' && ctrl.meta?.type === 'textField') {
-        form.textField(ctrl.label ?? '', ctrl.meta.placeholderText, { defaultValue: ctrl.meta.defaultValue });
+        form.textField(safeLabel, escapeBedrockPercent(ctrl.meta.placeholderText), {
+          defaultValue: ctrl.meta.defaultValue,
+        });
         valueControlOrder.push(ctrl);
       } else if (ctrl.type === 'header') {
         if (typeof form.header === 'function') {
-          form.header(ctrl.label ?? '');
+          form.header(safeLabel);
           valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'label') {
         if (typeof form.label === 'function') {
-          form.label(ctrl.label ?? '');
+          form.label(safeLabel);
           valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'divider') {

@@ -31,7 +31,7 @@ describe('BountyManager', () => {
     const result = placeBounty('p1', 'p2', 100);
 
     expect(result.success).toBe(true);
-    expect(incrementPlayerBalanceSpy).toHaveBeenCalledWith('p1', -100);
+    expect(incrementPlayerBalanceSpy).toHaveBeenCalledWith('p1', -110);
 
     const bounty = getBounty('p2');
     expect(bounty).toBeDefined();

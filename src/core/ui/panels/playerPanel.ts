@@ -208,7 +208,12 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
     const rank = getPlayerRank(player, getConfig());
     const rankDisplay = rank.chatFormatting?.prefixText ?? rank.nametagPrefix ?? rank.name;
     const kdr = data.deaths === 0 ? data.kills.toFixed(2) : (data.kills / data.deaths).toFixed(2);
-    form.button(`§2Balance: §r${formatCurrency(data.balance)}`, 'textures/items/emerald');
+    const savings = data.bank?.savingsBalance ?? 0;
+    const fdTotal = (data.bank?.fixedDeposits ?? []).reduce((sum, fd) => sum + fd.principal, 0);
+    form.button(
+      `§2Wallet: §r${formatCurrency(data.balance)}\n§7Bank: §b${formatCurrency(savings)} §8| §7FD: §6${formatCurrency(fdTotal)}`,
+      'textures/items/emerald',
+    );
     form.button(`§6Rank: §r${rankDisplay}`, 'textures/ui/permissions_op_crown');
     form.button(
       `§bPlaytime: §r${formatDuration(data.totalPlayTime)}\n§7Daily Streak: §e${data.dailyStreak ?? 0}d`,

@@ -21,6 +21,9 @@ interface ItemData {
   permission?: string;
   category?: string;
   rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
+  dailyBuyLimit?: number;
+  dailySellLimit?: number;
+  limitScope?: 'player' | 'global';
 }
 
 interface UpdateItemData {
@@ -31,6 +34,9 @@ interface UpdateItemData {
   sellPrice: number;
   permission: string;
   rankOverrides?: Record<string, { buy: number; sell: number }>;
+  dailyBuyLimit?: number;
+  dailySellLimit?: number;
+  limitScope?: 'player' | 'global';
 }
 
 /**
@@ -437,6 +443,13 @@ export function setItem(
     ...(isDefined(itemData.rankMultiplierOverrides)
       ? { rankMultiplierOverrides: itemData.rankMultiplierOverrides }
       : {}),
+    ...(isDefined(itemData.dailyBuyLimit) && itemData.dailyBuyLimit > 0
+      ? { dailyBuyLimit: itemData.dailyBuyLimit }
+      : {}),
+    ...(isDefined(itemData.dailySellLimit) && itemData.dailySellLimit > 0
+      ? { dailySellLimit: itemData.dailySellLimit }
+      : {}),
+    ...(isDefined(itemData.limitScope) ? { limitScope: itemData.limitScope } : {}),
   };
 
   configurations.saveShopConfig(config);
@@ -582,6 +595,22 @@ export function updateShopItem(
     targetContainer.items[targetKey].rankMultiplierOverrides = newData.rankOverrides;
   } else {
     delete targetContainer.items[targetKey].rankMultiplierOverrides;
+  }
+
+  if (isDefined(newData.dailyBuyLimit) && newData.dailyBuyLimit > 0) {
+    targetContainer.items[targetKey].dailyBuyLimit = newData.dailyBuyLimit;
+  } else {
+    delete targetContainer.items[targetKey].dailyBuyLimit;
+  }
+
+  if (isDefined(newData.dailySellLimit) && newData.dailySellLimit > 0) {
+    targetContainer.items[targetKey].dailySellLimit = newData.dailySellLimit;
+  } else {
+    delete targetContainer.items[targetKey].dailySellLimit;
+  }
+
+  if (isDefined(newData.limitScope)) {
+    targetContainer.items[targetKey].limitScope = newData.limitScope;
   }
 
   configurations.saveShopConfig(shopConfig);
