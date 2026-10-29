@@ -271,7 +271,7 @@ export function loadNameIdMap() {
  */
 export function snapshotOnlinePlayerContainers(player: mc.Player, pData: PlayerData): void {
   try {
-    if (!player.isValid) {
+    if (!player.isValid || pData.staffInventoryMode === 'staff') {
       return;
     }
     const invComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
@@ -322,7 +322,7 @@ export function snapshotOnlinePlayerContainers(player: mc.Player, pData: PlayerD
   }
 }
 
-export function savePlayerData(playerId: string): boolean {
+export function savePlayerData(playerId: string, includeContainers = false): boolean {
   if (!activePlayerData.has(playerId)) {
     errorLog(`[PlayerDataManager] Attempted to save data for non-cached player: ${playerId}`);
     return false;
@@ -330,9 +330,11 @@ export function savePlayerData(playerId: string): boolean {
   try {
     const playerData = activePlayerData.get(playerId);
     if (isDefined(playerData)) {
-      const onlinePlayer = getPlayerFromCache(playerId);
-      if (isDefined(onlinePlayer)) {
-        snapshotOnlinePlayerContainers(onlinePlayer, playerData);
+      if (includeContainers) {
+        const onlinePlayer = getPlayerFromCache(playerId);
+        if (isDefined(onlinePlayer)) {
+          snapshotOnlinePlayerContainers(onlinePlayer, playerData);
+        }
       }
       // Update Playtime before saving
       const now = Date.now();
@@ -521,7 +523,7 @@ export function getPlayer(playerId: string): PlayerData | undefined {
  */
 export function handlePlayerLeave(playerId: string) {
   if (activePlayerData.has(playerId)) {
-    savePlayerData(playerId);
+    savePlayerData(playerId, true);
     activePlayerData.delete(playerId);
     sessionStartTimes.delete(playerId);
     debugLog(`[PlayerDataManager] Unloaded data for player ${playerId} from cache.`);
@@ -716,8 +718,12 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
 
   updatePlayerData(playerId, (pData) => {
     const clampedBalance = Math.max(min, Math.min(newBalance, max));
+    const oldBal = pData.balance;
     // Strict 2-decimal precision
     pData.balance = Number.parseFloat(clampedBalance.toFixed(2));
+    if (economyConfig.logToConsole) {
+      infoLog(`[Economy] Set balance for ${pData.name}: ${oldBal} -> ${pData.balance}`);
+    }
     updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
   });
 }
@@ -735,8 +741,11 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
     const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
     // Strict 2-decimal precision
     pData.balance = Number.parseFloat(clampedBalance.toFixed(2));
-    // Log transaction regardless of debug level
-    infoLog(`[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`);
+    if (economyConfig.logToConsole) {
+      infoLog(
+        `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`,
+      );
+    }
     updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
   });
 }
@@ -860,9 +869,11 @@ export function transfer(
       debugLog(`[Economy] Unloaded offline target ${targetPlayerId} after transfer.`);
     }
 
-    infoLog(
-      `[Economy] Transfer: ${sourceData.name} -> ${targetData.name} ($${amount}). New Bals: ${newSourceBal} / ${newTargetBal}`,
-    );
+    if (economyConfig.logToConsole) {
+      infoLog(
+        `[Economy] Transfer: ${sourceData.name} -> ${targetData.name} ($${amount}). New Bals: ${newSourceBal} / ${newTargetBal}`,
+      );
+    }
 
     return { success: true, message: 'Transfer successful.' };
   } catch (error) {

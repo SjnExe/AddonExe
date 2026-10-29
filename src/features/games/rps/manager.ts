@@ -2,7 +2,7 @@ import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
-import { setTrackedInterval } from '@core/utils/timerManager.js';
+import { setTrackedInterval, setTrackedTimeout } from '@core/utils/timerManager.js';
 import {
   payoutWagerPot,
   recordSimpleGameStat,
@@ -236,7 +236,7 @@ function finalizeMatchCleanup(match: RpsMatch): void {
   }
   playerMatchMap.delete(match.player1Id);
   playerMatchMap.delete(match.player2Id);
-  mc.system.runTimeout(() => {
+  setTrackedTimeout(() => {
     activeMatches.delete(match.id);
   }, 600);
 }

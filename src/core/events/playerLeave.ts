@@ -2,7 +2,8 @@ import { getConfig } from '@core/config/configManager.js';
 import * as playerCache from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { clearPlayerChatFilterState } from '@core/events/beforeChatSend.js';
-import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { hasPermission, invalidatePlayerPermissionCache } from '@core/permissions/permissionEngine.js';
+import { clearPlayerRankCache } from '@core/permissions/rankManager.js';
 import { clearPlayerUiTimestamp } from '@core/ui/uiManager.js';
 import { formatString } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
@@ -29,7 +30,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   const config = getConfig();
   const joinLeaveConfig = config.playerInfo.customJoinLeave;
 
-  if (joinLeaveConfig.enabled === true && pData?.isVanished !== true) {
+  if (pData?.isVanished !== true && joinLeaveConfig?.leaveMessage) {
     const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: event.playerName });
     mc.world.sendMessage(msg);
   }
@@ -58,6 +59,8 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   clearPlayerReplyPartner(event.playerId);
   clearPlayerPlaytimeState(event.playerId);
   clearPlayerSafeBorderPosition(event.playerId);
+  invalidatePlayerPermissionCache(event.playerId);
+  clearPlayerRankCache(event.playerId);
   playerDataManager.handlePlayerLeave(event.playerId);
   playerCache.removePlayerFromCache(event.playerId);
   debugLog(`[AddonExe] Player ${event.playerName} left.`);

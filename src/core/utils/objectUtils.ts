@@ -73,8 +73,10 @@ export function deepMerge(target: unknown, source: unknown): unknown {
 
     if (isObject(sourceValue)) {
       output[key] = key in target ? deepMerge(targetValue, sourceValue) : deepClone(sourceValue);
-    } else {
+    } else if (Array.isArray(sourceValue)) {
       output[key] = deepClone(sourceValue);
+    } else {
+      output[key] = sourceValue;
     }
   }
 

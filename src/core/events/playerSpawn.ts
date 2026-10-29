@@ -13,6 +13,7 @@ import { handleCombatPlayerJoin } from '@features/essentials/combat/manager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { isWatched } from '@features/moderation/watchManager.js';
 import { getUnreadMailCount } from '@features/social/mail/manager.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
@@ -121,9 +122,9 @@ export function handlePlayerJoin(player: mc.Player) {
     sendMessage('§cYou are currently frozen.', player);
   }
 
-  // Custom Join Message (since RP hides vanilla)
+  // Core Custom Join Message (RP hides vanilla join/leave across locales)
   const joinLeaveConfig = config.playerInfo.customJoinLeave;
-  if (joinLeaveConfig.enabled && !player.hasTag(vanishedTag)) {
+  if (!player.hasTag(vanishedTag) && isNonEmptyString(joinLeaveConfig?.joinMessage)) {
     const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
     mc.world.sendMessage(msg);
   }

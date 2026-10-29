@@ -7,11 +7,9 @@ import * as rankManager from '@core/permissions/rankManager.js';
 import { reinitializeOnlinePlayers } from '@core/utils/index.js';
 import { errorLog, infoLog, setLogLevel } from '@core/utils/logger.js';
 import { cleanupTimers } from '@core/utils/timerManager.js';
-import { initializeXrayDetection } from '@features/anticheat/xray/manager.js';
 import { cleanupLeaderboardManager } from '@features/economy/leaderboard.js';
-import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { cleanup as cleanupFloatingText } from '@features/essentials/floatingText/manager.js';
-import { cleanupSpawnProtection, initializeSpawnProtection } from '@features/essentials/protection/spawnProtection.js';
+import { cleanupSpawnProtection } from '@features/essentials/protection/spawnProtection.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -38,13 +36,21 @@ export async function initializeAddon() {
     isMigration = lastVersionStr !== newVersionStr;
   }
 
-  // Parallel Initialization of core configurations and feature modules
-  // This reduces startup time by loading independent configs concurrently.
+  const { initializePlayerCache } = await import('@core/data/playerCache.js');
+  initializePlayerCache();
+
   await initializeConfigManager(isMigration);
+
+  const config = getConfig();
+  setLogLevel(config.logLevel);
+
+  dataManager.initializeDataManager();
+  loadPersistentData();
+  await initializeMigration(newVersionStr);
+  initializeManagers();
 
   const { featureRegistry } = await import('@core/services/featureRegistry.js');
 
-  // Initialize all feature modules in topological order so services, reset handlers, and live toggles work seamlessly
   for (const feature of featureRegistry) {
     try {
       const module = await feature.load();
@@ -56,23 +62,7 @@ export async function initializeAddon() {
     }
   }
 
-  const config = getConfig();
-  setLogLevel(config.logLevel);
-
-  dataManager.initializeDataManager();
-  loadPersistentData();
-
-  await initializeMigration(newVersionStr);
-
-  const { initializePlayerCache } = await import('@core/data/playerCache.js');
-  initializePlayerCache();
-
-  initializeManagers();
-
   initializeEventManager();
-  initializeSpawnProtection();
-  initializeXrayDetection();
-  restartAnnouncer();
 
   reinitializeOnlinePlayers();
 

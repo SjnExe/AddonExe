@@ -6,14 +6,13 @@ import {
   createPendingPayment,
   getPendingPayment,
   getPlayer,
-  getPlayerIdByName,
   getPlayerNameById,
   transfer,
 } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { economyDisabled } from '@core/utils/constants.js';
 import { validateCurrencyAmount } from '@core/utils/economy.js';
-import { formatCurrency, resolveTarget } from '@core/utils/index.js';
+import { formatCurrency, resolvePlayerRecord, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -125,11 +124,11 @@ const oPayCommand: CustomCommand = {
       return sendMessage('§cPlease specify a player name.', executor);
     }
 
-    const targetId = getPlayerIdByName(targetName);
-    if (!isNonEmptyString(targetId)) {
+    const record = resolvePlayerRecord(targetName);
+    if (!isDefined(record)) {
       return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
     }
-    const displayName = getPlayerNameById(targetId) ?? targetName;
+    const { playerId: targetId, playerName: displayName } = record;
 
     if (targetId === executor.id) {
       return sendMessage('§cYou cannot pay yourself.', executor);

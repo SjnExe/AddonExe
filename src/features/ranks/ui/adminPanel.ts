@@ -10,6 +10,7 @@ import {
   validateRankDefinitionEdits,
 } from '@core/permissions/permissionEngine.js';
 import { reloadRanks, updatePlayerNameTag } from '@core/permissions/rankManager.js';
+import { deepClone } from '@core/utils/objectUtils.js';
 import { RankCondition, RankDefinition } from '@features/ranks/config.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -435,7 +436,7 @@ export async function showRankEditorPanel(
       player.sendMessage(`§cError: Rank ${rankId} not found.`);
       return showRankSystemConfigPanel(player);
     }
-    rank = JSON.parse(JSON.stringify(existingRank)) as RankDefinition;
+    rank = deepClone(existingRank);
   }
 
   const existingTagCond = rank.conditions.find((c) => c.type === 'hasTag' && typeof c.value === 'string');

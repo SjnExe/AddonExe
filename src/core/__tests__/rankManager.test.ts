@@ -62,9 +62,9 @@ describe('rankManager', () => {
   });
 
   describe('initialize', () => {
-    it('should call reloadRanks and subscribe to playerLeave', () => {
+    it('should call reloadRanks cleanly', () => {
       initialize();
-      expect(mc.world.afterEvents.playerLeave.subscribe).toHaveBeenCalled();
+      expect(getAllRanks()).toEqual(mockRanks);
     });
   });
 

@@ -9,14 +9,6 @@ import * as mc from '@minecraft/server';
 export function handleScriptEventReceive(event: mc.ScriptEventCommandMessageAfterEvent) {
   const { id, sourceEntity } = event;
 
-  // Handle script unload event
-  if (id === 'minecraft:script_unload') {
-    // Script unload is handled by a subscription in main.js for now,
-    // as it requires access to cleanupAddon which is local to main.js.
-    // We might refactor this later.
-    return;
-  }
-
   const config = getConfig(); // Config should be loaded by the time this event fires for custom events.
 
   switch (id) {

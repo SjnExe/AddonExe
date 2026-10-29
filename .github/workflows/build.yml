@@ -133,20 +133,20 @@ jobs:
         id: build_type
         run: |
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-              echo "type=stable" >> $GITHUB_OUTPUT
+              echo "type=release" >> $GITHUB_OUTPUT
           else
-              echo "type=nightly" >> $GITHUB_OUTPUT
+              echo "type=canary" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build TypeScript (Nightly)
-        if: steps.build_type.outputs.type == 'nightly'
+      - name: Build TypeScript (Canary)
+        if: steps.build_type.outputs.type == 'canary'
         run: |
-          bun run build:nightly -- -b ${{ github.run_number }}
+          bun run build:canary -- -b ${{ github.run_number }}
         env:
           IS_BETA_RELEASE: 'true'
 
-      - name: Build TypeScript (Stable)
-        if: steps.build_type.outputs.type == 'stable'
+      - name: Build TypeScript (Release)
+        if: steps.build_type.outputs.type == 'release'
         run: |
           TAG_VER="${{ github.ref_name }}"
           CLEAN_TAG="${TAG_VER#v}"
@@ -251,7 +251,7 @@ jobs:
               AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
 
       - name: Generate Changelog & Upload Stable Release to CurseForge
-        if: env.BUILD_TYPE == 'stable'
+        if: env.BUILD_TYPE == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
@@ -262,7 +262,7 @@ jobs:
           bun scripts/build/curseforgeUpload.ts
 
       - name: Publish Stable Release Link on GitHub
-        if: env.BUILD_TYPE == 'stable'
+        if: env.BUILD_TYPE == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

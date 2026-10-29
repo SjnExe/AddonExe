@@ -12,10 +12,8 @@ const clearchatCommand: CustomCommand = {
   allowConsole: true,
   execute: (executor: CommandExecutor) => {
     try {
-      const emptyLines = '\n'.repeat(100);
       const announcer = executor instanceof mc.Player ? executor.name : 'the Console';
-      mc.world.sendMessage(emptyLines);
-      mc.world.sendMessage(`§aChat has been cleared by ${announcer}.`);
+      mc.world.sendMessage(`${'\n'.repeat(100)}§aChat has been cleared by ${announcer}.`);
     } catch (error: unknown) {
       if (executor instanceof mc.Player) {
         sendMessage('§cFailed to clear chat.', executor);

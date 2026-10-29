@@ -22,6 +22,7 @@ interface FlagData {
 
 // Map<PlayerID, Map<CheckName, FlagData>>
 const flags = new Map<string, Map<string, FlagData>>();
+let needsSave = false;
 
 export function initializeFlagManager() {
   // Load flags from storage
@@ -38,11 +39,15 @@ export function initializeFlagManager() {
 }
 
 export function saveFlags() {
+  if (!needsSave) {
+    return;
+  }
   const dataToSave: [string, [string, FlagData][]][] = [];
   for (const [playerId, checkMap] of flags) {
     dataToSave.push([playerId, [...checkMap.entries()]]);
   }
   storage.save(dataToSave);
+  needsSave = false;
 }
 
 export function flag(player: mc.Player, checkName: string, message: string) {
@@ -73,6 +78,7 @@ export function flag(player: mc.Player, checkName: string, message: string) {
 
   data.vl++;
   data.lastFlagTime = Date.now();
+  needsSave = true;
 
   // Log
   addFlagLog(player.name, checkName, data.vl, message);

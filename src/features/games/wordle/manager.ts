@@ -473,7 +473,7 @@ export function clearPlayerWordleDuel(playerId: string): void {
 
 function finalizeWordleDuelCleanup(match: WordleDuelMatch): void {
   unregisterActiveMatchSession(match.id);
-  mc.system.runTimeout(() => {
+  setTrackedTimeout(() => {
     activeWordleDuels.delete(match.id);
   }, 600);
 }

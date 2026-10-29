@@ -22,9 +22,10 @@ describe('Vote Manager', () => {
   let originalDateNow: any;
 
   beforeEach(() => {
-    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
+    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void, step?: number) => {
+      const loops = step && step >= 200 ? 1 : 200;
       intervalCallback = () => {
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < loops; i++) {
           cb();
         }
       };

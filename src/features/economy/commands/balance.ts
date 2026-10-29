@@ -1,13 +1,8 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
-import {
-  getOrCreatePlayer,
-  getPlayerIdByName,
-  getPlayerNameById,
-  loadPlayerData,
-} from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { formatCurrency, resolveTarget } from '@core/utils/index.js';
+import { formatCurrency, resolvePlayerRecord, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getLeaderboard } from '@features/economy/leaderboard.js';
 import { isNonEmptyString } from '@lib/guards.js';
@@ -76,20 +71,18 @@ const oBalanceCommand: CustomCommand = {
       return sendMessage('§cPlease specify a player name.', executor);
     }
 
-    const targetId = getPlayerIdByName(targetName);
-
-    if (!isNonEmptyString(targetId)) {
+    const record = resolvePlayerRecord(targetName, executor instanceof mc.Player ? executor : undefined);
+    if (!record) {
       return sendMessage(`§cPlayer "${targetName}" never joined.`, executor);
     }
-
-    const displayName = getPlayerNameById(targetId) || targetName;
-    const pData = loadPlayerData(targetId);
-
-    if (!pData) {
-      return sendMessage(`§cCould not load data for ${displayName}.`, executor);
+    if (!record.pData) {
+      return sendMessage(`§cCould not load data for ${record.playerName}.`, executor);
     }
 
-    sendMessage(`§a${displayName}'s balance is: §e${formatCurrency(pData.balance)} (Offline)`, executor);
+    sendMessage(
+      `§a${record.playerName}'s balance is: §e${formatCurrency(record.pData.balance)}${record.isOnline ? '' : ' (Offline)'}`,
+      executor,
+    );
   },
 };
 

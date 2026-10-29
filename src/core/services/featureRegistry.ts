@@ -107,7 +107,7 @@ rawFeatures.push(
   },
 );
 
-if (typeof __IS_NIGHTLY__ !== 'undefined' && __IS_NIGHTLY__) {
+if (typeof __CANARY__ !== 'undefined' && __CANARY__) {
   rawFeatures.push({
     id: 'test',
     name: 'Testing Framework',

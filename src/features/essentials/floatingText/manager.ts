@@ -1,7 +1,14 @@
+import { StorageManager } from '@core/data/storageManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDeepEqual } from '@core/utils/objectUtils.js';
-import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
+import {
+  clearTrackedInterval,
+  clearTrackedTimeout,
+  setTrackedInterval,
+  setTrackedTimeout,
+} from '@core/utils/timerManager.js';
+import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
@@ -20,6 +27,7 @@ export interface FloatingTextConfig {
 }
 
 const floatingTextDataKey = 'exe:floatingTextData';
+const floatingTextStorage = new StorageManager(floatingTextDataKey);
 let floatingTexts = new Map<string, FloatingTextConfig>();
 const dynamicTexts = new Map<string, FloatingTextConfig>();
 
@@ -52,9 +60,8 @@ function unscheduleTextUpdate(id: string) {
 
 function loadTexts() {
   try {
-    const dataString = mc.world.getDynamicProperty(floatingTextDataKey);
-    if (isNonEmptyString(dataString)) {
-      const parsedData = JSON.parse(dataString) as unknown as [string, FloatingTextConfig][];
+    const parsedData = floatingTextStorage.load<[string, FloatingTextConfig][]>();
+    if (isDefined(parsedData) && Array.isArray(parsedData)) {
       floatingTexts = new Map(parsedData);
       dynamicTexts.clear();
       scheduledUpdates.clear();
@@ -83,7 +90,7 @@ function loadTexts() {
 function saveTexts() {
   try {
     const dataToSave = [...floatingTexts.entries()];
-    mc.world.setDynamicProperty(floatingTextDataKey, JSON.stringify(dataToSave));
+    floatingTextStorage.save(dataToSave);
   } catch (error: unknown) {
     if (error instanceof Error) {
       errorLog(`[FloatingText] Failed to save floating text data: ${error.stack}`);
@@ -96,8 +103,14 @@ function saveTexts() {
 export function initialize() {
   loadTexts();
   spawnAllTexts();
-  runExpirationLoop();
-  runRetrySpawnLoop();
+  if (isDefined(expirationIntervalId)) {
+    clearTrackedInterval(expirationIntervalId);
+  }
+  expirationIntervalId = setTrackedInterval(runExpirationLoop, 200);
+  if (isDefined(retrySpawnIntervalId)) {
+    clearTrackedInterval(retrySpawnIntervalId);
+  }
+  retrySpawnIntervalId = setTrackedInterval(runRetrySpawnLoop, 200);
   lastProcessedTick = mc.system.currentTick;
   runUpdateLoop();
 }
@@ -185,52 +198,31 @@ function* updateLoopJob() {
   }
 
   // Reschedule
-  updateLoopId = mc.system.runTimeout(runUpdateLoop, 1);
+  updateLoopId = setTrackedTimeout(runUpdateLoop, 1);
 }
 
-let isRunningExpirationLoop = false;
 function runExpirationLoop() {
-  if (isRunningExpirationLoop) {
-    return;
-  }
-  isRunningExpirationLoop = true;
-  try {
-    const now = Date.now();
-    for (const textConfig of floatingTexts.values()) {
-      if (isNumber(textConfig.expiresAt) && now >= textConfig.expiresAt) {
-        deleteText(undefined, textConfig.id);
-      }
+  const now = Date.now();
+  for (const textConfig of floatingTexts.values()) {
+    if (isNumber(textConfig.expiresAt) && now >= textConfig.expiresAt) {
+      deleteText(undefined, textConfig.id);
     }
-    expirationIntervalId = mc.system.runTimeout(runExpirationLoop, 200);
-  } finally {
-    isRunningExpirationLoop = false;
   }
 }
 
-let isRunningRetryLoop = false;
 function runRetrySpawnLoop() {
-  if (isRunningRetryLoop) {
-    return;
-  }
-  isRunningRetryLoop = true;
-  try {
-    if (unloadedChunkQueue.size > 0) {
-      for (const textId of unloadedChunkQueue) {
-        const textConfig = floatingTexts.get(textId);
-        if (isDefined(textConfig)) {
-          spawnText(textConfig);
-        } else {
-          unloadedChunkQueue.delete(textId);
-        }
+  if (unloadedChunkQueue.size > 0) {
+    for (const textId of unloadedChunkQueue) {
+      const textConfig = floatingTexts.get(textId);
+      if (isDefined(textConfig)) {
+        spawnText(textConfig);
+      } else {
+        unloadedChunkQueue.delete(textId);
       }
     }
-
-    pruneOrphanedTexts();
-
-    retrySpawnIntervalId = mc.system.runTimeout(runRetrySpawnLoop, 200);
-  } finally {
-    isRunningRetryLoop = false;
   }
+
+  pruneOrphanedTexts();
 }
 
 function extractFloatingTextId(tags: string[]): string | undefined {
@@ -534,7 +526,7 @@ export function despawnText(id: string) {
   if (pendingDespawns.has(id)) {
     const runId = pendingDespawns.get(id);
     if (runId !== undefined) {
-      mc.system.clearRun(runId);
+      clearTrackedTimeout(runId);
     }
     pendingDespawns.delete(id);
   }
@@ -583,7 +575,7 @@ export function respawnText(id: string) {
   if (pendingDespawns.has(id)) {
     const runId = pendingDespawns.get(id);
     if (runId !== undefined) {
-      mc.system.clearRun(runId);
+      clearTrackedTimeout(runId);
     }
     pendingDespawns.delete(id);
   }
@@ -595,7 +587,7 @@ export function respawnText(id: string) {
       saveTexts();
     }
     despawnText(id);
-    const runId = mc.system.runTimeout(() => {
+    const runId = setTrackedTimeout(() => {
       pendingDespawns.delete(id);
       spawnText(textConfig);
     }, 20);
@@ -649,20 +641,20 @@ export function cleanup() {
   debugLog('[FloatingText] Cleaning up timers and intervals...');
 
   if (isDefined(expirationIntervalId)) {
-    mc.system.clearRun(expirationIntervalId);
+    clearTrackedInterval(expirationIntervalId);
     expirationIntervalId = undefined;
   }
   if (isDefined(retrySpawnIntervalId)) {
-    mc.system.clearRun(retrySpawnIntervalId);
+    clearTrackedInterval(retrySpawnIntervalId);
     retrySpawnIntervalId = undefined;
   }
   if (isDefined(updateLoopId)) {
-    mc.system.clearRun(updateLoopId);
+    clearTrackedTimeout(updateLoopId);
     updateLoopId = undefined;
   }
 
   for (const timeoutId of pendingDespawns.values()) {
-    mc.system.clearRun(timeoutId);
+    clearTrackedTimeout(timeoutId);
   }
   pendingDespawns.clear();
   unloadedChunkQueue.clear();

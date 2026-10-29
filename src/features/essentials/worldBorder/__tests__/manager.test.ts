@@ -16,9 +16,10 @@ describe('worldBorderManager', () => {
     getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
     initializePlayerCache();
 
-    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
+    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void, step?: number) => {
+      const loops = step && step >= 20 ? 1 : 20;
       intervalCallback = () => {
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < loops; i++) {
           cb();
         }
       };

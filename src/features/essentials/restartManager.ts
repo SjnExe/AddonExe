@@ -2,6 +2,7 @@ import { CommandExecutor } from '@commands/commandManager.js';
 import * as configManager from '@core/config/configManager.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import * as mc from '@minecraft/server';
 
@@ -22,11 +23,11 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
 
   mc.world.sendMessage(`§eServer restart initiated. Restarting in ${secondsRemaining} seconds...`);
 
-  restartTaskId = mc.system.runInterval(() => {
+  restartTaskId = setTrackedInterval(() => {
     const players = getAllPlayersFromCache();
 
     if (secondsRemaining <= 0) {
-      mc.system.clearRun(restartTaskId!);
+      clearTrackedInterval(restartTaskId!);
       restartTaskId = undefined;
 
       for (const player of players) {
@@ -77,7 +78,7 @@ export function cancelRestart(initiator?: CommandExecutor | mc.Entity) {
     return;
   }
 
-  mc.system.clearRun(restartTaskId);
+  clearTrackedInterval(restartTaskId);
   restartTaskId = undefined;
 
   mc.world.sendMessage('§aServer restart has been cancelled.');

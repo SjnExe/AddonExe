@@ -30,9 +30,10 @@ describe('MovementCheck', () => {
     getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
 
     // Capture interval callback via timerManager multiplexer (runs every 5 ticks)
-    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void) => {
+    runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void, step?: number) => {
+      const loops = step && step >= 5 ? 1 : 5;
       intervalCallback = () => {
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < loops; i++) {
           cb();
         }
       };

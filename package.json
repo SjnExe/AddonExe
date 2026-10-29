@@ -17,7 +17,7 @@
   "type": "module",
   "scripts": {
     "build": "bun clean && bun scripts/build/build.ts",
-    "build:nightly": "bun clean && bun scripts/build/build.ts --nightly",
+    "build:canary": "bun clean && bun scripts/build/build.ts --canary",
     "build:release": "bun clean && bun scripts/build/build.ts --release --minify",
     "clean": "rm -rf out packs/behavior/scripts",
     "postinstall": "bun scripts/hooks/postinstall.ts",

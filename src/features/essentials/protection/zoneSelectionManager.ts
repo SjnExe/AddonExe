@@ -1,4 +1,5 @@
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { villagerHappyParticleId } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -7,7 +8,6 @@ import { EntityComponentTypes } from '@minecraft/server';
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 export const zoneWandTag = 'exe:zone_wand';
-const borderParticleId = ['minecraft', 'villager_happy'].join(':');
 
 export interface ZoneSelection {
   pos1?: mc.Vector3;
@@ -148,17 +148,16 @@ export function previewZoneBoundaryParticles(
 
     const y = Math.floor(player.location.y) + 0.5;
     try {
-      const dim = player.dimension as unknown as { spawnParticle?: (id: string, loc: mc.Vector3) => void };
-      if (typeof dim.spawnParticle !== 'function') {
+      if (typeof player.dimension.spawnParticle !== 'function') {
         return;
       }
       for (let x = minX; x <= maxX; x += step) {
-        dim.spawnParticle(borderParticleId, { x, y, z: minZ });
-        dim.spawnParticle(borderParticleId, { x, y, z: maxZ });
+        player.dimension.spawnParticle(villagerHappyParticleId, { x, y, z: minZ });
+        player.dimension.spawnParticle(villagerHappyParticleId, { x, y, z: maxZ });
       }
       for (let z = minZ; z <= maxZ; z += step) {
-        dim.spawnParticle(borderParticleId, { x: minX, y, z });
-        dim.spawnParticle(borderParticleId, { x: maxX, y, z });
+        player.dimension.spawnParticle(villagerHappyParticleId, { x: minX, y, z });
+        player.dimension.spawnParticle(villagerHappyParticleId, { x: maxX, y, z });
       }
     } catch {
       // Ignore unloaded chunk particle errors

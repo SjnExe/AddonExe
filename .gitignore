@@ -2,14 +2,14 @@
 node_modules/
 bun-debug.log*
 
-# Build Outputs (scripts/build.ts)
+# Build Outputs (scripts/build/build.ts)
 /out/
 /packs/behavior/scripts/
 build_meta.env
 *.mcpack
 *.mcaddon
 
-# Generated Manifests (scripts/update-manifests.ts)
+# Generated Manifests (scripts/build/updateManifests.ts)
 /packs/behavior/manifest.json
 /packs/resource/manifest.json
 

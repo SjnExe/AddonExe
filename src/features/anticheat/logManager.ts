@@ -23,8 +23,10 @@ export interface PunishmentLog {
   adminName: string; // "AutoMod" or admin name
 }
 
+const maxStoredLogs = 500;
 let flagLogs: FlagLog[] = [];
 let punishLogs: PunishmentLog[] = [];
+let needsSave = false;
 
 export function initializeLogManager() {
   flagLogs = flagStorage.load<FlagLog[]>() ?? [];
@@ -44,6 +46,10 @@ export function initializeLogManager() {
 export function addFlagLog(playerName: string, checkName: string, vl: number, details: string) {
   const log: FlagLog = { timestamp: Date.now(), playerName, checkName, vl, details };
   flagLogs.push(log);
+  if (flagLogs.length > maxStoredLogs) {
+    flagLogs.splice(0, flagLogs.length - maxStoredLogs);
+  }
+  needsSave = true;
 }
 
 export function addPunishmentLog(
@@ -58,11 +64,19 @@ export function addPunishmentLog(
     log.duration = duration;
   }
   punishLogs.push(log);
+  if (punishLogs.length > maxStoredLogs) {
+    punishLogs.splice(0, punishLogs.length - maxStoredLogs);
+  }
+  needsSave = true;
 }
 
 export function saveLogs() {
+  if (!needsSave) {
+    return;
+  }
   flagStorage.save(flagLogs);
   punishStorage.save(punishLogs);
+  needsSave = false;
 }
 
 export function getFlagLogs() {

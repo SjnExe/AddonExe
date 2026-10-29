@@ -1,5 +1,5 @@
 import { getXrayConfig } from '@core/config/configurations.js';
-import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/data/playerDataManager.js';
 import { registerEvent } from '@core/events/eventManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
@@ -12,6 +12,7 @@ import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 interface AlertData {
+  playerName: string;
   count: number;
   timerId: number;
   blockLocation: mc.Vector3;
@@ -64,14 +65,20 @@ export function refreshXrayCache(): void {
   }
 }
 
-function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Vector3, count: number): void {
+function sendAlert(
+  playerId: string,
+  playerName: string,
+  oreType: MonitoredOreType,
+  location: mc.Vector3,
+  count: number,
+): void {
   const xrayConfig = getXrayConfig();
   if (!isDefined(xrayConfig)) {
     return;
   }
 
   const context = {
-    playerName: player.name,
+    playerName,
     oreName: oreType.oreName,
     count: count,
     x: location.x.toFixed(2),
@@ -79,7 +86,7 @@ function sendAlert(player: mc.Player, oreType: MonitoredOreType, location: mc.Ve
     z: location.z.toFixed(2),
   };
 
-  const watchPrefix = isWatched(player.id) ? '§6[WATCHED] ' : '';
+  const watchPrefix = isWatched(playerId) ? '§6[WATCHED] ' : '';
   const message =
     watchPrefix + formatString('§7{playerName}§r mined §e{count} {oreName}§r at §a{x}§r, §a{y}§r, §a{z}§r', context);
 
@@ -116,10 +123,7 @@ function flushAlert(playerId: string, oreKey: string): void {
     alertBuffers.delete(playerId);
   }
 
-  const player = getPlayerFromCache(playerId);
-  if (isDefined(player)) {
-    sendAlert(player, data.oreType, data.blockLocation, data.count);
-  }
+  sendAlert(playerId, data.playerName, data.oreType, data.blockLocation, data.count);
 }
 
 function bufferAlert(player: mc.Player, oreType: MonitoredOreType, block: mc.Block): void {
@@ -127,7 +131,7 @@ function bufferAlert(player: mc.Player, oreType: MonitoredOreType, block: mc.Blo
   const bufferTime = ((isDefined(xrayConfig) ? xrayConfig.notifications.alertBufferingSeconds : undefined) ?? 0) * 20;
 
   if (bufferTime <= 0) {
-    sendAlert(player, oreType, block.location, 1);
+    sendAlert(player.id, player.name, oreType, block.location, 1);
     return;
   }
 
@@ -147,6 +151,7 @@ function bufferAlert(player: mc.Player, oreType: MonitoredOreType, block: mc.Blo
       flushAlert(player.id, oreKey);
     }, bufferTime);
     playerBuffer.set(oreKey, {
+      playerName: player.name,
       count: 1,
       timerId,
       blockLocation: { ...block.location },

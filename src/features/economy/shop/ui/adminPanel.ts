@@ -1,6 +1,7 @@
 import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { getShopConfig } from '@core/config/configurations.js';
 import * as shopAdminManager from '@features/economy/shop/adminManager.js';
+import type { ShopCategory } from '@features/economy/shop/config.js';
 import { ensureItemsConfig, getAllItems, parseRankOverrides } from '@features/economy/shop/utils.js';
 import {
   formatShopPriceSubtitle,
@@ -14,25 +15,6 @@ import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
-
-interface ShopItemInfo {
-  itemId: string;
-  buyPrice: number;
-  sellPrice: number;
-  displayName?: string;
-  icon?: string;
-  permission?: string;
-  rankMultiplierOverrides?: Record<string, { buy: number; sell: number }>;
-}
-interface ShopSubCategory {
-  icon?: string;
-  items: Record<string, ShopItemInfo>;
-}
-interface ShopCategory {
-  icon?: string;
-  subCategories?: Record<string, ShopSubCategory>;
-  items: Record<string, ShopItemInfo>;
-}
 
 export async function showShopManagementPanel(player: mc.Player, page: number = 1): Promise<void> {
   const mainConfig = getConfig();
@@ -434,10 +416,10 @@ export async function showAddCustomItemPanel(
     permission: string;
     rankMultiplierOverridesStr: string;
   }>('Add Custom Item')
-    .textField('itemId', 'Item ID', ['dia', 'mond'].join(''), prefillItemId)
+    .textField('itemId', 'Item ID', 'diamond', prefillItemId)
     .textField('buyPrice', 'Buy Price', '100', '100')
     .textField('sellPrice', 'Sell Price', '50', '50')
-    .textField('displayName', 'Display Name', ['Dia', 'mond'].join(''), '')
+    .textField('displayName', 'Display Name', 'Diamond', '')
     .textField('icon', 'Icon Path', '', '')
     .textField('permission', 'Permission', 'ui.panel.member', '')
     .textField('rankMultiplierOverridesStr', 'Overrides', '', '')
@@ -514,10 +496,10 @@ export async function showEditItemFormPanel(
     rankMultiplierOverridesStr: string;
     action: string;
   }>('Edit Item')
-    .textField('itemId', 'Item ID', ['dia', 'mond'].join(''), item.itemId || itemKey)
+    .textField('itemId', 'Item ID', 'diamond', item.itemId || itemKey)
     .textField('buyPrice', 'Buy Price', '100', String(item.buyPrice))
     .textField('sellPrice', 'Sell Price', '50', String(item.sellPrice))
-    .textField('displayName', 'Display Name', ['Dia', 'mond'].join(''), item.displayName || '')
+    .textField('displayName', 'Display Name', 'Diamond', item.displayName || '')
     .textField('icon', 'Icon Path', '', item.icon || '')
     .textField('permission', 'Permission', 'ui.panel.member', item.permission || '')
     .textField('rankMultiplierOverridesStr', 'Overrides', '', overridesStr)

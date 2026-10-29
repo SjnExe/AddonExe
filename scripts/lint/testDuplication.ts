@@ -100,6 +100,11 @@ export async function checkDuplication(): Promise<void> {
   console.log(
     `[DupeCheck] Scanned ${files.length} files (${totalTokens.toLocaleString()} tokens) in ${elapsed} ms. Found ${duplicates.length} duplicate block(s).`,
   );
+  for (const dup of duplicates) {
+    console.warn(
+      `  - Duplicate: ${dup.first.file}:${dup.first.startLine}-${dup.first.endLine} <-> ${dup.second.file}:${dup.second.startLine}-${dup.second.endLine}`,
+    );
+  }
 }
 
 if (import.meta.main) {

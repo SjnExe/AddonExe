@@ -198,10 +198,6 @@ export function calculatePlayerMap(player: mc.Player): PlayerPermissionCacheEntr
   return entry;
 }
 
-mc.world.afterEvents.playerLeave.subscribe((event) => {
-  playerMapCache.delete(event.playerId);
-});
-
 function getShortNodeCandidate(node: string, nSegs: string[]): string | undefined {
   if (nSegs.length === 3 && (nSegs[0] === 'cmd' || nSegs[0] === 'ui')) {
     return `${nSegs[0]}.${nSegs[1]}`;

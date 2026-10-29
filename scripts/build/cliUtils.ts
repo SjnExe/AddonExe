@@ -3,7 +3,7 @@ import path from 'node:path';
 export interface ParsedArgs {
   isWatch: boolean;
   isRelease: boolean;
-  isNightly: boolean;
+  isCanary: boolean;
   isZip: boolean;
   isMinify: boolean;
   sourcemap?: boolean;
@@ -14,7 +14,7 @@ export interface ParsedArgs {
 export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
   let isWatch = false;
   let isRelease = false;
-  let isNightly = false;
+  let isCanary = false;
   let isZip = false;
   let isMinify = false;
   let noMinify = false;
@@ -29,8 +29,8 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
       isWatch = true;
     } else if (arg === '-r' || arg === '--release') {
       isRelease = true;
-    } else if (arg === '-n' || arg === '--nightly') {
-      isNightly = true;
+    } else if (arg === '-c' || arg === '--canary' || arg === '-n' || arg === '--nightly') {
+      isCanary = true;
     } else if (arg === '-z' || arg === '--zip') {
       isZip = true;
     } else if (arg === '-m' || arg === '--minify') {
@@ -55,13 +55,13 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
     }
   }
 
-  isZip = isZip || isRelease || isNightly;
-  isMinify = !noMinify && (isMinify || isRelease || isNightly || isZip);
+  isZip = isZip || isRelease || isCanary;
+  isMinify = !noMinify && (isMinify || isRelease || isCanary || isZip);
 
   return {
     isWatch,
     isRelease,
-    isNightly,
+    isCanary,
     isZip,
     isMinify,
     sourcemap,
@@ -74,7 +74,7 @@ export async function getVersionContext(
   rootDir: string,
   options: {
     customVersion?: string;
-    isNightly?: boolean;
+    isCanary?: boolean;
     buildNumber?: number;
     isRelease?: boolean;
   },
@@ -107,7 +107,7 @@ export async function getVersionContext(
   let finalParts = [major, minor, patch];
   let finalStr = `${major}.${minor}.${patch}`;
 
-  if (options.isNightly) {
+  if (options.isCanary) {
     const buildNum = options.buildNumber || 0;
     finalParts = [major, minor, buildNum];
     finalStr = `${major}.${minor}.${buildNum}`;

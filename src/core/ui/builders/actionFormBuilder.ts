@@ -76,22 +76,22 @@ export class ActionFormBuilder {
   }
 
   public header(headerText: string): this {
-    if (typeof (this.form as unknown as { header?: (t: string) => void }).header === 'function') {
-      (this.form as unknown as { header: (t: string) => void }).header(headerText);
+    if (typeof this.form.header === 'function') {
+      this.form.header(headerText);
     }
     return this;
   }
 
   public label(labelText: string): this {
-    if (typeof (this.form as unknown as { label?: (t: string) => void }).label === 'function') {
-      (this.form as unknown as { label: (t: string) => void }).label(labelText);
+    if (typeof this.form.label === 'function') {
+      this.form.label(labelText);
     }
     return this;
   }
 
   public divider(): this {
-    if (typeof (this.form as unknown as { divider?: () => void }).divider === 'function') {
-      (this.form as unknown as { divider: () => void }).divider();
+    if (typeof this.form.divider === 'function') {
+      this.form.divider();
     }
     return this;
   }

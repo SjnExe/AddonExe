@@ -178,18 +178,18 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
         form.textField(ctrl.label ?? '', ctrl.meta.placeholderText, { defaultValue: ctrl.meta.defaultValue });
         valueControlOrder.push(ctrl);
       } else if (ctrl.type === 'header') {
-        if (typeof (form as unknown as { header?: (t: string) => void }).header === 'function') {
-          (form as unknown as { header: (t: string) => void }).header(ctrl.label ?? '');
+        if (typeof form.header === 'function') {
+          form.header(ctrl.label ?? '');
           valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'label') {
-        if (typeof (form as unknown as { label?: (t: string) => void }).label === 'function') {
-          (form as unknown as { label: (t: string) => void }).label(ctrl.label ?? '');
+        if (typeof form.label === 'function') {
+          form.label(ctrl.label ?? '');
           valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'divider') {
-        if (typeof (form as unknown as { divider?: () => void }).divider === 'function') {
-          (form as unknown as { divider: () => void }).divider();
+        if (typeof form.divider === 'function') {
+          form.divider();
           valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'button' && ctrl.onClick) {

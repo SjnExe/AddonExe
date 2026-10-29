@@ -1,9 +1,10 @@
+import { StorageManager } from '@core/data/storageManager.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNumber } from '@lib/guards.js';
-import * as mc from '@minecraft/server';
 
 const cooldownDbKey = 'exe:cooldowns';
+const cooldownStorage = new StorageManager(cooldownDbKey);
 const saveIntervalTicks = 6000; // Every 5 minutes
 
 /** Map<"playerId:identifier", expiryTimestamp> */
@@ -21,17 +22,15 @@ export function loadCooldowns() {
     saveCooldowns();
   }, saveIntervalTicks);
   debugLog('[CooldownManager] Loading cooldowns...');
-  const dataStr = mc.world.getDynamicProperty(cooldownDbKey);
-  if (typeof dataStr === 'string') {
-    try {
-      const parsedData = JSON.parse(dataStr) as [string, number][];
-      // Reconstruct the Map from the saved array
+  try {
+    const parsedData = cooldownStorage.load<[string, number][]>();
+    if (isDefined(parsedData) && Array.isArray(parsedData)) {
       cooldowns = new Map(parsedData);
       debugLog(`[CooldownManager] Loaded ${cooldowns.size} cooldowns.`);
-    } catch (error) {
-      errorLog('[CooldownManager] Failed to parse cooldown data from world property.', error);
-      cooldowns = new Map();
     }
+  } catch (error) {
+    errorLog('[CooldownManager] Failed to load cooldown data.', error);
+    cooldowns = new Map();
   }
 }
 
@@ -43,7 +42,7 @@ export function saveCooldowns(): boolean {
   try {
     // Convert Map to an array for JSON serialization
     const dataToSave = [...cooldowns.entries()];
-    mc.world.setDynamicProperty(cooldownDbKey, JSON.stringify(dataToSave));
+    cooldownStorage.save(dataToSave);
     needsSave = false;
     debugLog('[CooldownManager] Saved cooldowns to world properties.');
     return true;

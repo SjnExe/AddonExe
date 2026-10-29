@@ -18,7 +18,7 @@ function findMasterEntry(keyOrTypeId: string): ItemData | undefined {
   if (isDefined(direct)) {
     return direct;
   }
-  const withPrefix = keyOrTypeId.includes(':') ? keyOrTypeId : ['minecraft', keyOrTypeId].join(':');
+  const withPrefix = keyOrTypeId.includes(':') ? keyOrTypeId : 'minecraft:' + keyOrTypeId;
   return Object.values(masterItems).find((entry) => entry.itemId === keyOrTypeId || entry.itemId === withPrefix);
 }
 
@@ -35,7 +35,7 @@ export function resolveCanonicalItemId(keyOrTypeId: string, explicitItemId?: str
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     .replace(/\s+/g, '_')
     .toLowerCase();
-  return ['minecraft', snake].join(':');
+  return 'minecraft:' + snake;
 }
 
 export function resolveTradeItemDisplayName(keyOrTypeId: string, customDisplayName?: string): string {

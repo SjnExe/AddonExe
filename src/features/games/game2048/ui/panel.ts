@@ -103,11 +103,10 @@ export async function show2048Board(player: mc.Player, initialNotice?: string): 
     const pData = getOrCreatePlayer(player);
     const bestScore = Math.max(session.score, pData.gameStats?.game2048?.bestScore ?? 0);
 
-    let statusLine = `§7Score: §b${session.score} §8| §7Best: §e${bestScore} §8| §7Max Tile: §a${session.maxTile} §8| §7Moves: §f${session.moves}`;
+    const inlineNotice = isNonEmptyString(notice) ? ` §8(${notice}§8)` : '';
+    let statusLine = `§7Score: §b${session.score}${inlineNotice} §8| §7Best: §e${bestScore} §8| §7Tile: §a${session.maxTile} §8| §7Moves: §f${session.moves}`;
     if (session.status === 'gameover') {
       statusLine = `§c§lGAME OVER! §r${statusLine}`;
-    } else if (isNonEmptyString(notice)) {
-      statusLine = `${statusLine}\n${notice}`;
     }
 
     const rawForm = new ActionFormData().title(grid2048Title).body(statusLine);

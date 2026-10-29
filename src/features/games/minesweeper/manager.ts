@@ -3,6 +3,7 @@ import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
+import { setTrackedTimeout } from '@core/utils/timerManager.js';
 import {
   payoutWagerPot,
   registerActiveMatchSession,
@@ -444,7 +445,7 @@ function finalizeRaceCleanup(match: MinesweeperRaceMatch): void {
   unregisterActiveMatchSession(match.id);
   playerRaceMap.delete(match.player1Id);
   playerRaceMap.delete(match.player2Id);
-  mc.system.runTimeout(() => {
+  setTrackedTimeout(() => {
     activeRaceMatches.delete(match.id);
   }, 600);
 }

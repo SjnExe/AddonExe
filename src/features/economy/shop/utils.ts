@@ -16,7 +16,7 @@ interface BlockFamilySpec {
   icon: string;
   baseBuy: number;
   baseSell: number;
-  variants: { key: string; typeId: string; displayName: string }[];
+  variants: { key: string; typeId: string; displayName?: string }[];
 }
 
 const buildingBlockFamilies: BlockFamilySpec[] = [
@@ -27,12 +27,12 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 10,
     baseSell: 5,
     variants: [
-      { key: 'stone', typeId: MinecraftItemTypes.Stone, displayName: 'Stone' },
+      { key: 'stone', typeId: MinecraftItemTypes.Stone },
       { key: 'normalStoneStairs', typeId: MinecraftItemTypes.NormalStoneStairs, displayName: 'Stone Stairs' },
-      { key: 'smoothStone', typeId: MinecraftItemTypes.SmoothStone, displayName: 'Smooth Stone' },
-      { key: 'smoothStoneSlab', typeId: MinecraftItemTypes.SmoothStoneSlab, displayName: 'Smooth Stone Slab' },
-      { key: 'stoneButton', typeId: MinecraftItemTypes.StoneButton, displayName: 'Stone Button' },
-      { key: 'stonePressurePlate', typeId: MinecraftItemTypes.StonePressurePlate, displayName: 'Stone Pressure Plate' },
+      { key: 'smoothStone', typeId: MinecraftItemTypes.SmoothStone },
+      { key: 'smoothStoneSlab', typeId: MinecraftItemTypes.SmoothStoneSlab },
+      { key: 'stoneButton', typeId: MinecraftItemTypes.StoneButton },
+      { key: 'stonePressurePlate', typeId: MinecraftItemTypes.StonePressurePlate },
     ],
   },
   {
@@ -42,11 +42,11 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 6,
     baseSell: 2,
     variants: [
-      { key: 'cobblestone', typeId: MinecraftItemTypes.Cobblestone, displayName: 'Cobblestone' },
+      { key: 'cobblestone', typeId: MinecraftItemTypes.Cobblestone },
       { key: 'stoneStairs', typeId: MinecraftItemTypes.StoneStairs, displayName: 'Cobblestone Stairs' },
-      { key: 'cobblestoneSlab', typeId: MinecraftItemTypes.CobblestoneSlab, displayName: 'Cobblestone Slab' },
-      { key: 'cobblestoneWall', typeId: MinecraftItemTypes.CobblestoneWall, displayName: 'Cobblestone Wall' },
-      { key: 'mossyCobblestone', typeId: MinecraftItemTypes.MossyCobblestone, displayName: 'Mossy Cobblestone' },
+      { key: 'cobblestoneSlab', typeId: MinecraftItemTypes.CobblestoneSlab },
+      { key: 'cobblestoneWall', typeId: MinecraftItemTypes.CobblestoneWall },
+      { key: 'mossyCobblestone', typeId: MinecraftItemTypes.MossyCobblestone },
       {
         key: 'mossyCobblestoneStairs',
         typeId: MinecraftItemTypes.MossyCobblestoneStairs,
@@ -66,10 +66,10 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 12,
     baseSell: 6,
     variants: [
-      { key: 'stoneBricks', typeId: MinecraftItemTypes.StoneBricks, displayName: 'Stone Bricks' },
-      { key: 'stoneBrickStairs', typeId: MinecraftItemTypes.StoneBrickStairs, displayName: 'Stone Brick Stairs' },
-      { key: 'stoneBrickSlab', typeId: MinecraftItemTypes.StoneBrickSlab, displayName: 'Stone Brick Slab' },
-      { key: 'mossyStoneBricks', typeId: MinecraftItemTypes.MossyStoneBricks, displayName: 'Mossy Stone Bricks' },
+      { key: 'stoneBricks', typeId: MinecraftItemTypes.StoneBricks },
+      { key: 'stoneBrickStairs', typeId: MinecraftItemTypes.StoneBrickStairs },
+      { key: 'stoneBrickSlab', typeId: MinecraftItemTypes.StoneBrickSlab },
+      { key: 'mossyStoneBricks', typeId: MinecraftItemTypes.MossyStoneBricks },
       {
         key: 'mossyStoneBrickStairs',
         typeId: MinecraftItemTypes.MossyStoneBrickStairs,
@@ -89,12 +89,12 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 8,
     baseSell: 3,
     variants: [
-      { key: 'sand', typeId: MinecraftItemTypes.Sand, displayName: 'Sand' },
-      { key: 'gravel', typeId: MinecraftItemTypes.Gravel, displayName: 'Gravel' },
-      { key: 'dirt', typeId: MinecraftItemTypes.Dirt, displayName: 'Dirt' },
-      { key: 'sandstone', typeId: MinecraftItemTypes.Sandstone, displayName: 'Sandstone' },
-      { key: 'sandstoneStairs', typeId: MinecraftItemTypes.SandstoneStairs, displayName: 'Sandstone Stairs' },
-      { key: 'sandstoneSlab', typeId: MinecraftItemTypes.SandstoneSlab, displayName: 'Sandstone Slab' },
+      { key: 'sand', typeId: MinecraftItemTypes.Sand },
+      { key: 'gravel', typeId: MinecraftItemTypes.Gravel },
+      { key: 'dirt', typeId: MinecraftItemTypes.Dirt },
+      { key: 'sandstone', typeId: MinecraftItemTypes.Sandstone },
+      { key: 'sandstoneStairs', typeId: MinecraftItemTypes.SandstoneStairs },
+      { key: 'sandstoneSlab', typeId: MinecraftItemTypes.SandstoneSlab },
     ],
   },
   {
@@ -104,9 +104,9 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 15,
     baseSell: 5,
     variants: [
-      { key: 'glass', typeId: MinecraftItemTypes.Glass, displayName: 'Glass' },
-      { key: 'glassPane', typeId: MinecraftItemTypes.GlassPane, displayName: 'Glass Pane' },
-      { key: 'tintedGlass', typeId: MinecraftItemTypes.TintedGlass, displayName: 'Tinted Glass' },
+      { key: 'glass', typeId: MinecraftItemTypes.Glass },
+      { key: 'glassPane', typeId: MinecraftItemTypes.GlassPane },
+      { key: 'tintedGlass', typeId: MinecraftItemTypes.TintedGlass },
     ],
   },
   {
@@ -116,10 +116,10 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 20,
     baseSell: 10,
     variants: [
-      { key: 'whiteConcrete', typeId: MinecraftItemTypes.WhiteConcrete, displayName: 'White Concrete' },
-      { key: 'blackConcrete', typeId: MinecraftItemTypes.BlackConcrete, displayName: 'Black Concrete' },
-      { key: 'redConcrete', typeId: MinecraftItemTypes.RedConcrete, displayName: 'Red Concrete' },
-      { key: 'blueConcrete', typeId: MinecraftItemTypes.BlueConcrete, displayName: 'Blue Concrete' },
+      { key: 'whiteConcrete', typeId: MinecraftItemTypes.WhiteConcrete },
+      { key: 'blackConcrete', typeId: MinecraftItemTypes.BlackConcrete },
+      { key: 'redConcrete', typeId: MinecraftItemTypes.RedConcrete },
+      { key: 'blueConcrete', typeId: MinecraftItemTypes.BlueConcrete },
       { key: 'terracotta', typeId: MinecraftItemTypes.HardenedClay, displayName: 'Terracotta' },
     ],
   },
@@ -130,13 +130,13 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 40,
     baseSell: 20,
     variants: [
-      { key: 'obsidian', typeId: MinecraftItemTypes.Obsidian, displayName: 'Obsidian' },
-      { key: 'glowstone', typeId: MinecraftItemTypes.Glowstone, displayName: 'Glowstone' },
-      { key: 'netherrack', typeId: MinecraftItemTypes.Netherrack, displayName: 'Netherrack' },
+      { key: 'obsidian', typeId: MinecraftItemTypes.Obsidian },
+      { key: 'glowstone', typeId: MinecraftItemTypes.Glowstone },
+      { key: 'netherrack', typeId: MinecraftItemTypes.Netherrack },
       { key: 'netherBrick', typeId: MinecraftItemTypes.NetherBrick, displayName: 'Nether Bricks' },
-      { key: 'netherBrickStairs', typeId: MinecraftItemTypes.NetherBrickStairs, displayName: 'Nether Brick Stairs' },
-      { key: 'netherBrickSlab', typeId: MinecraftItemTypes.NetherBrickSlab, displayName: 'Nether Brick Slab' },
-      { key: 'netherBrickFence', typeId: MinecraftItemTypes.NetherBrickFence, displayName: 'Nether Brick Fence' },
+      { key: 'netherBrickStairs', typeId: MinecraftItemTypes.NetherBrickStairs },
+      { key: 'netherBrickSlab', typeId: MinecraftItemTypes.NetherBrickSlab },
+      { key: 'netherBrickFence', typeId: MinecraftItemTypes.NetherBrickFence },
     ],
   },
   {
@@ -146,12 +146,12 @@ const buildingBlockFamilies: BlockFamilySpec[] = [
     baseBuy: 15,
     baseSell: 6,
     variants: [
-      { key: 'endStone', typeId: MinecraftItemTypes.EndStone, displayName: 'End Stone' },
+      { key: 'endStone', typeId: MinecraftItemTypes.EndStone },
       { key: 'endBricks', typeId: MinecraftItemTypes.EndBricks, displayName: 'End Stone Bricks' },
       { key: 'endBrickStairs', typeId: MinecraftItemTypes.EndBrickStairs, displayName: 'End Stone Brick Stairs' },
-      { key: 'purpurBlock', typeId: MinecraftItemTypes.PurpurBlock, displayName: 'Purpur Block' },
-      { key: 'purpurStairs', typeId: MinecraftItemTypes.PurpurStairs, displayName: 'Purpur Stairs' },
-      { key: 'purpurSlab', typeId: MinecraftItemTypes.PurpurSlab, displayName: 'Purpur Slab' },
+      { key: 'purpurBlock', typeId: MinecraftItemTypes.PurpurBlock },
+      { key: 'purpurStairs', typeId: MinecraftItemTypes.PurpurStairs },
+      { key: 'purpurSlab', typeId: MinecraftItemTypes.PurpurSlab },
     ],
   },
 ];
@@ -164,11 +164,11 @@ const woodFamilies: BlockFamilySpec[] = [
     baseBuy: 20,
     baseSell: 10,
     variants: [
-      { key: 'oakLog', typeId: MinecraftItemTypes.OakLog, displayName: 'Oak Log' },
-      { key: 'oakPlanks', typeId: MinecraftItemTypes.OakPlanks, displayName: 'Oak Planks' },
-      { key: 'oakStairs', typeId: MinecraftItemTypes.OakStairs, displayName: 'Oak Stairs' },
-      { key: 'oakSlab', typeId: MinecraftItemTypes.OakSlab, displayName: 'Oak Slab' },
-      { key: 'oakFence', typeId: MinecraftItemTypes.OakFence, displayName: 'Oak Fence' },
+      { key: 'oakLog', typeId: MinecraftItemTypes.OakLog },
+      { key: 'oakPlanks', typeId: MinecraftItemTypes.OakPlanks },
+      { key: 'oakStairs', typeId: MinecraftItemTypes.OakStairs },
+      { key: 'oakSlab', typeId: MinecraftItemTypes.OakSlab },
+      { key: 'oakFence', typeId: MinecraftItemTypes.OakFence },
       { key: 'oakFenceGate', typeId: MinecraftItemTypes.FenceGate, displayName: 'Oak Fence Gate' },
     ],
   },
@@ -179,12 +179,12 @@ const woodFamilies: BlockFamilySpec[] = [
     baseBuy: 20,
     baseSell: 10,
     variants: [
-      { key: 'spruceLog', typeId: MinecraftItemTypes.SpruceLog, displayName: 'Spruce Log' },
-      { key: 'sprucePlanks', typeId: MinecraftItemTypes.SprucePlanks, displayName: 'Spruce Planks' },
-      { key: 'spruceStairs', typeId: MinecraftItemTypes.SpruceStairs, displayName: 'Spruce Stairs' },
-      { key: 'spruceSlab', typeId: MinecraftItemTypes.SpruceSlab, displayName: 'Spruce Slab' },
-      { key: 'spruceFence', typeId: MinecraftItemTypes.SpruceFence, displayName: 'Spruce Fence' },
-      { key: 'spruceFenceGate', typeId: MinecraftItemTypes.SpruceFenceGate, displayName: 'Spruce Fence Gate' },
+      { key: 'spruceLog', typeId: MinecraftItemTypes.SpruceLog },
+      { key: 'sprucePlanks', typeId: MinecraftItemTypes.SprucePlanks },
+      { key: 'spruceStairs', typeId: MinecraftItemTypes.SpruceStairs },
+      { key: 'spruceSlab', typeId: MinecraftItemTypes.SpruceSlab },
+      { key: 'spruceFence', typeId: MinecraftItemTypes.SpruceFence },
+      { key: 'spruceFenceGate', typeId: MinecraftItemTypes.SpruceFenceGate },
     ],
   },
   {
@@ -194,10 +194,10 @@ const woodFamilies: BlockFamilySpec[] = [
     baseBuy: 20,
     baseSell: 10,
     variants: [
-      { key: 'birchLog', typeId: MinecraftItemTypes.BirchLog, displayName: 'Birch Log' },
-      { key: 'birchPlanks', typeId: MinecraftItemTypes.BirchPlanks, displayName: 'Birch Planks' },
-      { key: 'birchStairs', typeId: MinecraftItemTypes.BirchStairs, displayName: 'Birch Stairs' },
-      { key: 'birchSlab', typeId: MinecraftItemTypes.BirchSlab, displayName: 'Birch Slab' },
+      { key: 'birchLog', typeId: MinecraftItemTypes.BirchLog },
+      { key: 'birchPlanks', typeId: MinecraftItemTypes.BirchPlanks },
+      { key: 'birchStairs', typeId: MinecraftItemTypes.BirchStairs },
+      { key: 'birchSlab', typeId: MinecraftItemTypes.BirchSlab },
     ],
   },
   {
@@ -207,12 +207,12 @@ const woodFamilies: BlockFamilySpec[] = [
     baseBuy: 20,
     baseSell: 10,
     variants: [
-      { key: 'jungleLog', typeId: MinecraftItemTypes.JungleLog, displayName: 'Jungle Log' },
-      { key: 'junglePlanks', typeId: MinecraftItemTypes.JunglePlanks, displayName: 'Jungle Planks' },
-      { key: 'acaciaLog', typeId: MinecraftItemTypes.AcaciaLog, displayName: 'Acacia Log' },
-      { key: 'acaciaPlanks', typeId: MinecraftItemTypes.AcaciaPlanks, displayName: 'Acacia Planks' },
-      { key: 'darkOakLog', typeId: MinecraftItemTypes.DarkOakLog, displayName: 'Dark Oak Log' },
-      { key: 'darkOakPlanks', typeId: MinecraftItemTypes.DarkOakPlanks, displayName: 'Dark Oak Planks' },
+      { key: 'jungleLog', typeId: MinecraftItemTypes.JungleLog },
+      { key: 'junglePlanks', typeId: MinecraftItemTypes.JunglePlanks },
+      { key: 'acaciaLog', typeId: MinecraftItemTypes.AcaciaLog },
+      { key: 'acaciaPlanks', typeId: MinecraftItemTypes.AcaciaPlanks },
+      { key: 'darkOakLog', typeId: MinecraftItemTypes.DarkOakLog },
+      { key: 'darkOakPlanks', typeId: MinecraftItemTypes.DarkOakPlanks },
     ],
   },
   {
@@ -222,10 +222,10 @@ const woodFamilies: BlockFamilySpec[] = [
     baseBuy: 25,
     baseSell: 12,
     variants: [
-      { key: 'mangroveLog', typeId: MinecraftItemTypes.MangroveLog, displayName: 'Mangrove Log' },
-      { key: 'cherryLog', typeId: MinecraftItemTypes.CherryLog, displayName: 'Cherry Log' },
-      { key: 'crimsonStem', typeId: MinecraftItemTypes.CrimsonStem, displayName: 'Crimson Stem' },
-      { key: 'warpedStem', typeId: MinecraftItemTypes.WarpedStem, displayName: 'Warped Stem' },
+      { key: 'mangroveLog', typeId: MinecraftItemTypes.MangroveLog },
+      { key: 'cherryLog', typeId: MinecraftItemTypes.CherryLog },
+      { key: 'crimsonStem', typeId: MinecraftItemTypes.CrimsonStem },
+      { key: 'warpedStem', typeId: MinecraftItemTypes.WarpedStem },
     ],
   },
 ];
@@ -353,6 +353,7 @@ function populateFamilyVariantsIntoShop(
 
   for (const family of families) {
     for (const variant of family.variants) {
+      const resolvedName = variant.displayName ?? resolveTradeItemDisplayName(variant.typeId);
       const prices = calculateVariantPricing(variant.typeId, family.baseBuy, family.baseSell);
       if (!isDefined(items[variant.key])) {
         items[variant.key] = {
@@ -362,7 +363,7 @@ function populateFamilyVariantsIntoShop(
           sellPrice: prices.sellPrice,
           category: categoryName,
           subCategory: family.subCategoryName,
-          displayName: variant.displayName,
+          displayName: resolvedName,
         };
       }
     }
@@ -384,7 +385,7 @@ function populateFamilyVariantsIntoShop(
           sellPrice: prices.sellPrice,
           permission: legacyPriceItem?.permission ?? 'ui.panel.member',
           icon: family.icon,
-          displayName: variant.displayName,
+          displayName: variant.displayName ?? resolveTradeItemDisplayName(variant.typeId),
           itemId: variant.typeId,
         };
       }
