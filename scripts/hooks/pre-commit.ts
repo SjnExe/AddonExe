@@ -30,16 +30,12 @@ try {
     const codeFiles = existingFiles.filter((f) => /\.(js|ts)$/.test(f));
 
     if (codeFiles.length > 0) {
-      const ruleErrors = await validateMinecraftRules();
+      const ruleErrors = await validateMinecraftRules(codeFiles);
       if (ruleErrors > 0) {
         process.exit(1);
       }
-      const termuxOxlint = '/data/data/com.termux/files/usr/bin/oxlint';
-      if (await Bun.file(termuxOxlint).exists()) {
-        await $`${termuxOxlint} --fix ${codeFiles}`.quiet();
-      } else {
-        await $`./node_modules/.bin/oxlint --fix ${codeFiles}`.quiet();
-      }
+      const oxlintBin = Bun.which('oxlint') ?? './node_modules/.bin/oxlint';
+      await $`${oxlintBin} --fix ${codeFiles}`.quiet();
       await $`git add ${codeFiles}`.quiet();
     }
     await $`bun fmt --staged`.quiet();

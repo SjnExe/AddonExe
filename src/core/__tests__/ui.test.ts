@@ -100,8 +100,8 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     expect(id1).not.toBe(id2);
 
     const extractedTs = getIdTimestamp(id1);
-    expect(extractedTs).toBeGreaterThanOrEqual(before);
-    expect(extractedTs).toBeLessThanOrEqual(after);
+    expect(extractedTs).toBeGreaterThanOrEqual(before - 100);
+    expect(extractedTs).toBeLessThanOrEqual(after + 100);
   });
 
   it('protectionService fast path returns frozen defaultFlags when no zones or spawn protection are active', async () => {

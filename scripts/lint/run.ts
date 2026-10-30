@@ -42,13 +42,13 @@ async function runLintingPipeline() {
     }
   });
 
-  const termuxOxlint = '/data/data/com.termux/files/usr/bin/oxlint';
-  const hasNativeOxlint = await Bun.file(termuxOxlint).exists();
+  const oxlintBin = Bun.which('oxlint') ?? './node_modules/.bin/oxlint';
   const oxlintTask = runTask('Oxlint Engine (Pure Rust)', () => {
-    if (hasNativeOxlint) {
-      return isFix ? $`${termuxOxlint} --fix`.quiet() : $`${termuxOxlint}`.quiet();
-    }
-    return isFix ? $`./node_modules/.bin/oxlint --fix`.quiet() : $`./node_modules/.bin/oxlint`.quiet();
+    return isFix ? $`${oxlintBin} --fix`.quiet() : $`${oxlintBin}`.quiet();
+  });
+
+  const fmtTask = runTask('Code Formatting (bun fmt)', () => {
+    return isFix ? $`bun fmt`.quiet() : $`bun fmt --check`.quiet();
   });
 
   const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());
@@ -57,7 +57,7 @@ async function runLintingPipeline() {
 
   const typeCheckTask = runTask('TypeScript Type Check', () => $`bun check`.quiet());
 
-  const results = await Promise.all([mcRulesTask, oxlintTask, schemaTask, iconTask, typeCheckTask]);
+  const results = await Promise.all([mcRulesTask, oxlintTask, fmtTask, schemaTask, iconTask, typeCheckTask]);
 
   const totalDuration = (performance.now() - overallStart).toFixed(2);
 

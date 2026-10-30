@@ -112,6 +112,10 @@ const { _clearTradesForTest } = await import('@features/economy/trade/manager.js
 const { _clearAfkForTest } = await import('@features/essentials/afk/manager.js');
 const { _clearMailForTest } = await import('@features/social/mail/manager.js');
 const { _clearMatchmakingForTest } = await import('@features/games/matchmakingManager.js');
+const { _clearAuctionHouseForTest } = await import('@features/economy/auction/manager.js');
+const { invalidateWarpsCache } = await import('@features/teleport/warp/manager.js');
+const { _clearXrayForTest } = await import('@features/anticheat/xray/manager.js');
+const { _clearTpaForTest } = await import('@features/teleport/tpa/manager.js');
 
 beforeEach(() => {
   mock.restore();
@@ -130,4 +134,8 @@ beforeEach(() => {
   _clearAfkForTest();
   _clearMailForTest();
   _clearMatchmakingForTest();
+  _clearAuctionHouseForTest();
+  invalidateWarpsCache();
+  _clearXrayForTest();
+  _clearTpaForTest();
 });

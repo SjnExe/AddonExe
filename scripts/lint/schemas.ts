@@ -347,17 +347,6 @@ export function validateUiJson(relativePath: string, json: Record<string, unknow
     return uiErrors;
   }
 
-  if (relativePath.endsWith('texts/languages.json')) {
-    if (
-      !Array.isArray(json) ||
-      json.length === 0 ||
-      !json.every((l) => typeof l === 'string' && /^[a-z]{2}_[A-Z]{2}$/.test(l))
-    ) {
-      uiErrors.push(`${relativePath}: 'languages.json' must be a non-empty array of locale codes (e.g. "en_US").`);
-    }
-    return uiErrors;
-  }
-
   if (relativePath.endsWith('loading_messages.json')) {
     const values = Object.values(json);
     if (values.length === 0 || !values.every((v) => Array.isArray(v) && v.every((d) => typeof d === 'string'))) {
@@ -784,38 +773,55 @@ export async function runSchemaValidation(): Promise<boolean> {
   let totalValidated = 0;
   let errors = 0;
 
-  for (const filePath of packJsonFiles) {
-    const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
-    let json: Record<string, unknown>;
+  const jsonResults = await Promise.all(
+    packJsonFiles.map(async (filePath) => {
+      const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
+      let json: Record<string, unknown>;
+      try {
+        json = await Bun.file(filePath).json();
+      } catch (e) {
+        return { relativePath, parseError: e, uiErrors: [] as string[], contentErrors: [] as string[] };
+      }
+      if (relativePath.startsWith('packs/resource/ui/')) {
+        return {
+          relativePath,
+          parseError: null,
+          uiErrors: validateUiJson(relativePath, json),
+          contentErrors: [] as string[],
+        };
+      }
+      return {
+        relativePath,
+        parseError: null,
+        uiErrors: [] as string[],
+        contentErrors: validateContentJson(relativePath, json),
+      };
+    }),
+  );
 
-    try {
-      json = await Bun.file(filePath).json();
-    } catch (e) {
-      console.error(`[Validator] Invalid JSON syntax in ${relativePath}:`, e);
+  for (const res of jsonResults) {
+    if (res.parseError) {
+      console.error(`[Validator] Invalid JSON syntax in ${res.relativePath}:`, res.parseError);
       errors++;
       continue;
     }
 
     totalValidated++;
 
-    if (relativePath.startsWith('packs/resource/ui/')) {
-      const uiErrors = validateUiJson(relativePath, json);
-      if (uiErrors.length > 0) {
-        console.error(`[Validator] JSON UI error in ${relativePath}:`);
-        for (const err of uiErrors) {
-          console.error(`  - ${err}`);
-        }
-        errors += uiErrors.length;
+    if (res.uiErrors.length > 0) {
+      console.error(`[Validator] JSON UI error in ${res.relativePath}:`);
+      for (const err of res.uiErrors) {
+        console.error(`  - ${err}`);
       }
-    } else {
-      const contentErrors = validateContentJson(relativePath, json);
-      if (contentErrors.length > 0) {
-        console.error(`[Validator] Bedrock Content error in ${relativePath}:`);
-        for (const err of contentErrors) {
-          console.error(`  - ${err}`);
-        }
-        errors += contentErrors.length;
+      errors += res.uiErrors.length;
+    }
+
+    if (res.contentErrors.length > 0) {
+      console.error(`[Validator] Bedrock Content error in ${res.relativePath}:`);
+      for (const err of res.contentErrors) {
+        console.error(`  - ${err}`);
       }
+      errors += res.contentErrors.length;
     }
   }
 

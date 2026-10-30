@@ -124,8 +124,7 @@ export async function fetchVanillaTextures(): Promise<Set<string>> {
     }
     console.log(`[IconLint] Cached ${texturesToCache.length} vanilla textures.`);
   } catch (e) {
-    console.error('[IconLint] Failed to fetch vanilla textures:', e);
-    process.exit(1);
+    throw new Error(`[IconLint] Failed to fetch vanilla textures: ${e}`);
   }
 
   return validTextures;
@@ -211,11 +210,10 @@ export async function validateIcons() {
   }
 
   if (errors > 0) {
-    console.error(`\n\x1b[31m[IconLint] Validation failed. Found ${errors} invalid texture path(s).\x1b[0m`);
-    process.exit(1);
-  } else {
-    console.log(`\n\x1b[32m[IconLint] All ${usedIcons.size} texture paths are strictly verified!\x1b[0m`);
+    throw new Error(`[IconLint] Validation failed. Found ${errors} invalid texture path(s).`);
   }
+
+  console.log(`\n\x1b[32m[IconLint] All ${usedIcons.size} texture paths are strictly verified!\x1b[0m`);
 }
 
 if (import.meta.main) {
