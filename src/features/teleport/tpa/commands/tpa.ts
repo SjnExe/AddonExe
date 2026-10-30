@@ -8,7 +8,7 @@ import {
   setTpaRequestsDisabled,
 } from '@core/data/playerDataManager.js';
 import { soundTeleport, tpaDisabled } from '@core/utils/constants.js';
-import { playSound, resolveTarget } from '@core/utils/index.js';
+import { playSound, resolveSingleOnlineTarget, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import {
   acceptRequest,
@@ -28,33 +28,14 @@ function handleTpaRequest(executor: mc.Player, args: Record<string, unknown>, ty
     return;
   }
 
-  const targetName = args.target as string;
-  if (!isNonEmptyString(targetName)) {
-    return sendMessage('§cPlease specify a player.', executor);
+  const resolved = resolveSingleOnlineTarget(args.target, executor, {
+    selfErrorMessage: '§cYou cannot send a TPA request to yourself.',
+  });
+  if (resolved.error || !resolved.player) {
+    sendMessage(resolved.error ?? '§cPlayer not found.', executor);
+    return;
   }
-
-  // Block mass selectors
-  if (targetName.startsWith('@a') || targetName.startsWith('@e')) {
-    return sendMessage('§cSelectors @a and @e are disabled for TPA.', executor);
-  }
-
-  const targets = resolveTarget(targetName, executor);
-
-  if (!isDefined(targets) || targets.length === 0) {
-    return sendMessage('§cPlayer not found.', executor);
-  }
-  if (targets.length > 1) {
-    return sendMessage('§cMultiple players found. Please be more specific.', executor);
-  }
-
-  const targetPlayer = targets[0];
-  if (!isDefined(targetPlayer)) {
-    return sendMessage('§cPlayer not found.', executor);
-  }
-
-  if (targetPlayer.id === executor.id) {
-    return sendMessage('§cYou cannot send a TPA request to yourself.', executor);
-  }
+  const targetPlayer = resolved.player;
 
   const result = createRequest(executor, targetPlayer, type);
 

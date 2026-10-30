@@ -16,6 +16,7 @@ import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 let autoSaveIntervalId: number | undefined;
+let lastSyncWasSaved = false;
 const loadDataHandlers: Array<() => void> = [];
 const saveDataHandlers: Array<() => void> = [];
 
@@ -54,45 +55,19 @@ export function saveAllData(options: { log?: boolean } = {}): boolean {
     debugLog('[DataManager] Starting data sync...');
   }
 
-  let anythingWasSaved = false;
-
-  // Save the player name-to-ID map if it's dirty
-  if (isNameIdMapDirty === true) {
-    saveNameIdMap(); // This function will log its own success
-    anythingWasSaved = true;
+  const job = saveAllDataJob({ log: false });
+  let next = job.next();
+  while (!next.done) {
+    next = job.next();
   }
 
-  if (saveCooldowns()) {
-    anythingWasSaved = true;
-  }
-
-  // Save data for online players whose data is dirty
-  const allPlayerData = getAllPlayerData();
-  let savedPlayerCount = 0;
-  for (const [playerId, playerData] of allPlayerData.entries()) {
-    if (playerData.needsSave === true) {
-      savePlayerData(playerId, true);
-      savedPlayerCount++;
-    }
-  }
-
-  if (savedPlayerCount > 0) {
-    anythingWasSaved = true;
-    if (log) {
-      debugLog(`[DataManager] Saved data for ${savedPlayerCount} modified players.`);
-    }
-  }
-
-  // Reports are saved immediately by the reportManager, so they are not needed here.
-  for (const handler of saveDataHandlers) {
-    handler();
-  }
-
+  const anythingWasSaved = lastSyncWasSaved;
   if (log && anythingWasSaved) {
     debugLog('[DataManager] Data sync complete.');
   } else if (log) {
     debugLog('[DataManager] Data sync finished, no changes to save.');
   }
+
   return anythingWasSaved;
 }
 
@@ -143,6 +118,8 @@ export function* saveAllDataJob(options: { log?: boolean } = {}): Generator<void
     handler();
   }
   yield;
+
+  lastSyncWasSaved = anythingWasSaved;
 
   if (log && anythingWasSaved) {
     debugLog('[DataManager] Background data sync complete.');

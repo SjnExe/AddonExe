@@ -10,7 +10,6 @@ import {
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isDefined } from '@lib/guards.js';
-import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
 
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
@@ -39,8 +38,13 @@ export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
         if (player.id === executor.id) {
           continue;
         }
-        // Approximate distance check (squared)
-        const distSq = Vector3Utils.distance(player.location, executor.location) ** 2;
+        // Direct squared distance check without sqrt overhead
+        const pLoc = player.location;
+        const eLoc = executor.location;
+        const dx = pLoc.x - eLoc.x;
+        const dy = pLoc.y - eLoc.y;
+        const dz = pLoc.z - eLoc.z;
+        const distSq = dx * dx + dy * dy + dz * dz;
 
         if (distSq < minDist) {
           minDist = distSq;
@@ -160,6 +164,53 @@ export function resolvePlayerRecord(input: string, executor?: mc.Player): Resolv
   }
 
   return undefined;
+}
+
+export interface SingleTargetOptions {
+  allowSelf?: boolean;
+  disallowMassSelectors?: boolean;
+  selfErrorMessage?: string;
+}
+
+export interface SingleTargetResult {
+  player?: mc.Player;
+  error?: string;
+}
+
+/**
+ * Resolves a single online target from user/command input with standard validation (checking emptiness, mass selectors,
+ * zero/multiple matches, and self targeting).
+ */
+export function resolveSingleOnlineTarget(
+  input: unknown,
+  executor: mc.Player,
+  options: SingleTargetOptions = {},
+): SingleTargetResult {
+  if (typeof input !== 'string' || input.trim().length === 0) {
+    return { error: '§cPlease specify a player.' };
+  }
+
+  const clean = input.trim();
+  const lower = clean.toLowerCase();
+
+  if (options.disallowMassSelectors !== false && (lower.startsWith('@a') || lower.startsWith('@e'))) {
+    return { error: '§cSelectors @a and @e are disabled for this command.' };
+  }
+
+  const targets = resolveTarget(clean, executor);
+  if (!isDefined(targets) || targets.length === 0) {
+    return { error: '§cPlayer not found.' };
+  }
+  if (targets.length > 1) {
+    return { error: '§cMultiple players found. Please be more specific.' };
+  }
+
+  const targetPlayer = targets[0]!;
+  if (options.allowSelf !== true && targetPlayer.id === executor.id) {
+    return { error: options.selfErrorMessage ?? '§cYou cannot target yourself.' };
+  }
+
+  return { player: targetPlayer };
 }
 
 export function reinitializeOnlinePlayers() {
