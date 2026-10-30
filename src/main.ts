@@ -1,10 +1,11 @@
 import { getConfig, initializeConfigManager } from '@core/config/configManager.js';
 import { dataManager, loadPersistentData } from '@core/data/dataManager.js';
 import { initializeMigration } from '@core/data/migrationManager.js';
-import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { getAllPlayersFromCache, initializePlayerCache } from '@core/data/playerCache.js';
 import { cleanupPlayerDataManager } from '@core/data/playerDataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
+import { featureRegistry } from '@core/services/featureRegistry.js';
 import { escapeBedrockPercent, reinitializeOnlinePlayers } from '@core/utils/index.js';
 import { errorLog, infoLog, setLogLevel } from '@core/utils/logger.js';
 import { cleanupTimers } from '@core/utils/timerManager.js';
@@ -64,7 +65,6 @@ export async function initializeAddon() {
     isMigration = lastVersionStr !== newVersionStr;
   }
 
-  const { initializePlayerCache } = await import('@core/data/playerCache.js');
   initializePlayerCache();
 
   await initializeConfigManager(isMigration);
@@ -76,8 +76,6 @@ export async function initializeAddon() {
   loadPersistentData();
   await initializeMigration(newVersionStr);
   initializeManagers();
-
-  const { featureRegistry } = await import('@core/services/featureRegistry.js');
 
   for (const feature of featureRegistry) {
     try {

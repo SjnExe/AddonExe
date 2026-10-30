@@ -30,91 +30,94 @@ function getConnect4SlotVisual(match: Connect4Match, idx: number): { label: stri
   return { label: ' ', icon: emptySlotIcon };
 }
 
-export async function showConnect4Board(player: mc.Player, matchId: string, notice?: string): Promise<void> {
-  if (!player.isValid) {
-    return;
-  }
+export async function showConnect4Board(player: mc.Player, matchId: string, initialNotice?: string): Promise<void> {
+  let notice: string | undefined = initialNotice;
 
-  const match = getConnect4Match(matchId);
-  if (!isDefined(match)) {
-    player.sendMessage('§cMatch has ended.');
-    return;
-  }
-
-  const isRed = player.id === match.playerRId;
-  const myBadge = isRed ? '§c● Redstone§r' : '§e● Gold§r';
-  const oppName = isRed ? match.playerYName : match.playerRName;
-  const isMyTurn = match.currentTurnId === player.id;
-
-  let statusLine = isMyTurn
-    ? `§a§lYOUR TURN (${myBadge}§a§l) §r§7— Tap any column to drop disc!`
-    : `§eWaiting for §f${oppName}§e to drop a disc...`;
-
-  if (match.status !== 'active') {
-    statusLine = match.endReason ?? 'Match complete.';
-  } else if (isNonEmptyString(notice)) {
-    statusLine = `${notice}\n${statusLine}`;
-  }
-
-  let tappedIndex: number | undefined;
-  let toolbarTapped = false;
-
-  const form = new ActionFormBuilder().grid('c4').title(`§r§l§bConnect 4 §8vs §f${oppName}`).body(statusLine);
-
-  for (let i = 0; i < connect4TotalCells; i++) {
-    const cellIdx = i;
-    const vis = getConnect4SlotVisual(match, cellIdx);
-    form.button(vis.label, vis.icon, () => {
-      tappedIndex = cellIdx;
-    });
-  }
-
-  if (match.status === 'active') {
-    form.button('§r§l§b[Refresh Board]', 'textures/ui/refresh_light', () => {
-      toolbarTapped = true;
-    });
-  } else {
-    form.button('§r§l§e[Return to Connect 4 Menu]', 'textures/ui/arrow_left', () => {
-      toolbarTapped = true;
-    });
-  }
-
-  const response = await form.show(player, { wait: true });
-
-  const fresh = getConnect4Match(matchId);
-  if (!isDefined(fresh)) {
-    return;
-  }
-
-  if (fresh.refreshingPlayers.has(player.id)) {
-    fresh.refreshingPlayers.delete(player.id);
-    await showConnect4Board(player, matchId);
-    return;
-  }
-
-  if (response.canceled) {
-    if (response.cancelationReason === FormCancelationReason.UserBusy) {
-      await showConnect4Board(player, matchId, notice);
+  while (player.isValid) {
+    const match = getConnect4Match(matchId);
+    if (!isDefined(match)) {
+      player.sendMessage('§cMatch has ended.');
       return;
     }
-    if (fresh.status === 'active') {
-      forfeitConnect4Match(matchId, player.id, 'closed the game UI');
-    }
-    return;
-  }
 
-  if (fresh.status !== 'active' || toolbarTapped) {
-    if (fresh.status === 'active') {
-      await showConnect4Board(player, matchId);
+    const isRed = player.id === match.playerRId;
+    const myBadge = isRed ? '§c● Redstone§r' : '§e● Gold§r';
+    const oppName = isRed ? match.playerYName : match.playerRName;
+    const isMyTurn = match.currentTurnId === player.id;
+
+    let statusLine = isMyTurn
+      ? `§a§lYOUR TURN (${myBadge}§a§l) §r§7— Tap any column to drop disc!`
+      : `§eWaiting for §f${oppName}§e to drop a disc...`;
+
+    if (match.status !== 'active') {
+      statusLine = match.endReason ?? 'Match complete.';
+    } else if (isNonEmptyString(notice)) {
+      statusLine = `${notice}\n${statusLine}`;
+    }
+
+    let tappedIndex: number | undefined;
+    let toolbarTapped = false;
+
+    const form = new ActionFormBuilder().grid('c4').title(`§r§l§bConnect 4 §8vs §f${oppName}`).body(statusLine);
+
+    for (let i = 0; i < connect4TotalCells; i++) {
+      const cellIdx = i;
+      const vis = getConnect4SlotVisual(match, cellIdx);
+      form.button(vis.label, vis.icon, () => {
+        tappedIndex = cellIdx;
+      });
+    }
+
+    if (match.status === 'active') {
+      form.button('§r§l§b[Refresh Board]', 'textures/ui/refresh_light', () => {
+        toolbarTapped = true;
+      });
     } else {
-      await showConnect4Menu(player);
+      form.button('§r§l§e[Return to Connect 4 Menu]', 'textures/ui/arrow_left', () => {
+        toolbarTapped = true;
+      });
     }
-    return;
-  }
 
-  if (tappedIndex !== undefined) {
-    const moveRes = dropConnect4Disc(matchId, player.id, tappedIndex);
-    await showConnect4Board(player, matchId, moveRes.message);
+    const response = await form.show(player, { wait: true });
+
+    const fresh = getConnect4Match(matchId);
+    if (!isDefined(fresh)) {
+      return;
+    }
+
+    if (fresh.refreshingPlayers.has(player.id)) {
+      fresh.refreshingPlayers.delete(player.id);
+      notice = undefined;
+      continue;
+    }
+
+    if (response.canceled) {
+      if (response.cancelationReason === FormCancelationReason.UserBusy) {
+        continue;
+      }
+      if (fresh.status === 'active') {
+        forfeitConnect4Match(matchId, player.id, 'closed the game UI');
+      }
+      return;
+    }
+
+    if (fresh.status !== 'active' || toolbarTapped) {
+      if (fresh.status === 'active') {
+        notice = undefined;
+        continue;
+      } else {
+        await showConnect4Menu(player);
+        return;
+      }
+    }
+
+    if (tappedIndex !== undefined) {
+      const moveRes = dropConnect4Disc(matchId, player.id, tappedIndex);
+      notice = moveRes.message;
+      continue;
+    }
+
+    break;
   }
 }
 

@@ -87,4 +87,28 @@ describe('ItemCheck', () => {
 
     expect(flagSpy).not.toHaveBeenCalled();
   });
+
+  it('should flag and remove banned items using O(1) set lookup', () => {
+    const item = {
+      typeId: 'minecraft:bedrock',
+      amount: 1,
+      maxAmount: 64,
+      getComponent: () => undefined,
+    } as unknown as mc.ItemStack;
+
+    const config = {
+      bannedItems: ['minecraft:bedrock', 'minecraft:barrier'],
+      maxEnchantLevel: 5,
+      removeIllegalItems: true,
+    };
+
+    checkItem(item, player, config, updateItem);
+
+    expect(flagSpy).toHaveBeenCalledWith(
+      player,
+      'itemCheck',
+      expect.stringContaining('Banned Item: minecraft:bedrock'),
+    );
+    expect(updateItem).toHaveBeenCalled();
+  });
 });

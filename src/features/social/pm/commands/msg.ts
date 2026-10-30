@@ -1,7 +1,7 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { resolveTarget } from '@core/utils/index.js';
+import { resolveSingleOnlineTarget } from '@core/utils/index.js';
 import { replyPrivateMessage, sendPrivateMessage, socialSpyTag } from '@features/social/pm/manager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 const msgCommand: CustomCommand = {
@@ -26,14 +26,15 @@ const msgCommand: CustomCommand = {
       return;
     }
 
-    const targets = resolveTarget(args.target, executor);
-    const targetPlayer = targets[0];
-    if (!isDefined(targetPlayer)) {
-      executor.sendMessage('§cPlayer not found.');
+    const resolved = resolveSingleOnlineTarget(args.target, executor, {
+      selfErrorMessage: '§cYou cannot message yourself.',
+    });
+    if (resolved.error || !resolved.player) {
+      executor.sendMessage(resolved.error ?? '§cPlayer not found.');
       return;
     }
 
-    const res = sendPrivateMessage(executor, targetPlayer, args.message);
+    const res = sendPrivateMessage(executor, resolved.player, args.message);
     if (!res.success && isNonEmptyString(res.message)) {
       executor.sendMessage(res.message);
     }
