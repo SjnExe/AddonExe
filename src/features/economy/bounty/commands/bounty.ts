@@ -4,7 +4,7 @@ import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerData
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { bountiesDisabled, economyDisabled } from '@core/utils/constants.js';
 import { validateCurrencyAmount } from '@core/utils/economy.js';
-import { resolvePlayerRecord, resolveTarget } from '@core/utils/index.js';
+import { resolvePlayerRecord, resolveSingleOnlineTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import * as bountyManager from '@features/economy/bounty/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -86,12 +86,11 @@ const bountyCommand: CustomCommand = {
       return sendMessage('§cUsage: /bounty <player> <amount>', executor);
     }
 
-    // Resolve
-    const targets = resolveTarget(targetName, executor);
-    const target = targets[0];
-    if (!isDefined(target)) {
-      return sendMessage('§cPlayer not found.', executor);
+    const resolved = resolveSingleOnlineTarget(targetName, executor, { allowSelf: true });
+    if (resolved.error || !resolved.player) {
+      return sendMessage(resolved.error ?? '§cPlayer not found.', executor);
     }
+    const target = resolved.player;
 
     const amount = validateCurrencyAmount(amountStr, true);
     if (!isDefined(amount)) {
@@ -131,12 +130,11 @@ const removeBountyCommand: CustomCommand = {
       return sendMessage('§cPlease specify an amount.', executor);
     }
 
-    // Resolve
-    const targets = resolveTarget(targetName, executor);
-    const target = targets[0];
-    if (!isDefined(target)) {
-      return sendMessage('§cPlayer not found.', executor);
+    const resolved = resolveSingleOnlineTarget(targetName, executor, { allowSelf: true });
+    if (resolved.error || !resolved.player) {
+      return sendMessage(resolved.error ?? '§cPlayer not found.', executor);
     }
+    const target = resolved.player;
 
     const amount = validateCurrencyAmount(amountStr, true);
     if (!isDefined(amount)) {

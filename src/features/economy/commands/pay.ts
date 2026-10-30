@@ -12,7 +12,7 @@ import {
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { economyDisabled } from '@core/utils/constants.js';
 import { validateCurrencyAmount } from '@core/utils/economy.js';
-import { formatCurrency, resolvePlayerRecord, resolveTarget } from '@core/utils/index.js';
+import { formatCurrency, resolvePlayerRecord, resolveSingleOnlineTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -40,27 +40,17 @@ const payCommand: CustomCommand = {
     const targetName = args.targets as string | undefined;
     const amountStr = args.amount as string | undefined;
 
-    if (!isNonEmptyString(targetName)) {
-      return sendMessage('§cPlease specify a player.', executor);
+    const resolved = resolveSingleOnlineTarget(targetName, executor, {
+      selfErrorMessage: '§cYou cannot pay yourself.',
+    });
+    if (resolved.error || !resolved.player) {
+      const msg =
+        resolved.error === '§cMultiple players found. Please be more specific.'
+          ? '§cYou can only pay one player at a time.'
+          : (resolved.error ?? '§cPlayer not found.');
+      return sendMessage(msg, executor);
     }
-
-    // Resolve Target
-    const targets = resolveTarget(targetName, executor);
-    if (!isDefined(targets) || targets.length === 0) {
-      return sendMessage('§cPlayer not found.', executor);
-    }
-    if (targets.length > 1) {
-      return sendMessage('§cYou can only pay one player at a time.', executor);
-    }
-
-    const targetPlayer = targets[0];
-    if (!isDefined(targetPlayer)) {
-      return sendMessage('§cPlayer not found.', executor);
-    }
-
-    if (targetPlayer.id === executor.id) {
-      return sendMessage('§cYou cannot pay yourself.', executor);
-    }
+    const targetPlayer = resolved.player;
     const amount = validateCurrencyAmount(amountStr as string, true);
     if (!isDefined(amount)) {
       return sendMessage('§cInvalid amount. Must be positive with max 2 decimal places.', executor);

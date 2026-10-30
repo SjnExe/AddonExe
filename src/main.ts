@@ -1,6 +1,7 @@
 import { getConfig, initializeConfigManager } from '@core/config/configManager.js';
 import { dataManager, loadPersistentData } from '@core/data/dataManager.js';
 import { initializeMigration } from '@core/data/migrationManager.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { cleanupPlayerDataManager } from '@core/data/playerDataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
@@ -101,8 +102,6 @@ function initializeManagers() {
 }
 
 /** Updates all player ranks. This is useful when ranks are changed via commands. */
-import { getAllPlayersFromCache } from '@core/data/playerCache.js';
-
 export function updateAllPlayerRanks() {
   const config = getConfig();
   for (const player of getAllPlayersFromCache()) {
