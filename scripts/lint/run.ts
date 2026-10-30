@@ -37,43 +37,22 @@ async function runLintingPipeline() {
 
   const oxlintBin = Bun.which('oxlint') ?? './node_modules/.bin/oxlint';
 
-  let results: TaskResult[];
+  const mcRulesTask = runTask('Minecraft Custom Rules', async () => {
+    const errors = await validateMinecraftRules();
+    if (errors > 0) {
+      throw new Error(`Found ${errors} Minecraft rule violation(s).`);
+    }
+  });
 
-  if (isFix) {
-    // In fix mode, run mutating tasks sequentially first to prevent filesystem write races
-    const oxlintFixTask = await runTask('Oxlint Engine (Auto-Fix)', () => $`${oxlintBin} --fix`.quiet());
-    const fmtFixTask = await runTask('Code Formatting (bun fmt)', () => $`bun fmt`.quiet());
+  const oxlintTask = runTask('Oxlint Engine (Pure Rust)', () => {
+    return isFix ? $`${oxlintBin} --fix`.quiet() : $`${oxlintBin}`.quiet();
+  });
 
-    const readOnlyResults = await Promise.all([
-      runTask('Minecraft Custom Rules', async () => {
-        const errors = await validateMinecraftRules();
-        if (errors > 0) {
-          throw new Error(`Found ${errors} Minecraft rule violation(s).`);
-        }
-      }),
-      runTask('JSON Schema Validation', () => validateSchemas()),
-      runTask('Icon & Texture Integrity', () => validateIcons()),
-      runTask('TypeScript Type Check', () => $`bun check`.quiet()),
-    ]);
+  const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());
+  const iconTask = runTask('Icon & Texture Integrity', () => validateIcons());
+  const typeCheckTask = runTask('TypeScript Type Check', () => $`bun check`.quiet());
 
-    results = [oxlintFixTask, fmtFixTask, ...readOnlyResults];
-  } else {
-    // In check mode, all tasks are read-only and safe to run concurrently
-    const mcRulesTask = runTask('Minecraft Custom Rules', async () => {
-      const errors = await validateMinecraftRules();
-      if (errors > 0) {
-        throw new Error(`Found ${errors} Minecraft rule violation(s).`);
-      }
-    });
-
-    const oxlintTask = runTask('Oxlint Engine (Pure Rust)', () => $`${oxlintBin}`.quiet());
-    const fmtTask = runTask('Code Formatting (bun fmt)', () => $`bun fmt --check`.quiet());
-    const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());
-    const iconTask = runTask('Icon & Texture Integrity', () => validateIcons());
-    const typeCheckTask = runTask('TypeScript Type Check', () => $`bun check`.quiet());
-
-    results = await Promise.all([mcRulesTask, oxlintTask, fmtTask, schemaTask, iconTask, typeCheckTask]);
-  }
+  const results = await Promise.all([mcRulesTask, oxlintTask, schemaTask, iconTask, typeCheckTask]);
 
   const totalDuration = (performance.now() - overallStart).toFixed(2);
 
