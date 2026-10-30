@@ -364,3 +364,8 @@ export function unblockPlayer(player: mc.Player, targetId: string) {
     }
   });
 }
+
+export function _clearTpaForTest(): void {
+  outgoingRequests.clear();
+  incomingRequests.clear();
+}

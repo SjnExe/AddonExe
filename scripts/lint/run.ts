@@ -35,6 +35,8 @@ async function runLintingPipeline() {
   const overallStart = performance.now();
   console.log(`⚡ Launching profiled Bun-native linting pipeline (${isFix ? 'Fix Mode' : 'Check Mode'})...\n`);
 
+  const oxlintBin = Bun.which('oxlint') ?? './node_modules/.bin/oxlint';
+
   const mcRulesTask = runTask('Minecraft Custom Rules', async () => {
     const errors = await validateMinecraftRules();
     if (errors > 0) {
@@ -42,19 +44,12 @@ async function runLintingPipeline() {
     }
   });
 
-  const termuxOxlint = '/data/data/com.termux/files/usr/bin/oxlint';
-  const hasNativeOxlint = await Bun.file(termuxOxlint).exists();
   const oxlintTask = runTask('Oxlint Engine (Pure Rust)', () => {
-    if (hasNativeOxlint) {
-      return isFix ? $`${termuxOxlint} --fix`.quiet() : $`${termuxOxlint}`.quiet();
-    }
-    return isFix ? $`./node_modules/.bin/oxlint --fix`.quiet() : $`./node_modules/.bin/oxlint`.quiet();
+    return isFix ? $`${oxlintBin} --fix`.quiet() : $`${oxlintBin}`.quiet();
   });
 
   const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());
-
   const iconTask = runTask('Icon & Texture Integrity', () => validateIcons());
-
   const typeCheckTask = runTask('TypeScript Type Check', () => $`bun check`.quiet());
 
   const results = await Promise.all([mcRulesTask, oxlintTask, schemaTask, iconTask, typeCheckTask]);

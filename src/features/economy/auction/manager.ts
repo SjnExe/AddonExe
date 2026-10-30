@@ -511,3 +511,7 @@ export function cancelListing(player: mc.Player, listingId: string): { success: 
 
   return { success: true, message: '§aListing cancelled. Item returned to Collection Bin.' };
 }
+
+export function _clearAuctionHouseForTest(): void {
+  activeListings.clear();
+}

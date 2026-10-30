@@ -212,3 +212,8 @@ export function initializeXrayDetection(): void {
   refreshXrayCache();
   registerEvent(mc.world.afterEvents.playerBreakBlock, handleBlockBreak, 'xrayDetection');
 }
+
+export function _clearXrayForTest(): void {
+  oreCache.clear();
+  alertBuffers.clear();
+}
