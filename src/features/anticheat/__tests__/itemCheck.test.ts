@@ -90,14 +90,14 @@ describe('ItemCheck', () => {
 
   it('should flag and remove banned items using O(1) set lookup', () => {
     const item = {
-      typeId: 'minecraft:bedrock',
+      typeId: MinecraftItemTypes.Bedrock,
       amount: 1,
       maxAmount: 64,
       getComponent: () => undefined,
     } as unknown as mc.ItemStack;
 
     const config = {
-      bannedItems: ['minecraft:bedrock', 'minecraft:barrier'],
+      bannedItems: [MinecraftItemTypes.Bedrock, MinecraftItemTypes.Barrier],
       maxEnchantLevel: 5,
       removeIllegalItems: true,
     };
@@ -107,7 +107,7 @@ describe('ItemCheck', () => {
     expect(flagSpy).toHaveBeenCalledWith(
       player,
       'itemCheck',
-      expect.stringContaining('Banned Item: minecraft:bedrock'),
+      expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
     );
     expect(updateItem).toHaveBeenCalled();
   });
