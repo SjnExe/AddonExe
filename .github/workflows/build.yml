@@ -7,6 +7,18 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (do not upload to CurseForge or publish GitHub release)'
+        type: boolean
+        default: true
+      build_type:
+        description: 'Build mode to simulate'
+        type: choice
+        options:
+          - canary
+          - release
+        default: release
   pull_request:
 
 concurrency:
@@ -110,7 +122,9 @@ jobs:
       - name: Determine Build Type
         id: build_type
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.build_type }}" ]; then
+              echo "type=${{ inputs.build_type }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
               echo "type=release" >> $GITHUB_OUTPUT
           else
               echo "type=canary" >> $GITHUB_OUTPUT
@@ -126,13 +140,22 @@ jobs:
       - name: Build TypeScript (Release)
         if: steps.build_type.outputs.type == 'release'
         run: |
-          TAG_VER="${{ github.ref_name }}"
-          CLEAN_TAG="${TAG_VER#v}"
-          bun run build:release -- -v "$CLEAN_TAG"
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+              TAG_VER="${{ github.ref_name }}"
+              CLEAN_TAG="${TAG_VER#v}"
+              bun run build:release -- -v "$CLEAN_TAG"
+          else
+              bun run build:release
+          fi
 
       - name: Load Build Meta into GITHUB_ENV
         run: |
           cat build_meta.env >> $GITHUB_ENV
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "IS_DRY_RUN=true" >> $GITHUB_ENV
+          else
+              echo "IS_DRY_RUN=false" >> $GITHUB_ENV
+          fi
 
       - name: Verify Staged Packs
         run: |
@@ -170,7 +193,7 @@ jobs:
         run: bun run validate
 
   release:
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch')
     needs: [build, lint, format, test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -202,14 +225,14 @@ jobs:
           cat build_meta.env >> $GITHUB_ENV
 
       - name: Clean Old Canary Assets
-        if: env.BUILD_TYPE == 'canary'
+        if: env.BUILD_TYPE == 'canary' && env.IS_DRY_RUN != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete canary --cleanup-tag --yes || true
 
       - name: Publish Canary Release
-        if: env.BUILD_TYPE == 'canary'
+        if: env.BUILD_TYPE == 'canary' && env.IS_DRY_RUN != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -235,13 +258,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
-          gh api repos/${{ github.repository }}/releases/generate-notes \
-              -f tag_name="${{ github.ref_name }}" \
-              --jq .body > release_notes.md
-          bun scripts/build/curseforgeUpload.ts
+          if [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            gh api repos/${{ github.repository }}/releases/generate-notes \
+                -f tag_name="${{ github.ref_name }}" \
+                --jq .body > raw_pr_notes.md || true
+          fi
+          bun scripts/build/extractChangelog.ts "${{ env.ARCHIVE_VERSION }}" --output user_changelog.md || true
+
+          if [ -s user_changelog.md ]; then
+            cp user_changelog.md release_notes.md
+          elif [ -s raw_pr_notes.md ]; then
+            cp raw_pr_notes.md release_notes.md
+          else
+            echo "## AddonExe v${{ env.ARCHIVE_VERSION }}" > release_notes.md
+          fi
+
+          if [ "${{ env.IS_DRY_RUN }}" = "true" ]; then
+            bun scripts/build/curseforgeUpload.ts --dry-run
+          else
+            bun scripts/build/curseforgeUpload.ts
+          fi
 
       - name: Publish Stable Release Link on GitHub
-        if: env.BUILD_TYPE == 'release'
+        if: env.BUILD_TYPE == 'release' && env.IS_DRY_RUN != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -252,6 +291,19 @@ jobs:
 
           $(cat release_notes.md)
           EOF
+
+          if [ -s raw_pr_notes.md ] && [ -s user_changelog.md ]; then
+            cat <<EOF >> github_release_notes.md
+
+          <details>
+          <summary>🛠️ Developer & PR Commit Log</summary>
+
+          $(cat raw_pr_notes.md)
+
+          </details>
+          EOF
+          fi
+
           if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
               gh release edit "${{ github.ref_name }}" \
                   --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
