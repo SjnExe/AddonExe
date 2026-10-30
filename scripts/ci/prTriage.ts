@@ -220,7 +220,8 @@ function generateMarkdownReport(meta: PRMetadata): string {
     infosList = '\n#### ℹ️ Quality Checklist\n' + meta.audit.infos.map((i) => `- ${i}`).join('\n') + '\n';
   }
 
-  return `<!-- pr-triage-bot -->
+  return (
+    `<!-- pr-triage-bot -->
 ### 🤖 AddonExe PR Assistant & Bedrock Audit
 
 | Metric | Details |
@@ -229,11 +230,8 @@ function generateMarkdownReport(meta: PRMetadata): string {
 | **Target Subsystem** | \`${meta.scope || 'general'}\` |
 | **Size Impact** | \`${meta.size}\` (+${meta.addedLines} / -${meta.deletedLines} lines across ${meta.changedFiles.length} files) |
 | **Bedrock Safety Audit** | ${auditStatus} |
-
-${warningsList}${infosList}
----
-*Generated automatically by AddonExe CI for code owner @SjnExe. Zero external API cost.*
-`;
+${warningsList}${infosList}`.trimEnd() + '\n'
+  );
 }
 
 async function main() {

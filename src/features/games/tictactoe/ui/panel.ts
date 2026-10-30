@@ -39,83 +39,85 @@ function getSquareVisual(match: TicTacToeMatch, idx: number): { label: string; i
   return { label: ' ' };
 }
 
-export async function showTicTacToeBoard(player: mc.Player, matchId: string, notice?: string): Promise<void> {
-  if (!player.isValid) {
-    return;
-  }
+export async function showTicTacToeBoard(player: mc.Player, matchId: string, initialNotice?: string): Promise<void> {
+  let notice: string | undefined = initialNotice;
 
-  const match = getTicTacToeMatch(matchId);
-  if (!isDefined(match)) {
-    player.sendMessage('§cMatch has ended.');
-    return;
-  }
-
-  if (match.status !== 'active') {
-    await showTicTacToeResultPanel(player, match);
-    return;
-  }
-
-  const isPlayerX = player.id === match.playerXId;
-  const myMark = isPlayerX ? '§b◆ Diamond§r' : '§a❖ Emerald§r';
-  const opponentName = isPlayerX ? match.playerOName : match.playerXName;
-  const isMyTurn = match.currentTurnId === player.id;
-
-  const statusLine = isMyTurn
-    ? `§a§lYOUR TURN (${myMark}§a§l) §r§7— Tap a square!`
-    : `§eWaiting for §f${opponentName}§e's move...`;
-  const bodyText = isNonEmptyString(notice) ? `${notice}\n${statusLine}` : statusLine;
-
-  const form = new ActionFormBuilder().grid('board').title(`§r§l§bTic-Tac-Toe §8vs §f${opponentName}`).body(bodyText);
-
-  let clickedSquare: number | undefined;
-
-  for (let i = 0; i < 9; i++) {
-    const squareIdx = i;
-    const visual = getSquareVisual(match, squareIdx);
-    form.button(visual.label, visual.icon, () => {
-      clickedSquare = squareIdx;
-    });
-  }
-
-  const response = await form.show(player, { wait: true });
-
-  const freshMatch = getTicTacToeMatch(matchId);
-  if (!isDefined(freshMatch)) {
-    return;
-  }
-
-  if (freshMatch.refreshingPlayers.has(player.id)) {
-    freshMatch.refreshingPlayers.delete(player.id);
-    await showTicTacToeBoard(player, matchId);
-    return;
-  }
-
-  if (freshMatch.status !== 'active') {
-    await showTicTacToeResultPanel(player, freshMatch);
-    return;
-  }
-
-  if (response.canceled) {
-    if (response.cancelationReason === FormCancelationReason.UserBusy) {
-      await showTicTacToeBoard(player, matchId);
+  while (player.isValid) {
+    const match = getTicTacToeMatch(matchId);
+    if (!isDefined(match)) {
+      player.sendMessage('§cMatch has ended.');
       return;
     }
-    // Pressing Close UI button forfeits the match and opponent wins
-    forfeitTicTacToeMatch(matchId, player.id, 'closed the game UI');
-    return;
-  }
 
-  if (clickedSquare !== undefined) {
-    const moveRes = makeTicTacToeMove(matchId, player.id, clickedSquare);
-    const postMoveMatch = getTicTacToeMatch(matchId);
-    if (!isDefined(postMoveMatch)) {
+    if (match.status !== 'active') {
+      await showTicTacToeResultPanel(player, match);
       return;
     }
-    if (postMoveMatch.status !== 'active') {
-      await showTicTacToeResultPanel(player, postMoveMatch);
+
+    const isPlayerX = player.id === match.playerXId;
+    const myMark = isPlayerX ? '§b◆ Diamond§r' : '§a❖ Emerald§r';
+    const opponentName = isPlayerX ? match.playerOName : match.playerXName;
+    const isMyTurn = match.currentTurnId === player.id;
+
+    const statusLine = isMyTurn
+      ? `§a§lYOUR TURN (${myMark}§a§l) §r§7— Tap a square!`
+      : `§eWaiting for §f${opponentName}§e's move...`;
+    const bodyText = isNonEmptyString(notice) ? `${notice}\n${statusLine}` : statusLine;
+
+    const form = new ActionFormBuilder().grid('board').title(`§r§l§bTic-Tac-Toe §8vs §f${opponentName}`).body(bodyText);
+
+    let clickedSquare: number | undefined;
+
+    for (let i = 0; i < 9; i++) {
+      const squareIdx = i;
+      const visual = getSquareVisual(match, squareIdx);
+      form.button(visual.label, visual.icon, () => {
+        clickedSquare = squareIdx;
+      });
+    }
+
+    const response = await form.show(player, { wait: true });
+
+    const freshMatch = getTicTacToeMatch(matchId);
+    if (!isDefined(freshMatch)) {
       return;
     }
-    await showTicTacToeBoard(player, matchId, moveRes.message);
+
+    if (freshMatch.refreshingPlayers.has(player.id)) {
+      freshMatch.refreshingPlayers.delete(player.id);
+      notice = undefined;
+      continue;
+    }
+
+    if (freshMatch.status !== 'active') {
+      await showTicTacToeResultPanel(player, freshMatch);
+      return;
+    }
+
+    if (response.canceled) {
+      if (response.cancelationReason === FormCancelationReason.UserBusy) {
+        continue;
+      }
+      // Pressing Close UI button forfeits the match and opponent wins
+      forfeitTicTacToeMatch(matchId, player.id, 'closed the game UI');
+      return;
+    }
+
+    if (clickedSquare !== undefined) {
+      const moveRes = makeTicTacToeMove(matchId, player.id, clickedSquare);
+      const postMoveMatch = getTicTacToeMatch(matchId);
+      if (!isDefined(postMoveMatch)) {
+        return;
+      }
+      if (postMoveMatch.status !== 'active') {
+        await showTicTacToeResultPanel(player, postMoveMatch);
+        return;
+      }
+      notice = moveRes.message;
+      continue;
+    }
+
+    break;
   }
 }
 
