@@ -201,28 +201,28 @@ jobs:
         run: |
           cat build_meta.env >> $GITHUB_ENV
 
-      - name: Clean Old Nightly Assets
-        if: env.BUILD_TYPE == 'nightly'
+      - name: Clean Old Canary Assets
+        if: env.BUILD_TYPE == 'canary'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete nightly --cleanup-tag --yes || true
+          gh release delete canary --cleanup-tag --yes || true
 
-      - name: Publish Nightly Release
-        if: env.BUILD_TYPE == 'nightly'
+      - name: Publish Canary Release
+        if: env.BUILD_TYPE == 'canary'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cat <<EOF > release_notes.md
-          **Latest Nightly Build**
+          **Latest Canary Build**
           Version: \`${{ env.VERSION_STRING }}\`
           Commit: \`${{ github.sha }}\`
           Date: \`${{ env.BUILD_DATE }}\`
 
           *This is an automated development build. It may contain bugs.*
           EOF
-          gh release create nightly \
-              --title "Nightly Build (Latest Dev)" \
+          gh release create canary \
+              --title "Canary Build (Latest Dev)" \
               --prerelease \
               --notes-file release_notes.md \
               AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
