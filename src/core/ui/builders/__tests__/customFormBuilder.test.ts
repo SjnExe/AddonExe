@@ -70,4 +70,22 @@ describe('CustomFormBuilder', () => {
     const res = await builder.show({} as Player);
     expect(res).toBeDefined(); // Mock in minecraftMock executes buttons by default unless custom mock is used
   });
+
+  test('preserves correct value indexing when static elements (header, label, divider) are placed before input fields', async () => {
+    const builder = new CustomFormBuilder('Mixed Controls Form')
+      .header('Overview Header')
+      .label('Informational Label')
+      .divider()
+      .textField('guess', 'Your Guess', 'Enter word', 'apple')
+      .label('Trailing Hint')
+      .toggle('confirmed', 'Confirm Entry', true)
+      .submitButton('Submit');
+
+    const res = await builder.show({} as Player);
+    expect(res).toBeDefined();
+    expect(res).toEqual({
+      guess: 'apple',
+      confirmed: true,
+    });
+  });
 });
