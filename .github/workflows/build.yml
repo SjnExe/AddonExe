@@ -170,6 +170,7 @@ jobs:
         run: bun run validate
 
   release:
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     needs: [build, lint, format, test]
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -5,225 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.0] - 2026-
+## [0.8.0] - Unreleased
 
-### ✨ Features
+### 🎮 Mini-Games Hub
 
-- **Mini-Games Hub (`/panel` -> Mini-Games):** Added **Coin Flip** (`/cf`), **2048** (`/2048`), **Connect 4** (`/c4`), **Codebreaker** (`/cb`), **Scramble** (`/scramble`), **Fast Math** (`/math`), **Number Guess** (`/numguess` + `/gamechat`), **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), and **Minesweeper** (`/ms`) alongside **Wordle** (`/wordle`, `/guess`) with configurable 2P wager taxes.
-- **Essentials, Social & Moderation Utilities:** Added **AFK System** (`/afk`), **Player Utilities** (`/heal`, `/feed`, `/repair`, `/trash`, `/near`), **Direct Player Trading** (`/trade`), **Offline Mail** (`/mail`), **Chat Controls** (`/mutechat`, `/slowmode`), and **Punishment History** (`/history`).
-- **Playtime & AFK Rewards (`/playtime`):** Added recurring stay-online payouts and unlockable playtime milestones.
-- **Combat Tag & Anti-Combat-Log:** Added configurable PvP combat tagging, teleport blocking in combat, and disconnect grace-period penalties.
-- **World Border Manager (`/worldborder`, `/wb`):** Added linked Overworld + Nether (8:1) and End borders with safe knockback buffers and an in-game admin UI.
-- **Staff & Social Enhancements:** Added **Staff Inventory Swap** (`/staffinv`, `/sinv`), **Ender Chest Inspector** (`/ecsee`), **Private Messaging & Social Spy** (`/xmsg`, `/r`, `/socialspy`, plus UI direct messaging), **Zone Selection Wand** (`/zonewand`), **Auction House Subcommands** (`/ah collect|listings|cancel`), **Poll Creation Subcommands** (`/vote create|results`), **Watchlist Staff Alerts**, and **Bulk Shop Selling** (`/sellall`).
-- **Adaptive Sidebar & HUD Layouts (`/sidebar`):** Added Top-Right Card, Top-Left Touch-Friendly Card, and Bottom Compact Bar layouts with theme presets.
+- **10 Interactive Mini-Games:** Play solo or challenge friends via `/panel` or direct commands:
+  - **Connect 4** (`/c4`) — Drop tokens to connect 4 in a row.
+  - **Tic-Tac-Toe** (`/ttt`) — Classic 3x3 turn-based duel.
+  - **Rock Paper Scissors** (`/rps`) — Fast-paced 2-player showdown.
+  - **Coin Flip** (`/cf`) — Quick 50/50 bets and coin tosses.
+  - **Minesweeper** (`/ms`) — Grid-based mine clearing with 9x9, 12x12, and 16x12 difficulties.
+  - **Wordle** (`/wordle`, `/guess`) — Guess the hidden 5-letter word within 6 tries.
+  - **2048** (`/2048`) — Slide and merge number tiles to reach 2048.
+  - **Fast Math** (`/math`) — Quick-fire mental math challenges.
+  - **Word Scramble** (`/scramble`) — Unscramble mystery words under time pressure.
+  - **Number Guess** (`/numguess`, `/gamechat`) — Competitive number guessing with server chat hints.
+- **Two-Player Wagers:** Challenge other players to wagered matches with configurable economy stakes and server taxes.
 
-### 🚀 Performance & Core Architecture
+### 📊 Server HUD & Sidebar (`/sidebar`)
 
-- **Sidebar HUD Token Precomputation:** Precalculated player token context (data, ranks, teams, coords, TPS) per update cycle, eliminating per-line closure allocations and continuous config queries; prevented scoreboard objective flicker on title changes.
-- **Anticheat Constant-Time Set Lookups:** Cached banned item lookups into a `Set<string>` for $O(1)$ scans across all 41 inventory and equipment slots.
-- **Form UI Iterative State Loops:** Modernized Connect 4, Tic-Tac-Toe, and Minesweeper to iterative `while (player.isValid)` loops, eliminating async call-stack accumulation.
-- **Unified Target Resolution:** Standardized online player target parsing across PvP challenge commands (`/ttt`, `/rps`, `/coinflip`, `/connect4`), `/pay`, and `/bounty`.
+- **Multiple Layout Choices:** Toggle between **Top-Right Card**, **Top-Left Touch-Friendly Card**, and **Bottom Bar** display modes.
+- **Live Stats Display:** Real-time ping, TPS, player coordinates, ranks, balances, and active teams.
+- **Theme Presets:** Select from pre-configured color and styling presets to match your server's theme.
+- **Smooth Updates:** Flicker-free background updates ensure zero scoreboard or action bar jitter.
 
-## [0.7.0] - 2025-10-28
+### 💰 Economy, Trading & Rewards
 
-### Updated to 1.21.120
+- **In-Game Trading (`/trade`):** Secure direct player-to-player item and balance trading interface.
+- **Offline Mail (`/mail`):** Send messages and notifications to players even when they are offline.
+- **Playtime & AFK Rewards (`/playtime`):** Unlock tiered playtime milestone rewards and earn passive currency while online.
+- **AFK Protection & Status (`/afk`):** Automatically detect AFK players to protect server economy and reward active engagement.
+- **Auction House & Shop Enhancements:** Added `/ah collect`, `/ah listings`, `/ah cancel`, and `/sellall` for bulk inventory selling.
 
-## [0.6.3] - 2025-10-02
+### 🛡️ Moderation & World Protection
 
-### 🐛 Bug Fixes
+- **Combat Tagging:** Automatically tag players entering PvP combat to prevent combat-logging, blocking teleport commands and applying disconnect penalties.
+- **Staff Inspection Tools:** Seamlessly view and inspect player inventories (`/sinv`, `/invsee`) and ender chests (`/ecsee`) without disrupting gameplay.
+- **World Border Controls (`/wb`, `/worldborder`):** Configurable Overworld, linked Nether (8:1 ratio), and End boundaries with smooth knockback buffers and an admin UI.
+- **Chat Management:** Keep global chat clean and organized with `/mutechat`, `/slowmode`, and real-time `/chatlog` monitoring.
+- **Social Spy & Private Messaging:** Monitor private messages (`/socialspy`) for server safety and enjoy streamlined direct messaging (`/xmsg`, `/r`).
 
-- Fixed a bug where `/function admin` wasn't working.
+### ⚡ Performance & Stability
 
-## [0.6.0] - 2025-09-30
+- **Lag Reduction:** Drastically optimized inventory scans, token precomputations, and player lookups for silky-smooth multiplayer performance.
+- **Non-Blocking UI Loops:** Interactive mini-games and menu panels now use clean iterative state loops, eliminating menu lag and memory leaks.
+- **Fast Anti-Cheat Lookups:** Instant constant-time checks for illegal items and over-enchanted gear across all player equipment and inventory slots.
 
-### 🚀 Performance
+### ⚙️ Admin & Server Controls
 
-- **Paginated UI Lists**: Implemented pagination for the Player Management, Online Player List, Bounty List, and Report Management UIs. This prevents server lag and crashes when viewing lists with a large number of entries.
-- **Efficient Leaderboard**: The economy leaderboard is now updated dynamically only when a player's balance changes significantly, removing the previous inefficient interval-based updates.
-- **Optimized Data Loading**: Revamped the data loading strategy to prevent the addon from loading all player data at startup, significantly improving server start times.
-
-### 🔒 Reliability
-
-- **Immediate Data Saving**: Replaced the periodic auto-save system with an immediate-save mechanism. All player data (balances, homes, ranks, etc.) is now saved instantly upon modification, preventing data loss from server crashes.
-
-This version introduces a new random teleport feature, includes bug fixes for core gameplay systems, and expands the capabilities of the in-game configuration editor.
-
-### ✨ Features
-
-- **Warp System**: Added `/warp`, `/setwarp`, and `/delwarp` commands, allowing admins to create and manage public teleportation points. Warps are fully configurable with cooldowns and warmup times.
-- **Spawn Protection**: Implemented a comprehensive spawn protection system to prevent griefing and unauthorized building in the server's spawn area.
-- **Configurable Kit System**: The kit system is now fully configurable in-game, allowing admins to create, edit, and define cooldowns for kits dynamically.
-- **Rank System**: A flexible rank system with customizable permissions and chat formatting.
-- **Shop System**: An in-game shop with a UI for buying and selling items, with prices and item availability configurable by admins.
-- **Dimension Locking**: Admins can now lock the Nether and End dimensions using the `/netherlock` and `/endlock` commands. A configuration setting allows admins to bypass these locks.
-- **Random Teleport (`/rtp`)**: Added a new `/rtp` command that allows players to teleport to a random, safe location in the Overworld. The command has a configurable cooldown and warmup period.
-- **Configuration Editor Expansion**: The in-game config editor now supports modifying more settings, including `rtp`, `deathCoords`, `bounty`, and the new `dimensionLock` bypass.
-
-### 🐛 Bug Fixes
-
-- **Freeze Command**: The `/freeze` command has been completely overhauled to use the native `/inputpermission` command. This correctly prevents all player movement, camera rotation, and interactions, fixing a bug where frozen players could still jump and place blocks.
-- **Player Management UI Display**: Fixed an issue where the Player Management list would show player names in lowercase and without their rank prefix.
-- **Death Coords**: Fixed a bug where the death coordinates message was not reliably sent to the player upon death.
-
-### 🎨 Changes
-
-- **Rank Command Refactor**: The `/admin` command has been removed. Its functionality is now integrated into the `/rank` command, which can now be used to grant and revoke the 'Admin' rank. This streamlines rank management into a single, permission-controlled command.
-- **Dimension-specific RTP**: The `/rtp` command is now restricted to the Overworld to prevent players from using it in unintended dimensions like the Nether or the End.
-
-## [0.5.0] - 2025-09-15
-
-This version introduces critical security fixes, bug fixes, and stability improvements to the core addon systems.
-
-### ✨ Features
-
-- **In-Game Shop System**: Introduced a comprehensive, GUI-based shop system.
-  - Players can access the shop via the `/shop` command or the main admin panel.
-  - The UI supports browsing categorized items, buying, and selling.
-  - New commands were added for direct access: `/buy` opens the buy view, `/sell` opens the sell view, and `/sellhand` allows for quickly selling the item in the main hand.
-
-### 🔒 Security
-
-- **Punishment Reason Sanitization**: Fixed a command injection vulnerability where a ban or kick `reason` containing special characters (e.g., double quotes) could break the `kick` command. This fix prevents the kick-on-ban and kick-on-join-when-banned mechanisms from failing.
-
-### 🐛 Bug Fixes
-
-- **`/sellhand` for Unstackable Items**: Disabled the `/sellhand` command for unstackable items to prevent issues with the underlying `/clear` command. The command will now show an error message if used with an unstackable item.
-- **Punishment Data Loss on Crash**: Fixed a critical bug where punishments (bans/mutes) could be lost if the server crashed. Punishments are now saved to disk immediately upon being issued or removed, instead of waiting for the next auto-save cycle.
-
-### 🎨 Changes
-
-- **Punishment Manager Save Interval**: The punishment manager now correctly uses the `autoSaveIntervalSeconds` value from the main configuration file for its periodic saving, instead of a hardcoded 5-minute interval.
-
-## [0.4.0] - 2025-09-10
-
-This version introduces a significant overhaul of the player management UI, adds new moderation features, and includes several critical bug fixes for core gameplay systems.
-
-### ✨ Features
-
-- **Player Management UI Overhaul**: The player action panel has been revamped with new icons, buttons, and a clearer separation between admin actions and player-to-player actions.
-- **Freeze/Unfreeze Functionality**: Admins can now freeze and unfreeze players. This is available as UI buttons in the Player Management panel and as new `/freeze` and `/unfreeze` commands.
-- **Bounty Sub-Panel**: The "Bounty" button in the Player List now opens a dedicated sub-panel, allowing users to either set a new bounty or remove an existing one.
-
-### 🐛 Bug Fixes
-
-- **Teleport on Damage**: Fixed a critical bug where teleportation warmups (for TPA, `/home`, `/spawn`) would not cancel when the player took damage. The system now uses a reliable event-based check.
-- **Death Event Crash**: Fixed a server script crash that occurred when a player died from non-combat sources (e.g., fall damage, `/kill` command).
-- **`/deathcoords` Command**: Fixed a race condition that made the `/deathcoords` command unreliable. The command now correctly shows the last death location even after the player has respawned.
-- **UI Panel Navigation**: Fixed a bug where buttons configured to open a new panel in the player actions UI would not work.
-
-### 🎨 Changes
-
-- **New Icons**: Updated the icons for Kick, Ban, Mute, Unmute, Freeze, Unfreeze, TPA, TPAHere, and Bounty buttons for better visual clarity.
-- **Button Order**: The buttons in the Player List actions panel are now in a more logical order: TPA, TPAHere, Bounty, Report.
-
-## [0.3.0] - 2025-09-07
-
-This version introduces a major performance overhaul for the bounty system, a new global command cooldown system, and several new features, fixes, and documentation improvements.
-
-### ✨ Features
-
-- **Bounty System Overhaul**: The bounty system has been completely rewritten for performance. It now uses a centralized manager (`bountyManager`) to track active bounties in memory, eliminating the lag spikes that occurred on servers with large player histories when viewing the bounty list.
-- **Bounty Claiming**: The previously missing feature to claim bounties has been implemented. When a player with a bounty is killed by another player, the bounty is now correctly paid out to the killer.
-- **Command Cooldown System**: A new system has been integrated into the `commandManager` to allow any command to have an optional, configurable cooldown period to prevent spam. The `/spawn` command is the first to use this new system.
-- **New Ranks Added**: Added three new ranks to the default configuration: `VIP`, `Donator`, and `Verified`. These can be assigned to players via tags.
-- **`/rank` Command Enhancements**:
-  - Running `/rank` with no arguments now displays a list of all available ranks.
-  - The command now provides in-game suggestions for the "set" and "remove" actions, improving usability for admins.
-
-### 🐛 Bug Fixes
-
-- Fixed a critical startup crash (`ReferenceError: clearExpiredPayments`) caused by an incorrect function call during initialization.
-- Corrected several linting warnings by removing unused imports from the UI manager.
-
-### 📚 Documentation
-
-- **Command Documentation**: Updated `docs/commands.md` to clearly explain how slash commands (`/`) handle multi-word arguments with quotes.
-- **Features Documentation**: Added details about the hidden world seed anti-cheat feature to `docs/features-overview.md`.
-
-## [0.1.0] - 2025-09-06
-
-This is the second public release of AddonExe, introducing a wide range of features and a comprehensive command system to enhance server management and gameplay.
-
-### Features
-
-- **Slash Commands**: All commands are available as native slash commands (e.g., `/xhelp`, `/status`). Commands with potential vanilla conflicts are prefixed with `x`.
-- **Rank System**: A comprehensive rank system with configurable permissions, chat formatting, and inheritance.
-- **Economy System**: A basic economy with player balances, a `/pay` command, and an API for other features to use.
-- **Punishment System**: Commands for banning, muting, and kicking players, with support for temporary and permanent durations.
-- **Admin Panel**: A custom item (`exe:panel`) that opens a UI for server administration.
-- **Player Data Management**: Robust system for tracking player data, including ranks, balances, homes, and more.
-- **Home System**: Allows players to set and teleport to their own homes.
-- **Teleportation System**: `/tpa` and `/tpahere` commands for players to request teleportation to each other.
-- **Kit System**: Create kits of items that players can claim on a cooldown.
-- **Report System**: A system for players to report issues and for admins to manage them.
-- **Server Restart Manager**: A scheduled and manual server restart system with warnings.
-- **Welcomer**: Automatically welcomes new players to the server.
-- **Death Coordinates**: Notifies players of their coordinates upon death.
-- **X-Ray Ore Notifications**: Alerts admins when players mine valuable ores.
-- **Chat to Console**: Option to log all in-game chat to the server console.
-- **Bounty System**: Place bounties on other players.
-- **Vanish**: Allows admins to become invisible to other players.
-- **Player Inventory Management**: Admins can view and copy player inventories.
-- **Server Status**: A command to view server performance and player count.
-
-### Commands
-
-_Commands are run with a `/` prefix. For example: `/status`._
-_Some commands use an `x` prefix (e.g. `/xhelp`) to avoid conflicts with vanilla commands._
-
-#### General Commands
-
-- `/xhelp`: Displays a list of available commands.
-- `/rules`: Shows the server rules.
-- `/spawn`: Teleports you to the world spawn.
-- `/status`: Shows server status and player count.
-- `/version`: Shows the addon version.
-- `/report`: Reports a player.
-
-#### Economy Commands
-
-- `/balance`: Checks your balance.
-- `/pay`: Pays another player.
-- `/bounty`: Sets a bounty on a player.
-
-#### Teleportation Commands
-
-- `/home`: Teleports you to your home.
-- `/sethome`: Sets your home location.
-- `/delhome`: Deletes your home.
-- `/tpa`: Requests to teleport to another player.
-- `/tpaccept`: Accepts a teleport request.
-- `/tpdeny`: Denies a teleport request.
-
-#### Kit Commands
-
-- `/kit`: Claims a kit.
-- `/kits`: Lists available kits.
-
-#### Admin Commands
-
-- `/admin`: Provides access to admin functions.
-- `/ban`: Bans a player.
-- `/unban`: Unbans a player.
-- `/mute`: Mutes a player.
-- `/unmute`: Unmutes a player.
-- `/kick`: Kicks a player.
-- `/freeze`: Freezes a player in place.
-- `/unfreeze`: Unfreezes a player.
-- `/gamemode`: Changes a player's gamemode.
-- `/clear`: Clears a player's inventory.
-- `/clearchat`: Clears the chat for all players.
-- `/invsee`: Views a player's inventory.
-- `/copyinv`: Copies a player's inventory.
-- `/vanish`: Toggles vanish mode.
-- `/tp`: Teleports to a player.
-- `/xreload`: Reloads the addon's configuration.
-- `/save`: Saves all addon data.
-- `/restart`: Initiates a server restart.
-- `/ecwipe`: Wipes all economy data.
-- `/setbalance`: Sets a player's balance.
-- `/rank`: Manages player ranks.
-- `/xraynotify`: Toggles X-ray notifications.
-- `/deathcoords`: Toggles death coordinate messages.
-- `/chattoconsole`: Toggles logging chat to the console.
-- `/debug`: Toggles debug mode.
+- **Live In-Game Settings Editor (`/panel`):** Modify feature toggles, economy settings, cooldowns, and server parameters directly in-game without world restarts.
+- **Enhanced Autocompletion & Feedback:** Autocomplete player names, rank identifiers, and subcommands with clean, informative error and confirmation messages.
+- **Zone Selection Wand (`/zonewand`):** Visually define and protect server regions and dimensions with an intuitive wand selector.
