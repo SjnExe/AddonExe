@@ -5,7 +5,6 @@
 [![Download on CurseForge](https://img.shields.io/badge/CurseForge-Download_AddonExe-F16436?style=for-the-badge&logo=curseforge&logoColor=white)](https://www.curseforge.com/minecraft-bedrock/addons/addonexe)
 [![Latest Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FSjnExe%2FAddonExe%2Fmain%2Fpackage.json&query=%24.version&prefix=v&label=latest%20version&style=for-the-badge&color=blue)](https://www.curseforge.com/minecraft-bedrock/addons/addonexe/files)
 ![Minecraft BE Version](https://img.shields.io/badge/Minecraft_BE-Latest-brightgreen?style=for-the-badge&logo=minecraft)
-[![Tests](https://img.shields.io/badge/Tests-306_Passing-brightgreen?style=for-the-badge&logo=bun)](https://github.com/SjnExe/AddonExe)
 [![Discord Server](https://img.shields.io/discord/633296555650318346?style=for-the-badge&logo=discord&logoColor=white&label=Discord&color=7289DA)](https://discord.gg/SMUHUnGyyz)
 
 **A comprehensive, modular server management, economy, moderation, and gameplay suite for Minecraft Bedrock Edition.**
@@ -37,10 +36,7 @@
   - **Rank & Permission Engine (`/rank`, `/listranks`):** Customizable ranks with wildcard permissions, chat/nametag formatting, and shop multipliers.
   - **Friends (`/friend`), Private Messages (`/xmsg`, `/r`) & Teams/Guilds (`/team`, `/teamchat`):** Friend lists with quick TPA, plus Teams with shared bank balances and team homes.
   - **High-Performance Scoreboard Sidebar & Action Bar HUD (`/sidebar`):** Precomputed, flicker-free live server/player stats display with Right, Left, and Bottom layouts.
-  - **Mini-Games Hub:** Play **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), **Connect 4** (`/c4`), **Coin Flip** (`/cf`), **Minesweeper** (`/ms`), and **Wordle** (`/wordle`, `/guess`).
-- ⚡ **High Performance & Battle-Tested Reliability:**
-  - Zero-lag architecture with token precomputation, $O(1)$ anticheat slot scanning, and iterative UI form state loops.
-  - **306 passing unit tests** running on Bun's parallel test runner, ensuring robust stability and regression prevention across all modules.
+  - **Mini-Games Hub:** Play **Tic-Tac-Toe** (`/ttt`), **Rock Paper Scissors** (`/rps`), **Connect 4** (`/c4`), **Coin Flip** (`/cf`), **Minesweeper** (`/ms`), **Wordle** (`/wordle`, `/guess`), **2048** (`/2048`), **Fast Math** (`/math`), **Scramble** (`/scramble`), and **Number Guess** (`/numguess`).
 
 ---
 
@@ -57,18 +53,6 @@
    ```
    _(Or run `/tag @s add owner` followed by `/xreload`.)_
 5. **Configure & Enable Features:** Run `/panel` -> **Staff Dashboard** -> **Addon Configuration** -> **Master Feature Toggles** to enable Economy, Shop, Kits, and other optional modules.
-
----
-
-## 🧪 Development & Testing
-
-AddonExe is built with Bun and strictly typed TypeScript with a comprehensive automated test suite:
-
-```bash
-bun test --parallel     # Run all 306 unit tests in parallel
-bun lint:check          # Run full lint, typecheck, schema, and texture validation
-bun run build           # Build production behavior pack scripts
-```
 
 ---
 
