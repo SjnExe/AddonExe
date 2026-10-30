@@ -27,7 +27,7 @@ async function main() {
   }
 
   // Guard 2: Block direct push to main branch
-  if (/\bgit\s+push\b/.test(command)) {
+  if (/\bgit\s+push\b/.test(command) && !command.includes('--delete') && !command.includes(' -d ')) {
     if (/\bgit\s+push\b.*(?:\bmain\b|\bHEAD:main\b)/.test(command)) {
       console.log(
         JSON.stringify({

@@ -44,6 +44,11 @@ describe('antigravitySafety hook', () => {
     expect(result.reason).toContain('main');
   });
 
+  it('allows remote branch deletion via git push --delete', async () => {
+    const result = await runSafetyHook('git push origin --delete feat/temp');
+    expect(result.decision).toBe('allow');
+  });
+
   it('denies editing packs/behavior/scripts/', async () => {
     const result = await runSafetyHook('echo "foo" > packs/behavior/scripts/main.js');
     expect(result.decision).toBe('deny');
