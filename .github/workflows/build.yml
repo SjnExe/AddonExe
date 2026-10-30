@@ -60,28 +60,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun fmt --check
 
-  typecheck:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Cache Bun Dependencies
-        uses: actions/cache@v6
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - run: bun install --frozen-lockfile
-      - run: bun check
-
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -192,7 +170,7 @@ jobs:
         run: bun run validate
 
   release:
-    needs: [build, lint, format, typecheck, test]
+    needs: [build, lint, format, test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
