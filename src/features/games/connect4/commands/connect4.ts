@@ -1,9 +1,9 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/config/configurations.js';
-import { resolveTarget } from '@core/utils/index.js';
+import { resolveSingleOnlineTarget } from '@core/utils/index.js';
 import { showConnect4Menu } from '@features/games/connect4/ui/panel.js';
 import { handleCommonGameSubcommand, sendGameInvite } from '@features/games/matchmakingManager.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 const connect4Command: CustomCommand = {
@@ -42,13 +42,17 @@ const connect4Command: CustomCommand = {
 
     const targetName = sub === 'invite' && isNonEmptyString(second) ? second : first;
     const wagerVal = sub === 'invite' ? 0 : isNonEmptyString(second) ? Number.parseFloat(second) : 0;
-    const target = resolveTarget(targetName, executor)[0];
-    if (!isDefined(target)) {
-      executor.sendMessage(`§cPlayer '${targetName}' is not online.`);
+    const resolved = resolveSingleOnlineTarget(targetName, executor, {
+      selfErrorMessage: '§cYou cannot challenge yourself.',
+    });
+    if (resolved.error || !resolved.player) {
+      executor.sendMessage(resolved.error ?? '§cPlayer not found.');
       return;
     }
 
-    executor.sendMessage(sendGameInvite(executor, target, 'connect4', Number.isNaN(wagerVal) ? 0 : wagerVal).message);
+    executor.sendMessage(
+      sendGameInvite(executor, resolved.player, 'connect4', Number.isNaN(wagerVal) ? 0 : wagerVal).message,
+    );
   },
 };
 
