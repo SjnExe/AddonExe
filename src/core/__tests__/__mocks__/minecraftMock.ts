@@ -528,22 +528,20 @@ export class ModalFormData {
   }
 
   show = mock().mockImplementation(async () => {
+    const values: (string | number | boolean | undefined)[] = [];
+    for (const c of this._controls) {
+      if (c.type === 'toggle') {
+        values.push(c.defaultValue ?? false);
+      } else if (c.type === 'textField') {
+        values.push(c.defaultValue ?? '');
+      } else if (c.type === 'dropdown') {
+        values.push(c.defaultValueIndex ?? 0);
+      } else if (c.type === 'slider') {
+        values.push(c.defaultValue ?? c.min);
+      }
+    }
     return {
-      formValues: this._controls.map((c): string | number | boolean | undefined => {
-        if (c.type === 'toggle') {
-          return c.defaultValue ?? false;
-        }
-        if (c.type === 'textField') {
-          return c.defaultValue ?? '';
-        }
-        if (c.type === 'dropdown') {
-          return c.defaultValueIndex ?? 0;
-        }
-        if (c.type === 'slider') {
-          return c.defaultValue ?? c.min;
-        }
-        return undefined;
-      }),
+      formValues: values,
       canceled: false,
     };
   });

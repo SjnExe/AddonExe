@@ -188,17 +188,14 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
       } else if (ctrl.type === 'header') {
         if (typeof form.header === 'function') {
           form.header(safeLabel);
-          valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'label') {
         if (typeof form.label === 'function') {
           form.label(safeLabel);
-          valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'divider') {
         if (typeof form.divider === 'function') {
           form.divider();
-          valueControlOrder.push(ctrl);
         }
       } else if (ctrl.type === 'button' && ctrl.onClick) {
         buttonCallbacks.push(ctrl.onClick);
