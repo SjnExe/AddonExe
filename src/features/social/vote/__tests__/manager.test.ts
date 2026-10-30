@@ -38,6 +38,7 @@ describe('Vote Manager', () => {
     saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation((data: any) => mockStorageSave(data));
 
     debugLogSpy.mockReset();
+    sendMessageSpy.mockReset();
     mockStorageLoad.mockReset();
     mockStorageSave.mockReset();
     intervalCallback = undefined;
