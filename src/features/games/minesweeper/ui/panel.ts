@@ -13,7 +13,6 @@ import {
   calculateNetElapsedSeconds,
   clearPlayerMinesweeperGame,
   forfeitMinesweeperRace,
-  getCellVisual,
   getDifficultySettings,
   getMinesweeperBoardProgress,
   getMinesweeperRaceMatch,
@@ -21,6 +20,7 @@ import {
   getPlayerMinesweeperStats,
   handleMinesweeperCellTap,
   recordMinesweeperTurnShown,
+  renderBoardButtons,
   startMinesweeperGame,
   toggleMinesweeperFlagMode,
 } from '@features/games/minesweeper/manager.js';
@@ -198,16 +198,8 @@ export async function showMinesweeperBoard(player: mc.Player, notice?: string): 
     )
     .body(escapeBedrockPercent(statusLine));
 
-  const cells = game.cells;
   const cellCount = game.totalCells;
-  for (let i = 0; i < cellCount; i++) {
-    const visual = getCellVisual(game, cells[i]!);
-    if (visual.icon) {
-      rawForm.button(visual.label, visual.icon);
-    } else {
-      rawForm.button(visual.label);
-    }
-  }
+  renderBoardButtons(game, rawForm);
 
   if (game.status === 'active') {
     const toolbarText = game.flagMode

@@ -12,7 +12,7 @@ import {
 } from '@features/games/matchmakingManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { uiManager } from '@minecraft/server-ui';
+import { ActionFormData, uiManager } from '@minecraft/server-ui';
 
 export type MinesweeperDifficulty = 'easy' | 'medium' | 'hard';
 
@@ -426,22 +426,6 @@ function persistMinesweeperStats(playerId: string, stats: MinesweeperPlayerStats
   });
 }
 
-function syncBoardCounts(game: MinesweeperGame): void {
-  let safeCleared = 0;
-  let flaggedCount = 0;
-  for (let i = 0; i < game.cells.length; i++) {
-    const cell = game.cells[i]!;
-    if (cell.flagged) {
-      flaggedCount++;
-    }
-    if (!cell.hasMine && cell.revealed) {
-      safeCleared++;
-    }
-  }
-  game.safeCleared = safeCleared;
-  game.flaggedCount = flaggedCount;
-}
-
 export function getMinesweeperBoardProgress(game: MinesweeperGame): MinesweeperBoardProgress {
   const totalSafe = Math.max(1, game.totalCells - game.totalMines);
   const percent = Math.min(100, Math.floor((game.safeCleared / totalSafe) * 100));
@@ -642,11 +626,7 @@ function floodReveal(game: MinesweeperGame, startIndex: number): void {
 }
 
 function checkWinCondition(game: MinesweeperGame): boolean {
-  if (game.safeCleared >= game.totalCells - game.totalMines) {
-    syncBoardCounts(game);
-    return game.safeCleared >= game.totalCells - game.totalMines;
-  }
-  return false;
+  return game.safeCleared >= game.totalCells - game.totalMines;
 }
 
 function revealAllMines(game: MinesweeperGame): void {
@@ -718,7 +698,7 @@ export function handleMinesweeperCellTap(
 
   if (cell.revealed) {
     if (cell.adjacentMines > 0) {
-      const neighbors = getNeighborIndices(cellIndex, game.cols, game.rows);
+      const neighbors = computeNeighborTable(game.cols, game.rows)[cellIndex] ?? [];
       let flaggedCount = 0;
       let unflaggedHiddenCount = 0;
       for (let i = 0; i < neighbors.length; i++) {
@@ -861,6 +841,64 @@ export function getCellVisual(game: MinesweeperGame, cell: MinesweeperCell): { l
     return minedEmptyCellVisual;
   }
   return numberCellVisuals[cell.adjacentMines] ?? minedEmptyCellVisual;
+}
+
+/**
+ * Adds all cell buttons to the form in a single tight loop. Hoists status checks outside the loop and avoids per-cell
+ * function call overhead of `getCellVisual` for faster board rendering.
+ */
+export function renderBoardButtons(game: MinesweeperGame, form: ActionFormData): void {
+  const cells = game.cells;
+  const len = cells.length;
+  const isLost = game.status === 'lost';
+  const isWon = game.status === 'won';
+  const exploded = game.explodedIndex;
+
+  for (let i = 0; i < len; i++) {
+    const cell = cells[i]!;
+    let label: string;
+    let icon: string;
+
+    if (!cell.revealed) {
+      if (cell.flagged) {
+        if (isLost && !cell.hasMine) {
+          label = wrongFlagCellVisual.label;
+          icon = wrongFlagCellVisual.icon;
+        } else if (isWon) {
+          label = flaggedWonCellVisual.label;
+          icon = flaggedWonCellVisual.icon;
+        } else {
+          label = flaggedActiveCellVisual.label;
+          icon = flaggedActiveCellVisual.icon;
+        }
+      } else {
+        label = unminedCellVisual.label;
+        icon = unminedCellVisual.icon;
+      }
+    } else if (cell.hasMine) {
+      if (exploded === cell.index) {
+        label = explodedMineCellVisual.label;
+        icon = explodedMineCellVisual.icon;
+      } else {
+        label = revealedMineCellVisual.label;
+        icon = revealedMineCellVisual.icon;
+      }
+    } else if (cell.adjacentMines === 0) {
+      label = minedEmptyCellVisual.label;
+      icon = minedEmptyCellVisual.icon;
+    } else {
+      const vis = numberCellVisuals[cell.adjacentMines];
+      if (isDefined(vis)) {
+        label = vis.label;
+        icon = vis.icon;
+      } else {
+        label = minedEmptyCellVisual.label;
+        icon = minedEmptyCellVisual.icon;
+      }
+    }
+
+    form.button(label, icon);
+  }
 }
 
 export function _clearMinesweeperForTest(): void {
