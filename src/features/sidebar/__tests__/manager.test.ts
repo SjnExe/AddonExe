@@ -10,8 +10,14 @@ import * as mc from '@minecraft/server';
 
 import defaultConfig from '../../../config.js';
 
-const { cleanup, forceUpdate, initializeSidebar, resolveGlobalPlaceholders, setActionBarOverride } =
-  await import('../manager.js');
+const {
+  cleanup,
+  createPlayerPlaceholderContext,
+  forceUpdate,
+  initializeSidebar,
+  resolveGlobalPlaceholders,
+  setActionBarOverride,
+} = await import('../manager.js');
 
 describe('Sidebar Manager', () => {
   let getAllPlayersSpy: any;
@@ -99,6 +105,23 @@ describe('Sidebar Manager', () => {
     expect(resolved).toContain('VIP');
     expect(resolved).toContain('$1k');
     expect(resolved).toContain('5.00');
+  });
+
+  it('should reuse precomputed placeholder context across multiple lines', () => {
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+    } as unknown as mc.Player;
+
+    const ctx = createPlayerPlaceholderContext(mockPlayer);
+    const line1 = resolveGlobalPlaceholders('Player: {name}', mockPlayer, ctx);
+    const line2 = resolveGlobalPlaceholders('Rank: {rank}', mockPlayer, ctx);
+    const line3 = resolveGlobalPlaceholders('Money: {money}', mockPlayer, ctx);
+
+    expect(line1).toBe('Player: TestPlayer');
+    expect(line2).toBe('Rank: VIP');
+    expect(line3).toBe('Money: $1k');
   });
 
   it('should allow setting action bar override on player', () => {

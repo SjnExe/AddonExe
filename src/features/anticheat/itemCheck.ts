@@ -32,9 +32,10 @@ function* checkInventoryGenerator(config: AnticheatConfig) {
   try {
     // Optimization: Use cached players
     const players = getAllPlayersFromCache();
+    const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
     for (const player of players) {
       if (player.isValid) {
-        checkPlayerInventory(player, config.itemCheck);
+        checkPlayerInventory(player, config.itemCheck, bannedSet);
       }
       yield;
     }
@@ -63,10 +64,12 @@ function getBannedItemSet(bannedItems: string[]): Set<string> {
   return cachedBannedSet;
 }
 
-export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig) {
+export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
   if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
     return;
   }
+
+  const effectiveBannedSet = bannedSet ?? getBannedItemSet(config.bannedItems);
 
   // Check Main Inventory
   const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
@@ -75,7 +78,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
     for (let i = 0; i < container.size; i++) {
       const item = container.getItem(i);
       if (isDefined(item)) {
-        checkItem(item, player, config, (newItem) => container.setItem(i, newItem));
+        checkItem(item, player, config, (newItem) => container.setItem(i, newItem), effectiveBannedSet);
       }
     }
   }
@@ -94,7 +97,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig)
     for (const slot of slots) {
       const item = equippable.getEquipment(slot);
       if (isDefined(item)) {
-        checkItem(item, player, config, (newItem) => equippable.setEquipment(slot, newItem));
+        checkItem(item, player, config, (newItem) => equippable.setEquipment(slot, newItem), effectiveBannedSet);
       }
     }
   }
@@ -105,6 +108,7 @@ export function checkItem(
   player: mc.Player,
   config: ItemCheckConfig,
   updateItem: (item?: mc.ItemStack) => void,
+  bannedSet?: Set<string>,
 ) {
   const maxEnchantLevel = config.maxEnchantLevel ?? 5;
   let modified = false;
@@ -139,8 +143,8 @@ export function checkItem(
   }
 
   // Check Banned ID
-  const bannedSet = getBannedItemSet(config.bannedItems);
-  if (bannedSet.has(item.typeId)) {
+  const effectiveBannedSet = bannedSet ?? getBannedItemSet(config.bannedItems);
+  if (effectiveBannedSet.has(item.typeId)) {
     flag(player, 'itemCheck', `Banned Item: ${item.typeId}`);
     if (config.removeIllegalItems === true) {
       updateItem();

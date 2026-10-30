@@ -79,9 +79,6 @@ const bountyCommand: CustomCommand = {
     const targetName = args.target as string | undefined;
     const amountStr = args.amount as string | undefined;
 
-    if (!isNonEmptyString(targetName)) {
-      return sendMessage('§cPlease specify a player.', executor);
-    }
     if (!isNonEmptyString(amountStr)) {
       return sendMessage('§cUsage: /bounty <player> <amount>', executor);
     }
@@ -123,9 +120,6 @@ const removeBountyCommand: CustomCommand = {
     const targetName = args.target as string | undefined;
     const amountStr = args.amount as string | undefined;
 
-    if (!isNonEmptyString(targetName)) {
-      return sendMessage('§cPlease specify a player.', executor);
-    }
     if (!isNonEmptyString(amountStr)) {
       return sendMessage('§cPlease specify an amount.', executor);
     }

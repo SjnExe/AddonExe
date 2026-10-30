@@ -244,6 +244,7 @@ function renderPlayerHud(
   config: ReturnType<typeof configurations.getSidebarConfig>,
   defaultLayout: SidebarLayoutMode,
   force = false,
+  context?: PlayerPlaceholderContext,
 ) {
   const visible = playerDataManager.getSidebarVisible(player.id);
   const activeOverride = actionBarOverrides.get(player.id);
@@ -267,11 +268,12 @@ function renderPlayerHud(
 
   const layout = resolvePlayerEffectiveLayout(player, defaultLayout);
   const showBannerInCard = config.showAlertBannerInSidebar === true;
+  const placeholderCtx = context ?? createPlayerPlaceholderContext(player, undefined, config);
 
   if (layout === 'right' || layout === 'left') {
     const prefix = layout === 'right' ? '§1§r' : '§2§r';
     const rawLines = config.globalInfo?.sidebarLines ?? [];
-    const resolvedLines = rawLines.map((line) => resolveGlobalPlaceholders(line, player));
+    const resolvedLines = rawLines.map((line) => resolveGlobalPlaceholders(line, player, placeholderCtx));
 
     if (isNonEmptyString(alertText) && showBannerInCard) {
       resolvedLines.push(`§e§l⚡ §r${alertText}`);
@@ -295,7 +297,7 @@ function renderPlayerHud(
   }
 
   const sourceLines = config.hud?.actionBarLines ?? [];
-  const processedLines = sourceLines.map((line) => resolveGlobalPlaceholders(line, player));
+  const processedLines = sourceLines.map((line) => resolveGlobalPlaceholders(line, player, placeholderCtx));
   const payload = `§3§r${processedLines.join(' ')}`;
   sendHudPayload(player, payload, force);
 }
@@ -317,6 +319,7 @@ function updateSidebars(force = false) {
     return;
   }
 
+  const mainConfig = configManager.getConfig();
   const players = getAllPlayersFromCache();
   const defaultLayout: SidebarLayoutMode = config.defaultLayout ?? 'right';
   const globalInfo = config.globalInfo ?? {
@@ -338,7 +341,7 @@ function updateSidebars(force = false) {
   if (!useGlobalScoreboard) {
     clearSidebarObjective(true);
   } else if (shouldUpdateGlobal) {
-    updateGlobalSidebarObjective(globalInfo, config);
+    updateGlobalSidebarObjective(globalInfo, config, mainConfig);
   }
 
   if (!shouldUpdateHud) {
@@ -354,7 +357,8 @@ function updateSidebars(force = false) {
       if (!isDefined(pData)) {
         continue;
       }
-      renderPlayerHud(player, config, defaultLayout, force);
+      const context = createPlayerPlaceholderContext(player, mainConfig, config, pData);
+      renderPlayerHud(player, config, defaultLayout, force, context);
     } catch (error) {
       debugLog(`Error updating sidebar for ${player.name}: ${String(error)}`);
     }
@@ -364,15 +368,21 @@ function updateSidebars(force = false) {
 function updateGlobalSidebarObjective(
   globalInfo: { title?: string; maxPlayers?: number; sidebarLines?: string[] },
   config: unknown,
+  mainConfig?: ReturnType<typeof configManager.getConfig>,
 ) {
   try {
     const scoreboard = mc.world.scoreboard;
     let objective = scoreboard.getObjective(sidebarObjectiveId);
 
+    const mConfig = mainConfig ?? configManager.getConfig();
+    const globalContext = createPlayerPlaceholderContext(undefined, mConfig);
+
     const rawTitle = globalInfo.title ?? (config as { title?: string }).title ?? '§l§b{server_name}';
-    const title = resolveGlobalPlaceholders(rawTitle);
+    const title = resolveGlobalPlaceholders(rawTitle, undefined, globalContext);
     const sourceLines = globalInfo.sidebarLines ?? (config as { sidebarLines?: string[] }).sidebarLines ?? [];
-    const resolvedLines = sourceLines.map((rawLine, i) => resolveGlobalPlaceholders(rawLine ?? '') + '§r'.repeat(i));
+    const resolvedLines = sourceLines.map(
+      (rawLine, i) => resolveGlobalPlaceholders(rawLine ?? '', undefined, globalContext) + '§r'.repeat(i),
+    );
 
     const linesUnchanged =
       scoreboardActive &&
@@ -384,12 +394,24 @@ function updateGlobalSidebarObjective(
       return;
     }
 
+    const titleChanged = !objective || objective.displayName !== title;
+    if (titleChanged) {
+      if (objective) {
+        scoreboard.clearObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar);
+        scoreboard.removeObjective(objective);
+      }
+      objective = scoreboard.addObjective(sidebarObjectiveId, title);
+      if (!objective) {
+        return;
+      }
+      scoreboard.setObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar, {
+        objective: objective,
+        sortOrder: mc.ObjectiveSortOrder.Descending,
+      });
+    }
+
     if (!objective) {
-      objective = scoreboard.addObjective(sidebarObjectiveId, title);
-    } else if (objective.displayName !== title) {
-      scoreboard.clearObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar);
-      scoreboard.removeObjective(objective);
-      objective = scoreboard.addObjective(sidebarObjectiveId, title);
+      return;
     }
 
     const existingScores = objective.getScores();
@@ -402,10 +424,13 @@ function updateGlobalSidebarObjective(
       objective.setScore(resolvedLines[i]!, lineCount - i);
     }
 
-    scoreboard.setObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar, {
-      objective: objective,
-      sortOrder: mc.ObjectiveSortOrder.Descending,
-    });
+    if (!scoreboardActive) {
+      scoreboard.setObjectiveAtDisplaySlot(mc.DisplaySlotId.Sidebar, {
+        objective: objective,
+        sortOrder: mc.ObjectiveSortOrder.Descending,
+      });
+    }
+
     lastScoreboardTitle = title;
     lastScoreboardLines = resolvedLines;
     scoreboardActive = true;
@@ -430,92 +455,155 @@ function formatDimensionName(dimId: string): string {
 
 const placeholderTokenRegex = /\{([a-z0-9_]+)\}/g;
 
-export function resolveGlobalPlaceholders(text: string, player?: mc.Player): string {
-  if (!text.includes('{')) {
-    return text;
+export interface PlayerPlaceholderContext {
+  tokens: Map<string, string>;
+  leaderboard?: LeaderboardEntry[];
+}
+
+export function createPlayerPlaceholderContext(
+  player?: mc.Player,
+  mainConfig = configManager.getConfig(),
+  sidebarConfig = configurations.getSidebarConfig(),
+  pData?: ReturnType<typeof playerDataManager.getPlayer>,
+): PlayerPlaceholderContext {
+  const tokens = new Map<string, string>();
+
+  tokens.set('server_name', (mainConfig as { serverName?: string }).serverName || 'Minecraft Server');
+  tokens.set('online', getPlayerCount().toString());
+  tokens.set('max_online', (sidebarConfig.globalInfo?.maxPlayers ?? 20).toString());
+  tokens.set('tps', cachedTps);
+
+  const tpsColor = cachedTpsNum >= 18 ? '§a' : cachedTpsNum >= 14 ? '§e' : '§c';
+  tokens.set('tps_colored', `${tpsColor}${cachedTps}§r`);
+
+  if (cachedTickNumber !== currentTick) {
+    const now = new Date();
+    cachedTimeString = now.toLocaleTimeString('en-US', { hour12: false });
+    cachedDateString = now.toISOString().split('T')[0] ?? '';
+    cachedTickNumber = currentTick;
+  }
+  tokens.set('time', cachedTimeString);
+  tokens.set('date', cachedDateString);
+
+  if (!isDefined(player)) {
+    return { tokens };
   }
 
-  const mainConfig = configManager.getConfig();
-  const sidebarConfig = configurations.getSidebarConfig();
-  const pData = isDefined(player) ? playerDataManager.getPlayer(player.id) : undefined;
+  const data = pData ?? playerDataManager.getPlayer(player.id);
+  if (!isDefined(data)) {
+    return { tokens };
+  }
 
-  let cachedLeaderboard: LeaderboardEntry[] | undefined;
-  let cachedRank: ReturnType<typeof getPlayerRank> | undefined;
-  let cachedTeamLoaded = false;
-  let cachedTeam: TeamData | undefined;
-  let cachedLocLoaded = false;
+  tokens.set('name', player.name);
+
+  const rank = getPlayerRank(player, mainConfig);
+  tokens.set('rank', rank.name);
+  tokens.set('rank_prefix', rank.chatFormatting?.prefixText || rank.nametagPrefix || rank.name);
+
+  tokens.set('money', formatCurrency(data.balance));
+  tokens.set('bank', formatCurrency(data.bank?.savingsBalance ?? 0));
+  tokens.set('fd', formatCurrency((data.bank?.fixedDeposits ?? []).reduce((sum, fd) => sum + fd.principal, 0)));
+  tokens.set('bounty', formatCurrency(getBounty(player.id)?.amount ?? 0));
+
+  const kills = data.kills || 0;
+  const deaths = data.deaths || 0;
+  tokens.set('kills', kills.toString());
+  tokens.set('deaths', deaths.toString());
+  tokens.set('kdr', deaths === 0 ? kills.toFixed(2) : (kills / deaths).toFixed(2));
+  tokens.set('streak', (data.killStreak || 0).toString());
+  tokens.set('playtime', formatDuration(playerDataManager.getPlayTime(player.id)));
+
+  const teamManagerService = serviceLocator.getService<TeamManagerService>('team.manager');
+  const team = teamManagerService ? teamManagerService.getTeamByPlayer(player.id) : undefined;
+  tokens.set('team', team?.name ?? 'None');
+  tokens.set('team_balance', formatCurrency(team?.balance ?? 0));
+
   let locX = '0';
   let locY = '0';
   let locZ = '0';
   let dimLabel = 'Overworld';
+  try {
+    if (player.location) {
+      locX = Math.floor(player.location.x).toString();
+      locY = Math.floor(player.location.y).toString();
+      locZ = Math.floor(player.location.z).toString();
+    }
+    if (player.dimension?.id) {
+      dimLabel = formatDimensionName(player.dimension.id);
+    }
+  } catch {
+    // Ignore invalid entity state during dimension change
+  }
 
-  const ensureLoc = () => {
-    if (cachedLocLoaded || !isDefined(player)) {
-      return;
-    }
-    cachedLocLoaded = true;
-    try {
-      if (player.location) {
-        locX = Math.floor(player.location.x).toString();
-        locY = Math.floor(player.location.y).toString();
-        locZ = Math.floor(player.location.z).toString();
-      }
-      if (player.dimension?.id) {
-        dimLabel = formatDimensionName(player.dimension.id);
-      }
-    } catch {
-      // Ignore invalid entity state during dimension change
-    }
-  };
+  tokens.set('pos', `${locX}, ${locY}, ${locZ}`);
+  tokens.set('coords', `${locX}, ${locY}, ${locZ}`);
+  tokens.set('xyz', `${locX} / ${locY} / ${locZ}`);
+  tokens.set('x', locX);
+  tokens.set('y', locY);
+  tokens.set('z', locZ);
+  tokens.set('dimension', dimLabel);
 
-  const ensureTeam = () => {
-    if (!cachedTeamLoaded && isDefined(player)) {
-      cachedTeamLoaded = true;
-      const teamManagerService = serviceLocator.getService<TeamManagerService>('team.manager');
-      cachedTeam = teamManagerService ? teamManagerService.getTeamByPlayer(player.id) : undefined;
+  tokens.set('homes', Object.keys(data.homes || {}).length.toString());
+  tokens.set('max_homes', (mainConfig.homes?.maxHomes ?? 5).toString());
+  tokens.set(
+    'friends_online',
+    (data.friends ?? []).filter((fid) => isDefined(getPlayerFromCache(fid))).length.toString(),
+  );
+
+  const combatRem = getRemainingCombatCooldown(player.id);
+  tokens.set('combat', combatRem > 0 ? `§c⚔ ${combatRem}s` : '§a✔ Safe');
+
+  let healthVal = '20';
+  let maxHealthVal = '20';
+  try {
+    const healthComp = player.getComponent(mc.EntityComponentTypes.Health) as mc.EntityHealthComponent | undefined;
+    if (isDefined(healthComp)) {
+      healthVal = Math.ceil(healthComp.currentValue).toString();
+      maxHealthVal = Math.ceil(healthComp.effectiveMax).toString();
     }
-    return cachedTeam;
-  };
+  } catch {
+    // Ignore
+  }
+  tokens.set('health', healthVal);
+  tokens.set('max_health', maxHealthVal);
+
+  tokens.set('xp_level', typeof player.level === 'number' ? player.level.toString() : '0');
+
+  let gamemode = 'Survival';
+  try {
+    if (typeof player.getGameMode === 'function') {
+      const gm = String(player.getGameMode());
+      gamemode = gm.charAt(0).toUpperCase() + gm.slice(1).toLowerCase();
+    }
+  } catch {
+    // Ignore
+  }
+  tokens.set('gamemode', gamemode);
+
+  return { tokens };
+}
+
+export function resolveGlobalPlaceholders(
+  text: string,
+  player?: mc.Player,
+  context?: PlayerPlaceholderContext,
+): string {
+  if (!text.includes('{')) {
+    return text;
+  }
+
+  const ctx = context ?? createPlayerPlaceholderContext(player);
 
   return text.replace(placeholderTokenRegex, (fullMatch, token: string) => {
-    switch (token) {
-      case 'server_name':
-        return (mainConfig as { serverName?: string }).serverName || 'Minecraft Server';
-      case 'online':
-        return getPlayerCount().toString();
-      case 'max_online':
-        return (sidebarConfig.globalInfo?.maxPlayers ?? 20).toString();
-      case 'tps':
-        return cachedTps;
-      case 'tps_colored': {
-        const tpsColor = cachedTpsNum >= 18 ? '§a' : cachedTpsNum >= 14 ? '§e' : '§c';
-        return `${tpsColor}${cachedTps}§r`;
-      }
-      case 'time': {
-        if (cachedTickNumber !== currentTick) {
-          const now = new Date();
-          cachedTimeString = now.toLocaleTimeString('en-US', { hour12: false });
-          cachedDateString = now.toISOString().split('T')[0] ?? '';
-          cachedTickNumber = currentTick;
-        }
-        return cachedTimeString;
-      }
-      case 'date': {
-        if (cachedTickNumber !== currentTick) {
-          const now = new Date();
-          cachedTimeString = now.toLocaleTimeString('en-US', { hour12: false });
-          cachedDateString = now.toISOString().split('T')[0] ?? '';
-          cachedTickNumber = currentTick;
-        }
-        return cachedDateString;
-      }
+    const val = ctx.tokens.get(token);
+    if (val !== undefined) {
+      return val;
     }
 
     if (token.startsWith('top_money_')) {
       const idx = Number.parseInt(token.slice(10), 10) - 1;
       const leaderboard =
-        cachedLeaderboard ??
-        (cachedLeaderboard = serviceLocator.getService('economy.leaderboard')?.getLeaderboard() ?? []);
+        ctx.leaderboard ?? (ctx.leaderboard = serviceLocator.getService('economy.leaderboard')?.getLeaderboard() ?? []);
       if (isNumber(idx) && idx >= 0 && idx < leaderboard.length) {
         const entry = leaderboard[idx];
         return isDefined(entry) && isDefined(entry.name) ? `${entry.name}: ${formatCurrency(entry.balance)}` : '---';
@@ -523,106 +611,7 @@ export function resolveGlobalPlaceholders(text: string, player?: mc.Player): str
       return '---';
     }
 
-    if (!isDefined(player) || !isDefined(pData)) {
-      return fullMatch;
-    }
-
-    switch (token) {
-      case 'name':
-        return player.name;
-      case 'rank': {
-        cachedRank ??= getPlayerRank(player, mainConfig);
-        return cachedRank.name;
-      }
-      case 'rank_prefix': {
-        cachedRank ??= getPlayerRank(player, mainConfig);
-        return cachedRank.chatFormatting?.prefixText || cachedRank.nametagPrefix || cachedRank.name;
-      }
-      case 'money':
-        return formatCurrency(pData.balance);
-      case 'bank':
-        return formatCurrency(pData.bank?.savingsBalance ?? 0);
-      case 'fd':
-        return formatCurrency((pData.bank?.fixedDeposits ?? []).reduce((sum, fd) => sum + fd.principal, 0));
-      case 'bounty':
-        return formatCurrency(getBounty(player.id)?.amount ?? 0);
-      case 'kills':
-        return (pData.kills || 0).toString();
-      case 'deaths':
-        return (pData.deaths || 0).toString();
-      case 'kdr': {
-        const kills = pData.kills || 0;
-        const deaths = pData.deaths || 0;
-        return deaths === 0 ? kills.toFixed(2) : (kills / deaths).toFixed(2);
-      }
-      case 'streak':
-        return (pData.killStreak || 0).toString();
-      case 'playtime':
-        return formatDuration(playerDataManager.getPlayTime(player.id));
-      case 'team':
-        return ensureTeam()?.name ?? 'None';
-      case 'team_balance':
-        return formatCurrency(ensureTeam()?.balance ?? 0);
-      case 'pos':
-      case 'coords':
-        ensureLoc();
-        return `${locX}, ${locY}, ${locZ}`;
-      case 'xyz':
-        ensureLoc();
-        return `${locX} / ${locY} / ${locZ}`;
-      case 'x':
-        ensureLoc();
-        return locX;
-      case 'y':
-        ensureLoc();
-        return locY;
-      case 'z':
-        ensureLoc();
-        return locZ;
-      case 'dimension':
-        ensureLoc();
-        return dimLabel;
-      case 'homes':
-        return Object.keys(pData.homes || {}).length.toString();
-      case 'max_homes':
-        return (mainConfig.homes?.maxHomes ?? 5).toString();
-      case 'friends_online':
-        return (pData.friends ?? []).filter((fid) => isDefined(getPlayerFromCache(fid))).length.toString();
-      case 'combat': {
-        const combatRem = getRemainingCombatCooldown(player.id);
-        return combatRem > 0 ? `§c⚔ ${combatRem}s` : '§a✔ Safe';
-      }
-      case 'health':
-      case 'max_health': {
-        try {
-          const healthComp = player.getComponent(mc.EntityComponentTypes.Health) as
-            mc.EntityHealthComponent | undefined;
-          if (isDefined(healthComp)) {
-            return token === 'health'
-              ? Math.ceil(healthComp.currentValue).toString()
-              : Math.ceil(healthComp.effectiveMax).toString();
-          }
-        } catch {
-          // Ignore
-        }
-        return '20';
-      }
-      case 'xp_level':
-        return typeof player.level === 'number' ? player.level.toString() : '0';
-      case 'gamemode': {
-        try {
-          if (typeof player.getGameMode === 'function') {
-            const gm = String(player.getGameMode());
-            return gm.charAt(0).toUpperCase() + gm.slice(1).toLowerCase();
-          }
-        } catch {
-          // Ignore
-        }
-        return 'Survival';
-      }
-      default:
-        return fullMatch;
-    }
+    return fullMatch;
   });
 }
 
