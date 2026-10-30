@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Staff & Social Enhancements:** Added **Staff Inventory Swap** (`/staffinv`, `/sinv`), **Ender Chest Inspector** (`/ecsee`), **Private Messaging & Social Spy** (`/xmsg`, `/r`, `/socialspy`, plus UI direct messaging), **Zone Selection Wand** (`/zonewand`), **Auction House Subcommands** (`/ah collect|listings|cancel`), **Poll Creation Subcommands** (`/vote create|results`), **Watchlist Staff Alerts**, and **Bulk Shop Selling** (`/sellall`).
 - **Adaptive Sidebar & HUD Layouts (`/sidebar`):** Added Top-Right Card, Top-Left Touch-Friendly Card, and Bottom Compact Bar layouts with theme presets.
 
+### 🚀 Performance & Core Architecture
+
+- **Sidebar HUD Token Precomputation:** Precalculated player token context (data, ranks, teams, coords, TPS) per update cycle, eliminating per-line closure allocations and continuous config queries; prevented scoreboard objective flicker on title changes.
+- **Anticheat Constant-Time Set Lookups:** Cached banned item lookups into a `Set<string>` for $O(1)$ scans across all 41 inventory and equipment slots.
+- **Form UI Iterative State Loops:** Modernized Connect 4, Tic-Tac-Toe, and Minesweeper to iterative `while (player.isValid)` loops, eliminating async call-stack accumulation.
+- **Unified Target Resolution:** Standardized online player target parsing across PvP challenge commands (`/ttt`, `/rps`, `/coinflip`, `/connect4`), `/pay`, and `/bounty`.
+
 ## [0.7.0] - 2025-10-28
 
 ### Updated to 1.21.120
