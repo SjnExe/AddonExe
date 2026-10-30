@@ -6,7 +6,6 @@ import { escapeCommandArg } from '@core/utils/sanitization.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
-import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
@@ -125,7 +124,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
 
   // Convert blocks/tick to blocks/second (approximate)
   // We strictly check HORIZONTAL speed to avoid flagging falling players
-  const hSpeed = Vector3Utils.distance({ x: 0, y: 0, z: 0 }, { x: velocity.x, y: 0, z: velocity.z }) * 20;
+  const hSpeed = Math.hypot(velocity.x, velocity.z) * 20;
 
   // Determine context-based limit
   let limit = config.maxSpeed;

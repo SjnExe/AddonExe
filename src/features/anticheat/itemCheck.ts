@@ -52,6 +52,17 @@ interface ItemCheckConfig {
   removeIllegalItems?: boolean;
 }
 
+let cachedBannedArrayRef: string[] | undefined;
+let cachedBannedSet = new Set<string>();
+
+function getBannedItemSet(bannedItems: string[]): Set<string> {
+  if (cachedBannedArrayRef !== bannedItems) {
+    cachedBannedArrayRef = bannedItems;
+    cachedBannedSet = new Set(bannedItems ?? []);
+  }
+  return cachedBannedSet;
+}
+
 export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig) {
   if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
     return;
@@ -95,8 +106,6 @@ export function checkItem(
   config: ItemCheckConfig,
   updateItem: (item?: mc.ItemStack) => void,
 ) {
-  const bannedItems = config.bannedItems;
-
   const maxEnchantLevel = config.maxEnchantLevel ?? 5;
   let modified = false;
 
@@ -130,7 +139,8 @@ export function checkItem(
   }
 
   // Check Banned ID
-  if (bannedItems.includes(item.typeId)) {
+  const bannedSet = getBannedItemSet(config.bannedItems);
+  if (bannedSet.has(item.typeId)) {
     flag(player, 'itemCheck', `Banned Item: ${item.typeId}`);
     if (config.removeIllegalItems === true) {
       updateItem();

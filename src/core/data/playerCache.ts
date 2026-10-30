@@ -2,6 +2,11 @@ import * as mc from '@minecraft/server';
 
 const playerCache = new Map<string, mc.Player>();
 const playerNameCache = new Map<string, mc.Player>();
+let cachedPlayerList: mc.Player[] = [];
+
+function refreshCachedPlayerList(): void {
+  cachedPlayerList = [...playerCache.values()];
+}
 
 let isInitialized = false;
 
@@ -13,6 +18,7 @@ export function initializePlayerCache(): void {
     playerCache.set(player.id, player);
     playerNameCache.set((player.name || '').toLowerCase(), player);
   }
+  refreshCachedPlayerList();
 
   if (!isInitialized) {
     isInitialized = true;
@@ -31,6 +37,7 @@ export function initializePlayerCache(): void {
 export function clearPlayerCache(): void {
   playerCache.clear();
   playerNameCache.clear();
+  cachedPlayerList = [];
 }
 
 export function getPlayerFromCache(playerId: string): mc.Player | undefined {
@@ -40,6 +47,7 @@ export function getPlayerFromCache(playerId: string): mc.Player | undefined {
 export function addPlayerToCache(player: mc.Player): void {
   playerCache.set(player.id, player);
   playerNameCache.set((player.name || '').toLowerCase(), player);
+  refreshCachedPlayerList();
 }
 
 export function removePlayerFromCache(playerId: string): void {
@@ -47,11 +55,12 @@ export function removePlayerFromCache(playerId: string): void {
   if (player) {
     playerNameCache.delete((player.name || '').toLowerCase());
     playerCache.delete(playerId);
+    refreshCachedPlayerList();
   }
 }
 
 export function getAllPlayersFromCache(): mc.Player[] {
-  return [...playerCache.values()];
+  return cachedPlayerList;
 }
 
 export function getPlayerCount(): number {
