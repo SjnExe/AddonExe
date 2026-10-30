@@ -61,9 +61,9 @@ See [AGENTS.md](../AGENTS.md) for full architecture and build details.
 Follow [AGENTS.md](../AGENTS.md):
 
 - **No `snake_case`** for project TypeScript identifiers (except where required by native Minecraft APIs or JSON schemas).
-- **Format modified files:** `bun fmt <files>`
+- **Format modified files:** `bun fmt --changed`
 - **Lint & Typecheck:** `bun lint:check`
-- **Run Unit Tests:** `bun test`
+- **Run Unit Tests:** `bun test --parallel`
 - **Build Addon:** `bun run build`
 
 ## Development Resources

@@ -21,10 +21,10 @@ Describe the unit tests and in-game checks run to verify these changes.
 
 **Checklist:**
 
-- [ ] I have read [CONTRIBUTING.md](CONTRIBUTING.md).
-- [ ] My code follows [AGENTS.md](../AGENTS.md).
+- [ ] I have read [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+- [ ] My code follows [AGENTS.md](AGENTS.md).
 - [ ] `bun lint:check` passes with zero errors.
-- [ ] `bun test` passes all unit tests.
+- [ ] `bun test --parallel` passes all unit tests.
 - [ ] I have updated relevant documentation in `docs/` if needed.
 
 ---
