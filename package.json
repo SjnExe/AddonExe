@@ -26,7 +26,6 @@
     "mc-update": "bun scripts/build/mcUpdate.ts",
     "project-info": "bunx mct info -i packs",
     "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
-    "test": "bun test --parallel",
     "test:dupe": "bun scripts/lint/testDuplication.ts",
     "test:watch": "bun test --parallel --watch",
     "validate": "bun scripts/hooks/validate.ts",
@@ -40,8 +39,8 @@
     "@minecraft/bedrock-schemas": "beta",
     "@minecraft/common": "latest",
     "@minecraft/creator-tools": "latest",
-    "@minecraft/server": "2.12.0-beta.1.26.60-stable",
-    "@minecraft/server-ui": "2.4.0-beta.1.26.60-stable",
+    "@minecraft/server": "2.12.0-beta.1.26.61-stable",
+    "@minecraft/server-ui": "2.4.0-beta.1.26.61-stable",
     "@types/bun": "latest",
     "oxlint": "latest"
   },
