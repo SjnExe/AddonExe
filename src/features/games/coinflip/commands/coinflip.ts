@@ -1,7 +1,7 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/config/configurations.js';
 import { validateCurrencyAmount } from '@core/utils/economy.js';
-import { resolveTarget } from '@core/utils/index.js';
+import { resolveSingleOnlineTarget } from '@core/utils/index.js';
 import { broadcastRandomCoinFlip, type CoinSide, playSoloWagerCoinFlip } from '@features/games/coinflip/manager.js';
 import { showCoinFlipMenu } from '@features/games/coinflip/ui/panel.js';
 import { handleCommonGameSubcommand, sendGameInvite } from '@features/games/matchmakingManager.js';
@@ -75,14 +75,15 @@ const coinFlipCommand: CustomCommand = {
     const targetName = sub === 'invite' && isNonEmptyString(second) ? second : first;
     const wagerVal = sub === 'invite' ? 0 : isNonEmptyString(second) ? (validateCurrencyAmount(second, false) ?? 0) : 0;
 
-    const targets = resolveTarget(targetName, executor);
-    const targetPlayer = targets[0];
-    if (!isDefined(targetPlayer)) {
-      executor.sendMessage(`§cPlayer '${targetName}' is not online.`);
+    const resolved = resolveSingleOnlineTarget(targetName, executor, {
+      selfErrorMessage: '§cYou cannot challenge yourself.',
+    });
+    if (resolved.error || !resolved.player) {
+      executor.sendMessage(resolved.error ?? '§cPlayer not found.');
       return;
     }
 
-    const res = sendGameInvite(executor, targetPlayer, 'coinflip', wagerVal);
+    const res = sendGameInvite(executor, resolved.player, 'coinflip', wagerVal);
     executor.sendMessage(res.message);
   },
 };

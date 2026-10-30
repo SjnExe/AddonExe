@@ -1,10 +1,10 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getGamesConfig } from '@core/config/configurations.js';
-import { resolveTarget } from '@core/utils/index.js';
+import { resolveSingleOnlineTarget } from '@core/utils/index.js';
 import { handleCommonGameSubcommand, sendGameInvite } from '@features/games/matchmakingManager.js';
 import { startRpsBotMatch } from '@features/games/rps/manager.js';
 import { showRpsMatchPanel, showRpsMenu } from '@features/games/rps/ui/panel.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 const rpsCommand: CustomCommand = {
@@ -51,14 +51,15 @@ const rpsCommand: CustomCommand = {
     const targetName = sub === 'invite' && isNonEmptyString(secondArg) ? secondArg : firstArg;
     const wagerVal = sub === 'invite' ? 0 : isNonEmptyString(secondArg) ? Number.parseFloat(secondArg) : 0;
 
-    const targets = resolveTarget(targetName, executor);
-    const targetPlayer = targets[0];
-    if (!isDefined(targetPlayer)) {
-      executor.sendMessage(`§cPlayer '${targetName}' is not online.`);
+    const resolved = resolveSingleOnlineTarget(targetName, executor, {
+      selfErrorMessage: '§cYou cannot challenge yourself.',
+    });
+    if (resolved.error || !resolved.player) {
+      executor.sendMessage(resolved.error ?? '§cPlayer not found.');
       return;
     }
 
-    const res = sendGameInvite(executor, targetPlayer, 'rps', Number.isNaN(wagerVal) ? 0 : wagerVal);
+    const res = sendGameInvite(executor, resolved.player, 'rps', Number.isNaN(wagerVal) ? 0 : wagerVal);
     executor.sendMessage(res.message);
   },
 };

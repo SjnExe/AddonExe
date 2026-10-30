@@ -1,6 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, getPlayerNameById } from '@core/data/playerDataManager.js';
-import { resolveTarget } from '@core/utils/index.js';
+import { resolveSingleOnlineTarget } from '@core/utils/index.js';
 import {
   acceptGameInvite,
   cancelGameInvite,
@@ -10,7 +10,7 @@ import {
   setGameInvitesStopped,
 } from '@features/games/matchmakingManager.js';
 import { showTicTacToeMenu } from '@features/games/tictactoe/ui/panel.js';
-import { isDefined, isNonEmptyString } from '@lib/guards.js';
+import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 async function handleGameCommand(
@@ -88,14 +88,15 @@ async function handleGameCommand(
   const targetName = sub === 'invite' && isNonEmptyString(secondArg) ? secondArg : actionOrTarget;
   const wagerVal = sub === 'invite' ? 0 : isNonEmptyString(secondArg) ? Number.parseFloat(secondArg) : 0;
 
-  const targets = resolveTarget(targetName, player);
-  const targetPlayer = targets[0];
-  if (!isDefined(targetPlayer)) {
-    player.sendMessage(`§cPlayer '${targetName}' is not online.`);
+  const resolved = resolveSingleOnlineTarget(targetName, player, {
+    selfErrorMessage: '§cYou cannot challenge yourself.',
+  });
+  if (resolved.error || !resolved.player) {
+    player.sendMessage(resolved.error ?? '§cPlayer not found.');
     return;
   }
 
-  const res = sendGameInvite(player, targetPlayer, defaultGameId, Number.isNaN(wagerVal) ? 0 : wagerVal);
+  const res = sendGameInvite(player, resolved.player, defaultGameId, Number.isNaN(wagerVal) ? 0 : wagerVal);
   player.sendMessage(res.message);
 }
 
