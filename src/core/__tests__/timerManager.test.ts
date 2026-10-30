@@ -44,6 +44,8 @@ describe('timerManager', () => {
     runJobSpy = spyOn(mc.system, 'runJob').mockImplementation(() => 0);
     clearRunSpy = spyOn(mc.system, 'clearRun').mockImplementation(() => {});
     clearJobSpy = spyOn(mc.system as any, 'clearJob').mockImplementation(() => {});
+    clearRunSpy.mockClear();
+    clearJobSpy.mockClear();
   });
 
   afterEach(() => {

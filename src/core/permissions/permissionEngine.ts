@@ -211,7 +211,7 @@ function getShortNodeCandidate(node: string, nSegs: string[]): string | undefine
 export function hasPermission(player: mc.Player, node: string): boolean {
   const ranks = getPlayerRanks(player);
 
-  if (ranks.some((r) => r.id === 'owner' || r.allow.includes('*'))) {
+  if (ranks.some((r) => r.id === 'owner' || r.allow?.includes('*'))) {
     return true;
   }
 
