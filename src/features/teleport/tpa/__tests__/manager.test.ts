@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { initializeConfigManager, updateMultipleConfig } from '@core/config/configManager.js';
 import { addPlayerToCache, clearPlayerCache } from '@core/data/playerCache.js';
-import { cleanupPlayerDataManager, getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
+import { cleanupPlayerDataManager, getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import {
   _clearTpaForTest,
   acceptRequest,
@@ -171,5 +171,39 @@ describe('TPA Manager Suite', () => {
 
     expect(getOutgoingRequest(sender)).toBeUndefined();
     expect(getIncomingRequest(target)).toBeUndefined();
+  });
+
+  it('accepts incoming TPA request and executes teleportation', () => {
+    const mockBlock = (isAir: boolean, typeId = 'minecraft:stone') => ({
+      isAir,
+      isLiquid: false,
+      typeId,
+    });
+    const mockDimension = {
+      id: 'minecraft:overworld',
+      getBlock: mock(({ y }: { y: number }) => {
+        if (y < 64) {
+          return mockBlock(false, 'minecraft:stone');
+        }
+        return mockBlock(true, 'minecraft:air');
+      }),
+    };
+
+    const sender = createMockPlayer('p1', 'Sender');
+    const target = createMockPlayer('p2', 'Target');
+    (target as any).dimension = mockDimension;
+    (sender as any).dimension = mockDimension;
+
+    addPlayerToCache(sender);
+    addPlayerToCache(target);
+    getOrCreatePlayer(sender);
+    getOrCreatePlayer(target);
+
+    createRequest(sender, target, 'tpa');
+    acceptRequest(target, sender.name);
+
+    expect(getOutgoingRequest(sender)).toBeUndefined();
+    expect(sender.teleport).toHaveBeenCalled();
+    expect(target.sendMessage).toHaveBeenCalled();
   });
 });

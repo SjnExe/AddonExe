@@ -117,3 +117,8 @@ export function getCooldown(playerId: string, identifier: string): number {
 
   return Math.ceil((expiry - now) / 1000);
 }
+
+export function _clearCooldownsForTest(): void {
+  cooldowns.clear();
+  needsSave = false;
+}

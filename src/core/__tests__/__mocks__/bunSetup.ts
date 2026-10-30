@@ -116,6 +116,7 @@ const { _clearAuctionHouseForTest } = await import('@features/economy/auction/ma
 const { invalidateWarpsCache } = await import('@features/teleport/warp/manager.js');
 const { _clearXrayForTest } = await import('@features/anticheat/xray/manager.js');
 const { _clearTpaForTest } = await import('@features/teleport/tpa/manager.js');
+const { _clearCooldownsForTest } = await import('@core/data/cooldownManager.js');
 
 beforeEach(() => {
   mock.restore();
@@ -138,4 +139,5 @@ beforeEach(() => {
   invalidateWarpsCache();
   _clearXrayForTest();
   _clearTpaForTest();
+  _clearCooldownsForTest();
 });

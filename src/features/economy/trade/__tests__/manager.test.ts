@@ -18,13 +18,17 @@ import {
 } from '@features/economy/trade/manager.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
-const createMockPlayerWithInventory = (id: string, name: string): mc.Player => {
+const createMockPlayerWithInventory = (id: string, name: string, initialHeldItem?: any): mc.Player => {
+  let heldItem = initialHeldItem;
   const container = {
     emptySlotsCount: 10,
     addItem: mock(() => undefined),
-    getItem: mock(() => undefined),
-    setItem: mock(() => {}),
+    getItem: mock(() => heldItem),
+    setItem: mock((slot: number, item: any) => {
+      heldItem = item;
+    }),
   };
 
   return {
@@ -207,5 +211,52 @@ describe('Player Trading Manager Suite (/trade)', () => {
 
     clearPlayerTradeOffers(sender.id);
     expect(getBalance(sender.id)).toBe(100);
+  });
+
+  it('escrows held item on offer creation and delivers to target on acceptance', () => {
+    const testSword = new mc.ItemStack(MinecraftItemTypes.IronSword, 1);
+    testSword.nameTag = 'DuelSword';
+    const sender = createMockPlayerWithInventory('p1', 'Sender', testSword);
+    const target = createMockPlayerWithInventory('p2', 'Target');
+    addPlayerToCache(sender);
+    addPlayerToCache(target);
+    getOrCreatePlayer(sender);
+    getOrCreatePlayer(target);
+
+    const res = createTradeOffer(sender, target, {
+      offerMoney: 0,
+      includeHeldItem: true,
+      requestMoney: 0,
+      requireTargetHeldItem: false,
+    });
+    expect(res.success).toBe(true);
+
+    const senderInv = (sender.getComponent(EntityComponentTypes.Inventory) as any).container;
+    expect(senderInv.getItem(0)).toBeUndefined();
+
+    const acceptRes = acceptTradeOffer(target);
+    expect(acceptRes.success).toBe(true);
+
+    const targetInv = (target.getComponent(EntityComponentTypes.Inventory) as any).container;
+    expect(targetInv.addItem).toHaveBeenCalled();
+  });
+
+  it('rejects trading blocked items like bundles or shulker boxes', () => {
+    const bundleItem = new mc.ItemStack(MinecraftItemTypes.Bundle, 1);
+    const sender = createMockPlayerWithInventory('p1', 'Sender', bundleItem);
+    const target = createMockPlayerWithInventory('p2', 'Target');
+    addPlayerToCache(sender);
+    addPlayerToCache(target);
+    getOrCreatePlayer(sender);
+    getOrCreatePlayer(target);
+
+    const res = createTradeOffer(sender, target, {
+      offerMoney: 0,
+      includeHeldItem: true,
+      requestMoney: 0,
+      requireTargetHeldItem: false,
+    });
+    expect(res.success).toBe(false);
+    expect(res.message).toContain('cannot be traded');
   });
 });

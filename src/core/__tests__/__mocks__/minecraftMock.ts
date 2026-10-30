@@ -598,6 +598,9 @@ export class ItemStack {
   typeId: string;
   amount: number;
   maxAmount: number;
+  nameTag?: string;
+  isStackable: boolean = true;
+  private _lore: string[] = [];
 
   constructor(typeId: string, amount: number) {
     if (typeId === 'invalid:item') {
@@ -606,6 +609,34 @@ export class ItemStack {
     this.typeId = typeId;
     this.amount = amount;
     this.maxAmount = 64; // Default max stack size
+  }
+
+  getLore(): string[] {
+    return [...this._lore];
+  }
+
+  setLore(lore?: string[]): void {
+    this._lore = lore ? [...lore] : [];
+  }
+
+  getComponent(_typeId: string): unknown {
+    return undefined;
+  }
+
+  getCanDestroy(): string[] {
+    return [];
+  }
+
+  getCanPlaceOn(): string[] {
+    return [];
+  }
+
+  getDynamicPropertyIds(): string[] {
+    return [];
+  }
+
+  getDynamicProperty(_id: string): unknown {
+    return undefined;
   }
 }
 

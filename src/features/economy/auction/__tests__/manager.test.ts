@@ -221,4 +221,25 @@ describe('Auction House Manager Suite', () => {
     expect(searchResults.length).toBe(1);
     expect(searchResults[0]?.item.nameTag).toBe('Excalibur');
   });
+
+  it('sorts listings by price using SortOption', () => {
+    const seller = createMockPlayerWithInventory('seller1', 'SellerOne');
+    addPlayerToCache(seller);
+    getOrCreatePlayer(seller);
+    setPlayerBalance(seller.id, 500);
+
+    const cheap = { typeId: 'minecraft:dirt', amount: 64 };
+    const expensive = { typeId: 'minecraft:diamond_block', amount: 10 };
+
+    createListing(seller, cheap, 50, false, 3600);
+    createListing(seller, expensive, 5000, false, 3600);
+
+    const asc = getListings(1, 10, undefined, SortOption.PriceAsc);
+    expect(asc[0]?.price).toBe(50);
+    expect(asc[1]?.price).toBe(5000);
+
+    const desc = getListings(1, 10, undefined, SortOption.PriceDesc);
+    expect(desc[0]?.price).toBe(5000);
+    expect(desc[1]?.price).toBe(50);
+  });
 });

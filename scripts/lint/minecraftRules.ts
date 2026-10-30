@@ -10,9 +10,13 @@ const camelCaseFileRegex = /^[a-z][a-zA-Z0-9]*(?:\.(?:test|d))?\.ts$/;
 const snakeCaseDeclRegex =
   /^\s*(?:export\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([a-zA-Z0-9_$]+_[a-zA-Z0-9_$]*)/;
 
+const normalizePath = (p: string) => p.replace(/\\/g, '/').replace(/^\.\//, '');
+
 export async function validateMinecraftRules(targetFiles?: string[]): Promise<number> {
   const allPaths = targetFiles
-    ? targetFiles.filter((p) => p.endsWith('.ts') && (p.startsWith('src/') || p.startsWith('scripts/')))
+    ? targetFiles
+        .map(normalizePath)
+        .filter((p) => p.endsWith('.ts') && (p.startsWith('src/') || p.startsWith('scripts/')))
     : [...Array.from(srcGlob.scanSync('.')), ...Array.from(scriptsGlob.scanSync('.'))];
 
   let errors = 0;
@@ -32,7 +36,7 @@ export async function validateMinecraftRules(targetFiles?: string[]): Promise<nu
 
   await Promise.all(
     codePaths.map(async (filePath) => {
-      const isSrc = filePath.startsWith('src/') || filePath.startsWith('./src/');
+      const isSrc = normalizePath(filePath).startsWith('src/');
       const content = await Bun.file(filePath).text();
       const lines = content.split('\n');
 
