@@ -13,6 +13,20 @@
       }
     ]
   },
+  "canary-deployer": {
+    "PostToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun scripts/hooks/antigravityCanary.ts 2>/dev/null || bun ../scripts/hooks/antigravityCanary.ts",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
   "safety-guard": {
     "PreToolUse": [
       {
