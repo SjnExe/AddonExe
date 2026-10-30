@@ -22,3 +22,5 @@ bundle-meta.md
 .cache/
 *.tsbuildinfo
 .helix/
+.agents/
+scripts/hooks/antigravity*
