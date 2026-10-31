@@ -12,12 +12,14 @@ export interface CfGameVersion {
   slug: string;
 }
 
+const unstablePattern = /\b(?:preview|beta|snapshot|pre(?:-?release|\d+)?|rc\d*)\b/i;
+
 export function isStableBedrockVersion(v: CfGameVersion): boolean {
-  const name = v.name.trim().toLowerCase();
-  const slug = (v.slug || '').toLowerCase();
+  const name = v.name.trim();
+  const slug = v.slug || '';
 
   // Exclude preview, beta, snapshot, pre-release and release candidate indicators
-  if (/preview|beta|snapshot|pre|rc/.test(name) || /preview|beta|snapshot|pre|rc/.test(slug)) {
+  if (unstablePattern.test(name) || unstablePattern.test(slug)) {
     return false;
   }
 
@@ -57,7 +59,7 @@ export function selectLatestBedrockVersion(versions: CfGameVersion[], allowBeta 
   return sorted[sorted.length - 1] ?? null;
 }
 
-export function selectBedrockVersionIds(versions: CfGameVersion[], allowBeta = false): number[] {
+export function selectBedrockVersionIds(versions: CfGameVersion[], allowBeta = false, minVersion?: string): number[] {
   const latest = selectLatestBedrockVersion(versions, allowBeta);
   if (!latest) {
     return [];
@@ -65,13 +67,20 @@ export function selectBedrockVersionIds(versions: CfGameVersion[], allowBeta = f
 
   const latestSemver = parseBedrockSemver(latest.name);
   const [latestMajor, latestMinor] = latestSemver.split('.').map(Number);
+  const minSemver = minVersion ? parseBedrockSemver(minVersion) : null;
 
   // Include compatible stable versions in the same major.minor series
   const candidates = allowBeta ? versions : versions.filter(isStableBedrockVersion);
   const compatible = candidates.filter((v) => {
     const sem = parseBedrockSemver(v.name);
     const [maj, min] = sem.split('.').map(Number);
-    return maj === latestMajor && min === latestMinor;
+    if (maj !== latestMajor || min !== latestMinor) {
+      return false;
+    }
+    if (minSemver && Bun.semver.order(sem, minSemver) < 0) {
+      return false;
+    }
+    return true;
   });
 
   const ids = new Set<number>();
@@ -187,7 +196,21 @@ export async function uploadToCurseForge(opts: UploadOptions = {}) {
         throw new Error('CurseForge returned an empty game versions list.');
       }
 
-      versionIds = selectBedrockVersionIds(versions, releaseType !== 'release');
+      let minEngineVersion: string | undefined;
+      const manifestFile = Bun.file('packs/behavior/manifest.json');
+      if (await manifestFile.exists()) {
+        try {
+          const manifest = await manifestFile.json();
+          const engine = manifest.header?.min_engine_version;
+          if (Array.isArray(engine) && engine.length >= 3) {
+            minEngineVersion = `${engine[0]}.${engine[1]}.${engine[2]}`;
+          }
+        } catch {
+          // Ignore parse errors, fallback to default
+        }
+      }
+
+      versionIds = selectBedrockVersionIds(versions, releaseType !== 'release', minEngineVersion);
       const latestVer = selectLatestBedrockVersion(versions, releaseType !== 'release');
       console.log(
         `[CurseForge] Selected latest game version: ${latestVer?.name ?? 'unknown'} (Tagged IDs: ${versionIds.join(

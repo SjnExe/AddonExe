@@ -4,15 +4,15 @@ export function parseChangelogSection(markdown: string, targetVersion: string): 
   const cleanTarget = targetVersion.replace(/^v/i, '').trim();
   const escapedTarget = cleanTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  // Match: ## [0.8.0], ## [v0.8.0], ## [0.8.0] - ..., etc.
-  const headerRegex = new RegExp(`^##\\s*\\[v?${escapedTarget}\\](?:\\s*-\\s*.*)?$`, 'm');
+  // Match: ## [0.8.0], ## 0.8.0, ## [v0.8.0], ## [0.8.0] - ..., etc.
+  const headerRegex = new RegExp(`^##\\s*\\[?v?${escapedTarget}\\]?(?:\\s*-\\s*.*)?$`, 'm');
   const match = headerRegex.exec(markdown);
 
   let startIndex = -1;
   if (match) {
     startIndex = match.index + match[0].length;
-  } else if (cleanTarget === 'unreleased') {
-    const unreleasedRegex = /^##\s*\[unreleased\]/im;
+  } else if (cleanTarget.toLowerCase() === 'unreleased') {
+    const unreleasedRegex = /^##\s*\[?unreleased\]?/im;
     const unreleasedMatch = unreleasedRegex.exec(markdown);
     if (unreleasedMatch) {
       startIndex = unreleasedMatch.index + unreleasedMatch[0].length;
@@ -24,8 +24,8 @@ export function parseChangelogSection(markdown: string, targetVersion: string): 
   }
 
   const remainder = markdown.slice(startIndex);
-  // Find next section marked by ## [
-  const nextSectionMatch = /^##\s*\[/m.exec(remainder);
+  // Find next section marked by ## [ or ## <digit>
+  const nextSectionMatch = /^##\s*(?:\[|[0-9]+)/m.exec(remainder);
   const rawSection = nextSectionMatch ? remainder.slice(0, nextSectionMatch.index) : remainder;
 
   const trimmed = rawSection.trim();
@@ -46,9 +46,11 @@ export async function extractChangelog(version: string, changelogPath?: string):
 
 if (import.meta.main) {
   const args = process.argv.slice(2);
-  const versionArg = args[0] || (await Bun.file('package.json').json()).version;
   const outIndex = args.indexOf('--output');
   const outFile = outIndex !== -1 && args[outIndex + 1] ? args[outIndex + 1] : null;
+
+  const positionalArgs = args.filter((arg, idx) => !arg.startsWith('-') && args[idx - 1] !== '--output');
+  const versionArg = positionalArgs[0] || (await Bun.file('package.json').json()).version;
 
   const result = await extractChangelog(versionArg);
   if (result) {
