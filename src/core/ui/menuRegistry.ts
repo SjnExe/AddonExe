@@ -273,7 +273,7 @@ export function initializeDefaultMenuItems(): void {
     id: 'tp_warps',
     title: 'Server Warps',
     description: 'Browse public server warps',
-    icon: 'textures/blocks/portal',
+    icon: 'textures/ui/NetherPortal',
     hub: 'teleport',
     featureId: 'tp.warp',
     order: 20,
@@ -733,7 +733,7 @@ export function initializeDefaultMenuItems(): void {
     id: 'staff_warps_mgmt',
     title: 'Warps Manager',
     description: 'Create & edit server warps',
-    icon: 'textures/blocks/portal',
+    icon: 'textures/ui/NetherPortal',
     hub: 'staff_world',
     permissionNode: 'ui.panel.admin',
     order: 30,
@@ -759,27 +759,13 @@ export function initializeDefaultMenuItems(): void {
 
   // --- STAFF CONFIG SUB-ITEMS ---
   registerMenuItem({
-    id: 'staff_master_toggles',
-    title: 'Feature Toggles',
-    icon: 'textures/ui/settings_glyph_color_2x',
-    description: 'Enable or disable modules',
-    hub: 'staff_config',
-    permissionNode: 'ui.panel.admin',
-    order: 10,
-    action: async (p) => {
-      const { showConfigSystemPanel } = await import('@core/ui/panels/configPanel.js');
-      await showConfigSystemPanel(p, 'featureToggles');
-    },
-  });
-
-  registerMenuItem({
     id: 'staff_configs',
     title: 'System Configs',
     description: 'Tune module settings',
     icon: 'textures/ui/icon_setting',
     hub: 'staff_config',
     permissionNode: 'ui.panel.admin',
-    order: 20,
+    order: 10,
     action: async (p) => {
       const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
       await showConfigCategoryPanel(p);
@@ -793,7 +779,7 @@ export function initializeDefaultMenuItems(): void {
     icon: 'textures/ui/trade_icon',
     hub: 'staff_config',
     permissionNode: 'ui.panel.admin',
-    order: 30,
+    order: 20,
     action: async (p) => {
       const { showShopManagementPanel } = await import('@features/economy/shop/ui/adminPanel.js');
       await showShopManagementPanel(p);
@@ -807,10 +793,24 @@ export function initializeDefaultMenuItems(): void {
     icon: 'textures/ui/icon_recipe_equipment',
     hub: 'staff_config',
     permissionNode: 'ui.panel.admin',
-    order: 40,
+    order: 30,
     action: async (p) => {
       const { showKitManagementPanel } = await import('@features/economy/kit/ui/panel.js');
       await showKitManagementPanel(p);
+    },
+  });
+
+  registerMenuItem({
+    id: 'staff_danger_zone',
+    title: 'Danger Zone & Reset',
+    description: 'Factory reset & configuration transfer',
+    icon: 'textures/ui/WarningGlyph',
+    hub: 'staff_config',
+    permissionNode: 'ui.panel.owner',
+    order: 40,
+    action: async (p) => {
+      const { showConfigResetPanel } = await import('@core/ui/panels/configPanel.js');
+      await showConfigResetPanel(p);
     },
   });
 }

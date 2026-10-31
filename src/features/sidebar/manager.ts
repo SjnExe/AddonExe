@@ -2,6 +2,7 @@ import * as configManager from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
 import { getAllPlayersFromCache, getPlayerCount, getPlayerFromCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { formatCurrency, formatDuration } from '@core/utils/index.js';
@@ -497,6 +498,37 @@ export function createPlayerPlaceholderContext(
   tokens.set('time', cachedTimeString);
   tokens.set('date', cachedDateString);
 
+  const announcementConfig = (
+    sidebarConfig as {
+      announcements?: { enabled?: boolean; intervalSeconds?: number; messages?: string[] };
+    }
+  ).announcements;
+  let activeAnnouncement = '';
+  if (
+    announcementConfig?.enabled !== false &&
+    Array.isArray(announcementConfig?.messages) &&
+    announcementConfig.messages.length > 0
+  ) {
+    const intervalSec = Math.max(3, announcementConfig.intervalSeconds ?? 15);
+    const annIdx = Math.floor(Date.now() / (intervalSec * 1000)) % announcementConfig.messages.length;
+    activeAnnouncement = announcementConfig.messages[annIdx] ?? '';
+  }
+  tokens.set('announcement', activeAnnouncement);
+  tokens.set('server_announcement', activeAnnouncement);
+
+  let worldDay = '1';
+  try {
+    if (typeof (mc.world as { getDay?: () => number }).getDay === 'function') {
+      worldDay = Math.floor((mc.world as unknown as { getDay: () => number }).getDay()).toString();
+    }
+  } catch {
+    // Fallback
+  }
+  tokens.set('world_day', worldDay);
+
+  const onlineStaff = getAllPlayersFromCache().filter((p) => p.isValid && hasPermission(p, 'group.mod')).length;
+  tokens.set('online_staff', onlineStaff.toString());
+
   if (!isDefined(player)) {
     return { tokens };
   }
@@ -507,6 +539,7 @@ export function createPlayerPlaceholderContext(
   }
 
   tokens.set('name', player.name);
+  tokens.set('afk', typeof player.hasTag === 'function' && player.hasTag('afk') ? '§7[AFK]§r' : '');
 
   const rank = getPlayerRank(player, mainConfig);
   tokens.set('rank', rank.name);

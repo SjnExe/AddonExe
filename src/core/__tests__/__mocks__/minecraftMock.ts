@@ -218,6 +218,12 @@ export class Player {
   triggerEvent = mock();
   getComponent = mock();
   getPing = mock(() => 20);
+  addExperience = mock((amount: number) => amount);
+  onScreenDisplay = {
+    setActionBar: mock(),
+    setTitle: mock(),
+    setSubtitle: mock(),
+  };
 }
 
 export enum CustomCommandParamType {
@@ -254,6 +260,18 @@ export enum PlayerInventoryType {
 export enum WatchdogTerminateReason {
   Hang = 'Hang',
   StackOverflow = 'StackOverflow',
+}
+
+export enum EntityDamageCause {
+  entityAttack = 'entityAttack',
+  entityExplosion = 'entityExplosion',
+  blockExplosion = 'blockExplosion',
+  fall = 'fall',
+  magic = 'magic',
+  wither = 'wither',
+  fire = 'fire',
+  drowning = 'drowning',
+  void = 'void',
 }
 
 export const EntityTypes = {

@@ -168,7 +168,7 @@ export const economyMainDefaults = {
     maxTax: 250,
   },
   bank: {
-    enabled: true,
+    enabled: false,
     savingsInterestPercent: 2,
     interestCycleHours: 24,
     maxInterestCapPerCycle: 500,

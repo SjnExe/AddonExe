@@ -24,6 +24,15 @@ export const config = {
     updateInterval: 20,
     actionBarLines: ['§a{money}', '§8|', '§cK: {kills} §7/ §4D: {deaths} §8(§b{kdr}§8)', '§8|', '§e{rank}'],
   },
+  announcements: {
+    enabled: true,
+    intervalSeconds: 15,
+    messages: [
+      '§bType §e/panel§b to open the server menu',
+      '§aVote daily using §e/vote§a for rewards',
+      '§dNeed help? Join our Discord via §e/links',
+    ],
+  },
 };
 
 export default config;

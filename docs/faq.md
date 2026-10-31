@@ -32,8 +32,8 @@ Economy-dependent modules (**Economy**, **Shop**, **Auction House**, **Kits**, *
 To enable them:
 
 1. Run `/panel`.
-2. Go to **Staff Dashboard** -> **Addon Configuration** -> **Master Feature Toggles**.
-3. Toggle on **Enable Economy** and the specific features you want to use, then click **Save Settings**.
+2. Go to **Staff Dashboard** -> **Addon Configuration** -> **System Configs** -> **Economy Settings**.
+3. Toggle on **Enable Economy** (and open any sub-system settings like Shop, Auction, Bank, or Kits to enable them), then click **Save Settings**.
 
 ---
 

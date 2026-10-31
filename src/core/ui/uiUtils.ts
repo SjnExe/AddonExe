@@ -153,6 +153,7 @@ export const categoryIcons: Record<string, string> = {
   Server: 'textures/ui/icon_book_writable',
   'Server & Network': 'textures/ui/icon_book_writable',
   Gameplay: 'textures/items/iron_sword',
+  'Survival & Utilities': 'textures/items/iron_axe',
   System: 'textures/ui/settings_glyph_color_2x',
   Economy: 'textures/items/emerald',
   Moderation: 'textures/ui/WarningGlyph',

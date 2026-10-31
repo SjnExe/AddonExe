@@ -4,7 +4,7 @@ import { initializeConfigManager } from '@core/config/configManager.js';
 import { configPanelSchema } from '@core/ui/configPanelRegistry.js';
 import { getMenuItemsForHub, MenuHubId } from '@core/ui/menuRegistry.js';
 import { getSystemRegistry } from '@core/ui/systemRegistry.js';
-import { configHandlers } from '@core/ui/uiUtils.js';
+import { configHandlers, getSystemsByCategory, getVisibleCategories } from '@core/ui/uiUtils.js';
 import { getIdTimestamp } from '@core/utils/index.js';
 import { getValueFromPath } from '@core/utils/objectUtils.js';
 import { registerAllSuites } from '@features/test/suites/index.js';
@@ -111,5 +111,25 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     const f2 = getProtectionFlags({ x: 100, y: 64, z: 100 }, 'minecraft:overworld');
     expect(f1).toBe(f2);
     expect(f1.preventBlockBreaking).toBe(false);
+  });
+
+  it('category-based config hierarchy exposes Survival & Utilities without monolithic master toggles', () => {
+    expect(configPanelSchema.some((s) => s.id === 'featureToggles')).toBe(false);
+
+    const mockAdmin = {
+      id: 'admin_1',
+      name: 'Admin',
+      hasTag: (t: string) => t === 'admin' || t === 'owner',
+    } as any;
+
+    const categories = getVisibleCategories(mockAdmin);
+    expect(categories.some((c) => c.id === 'Survival & Utilities')).toBe(true);
+
+    const survivalSystems = getSystemsByCategory(mockAdmin, 'Survival & Utilities');
+    const systemIds = survivalSystems.map((s) => s.id);
+    expect(systemIds).toContain('survivalQoL');
+    expect(systemIds).toContain('clearLag');
+    expect(systemIds).toContain('playerUtilities');
+    expect(systemIds).toContain('afk');
   });
 });

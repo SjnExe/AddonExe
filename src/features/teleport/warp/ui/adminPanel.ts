@@ -41,7 +41,7 @@ export async function showWarpsAdminPanel(player: mc.Player): Promise<void> {
   for (const warpName of warpNames) {
     const loc = warpsManager.getWarp(warpName);
     const desc = loc ? `X: ${loc.x.toFixed(1)}, Y: ${loc.y.toFixed(1)}, Z: ${loc.z.toFixed(1)}` : '';
-    form.button(`§l${warpName}§r\n§7${desc}`, 'textures/blocks/portal', async () => {
+    form.button(`§l${warpName}§r\n§7${desc}`, 'textures/ui/NetherPortal', async () => {
       await showWarpActionModal(player, warpName);
     });
   }
