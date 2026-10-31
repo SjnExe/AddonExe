@@ -107,7 +107,7 @@ export function initializeEventManager() {
     namespaces: ['exe'],
   });
 
-  if (mc.system.beforeEvents?.watchdogTerminate) {
+  if (mc.system?.beforeEvents?.watchdogTerminate) {
     registerEvent(mc.system.beforeEvents.watchdogTerminate, handleWatchdogTerminate, 'watchdogTerminate');
   }
 }

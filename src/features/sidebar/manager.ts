@@ -596,8 +596,11 @@ export function createPlayerPlaceholderContext(
   let pingNum = 0;
   try {
     if (typeof player.getPing === 'function') {
-      pingNum = Math.max(0, player.getPing());
-      pingVal = pingNum.toString();
+      const rawPing = player.getPing();
+      if (isNumber(rawPing) && !Number.isNaN(rawPing) && rawPing >= 0) {
+        pingNum = Math.floor(rawPing);
+        pingVal = pingNum.toString();
+      }
     }
   } catch {
     // Ignore

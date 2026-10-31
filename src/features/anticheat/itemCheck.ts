@@ -138,6 +138,9 @@ function getBannedItemSet(bannedItems: string[]): Set<string> {
 }
 
 export function checkPlayerEquipment(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
+  if (!player || !player.isValid) {
+    return;
+  }
   if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
     return;
   }
@@ -163,6 +166,9 @@ export function checkPlayerEquipment(player: mc.Player, config: ItemCheckConfig,
 }
 
 export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
+  if (!player || !player.isValid) {
+    return;
+  }
   if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
     return;
   }
@@ -237,4 +243,8 @@ export function checkItem(
   if (modified) {
     updateItem(item);
   }
+}
+
+export function _clearItemCheckForTest(): void {
+  mutatingSlots.clear();
 }

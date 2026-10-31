@@ -10,7 +10,7 @@ import { formatDuration } from '@core/utils/time.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import { getBounty } from '@features/economy/bounty/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
-import { isDefined } from '@lib/guards.js';
+import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
@@ -37,7 +37,10 @@ async function showPaginatedOnlinePlayers(
       let pingText = '';
       try {
         if (typeof p.getPing === 'function') {
-          pingText = ` §8| §b${p.getPing()}ms`;
+          const ping = p.getPing();
+          if (isNumber(ping) && !Number.isNaN(ping) && ping >= 0) {
+            pingText = ` §8| §b${Math.floor(ping)}ms`;
+          }
         }
       } catch {
         // Ignore
@@ -92,7 +95,10 @@ export async function showPlayerActionsPanel(
     let pingDisplay = 'Unknown';
     try {
       if (typeof onlineTarget.getPing === 'function') {
-        pingDisplay = `${onlineTarget.getPing()}ms`;
+        const ping = onlineTarget.getPing();
+        if (isNumber(ping) && !Number.isNaN(ping) && ping >= 0) {
+          pingDisplay = `${Math.floor(ping)}ms`;
+        }
       }
     } catch {
       // Ignore
@@ -232,7 +238,10 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
     let pingDisplay = '';
     try {
       if (typeof player.getPing === 'function') {
-        pingDisplay = ` §8| §3Ping: §b${player.getPing()}ms`;
+        const ping = player.getPing();
+        if (isNumber(ping) && !Number.isNaN(ping) && ping >= 0) {
+          pingDisplay = ` §8| §3Ping: §b${Math.floor(ping)}ms`;
+        }
       }
     } catch {
       // Ignore
