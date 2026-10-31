@@ -382,10 +382,7 @@ async function waitForChunkReady(dimension: mc.Dimension, x: number, z: number):
 
 function safeRemoveTickingArea(dimension: mc.Dimension, name: string): void {
   try {
-    if (isDefined(mc.world?.tickingAreaManager?.hasTickingArea) && !mc.world.tickingAreaManager.hasTickingArea(name)) {
-      return;
-    }
-    if (isDefined(mc.world?.tickingAreaManager?.removeTickingArea)) {
+    if (isDefined(mc.world?.tickingAreaManager?.hasTickingArea) && mc.world.tickingAreaManager.hasTickingArea(name)) {
       mc.world.tickingAreaManager.removeTickingArea(name);
       return;
     }
