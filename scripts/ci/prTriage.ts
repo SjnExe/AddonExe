@@ -1,4 +1,7 @@
 import { execSync } from 'node:child_process';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 interface AuditResult {
   passed: boolean;
@@ -275,14 +278,25 @@ async function main() {
       `gh pr view ${prNumber} --json comments --jq '.comments[] | select(.body | contains("<!-- pr-triage-bot -->")) | .id'`,
     );
 
-    if (existingComment) {
-      runCmd(
-        `gh api repos/${process.env.GITHUB_REPOSITORY}/issues/comments/${existingComment} -X PATCH -f body="${report.replace(/"/g, '\\"')}" || true`,
-      );
-      console.log(`Updated existing PR triage comment: ${existingComment}`);
-    } else {
-      runCmd(`gh pr comment ${prNumber} --body "${report.replace(/"/g, '\\"')}" || true`);
-      console.log(`Posted new PR triage comment to PR #${prNumber}`);
+    const tmpFile = path.join(os.tmpdir(), `pr_triage_${prNumber}_${Date.now()}.md`);
+    await Bun.write(tmpFile, report);
+
+    try {
+      if (existingComment) {
+        runCmd(
+          `gh api repos/${process.env.GITHUB_REPOSITORY}/issues/comments/${existingComment} -X PATCH -F body=@${tmpFile} || true`,
+        );
+        console.log(`Updated existing PR triage comment: ${existingComment}`);
+      } else {
+        runCmd(`gh pr comment ${prNumber} --body-file "${tmpFile}" || true`);
+        console.log(`Posted new PR triage comment to PR #${prNumber}`);
+      }
+    } finally {
+      try {
+        await fs.unlink(tmpFile);
+      } catch {
+        // Ignore file cleanup error
+      }
     }
   }
 }
