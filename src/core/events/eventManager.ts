@@ -20,6 +20,8 @@ import {
 } from '@core/events/protectionEvents.js';
 import { handleScriptEventReceive } from '@core/events/scriptEventReceive.js';
 import { errorLog } from '@core/utils/logger.js';
+import { setPlayerAfk } from '@features/essentials/afk/manager.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
@@ -109,6 +111,16 @@ export function initializeEventManager() {
 
   if (mc.system?.beforeEvents?.watchdogTerminate) {
     registerEvent(mc.system.beforeEvents.watchdogTerminate, handleWatchdogTerminate, 'watchdogTerminate');
+  }
+
+  if (mc.world?.afterEvents?.playerEmote) {
+    registerEvent(mc.world.afterEvents.playerEmote, handlePlayerEmote, 'playerEmote');
+  }
+}
+
+export function handlePlayerEmote(event: mc.PlayerEmoteAfterEvent): void {
+  if (isDefined(event.player) && event.player.isValid) {
+    setPlayerAfk(event.player, false);
   }
 }
 

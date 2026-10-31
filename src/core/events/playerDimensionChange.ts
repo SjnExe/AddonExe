@@ -2,6 +2,8 @@ import { getConfig } from '@core/config/configManager.js';
 import { getLockState } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import { teleportPlayerWithTransition } from '@features/teleport/utils.js';
+import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
@@ -9,6 +11,9 @@ export const eventName = 'playerDimensionChange';
 
 function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) {
   const { player, toDimension, fromLocation, fromDimension } = event;
+  if (!isDefined(player) || !player.isValid) {
+    return;
+  }
   const config = getConfig();
 
   let dimensionId: 'nether' | 'end' | undefined;
@@ -38,7 +43,7 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
       y: fromLocation.y,
       z: fromLocation.z + 3,
     };
-    player.teleport(returnLocation, { dimension: fromDimension });
+    teleportPlayerWithTransition(player, returnLocation, { dimension: fromDimension });
     player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
   } catch (error: unknown) {
     const stack = error instanceof Error ? error.stack : String(error);

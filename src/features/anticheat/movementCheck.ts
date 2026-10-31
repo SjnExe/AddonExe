@@ -186,7 +186,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   }
 
   // Flight / Hover Detection
-  if (config.flightDetection === true && !isGliding && !player.isFlying) {
+  if (config.flightDetection === true && !isGliding && !player.isFlying && !player.isSleeping) {
     const isOnGround = player.isOnGround === true;
     const isSwimming = player.isSwimming === true;
     const isClimbing = player.isClimbing === true;
