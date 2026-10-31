@@ -9,7 +9,7 @@ import { formatCurrency } from '@core/utils/economy.js';
 import { formatDuration } from '@core/utils/time.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import { getBounty } from '@features/economy/bounty/manager.js';
-import { saveLastLocation } from '@features/teleport/utils.js';
+import { saveLastLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
@@ -161,14 +161,14 @@ export async function showPlayerActionsPanel(
       const target = getPlayerFromCache(targetPlayerId);
       if (isDefined(target)) {
         saveLastLocation(player);
-        player.teleport(target.location, { dimension: target.dimension });
+        teleportPlayerWithTransition(player, target.location, { dimension: target.dimension });
       }
     });
     form.button('Teleport Here', 'textures/ui/icon_map', () => {
       const target = getPlayerFromCache(targetPlayerId);
       if (isDefined(target)) {
         saveLastLocation(target);
-        target.teleport(player.location, { dimension: player.dimension });
+        teleportPlayerWithTransition(target, player.location, { dimension: player.dimension });
       }
     });
   }

@@ -11,12 +11,14 @@ import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { initializeSpawnProtection } from '@features/essentials/protection/spawnProtection.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
+import { isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 interface TeleportUtilsService {
   saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;
   findSafeLocation: (dimension: mc.Dimension, location: mc.Vector3) => mc.Vector3 | undefined;
+  teleportPlayerWithTransition?: (player: mc.Player, location: mc.Vector3, options?: mc.TeleportOptions) => void;
 }
 
 interface SpawnLocation {
@@ -40,7 +42,7 @@ const spawnCommand: CustomCommand = {
     const config = getConfig();
     const spawnLocation = config.spawn.spawnLocation as SpawnLocation | undefined;
 
-    if (!spawnLocation || typeof spawnLocation.x !== 'number') {
+    if (!spawnLocation || !isNumber(spawnLocation.x) || !isNumber(spawnLocation.y) || !isNumber(spawnLocation.z)) {
       sendMessage('§cThe server spawn point has not been set.', executor);
       if (hasPermission(executor, 'cmd.setspawn.admin')) {
         // Is admin or owner
@@ -52,6 +54,12 @@ const spawnCommand: CustomCommand = {
       return;
     }
 
+    const spawnTarget: mc.Vector3 = {
+      x: spawnLocation.x,
+      y: spawnLocation.y,
+      z: spawnLocation.z,
+    };
+
     const remainingCd = getCooldown(executor.id, 'spawn');
     if (remainingCd > 0) {
       sendMessage(`§cYou must wait ${formatCooldown(remainingCd)} before using /spawn again.`, executor);
@@ -59,8 +67,7 @@ const spawnCommand: CustomCommand = {
     }
 
     if (
-      typeof spawnLocation.z === 'number' &&
-      !isWithinWorldBorder({ x: spawnLocation.x, z: spawnLocation.z }, spawnLocation.dimensionId) &&
+      !isWithinWorldBorder({ x: spawnTarget.x, z: spawnTarget.z }, spawnLocation.dimensionId) &&
       !canBypassWorldBorder(executor)
     ) {
       sendMessage('§cCannot teleport: The server spawn point is outside the active world border.', executor);
@@ -94,7 +101,11 @@ const spawnCommand: CustomCommand = {
         if (teleportUtils) {
           teleportUtils.saveLastLocation(executor);
         }
-        executor.teleport(spawnLocation as mc.Vector3, { dimension: dimension });
+        if (teleportUtils?.teleportPlayerWithTransition) {
+          teleportUtils.teleportPlayerWithTransition(executor, spawnTarget, { dimension: dimension });
+        } else {
+          executor.teleport(spawnTarget, { dimension: dimension });
+        }
         sendMessage('§aTeleporting you to spawn...', executor);
         playSound(executor, 'random.orb');
         setCooldown(executor.id, 'spawn', config.spawn.cooldownSeconds);

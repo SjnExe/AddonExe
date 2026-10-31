@@ -14,7 +14,7 @@ import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { setTrackedTimeout } from '@core/utils/timerManager.js';
 import { getRemainingCombatCooldown } from '@features/essentials/combat/manager.js';
 import { getEffectiveBorderForDimension, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
-import { isSafeTeleportColumn, saveLastLocation } from '@features/teleport/utils.js';
+import { isSafeTeleportColumn, saveLastLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -330,19 +330,30 @@ function isCandidateCoordinateEligible(
 
 async function createTickingAreaFast(dimension: mc.Dimension, name: string, x: number, z: number): Promise<void> {
   safeRemoveTickingArea(dimension, name);
+  const options: mc.TickingAreaOptions = {
+    dimension,
+    from: { x: x - 12, y: 0, z: z - 12 },
+    to: { x: x + 12, y: 0, z: z + 12 },
+  };
+
   try {
-    await mc.world.tickingAreaManager.createTickingArea(name, {
-      dimension,
-      from: { x: x - 12, y: 0, z: z - 12 },
-      to: { x: x + 12, y: 0, z: z + 12 },
-    });
-  } catch {
-    try {
-      const sanitizedName = escapeCommandArg(name);
-      dimension.runCommand(`tickingarea add circle ${x} 0 ${z} 1 "${sanitizedName}"`);
-    } catch {
-      // Ignore command fallback error
+    if (isDefined(mc.world?.tickingAreaManager?.hasCapacity) && !mc.world.tickingAreaManager.hasCapacity(options)) {
+      debugLog(
+        `[RTP] TickingAreaManager capacity reached (${mc.world.tickingAreaManager.chunkCount}/${mc.world.tickingAreaManager.maxChunkCount}), using fallback`,
+      );
+    } else if (isDefined(mc.world?.tickingAreaManager?.createTickingArea)) {
+      await mc.world.tickingAreaManager.createTickingArea(name, options);
+      return;
     }
+  } catch {
+    // Fall through to command fallback
+  }
+
+  try {
+    const sanitizedName = escapeCommandArg(name);
+    dimension.runCommand(`tickingarea add circle ${x} 0 ${z} 1 "${sanitizedName}"`);
+  } catch {
+    // Ignore command fallback error
   }
 }
 
@@ -371,14 +382,19 @@ async function waitForChunkReady(dimension: mc.Dimension, x: number, z: number):
 
 function safeRemoveTickingArea(dimension: mc.Dimension, name: string): void {
   try {
-    mc.world.tickingAreaManager.removeTickingArea(name);
-  } catch {
-    try {
-      const sanitizedName = escapeCommandArg(name);
-      dimension.runCommand(`tickingarea remove "${sanitizedName}"`);
-    } catch {
-      // Ignore if already removed
+    if (isDefined(mc.world?.tickingAreaManager?.hasTickingArea) && mc.world.tickingAreaManager.hasTickingArea(name)) {
+      mc.world.tickingAreaManager.removeTickingArea(name);
+      return;
     }
+  } catch {
+    // Fall back to command below
+  }
+
+  try {
+    const sanitizedName = escapeCommandArg(name);
+    dimension.runCommand(`tickingarea remove "${sanitizedName}"`);
+  } catch {
+    // Ignore if already removed
   }
 }
 
@@ -538,7 +554,7 @@ function initiateRtpWarmup(
 
       saveLastLocation(player);
       recordRecentRtpLocation(location);
-      player.teleport(location, { dimension });
+      teleportPlayerWithTransition(player, location, { dimension });
 
       const costTag = isEcoActive && settings.cost > 0 ? ` §7(-${formatCurrency(settings.cost)})` : '';
       sendMessage(

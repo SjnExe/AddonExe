@@ -15,7 +15,7 @@ interface SocialFriendsService {
   isFriend: (playerId1: string, playerId2: string) => boolean;
 }
 
-import { findSafeLocation, saveLastLocation } from '@features/teleport/utils.js';
+import { findSafeLocation, saveLastLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 
 type TpaRequestType = 'tpa' | 'tpahere';
 
@@ -282,7 +282,7 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
     }
 
     saveLastLocation(mover);
-    mover.teleport(safeLoc, { dimension: destinationTarget.dimension });
+    teleportPlayerWithTransition(mover, safeLoc, { dimension: destinationTarget.dimension });
 
     if (request.type === 'tpa') {
       freshSource.sendMessage(`§aTeleported to ${freshTarget.name}.`);

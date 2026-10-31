@@ -3,7 +3,7 @@ import { soundTeleport } from '@core/utils/constants.js';
 import { playSound, resolveTarget } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
-import { saveLastLocation } from '@features/teleport/utils.js';
+import { saveLastLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -41,7 +41,7 @@ const command: CustomCommand = {
           return;
         }
         saveLastLocation(executor);
-        executor.teleport(destPlayer1.location, { dimension: destPlayer1.dimension });
+        teleportPlayerWithTransition(executor, destPlayer1.location, { dimension: destPlayer1.dimension });
         playSound(executor, soundTeleport);
         sendMessage(`§aTeleported to ${destPlayer1.name}.`, executor);
         break;
@@ -65,7 +65,7 @@ const command: CustomCommand = {
           return;
         }
         saveLastLocation(playerToMove);
-        playerToMove.teleport(destPlayer2.location, { dimension: destPlayer2.dimension });
+        teleportPlayerWithTransition(playerToMove, destPlayer2.location, { dimension: destPlayer2.dimension });
         playSound(playerToMove, soundTeleport);
         sendMessage(`§aTeleported ${playerToMove.name} to ${destPlayer2.name}.`, executor);
         break;
@@ -85,7 +85,7 @@ const command: CustomCommand = {
           return;
         }
         saveLastLocation(executor);
-        executor.teleport({ x: x3, y: y3, z: z3 });
+        teleportPlayerWithTransition(executor, { x: x3, y: y3, z: z3 });
         playSound(executor, soundTeleport);
         sendMessage(`§aTeleported to ${x3}, ${y3}, ${z3}.`, executor);
         break;
@@ -114,7 +114,7 @@ const command: CustomCommand = {
           return;
         }
         saveLastLocation(targetPlayer);
-        targetPlayer.teleport({ x: x4, y: y4, z: z4 }, { dimension: targetPlayer.dimension });
+        teleportPlayerWithTransition(targetPlayer, { x: x4, y: y4, z: z4 }, { dimension: targetPlayer.dimension });
         playSound(targetPlayer, soundTeleport);
         sendMessage(`§aTeleported ${targetPlayer.name} to ${x4}, ${y4}, ${z4}.`, executor);
         break;

@@ -128,13 +128,25 @@ const feedCommand: CustomCommand = {
   },
 };
 
+interface RepairArgs {
+  scope?: string;
+}
+
 const repairCommand: CustomCommand = {
   name: 'repair',
   aliases: ['fix'],
-  description: 'Repairs the item currently held in your main hand.',
+  description: 'Repairs the item currently held in your main hand or all equipment/inventory items.',
   category: 'Essentials',
   permissionNode: 'cmd.repair.vip',
-  execute: (executor: CommandExecutor) => {
+  parameters: [
+    {
+      name: 'scope',
+      type: 'string',
+      description: 'Specify "all" to repair all inventory and equipped gear, or leave blank for held item.',
+      optional: true,
+    },
+  ],
+  execute: (executor: CommandExecutor, args: RepairArgs) => {
     if (!(executor instanceof mc.Player)) {
       return;
     }
@@ -145,8 +157,101 @@ const repairCommand: CustomCommand = {
       return;
     }
 
+    const rawScope = typeof args?.scope === 'string' ? args.scope.trim().toLowerCase() : undefined;
+    if (isDefined(rawScope) && rawScope !== 'all' && rawScope !== 'hand') {
+      executor.sendMessage('§cInvalid argument. Usage: /repair [all]');
+      return;
+    }
+
+    const isAll = rawScope === 'all';
+    if (isAll && !hasPermission(executor, 'cmd.repair.all.vip') && !hasPermission(executor, 'group.admin')) {
+      executor.sendMessage('§cYou do not have permission to use /repair all.');
+      return;
+    }
+
     const equipComp = executor.getComponent(EntityComponentTypes.Equippable) as
       mc.EntityEquippableComponent | undefined;
+    const invComp = executor.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+    const unitCost = Math.max(0, Number(cfg.playerUtilities?.repairCost ?? 0));
+
+    if (isAll) {
+      const itemsToRepair: Array<{
+        restore: () => void;
+      }> = [];
+
+      const armorSlots = [
+        mc.EquipmentSlot.Head,
+        mc.EquipmentSlot.Chest,
+        mc.EquipmentSlot.Legs,
+        mc.EquipmentSlot.Feet,
+        mc.EquipmentSlot.Offhand,
+      ];
+
+      for (const slot of armorSlots) {
+        const item = equipComp?.getEquipment(slot);
+        if (!isDefined(item)) {
+          continue;
+        }
+        const durability = item.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent | undefined;
+        if (isDefined(durability) && durability.damage > 0) {
+          itemsToRepair.push({
+            restore: () => {
+              durability.damage = 0;
+              equipComp?.setEquipment(slot, item);
+            },
+          });
+        }
+      }
+
+      const container = invComp?.container;
+      if (isDefined(container)) {
+        for (let i = 0; i < container.size; i++) {
+          const item = container.getItem(i);
+          if (!isDefined(item)) {
+            continue;
+          }
+          const durability = item.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent | undefined;
+          if (isDefined(durability) && durability.damage > 0) {
+            itemsToRepair.push({
+              restore: () => {
+                durability.damage = 0;
+                container.setItem(i, item);
+              },
+            });
+          }
+        }
+      }
+
+      if (itemsToRepair.length === 0) {
+        executor.sendMessage('§cNone of your equipment or inventory items need repairing.');
+        return;
+      }
+
+      const totalCost = unitCost * itemsToRepair.length;
+      if (totalCost > 0 && isFeatureActive('eco') && !hasPermission(executor, 'group.admin')) {
+        const pData = getOrCreatePlayer(executor);
+        if (pData.balance < totalCost) {
+          executor.sendMessage(
+            `§cInsufficient funds to repair ${itemsToRepair.length} items (${formatCurrency(totalCost)} required).`,
+          );
+          return;
+        }
+        incrementPlayerBalance(executor.id, -totalCost);
+      }
+
+      for (const entry of itemsToRepair) {
+        entry.restore();
+      }
+
+      playSound(executor, 'random.anvil_use');
+      const costSuffix =
+        totalCost > 0 && isFeatureActive('eco') && !hasPermission(executor, 'group.admin')
+          ? ` §7(-${formatCurrency(totalCost)})`
+          : '';
+      executor.sendMessage(`§aSuccessfully repaired §e${itemsToRepair.length}§a item(s)!${costSuffix}`);
+      return;
+    }
+
     const heldItem = equipComp?.getEquipment(mc.EquipmentSlot.Mainhand);
     if (!isDefined(heldItem)) {
       executor.sendMessage('§cYou are not holding an item in your main hand.');
@@ -159,14 +264,13 @@ const repairCommand: CustomCommand = {
       return;
     }
 
-    const cost = Math.max(0, Number(cfg.playerUtilities?.repairCost ?? 0));
-    if (cost > 0 && isFeatureActive('eco') && !hasPermission(executor, 'group.admin')) {
+    if (unitCost > 0 && isFeatureActive('eco') && !hasPermission(executor, 'group.admin')) {
       const pData = getOrCreatePlayer(executor);
-      if (pData.balance < cost) {
-        executor.sendMessage(`§cInsufficient funds to repair item (${formatCurrency(cost)} required).`);
+      if (pData.balance < unitCost) {
+        executor.sendMessage(`§cInsufficient funds to repair item (${formatCurrency(unitCost)} required).`);
         return;
       }
-      incrementPlayerBalance(executor.id, -cost);
+      incrementPlayerBalance(executor.id, -unitCost);
     }
 
     durability.damage = 0;
@@ -174,8 +278,8 @@ const repairCommand: CustomCommand = {
     playSound(executor, 'random.anvil_use');
 
     const costSuffix =
-      cost > 0 && isFeatureActive('eco') && !hasPermission(executor, 'group.admin')
-        ? ` §7(-${formatCurrency(cost)})`
+      unitCost > 0 && isFeatureActive('eco') && !hasPermission(executor, 'group.admin')
+        ? ` §7(-${formatCurrency(unitCost)})`
         : '';
     executor.sendMessage(`§aSuccessfully repaired your held item!${costSuffix}`);
   },

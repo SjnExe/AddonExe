@@ -3,7 +3,7 @@ import { soundTeleport } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { grantTeleportProtection } from '@core/utils/teleportLogic.js';
-import { saveLastLocation } from '@features/teleport/utils.js';
+import { saveLastLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -58,7 +58,7 @@ const topCommand: CustomCommand = {
     }
 
     saveLastLocation(executor, 'teleport');
-    executor.teleport({ x: x + 0.5, y: topY, z: z + 0.5 }, { dimension: dim });
+    teleportPlayerWithTransition(executor, { x: x + 0.5, y: topY, z: z + 0.5 }, { dimension: dim });
     grantTeleportProtection(executor);
     playSound(executor, soundTeleport);
     sendMessage(`§aTeleported to the surface (Y: ${topY}).`, executor);
