@@ -46,6 +46,8 @@ export const config = {
   mail: socialMainDefaults.mail,
   afk: essentialsConfig.afk,
   playerUtilities: essentialsConfig.playerUtilities,
+  survivalQoL: essentialsConfig.survivalQoL,
+  clearLag: essentialsConfig.clearLag,
   reports: moderationMainDefaults.reports,
   chat: moderationMainDefaults.chat,
   combat: essentialsConfig.combat,

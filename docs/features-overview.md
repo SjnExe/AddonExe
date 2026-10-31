@@ -53,6 +53,9 @@ Accessible via `/panel` (`/ui`, `/menu`) or by right-clicking/using the craftabl
 - **Spawn & Custom World Protection Zones:** Radius-based Spawn Protection plus custom 3D bounding-box protection zones (configurable in `/panel`) controlling PvP, block breaking/placing, explosions, projectiles, mob griefing, and fall damage.
 - **World Border (`/worldborder`) & Dimension Locks (`/netherlock`, `/endlock`):** Configurable world border radius and instant Nether/End dimension locks with admin bypass.
 - **Floating Text Holograms (`/floatingtext`):** Dynamic floating text entities (`exe:floating_text`) supporting live server and player placeholders (`{online}`, `{money}`, `{rank}`, `{kdr}`, `{top_money_1}`, etc.).
+- **Lag Sweeper & ClearLag (`/clearlag`):** Intelligent entity sweeper cleaning dropped items and XP orbs while strictly preserving named mobs, tamed pets, villagers, golems, bosses, vehicles, and valuable netherite/shulker gear. Supports automated interval runs and countdown warnings.
+- **Survival Quality of Life Utilities:** Optional modular features including TreeCapitator (felling connected logs with sneak + axe), VeinMiner (mining connected ores with sneak + pickaxe), AutoReplant (replanting mature crops on harvest), FastLeafDecay (accelerated decay of orphaned leaves), and DoubleDoors (adjacent door state synchronization). All disabled by default.
+- **Item Customization (`/rename`, `/lore`):** Custom item renaming and multi-line lore editing with `&` color code formatting. Disabled by default.
 
 ---
 
@@ -60,7 +63,7 @@ Accessible via `/panel` (`/ui`, `/menu`) or by right-clicking/using the craftabl
 
 - **Rank & Permission Engine (`/rank`, `/listranks`):** Priority-sorted ranks (`Owner`, `Admin`, `Moderator`, `Helper`, `Verified`, `VIP`, `Donator`, `Member`) with wildcard permission nodes, custom chat/nametag prefixes, shop discounts, and an in-game Rank Editor.
 - **Friends (`/friend`), Private Messaging (`/xmsg`, `/r`, `/socialspy`) & Teams (`/team`, `/teamchat`, `/hq`):** Friend lists with auto-TPA, private whispers with staff Social Spy, and Teams/Guilds featuring shared banks, applications/invites, and team homes.
-- **Adaptive Sidebar & HUD (`/sidebar`):** Customizable Top-Right Card, Top-Left Touch-Friendly Card, Bottom Compact Pill, or Dual Scoreboard layouts with built-in theme presets and live placeholders.
+- **Adaptive Sidebar & HUD (`/sidebar`):** Customizable Top-Right Card, Top-Left Touch-Friendly Card, Bottom Compact Pill, or Dual Scoreboard layouts with built-in theme presets, live placeholders, and rotating server announcement headers (`{announcement}`, `{server_announcement}`).
 - **Mini-Games Suite (`/panel` -> Mini-Games):**
   - **Tic-Tac-Toe (`/ttt`):** 2-player 3x3 board matches with friend invites, matchmaking queue, and optional wagers.
   - **Rock Paper Scissors (`/rps`):** Best-of-N matches solo vs Bot or 2-player with optional wagers.

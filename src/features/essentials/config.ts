@@ -47,6 +47,41 @@ export const essentialsConfig = {
     trashEnabled: false,
     nearEnabled: false,
     nearRadius: 100,
+    renameEnabled: false,
+    loreEnabled: false,
+  },
+  survivalQoL: {
+    treeCapitator: {
+      enabled: false,
+      requireSneak: true,
+      maxLogs: 64,
+      damageTool: true,
+    },
+    veinMiner: {
+      enabled: false,
+      requireSneak: true,
+      maxOres: 32,
+      damageTool: true,
+    },
+    autoReplant: {
+      enabled: false,
+    },
+    fastLeafDecay: {
+      enabled: false,
+      decayRadius: 4,
+    },
+    doubleDoors: {
+      enabled: false,
+    },
+  },
+  clearLag: {
+    enabled: false,
+    autoIntervalSeconds: 600,
+    broadcastWarnings: true,
+    clearItems: true,
+    clearHostileMobs: false,
+    clearExperienceOrbs: true,
+    exemptValuableItems: true,
   },
   combat: {
     enabled: true,

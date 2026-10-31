@@ -30,6 +30,8 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/trash`** (Aliases: `/dispose`, `/bin`) — Opens the safe item disposal UI.
 - **`/near`** (Alias: `/nearby`) — Lists nearby visible players and their distances.
 - **`/heal [target]`** / **`/feed [target]`** / **`/repair`** (Alias: `/fix`) — Restores health, hunger, or held item durability.
+- **`/rename <name|reset>`** (Aliases: `/itemname`, `/setname`) — Renames the item currently held in your main hand (supports `&` color codes; disabled by default).
+- **`/lore <add|set|remove|clear> [line|text] [text]`** (Aliases: `/itemlore`, `/setlore`) — Adds, modifies, or clears lore lines on held item (supports `&` color codes; disabled by default).
 
 ### Teleportation & Homes
 
@@ -160,6 +162,7 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/zonewand [wand|pos1|pos2|clear|status]`** (Aliases: `/wand`, `/pos1`, `/pos2`) — Gives the World Protection Selection Wand or sets Pos1/Pos2 at your feet.
 - **`/netherlock [true|false]`** / **`/endlock [true|false]`** — Locks or unlocks the Nether and End dimensions.
 - **`/floatingtext <create|delete|list|tp> <id> [text]`** — Manages floating text holograms.
+- **`/clearlag [run [now|seconds] | info | cancel]`** (Aliases: `/lagsweep`, `/cleanlag`) — Displays entity counts, cancels sweeps, or schedules/runs entity lag sweeps with protection for named mobs, pets, and valuables.
 - **`/announce <message>`** — Broadcasts a server-wide announcement.
 - **`/chattoconsole [true|false]`** (Alias: `/ctc`) — Toggles printing player chat to the server console.
 - **`/xreload`** — Reloads and priority-merges configuration changes from disk and refreshes player ranks.
