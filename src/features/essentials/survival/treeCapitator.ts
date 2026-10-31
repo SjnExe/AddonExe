@@ -21,10 +21,19 @@ export interface TreeCapitatorOptions {
   damageTool?: boolean;
 }
 
-export function handleTreeCapitator(player: mc.Player, block: mc.Block, options?: TreeCapitatorOptions): number {
+export function handleTreeCapitator(
+  player: mc.Player,
+  block: mc.Block,
+  brokenPermutationOrOptions?: mc.BlockPermutation | TreeCapitatorOptions,
+  maybeOptions?: TreeCapitatorOptions,
+): number {
   if (!player.isValid) {
     return 0;
   }
+
+  const isPermutation = isDefined(brokenPermutationOrOptions) && 'type' in brokenPermutationOrOptions;
+  const brokenPermutation = isPermutation ? (brokenPermutationOrOptions as mc.BlockPermutation) : undefined;
+  const options = (isPermutation ? maybeOptions : (brokenPermutationOrOptions as TreeCapitatorOptions)) ?? undefined;
 
   const cfg = options ?? getConfig().survivalQoL?.treeCapitator;
   if (!cfg?.enabled) {
@@ -45,12 +54,12 @@ export function handleTreeCapitator(player: mc.Player, block: mc.Block, options?
     return 0;
   }
 
-  if (!isLogBlock(block.typeId)) {
+  const targetTypeId = brokenPermutation?.type?.id ?? block.typeId;
+  if (!isLogBlock(targetTypeId)) {
     return 0;
   }
 
   const dimension = player.dimension;
-  const targetTypeId = block.typeId;
   const maxLogs = Math.max(1, Math.min(128, Number(cfg.maxLogs ?? 64)));
 
   const visited = new Set<string>();

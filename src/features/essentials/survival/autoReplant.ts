@@ -35,23 +35,34 @@ export interface AutoReplantOptions {
   enabled?: boolean;
 }
 
-export function handleAutoReplant(player: mc.Player, block: mc.Block, options?: AutoReplantOptions): boolean {
+export function handleAutoReplant(
+  player: mc.Player,
+  block: mc.Block,
+  brokenPermutationOrOptions?: mc.BlockPermutation | AutoReplantOptions,
+  maybeOptions?: AutoReplantOptions,
+): boolean {
   if (!player.isValid) {
     return false;
   }
+
+  const isPermutation = isDefined(brokenPermutationOrOptions) && 'type' in brokenPermutationOrOptions;
+  const brokenPermutation = isPermutation ? (brokenPermutationOrOptions as mc.BlockPermutation) : undefined;
+  const options = (isPermutation ? maybeOptions : (brokenPermutationOrOptions as AutoReplantOptions)) ?? undefined;
 
   const cfg = options ?? getConfig().survivalQoL?.autoReplant;
   if (!cfg?.enabled) {
     return false;
   }
 
-  const cropInfo = cropMaxAges[block.typeId];
+  const permutation = brokenPermutation ?? block.permutation;
+  const cropTypeId = permutation?.type?.id ?? block.typeId;
+  const cropInfo = cropMaxAges[cropTypeId];
   if (!isDefined(cropInfo)) {
     return false;
   }
 
   try {
-    const currentState = block.permutation.getState(cropInfo.stateKey);
+    const currentState = permutation.getState(cropInfo.stateKey);
     if (typeof currentState !== 'number' || currentState < cropInfo.maxAge) {
       return false;
     }
@@ -61,7 +72,6 @@ export function handleAutoReplant(player: mc.Player, block: mc.Block, options?: 
 
   const dimension = player.dimension;
   const loc = { x: block.location.x, y: block.location.y, z: block.location.z };
-  const cropTypeId = block.typeId;
 
   // Run on next tick after the block break event finishes dropping items
   const scheduleReplant = () => {
@@ -72,8 +82,8 @@ export function handleAutoReplant(player: mc.Player, block: mc.Block, options?: 
       }
 
       const current = dimension.getBlock(loc);
-      if (isDefined(current) && current.isAir) {
-        current.setType(cropTypeId);
+      if (isDefined(current) && (current.isAir || current.typeId === MinecraftBlockTypes.Air)) {
+        dimension.setBlockType(loc, cropTypeId);
       }
     } catch {
       // Ignore

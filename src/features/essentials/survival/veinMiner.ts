@@ -19,10 +19,19 @@ export interface VeinMinerOptions {
   damageTool?: boolean;
 }
 
-export function handleVeinMiner(player: mc.Player, block: mc.Block, options?: VeinMinerOptions): number {
+export function handleVeinMiner(
+  player: mc.Player,
+  block: mc.Block,
+  brokenPermutationOrOptions?: mc.BlockPermutation | VeinMinerOptions,
+  maybeOptions?: VeinMinerOptions,
+): number {
   if (!player.isValid) {
     return 0;
   }
+
+  const isPermutation = isDefined(brokenPermutationOrOptions) && 'type' in brokenPermutationOrOptions;
+  const brokenPermutation = isPermutation ? (brokenPermutationOrOptions as mc.BlockPermutation) : undefined;
+  const options = (isPermutation ? maybeOptions : (brokenPermutationOrOptions as VeinMinerOptions)) ?? undefined;
 
   const cfg = options ?? getConfig().survivalQoL?.veinMiner;
   if (!cfg?.enabled) {
@@ -43,12 +52,12 @@ export function handleVeinMiner(player: mc.Player, block: mc.Block, options?: Ve
     return 0;
   }
 
-  if (!isOreBlock(block.typeId)) {
+  const targetTypeId = brokenPermutation?.type?.id ?? block.typeId;
+  if (!isOreBlock(targetTypeId)) {
     return 0;
   }
 
   const dimension = player.dimension;
-  const targetTypeId = block.typeId;
   const maxOres = Math.max(1, Math.min(64, Number(cfg.maxOres ?? 32)));
 
   const visited = new Set<string>();

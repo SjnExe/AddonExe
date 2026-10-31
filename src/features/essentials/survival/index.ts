@@ -30,13 +30,13 @@ export function handlePlayerBreakBlockSurvival(event: mc.PlayerBreakBlockAfterEv
   const brokenTypeId = brokenBlockPermutation?.type?.id ?? block.typeId;
 
   // 1. Auto Replant (crops)
-  handleAutoReplant(player, block);
+  handleAutoReplant(player, block, brokenBlockPermutation);
 
   // 2. Tree Capitator (logs)
-  handleTreeCapitator(player, block);
+  handleTreeCapitator(player, block, brokenBlockPermutation);
 
   // 3. Vein Miner (ores)
-  handleVeinMiner(player, block);
+  handleVeinMiner(player, block, brokenBlockPermutation);
 
   // 4. Fast Leaf Decay (leaves near broken logs)
   if (isDefined(dimension)) {
