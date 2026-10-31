@@ -195,6 +195,7 @@ export class Player {
   getDynamicProperty = mock();
   setDynamicProperty = mock();
   isValid = true;
+  isFlying = false;
   triggerEvent = mock();
   getComponent = mock();
   getPing = mock(() => 20);
