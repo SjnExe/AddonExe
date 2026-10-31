@@ -152,8 +152,10 @@ jobs:
         run: |
           cat build_meta.env >> $GITHUB_ENV
           if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "IS_DRY_RUN=true" >> build_meta.env
               echo "IS_DRY_RUN=true" >> $GITHUB_ENV
           else
+              echo "IS_DRY_RUN=false" >> build_meta.env
               echo "IS_DRY_RUN=false" >> $GITHUB_ENV
           fi
 
@@ -199,6 +201,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+    env:
+      IS_DRY_RUN: ${{ inputs.dry_run == true || inputs.dry_run == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -280,28 +284,17 @@ jobs:
           fi
 
       - name: Publish Stable Release Link on GitHub
-        if: env.BUILD_TYPE == 'release' && env.IS_DRY_RUN != 'true'
+        if: env.BUILD_TYPE == 'release' && env.IS_DRY_RUN != 'true' && startsWith(github.ref, 'refs/tags/v')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat <<EOF > github_release_notes.md
-          ## 📥 [Download AddonExe v${{ env.ARCHIVE_VERSION }} on CurseForge](${{ env.CF_DOWNLOAD_URL }})
-
-          ---
-
-          $(cat release_notes.md)
-          EOF
+          printf "## 📥 [Download AddonExe v%s on CurseForge](%s)\n\n---\n\n" "${ARCHIVE_VERSION}" "${CF_DOWNLOAD_URL}" > github_release_notes.md
+          cat release_notes.md >> github_release_notes.md
 
           if [ -s raw_pr_notes.md ] && [ -s user_changelog.md ]; then
-            cat <<EOF >> github_release_notes.md
-
-          <details>
-          <summary>🛠️ Developer & PR Commit Log</summary>
-
-          $(cat raw_pr_notes.md)
-
-          </details>
-          EOF
+            printf "\n\n<details>\n<summary>🛠️ Developer & PR Commit Log</summary>\n\n" >> github_release_notes.md
+            cat raw_pr_notes.md >> github_release_notes.md
+            printf "\n\n</details>\n" >> github_release_notes.md
           fi
 
           if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then

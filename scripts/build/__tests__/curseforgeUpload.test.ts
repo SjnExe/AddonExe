@@ -34,6 +34,17 @@ describe('CurseForge Version Selection', () => {
     expect(names).not.toContain('Bedrock 1.21.60-rc1');
   });
 
+  it('does not falsely filter stable versions containing words with rc or pre', () => {
+    const edgeCaseVersions: CfGameVersion[] = [
+      { id: 201, gameVersionTypeID: 1, name: 'Minecraft 1.21.60 resource', slug: '1-21-60-resource' },
+      { id: 202, gameVersionTypeID: 1, name: 'Bedrock 1.21.50 Search', slug: '1-21-50-search' },
+      { id: 203, gameVersionTypeID: 1, name: 'Minecraft 1.21.40 precision', slug: '1-21-40-precision' },
+    ];
+
+    const stable = edgeCaseVersions.filter(isStableBedrockVersion);
+    expect(stable.length).toBe(3);
+  });
+
   it('correctly parses semver from diverse naming schemes', () => {
     expect(parseBedrockSemver('1.21.60')).toBe('1.21.60');
     expect(parseBedrockSemver('Bedrock 1.21.50')).toBe('1.21.50');
@@ -68,6 +79,14 @@ describe('CurseForge Version Selection', () => {
     expect(ids).not.toContain(105);
     expect(ids).not.toContain(106);
   });
+
+  it('respects minVersion when collecting compatible IDs', () => {
+    // If pack requires at least 1.21.50, 1.21.0 (id 102) should be excluded
+    const ids = selectBedrockVersionIds(sampleVersions, false, '1.21.50');
+    expect(ids).toContain(104);
+    expect(ids).toContain(103);
+    expect(ids).not.toContain(102);
+  });
 });
 
 describe('Changelog Parser', () => {
@@ -101,6 +120,20 @@ Intro text.
     expect(result).toBeDefined();
     expect(result).toContain('Added legacy feature');
     expect(result).not.toContain('Added feature A');
+  });
+
+  it('extracts target version with unbracketed header', () => {
+    const unbracketedLog = `# Changelog
+## 0.6.0 - 2025-09-01
+- Feature from unbracketed header
+
+## 0.5.0
+- Older feature
+`;
+    const result = parseChangelogSection(unbracketedLog, '0.6.0');
+    expect(result).toBeDefined();
+    expect(result).toContain('Feature from unbracketed header');
+    expect(result).not.toContain('Older feature');
   });
 
   it('returns null when version is not in changelog', () => {
