@@ -1,10 +1,9 @@
 import { getXrayConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, getPlayer } from '@core/data/playerDataManager.js';
-import { registerEvent } from '@core/events/eventManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatString } from '@core/utils/index.js';
-import { warnLog } from '@core/utils/logger.js';
+import { errorLog, warnLog } from '@core/utils/logger.js';
 import { setTrackedTimeout } from '@core/utils/timerManager.js';
 import { MonitoredOreType } from '@features/anticheat/xray/config.js';
 import { isWatched } from '@features/moderation/watchManager.js';
@@ -63,6 +62,8 @@ export function refreshXrayCache(): void {
       }
     }
   }
+
+  updateXraySubscription();
 }
 
 function sendAlert(
@@ -208,18 +209,50 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
   }
 }
 
+let xrayUnsubscribe: (() => void) | undefined;
+
+export function updateXraySubscription(): void {
+  if (xrayUnsubscribe) {
+    try {
+      xrayUnsubscribe();
+    } catch {
+      // Ignore
+    }
+    xrayUnsubscribe = undefined;
+  }
+
+  const blockTypes = Array.from(oreCache.keys());
+  if (blockTypes.length === 0) {
+    return;
+  }
+
+  try {
+    const callback = mc.world.afterEvents.playerBreakBlock.subscribe(handleBlockBreak, { blockTypes });
+    xrayUnsubscribe = () => {
+      try {
+        mc.world.afterEvents.playerBreakBlock.unsubscribe(callback);
+      } catch {
+        // Suppress during reload/shutdown
+      }
+    };
+  } catch (error) {
+    errorLog(`[Xray] Failed to subscribe to playerBreakBlock: ${String(error)}`);
+  }
+}
+
 export function initializeXrayDetection(): void {
   refreshXrayCache();
-  const blockTypes = Array.from(oreCache.keys());
-  registerEvent(
-    mc.world.afterEvents.playerBreakBlock,
-    handleBlockBreak,
-    'xrayDetection',
-    blockTypes.length > 0 ? { blockTypes } : undefined,
-  );
 }
 
 export function _clearXrayForTest(): void {
   oreCache.clear();
   alertBuffers.clear();
+  if (xrayUnsubscribe) {
+    try {
+      xrayUnsubscribe();
+    } catch {
+      // Ignore
+    }
+    xrayUnsubscribe = undefined;
+  }
 }

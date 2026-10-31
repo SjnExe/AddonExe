@@ -136,6 +136,7 @@ describe('ItemCheck', () => {
       if (id === mc.EntityComponentTypes.Inventory) {
         return {
           container: {
+            size: 36,
             setItem: setItemMock,
           },
         };
@@ -165,6 +166,26 @@ describe('ItemCheck', () => {
       expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
     );
     expect(setItemMock).toHaveBeenCalledWith(3, undefined);
+
+    // Test Main Inventory slot 3 maps to container slot 12 (3 + 9)
+    setItemMock.mockClear();
+    flagSpy.mockClear();
+
+    const invEvent = {
+      player,
+      slot: 3,
+      itemStack: item,
+      inventoryType: mc.PlayerInventoryType.Inventory,
+    } as unknown as mc.PlayerInventoryItemChangeAfterEvent;
+
+    handlePlayerInventoryItemChange(invEvent);
+
+    expect(flagSpy).toHaveBeenCalledWith(
+      player,
+      'itemCheck',
+      expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
+    );
+    expect(setItemMock).toHaveBeenCalledWith(12, undefined);
 
     configSpy.mockRestore();
   });

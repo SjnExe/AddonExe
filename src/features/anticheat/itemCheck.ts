@@ -36,6 +36,8 @@ export function startItemCheckLoop() {
   }, 100); // Check equipment every 5 seconds
 }
 
+const mutatingSlots = new Set<string>();
+
 export function handlePlayerInventoryItemChange(event: mc.PlayerInventoryItemChangeAfterEvent): void {
   const player = event.player;
   if (!player || !player.isValid) {
@@ -62,16 +64,36 @@ export function handlePlayerInventoryItemChange(event: mc.PlayerInventoryItemCha
   }
 
   const container = inventory.container;
+  // Hotbar slots are 0..8; Main inventory slots 0..26 map to container slots 9..35
+  const targetSlot = event.inventoryType === mc.PlayerInventoryType.Inventory ? event.slot + 9 : event.slot;
+  if (targetSlot < 0 || targetSlot >= container.size) {
+    return;
+  }
+
+  const slotKey = `${player.id}:${targetSlot}`;
+  if (mutatingSlots.has(slotKey)) {
+    return;
+  }
+
   const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
   checkItem(
     item,
     player,
     config.itemCheck,
     (newItem) => {
+      mutatingSlots.add(slotKey);
       try {
-        container.setItem(event.slot, newItem);
+        container.setItem(targetSlot, newItem);
       } catch {
         // Ignore slot mutation conflicts
+      } finally {
+        if (typeof mc.system?.run === 'function') {
+          mc.system.run(() => {
+            mutatingSlots.delete(slotKey);
+          });
+        } else {
+          mutatingSlots.delete(slotKey);
+        }
       }
     },
     bannedSet,
