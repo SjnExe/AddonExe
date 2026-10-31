@@ -9,7 +9,7 @@ import { errorLog } from '@core/utils/logger.js';
 import * as messaging from '@core/utils/messaging.js';
 import * as teleportLogicModule from '@core/utils/teleportLogic.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
-import { saveLastLocation } from '@features/teleport/utils.js';
+import { saveLastLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import * as mc from '@minecraft/server';
 
 interface BackConfig {
@@ -92,7 +92,7 @@ const backCommand: CustomCommand = {
         const targetDestination = { ...lastLocation };
         const dimension = mc.world.getDimension(targetDestination.dimensionId);
         saveLastLocation(executor, 'teleport');
-        executor.teleport(targetDestination, { dimension: dimension });
+        teleportPlayerWithTransition(executor, targetDestination, { dimension: dimension });
         messaging.sendMessage('§aTeleported back to previous location.', executor);
         playSound(executor, 'random.orb');
         cooldownManager.setCooldown(executor.id, 'back', backConfig.cooldownSeconds);

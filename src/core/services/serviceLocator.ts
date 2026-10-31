@@ -27,6 +27,7 @@ export interface ServiceMap {
   'teleport.utils': {
     saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;
     findSafeLocation: (dimension: mc.Dimension, location: mc.Vector3) => mc.Vector3 | undefined;
+    teleportPlayerWithTransition?: (player: mc.Player, location: mc.Vector3, options?: mc.TeleportOptions) => void;
   };
 }
 

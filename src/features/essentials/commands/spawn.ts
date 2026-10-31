@@ -17,6 +17,7 @@ import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 interface TeleportUtilsService {
   saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;
   findSafeLocation: (dimension: mc.Dimension, location: mc.Vector3) => mc.Vector3 | undefined;
+  teleportPlayerWithTransition?: (player: mc.Player, location: mc.Vector3, options?: mc.TeleportOptions) => void;
 }
 
 interface SpawnLocation {
@@ -94,7 +95,11 @@ const spawnCommand: CustomCommand = {
         if (teleportUtils) {
           teleportUtils.saveLastLocation(executor);
         }
-        executor.teleport(spawnLocation as mc.Vector3, { dimension: dimension });
+        if (teleportUtils?.teleportPlayerWithTransition) {
+          teleportUtils.teleportPlayerWithTransition(executor, spawnLocation as mc.Vector3, { dimension: dimension });
+        } else {
+          executor.teleport(spawnLocation as mc.Vector3, { dimension: dimension });
+        }
         sendMessage('§aTeleporting you to spawn...', executor);
         playSound(executor, 'random.orb');
         setCooldown(executor.id, 'spawn', config.spawn.cooldownSeconds);

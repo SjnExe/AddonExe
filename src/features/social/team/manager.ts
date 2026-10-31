@@ -16,6 +16,7 @@ import * as mc from '@minecraft/server';
 
 interface TeleportUtilsService {
   saveLastLocation: (player: mc.Player, reason?: 'death' | 'teleport') => void;
+  teleportPlayerWithTransition?: (player: mc.Player, location: mc.Vector3, options?: mc.TeleportOptions) => void;
 }
 
 const teamPropertyPrefix = 'exe:team.';
@@ -808,7 +809,11 @@ export function teleportToTeamHome(player: mc.Player): void {
         if (teleportUtils) {
           teleportUtils.saveLastLocation(player);
         }
-        player.teleport({ x, y, z }, { dimension: dim });
+        if (teleportUtils?.teleportPlayerWithTransition) {
+          teleportUtils.teleportPlayerWithTransition(player, { x, y, z }, { dimension: dim });
+        } else {
+          player.teleport({ x, y, z }, { dimension: dim });
+        }
         playSound(player, soundTeleport);
         player.sendMessage('§aTeleported to team home!');
       } catch {

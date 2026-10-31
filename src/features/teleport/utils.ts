@@ -60,6 +60,37 @@ const sortedSearchOffsets: Offset3D[] = (() => {
   return offsets.toSorted((a, b) => a.distSq - b.distSq);
 })();
 
+export interface TeleportTransitionOptions extends mc.TeleportOptions {
+  fadeScreen?: boolean;
+  fadeColor?: mc.RGB;
+  fadeTime?: mc.CameraFadeTimeOptions;
+}
+
+/** Teleports a player safely with optional camera fade transition to prevent abrupt visual popping. */
+export function teleportPlayerWithTransition(
+  player: mc.Player,
+  location: mc.Vector3,
+  options?: TeleportTransitionOptions,
+): void {
+  if (!isDefined(player) || !player.isValid) {
+    return;
+  }
+
+  const fadeScreen = options?.fadeScreen ?? true;
+  if (fadeScreen && isDefined(player.camera) && typeof player.camera.fade === 'function') {
+    try {
+      player.camera.fade({
+        fadeColor: options?.fadeColor ?? { red: 0, green: 0, blue: 0 },
+        fadeTime: options?.fadeTime ?? { fadeInTime: 0.25, holdTime: 0.15, fadeOutTime: 0.35 },
+      });
+    } catch {
+      // Camera fade may fail if player is transitioning dimensions or camera is detached
+    }
+  }
+
+  player.teleport(location, options);
+}
+
 /** Saves the player's current location as their "last location" for /back command. */
 export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport'): void {
   if (!isDefined(player) || !player.isValid) {
@@ -212,7 +243,7 @@ export function executeTeleport(params: ExecuteTeleportParams): void {
         incrementPlayerBalance(executor.id, -chargeCost);
       }
       saveLastLocation(executor);
-      executor.teleport(location, { dimension });
+      teleportPlayerWithTransition(executor, location, { dimension });
       playSound(executor, soundTeleport);
       const costSuffix = chargeCost > 0 ? ` §7(-${formatCurrency(chargeCost)})` : '';
       sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.${costSuffix}`, executor);

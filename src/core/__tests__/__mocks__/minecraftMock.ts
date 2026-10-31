@@ -129,6 +129,16 @@ export const world = {
     playerItemAttackEntity: { subscribe: mock(), unsubscribe: mock() },
   },
   sendMessage: mock(),
+  tickingAreaManager: {
+    createTickingArea: mock(async () => {}),
+    removeTickingArea: mock(() => {}),
+    hasTickingArea: mock(() => false),
+    hasCapacity: mock(() => true),
+    getAllTickingAreas: mock(() => []),
+    getTickingArea: mock(() => undefined),
+    chunkCount: 0,
+    maxChunkCount: 100,
+  },
 };
 
 export const system = {
@@ -192,6 +202,13 @@ export class Player {
   sendMessage = mock();
   runCommand = mock();
   playSound = mock();
+  teleport = mock();
+  camera = {
+    fade: mock(),
+    clear: mock(),
+    setCamera: mock(),
+  };
+  getSpawnPoint = mock(() => undefined);
   getDynamicProperty = mock();
   setDynamicProperty = mock();
   isValid = true;
