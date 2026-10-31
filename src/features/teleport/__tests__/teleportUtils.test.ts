@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { isSafeTeleportColumn, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 describe('teleportUtils', () => {
   const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
@@ -45,7 +45,7 @@ describe('teleportUtils', () => {
 
     it('should cleanly forward native teleport options like dimension', () => {
       const targetLoc = { x: 50, y: 70, z: 50 };
-      const mockDim = { id: 'minecraft:the_end' } as mc.Dimension;
+      const mockDim = { id: MinecraftDimensionTypes.TheEnd } as mc.Dimension;
       teleportPlayerWithTransition(player, targetLoc, {
         dimension: mockDim,
         keepVelocity: true,
@@ -98,9 +98,9 @@ describe('teleportUtils', () => {
       const dimAir = {
         getBlock: mock(({ y }: { y: number }) => {
           if (y === 63) {
-            return { isAir: true, isLiquid: false, typeId: 'minecraft:air' };
+            return { isAir: true, isLiquid: false, typeId: MinecraftBlockTypes.Air };
           }
-          return { isAir: true, isLiquid: false, typeId: 'minecraft:air' };
+          return { isAir: true, isLiquid: false, typeId: MinecraftBlockTypes.Air };
         }),
       } as unknown as mc.Dimension;
       expect(isSafeTeleportColumn(dimAir, 0, 64, 0)).toBe(false);

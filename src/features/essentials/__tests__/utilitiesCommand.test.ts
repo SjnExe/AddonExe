@@ -8,6 +8,7 @@ import * as permissionEngine from '@core/permissions/permissionEngine.js';
 import utilitiesCommands from '@features/essentials/commands/utilities.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
+import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 const repairCommand = utilitiesCommands.find((c) => c.name === 'repair')!;
 
@@ -31,7 +32,7 @@ describe('repairCommand', () => {
       maxDurability: 100,
     };
     mainhandItem = {
-      typeId: 'minecraft:diamond_sword',
+      typeId: MinecraftItemTypes.DiamondSword,
       getComponent: mock((type: string) => {
         if (type === ItemComponentTypes.Durability) {
           return mainhandDurability;
@@ -117,7 +118,7 @@ describe('repairCommand', () => {
   it('repairs all equipped and inventory gear when scope is all', () => {
     const helmetDurability = { damage: 20 };
     const helmetItem = {
-      typeId: 'minecraft:diamond_helmet',
+      typeId: MinecraftItemTypes.DiamondHelmet,
       getComponent: mock((type: string) => (type === ItemComponentTypes.Durability ? helmetDurability : undefined)),
     };
     equipComponent.getEquipment.mockImplementation((slot: string) => {
@@ -129,7 +130,7 @@ describe('repairCommand', () => {
 
     const chestDurability = { damage: 15 };
     const chestItem = {
-      typeId: 'minecraft:iron_chestplate',
+      typeId: MinecraftItemTypes.IronChestplate,
       getComponent: mock((type: string) => (type === ItemComponentTypes.Durability ? chestDurability : undefined)),
     };
     invComponent.container.getItem.mockImplementation((slot: number) => {
