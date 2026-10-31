@@ -115,6 +115,7 @@ export const world = {
     entityHurt: { subscribe: mock(), unsubscribe: mock() },
     playerGameModeChange: { subscribe: mock(), unsubscribe: mock() },
     playerInventoryItemChange: { subscribe: mock(), unsubscribe: mock() },
+    playerEmote: { subscribe: mock(), unsubscribe: mock() },
   },
   beforeEvents: {
     chatSend: { subscribe: mock(), unsubscribe: mock() },
@@ -213,6 +214,7 @@ export class Player {
   setDynamicProperty = mock();
   isValid = true;
   isFlying = false;
+  isSleeping = false;
   triggerEvent = mock();
   getComponent = mock();
   getPing = mock(() => 20);
