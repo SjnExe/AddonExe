@@ -350,14 +350,21 @@ async function waitForChunkReady(dimension: mc.Dimension, x: number, z: number):
   const maxPolls = 12;
   for (let attempt = 0; attempt < maxPolls; attempt++) {
     try {
-      const probe = dimension.getBlock({ x, y: 64, z });
-      if (isDefined(probe)) {
+      const isLoaded =
+        typeof dimension.isChunkLoaded === 'function'
+          ? dimension.isChunkLoaded({ x, y: 64, z })
+          : isDefined(dimension.getBlock({ x, y: 64, z }));
+      if (isLoaded) {
         return true;
       }
     } catch {
       // Chunk still loading
     }
-    await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 2));
+    if (typeof mc.system?.waitTicks === 'function') {
+      await mc.system.waitTicks(2);
+    } else {
+      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, 2));
+    }
   }
   return false;
 }

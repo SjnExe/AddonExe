@@ -1,7 +1,7 @@
 import { CommandExecutor } from '@commands/commandManager.js';
 import * as configManager from '@core/config/configManager.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
-import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { kickPlayer } from '@core/utils/player.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import * as mc from '@minecraft/server';
@@ -31,14 +31,7 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
       restartTaskId = undefined;
 
       for (const player of players) {
-        // Actually kick them using commands if possible
-        try {
-          const safePlayerName = escapeCommandArg(player.name);
-          const safeKickMessage = escapeCommandArg(kickMessage);
-          player.runCommand(`kick "${safePlayerName}" "${safeKickMessage}"`);
-        } catch {
-          // Ignore
-        }
+        kickPlayer(player.name, kickMessage);
       }
       return;
     }

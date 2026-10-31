@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
+import * as configurations from '@core/config/configurations.js';
 import * as mc from '@minecraft/server';
 import { ItemComponentTypes } from '@minecraft/server';
 import { MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 import * as flagManager from '../flagManager.js';
-import { checkItem } from '../itemCheck.js';
+import { checkItem, checkPlayerEquipment, handlePlayerInventoryItemChange } from '../itemCheck.js';
 
 describe('ItemCheck', () => {
   let flagSpy: any;
@@ -110,5 +111,118 @@ describe('ItemCheck', () => {
       expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
     );
     expect(updateItem).toHaveBeenCalled();
+  });
+
+  it('should handle playerInventoryItemChange and remove illegal item in container slot', () => {
+    const configSpy = spyOn(configurations, 'getAnticheatConfig').mockReturnValue({
+      enabled: true,
+      consoleNotifications: false,
+      itemCheck: {
+        enabled: true,
+        notifyStaff: false,
+        flagDecaySeconds: 300,
+        violations: [],
+        bannedItems: [MinecraftItemTypes.Bedrock],
+        maxEnchantLevel: 5,
+        removeIllegalItems: true,
+      },
+      movementCheck: {} as any,
+      antiNetherRoof: {} as any,
+    });
+
+    const setItemMock = mock();
+    player.getGameMode = mock(() => mc.GameMode.Survival);
+    player.getComponent = mock((id: string) => {
+      if (id === mc.EntityComponentTypes.Inventory) {
+        return {
+          container: {
+            size: 36,
+            setItem: setItemMock,
+          },
+        };
+      }
+      return undefined;
+    });
+
+    const item = {
+      typeId: MinecraftItemTypes.Bedrock,
+      amount: 1,
+      maxAmount: 64,
+      getComponent: () => undefined,
+    } as unknown as mc.ItemStack;
+
+    const event = {
+      player,
+      slot: 3,
+      itemStack: item,
+      inventoryType: mc.PlayerInventoryType.Hotbar,
+    } as unknown as mc.PlayerInventoryItemChangeAfterEvent;
+
+    handlePlayerInventoryItemChange(event);
+
+    expect(flagSpy).toHaveBeenCalledWith(
+      player,
+      'itemCheck',
+      expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
+    );
+    expect(setItemMock).toHaveBeenCalledWith(3, undefined);
+
+    // Test Main Inventory slot 3 maps to container slot 12 (3 + 9)
+    setItemMock.mockClear();
+    flagSpy.mockClear();
+
+    const invEvent = {
+      player,
+      slot: 3,
+      itemStack: item,
+      inventoryType: mc.PlayerInventoryType.Inventory,
+    } as unknown as mc.PlayerInventoryItemChangeAfterEvent;
+
+    handlePlayerInventoryItemChange(invEvent);
+
+    expect(flagSpy).toHaveBeenCalledWith(
+      player,
+      'itemCheck',
+      expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
+    );
+    expect(setItemMock).toHaveBeenCalledWith(12, undefined);
+
+    configSpy.mockRestore();
+  });
+
+  it('should check equipment slots via checkPlayerEquipment', () => {
+    const setEquipmentMock = mock();
+    const bannedItem = {
+      typeId: MinecraftItemTypes.Bedrock,
+      amount: 1,
+      maxAmount: 64,
+      getComponent: () => undefined,
+    } as unknown as mc.ItemStack;
+
+    player.getGameMode = mock(() => mc.GameMode.Survival);
+    player.getComponent = mock((id: string) => {
+      if (id === mc.EntityComponentTypes.Equippable) {
+        return {
+          getEquipment: (slot: string) => (slot === mc.EquipmentSlot.Head ? bannedItem : undefined),
+          setEquipment: setEquipmentMock,
+        };
+      }
+      return undefined;
+    });
+
+    const config = {
+      bannedItems: [MinecraftItemTypes.Bedrock],
+      maxEnchantLevel: 5,
+      removeIllegalItems: true,
+    };
+
+    checkPlayerEquipment(player, config);
+
+    expect(flagSpy).toHaveBeenCalledWith(
+      player,
+      'itemCheck',
+      expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
+    );
+    expect(setEquipmentMock).toHaveBeenCalledWith(mc.EquipmentSlot.Head, undefined);
   });
 });

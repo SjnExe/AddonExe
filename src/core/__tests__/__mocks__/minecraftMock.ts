@@ -14,6 +14,17 @@ export class Dimension {
   getBlock = mock();
   playSound = mock();
   spawnParticle = mock();
+  isChunkLoaded = mock(() => true);
+}
+
+const _dimensionMocks = new Map<string, Dimension>();
+export function getDimensionMock(dim: string): Dimension {
+  let inst = _dimensionMocks.get(dim);
+  if (!inst) {
+    inst = new Dimension(dim);
+    _dimensionMocks.set(dim, inst);
+  }
+  return inst;
 }
 
 export class BlockVolume {
@@ -47,7 +58,8 @@ export function _resetMinecraftMocks(): void {
       _testDynamicProperties.set(key, val);
     }
   });
-  world.getDimension.mockImplementation((dim: string) => new Dimension(dim));
+  _dimensionMocks.clear();
+  world.getDimension.mockImplementation((dim: string) => getDimensionMock(dim));
   world.getAllPlayers.mockImplementation(() => []);
   world.sendMessage.mockImplementation(() => {});
 
@@ -89,7 +101,7 @@ export const world = {
       _testDynamicProperties.set(key, val);
     }
   }),
-  getDimension: mock((dim: string) => new Dimension(dim)),
+  getDimension: mock((dim: string) => getDimensionMock(dim)),
   getAllPlayers: mock(() => []),
   afterEvents: {
     playerSpawn: { subscribe: mock(), unsubscribe: mock() },
@@ -102,6 +114,7 @@ export const world = {
     chatSend: { subscribe: mock(), unsubscribe: mock() },
     entityHurt: { subscribe: mock(), unsubscribe: mock() },
     playerGameModeChange: { subscribe: mock(), unsubscribe: mock() },
+    playerInventoryItemChange: { subscribe: mock(), unsubscribe: mock() },
   },
   beforeEvents: {
     chatSend: { subscribe: mock(), unsubscribe: mock() },
@@ -119,6 +132,7 @@ export const world = {
 };
 
 export const system = {
+  waitTicks: mock(async () => {}),
   run: mock((callback: () => void) => {
     callback();
     return 0;
@@ -181,8 +195,10 @@ export class Player {
   getDynamicProperty = mock();
   setDynamicProperty = mock();
   isValid = true;
+  isFlying = false;
   triggerEvent = mock();
   getComponent = mock();
+  getPing = mock(() => 20);
 }
 
 export enum CustomCommandParamType {
@@ -209,6 +225,16 @@ export enum EquipmentSlot {
   Feet = 'Feet',
   Mainhand = 'Mainhand',
   Offhand = 'Offhand',
+}
+
+export enum PlayerInventoryType {
+  Hotbar = 'Hotbar',
+  Inventory = 'Inventory',
+}
+
+export enum WatchdogTerminateReason {
+  Hang = 'Hang',
+  StackOverflow = 'StackOverflow',
 }
 
 export const EntityTypes = {

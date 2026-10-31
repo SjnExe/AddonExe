@@ -14,7 +14,7 @@ export interface ChatLog {
 const indexStorage = new StorageManager('exe:logs:chat:index');
 let availableDates: string[] = [];
 let today: string = '';
-const maxDailyChatLogs = 1000;
+const maxDailyChatLogs = 100;
 let currentDayLogs: ChatLog[] = [];
 let isDirty = false;
 
@@ -114,9 +114,9 @@ export function getAvailableDates(): string[] {
 
 function pruneOldLogs() {
   const config = getConfig();
-  const expirationDays = config.chat.logExpirationDays;
-  // Limit is days * milliseconds per day
-  const limit = Math.max(1, expirationDays) * 24 * 60 * 60 * 1000;
+  // Bound stored in-world history to at most 2 days to protect the 1MB world dynamic property budget
+  const expirationDays = Math.min(2, Math.max(1, config.chat.logExpirationDays || 2));
+  const limit = expirationDays * 24 * 60 * 60 * 1000;
   const now = Date.now();
 
   const toRemove: string[] = [];

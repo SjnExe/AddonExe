@@ -1,6 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { frozenTag } from '@core/utils/constants.js';
 import { hasTeleportProtection } from '@core/utils/teleportLogic.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/protection/zoneSelectionManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
@@ -30,6 +31,10 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
   if (!isDefined(player) || !isDefined(block)) {
     return;
   }
+  if (player.hasTag(frozenTag)) {
+    event.cancel = true;
+    return;
+  }
   if (hasTeleportProtection(player.id)) {
     event.cancel = true;
     mc.system.run(() => {
@@ -55,6 +60,10 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
 export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEvent) {
   const { player, block } = event;
   if (!isDefined(player) || !isDefined(block)) {
+    return;
+  }
+  if (player.hasTag(frozenTag)) {
+    event.cancel = true;
     return;
   }
   if (hasTeleportProtection(player.id)) {
@@ -120,6 +129,10 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
   if (!(player instanceof mc.Player)) {
     return;
   }
+  if (player.hasTag(frozenTag)) {
+    event.cancel = true;
+    return;
+  }
   if (hasTeleportProtection(player.id) && event.itemStack.typeId !== 'exe:panel') {
     event.cancel = true;
     mc.system.run(() => {
@@ -159,6 +172,10 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
   if (!isDefined(player) || !isDefined(block)) {
     return;
   }
+  if (player.hasTag(frozenTag)) {
+    event.cancel = true;
+    return;
+  }
   if (handleWandInteractBlock(event)) {
     return;
   }
@@ -177,6 +194,10 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
 export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntityBeforeEvent) {
   const { player, target } = event;
   if (!isDefined(player) || !isDefined(target)) {
+    return;
+  }
+  if (player.hasTag(frozenTag)) {
+    event.cancel = true;
     return;
   }
 

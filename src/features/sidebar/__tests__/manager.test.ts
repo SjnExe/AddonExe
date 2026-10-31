@@ -124,6 +124,22 @@ describe('Sidebar Manager', () => {
     expect(line3).toBe('Money: $1k');
   });
 
+  it('should resolve {ping} and {ping_colored} placeholders', () => {
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+      getPing: () => 45,
+    } as unknown as mc.Player;
+
+    const ctx = createPlayerPlaceholderContext(mockPlayer);
+    expect(ctx.tokens.get('ping')).toBe('45');
+    expect(ctx.tokens.get('ping_colored')).toBe('§a45ms§r');
+
+    const resolved = resolveGlobalPlaceholders('Ping: {ping} | Colored: {ping_colored}', mockPlayer, ctx);
+    expect(resolved).toBe('Ping: 45 | Colored: §a45ms§r');
+  });
+
   it('should allow setting action bar override on player', () => {
     let setActionBarMsg = '';
     const mockPlayer = {

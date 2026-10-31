@@ -1,3 +1,4 @@
+import { flushAllActivePlayerData } from '@core/data/playerDataManager.js';
 import handleBeforeChatSend from '@core/events/beforeChatSend.js';
 import handleEntityDie from '@core/events/entityDie.js';
 import handleEntityHurt from '@core/events/entityHurt.js';
@@ -102,7 +103,22 @@ export function initializeEventManager() {
   registerEvent(mc.world.afterEvents.playerDimensionChange, handlePlayerDimensionChange, 'playerDimensionChange');
   registerEvent(mc.world.afterEvents.itemUse, handleItemUse, 'itemUse');
   registerEvent(mc.world.afterEvents.entityDie, handleEntityDie, 'entityDie');
-  registerEvent(mc.system.afterEvents.scriptEventReceive, handleScriptEventReceive, 'scriptEventReceive');
+  registerEvent(mc.system.afterEvents.scriptEventReceive, handleScriptEventReceive, 'scriptEventReceive', {
+    namespaces: ['exe'],
+  });
+
+  if (mc.system?.beforeEvents?.watchdogTerminate) {
+    registerEvent(mc.system.beforeEvents.watchdogTerminate, handleWatchdogTerminate, 'watchdogTerminate');
+  }
+}
+
+export function handleWatchdogTerminate(event: mc.WatchdogTerminateBeforeEvent): void {
+  errorLog(`[EventManager] Script watchdog termination triggered. Reason: ${String(event.terminateReason)}`);
+  try {
+    flushAllActivePlayerData();
+  } catch (error: unknown) {
+    errorLog(`[EventManager] Failed to flush active player data on watchdog termination: ${String(error)}`);
+  }
 }
 
 export function cleanupEventManager() {

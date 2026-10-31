@@ -10,7 +10,7 @@ import { formatDuration } from '@core/utils/time.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import { getBounty } from '@features/economy/bounty/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
-import { isDefined } from '@lib/guards.js';
+import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
@@ -34,7 +34,18 @@ async function showPaginatedOnlinePlayers(
       const rankText = targetRank.chatFormatting?.prefixText
         ? `[${targetRank.chatFormatting.prefixText}]`
         : `[${targetRank.name}]`;
-      formBuilder.button(`${p.name}\n§r${rankText}`, getPlayerIcon(p), () => {
+      let pingText = '';
+      try {
+        if (typeof p.getPing === 'function') {
+          const ping = p.getPing();
+          if (isNumber(ping) && !Number.isNaN(ping) && ping >= 0) {
+            pingText = ` §8| §b${Math.floor(ping)}ms`;
+          }
+        }
+      } catch {
+        // Ignore
+      }
+      formBuilder.button(`${p.name}\n§r${rankText}${pingText}`, getPlayerIcon(p), () => {
         void showPlayerActionsPanel(player, p.id, p.name);
       });
     },
@@ -79,6 +90,23 @@ export async function showPlayerActionsPanel(
   const form = new ActionFormBuilder().title(targetPlayerName);
   const isModMode = hasPermission(player, 'ui.panel.mod');
   const onlineTarget = getPlayerFromCache(targetPlayerId);
+
+  if (isDefined(onlineTarget)) {
+    let pingDisplay = 'Unknown';
+    try {
+      if (typeof onlineTarget.getPing === 'function') {
+        const ping = onlineTarget.getPing();
+        if (isNumber(ping) && !Number.isNaN(ping) && ping >= 0) {
+          pingDisplay = `${Math.floor(ping)}ms`;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    form.body(`§7Status: §aOnline §8| §7Ping: §b${pingDisplay}`);
+  } else {
+    form.body('§7Status: §cOffline');
+  }
 
   if (isModMode) {
     form.button('Warn', 'textures/ui/WarningGlyph', () => {
@@ -207,6 +235,17 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
   if (data) {
     const rank = getPlayerRank(player, getConfig());
     const rankDisplay = rank.chatFormatting?.prefixText ?? rank.nametagPrefix ?? rank.name;
+    let pingDisplay = '';
+    try {
+      if (typeof player.getPing === 'function') {
+        const ping = player.getPing();
+        if (isNumber(ping) && !Number.isNaN(ping) && ping >= 0) {
+          pingDisplay = ` §8| §3Ping: §b${Math.floor(ping)}ms`;
+        }
+      }
+    } catch {
+      // Ignore
+    }
     const kdr = data.deaths === 0 ? data.kills.toFixed(2) : (data.kills / data.deaths).toFixed(2);
     const savings = data.bank?.savingsBalance ?? 0;
     const fdTotal = (data.bank?.fixedDeposits ?? []).reduce((sum, fd) => sum + fd.principal, 0);
@@ -214,7 +253,7 @@ export async function showMyStatsPanel(player: mc.Player): Promise<void> {
       `§2Wallet: §r${formatCurrency(data.balance)}\n§7Bank: §b${formatCurrency(savings)} §8| §7FD: §6${formatCurrency(fdTotal)}`,
       'textures/items/emerald',
     );
-    form.button(`§6Rank: §r${rankDisplay}`, 'textures/ui/permissions_op_crown');
+    form.button(`§6Rank: §r${rankDisplay}${pingDisplay}`, 'textures/ui/permissions_op_crown');
     form.button(
       `§bPlaytime: §r${formatDuration(data.totalPlayTime)}\n§7Daily Streak: §e${data.dailyStreak ?? 0}d`,
       'textures/items/clock_item',

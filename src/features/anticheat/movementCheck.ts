@@ -2,7 +2,7 @@ import type { AnticheatConfig } from '@core/config/configurations.js';
 import * as configLoader from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { errorLog } from '@core/utils/logger.js';
-import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { kickPlayer } from '@core/utils/player.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -186,7 +186,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   }
 
   // Flight / Hover Detection
-  if (config.flightDetection === true && !isGliding) {
+  if (config.flightDetection === true && !isGliding && !player.isFlying) {
     const isOnGround = player.isOnGround === true;
     const isSwimming = player.isSwimming === true;
     const isClimbing = player.isClimbing === true;
@@ -261,15 +261,8 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
   } // Allow admins/spectators
 
   if (player.location.y > config.maxHeight) {
-    // Teleport down or kick
-    // Kick is safest to force reset
-    try {
-      // Attempt to kick the player for being above the nether roof.
-      // We execute as the dimension (server context) to ensure it works even if the player is non-op.
-      const safePlayerName = escapeCommandArg(player.name);
-      player.dimension.runCommand(`kick "${safePlayerName}" Nether Roof Detected`);
-    } catch {
-      // If kick fails, TP down
+    const kicked = kickPlayer(player.name, 'Nether Roof Detected');
+    if (!kicked) {
       try {
         player.teleport({ x: player.location.x, y: 120, z: player.location.z }, { dimension: player.dimension });
       } catch {
