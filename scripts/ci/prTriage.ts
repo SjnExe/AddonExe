@@ -275,7 +275,7 @@ async function main() {
     }
 
     const existingComment = runCmd(
-      `gh pr view ${prNumber} --json comments --jq '.comments[] | select(.body | contains("<!-- pr-triage-bot -->")) | .id'`,
+      `gh api repos/${process.env.GITHUB_REPOSITORY}/issues/${prNumber}/comments --jq '.[] | select(.body | contains("<!-- pr-triage-bot -->")) | .id'`,
     );
 
     const tmpFile = path.join(os.tmpdir(), `pr_triage_${prNumber}_${Date.now()}.md`);
