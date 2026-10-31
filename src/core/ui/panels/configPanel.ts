@@ -35,10 +35,6 @@ export async function showConfigCategoryPanel(player: mc.Player, context: Record
   form.body('Select a configuration category to fine-tune server settings:');
   const page = (context.page as number) || 1;
 
-  form.button('§l§6Master Feature Toggles', 'textures/ui/settings_glyph_color_2x', () => {
-    void showConfigSystemPanel(player, 'featureToggles');
-  });
-
   const totalPages = Math.ceil(categories.length / itemsPerPage);
   if (page >= totalPages && hasPermission(player, 'ui.panel.owner')) {
     form.button('§l§4Danger Zone & Backup', 'textures/ui/WarningGlyph', () => {
@@ -95,7 +91,7 @@ export async function showConfigCategoryDetailPanel(
           if (systemDef && systemDef.showFunction) {
             void systemDef.showFunction(player);
           } else if (systemDef && systemDef.isSimpleConfig) {
-            void showConfigSystemPanel(player, systemDef.id);
+            void showConfigSystemPanel(player, systemDef.id, { category, page });
           } else {
             player.sendMessage('§cThis system configuration is not available.');
           }
@@ -118,13 +114,25 @@ export async function showConfigCategoryDetailPanel(
 export async function showConfigSystemPanel(
   player: mc.Player,
   systemId: string,
-  _context: Record<string, unknown> = {},
+  context: Record<string, unknown> = {},
 ): Promise<void> {
   await Promise.resolve();
+
+  const returnToCaller = async () => {
+    if (isNonEmptyString(context.category)) {
+      await showConfigCategoryDetailPanel(player, context.category as string, {
+        page: context.page ?? 1,
+      });
+    } else {
+      await showConfigCategoryPanel(player, { page: context.page ?? 1 });
+    }
+  };
+
   const schema = configPanelSchema.find((c) => c.id === systemId);
   if (!isDefined(schema)) {
     player.sendMessage('§cConfiguration not found.');
-    return showConfigCategoryPanel(player, { page: 1 });
+    await returnToCaller();
+    return;
   }
 
   const defaultSource = schema.configSource ?? 'main';
@@ -132,11 +140,12 @@ export async function showConfigSystemPanel(
   if (!isDefined(defaultHandler)) {
     debugLog(`[UI Config] Configuration handler not found for source: ${defaultSource}`);
     player.sendMessage('§cConfiguration handler not found.');
-    return showConfigCategoryPanel(player, { page: 1 });
+    await returnToCaller();
+    return;
   }
 
   debugLog(
-    `[UI Config] Loading config for system: ${systemId} from source: ${defaultSource} | Page: ${_context.page ?? 1}`,
+    `[UI Config] Loading config for system: ${systemId} from source: ${defaultSource} | Page: ${context.page ?? 1}`,
   );
   const modal = new CustomFormBuilder<Record<string, unknown>>(schema.title).submitButton('Save Settings');
   const validSettings: SettingSchema[] = [];
@@ -182,7 +191,7 @@ export async function showConfigSystemPanel(
 
   const res = await modal.show(player);
   if (!res) {
-    await showPanel(player, 'staffConfigHub');
+    await returnToCaller();
     return;
   }
 
@@ -207,7 +216,7 @@ export async function showConfigSystemPanel(
   }
 
   player.sendMessage('§2Configuration saved.');
-  await showPanel(player, 'staffConfigHub');
+  await returnToCaller();
 }
 
 export async function showConfigResetPanel(player: mc.Player): Promise<void> {

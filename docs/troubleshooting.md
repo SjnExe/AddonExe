@@ -29,7 +29,7 @@ For quick setup questions, check the [Frequently Asked Questions (F.A.Q.)](faq.m
 **Problem: `/shop`, `/ah`, `/pay`, or `/kit` says the system is disabled globally.**
 
 - Economy and its sub-modules are disabled by default on new worlds.
-- Open `/panel` -> **Staff Dashboard** -> **Addon Configuration** -> **Master Feature Toggles**, enable **Enable Economy** and the desired sub-systems, and click **Save Settings**.
+- Open `/panel` -> **Staff Dashboard** -> **Addon Configuration** -> **System Configs** -> **Economy Settings**, enable **Enable Economy** (and any desired sub-systems), and click **Save Settings**.
 
 **Problem: Vanilla commands like `/clear`, `/gamemode`, `/kick`, or `/help` run Minecraft's built-in command instead of AddonExe's.**
 
