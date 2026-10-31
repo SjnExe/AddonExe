@@ -114,6 +114,7 @@ export const world = {
     chatSend: { subscribe: mock(), unsubscribe: mock() },
     entityHurt: { subscribe: mock(), unsubscribe: mock() },
     playerGameModeChange: { subscribe: mock(), unsubscribe: mock() },
+    playerInventoryItemChange: { subscribe: mock(), unsubscribe: mock() },
   },
   beforeEvents: {
     chatSend: { subscribe: mock(), unsubscribe: mock() },
@@ -196,6 +197,7 @@ export class Player {
   isValid = true;
   triggerEvent = mock();
   getComponent = mock();
+  getPing = mock(() => 20);
 }
 
 export enum CustomCommandParamType {
@@ -222,6 +224,16 @@ export enum EquipmentSlot {
   Feet = 'Feet',
   Mainhand = 'Mainhand',
   Offhand = 'Offhand',
+}
+
+export enum PlayerInventoryType {
+  Hotbar = 'Hotbar',
+  Inventory = 'Inventory',
+}
+
+export enum WatchdogTerminateReason {
+  Hang = 'Hang',
+  StackOverflow = 'StackOverflow',
 }
 
 export const EntityTypes = {

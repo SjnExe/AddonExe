@@ -592,6 +592,20 @@ export function createPlayerPlaceholderContext(
   }
   tokens.set('gamemode', gamemode);
 
+  let pingVal = '0';
+  let pingNum = 0;
+  try {
+    if (typeof player.getPing === 'function') {
+      pingNum = Math.max(0, player.getPing());
+      pingVal = pingNum.toString();
+    }
+  } catch {
+    // Ignore
+  }
+  tokens.set('ping', pingVal);
+  const pingColor = pingNum < 80 ? '§a' : pingNum < 150 ? '§e' : '§c';
+  tokens.set('ping_colored', `${pingColor}${pingVal}ms§r`);
+
   return { tokens };
 }
 

@@ -378,6 +378,21 @@ export function savePlayerData(playerId: string, includeContainers = false): boo
 }
 
 /**
+ * Synchronously flushes and saves all active players marked as dirty (`needsSave`), and flushes dirty name-to-ID
+ * mappings.
+ */
+export function flushAllActivePlayerData(): void {
+  for (const [playerId, data] of activePlayerData.entries()) {
+    if (data.needsSave) {
+      savePlayerData(playerId);
+    }
+  }
+  if (isNameIdMapDirty) {
+    saveNameIdMap();
+  }
+}
+
+/**
  * Loads a single player's data from their unique dynamic property into the cache.
  *
  * @param playerId The ID of the player to load.

@@ -1,5 +1,6 @@
 import { AnticheatConfig, getAnticheatConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { registerEvent } from '@core/events/eventManager.js';
 import { errorLog } from '@core/utils/logger.js';
 import { setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import { flag } from '@features/anticheat/flagManager.js';
@@ -10,6 +11,14 @@ import * as mc from '@minecraft/server';
 let isChecking = false;
 
 export function startItemCheckLoop() {
+  if (mc.world.afterEvents.playerInventoryItemChange) {
+    registerEvent(
+      mc.world.afterEvents.playerInventoryItemChange,
+      handlePlayerInventoryItemChange,
+      'playerInventoryItemChange',
+    );
+  }
+
   setTrackedInterval(() => {
     if (isChecking) {
       return;
@@ -24,18 +33,60 @@ export function startItemCheckLoop() {
     } catch (error) {
       errorLog('Anticheat Item Loop Error', error);
     }
-  }, 100); // Check every 5 seconds
+  }, 100); // Check equipment every 5 seconds
+}
+
+export function handlePlayerInventoryItemChange(event: mc.PlayerInventoryItemChangeAfterEvent): void {
+  const player = event.player;
+  if (!player || !player.isValid) {
+    return;
+  }
+
+  const config = getAnticheatConfig();
+  if (config.enabled !== true || config.itemCheck.enabled !== true) {
+    return;
+  }
+
+  if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+    return;
+  }
+
+  const item = event.itemStack;
+  if (!isDefined(item)) {
+    return;
+  }
+
+  const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+  if (!isDefined(inventory?.container)) {
+    return;
+  }
+
+  const container = inventory.container;
+  const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
+  checkItem(
+    item,
+    player,
+    config.itemCheck,
+    (newItem) => {
+      try {
+        container.setItem(event.slot, newItem);
+      } catch {
+        // Ignore slot mutation conflicts
+      }
+    },
+    bannedSet,
+  );
 }
 
 function* checkInventoryGenerator(config: AnticheatConfig) {
   isChecking = true;
   try {
-    // Optimization: Use cached players
+    // Optimization: Use cached players and restrict periodic sweep to equipment slots
     const players = getAllPlayersFromCache();
     const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
     for (const player of players) {
       if (player.isValid) {
-        checkPlayerInventory(player, config.itemCheck, bannedSet);
+        checkPlayerEquipment(player, config.itemCheck, bannedSet);
       }
       yield;
     }
@@ -64,6 +115,31 @@ function getBannedItemSet(bannedItems: string[]): Set<string> {
   return cachedBannedSet;
 }
 
+export function checkPlayerEquipment(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
+  if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+    return;
+  }
+
+  const effectiveBannedSet = bannedSet ?? getBannedItemSet(config.bannedItems);
+  const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent;
+  if (isDefined(equippable)) {
+    const slots = [
+      mc.EquipmentSlot.Head,
+      mc.EquipmentSlot.Chest,
+      mc.EquipmentSlot.Legs,
+      mc.EquipmentSlot.Feet,
+      mc.EquipmentSlot.Offhand,
+    ];
+
+    for (const slot of slots) {
+      const item = equippable.getEquipment(slot);
+      if (isDefined(item)) {
+        checkItem(item, player, config, (newItem) => equippable.setEquipment(slot, newItem), effectiveBannedSet);
+      }
+    }
+  }
+}
+
 export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
   if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
     return;
@@ -84,23 +160,7 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig,
   }
 
   // Check Equipment (Armor + Offhand)
-  const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent;
-  if (isDefined(equippable)) {
-    const slots = [
-      mc.EquipmentSlot.Head,
-      mc.EquipmentSlot.Chest,
-      mc.EquipmentSlot.Legs,
-      mc.EquipmentSlot.Feet,
-      mc.EquipmentSlot.Offhand,
-    ];
-
-    for (const slot of slots) {
-      const item = equippable.getEquipment(slot);
-      if (isDefined(item)) {
-        checkItem(item, player, config, (newItem) => equippable.setEquipment(slot, newItem), effectiveBannedSet);
-      }
-    }
-  }
+  checkPlayerEquipment(player, config, effectiveBannedSet);
 }
 
 export function checkItem(
