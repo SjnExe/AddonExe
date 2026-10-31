@@ -45,7 +45,7 @@ export async function showTeamMainPanel(player: mc.Player): Promise<void> {
     );
 
     if (team.home) {
-      form.button('Teleport to Team Home', 'textures/blocks/portal', () => {
+      form.button('Teleport to Team Home', 'textures/ui/NetherPortal', () => {
         teamManager.teleportToTeamHome(player);
       });
     }
@@ -228,7 +228,7 @@ export async function showTeamManagePanel(player: mc.Player): Promise<void> {
     .button(`Join Requests (${team.applications.length})`, 'textures/ui/FriendsIcon', async () => {
       await showTeamRequestsPanel(player, 1);
     })
-    .button('Manage Team Home', 'textures/blocks/portal', async () => {
+    .button('Manage Team Home', 'textures/ui/NetherPortal', async () => {
       await showTeamHomePanel(player);
     })
     .button('Team Settings', 'textures/ui/settings_glyph_color_2x', async () => {

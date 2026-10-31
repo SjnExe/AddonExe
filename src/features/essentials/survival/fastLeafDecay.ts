@@ -33,8 +33,10 @@ export function handleFastLeafDecay(
   const by = Math.floor(brokenBlockLocation.y);
   const bz = Math.floor(brokenBlockLocation.z);
 
-  const leavesToDecay: mc.Vector3[] = [];
+  const foundLogs: mc.Vector3[] = [];
+  const candidateLeaves: mc.Vector3[] = [];
 
+  // Single-pass scan of the canopy bounding box (avoids tens of thousands of getBlock calls)
   for (let dx = -radius; dx <= radius; dx++) {
     for (let dy = -1; dy <= radius + 2; dy++) {
       for (let dz = -radius; dz <= radius; dz++) {
@@ -44,23 +46,13 @@ export function handleFastLeafDecay(
 
         try {
           const block = dimension.getBlock({ x: lx, y: ly, z: lz });
-          if (isDefined(block) && isLeafBlock(block.typeId)) {
-            // Check if there is any log supporting this leaf within 4 blocks
-            let hasSupportingLog = false;
-            for (let sx = -4; sx <= 4 && !hasSupportingLog; sx++) {
-              for (let sy = -4; sy <= 4 && !hasSupportingLog; sy++) {
-                for (let sz = -4; sz <= 4 && !hasSupportingLog; sz++) {
-                  const checkBlock = dimension.getBlock({ x: lx + sx, y: ly + sy, z: lz + sz });
-                  if (isDefined(checkBlock) && isLogBlock(checkBlock.typeId)) {
-                    hasSupportingLog = true;
-                  }
-                }
-              }
-            }
-
-            if (!hasSupportingLog) {
-              leavesToDecay.push({ x: lx, y: ly, z: lz });
-            }
+          if (!isDefined(block)) {
+            continue;
+          }
+          if (isLogBlock(block.typeId)) {
+            foundLogs.push({ x: lx, y: ly, z: lz });
+          } else if (isLeafBlock(block.typeId)) {
+            candidateLeaves.push({ x: lx, y: ly, z: lz });
           }
         } catch {
           // Out of bounds / unloaded
@@ -69,10 +61,25 @@ export function handleFastLeafDecay(
     }
   }
 
-  // Decay orphaned leaves with a staggered jitter
+  // Identify orphaned leaves in memory without further getBlock calls
+  const leavesToDecay: mc.Vector3[] = [];
+  for (const leaf of candidateLeaves) {
+    let hasSupportingLog = false;
+    for (const log of foundLogs) {
+      if (Math.abs(leaf.x - log.x) <= 4 && Math.abs(leaf.y - log.y) <= 4 && Math.abs(leaf.z - log.z) <= 4) {
+        hasSupportingLog = true;
+        break;
+      }
+    }
+    if (!hasSupportingLog) {
+      leavesToDecay.push(leaf);
+    }
+  }
+
+  // Decay orphaned leaves in staggered batches across ticks to prevent engine spikes
   for (let i = 0; i < leavesToDecay.length; i++) {
     const leaf = leavesToDecay[i]!;
-    const delayTicks = 2 + (i % 8) * 2;
+    const delayTicks = 1 + Math.floor(i / 6) * 2; // Batches of 6 leaves every 2 ticks
 
     const decayAction = () => {
       try {

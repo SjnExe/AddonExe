@@ -122,7 +122,7 @@ export function getSystemRegistry(): SystemDefinition[] {
     {
       id: 'warps_manager',
       title: 'Warps Manager',
-      icon: 'textures/blocks/portal',
+      icon: 'textures/ui/NetherPortal',
       showFunction: async (player) => {
         const { showWarpsAdminPanel } = await import('@features/teleport/warp/ui/adminPanel.js');
         await showWarpsAdminPanel(player);

@@ -108,7 +108,7 @@ export async function showWarpsMenuPanel(player: mc.Player): Promise<void> {
     if (isDefined(loc)) {
       form.button(
         `§l§b${wName}§r\n§7${Math.floor(loc.x)}, ${Math.floor(loc.y)}, ${Math.floor(loc.z)}`,
-        'textures/blocks/portal',
+        'textures/ui/NetherPortal',
         () => {
           executeTeleport({
             executor: player,

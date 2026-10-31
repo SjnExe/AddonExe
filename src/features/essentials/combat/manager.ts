@@ -112,15 +112,19 @@ export function resolveKiller(
   damagingEntity: mc.Entity | undefined,
   creditTimeoutSeconds = getCombatTimeoutSeconds(),
 ): mc.Player | undefined {
-  if (isDefined(damagingEntity)) {
-    const projectileComp = damagingEntity.getComponent(mc.EntityComponentTypes.Projectile) as
-      mc.EntityProjectileComponent | undefined;
-    const tameComp = damagingEntity.getComponent(mc.EntityComponentTypes.Tameable) as
-      mc.EntityTameableComponent | undefined;
-    const owner = projectileComp?.owner ?? tameComp?.tamedToPlayer ?? damagingEntity;
-    if (owner.typeId === MinecraftEntityTypes.Player) {
-      clearLastHit(deadEntity.id);
-      return owner as mc.Player;
+  if (isDefined(damagingEntity) && damagingEntity.isValid) {
+    try {
+      const projectileComp = damagingEntity.getComponent(mc.EntityComponentTypes.Projectile) as
+        mc.EntityProjectileComponent | undefined;
+      const tameComp = damagingEntity.getComponent(mc.EntityComponentTypes.Tameable) as
+        mc.EntityTameableComponent | undefined;
+      const owner = projectileComp?.owner ?? tameComp?.tamedToPlayer ?? damagingEntity;
+      if (isDefined(owner) && owner.isValid && owner.typeId === MinecraftEntityTypes.Player) {
+        clearLastHit(deadEntity.id);
+        return owner as mc.Player;
+      }
+    } catch {
+      // Damaging entity may have despawned / exploded in the same tick
     }
   }
 

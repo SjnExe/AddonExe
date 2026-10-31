@@ -47,6 +47,23 @@ describe('Survival QoL Utilities', () => {
       expect(broken).toBe(0);
     });
 
+    it('returns 0 when player is not holding an axe', () => {
+      player.isSneaking = true;
+      const equippable = {
+        getEquipment: () => undefined,
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      const block = {
+        typeId: MinecraftBlockTypes.OakLog as string,
+        location: { x: 10, y: 64, z: 10 },
+      } as mc.Block;
+
+      const broken = handleTreeCapitator(player, block, { enabled: true, requireSneak: true });
+      expect(broken).toBe(0);
+    });
+
     it('fells connected log blocks when player holds an axe while sneaking', () => {
       player.isSneaking = true;
 
@@ -91,6 +108,23 @@ describe('Survival QoL Utilities', () => {
       } as mc.Block;
 
       const broken = handleVeinMiner(player, block, { enabled: false });
+      expect(broken).toBe(0);
+    });
+
+    it('returns 0 when player is not holding a pickaxe', () => {
+      player.isSneaking = true;
+      const equippable = {
+        getEquipment: () => undefined,
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      const block = {
+        typeId: MinecraftBlockTypes.IronOre as string,
+        location: { x: 10, y: 30, z: 10 },
+      } as mc.Block;
+
+      const broken = handleVeinMiner(player, block, { enabled: true, requireSneak: true });
       expect(broken).toBe(0);
     });
 
@@ -180,6 +214,27 @@ describe('Survival QoL Utilities', () => {
       });
 
       expect(decayed).toBeGreaterThanOrEqual(1);
+    });
+
+    it('does not decay leaves supported by a nearby log', () => {
+      dimension.setBlockType = mock();
+      dimension.getBlock = (loc: mc.Vector3) => {
+        if (loc.x === 10 && loc.y === 66 && loc.z === 10) {
+          return { typeId: MinecraftBlockTypes.OakLeaves as string } as mc.Block;
+        }
+        if (loc.x === 10 && loc.y === 65 && loc.z === 10) {
+          return { typeId: MinecraftBlockTypes.OakLog as string } as mc.Block;
+        }
+        return { typeId: MinecraftBlockTypes.Air as string } as mc.Block;
+      };
+
+      const decayed = handleFastLeafDecay(dimension, { x: 10, y: 64, z: 10 }, MinecraftBlockTypes.OakLog as string, {
+        enabled: true,
+        decayRadius: 3,
+      });
+
+      expect(decayed).toBe(0);
+      expect(dimension.setBlockType).not.toHaveBeenCalled();
     });
   });
 

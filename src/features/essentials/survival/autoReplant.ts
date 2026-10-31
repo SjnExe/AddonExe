@@ -31,6 +31,10 @@ const cropMaxAges: Record<string, { stateKey: 'growth' | 'age'; maxAge: number; 
   },
 };
 
+export function isCropBlock(blockTypeId: string): boolean {
+  return isDefined(cropMaxAges[blockTypeId]);
+}
+
 export interface AutoReplantOptions {
   enabled?: boolean;
 }

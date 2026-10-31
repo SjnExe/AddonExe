@@ -256,6 +256,18 @@ export enum WatchdogTerminateReason {
   StackOverflow = 'StackOverflow',
 }
 
+export enum EntityDamageCause {
+  entityAttack = 'entityAttack',
+  entityExplosion = 'entityExplosion',
+  blockExplosion = 'blockExplosion',
+  fall = 'fall',
+  magic = 'magic',
+  wither = 'wither',
+  fire = 'fire',
+  drowning = 'drowning',
+  void = 'void',
+}
+
 export const EntityTypes = {
   get: mock((id: string) => ({ id })),
   getAll: mock(() => [{ id: 'exe:floating_text' }]),

@@ -69,8 +69,9 @@ export function handleTreeCapitator(
   const startKey = `${block.location.x},${block.location.y},${block.location.z}`;
   visited.add(startKey);
 
-  while (queue.length > 0 && toBreak.length < maxLogs) {
-    const current = queue.shift()!;
+  let head = 0;
+  while (head < queue.length && toBreak.length < maxLogs) {
+    const current = queue[head++]!;
     toBreak.push(current);
 
     // Search adjacent connected blocks (upwards and sideways)
@@ -84,6 +85,12 @@ export function handleTreeCapitator(
           const nx = current.x + dx;
           const ny = current.y + dy;
           const nz = current.z + dz;
+
+          // Prevent runaway horizontal scans across player builds
+          if (Math.abs(nx - block.location.x) > 6 || Math.abs(nz - block.location.z) > 6) {
+            continue;
+          }
+
           const key = `${nx},${ny},${nz}`;
 
           if (visited.has(key)) {
@@ -113,14 +120,28 @@ export function handleTreeCapitator(
 
     try {
       dimension.setBlockType(pos, MinecraftBlockTypes.Air);
-      dimension.spawnItem(new mc.ItemStack(targetTypeId, 1), {
-        x: pos.x + 0.5,
-        y: pos.y + 0.5,
-        z: pos.z + 0.5,
-      });
       brokenCount++;
     } catch {
       // Ignore if block cannot be changed
+    }
+  }
+
+  // Spawn consolidated item drop stacks at the trunk base to minimize entity lag on big servers
+  if (brokenCount > 0) {
+    const dropLocation = {
+      x: block.location.x + 0.5,
+      y: block.location.y + 0.5,
+      z: block.location.z + 0.5,
+    };
+    let remaining = brokenCount;
+    while (remaining > 0) {
+      const stackCount = Math.min(64, remaining);
+      try {
+        dimension.spawnItem(new mc.ItemStack(targetTypeId, stackCount), dropLocation);
+      } catch {
+        // Ignore if unable to spawn item
+      }
+      remaining -= stackCount;
     }
   }
 

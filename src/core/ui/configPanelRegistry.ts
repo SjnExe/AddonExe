@@ -737,7 +737,7 @@ export const configPanelSchema: ConfigCategory[] = [
   {
     id: 'warps',
     title: 'Warp System',
-    icon: 'textures/blocks/portal',
+    icon: 'textures/ui/NetherPortal',
     configSource: 'main',
     category: 'Teleportation & World',
     settings: [

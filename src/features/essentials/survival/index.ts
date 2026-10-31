@@ -1,9 +1,9 @@
 import { registerEvent } from '@core/events/eventManager.js';
-import { handleAutoReplant } from '@features/essentials/survival/autoReplant.js';
+import { handleAutoReplant, isCropBlock } from '@features/essentials/survival/autoReplant.js';
 import { handleDoubleDoorInteract } from '@features/essentials/survival/doubleDoors.js';
 import { handleFastLeafDecay } from '@features/essentials/survival/fastLeafDecay.js';
-import { handleTreeCapitator } from '@features/essentials/survival/treeCapitator.js';
-import { handleVeinMiner } from '@features/essentials/survival/veinMiner.js';
+import { handleTreeCapitator, isLogBlock } from '@features/essentials/survival/treeCapitator.js';
+import { handleVeinMiner, isOreBlock } from '@features/essentials/survival/veinMiner.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -30,17 +30,24 @@ export function handlePlayerBreakBlockSurvival(event: mc.PlayerBreakBlockAfterEv
   const brokenTypeId = brokenBlockPermutation?.type?.id ?? block.typeId;
 
   // 1. Auto Replant (crops)
-  handleAutoReplant(player, block, brokenBlockPermutation);
+  if (isCropBlock(brokenTypeId)) {
+    handleAutoReplant(player, block, brokenBlockPermutation);
+    return;
+  }
 
-  // 2. Tree Capitator (logs)
-  handleTreeCapitator(player, block, brokenBlockPermutation);
+  // 2. Tree Capitator & Fast Leaf Decay (logs)
+  if (isLogBlock(brokenTypeId)) {
+    handleTreeCapitator(player, block, brokenBlockPermutation);
+    if (isDefined(dimension)) {
+      handleFastLeafDecay(dimension, block.location, brokenTypeId);
+    }
+    return;
+  }
 
   // 3. Vein Miner (ores)
-  handleVeinMiner(player, block, brokenBlockPermutation);
-
-  // 4. Fast Leaf Decay (leaves near broken logs)
-  if (isDefined(dimension)) {
-    handleFastLeafDecay(dimension, block.location, brokenTypeId);
+  if (isOreBlock(brokenTypeId)) {
+    handleVeinMiner(player, block, brokenBlockPermutation);
+    return;
   }
 }
 

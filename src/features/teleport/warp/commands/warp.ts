@@ -81,7 +81,7 @@ const warpCommand: CustomCommand = {
       if (isDefined(location)) {
         form.button(
           `${warpName}\n§8(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`,
-          'textures/blocks/portal',
+          'textures/ui/NetherPortal',
           () => {
             teleportToWarp(warpName);
           },
