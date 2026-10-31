@@ -201,8 +201,6 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
-    env:
-      IS_DRY_RUN: ${{ inputs.dry_run == true || inputs.dry_run == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -240,14 +238,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat <<EOF > release_notes.md
-          **Latest Canary Build**
-          Version: \`${{ env.VERSION_STRING }}\`
-          Commit: \`${{ github.sha }}\`
-          Date: \`${{ env.BUILD_DATE }}\`
-
-          *This is an automated development build. It may contain bugs.*
-          EOF
+          printf "**Latest Canary Build**\nVersion: \`%s\`\nCommit: \`%s\`\nDate: \`%s\`\n\n*This is an automated development build. It may contain bugs.*\n" \
+              "${VERSION_STRING}" "${GITHUB_SHA}" "${BUILD_DATE}" > release_notes.md
           gh release create canary \
               --title "Canary Build (Latest Dev)" \
               --prerelease \

@@ -109,8 +109,8 @@ export async function getVersionContext(
 
   if (options.isCanary) {
     const buildNum = options.buildNumber || 0;
-    finalParts = [major, minor, buildNum];
-    finalStr = `${major}.${minor}.${buildNum}`;
+    finalParts = [major, minor, buildNum > 0 ? buildNum : patch];
+    finalStr = buildNum > 0 ? `${major}.${minor}.${buildNum}` : `${major}.${minor}.${patch}-canary`;
   }
 
   return {

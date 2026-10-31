@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 
+import { getVersionContext } from '../cliUtils.ts';
 import {
   type CfGameVersion,
   isStableBedrockVersion,
@@ -139,5 +140,33 @@ Intro text.
   it('returns null when version is not in changelog', () => {
     const result = parseChangelogSection(sampleChangelog, '9.9.9');
     expect(result).toBeNull();
+  });
+});
+
+describe('Version Context Resolution', () => {
+  const rootDir = process.cwd();
+
+  it('resolves release version matching package.json', async () => {
+    const ctx = await getVersionContext(rootDir, { isRelease: true });
+    expect(ctx.versionStr).toBe('0.8.0');
+    expect(ctx.versionArray).toEqual([0, 8, 0]);
+  });
+
+  it('resolves canary version with explicit build number', async () => {
+    const ctx = await getVersionContext(rootDir, { isCanary: true, buildNumber: 42 });
+    expect(ctx.versionStr).toBe('0.8.42');
+    expect(ctx.versionArray).toEqual([0, 8, 42]);
+  });
+
+  it('resolves canary version without build number as canary-tagged', async () => {
+    const ctx = await getVersionContext(rootDir, { isCanary: true });
+    expect(ctx.versionStr).toBe('0.8.0-canary');
+    expect(ctx.versionArray).toEqual([0, 8, 0]);
+  });
+
+  it('respects customVersion when supplied', async () => {
+    const ctx = await getVersionContext(rootDir, { customVersion: 'v1.2.3' });
+    expect(ctx.versionStr).toBe('1.2.3');
+    expect(ctx.versionArray).toEqual([1, 2, 3]);
   });
 });
