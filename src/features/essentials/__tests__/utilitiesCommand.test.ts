@@ -157,6 +157,12 @@ describe('repairCommand', () => {
     );
   });
 
+  it('rejects invalid argument with usage prompt', () => {
+    repairCommand.execute(player, { scope: 'something_invalid' });
+
+    expect(player.sendMessage).toHaveBeenCalledWith(expect.stringContaining('Invalid argument. Usage: /repair [all]'));
+  });
+
   it('blocks /repair all if player lacks permission', () => {
     spyOn(permissionEngine, 'hasPermission').mockReturnValue(false);
 

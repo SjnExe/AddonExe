@@ -43,6 +43,20 @@ describe('teleportUtils', () => {
       expect(player.teleport).toHaveBeenCalled();
     });
 
+    it('should cleanly forward native teleport options like dimension', () => {
+      const targetLoc = { x: 50, y: 70, z: 50 };
+      const mockDim = { id: 'minecraft:the_end' } as mc.Dimension;
+      teleportPlayerWithTransition(player, targetLoc, {
+        dimension: mockDim,
+        keepVelocity: true,
+      });
+
+      expect(player.teleport).toHaveBeenCalledWith(targetLoc, {
+        dimension: mockDim,
+        keepVelocity: true,
+      });
+    });
+
     it('should skip camera fade when fadeScreen is false', () => {
       const targetLoc = { x: 10, y: 64, z: 10 };
       teleportPlayerWithTransition(player, targetLoc, { fadeScreen: false });

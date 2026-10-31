@@ -157,7 +157,13 @@ const repairCommand: CustomCommand = {
       return;
     }
 
-    const isAll = typeof args?.scope === 'string' && args.scope.trim().toLowerCase() === 'all';
+    const rawScope = typeof args?.scope === 'string' ? args.scope.trim().toLowerCase() : undefined;
+    if (isDefined(rawScope) && rawScope !== 'all' && rawScope !== 'hand') {
+      executor.sendMessage('§cInvalid argument. Usage: /repair [all]');
+      return;
+    }
+
+    const isAll = rawScope === 'all';
     if (isAll && !hasPermission(executor, 'cmd.repair.all.vip') && !hasPermission(executor, 'group.admin')) {
       executor.sendMessage('§cYou do not have permission to use /repair all.');
       return;

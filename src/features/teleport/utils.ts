@@ -88,7 +88,26 @@ export function teleportPlayerWithTransition(
     }
   }
 
-  player.teleport(location, options);
+  const teleportOptions: mc.TeleportOptions = {};
+  if (isDefined(options)) {
+    if (isDefined(options.dimension)) {
+      teleportOptions.dimension = options.dimension;
+    }
+    if (isDefined(options.rotation)) {
+      teleportOptions.rotation = options.rotation;
+    }
+    if (isDefined(options.facingLocation)) {
+      teleportOptions.facingLocation = options.facingLocation;
+    }
+    if (isDefined(options.keepVelocity)) {
+      teleportOptions.keepVelocity = options.keepVelocity;
+    }
+    if (isDefined(options.checkForBlocks)) {
+      teleportOptions.checkForBlocks = options.checkForBlocks;
+    }
+  }
+
+  player.teleport(location, Object.keys(teleportOptions).length > 0 ? teleportOptions : undefined);
 }
 
 /** Saves the player's current location as their "last location" for /back command. */
