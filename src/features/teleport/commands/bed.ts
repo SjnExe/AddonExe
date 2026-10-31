@@ -18,7 +18,6 @@ import * as mc from '@minecraft/server';
 
 const bedCommand: CustomCommand = {
   name: 'bed',
-  aliases: ['mybed', 'respawn'],
   description: 'Teleports you to your bed or respawn anchor location.',
   category: 'Transportation',
   permissionNode: 'cmd.bed.member',
