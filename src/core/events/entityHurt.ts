@@ -1,3 +1,4 @@
+import { recordMovementDamage } from '@features/anticheat/movementCheck.js';
 import { setLastHit } from '@features/essentials/combat/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
@@ -9,6 +10,8 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent): void {
   if (victim.typeId !== MinecraftEntityTypes.Player) {
     return;
   }
+
+  recordMovementDamage(victim.id);
 
   const damagingEntity = damageSource.damagingEntity;
   if (!damagingEntity) {

@@ -6,17 +6,30 @@ import { kickPlayer } from '@core/utils/player.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
+import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 interface PlayerMovementState {
   violationLevel: number; // Token bucket
   airTicks: number;
+  lastDamageTimestamp?: number;
 }
 
 const movementStates = new Map<string, PlayerMovementState>();
 let isChecking = false;
 let movementIntervalId: number | undefined;
+
+export function recordMovementDamage(playerId: string): void {
+  let state = movementStates.get(playerId);
+  if (!isDefined(state)) {
+    state = { violationLevel: 0, airTicks: 0, lastDamageTimestamp: Date.now() };
+    movementStates.set(playerId, state);
+  } else {
+    state.lastDamageTimestamp = Date.now();
+    state.violationLevel = Math.max(0, state.violationLevel - 5);
+  }
+}
 
 export function clearPlayerMovementState(playerId: string): void {
   movementStates.delete(playerId);
@@ -174,11 +187,15 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   }
 
   // Token Bucket / Violation Accumulator
+  // Knockback / explosion / wind charge grace window: 2.5 seconds
+  const isUnderKnockback = isDefined(state.lastDamageTimestamp) && Date.now() - state.lastDamageTimestamp < 2500;
+  const effectiveLimit = isUnderKnockback ? Math.max(limit * 2.5, 35) : limit;
+
   // If speed > limit, accumulate violation
   // If speed < limit, decay violation
-  if (hSpeed > limit) {
+  if (hSpeed > effectiveLimit) {
     // Add points proportional to excess speed
-    const excess = hSpeed - limit;
+    const excess = hSpeed - effectiveLimit;
     state.violationLevel += excess;
   } else {
     // Decay
@@ -186,7 +203,15 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   }
 
   // Flight / Hover Detection
-  if (config.flightDetection === true && !isGliding && !player.isFlying && !player.isSleeping) {
+  const isRiding = isDefined(player.getComponent(EntityComponentTypes.Riding));
+  if (
+    config.flightDetection === true &&
+    !isGliding &&
+    !player.isFlying &&
+    !player.isSleeping &&
+    !isRiding &&
+    !isUnderKnockback
+  ) {
     const isOnGround = player.isOnGround === true;
     const isSwimming = player.isSwimming === true;
     const isClimbing = player.isClimbing === true;

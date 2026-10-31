@@ -25,7 +25,6 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/links`** (Aliases: `/link`, `/websites`) — Displays Discord and community links.
 - **`/version`** (Alias: `/ver`) — Displays the active AddonExe version.
 - **`/sidebar [toggle|ui|right|left|bottom|default|on|off]`** (Alias: `/sb`) — Toggles your personal HUD/Sidebar, switches screen layout, or opens the HUD settings UI.
-- **`/fixplayer`** — Resets your player state if stuck in spawn protection or frozen flags.
 - **`/vote [ui|results|end|create] [question | opt1 | opt2]`** — Opens the active server poll menu, views poll results, or manages polls (Admin).
 - **`/afk [reason]`** — Toggles your Away-From-Keyboard (AFK) status.
 - **`/trash`** (Aliases: `/dispose`, `/bin`) — Opens the safe item disposal UI.

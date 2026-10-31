@@ -1,63 +1,16 @@
-import { getAllPlayersFromCache } from '@core/data/playerCache.js';
-import { getProtectionFlags } from '@core/events/protectionService.js';
-import { debugLog } from '@core/utils/logger.js';
-import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
-import { isDefined } from '@lib/guards.js';
+/**
+ * Spawn protection lifecycle module.
+ *
+ * PvP, hostile damage, and environmental damage protections are now dynamically evaluated on-demand via
+ * handleBeforeEntityHurt in protectionEvents.ts using the modern Script API (cancellable entityHurt before events),
+ * avoiding background polling intervals and eliminating the need for legacy player.json entity modifications.
+ */
 
-let intervalId: number | undefined;
-const lastPvpState = new Map<string, boolean>();
-const lastHostileState = new Map<string, boolean>();
-
-export function initializeSpawnProtection() {
-  intervalId = setTrackedInterval(() => {
-    // We now check protections dynamically using protectionService
-    // This loop applies player-specific states (PvP disabled, Hostile Damage disabled)
-    // based on the overlapping zone flags. Block events are handled via standard event hooks.
-
-    const players = getAllPlayersFromCache();
-
-    for (const player of players) {
-      try {
-        const isValid = player.isValid;
-        if (!isValid) {
-          continue;
-        }
-
-        const flags = getProtectionFlags(player.location, player.dimension.id);
-
-        if (lastPvpState.get(player.id) !== flags.preventPvP) {
-          lastPvpState.set(player.id, flags.preventPvP);
-          if (flags.preventPvP) {
-            player.addTag('exe:in_pvp_protection');
-            player.triggerEvent('exe:disable_pvp');
-          } else {
-            player.removeTag('exe:in_pvp_protection');
-            player.triggerEvent('exe:enable_pvp');
-          }
-        }
-
-        if (lastHostileState.get(player.id) !== flags.preventHostileDamage) {
-          lastHostileState.set(player.id, flags.preventHostileDamage);
-          if (flags.preventHostileDamage) {
-            player.addTag('exe:in_hostile_protection');
-            player.triggerEvent('exe:disable_hostile_damage');
-          } else {
-            player.removeTag('exe:in_hostile_protection');
-            player.triggerEvent('exe:enable_hostile_damage');
-          }
-        }
-      } catch (error) {
-        debugLog(`Protection evaluation error for ${player.name}: ${String(error)}`);
-      }
-    }
-  }, 20); // Check every second
+export function initializeSpawnProtection(): void {
+  // Spawn and zone protection flags are dynamically evaluated in real-time
+  // via handleBeforeEntityHurt without requiring background tick loops.
 }
 
-export function cleanupSpawnProtection() {
-  lastPvpState.clear();
-  lastHostileState.clear();
-  if (isDefined(intervalId)) {
-    clearTrackedInterval(intervalId);
-    intervalId = undefined;
-  }
+export function cleanupSpawnProtection(): void {
+  // No persistent background intervals or state to clear
 }

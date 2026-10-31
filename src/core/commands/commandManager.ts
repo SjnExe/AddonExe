@@ -226,7 +226,7 @@ class CommandManager {
 
   private _executePlayerCommand(player: mc.Player, command: CustomCommand, args: Record<string, unknown>) {
     if (typeof player.hasTag === 'function' && player.hasTag(frozenTag)) {
-      const allowedWhenFrozen = new Set(['msg', 'reply', 'report', 'fixplayer']);
+      const allowedWhenFrozen = new Set(['msg', 'reply', 'report']);
       if (!allowedWhenFrozen.has(command.name.toLowerCase()) && !hasPermission(player, 'group.admin')) {
         player.sendMessage('§cYou cannot use commands while frozen (except /xmsg, /r, and /report).');
         return;
