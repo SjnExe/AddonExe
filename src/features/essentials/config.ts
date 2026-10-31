@@ -56,12 +56,19 @@ export const essentialsConfig = {
       requireSneak: true,
       maxLogs: 64,
       damageTool: true,
+      preventToolBreak: true,
+      ignoreStrippedLogs: true,
+      requireLeaves: true,
     },
     veinMiner: {
       enabled: false,
       requireSneak: true,
       maxOres: 32,
       damageTool: true,
+      preventToolBreak: true,
+      silkTouchEnabled: true,
+      fortuneMultiplier: true,
+      dropExperience: true,
     },
     autoReplant: {
       enabled: false,
@@ -69,6 +76,7 @@ export const essentialsConfig = {
     fastLeafDecay: {
       enabled: false,
       decayRadius: 4,
+      ignorePlayerPlacedLeaves: true,
     },
     doubleDoors: {
       enabled: false,

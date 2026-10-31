@@ -11,6 +11,7 @@ export function isLeafBlock(blockTypeId: string): boolean {
 export interface FastLeafDecayOptions {
   enabled?: boolean;
   decayRadius?: number;
+  ignorePlayerPlacedLeaves?: boolean;
 }
 
 export function handleFastLeafDecay(
@@ -52,6 +53,11 @@ export function handleFastLeafDecay(
           if (isLogBlock(block.typeId)) {
             foundLogs.push({ x: lx, y: ly, z: lz });
           } else if (isLeafBlock(block.typeId)) {
+            // Ignore player-placed leaves (persistent_bit in vanilla Bedrock)
+            const isPersistent = block.permutation?.getState('persistent_bit');
+            if (cfg?.ignorePlayerPlacedLeaves !== false && isPersistent === true) {
+              continue;
+            }
             candidateLeaves.push({ x: lx, y: ly, z: lz });
           }
         } catch {

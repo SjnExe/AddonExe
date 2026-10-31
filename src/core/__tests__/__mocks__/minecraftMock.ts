@@ -218,6 +218,12 @@ export class Player {
   triggerEvent = mock();
   getComponent = mock();
   getPing = mock(() => 20);
+  addExperience = mock((amount: number) => amount);
+  onScreenDisplay = {
+    setActionBar: mock(),
+    setTitle: mock(),
+    setSubtitle: mock(),
+  };
 }
 
 export enum CustomCommandParamType {

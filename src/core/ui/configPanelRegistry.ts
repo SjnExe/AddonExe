@@ -72,6 +72,24 @@ export const configPanelSchema: ConfigCategory[] = [
         description: 'Damage axe durability per felled log.',
       },
       {
+        key: 'survivalQoL.treeCapitator.preventToolBreak',
+        label: 'TreeCapitator: Prevent Tool Breakage',
+        type: 'toggle',
+        description: 'Stops felling if axe reaches 1 durability to protect it from breaking.',
+      },
+      {
+        key: 'survivalQoL.treeCapitator.ignoreStrippedLogs',
+        label: 'TreeCapitator: Ignore Stripped Logs',
+        type: 'toggle',
+        description: 'Protects stripped log builds and decorative bark from being felled.',
+      },
+      {
+        key: 'survivalQoL.treeCapitator.requireLeaves',
+        label: 'TreeCapitator: Require Canopy Leaves',
+        type: 'toggle',
+        description: 'Requires natural leaves above logs to protect wooden houses and structures.',
+      },
+      {
         key: 'survivalQoL.veinMiner.enabled',
         label: 'Enable VeinMiner (Mine Ore Veins)',
         type: 'toggle',
@@ -96,6 +114,30 @@ export const configPanelSchema: ConfigCategory[] = [
         description: 'Damage pickaxe durability per mined ore.',
       },
       {
+        key: 'survivalQoL.veinMiner.preventToolBreak',
+        label: 'VeinMiner: Prevent Tool Breakage',
+        type: 'toggle',
+        description: 'Stops mining if pickaxe reaches 1 durability to protect it from breaking.',
+      },
+      {
+        key: 'survivalQoL.veinMiner.silkTouchEnabled',
+        label: 'VeinMiner: Silk Touch Support',
+        type: 'toggle',
+        description: 'Drops raw ore blocks when using a Silk Touch pickaxe.',
+      },
+      {
+        key: 'survivalQoL.veinMiner.fortuneMultiplier',
+        label: 'VeinMiner: Fortune Support',
+        type: 'toggle',
+        description: 'Applies vanilla Fortune drop multipliers when not using Silk Touch.',
+      },
+      {
+        key: 'survivalQoL.veinMiner.dropExperience',
+        label: 'VeinMiner: Drop Experience',
+        type: 'toggle',
+        description: 'Grants vanilla experience when mining ores without Silk Touch.',
+      },
+      {
         key: 'survivalQoL.autoReplant.enabled',
         label: 'Enable AutoReplant (Crops)',
         type: 'toggle',
@@ -112,6 +154,12 @@ export const configPanelSchema: ConfigCategory[] = [
         label: 'Fast Leaf Decay: Radius',
         type: 'textField',
         description: 'Radius in blocks around felled logs to decay leaves.',
+      },
+      {
+        key: 'survivalQoL.fastLeafDecay.ignorePlayerPlacedLeaves',
+        label: 'Fast Leaf Decay: Protect Player Leaves',
+        type: 'toggle',
+        description: 'Preserves player-placed decorative leaves (persistent_bit) from decaying.',
       },
       {
         key: 'survivalQoL.doubleDoors.enabled',

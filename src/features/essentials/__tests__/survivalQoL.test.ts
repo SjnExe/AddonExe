@@ -80,9 +80,12 @@ describe('Survival QoL Utilities', () => {
       dimension.setBlockType = mock();
       dimension.spawnItem = mock();
       dimension.getBlock = (pos: mc.Vector3) => {
-        // Connected log directly above
+        // Connected log directly above and canopy leaf
         if (pos.x === 10 && pos.y === 65 && pos.z === 10) {
           return { typeId: MinecraftBlockTypes.OakLog as string } as mc.Block;
+        }
+        if (pos.x === 10 && pos.y === 66 && pos.z === 10) {
+          return { typeId: MinecraftBlockTypes.OakLeaves as string } as mc.Block;
         }
         return { typeId: MinecraftBlockTypes.Air as string } as mc.Block;
       };
@@ -96,6 +99,84 @@ describe('Survival QoL Utilities', () => {
       expect(count).toBe(1);
       expect(dimension.setBlockType).toHaveBeenCalledWith({ x: 10, y: 65, z: 10 }, MinecraftBlockTypes.Air);
       expect(durability.damage).toBe(1);
+    });
+
+    it('ignores stripped logs when ignoreStrippedLogs is true', () => {
+      player.isSneaking = true;
+      const axeItem = new mc.ItemStack(MinecraftItemTypes.DiamondAxe, 1);
+      const durability = { damage: 0, maxDurability: 1561 };
+      axeItem.getComponent = (id: string) => (id === ItemComponentTypes.Durability ? (durability as any) : undefined);
+
+      const equippable = {
+        getEquipment: (slot: EquipmentSlot) => (slot === EquipmentSlot.Mainhand ? axeItem : undefined),
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      const strippedBlock = {
+        typeId: MinecraftBlockTypes.StrippedOakLog as string,
+        location: { x: 10, y: 64, z: 10 },
+      } as mc.Block;
+
+      const count = handleTreeCapitator(player, strippedBlock, {
+        enabled: true,
+        requireSneak: true,
+        ignoreStrippedLogs: true,
+      });
+      expect(count).toBe(0);
+    });
+
+    it('aborts felling if canopy has no leaves when requireLeaves is true', () => {
+      player.isSneaking = true;
+      const axeItem = new mc.ItemStack(MinecraftItemTypes.DiamondAxe, 1);
+      const durability = { damage: 0, maxDurability: 1561 };
+      axeItem.getComponent = (id: string) => (id === ItemComponentTypes.Durability ? (durability as any) : undefined);
+
+      const equippable = {
+        getEquipment: (slot: EquipmentSlot) => (slot === EquipmentSlot.Mainhand ? axeItem : undefined),
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      dimension.getBlock = () => ({ typeId: MinecraftBlockTypes.Air as string }) as mc.Block;
+
+      const baseBlock = {
+        typeId: MinecraftBlockTypes.OakLog as string,
+        location: { x: 10, y: 64, z: 10 },
+      } as mc.Block;
+
+      const count = handleTreeCapitator(player, baseBlock, {
+        enabled: true,
+        requireSneak: true,
+        requireLeaves: true,
+      });
+      expect(count).toBe(0);
+    });
+
+    it('aborts felling when axe has only 1 durability left to prevent breakage', () => {
+      player.isSneaking = true;
+      const axeItem = new mc.ItemStack(MinecraftItemTypes.DiamondAxe, 1);
+      const durability = { damage: 1560, maxDurability: 1561 }; // 1 durability remaining
+      axeItem.getComponent = (id: string) => (id === ItemComponentTypes.Durability ? (durability as any) : undefined);
+
+      const equippable = {
+        getEquipment: (slot: EquipmentSlot) => (slot === EquipmentSlot.Mainhand ? axeItem : undefined),
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      const baseBlock = {
+        typeId: MinecraftBlockTypes.OakLog as string,
+        location: { x: 10, y: 64, z: 10 },
+      } as mc.Block;
+
+      const count = handleTreeCapitator(player, baseBlock, {
+        enabled: true,
+        requireSneak: true,
+        preventToolBreak: true,
+      });
+      expect(count).toBe(0);
+      expect(durability.damage).toBe(1560);
     });
   });
 
@@ -159,6 +240,137 @@ describe('Survival QoL Utilities', () => {
       expect(count).toBe(1);
       expect(dimension.setBlockType).toHaveBeenCalledWith({ x: 11, y: 30, z: 10 }, MinecraftBlockTypes.Air);
       expect(durability.damage).toBe(6);
+    });
+
+    it('aborts mining when pickaxe has only 1 durability left to prevent breakage', () => {
+      player.isSneaking = true;
+      const pickaxe = new mc.ItemStack(MinecraftItemTypes.DiamondPickaxe, 1);
+      const durability = { damage: 1560, maxDurability: 1561 }; // 1 durability remaining
+      pickaxe.getComponent = (id: string) => (id === ItemComponentTypes.Durability ? (durability as any) : undefined);
+
+      const equippable = {
+        getEquipment: (slot: EquipmentSlot) => (slot === EquipmentSlot.Mainhand ? pickaxe : undefined),
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      const block = {
+        typeId: MinecraftBlockTypes.DiamondOre as string,
+        location: { x: 10, y: 30, z: 10 },
+      } as mc.Block;
+
+      const count = handleVeinMiner(player, block, {
+        enabled: true,
+        requireSneak: true,
+        preventToolBreak: true,
+      });
+      expect(count).toBe(0);
+      expect(durability.damage).toBe(1560);
+    });
+
+    it('drops raw ore blocks when Silk Touch is present', () => {
+      player.isSneaking = true;
+      const pickaxe = new mc.ItemStack(MinecraftItemTypes.DiamondPickaxe, 1);
+      const durability = { damage: 0, maxDurability: 1561 };
+      const enchantable = {
+        hasEnchantment: (type: string) => type === 'minecraft:silk_touch' || type === 'silk_touch',
+        getEnchantment: () => undefined,
+      };
+      pickaxe.getComponent = (id: string) => {
+        if (id === ItemComponentTypes.Durability) {
+          return durability as any;
+        }
+        if (id === ItemComponentTypes.Enchantable) {
+          return enchantable as any;
+        }
+        return undefined;
+      };
+
+      const equippable = {
+        getEquipment: (slot: EquipmentSlot) => (slot === EquipmentSlot.Mainhand ? pickaxe : undefined),
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      dimension.setBlockType = mock();
+      dimension.spawnItem = mock();
+      dimension.getBlock = (pos: mc.Vector3) => {
+        if (pos.x === 11 && pos.y === 30 && pos.z === 10) {
+          return { typeId: MinecraftBlockTypes.DiamondOre as string } as mc.Block;
+        }
+        return { typeId: MinecraftBlockTypes.Stone as string } as mc.Block;
+      };
+
+      const block = {
+        typeId: MinecraftBlockTypes.DiamondOre as string,
+        location: { x: 10, y: 30, z: 10 },
+      } as mc.Block;
+
+      const count = handleVeinMiner(player, block, {
+        enabled: true,
+        requireSneak: true,
+        silkTouchEnabled: true,
+      });
+      expect(count).toBe(1);
+      // Spawns diamond ore block itself
+      expect(dimension.spawnItem).toHaveBeenCalledWith(
+        expect.objectContaining({ typeId: MinecraftBlockTypes.DiamondOre }),
+        expect.anything(),
+      );
+    });
+
+    it('drops diamonds and awards experience when mining without Silk Touch', () => {
+      player.isSneaking = true;
+      player.addExperience = mock();
+
+      const pickaxe = new mc.ItemStack(MinecraftItemTypes.DiamondPickaxe, 1);
+      const durability = { damage: 0, maxDurability: 1561 };
+      const enchantable = {
+        hasEnchantment: () => false,
+        getEnchantment: () => undefined,
+      };
+      pickaxe.getComponent = (id: string) => {
+        if (id === ItemComponentTypes.Durability) {
+          return durability as any;
+        }
+        if (id === ItemComponentTypes.Enchantable) {
+          return enchantable as any;
+        }
+        return undefined;
+      };
+
+      const equippable = {
+        getEquipment: (slot: EquipmentSlot) => (slot === EquipmentSlot.Mainhand ? pickaxe : undefined),
+        setEquipment: mock(),
+      };
+      player.getComponent = (id: string) => (id === EntityComponentTypes.Equippable ? (equippable as any) : undefined);
+
+      dimension.setBlockType = mock();
+      dimension.spawnItem = mock();
+      dimension.getBlock = (pos: mc.Vector3) => {
+        if (pos.x === 11 && pos.y === 30 && pos.z === 10) {
+          return { typeId: MinecraftBlockTypes.DiamondOre as string } as mc.Block;
+        }
+        return { typeId: MinecraftBlockTypes.Stone as string } as mc.Block;
+      };
+
+      const block = {
+        typeId: MinecraftBlockTypes.DiamondOre as string,
+        location: { x: 10, y: 30, z: 10 },
+      } as mc.Block;
+
+      const count = handleVeinMiner(player, block, {
+        enabled: true,
+        requireSneak: true,
+        dropExperience: true,
+      });
+      expect(count).toBe(1);
+      // Spawns diamonds instead of diamond ore blocks
+      expect(dimension.spawnItem).toHaveBeenCalledWith(
+        expect.objectContaining({ typeId: MinecraftItemTypes.Diamond }),
+        expect.anything(),
+      );
+      expect(player.addExperience).toHaveBeenCalled();
     });
   });
 
@@ -231,6 +443,30 @@ describe('Survival QoL Utilities', () => {
       const decayed = handleFastLeafDecay(dimension, { x: 10, y: 64, z: 10 }, MinecraftBlockTypes.OakLog as string, {
         enabled: true,
         decayRadius: 3,
+      });
+
+      expect(decayed).toBe(0);
+      expect(dimension.setBlockType).not.toHaveBeenCalled();
+    });
+
+    it('does not decay player-placed leaves when ignorePlayerPlacedLeaves is true', () => {
+      dimension.setBlockType = mock();
+      dimension.getBlock = (loc: mc.Vector3) => {
+        if (loc.x === 10 && loc.y === 66 && loc.z === 10) {
+          return {
+            typeId: MinecraftBlockTypes.OakLeaves as string,
+            permutation: {
+              getState: (k: string) => (k === 'persistent_bit' ? true : undefined),
+            },
+          } as unknown as mc.Block;
+        }
+        return { typeId: MinecraftBlockTypes.Air as string } as mc.Block;
+      };
+
+      const decayed = handleFastLeafDecay(dimension, { x: 10, y: 64, z: 10 }, MinecraftBlockTypes.OakLog as string, {
+        enabled: true,
+        decayRadius: 3,
+        ignorePlayerPlacedLeaves: true,
       });
 
       expect(decayed).toBe(0);
