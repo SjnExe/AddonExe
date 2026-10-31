@@ -1,14 +1,12 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getPlayerIdByName, loadPlayerData } from '@core/data/playerDataManager.js';
 import { parseDuration, playSoundFromConfig } from '@core/utils/index.js';
-import { errorLog, warnLog } from '@core/utils/logger.js';
+import { warnLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { kickPlayer } from '@core/utils/player.js';
 import { addPunishment, removePunishment, validateModerationTarget } from '@features/moderation/punishmentManager.js';
 import { isDefined } from '@lib/guards.js';
-// FIXED
 import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export function banPlayer(
   executor: CommandExecutor,
@@ -44,14 +42,9 @@ export function banPlayer(
     executor.sendMessage(`§aSuccessfully banned ${targetPlayer.name} ${durationText}. Reason: ${reason}`);
   }
 
-  try {
-    const safeReason = escapeCommandArg(reason);
-    const safeTargetName = escapeCommandArg(targetPlayer.name);
-    const command = `kick "${safeTargetName}" "You have been banned ${durationText}. Reason: ${safeReason}"`;
-    mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(command);
-  } catch (error: unknown) {
+  const kicked = kickPlayer(targetPlayer.name, `You have been banned ${durationText}. Reason: ${reason}`);
+  if (!kicked) {
     warnLog(`[Commands:Ban] Could not kick ${targetPlayer.name} after banning. They will be kicked on next join.`);
-    errorLog(`[/ban] Failed to run kick command for ${targetPlayer.name}:`, error);
   }
 }
 
@@ -182,15 +175,7 @@ export function offlineBanPlayer(
     executor.sendMessage(`§aSuccessfully banned ${targetName} ${durationText}. Reason: ${reason}`);
   }
 
-  try {
-    const safeReason = escapeCommandArg(reason);
-    const safeTargetName = escapeCommandArg(targetName);
-    mc.world
-      .getDimension(MinecraftDimensionTypes.Overworld)
-      .runCommand(`kick "${safeTargetName}" "You have been banned ${durationText}. Reason: ${safeReason}"`);
-  } catch {
-    // Player is likely offline, which is fine.
-  }
+  kickPlayer(targetName, `You have been banned ${durationText}. Reason: ${reason}`);
 }
 
 interface OfflineBanCommandArgs {

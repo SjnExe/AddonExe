@@ -49,8 +49,11 @@ export async function uiWait(
       break;
     }
 
-    if (mc.system && typeof mc.system.runTimeout === 'function') {
-      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, retry < 15 ? 1 : 5));
+    const delay = retry < 15 ? 1 : 5;
+    if (mc.system && typeof mc.system.waitTicks === 'function') {
+      await mc.system.waitTicks(delay);
+    } else if (mc.system && typeof mc.system.runTimeout === 'function') {
+      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delay));
     } else {
       break;
     }

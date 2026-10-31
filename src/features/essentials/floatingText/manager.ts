@@ -380,7 +380,11 @@ async function findEntityWithRetries(
     if (isDefined(entity) && entity.isValid) {
       return entity;
     }
-    await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
+    if (typeof mc.system?.waitTicks === 'function') {
+      await mc.system.waitTicks(delayBetweenRetries);
+    } else {
+      await new Promise<void>((resolve) => mc.system.runTimeout(resolve, delayBetweenRetries));
+    }
   }
   debugLog(`[FloatingText] Could not find entity for query after ${maxRetries} attempts.`);
   return undefined;

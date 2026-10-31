@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:te
 import * as configManager from '@core/config/configManager.js';
 import { addPlayerToCache, initializePlayerCache } from '@core/data/playerCache.js';
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 import defaultConfig from '../../../config.js';
 
@@ -83,7 +84,8 @@ describe('restartManager', () => {
     // Tick 3 (secondsRemaining = 0) -> kick executed
     intervalCallback!();
 
-    expect(mockPlayer1.runCommand).toHaveBeenCalledWith(
+    const overworld = mc.world.getDimension(MinecraftDimensionTypes.Overworld);
+    expect(overworld.runCommand).toHaveBeenCalledWith(
       'kick "Malicious\'Name" "Server is restarting; please rejoin shortly."',
     );
   });

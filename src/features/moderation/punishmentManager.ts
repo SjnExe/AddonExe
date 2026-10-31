@@ -8,11 +8,10 @@ import { soundError } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { kickPlayer } from '@core/utils/player.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 interface AnticheatLogsService {
   addPunishmentLog: (playerName: string, type: string, reason: string, adminName: string, duration?: string) => void;
@@ -189,14 +188,10 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
   const punishment = getPunishment(player.id, 'ban');
   if (isDefined(punishment)) {
     const banReason = isNonEmptyString(punishment.reason) ? punishment.reason : 'You are banned.';
-    const safeReason = escapeCommandArg(banReason);
-    const safePlayerName = escapeCommandArg(player.name);
     // Use a slight delay to ensure the kick command processes after join
-    mc.system.runTimeout(
-      () =>
-        mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(`kick "${safePlayerName}" "${safeReason}"`),
-      5,
-    );
+    mc.system.runTimeout(() => {
+      kickPlayer(player.name, banReason);
+    }, 5);
     return true;
   }
   return false;

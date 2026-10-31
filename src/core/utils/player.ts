@@ -9,8 +9,11 @@ import {
 } from '@core/data/playerDataManager.js';
 import { handlePlayerJoin } from '@core/events/playerSpawn.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
-import { isDefined } from '@lib/guards.js';
+import { errorLog } from '@core/utils/logger.js';
+import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
+import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export function resolveTarget(input: string, executor: mc.Player): mc.Player[] {
   if (!input) {
@@ -217,5 +220,21 @@ export function reinitializeOnlinePlayers() {
   const players = getAllPlayersFromCache();
   for (const player of players) {
     handlePlayerJoin(player);
+  }
+}
+
+/**
+ * Safely kicks a player using server-level Overworld dimension privileges. Ensures kicks work reliably even for non-OP
+ * players and during restarts.
+ */
+export function kickPlayer(playerName: string, reason?: string): boolean {
+  try {
+    const safePlayer = escapeCommandArg(playerName);
+    const safeReason = isNonEmptyString(reason) ? ` "${escapeCommandArg(reason)}"` : '';
+    mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(`kick "${safePlayer}"${safeReason}`);
+    return true;
+  } catch (error) {
+    errorLog(`[Player] Failed to kick '${playerName}':`, error);
+    return false;
   }
 }

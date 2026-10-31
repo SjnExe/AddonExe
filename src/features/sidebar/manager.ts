@@ -141,15 +141,27 @@ export function getCurrentTps(): { tps: string; tpsNum: number } {
   return { tps: cachedTps, tpsNum: cachedTpsNum };
 }
 
+function getOptimalSidebarStep(): number {
+  try {
+    const config = configurations.getSidebarConfig();
+    const globalInterval = Math.max(1, config.globalInfo?.updateInterval ?? 20);
+    const hudInterval = Math.max(1, config.hud?.updateInterval ?? 20);
+    return Math.max(1, Math.min(globalInterval, hudInterval));
+  } catch {
+    return 20;
+  }
+}
+
 export function initializeSidebar() {
   if (sidebarInterval !== undefined) {
     clearTrackedInterval(sidebarInterval);
   }
+  const step = getOptimalSidebarStep();
   sidebarInterval = setTrackedInterval(() => {
-    currentTick++;
+    currentTick = typeof mc.system?.currentTick === 'number' ? mc.system.currentTick : currentTick + step;
     updateTps();
     updateSidebars();
-  }, 1);
+  }, step);
 }
 
 export function cleanup() {
@@ -185,14 +197,14 @@ export function applySidebarPreset(presetId: string): boolean {
 }
 
 function updateTps() {
-  if (currentTick % 20 !== 0) {
-    return;
-  }
   const now = Date.now();
   const elapsedSeconds = (now - lastTpsTime) / 1000;
+  if (elapsedSeconds < 1.0) {
+    return;
+  }
   const ticksPassed = currentTick - lastTpsTick;
 
-  if (elapsedSeconds > 0) {
+  if (elapsedSeconds > 0 && ticksPassed > 0) {
     const calculatedTps = Math.min(20, ticksPassed / elapsedSeconds);
     cachedTpsNum = calculatedTps;
     cachedTps = calculatedTps.toFixed(1);

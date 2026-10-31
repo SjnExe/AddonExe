@@ -102,7 +102,9 @@ export function initializeEventManager() {
   registerEvent(mc.world.afterEvents.playerDimensionChange, handlePlayerDimensionChange, 'playerDimensionChange');
   registerEvent(mc.world.afterEvents.itemUse, handleItemUse, 'itemUse');
   registerEvent(mc.world.afterEvents.entityDie, handleEntityDie, 'entityDie');
-  registerEvent(mc.system.afterEvents.scriptEventReceive, handleScriptEventReceive, 'scriptEventReceive');
+  registerEvent(mc.system.afterEvents.scriptEventReceive, handleScriptEventReceive, 'scriptEventReceive', {
+    namespaces: ['exe'],
+  });
 }
 
 export function cleanupEventManager() {

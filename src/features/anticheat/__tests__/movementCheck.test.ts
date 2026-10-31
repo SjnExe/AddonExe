@@ -119,7 +119,8 @@ describe('MovementCheck', () => {
 
     intervalCallback();
 
-    expect(runCommandMock).toHaveBeenCalledWith('kick "RoofWalker" Nether Roof Detected');
+    const overworld = mc.world.getDimension(MinecraftDimensionTypes.Overworld);
+    expect(overworld.runCommand).toHaveBeenCalledWith('kick "RoofWalker" "Nether Roof Detected"');
   });
 
   it('should fallback to teleporting player down if kick fails on nether roof', () => {
@@ -141,7 +142,8 @@ describe('MovementCheck', () => {
     player.getEffect = () => undefined;
 
     const netherDimension = new DimensionMock(MinecraftDimensionTypes.Nether as string);
-    netherDimension.runCommand = mock(() => {
+    const overworld = mc.world.getDimension(MinecraftDimensionTypes.Overworld);
+    overworld.runCommand = mock(() => {
       throw new Error('Kick failed');
     });
 
@@ -214,6 +216,7 @@ describe('MovementCheck', () => {
 
     intervalCallback();
 
-    expect(mockRunCommand).toHaveBeenCalledWith('kick "Hacker\' ; say pwned \'" Nether Roof Detected');
+    const overworld = mc.world.getDimension(MinecraftDimensionTypes.Overworld);
+    expect(overworld.runCommand).toHaveBeenCalledWith('kick "Hacker\' ; say pwned \'" "Nether Roof Detected"');
   });
 });

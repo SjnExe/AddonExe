@@ -210,7 +210,13 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
 
 export function initializeXrayDetection(): void {
   refreshXrayCache();
-  registerEvent(mc.world.afterEvents.playerBreakBlock, handleBlockBreak, 'xrayDetection');
+  const blockTypes = Array.from(oreCache.keys());
+  registerEvent(
+    mc.world.afterEvents.playerBreakBlock,
+    handleBlockBreak,
+    'xrayDetection',
+    blockTypes.length > 0 ? { blockTypes } : undefined,
+  );
 }
 
 export function _clearXrayForTest(): void {

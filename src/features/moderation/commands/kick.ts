@@ -4,11 +4,10 @@ import { soundError, soundTeleport } from '@core/utils/constants.js';
 import { playSound } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
-import { escapeCommandArg } from '@core/utils/sanitization.js';
+import { kickPlayer as serverKickPlayer } from '@core/utils/player.js';
 import { validateModerationTarget } from '@features/moderation/punishmentManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | undefined, reason: string) {
   if (!isDefined(targetPlayer)) {
@@ -25,27 +24,22 @@ export function kickPlayer(executor: CommandExecutor, targetPlayer: mc.Player | 
     return;
   }
 
-  try {
-    const safeReason = escapeCommandArg(reason);
-    const safeTargetName = escapeCommandArg(targetPlayer.name);
-    const commandToRun = `kick "${safeTargetName}" "${safeReason}"`;
-    mc.world.getDimension(MinecraftDimensionTypes.Overworld).runCommand(commandToRun);
+  const success = serverKickPlayer(targetPlayer.name, reason);
+  if (success) {
     if (executor instanceof mc.Player) {
       sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`, executor);
       playSound(executor, soundTeleport);
     } else {
       executor.sendMessage(`§aSuccessfully kicked ${targetPlayer.name}. Reason: ${reason}`);
     }
-  } catch (error: unknown) {
+  } else {
     if (executor instanceof mc.Player) {
       sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`, executor);
       playSound(executor, soundError);
     } else {
       executor.sendMessage(`§cFailed to kick ${targetPlayer.name}. See console for details.`);
     }
-    if (error instanceof Error) {
-      errorLog(`[/kick] Failed to run kick command for ${targetPlayer.name}:`, error);
-    }
+    errorLog(`[/kick] Failed to run kick command for ${targetPlayer.name}`);
   }
 }
 

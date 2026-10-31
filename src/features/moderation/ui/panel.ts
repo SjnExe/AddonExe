@@ -1,6 +1,6 @@
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayerIdByName } from '@core/data/playerDataManager.js';
-import { getIdTimestamp, sanitizeString } from '@core/utils/index.js';
+import { getIdTimestamp, kickPlayer, sanitizeString } from '@core/utils/index.js';
 import { getFlagLogs, getPunishmentLogs } from '@features/anticheat/logManager.js';
 import * as punishmentManager from '@features/moderation/punishmentManager.js';
 import * as reportManager from '@features/moderation/reportManager.js';
@@ -136,13 +136,10 @@ export async function handleKickPlayer(player: mc.Player, targetPlayerId: string
   const reason = sanitizeString(res.reasonRaw, true).replaceAll('"', "'");
   const target = getPlayerFromCache(targetPlayerId);
   if (isDefined(target)) {
-    try {
-      const { escapeCommandArg } = await import('@core/utils/sanitization.js');
-      const escapedTargetName = escapeCommandArg(target.name);
-      const escapedReason = escapeCommandArg(`§4You have been kicked.\nReason: ${reason}`);
-      player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
+    const kicked = kickPlayer(target.name, `§4You have been kicked.\nReason: ${reason}`);
+    if (kicked) {
       player.sendMessage(`§2Kicked ${targetData.name}.`);
-    } catch {
+    } else {
       player.sendMessage(`§4Failed to kick ${targetData.name}.`);
     }
   } else {
@@ -256,15 +253,8 @@ export async function handleBanPlayer(player: mc.Player, targetPlayerId: string)
 
   const target = getPlayerFromCache(targetPlayerId);
   if (isDefined(target)) {
-    try {
-      const { escapeCommandArg } = await import('@core/utils/sanitization.js');
-      const escapedTargetName = escapeCommandArg(target.name);
-      const expiresText = expires === Infinity ? 'Permanent' : new Date(expires).toLocaleString();
-      const escapedReason = escapeCommandArg(`§4You have been banned.\nReason: ${reason}\nExpires: ${expiresText}`);
-      player.dimension.runCommand(`kick "${escapedTargetName}" "${escapedReason}"`);
-    } catch {
-      // Ignore if kick fails
-    }
+    const expiresText = expires === Infinity ? 'Permanent' : new Date(expires).toLocaleString();
+    kickPlayer(target.name, `§4You have been banned.\nReason: ${reason}\nExpires: ${expiresText}`);
   }
   player.sendMessage(`§2Banned ${targetData.name}.`);
 }
