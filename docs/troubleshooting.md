@@ -35,9 +35,9 @@ For quick setup questions, check the [Frequently Asked Questions (F.A.Q.)](faq.m
 
 - AddonExe prefixes conflicting slash commands with `x`: use **`/xclear`**, **`/xgamemode`** (or `/gms`, `/gmc`), **`/xkick`**, **`/xhelp`**, **`/xreload`**, and **`/xsave`**.
 
-**Problem: A player is stuck unable to move or take damage after leaving spawn.**
+**Problem: A player is stuck unable to move after staff moderation.**
 
-- Have the player run **`/fixplayer`** (or run `/unfreeze <player>` as staff) to reset their spawn protection and movement flags.
+- Run `/unfreeze <player>` as staff to clear their movement lock.
 
 ---
 

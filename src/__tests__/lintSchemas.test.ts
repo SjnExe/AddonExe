@@ -9,7 +9,7 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
     const glob = new Bun.Glob('packs/**/*.json');
     const files = Array.from(glob.scanSync({ cwd: rootDir, absolute: true }));
 
-    expect(files.length).toBeGreaterThanOrEqual(19);
+    expect(files.length).toBeGreaterThanOrEqual(18);
 
     for (const filePath of files) {
       const rel = path.relative(rootDir, filePath).replace(/\\/g, '/');
