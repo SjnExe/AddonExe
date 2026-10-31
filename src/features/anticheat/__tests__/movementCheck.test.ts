@@ -4,7 +4,12 @@ import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import * as configLoader from '@core/config/configurations.js';
 import { addPlayerToCache, clearPlayerCache } from '@core/data/playerCache.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
-import { _resetMovementCheckForTest, startMovementCheckLoop } from '@features/anticheat/movementCheck.js';
+import {
+  _resetMovementCheckForTest,
+  recordMovementDamage,
+  startMovementCheckLoop,
+} from '@features/anticheat/movementCheck.js';
+import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
@@ -81,6 +86,64 @@ describe('MovementCheck', () => {
     intervalCallback();
     intervalCallback();
     expect(flagSpy).toHaveBeenCalled();
+  });
+
+  it('should not flag player with high velocity if recently damaged (knockback grace window)', () => {
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const player = new PlayerMock('p_knockback', 'HitPlayer');
+    player.getGameMode = () => mc.GameMode.Survival;
+    player.getVelocity = () => ({ x: 1.2, y: 0.5, z: 0 }); // 24 bps horizontal speed
+    player.getEffect = () => undefined;
+
+    Object.defineProperty(player, 'dimension', {
+      value: new DimensionMock(MinecraftDimensionTypes.Overworld),
+      writable: true,
+    });
+
+    addPlayerToCache(player);
+    recordMovementDamage(player.id);
+
+    intervalCallback();
+    intervalCallback();
+    intervalCallback();
+    expect(flagSpy).not.toHaveBeenCalled();
+  });
+
+  it('should not flag player for flight when riding a mount', () => {
+    getAnticheatConfigSpy.mockReturnValue({
+      enabled: true,
+      movementCheck: { enabled: true, maxSpeed: 10, maxSpeedIce: 15, maxSpeedElytra: 30, flightDetection: true },
+      worldBorder: { enabled: false },
+      antiNetherRoof: { enabled: false },
+    });
+
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const player = new PlayerMock('p_rider', 'HorseRider');
+    player.getGameMode = () => mc.GameMode.Survival;
+    player.getVelocity = () => ({ x: 0, y: 0, z: 0 });
+    player.getEffect = () => undefined;
+    player.getComponent = (id: string) => (id === EntityComponentTypes.Riding ? ({} as any) : undefined);
+    player.isOnGround = false;
+
+    Object.defineProperty(player, 'dimension', {
+      value: new DimensionMock(MinecraftDimensionTypes.Overworld),
+      writable: true,
+    });
+
+    addPlayerToCache(player);
+
+    for (let i = 0; i < 15; i++) {
+      intervalCallback();
+    }
+    expect(flagSpy).not.toHaveBeenCalled();
   });
 
   it('should attempt kick when player is on nether roof', () => {

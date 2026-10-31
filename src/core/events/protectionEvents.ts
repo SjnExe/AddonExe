@@ -366,26 +366,29 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
   const projectileComponent = damagingEntity?.getComponent(EntityComponentTypes.Projectile);
   const attacker = projectileComponent?.owner ?? damagingEntity;
 
-  // PvP Protection
-  if (flags.preventPvP) {
-    if (attacker && attacker.typeId === MinecraftEntityTypes.Player && attacker.id !== player.id) {
+  // PvP Protection: evaluate flags for both victim and attacker to prevent safezone border exploits
+  const isPvp = isDefined(attacker) && attacker.typeId === MinecraftEntityTypes.Player && attacker.id !== player.id;
+  if (isPvp) {
+    let attackerPreventPvP = false;
+    if (isDefined(attacker.location) && isDefined(attacker.dimension?.id)) {
+      attackerPreventPvP = getProtectionFlags(attacker.location, attacker.dimension.id).preventPvP;
+    }
+    if (flags.preventPvP || attackerPreventPvP) {
       event.cancel = true;
       return;
     }
   }
 
   // Hostile Damage Protection
-  if (flags.preventHostileDamage) {
+  if (flags.preventHostileDamage && isDefined(attacker) && attacker.typeId !== MinecraftEntityTypes.Player) {
     // Direct damage from non-player entities
-    if (attacker && attacker.typeId !== MinecraftEntityTypes.Player) {
-      const familyTypes = attacker.getComponent(EntityComponentTypes.TypeFamily);
-      if (familyTypes?.hasTypeFamily('monster') || familyTypes?.hasTypeFamily('mob')) {
-        event.cancel = true;
-        return;
-      } else if (!familyTypes?.hasTypeFamily('inanimate') && !familyTypes?.hasTypeFamily('player')) {
-        event.cancel = true;
-        return;
-      }
+    const familyTypes = attacker.getComponent(EntityComponentTypes.TypeFamily);
+    if (familyTypes?.hasTypeFamily('monster') || familyTypes?.hasTypeFamily('mob')) {
+      event.cancel = true;
+      return;
+    } else if (!familyTypes?.hasTypeFamily('inanimate') && !familyTypes?.hasTypeFamily('player')) {
+      event.cancel = true;
+      return;
     }
   }
 }

@@ -4,7 +4,7 @@ import * as mc from '@minecraft/server';
 
 const fixPlayerCommand: CustomCommand = {
   name: 'fixplayer',
-  description: 'Fixes a player state (e.g. stuck in spawn protection, invulnerable).',
+  description: 'Fixes a player state (e.g. clears stuck tags or freeze states).',
   category: 'Administration',
   permissionNode: 'cmd.fixplayer.member', // Anyone can use it on themselves
   execute: (executor: CommandExecutor) => {
@@ -13,12 +13,11 @@ const fixPlayerCommand: CustomCommand = {
     }
 
     executor.removeTag('inSpawn');
-    executor.triggerEvent('exe:enable_pvp');
-    executor.triggerEvent('exe:enable_hostile_damage');
-    executor.triggerEvent('exe:enable_all_damage');
+    executor.removeTag('exe:in_pvp_protection');
+    executor.removeTag('exe:in_hostile_protection');
     executor.removeTag('frozen');
 
-    sendMessage('§aYour player state has been reset (Spawn Protection cleared).', executor);
+    sendMessage('§aYour player state has been reset.', executor);
   },
 };
 
