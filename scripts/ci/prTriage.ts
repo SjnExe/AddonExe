@@ -62,6 +62,41 @@ function getDiffStats(baseRef: string): { added: number; deleted: number } {
   };
 }
 
+const knownAreas = new Set([
+  'anti-cheat',
+  'economy',
+  'moderation',
+  'teleport',
+  'ranks',
+  'ui',
+  'sidebar',
+  'mini-games',
+  'essentials',
+  'core',
+  'packs',
+  'ci',
+]);
+
+function normalizeArea(raw: string): string {
+  const lower = raw
+    .toLowerCase()
+    .trim()
+    .replace(/^scope:/, '');
+  if (lower === 'anticheat' || lower === 'xray') {
+    return 'anti-cheat';
+  }
+  if (lower === 'shop' || lower === 'economy') {
+    return 'economy';
+  }
+  if (lower === 'games' || lower === 'minigames' || lower === 'minesweeper' || lower === 'wordle') {
+    return 'mini-games';
+  }
+  if (lower === 'essentials' || lower === 'protection' || lower === 'social') {
+    return 'essentials';
+  }
+  return knownAreas.has(lower) ? lower : '';
+}
+
 function parseConventionalCommit(title: string): { type: string; scope: string } {
   const regex = /^(feat|fix|perf|refactor|docs|test|chore|ci|style|build)(?:\(([^)]+)\))?:\s*(.+)$/i;
   const match = regex.exec(title);
@@ -71,80 +106,70 @@ function parseConventionalCommit(title: string): { type: string; scope: string }
     const rawScope = match[2]?.toLowerCase() || '';
 
     const typeMap: Record<string, string> = {
-      feat: 'type:feature',
-      fix: 'type:bugfix',
-      perf: 'type:performance',
-      refactor: 'type:refactor',
-      docs: 'type:documentation',
-      test: 'type:testing',
-      chore: 'type:maintenance',
-      ci: 'type:maintenance',
-      build: 'type:maintenance',
+      feat: 'enhancement',
+      fix: 'bug',
+      perf: 'performance',
+      refactor: 'refactor',
+      docs: 'documentation',
+      test: 'maintenance',
+      chore: 'maintenance',
+      ci: 'ci',
+      build: 'maintenance',
     };
 
     return {
-      type: typeMap[rawType] || 'type:maintenance',
-      scope: rawScope ? `scope:${rawScope}` : '',
+      type: typeMap[rawType] || 'maintenance',
+      scope: normalizeArea(rawScope),
     };
   }
 
-  return { type: 'type:maintenance', scope: '' };
+  return { type: 'maintenance', scope: '' };
 }
 
 function determineScopeFromFiles(files: string[]): string {
-  if (files.some((f) => f.includes('src/features/shop/'))) {
-    return 'scope:shop';
+  // Dynamically resolve feature area from file path
+  for (const file of files) {
+    const match = /^src\/features\/([^/]+)/.exec(file);
+    if (match) {
+      const area = normalizeArea(match[1]);
+      if (area) {
+        return area;
+      }
+    }
   }
-  if (files.some((f) => f.includes('src/features/teleport/'))) {
-    return 'scope:teleport';
-  }
-  if (files.some((f) => f.includes('src/features/moderation/'))) {
-    return 'scope:moderation';
-  }
-  if (files.some((f) => f.includes('src/features/economy/'))) {
-    return 'scope:economy';
-  }
-  if (files.some((f) => f.includes('src/features/ranks/'))) {
-    return 'scope:ranks';
-  }
-  if (files.some((f) => f.includes('src/features/sidebar/'))) {
-    return 'scope:sidebar';
-  }
-  if (files.some((f) => f.includes('src/features/minesweeper/'))) {
-    return 'scope:minesweeper';
-  }
+
   if (files.some((f) => f.includes('src/ui/') || f.includes('/ui/'))) {
-    return 'scope:ui';
+    return 'ui';
   }
   if (files.some((f) => f.startsWith('src/core/'))) {
-    return 'scope:core';
+    return 'core';
   }
-  if (files.some((f) => f.startsWith('packs/behavior/'))) {
-    return 'scope:behavior-pack';
-  }
-  if (files.some((f) => f.startsWith('packs/resource/'))) {
-    return 'scope:resource-pack';
+  if (files.some((f) => f.startsWith('packs/'))) {
+    return 'packs';
   }
   if (files.some((f) => f.startsWith('.github/') || f.startsWith('scripts/'))) {
-    return 'scope:ci';
+    return 'ci';
+  }
+  if (files.some((f) => f.startsWith('docs/'))) {
+    return 'documentation';
   }
   return '';
 }
 
 function determineSize(totalLines: number): string {
   if (totalLines < 30) {
-    return 'size:XS';
+    return 'XS';
   }
   if (totalLines < 150) {
-    return 'size:S';
+    return 'S';
   }
   if (totalLines < 400) {
-    return 'size:M';
+    return 'M';
   }
   if (totalLines < 800) {
-    return 'size:L';
+    return 'L';
   }
-  return 'size:XL';
+  return 'XL';
 }
 
 function runBedrockAudit(files: string[], baseRef: string): AuditResult {
@@ -265,6 +290,14 @@ async function main() {
   console.log(report);
 
   if (process.env.GITHUB_ACTIONS && prNumber) {
+    // Synchronize size tag and remove any conflicting prior size tag
+    const allSizes = ['XS', 'S', 'M', 'L', 'XL'];
+    for (const sizeTag of allSizes) {
+      if (sizeTag !== meta.size) {
+        runCmd(`gh pr edit ${prNumber} --remove-label "${sizeTag}" || true`);
+      }
+    }
+
     const labels = [meta.type, meta.size];
     if (meta.scope) {
       labels.push(meta.scope);
