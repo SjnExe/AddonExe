@@ -8,7 +8,9 @@ import { clearPlayerUiTimestamp } from '@core/ui/uiManager.js';
 import { formatString } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
 import { cancelActiveTeleportWarmup, clearTeleportProtection } from '@core/utils/teleportLogic.js';
+import { clearPlayerCombatState } from '@features/anticheat/combatCheck.js';
 import { clearPlayerMovementState } from '@features/anticheat/movementCheck.js';
+import { clearPlayerMiningStats } from '@features/anticheat/xray/manager.js';
 import { clearPlayerPlaytimeState } from '@features/economy/playtime/manager.js';
 import { clearPlayerTradeOffers } from '@features/economy/trade/manager.js';
 import { clearPlayerAfkState } from '@features/essentials/afk/manager.js';
@@ -50,6 +52,8 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   setTeamChatState(event.playerId, false);
   leaveGameChatChannel(event.playerId);
   clearPlayerMovementState(event.playerId);
+  clearPlayerCombatState(event.playerId);
+  clearPlayerMiningStats(event.playerId);
   clearPlayerAfkState(event.playerId);
   clearPlayerTradeOffers(event.playerId);
   handleCombatPlayerLeave(event.playerId, event.playerName);
