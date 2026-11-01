@@ -1,306 +1,300 @@
 name: Build
 
 on:
-    push:
-        tags:
-            - 'v*'
-        branches:
-            - main
-    workflow_dispatch:
-    pull_request:
-        branches:
-            - main
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (do not upload to CurseForge or publish GitHub release)'
+        type: boolean
+        default: true
+      build_type:
+        description: 'Build mode to simulate'
+        type: choice
+        options:
+          - canary
+          - release
+        default: release
+  pull_request:
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-    lint:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun lint
+      - run: bun install --frozen-lockfile
+      - run: bun lint:check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    format:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun format:check
+      - run: bun install --frozen-lockfile
+      - run: bun fmt --check
 
-    typecheck:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun check-types
+      - run: bun install --frozen-lockfile
+      - run: bun test --parallel
 
-    test:
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        steps:
-            - uses: actions/checkout@v7
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Cache Bun Dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
-            - run: bun install --frozen-lockfile
-            - run: bun test --isolate --parallel
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-    build:
-        runs-on: ubuntu-latest
-        timeout-minutes: 30
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
-              with:
-                  fetch-depth: 0
+      - name: Determine Build Type
+        id: build_type
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.build_type }}" ]; then
+              echo "type=${{ inputs.build_type }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+              echo "type=release" >> $GITHUB_OUTPUT
+          else
+              echo "type=canary" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Build TypeScript (Canary)
+        if: steps.build_type.outputs.type == 'canary'
+        run: |
+          bun run build:canary -- -b ${{ github.run_number }}
+        env:
+          IS_BETA_RELEASE: 'true'
 
-            - name: Cache Bun Dependencies
-              uses: actions/cache@v6
-              with:
-                  path: ~/.bun/install/cache
-                  key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-                  restore-keys: |
-                      ${{ runner.os }}-bun-
+      - name: Build TypeScript (Release)
+        if: steps.build_type.outputs.type == 'release'
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+              TAG_VER="${{ github.ref_name }}"
+              CLEAN_TAG="${TAG_VER#v}"
+              bun run build:release -- -v "$CLEAN_TAG"
+          else
+              bun run build:release
+          fi
 
-            - name: Install dependencies
-              run: |
-                  bun install --frozen-lockfile
+      - name: Load Build Meta into GITHUB_ENV
+        run: |
+          cat build_meta.env >> $GITHUB_ENV
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "IS_DRY_RUN=true" >> build_meta.env
+              echo "IS_DRY_RUN=true" >> $GITHUB_ENV
+          else
+              echo "IS_DRY_RUN=false" >> build_meta.env
+              echo "IS_DRY_RUN=false" >> $GITHUB_ENV
+          fi
 
-            - name: Determine Build Type
-              id: build_type
-              run: |
-                  if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-                      echo "type=stable" >> $GITHUB_OUTPUT
-                  else
-                      echo "type=nightly" >> $GITHUB_OUTPUT
-                  fi
+      - name: Verify Staged Packs
+        run: |
+          if [ ! -d "packs/behavior/scripts" ]; then
+            echo "Error: Scripts directory missing from behavior pack."
+            exit 1
+          fi
 
-            - name: Generate Dev Version (Nightly only)
-              if: steps.build_type.outputs.type == 'nightly'
-              shell: bash
-              run: |
-                  set -e
-                  BASE_VER=$(bun -e "console.log(require('./package.json').version)")
+      - name: Upload Raw Build Directory
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-dir
+          path: packs/
+          retention-days: 1
 
-                  MAJOR=$(echo $BASE_VER | cut -d. -f1)
-                  MINOR=$(echo $BASE_VER | cut -d. -f2)
-                  PATCH=${{ github.run_number }}
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-archives
+          path: |
+            AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon
+            AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack
+            AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
+          retention-days: 7
+          compression-level: 0
 
-                  VERSION_STR="${MAJOR}.${MINOR}.${PATCH}"
-                  VERSION_ARR_STR="[${MAJOR}, ${MINOR}, ${PATCH}]"
-                  IS_BETA="true"
+      - name: Upload build meta
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-meta
+          path: build_meta.env
+          retention-days: 7
 
-                  echo "IS_BETA_RELEASE=$IS_BETA" >> $GITHUB_ENV
-                  echo "VERSION_STRING=$VERSION_STR" >> $GITHUB_ENV
-                  echo "VERSION_ARRAY_STRING=$VERSION_ARR_STR" >> $GITHUB_ENV
+      - name: Validate build
+        run: bun run validate
 
-                  BUILD_DATE=$(date -u)
-                  echo "BUILD_DATE=$BUILD_DATE" >> $GITHUB_ENV
+  release:
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch')
+    needs: [build, lint, format, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
 
-            - name: Build TypeScript (Nightly)
-              if: steps.build_type.outputs.type == 'nightly'
-              run: |
-                  bun run build:nightly -- --build-number ${{ github.run_number }}
-              env:
-                  IS_BETA_RELEASE: ${{ env.IS_BETA_RELEASE }}
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Build TypeScript (Stable)
-              if: steps.build_type.outputs.type == 'stable'
-              run: |
-                  bun run build:release
+      - name: Download Build Meta
+        uses: actions/download-artifact@v8
+        with:
+          name: build-meta
 
-            - name: Verify Staged Packs
-              run: |
-                  if [ ! -d "packs/behavior/scripts" ]; then
-                    echo "Error: Scripts directory missing from behavior pack."
-                    exit 1
-                  fi
+      - name: Download Release Archives
+        uses: actions/download-artifact@v8
+        with:
+          name: release-archives
 
-            - name: Set Version Variable for Archive Names
-              run: |
-                  if [[ "${{ steps.build_type.outputs.type }}" == "stable" ]]; then
-                      echo "ARCHIVE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-                      echo "PREFIX=Release" >> $GITHUB_ENV
-                  else
-                      echo "ARCHIVE_VERSION=${{ env.VERSION_STRING }}" >> $GITHUB_ENV
-                      echo "PREFIX=Nightly" >> $GITHUB_ENV
-                  fi
+      - name: Load Build Meta
+        run: |
+          cat build_meta.env >> $GITHUB_ENV
 
-            - name: Create Release Archives
-              shell: bash
-              run: |
-                  set -e
-                  (cd packs && zip -r -9 "../AddonExe.${PREFIX}.${ARCHIVE_VERSION}.mcaddon" behavior resource -x "*.map")
-                  (cd packs/behavior && zip -r -9 "../../AddonExe_BP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
-                  (cd packs/resource && zip -r -9 "../../AddonExe_RP.${PREFIX}.${ARCHIVE_VERSION}.mcpack" ./* -x "*.map")
+      - name: Clean Old Canary Assets
+        if: env.BUILD_TYPE == 'canary' && env.IS_DRY_RUN != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete canary --cleanup-tag --yes || true
 
-            - name: Upload Raw Build Directory
-              uses: actions/upload-artifact@v7
-              with:
-                  name: build-dir
-                  path: packs/
-                  retention-days: 1
+      - name: Publish Canary Release
+        if: env.BUILD_TYPE == 'canary' && env.IS_DRY_RUN != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf "**Latest Canary Build**\nVersion: \`%s\`\nCommit: \`%s\`\nDate: \`%s\`\n\n*This is an automated development build. It may contain bugs.*\n" \
+              "${VERSION_STRING}" "${GITHUB_SHA}" "${BUILD_DATE}" > release_notes.md
+          gh release create canary \
+              --title "Canary Build (Latest Dev)" \
+              --prerelease \
+              --notes-file release_notes.md \
+              AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
+              AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack \
+              AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
 
-            - name: Upload Build Artifacts
-              uses: actions/upload-artifact@v7
-              with:
-                  name: release-archives
-                  path: |
-                      AddonExe.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcaddon
-                      AddonExe_BP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
-                      AddonExe_RP.${{ env.PREFIX }}.${{ env.ARCHIVE_VERSION }}.mcpack
-                  retention-days: 7
+      - name: Generate Changelog & Upload Stable Release to CurseForge
+        if: env.BUILD_TYPE == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          if [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            gh api repos/${{ github.repository }}/releases/generate-notes \
+                -f tag_name="${{ github.ref_name }}" \
+                --jq .body > raw_pr_notes.md || true
+          fi
+          bun scripts/build/extractChangelog.ts "${{ env.ARCHIVE_VERSION }}" --output user_changelog.md || true
 
-            - name: Upload Debug Symbols (Nightly only)
-              if: steps.build_type.outputs.type == 'nightly'
-              uses: actions/upload-artifact@v7
-              with:
-                  name: debug-symbols-nightly
-                  path: packs/**/*.map
-                  retention-days: 7
+          if [ -s user_changelog.md ]; then
+            cp user_changelog.md release_notes.md
+          elif [ -s raw_pr_notes.md ]; then
+            cp raw_pr_notes.md release_notes.md
+          else
+            echo "## AddonExe v${{ env.ARCHIVE_VERSION }}" > release_notes.md
+          fi
 
-            - name: Create build meta file
-              run: |
-                  echo "BUILD_TYPE=${{ steps.build_type.outputs.type }}" > build_meta.env
-                  echo "ARCHIVE_VERSION=${{ env.ARCHIVE_VERSION }}" >> build_meta.env
-                  echo "VERSION_STRING=${{ env.VERSION_STRING }}" >> build_meta.env
-                  echo "BUILD_DATE=${{ env.BUILD_DATE }}" >> build_meta.env
-                  echo "PREFIX=${{ env.PREFIX }}" >> build_meta.env
+          if [ "${{ env.IS_DRY_RUN }}" = "true" ]; then
+            bun scripts/build/curseforgeUpload.ts --dry-run
+          else
+            bun scripts/build/curseforgeUpload.ts
+          fi
 
-            - name: Upload build meta
-              uses: actions/upload-artifact@v7
-              with:
-                  name: build-meta
-                  path: build_meta.env
-                  retention-days: 7
+      - name: Publish Stable Release Link on GitHub
+        if: env.BUILD_TYPE == 'release' && env.IS_DRY_RUN != 'true' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf "## 📥 [Download AddonExe v%s on CurseForge](%s)\n\n---\n\n" "${ARCHIVE_VERSION}" "${CF_DOWNLOAD_URL}" > github_release_notes.md
+          cat release_notes.md >> github_release_notes.md
 
-            - name: Validate build
-              run: bun run validate
+          if [ -s raw_pr_notes.md ] && [ -s user_changelog.md ]; then
+            printf "\n\n<details>\n<summary>🛠️ Developer & PR Commit Log</summary>\n\n" >> github_release_notes.md
+            cat raw_pr_notes.md >> github_release_notes.md
+            printf "\n\n</details>\n" >> github_release_notes.md
+          fi
 
-    release:
-        needs: [build, lint, format, typecheck, test]
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        permissions:
-            contents: write
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
-
-            - name: Download Build Meta
-              uses: actions/download-artifact@v8
-              with:
-                  name: build-meta
-
-            - name: Download Release Archives
-              uses: actions/download-artifact@v8
-              with:
-                  name: release-archives
-
-            - name: Load Build Meta
-              run: |
-                  cat build_meta.env >> $GITHUB_ENV
-
-            - name: Clean Old Nightly Assets
-              if: env.BUILD_TYPE == 'nightly'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  gh release delete nightly --cleanup-tag --yes || true
-
-            - name: Publish Nightly Release
-              if: env.BUILD_TYPE == 'nightly'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  cat <<EOF > release_notes.md
-                  **Latest Nightly Build**
-                  Version: \`${{ env.VERSION_STRING }}\`
-                  Commit: \`${{ github.sha }}\`
-                  Date: \`${{ env.BUILD_DATE }}\`
-
-                  *This is an automated development build. It may contain bugs.*
-                  EOF
-
-                  gh release create nightly \
-                      --title "Nightly Build (Latest Dev)" \
-                      --prerelease \
-                      --notes-file release_notes.md \
-                      AddonExe.Nightly.${{ env.ARCHIVE_VERSION }}.mcaddon \
-                      AddonExe_BP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack \
-                      AddonExe_RP.Nightly.${{ env.ARCHIVE_VERSION }}.mcpack
-
-            - name: Publish Stable Release
-              if: env.BUILD_TYPE == 'stable'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  gh release create ${{ env.ARCHIVE_VERSION }} \
-                      --generate-notes \
-                      AddonExe.Release.${{ env.ARCHIVE_VERSION }}.mcaddon \
-                      AddonExe_BP.Release.${{ env.ARCHIVE_VERSION }}.mcpack \
-                      AddonExe_RP.Release.${{ env.ARCHIVE_VERSION }}.mcpack
+          if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+              gh release edit "${{ github.ref_name }}" \
+                  --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
+                  --notes-file github_release_notes.md
+          else
+              gh release create "${{ github.ref_name }}" \
+                  --title "AddonExe v${{ env.ARCHIVE_VERSION }}" \
+                  --notes-file github_release_notes.md
+          fi

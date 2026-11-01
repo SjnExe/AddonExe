@@ -1,0 +1,79 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import"],
+  "categories": {
+    "correctness": "warn"
+  },
+  "rules": {
+    "eqeqeq": "error",
+    "no-var": "error",
+    "curly": "error",
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-eval": "error",
+    "no-constant-condition": "warn",
+    "no-unused-vars": "off",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-shadow": "error",
+    "typescript/no-unused-vars": [
+      "error",
+      {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "typescript/ban-ts-comment": [
+      "error",
+      {
+        "ts-ignore": "allow-with-description",
+        "ts-nocheck": true,
+        "ts-check": false
+      }
+    ],
+    "no-self-compare": "error",
+    "no-template-curly-in-string": "error",
+    "no-unreachable": "error",
+    "no-unsafe-negation": "error",
+    "no-loss-of-precision": "error",
+    "valid-typeof": "error",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/no-extra-non-null-assertion": "error"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "package-lock.json",
+    ".git/",
+    "packs/resource/font/",
+    ".github/",
+    "docs/",
+    "package.json",
+    "packs/**"
+  ],
+  "overrides": [
+    {
+      "files": ["scripts/**/*.{js,ts}"],
+      "rules": {
+        "no-console": "off",
+        "no-shadow": "off",
+        "typescript/no-shadow": "off",
+        "typescript/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["src/core/utils/logger.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["src/**/__tests__/**/*.ts"],
+      "rules": {
+        "typescript/no-explicit-any": "off",
+        "no-console": "off",
+        "typescript/no-unused-vars": "off"
+      }
+    }
+  ]
+}

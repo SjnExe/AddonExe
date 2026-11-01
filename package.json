@@ -1,96 +1,50 @@
 {
-    "name": "AddonExe",
-    "version": "0.7.0",
-    "private": true,
-    "description": "<p align=\"center\"> <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
-    "keywords": [],
-    "homepage": "https://github.com/SjnExe/AddonExe#readme",
-    "bugs": {
-        "url": "https://github.com/SjnExe/AddonExe/issues"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/SjnExe/AddonExe.git"
-    },
-    "license": "MIT",
-    "author": "SjnExe",
-    "type": "module",
-    "main": "index.js",
-    "scripts": {
-        "build": "bun clean && bun scripts/build.ts",
-        "build:nightly": "bun clean && bun scripts/build.ts --nightly",
-        "build:release": "bun clean && bun scripts/build.ts --release --minify",
-        "check-deps": "bun scripts/check-dependencies.ts",
-        "check-types": "bun tsc --noEmit --incremental",
-        "clean": "rm -rf out packs/behavior/scripts",
-        "fix-project": "bun mct fix",
-        "format": "prettier --write --cache .",
-        "format:check": "prettier --check --cache .",
-        "postinstall": "bun scripts/postinstall.ts",
-        "lint": "bun eslint src scripts eslint.config.js --fix --cache && bun run scripts/validate-schemas.ts",
-        "lint:check": "bun eslint src scripts eslint.config.js --cache && bun run scripts/validate-schemas.ts",
-        "lint:report": "bun eslint src scripts eslint.config.js --output-file eslint_report.txt --cache",
-        "project-info": "bun mct info",
-        "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
-        "test": "bun test --isolate --parallel",
-        "test:duplication": "bun scripts/test-duplication.ts",
-        "test:watch": "bun test --isolate --parallel --watch",
-        "validate": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs",
-        "validate:report": "bun run build && bun check-deps && bun mct validate default PRJINT,UNKJSON,pathlength,PATHLENGTH,BASEGAMEVER,WPACKREFS,JSON,STRICT,ENTITYTYPE,FORMATVER,ITEMTYPE,CHKMANIF,FORBFILE -i packs -o validation_report",
-        "watch": "bun scripts/build.ts --watch"
-    },
-    "lint-staged": {
-        "*.{js,ts}": [
-            "bun eslint --fix --cache",
-            "bun prettier --write --cache"
-        ],
-        "*.{json,md,yml,yaml}": "bun prettier --write --cache"
-    },
-    "overrides": {
-        "axios": "latest",
-        "react": "^18.2.0",
-        "tmp": "latest",
-        "uuid": "latest",
-        "ws": "latest"
-    },
-    "dependencies": {
-        "@minecraft/math": "latest",
-        "@minecraft/vanilla-data": "latest",
-        "uuid": "latest"
-    },
-    "devDependencies": {
-        "@eslint/js": "latest",
-        "@minecraft/bedrock-schemas": "latest",
-        "@minecraft/common": "latest",
-        "@minecraft/creator-tools": "latest",
-        "@minecraft/debug-utilities": "1.0.0-beta.1.26.33-stable",
-        "@minecraft/server": "2.9.0-beta.1.26.33-stable",
-        "@minecraft/server-gametest": "1.0.0-beta.1.26.33-stable",
-        "@minecraft/server-ui": "2.2.0-beta.1.26.33-stable",
-        "@types/node": "latest",
-        "@types/uuid": "latest",
-        "@typescript-eslint/eslint-plugin": "latest",
-        "@typescript-eslint/parser": "latest",
-        "ajv": "latest",
-        "eslint": "latest",
-        "eslint-config-prettier": "latest",
-        "eslint-plugin-import": "latest",
-        "eslint-plugin-jsonc": "latest",
-        "eslint-plugin-minecraft-linting": "latest",
-        "eslint-plugin-yml": "latest",
-        "globals": "latest",
-        "jscpd": "latest",
-        "lint-staged": "latest",
-        "prettier": "latest",
-        "prettier-plugin-organize-imports": "latest",
-        "prettier-plugin-packagejson": "latest",
-        "type-fest": "latest",
-        "typescript": "~6.0.3",
-        "typescript-eslint": "latest"
-    },
-    "trustedDependencies": [
-        "bufferutil",
-        "esbuild",
-        "utf-8-validate"
-    ]
+  "name": "AddonExe",
+  "version": "0.8.0",
+  "private": true,
+  "description": "<p align=\"center\"> <h1 align=\"center\">AddonExe for Minecraft BE</h1> </p>",
+  "keywords": [],
+  "homepage": "https://github.com/SjnExe/AddonExe#readme",
+  "bugs": {
+    "url": "https://github.com/SjnExe/AddonExe/issues"
+  },
+  "license": "MIT",
+  "author": "SjnExe",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SjnExe/AddonExe.git"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "bun clean && bun scripts/build/build.ts",
+    "build:canary": "bun clean && bun scripts/build/build.ts --canary",
+    "build:release": "bun clean && bun scripts/build/build.ts --release --minify",
+    "clean": "rm -rf out packs/behavior/scripts",
+    "postinstall": "bun scripts/hooks/postinstall.ts",
+    "lint": "bun scripts/lint/run.ts --fix",
+    "lint:check": "bun scripts/lint/run.ts",
+    "mc-update": "bun scripts/build/mcUpdate.ts",
+    "project-info": "bunx mct info -i packs",
+    "reinstall": "rm -rf node_modules bun.lockb bun.lock && bun install",
+    "test:dupe": "bun scripts/lint/testDuplication.ts",
+    "test:watch": "bun test --parallel --watch",
+    "validate": "bun scripts/hooks/validate.ts",
+    "watch": "bun scripts/build/build.ts --watch"
+  },
+  "dependencies": {
+    "@minecraft/math": "latest",
+    "@minecraft/vanilla-data": "latest"
+  },
+  "devDependencies": {
+    "@minecraft/bedrock-schemas": "beta",
+    "@minecraft/common": "latest",
+    "@minecraft/creator-tools": "latest",
+    "@minecraft/server": "2.12.0-beta.1.26.61-stable",
+    "@minecraft/server-ui": "2.4.0-beta.1.26.61-stable",
+    "@types/bun": "latest",
+    "oxlint": "latest"
+  },
+  "overrides": {
+    "react": "^18.3.1"
+  }
 }

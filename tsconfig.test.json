@@ -1,11 +1,9 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "outDir": "./dist/tests",
-        "types": ["vitest/globals", "node"],
-        "noEmit": true,
-        "isolatedModules": true
-    },
-    "include": ["src/**/__tests__/**/*.ts", "src/**/__mocks__/**/*.ts"],
-    "exclude": ["node_modules"]
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "types": ["bun", "node", "@minecraft/server", "@minecraft/server-ui", "@minecraft/vanilla-data", "@minecraft/math"]
+  },
+  "include": ["src/**/*", "scripts/**/*.ts"],
+  "exclude": ["node_modules"]
 }
