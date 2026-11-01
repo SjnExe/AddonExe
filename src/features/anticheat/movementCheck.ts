@@ -8,7 +8,12 @@ import * as flagManager from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftEffectTypes } from '@minecraft/vanilla-data';
+import {
+  MinecraftBlockTypes,
+  MinecraftDimensionTypes,
+  MinecraftEffectTypes,
+  MinecraftItemTypes,
+} from '@minecraft/vanilla-data';
 
 interface PlayerMovementState {
   violationLevel: number; // Token bucket
@@ -109,6 +114,28 @@ interface MovementCheckConfig {
   maxSpeedIce: number;
   maxSpeedElytra: number;
   flightDetection?: boolean;
+  invalidSprint?: boolean;
+}
+
+function isSupportedBlock(block: mc.Block | undefined): boolean {
+  if (!isDefined(block)) {
+    return true;
+  }
+  if (!block.isAir || block.isLiquid) {
+    return true;
+  }
+  const typeId = block.typeId;
+  return (
+    typeId.includes('slab') ||
+    typeId.includes('stairs') ||
+    typeId.includes('wall') ||
+    typeId.includes('fence') ||
+    typeId.includes('carpet') ||
+    typeId.includes('scaffolding') ||
+    typeId.includes('ladder') ||
+    typeId.includes('web') ||
+    typeId.includes('bubble_column')
+  );
 }
 
 function checkMovement(player: mc.Player, config: MovementCheckConfig) {
@@ -129,6 +156,25 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     movementStates.set(player.id, state);
   }
 
+  // 1. InvalidSprint Check: impossible sprint states (Blindness, Sneaking)
+  if (config.invalidSprint !== false && player.isSprinting) {
+    const hasBlindness =
+      typeof player.getEffect === 'function' && isDefined(player.getEffect(MinecraftEffectTypes.Blindness));
+    if (hasBlindness) {
+      flagManager.flag(player, 'movementCheck', 'InvalidSprint: Sprinting while blinded');
+    } else if (player.isSneaking) {
+      flagManager.flag(player, 'movementCheck', 'InvalidSprint: Sprinting while sneaking');
+    }
+  }
+
+  // 2. Mount Exemption: players riding horses, minecarts, boats inherit mount velocity
+  const isRiding = isDefined(player.getComponent(EntityComponentTypes.Riding));
+  if (isRiding) {
+    state.violationLevel = Math.max(0, state.violationLevel - 5);
+    state.airTicks = 0;
+    return;
+  }
+
   // Use native velocity API for robust speed check
   const velocity = typeof player.getVelocity === 'function' ? player.getVelocity() : undefined;
   if (!isDefined(velocity)) {
@@ -136,7 +182,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   }
 
   // Convert blocks/tick to blocks/second (approximate)
-  // We strictly check HORIZONTAL speed to avoid flagging falling players
+  // Strictly check HORIZONTAL speed to avoid flagging falling players
   const hSpeed = Math.hypot(velocity.x, velocity.z) * 20;
 
   // Determine context-based limit
@@ -144,45 +190,49 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
 
   // Check for Gliding (Elytra)
   const isGliding = player.isGliding;
-  // Check for Riptide (Trident) - hard to detect state directly, but usually involves high speed + wet/rain
-  // We can check for 'Use Item' event but that's complex here.
-  // For now, if they are using elytra, increase limit.
+
   if (isGliding) {
     limit = config.maxSpeedElytra;
   } else {
-    // Check for Speed Effect
-    const speedEffect =
-      typeof player.getEffect === 'function' ? player.getEffect(MinecraftEffectTypes.Speed) : undefined;
-    if (isDefined(speedEffect)) {
-      // Speed 1 = +20%, Speed 2 = +40%
-      const amplifier = speedEffect.amplifier + 1;
-      limit *= 1 + 0.2 * amplifier;
-    }
-
-    // Check for Ice/Slime below
-    // We check the block directly below the player and slightly deeper
-    try {
-      const dimension = player.dimension;
-      const currentPos = player.location;
-      const blockBelow = dimension.getBlock({
-        x: Math.floor(currentPos.x),
-        y: Math.floor(currentPos.y - 0.5),
-        z: Math.floor(currentPos.z),
-      });
-      const blockBelow2 = dimension.getBlock({
-        x: Math.floor(currentPos.x),
-        y: Math.floor(currentPos.y - 1.5),
-        z: Math.floor(currentPos.z),
-      });
-
-      if (
-        (isDefined(blockBelow) && iceBlocks.has(blockBelow.typeId)) ||
-        (isDefined(blockBelow2) && iceBlocks.has(blockBelow2.typeId))
-      ) {
-        limit = config.maxSpeedIce;
+    // Check if player has a trident equipped for Riptide boost
+    const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+    const mainHandItem = equippable?.getEquipment(mc.EquipmentSlot.Mainhand);
+    if (mainHandItem?.typeId === MinecraftItemTypes.Trident) {
+      limit = Math.max(limit, 55); // Riptide III boost threshold
+    } else {
+      // Check for Speed Effect
+      const speedEffect =
+        typeof player.getEffect === 'function' ? player.getEffect(MinecraftEffectTypes.Speed) : undefined;
+      if (isDefined(speedEffect)) {
+        // Speed 1 = +20%, Speed 2 = +40%
+        const amplifier = speedEffect.amplifier + 1;
+        limit *= 1 + 0.2 * amplifier;
       }
-    } catch {
-      // Ignore block read errors (unloaded chunks etc)
+
+      // Check for Ice/Slime below
+      try {
+        const dimension = player.dimension;
+        const currentPos = player.location;
+        const blockBelow = dimension.getBlock({
+          x: Math.floor(currentPos.x),
+          y: Math.floor(currentPos.y - 0.5),
+          z: Math.floor(currentPos.z),
+        });
+        const blockBelow2 = dimension.getBlock({
+          x: Math.floor(currentPos.x),
+          y: Math.floor(currentPos.y - 1.5),
+          z: Math.floor(currentPos.z),
+        });
+
+        if (
+          (isDefined(blockBelow) && iceBlocks.has(blockBelow.typeId)) ||
+          (isDefined(blockBelow2) && iceBlocks.has(blockBelow2.typeId))
+        ) {
+          limit = config.maxSpeedIce;
+        }
+      } catch {
+        // Ignore block read errors (unloaded chunks etc)
+      }
     }
   }
 
@@ -192,18 +242,15 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   const effectiveLimit = isUnderKnockback ? Math.max(limit * 2.5, 35) : limit;
 
   // If speed > limit, accumulate violation
-  // If speed < limit, decay violation
   if (hSpeed > effectiveLimit) {
-    // Add points proportional to excess speed
     const excess = hSpeed - effectiveLimit;
     state.violationLevel += excess;
   } else {
     // Decay
-    state.violationLevel = Math.max(0, state.violationLevel - 2); // Decay 2 points per check
+    state.violationLevel = Math.max(0, state.violationLevel - 2);
   }
 
   // Flight / Hover Detection
-  const isRiding = isDefined(player.getComponent(EntityComponentTypes.Riding));
   if (
     config.flightDetection === true &&
     !isGliding &&
@@ -225,7 +272,7 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
       const pos = player.location;
       const b0 = player.dimension.getBlock({ x: Math.floor(pos.x), y: Math.floor(pos.y), z: Math.floor(pos.z) });
       const b1 = player.dimension.getBlock({ x: Math.floor(pos.x), y: Math.floor(pos.y - 1), z: Math.floor(pos.z) });
-      if ((isDefined(b0) && (!b0.isAir || b0.isLiquid)) || (isDefined(b1) && (!b1.isAir || b1.isLiquid))) {
+      if (isSupportedBlock(b0) || isSupportedBlock(b1)) {
         nearGroundOrLiquid = true;
       }
     } catch {
