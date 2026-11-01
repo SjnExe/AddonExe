@@ -1,116 +1,85 @@
-# Agent Instructions for AddonExe Development
+# Agent & Developer Instructions for AddonExe
 
-Welcome, AI Assistant (Jules)! This document provides specific guidelines and tips for working effectively on the AddonExe codebase. Please adhere to these instructions in addition to your general knowledge and the user's direct requests.
+This document is the single source of truth for the architecture, coding standards, configuration lifecycle, and workflow conventions of **AddonExe**.
 
-## 1. Core Objective
+## 1. Project Overview & Tech Stack
 
-Your primary goal is to assist users by completing coding tasks, such as solving bugs, implementing features, writing tests, and updating documentation, all while maintaining code quality, consistency, and adhering to project conventions.
+- **Runtime & Package Manager:** Bun (`bun`, `bun test`, `bun scripts/build/build.ts`).
+- **Language:** TypeScript (strictly typed, bundled into `packs/behavior/scripts/main.js`).
+- **Minecraft Target:** Latest Minecraft Bedrock Edition (`@minecraft/server`, `@minecraft/server-ui`, `@minecraft/vanilla-data`, `@minecraft/math`).
+- **Linter & Validator:** Oxlint (`.oxlintrc.json`), custom Minecraft & casing rules (`scripts/lint/minecraftRules.ts`), `@minecraft/bedrock-schemas` + Ajv JSON validator (`scripts/lint/schemas.ts`), strict vanilla/custom icon verifier (`scripts/lint/icons.ts`), and Bun built-in typecheck (`bun check` via `scripts/lint/run.ts`).
 
-## 2. Environment Setup
+## 2. Build, Test & Verification Commands
 
-If you need to initialize or reset the environment, use the following commands. These handle dependencies, system tools, and repository state.
+- **Build (Local):** `bun run build`
+- **Build (Canary Archive for Testing):** `bun run build:canary` (creates `.mcaddon` with test framework enabled)
+- **Package `.mcaddon` Archive:** `bun scripts/build/build.ts --zip`
+- **Lint & Source Check (Read-Only):** `bun lint:check` (includes typechecking — do not run `bun check` separately)
+- **Lint & Auto-Fix:** `bun lint`
+- **Typecheck (Bun Built-In Only):** `bun check` (never use `tsc` or external typecheckers)
+- **Format Modified Files Only:** `bun fmt --changed` (auto-detects modified files — prefer over `bun fmt <file1> <file2>`)
+- **Run Unit Tests:** `bun test --parallel` (always use `--parallel`)
+- **Check Code Duplication (Explicit Only):** `bun run test:dupe`
+- **Full Pack Validation (MCT):** `bun run validate` (validates built pack manifests and assets via Minecraft Creator Tools; run after building)
+- **Two-Stage Iterative Review Protocol (2 Consecutive Clean Passes):**
+  - Concluding any feature, refactor, or bugfix requires **2 consecutive zero-issue passes** before submitting or merging.
+  - A single verification pass consists of **both** of the following stages:
+    1. **Stage 1 (Automated Validation):** Run `bun fmt --changed && bun lint:check && bun test --parallel && bun run build`.
+    2. **Stage 2 (Extensive Diff Review):** Perform a comprehensive line-by-line semantic audit of `git diff` against `main`:
+       - **Correctness & Edge Cases:** Check entity validity (`player.isValid`, `entity.isValid` across tick boundaries/explosions), nullable guards (`isDefined`), and event cancellation logic.
+       - **Performance & Engine Safety:** Verify algorithmic complexity, avoid runaway BFS/scans, prevent mass synchronous native C++ engine calls (e.g., batching block lookups and leaf decay), and consolidate dropped item entities (`ItemStack(type, count)`) to eliminate server tick lag.
+       - **Bedrock Standards:** Confirm vanilla constants are imported from `@minecraft/vanilla-data`, dark-mode section colors (`§`) are valid, and static UI textures (e.g., `textures/ui/NetherPortal`) are used instead of animated flipbook strips.
+  - **Reset Invariant:** If any defect is identified in Stage 1 OR Stage 2 that requires code changes, the fix must be applied and the counter resets to 0. You must achieve **2 consecutive passes with ZERO issues found and ZERO code changes made in the final pass**.
 
-```bash
-sudo rm -rf /usr/local/bun
-sudo curl -fsSL https://bun.sh/install | sudo BUN_INSTALL=/usr/local/bun bash
-sudo ln -sf /usr/local/bun/bin/bun /usr/local/bin/bun
-bun install --frozen-lockfile --no-progress --no-summary
-```
+## 3. Coding & Architectural Standards
 
-## 3. Understanding the Codebase
-
-Before implementing changes, strive to understand the relevant parts of the codebase. Key architectural information can be found in `Docs/Development/README.md`. Pay attention to:
-
-- **Project Structure Overview:**
-    - `src/core/`: Infrastructure (Config, Logging, Events, Storage).
-    - `src/features/`: Modular features (Economy, Moderation, Teleportation, etc.).
-    - `packs/`: Compiled Addon files.
-- **Utilizing Behavior and Resource Packs:**
-    - Do not rely solely on scripts (`src/`) for features.
-    - Use JSON files in `packs/behavior/` (e.g., loot tables, recipes, entities, functions) and `packs/resource/` (e.g., UI, textures) whenever possible for better performance and native integration.
-    - Scripts should primarily handle complex logic, state management, and dynamic interactions that JSONs cannot cover.
-- **Core Managers:** `src/core` handles cross-cutting concerns.
-- **Features:** Each feature in `src/features/` should be self-contained (Manager, Config, Commands).
-- **Configuration Files:**
-    - `src/config.ts`: Main settings, feature toggles, owner/admin setup.
-    - `src/features/ranks/ranksConfig.ts`: Defines all ranks and their visual styles.
-- **Coding Conventions:** Strictly follow guidelines in `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
+- **Curated Atomic Commits & Git Hygiene:**
+  - Feature branches must consist of curated, self-contained atomic commits that each build and pass automated tests. Avoid massive kitchen-sink commits.
+  - Never push intermediate noise commits (`fix lint`, `fix typo`, `address review`). Use `git commit --amend --no-edit` (or `--amend -m ...`) and push with `git push --force-with-lease`.
+  - When modifying earlier commits in a stack, use `git commit --fixup <hash>` and `git rebase -i --autosquash origin/main`.
+  - If exploratory or debugging commits accumulate during active development, soft-reset before review (`git reset --soft origin/main`) and re-stage into clean, logical atomic units (e.g. `refactor(core): ...`, `feat(system): ...`, `ui(panel): ...`).
+  - Commit messages must include a concise Conventional Commit title and a detailed message body explaining _why_ the change was made, Bedrock engine invariants respected, and edge cases handled. Keep PR titles and descriptions synchronized with the cumulative diff.
+  - **PR Merge Governance:** Never default to squash-merging. Merge methods are dictated by the PR structure and explicit owner direction:
+    - **Rebase & Merge (`gh pr merge <pr> --rebase`):** Default for feature PRs containing curated atomic commits, preserving individual atomic commits on `main` with a clean linear history.
+    - **Squash & Merge (`gh pr merge <pr> --squash`):** Only when the PR represents a single isolated atomic change, or when explicitly requested by `@SjnExe`.
+- **Never Edit Build Artifacts:** Never manually edit `packs/behavior/scripts/` or generated `manifest.json` files. Edit `src/` and run `bun run build`.
 - **Naming Conventions:**
-    - The general rule for all project-specific JavaScript/TypeScript identifiers is that **any code style is allowed, but not snake_case**.
-    - The use of `snake_case` (e.g., `my_variable`) or `UPPER_SNAKE_CASE` (e.g., `MY_CONSTANT`) is disallowed.
-    - An exception is when interacting with native Minecraft APIs that require `snake_case` identifiers. In those cases, the required style must be used.
-    - For full details, always refer to the latest `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
+  - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraftRules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
+  - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
+- **Formatting (`bun fmt`):** 2-space indentation, single quotes for TS, sorted imports, semicolons required, curly braces `{}` required on all control flow blocks (`bun fmt <files>` / `bun fmt --check`).
+- **Path Aliases:** Use aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).
+- **Strict Type Guards:** Use `isDefined`, `isNonEmptyString`, and `isNumber` from `@lib/guards.js` instead of loose truthiness checks.
+- **Minecraft Constants:** Always import `MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftEntityTypes`, and `MinecraftDimensionTypes` from `@minecraft/vanilla-data` instead of raw `'minecraft:...'` strings.
+- **Entity Safety & Command Sanitization:**
+  - Always check `player.isValid` across tick boundaries and resolve live player references via `playerCache`.
+  - Sanitize any dynamic string passed into `runCommand()` using `escapeCommandArg()`.
+- **Bedrock Script API Event & Entity Invariants:**
+  - In `PlayerBreakBlockAfterEvent`, `event.block.typeId` evaluates to `'minecraft:air'`. Handlers (such as VeinMiner, TreeCapitator, AutoReplant) must inspect `event.brokenBlockPermutation` (`brokenBlockPermutation.type.id`) to determine the broken block type. Function signatures should support overloaded `brokenPermutationOrOptions` for backward compatibility.
+  - In entity hurt, die, and explosion events (`entityHurt`, `entityDie`, `beforeEntityHurt`), always guard `damagingEntity.isValid` and wrap component calls (`getComponent`) in try/catch blocks because exploding creepers and destroyed projectiles despawn on the exact tick damage is evaluated.
 
-## 4. Workflow and Task Management
+## 4. Configuration, Presets & SemVer Migration System
 
-- **Chat-First Workflow:** The primary mode of operation is through the chat session. Tasks, plans, and execution happen dynamically here.
+- **Single Bundled Build & In-Game Editor:** All configurations are compiled into `main.js` with clean defaults and edited live in-game via `/panel`.
+- **Version-Safe Deep Merge:** On world load, saved dynamic properties are merged on top of default configs (`deepMerge(defaultConfig, savedConfig)`), preserving all existing server customizations while automatically populating newly added config keys on addon updates.
+- **SemVer Migration Runner:** `migrationManager.ts` compares the stored world addon version (`exe:version`) against the current `package.json` version and runs any pending versioned migration steps sequentially.
+- **Player-Facing Feature Defaulting Policy:**
+  - All player-facing survival, gameplay, QoL, and economy features (e.g. VeinMiner, TreeCapitator, AutoReplant, FastLeafDecay, Bank, Auction House, Bounties, Daily Rewards, Trading, Mail) **must default to disabled (`enabled: false`)**.
+  - Only administrative, staff-only, or security features (which ordinary players cannot execute or trigger) may default to `enabled: true`.
+  - **Single Source of Truth Toggles:** Each feature system must be governed by its own direct `enabled` config toggle. Never create monolithic multi-system toggle gates that require enabling features in two separate places.
 
-## 5. Documentation Responsibilities
+## 5. Custom Dark-Mode UI & Text Formatting
 
-- **Update Root `README.md`**: If you add significant new user-facing features or make major changes to the addon's functionality or setup, you **must** also update the main project `README.md` (located in the repository root) to reflect these changes. This keeps the primary user documentation current.
-- **Update `Docs/` Folder**: For substantial feature changes or additions, relevant files in the `Docs/` folder (e.g., `FeaturesOverview.md`, `ConfigurationGuide.md`, `Commands.md`) should also be updated.
-- **JSDoc/TSDoc Comments**: Adhere to the JSDoc/TSDoc standards outlined in `Docs/Development/StandardizationGuidelines.md`. Add comments for new functions (especially exported ones) and complex logic. Ensure types are accurate (now enforced by TypeScript).
+- **Breadcrumb Navigation in Sub-Forms:**
+  - All sub-configuration forms and detail panels must accept a caller context object (e.g., `context?: { category: string; page?: number }`).
+  - Cancelling or saving a sub-form must return the player directly to their originating view via `showConfigCategoryDetailPanel(player, context.category, { page: context.page })`, never resetting navigation back to root hubs like `staffConfigHub`.
 
-## 6. Code Style and Quality
-
-- **Adherence to Guidelines:** Strictly follow `Docs/Development/CodingStyle.md` and `Docs/Development/StandardizationGuidelines.md`.
-- **TypeScript:** All Behavior Pack scripts are written in TypeScript (or JavaScript migrating to TypeScript) in the `src/` directory.
-- **Build Artifacts:** Do not edit files in `packs/behavior/scripts/` directly. Always edit the source in `src/` and run `bun run build`.
-- **Error Handling:** Implement robust error handling (e.g., `try...catch` blocks for risky operations, validation of inputs). Refer to `Docs/Development/StandardizationGuidelines.md` (Section 6) for detailed error logging standards.
-- **Logging:** Utilize the `debugLog()` function from `core/logger.ts` for development messages. This is conditional on `config.debug` being true.
-    - **User-Facing Text:** Most user-facing text is hardcoded directly in the command or UI files where it is used. Configurable messages (like the welcome message or rules) are in `config.js`. Button texts for dynamically generated panels are defined in `src/core/panelLayoutConfig.js`.
-- **Linting & Formatting:**
-    - Run `bun run lint` to check for linting issues (ESLint).
-    - Run `bun run format` to format code (Prettier).
-    - Please ensure your changes pass linting and build (`bun run build`) before submitting.
-    - **No Log Files:** Do not create `.txt` or other log files to store lint or build output (e.g., `lint_errors.txt`, `build.log`).
-    - **Check Console:** Always read errors and warnings directly from the terminal/console output.
-    - **Fixing Workflow:** When fixing issues, run the command (e.g., `bun run lint`), check the console for remaining errors, fix them, and repeat.
-
-## 7. Planning and Communication
-
-- **Use `set_plan()`:** Always articulate your plan using the `set_plan` tool before starting significant code changes.
-- **Be Clear:** Make your plan steps clear and actionable.
-- **Ask Questions:** If the user's request is ambiguous or if you encounter significant issues, use `request_user_input`.
-- **Report Progress:** Use `plan_step_complete()` after each step.
-
-## 8. Specific Technical Constraints & Patterns
-
-The following patterns must be verified and adhered to when working on the codebase:
-
-- **Exports:**
-    - `playerDataManager.ts`: Uses named exports (e.g., `export { functionName }`), not default exports.
-    - `commandManager.ts`: Uses named exports.
-- **Configuration:**
-    - Persistence: Use `.set(newConfig)` to update and save configurations. `.save()` persists current memory state.
-    - Structure: `bounties` are in `config.ts`, but other economy settings are in `economyConfig.ts`.
-    - Validation: `xrayConfig.ts` uses a `monitoredOreTypes` structure.
-- **UI System:**
-    - Source of Truth: `src/core/ui/panelRegistry.js` contains the schema for UI panels.
-    - Dynamic Config IDs: Panels generated from schema use IDs like `config_<schemaId>`.
-- **Floating Text:**
-    - Implementation: Uses invisible entity `exe:floating_text`.
-    - Management: `floatingTextManager.js`. Requires killing existing entity before spawning new one to prevent duplicates.
-- **Performance Guidelines:**
-    - **Task Scheduling:** For heavy or long-running tasks (e.g., iterating over large areas or many entities), prefer using `mc.system.runJob` with a generator function to spread execution across ticks and prevent server lag.
-    - **Config Loading:** Configuration files should be loaded in parallel (e.g., using `Promise.all`) during initialization to minimize startup time.
-- **Scripting API Specifics:**
-    - **Versions:** Use exact versions from `manifest.json`.
-    - **Timers:** Use `mc.system.runTimeout` for simple delays.
-    - **Entity References:** Do not cache Entity objects. They become invalid. Store IDs and query fresh objects.
-    - **Dimensions:** Use `minecraft:nether` (not `the_nether`).
-- **Commands:**
-    - `commandManager` supports `int` parameter type.
-    - Use `runCommand`, not `runCommandAsync` (deprecated).
-- **Non-Existent Features (Do Not Use):**
-    - `placeholderManager.js` / `resolvePlaceholders`: **Does not exist.** Use `formatString` from `utils.js`.
-    - `world.playSound`: Use `dimension.playSound` or `player.playSound`.
-- **Linting & Dependencies:**
-    - `eslint.config.js` now enables strict type-checking rules (e.g., `no-unsafe-assignment`) as **warnings**. Strive to resolve these when working on files.
-    - Use `@minecraft/vanilla-data` for strict typing of Block, Item, and Entity IDs (e.g., `MinecraftItemTypes.Diamond`) instead of string literals.
-    - Use `@minecraft/math` for vector math operations (e.g., `Vector3Utils.distance`) instead of manual calculations.
-    - Run `bun run check-deps` to verify that `package.json` dependencies match `manifest.json` dependencies. This is integrated into `bun run validate`.
-    - Run `bun run project-info` to view project details via `@minecraft/creator-tools`.
-    - Run `bun run fix-project` to apply automated fixes via `@minecraft/creator-tools`.
-
-By following these guidelines, you will help ensure the continued quality, consistency, and maintainability of the AddonExe. Thank you!
+- **UI Builders:** Always use `ActionFormBuilder`, `CustomFormBuilder`, and `MessageFormBuilder`.
+  - `.grid(1)` (`\uE100§r`): 1-column full-width reader/list stack.
+  - `.grid(2)` (`§2§<tens>§<ones>§f§r`): 2-column wide card grid (default for hubs/menus).
+  - `.grid(3)` (`§3§<tens>§<ones>§f§r`): 3-column compact tile grid (Server Shop & RPS).
+  - `.grid(4)` (`§4§<tens>§<ones>§f§r`): 4-column icon tile grid.
+  - `.grid('board')` (`§9§0§0§f§r`): 3x3 fixed board grid (Tic-Tac-Toe).
+  - `.grid('ms9' | 'ms12' | 'ms16')` (`§8§0§9§f§r`, `§8§1§2§f§r`, `§8§1§6§f§r`): Minesweeper 9x9, 12x12, and 16x12 grids.
+- **Bedrock Section (`§`) Color & Style Codes:**
+  - Colors: `§0` Black, `§1` Dark Blue, `§2` Dark Green, `§3` Dark Aqua, `§4` Dark Red, `§5` Dark Purple, `§6` Gold, `§7` Gray, `§8` Dark Gray, `§9` Blue, `§a` Green, `§b` Aqua, `§c` Red, `§d` Light Purple, `§e` Yellow, `§f` White, `§g` Minecoin Gold.
+  - Styles (must follow color code): `§l` Bold, `§o` Italic, `§k` Obfuscated, `§r` Reset.
