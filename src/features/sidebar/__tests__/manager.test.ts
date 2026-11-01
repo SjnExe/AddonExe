@@ -1,0 +1,165 @@
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+
+import * as configManager from '@core/config/configManager.js';
+import * as configurations from '@core/config/configurations.js';
+import * as playerCache from '@core/data/playerCache.js';
+import { initializePlayerCache } from '@core/data/playerCache.js';
+import * as playerDataManager from '@core/data/playerDataManager.js';
+import * as rankManager from '@core/permissions/rankManager.js';
+import * as mc from '@minecraft/server';
+
+import defaultConfig from '../../../config.js';
+
+const {
+  cleanup,
+  createPlayerPlaceholderContext,
+  forceUpdate,
+  initializeSidebar,
+  resolveGlobalPlaceholders,
+  setActionBarOverride,
+} = await import('../manager.js');
+
+describe('Sidebar Manager', () => {
+  let getAllPlayersSpy: any;
+  let getPlayerCountSpy: any;
+  let getPlayerSpy: any;
+  let getSidebarVisibleSpy: any;
+  let getPlayTimeSpy: any;
+  let getPlayerRankSpy: any;
+  let getSidebarConfigSpy: any;
+  let getEconomyConfigSpy: any;
+  let getConfigSpy: any;
+
+  beforeEach(() => {
+    getSidebarConfigSpy = spyOn(configurations, 'getSidebarConfig').mockReturnValue({
+      enabled: true,
+      globalInfo: {
+        enabled: true,
+        title: '§l§6{server_name}',
+        updateInterval: 20,
+        maxPlayers: 20,
+        sidebarLines: ['§fPlayers: {online}/{max_online}', '§fTPS: {tps}'],
+      },
+      hud: {
+        enabled: true,
+        updateInterval: 20,
+        actionBarLines: ['Money: {money}'],
+      },
+    } as any);
+
+    getEconomyConfigSpy = spyOn(configurations, 'getEconomyConfig').mockReturnValue({
+      currencySymbol: '$',
+    } as any);
+
+    getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      ...defaultConfig,
+      serverName: 'Test Server',
+    } as any);
+
+    getAllPlayersSpy = spyOn(mc.world, 'getAllPlayers').mockReturnValue([]);
+    initializePlayerCache();
+    getPlayerCountSpy = spyOn(playerCache, 'getPlayerCount').mockReturnValue(5);
+    getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockReturnValue({
+      balance: 1000,
+      kills: 10,
+      deaths: 2,
+      killStreak: 3,
+    } as any);
+    getSidebarVisibleSpy = spyOn(playerDataManager, 'getSidebarVisible').mockReturnValue(true);
+    getPlayTimeSpy = spyOn(playerDataManager, 'getPlayTime').mockReturnValue(3600);
+    getPlayerRankSpy = spyOn(rankManager, 'getPlayerRank').mockReturnValue({
+      name: 'VIP',
+    } as any);
+  });
+
+  afterEach(() => {
+    getSidebarConfigSpy?.mockRestore();
+    getEconomyConfigSpy?.mockRestore();
+    getConfigSpy?.mockRestore();
+    getAllPlayersSpy?.mockRestore();
+    getPlayerCountSpy?.mockRestore();
+    getPlayerSpy?.mockRestore();
+    getSidebarVisibleSpy?.mockRestore();
+    getPlayTimeSpy?.mockRestore();
+    getPlayerRankSpy?.mockRestore();
+  });
+
+  it('should resolve global placeholders correctly', () => {
+    const text = 'Server: {server_name} | Online: {online}/{max_online}';
+    const resolved = resolveGlobalPlaceholders(text);
+    expect(resolved).toContain('Test Server');
+    expect(resolved).toContain('5/20');
+  });
+
+  it('should resolve player placeholders when player context is provided', () => {
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+    } as unknown as mc.Player;
+
+    const text = 'Player: {name} | Rank: {rank} | Money: {money} | KDR: {kdr}';
+    const resolved = resolveGlobalPlaceholders(text, mockPlayer);
+
+    expect(resolved).toContain('TestPlayer');
+    expect(resolved).toContain('VIP');
+    expect(resolved).toContain('$1k');
+    expect(resolved).toContain('5.00');
+  });
+
+  it('should reuse precomputed placeholder context across multiple lines', () => {
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+    } as unknown as mc.Player;
+
+    const ctx = createPlayerPlaceholderContext(mockPlayer);
+    const line1 = resolveGlobalPlaceholders('Player: {name}', mockPlayer, ctx);
+    const line2 = resolveGlobalPlaceholders('Rank: {rank}', mockPlayer, ctx);
+    const line3 = resolveGlobalPlaceholders('Money: {money}', mockPlayer, ctx);
+
+    expect(line1).toBe('Player: TestPlayer');
+    expect(line2).toBe('Rank: VIP');
+    expect(line3).toBe('Money: $1k');
+  });
+
+  it('should resolve {ping} and {ping_colored} placeholders', () => {
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+      getPing: () => 45,
+    } as unknown as mc.Player;
+
+    const ctx = createPlayerPlaceholderContext(mockPlayer);
+    expect(ctx.tokens.get('ping')).toBe('45');
+    expect(ctx.tokens.get('ping_colored')).toBe('§a45ms§r');
+
+    const resolved = resolveGlobalPlaceholders('Ping: {ping} | Colored: {ping_colored}', mockPlayer, ctx);
+    expect(resolved).toBe('Ping: 45 | Colored: §a45ms§r');
+  });
+
+  it('should allow setting action bar override on player', () => {
+    let setActionBarMsg = '';
+    const mockPlayer = {
+      id: 'player-1',
+      name: 'TestPlayer',
+      isValid: true,
+      onScreenDisplay: {
+        setActionBar: (msg: string) => {
+          setActionBarMsg = msg;
+        },
+      },
+    } as unknown as mc.Player;
+
+    setActionBarOverride(mockPlayer, '§cTest Alert', 1000);
+    expect(setActionBarMsg).toBe('§cTest Alert');
+  });
+
+  it('should initialize and cleanup interval correctly', () => {
+    initializeSidebar();
+    forceUpdate();
+    cleanup();
+  });
+});
