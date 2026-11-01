@@ -1,12 +1,78 @@
+import { CommandExecutor } from '@commands/commandManager.js';
+import * as configManager from '@core/config/configManager.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { kickPlayer } from '@core/utils/player.js';
+import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
+import { setActionBarOverride } from '@features/sidebar/manager.js';
 import * as mc from '@minecraft/server';
 
-import { CommandExecutor } from '@commands/commandManager.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
+let restartTaskId: number | undefined;
 
-export function startRestart(_initiator?: CommandExecutor | mc.Entity) {
-    const players = getAllPlayersFromCache();
-    for (const player of players) {
-        player.sendMessage('§cServer is restarting...');
+export function startRestart(initiator?: CommandExecutor | mc.Entity) {
+  if (restartTaskId !== undefined) {
+    if (initiator && (initiator as mc.Player).sendMessage) {
+      (initiator as mc.Player).sendMessage('§cRestart is already in progress.');
     }
-    // ...
+    return;
+  }
+
+  const config = configManager.getConfig();
+  let secondsRemaining = config.restart.countdownSeconds;
+  const subtitle = config.restart.subtitle;
+  const kickMessage = config.restart.kickMessage;
+
+  mc.world.sendMessage(`§eServer restart initiated. Restarting in ${secondsRemaining} seconds...`);
+
+  restartTaskId = setTrackedInterval(() => {
+    const players = getAllPlayersFromCache();
+
+    if (secondsRemaining <= 0) {
+      clearTrackedInterval(restartTaskId!);
+      restartTaskId = undefined;
+
+      for (const player of players) {
+        kickPlayer(player.name, kickMessage);
+      }
+      return;
+    }
+
+    // Show titles
+    for (const player of players) {
+      let color = '§a';
+      if (secondsRemaining <= 10) {
+        color = '§c';
+      } else if (secondsRemaining <= 30) {
+        color = '§e';
+      }
+
+      player.onScreenDisplay.setTitle(`${color}${secondsRemaining}`);
+      setActionBarOverride(player, `§c§l⚠ Server Restarting in ${color}${secondsRemaining}s §c§l⚠`, 1200);
+      if (subtitle) {
+        player.onScreenDisplay.updateSubtitle(subtitle);
+      }
+
+      // Play a tick sound for countdown
+      if (secondsRemaining <= 5) {
+        player.playSound('note.bass', { volume: 1.0, pitch: 1.5 });
+      } else if (secondsRemaining % 5 === 0) {
+        player.playSound('random.click', { volume: 0.5, pitch: 1.0 });
+      }
+    }
+
+    secondsRemaining--;
+  }, 20); // 20 ticks = 1 second
+}
+
+export function cancelRestart(initiator?: CommandExecutor | mc.Entity) {
+  if (restartTaskId === undefined) {
+    if (initiator && (initiator as mc.Player).sendMessage) {
+      (initiator as mc.Player).sendMessage('§cNo restart is currently in progress.');
+    }
+    return;
+  }
+
+  clearTrackedInterval(restartTaskId);
+  restartTaskId = undefined;
+
+  mc.world.sendMessage('§aServer restart has been cancelled.');
 }
