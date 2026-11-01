@@ -13,6 +13,14 @@ export interface MonitoredOreType {
   blocks: MonitoredBlock[];
 }
 
+export interface XrayHeuristicsConfig {
+  enabled: boolean;
+  checkAirExposure: boolean;
+  minStoneBreaksForRatio: number;
+  ratioThreshold: number;
+  alertSuspicionThreshold: number;
+}
+
 export interface XrayConfig {
   settings: {
     ignoreCreative: boolean;
@@ -23,6 +31,7 @@ export interface XrayConfig {
     logToConsole: boolean;
     alertBufferingSeconds: number;
   };
+  heuristics: XrayHeuristicsConfig;
   monitoredOreTypes: Record<string, MonitoredOreType>;
 }
 
@@ -35,6 +44,13 @@ export const xrayConfig: XrayConfig = {
   notifications: {
     logToConsole: true,
     alertBufferingSeconds: 10,
+  },
+  heuristics: {
+    enabled: true,
+    checkAirExposure: true,
+    minStoneBreaksForRatio: 30,
+    ratioThreshold: 0.12,
+    alertSuspicionThreshold: 70,
   },
   monitoredOreTypes: {
     diamond: {
