@@ -1,129 +1,279 @@
-import * as mc from '@minecraft/server';
-
-import { getConfig } from '@core/configManager.js';
-import { setCooldown } from '@core/cooldownManager.js';
-import { errorLog } from '@core/logger.js';
-import { sendMessage } from '@core/messaging.js';
-import { setPlayerLastLocation } from '@core/playerDataManager.js';
-import { startTeleportWarmup } from '@core/teleportLogic.js';
+import { getConfig } from '@core/config/configManager.js';
+import { getCooldown, setCooldown } from '@core/data/cooldownManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance, setPlayerLastLocation } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { isFeatureActive } from '@core/services/featureManager.js';
+import { soundTeleport } from '@core/utils/constants.js';
+import { formatCurrency } from '@core/utils/economy.js';
+import { playSound } from '@core/utils/index.js';
+import { errorLog } from '@core/utils/logger.js';
+import { sendMessage } from '@core/utils/messaging.js';
+import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
+import { formatCooldown } from '@core/utils/time.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 
-/**
- * Saves the player's current location as their "last location" for /back command.
- * @param player The player to save location for.
- * @param reason The reason for saving ('death' or 'teleport'). Defaults to 'teleport'.
- */
-export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport') {
-    if (!isDefined(player)) return;
+export const unsafeTeleportBlocks = new Set<string>([
+  MinecraftBlockTypes.Lava,
+  MinecraftBlockTypes.FlowingLava,
+  MinecraftBlockTypes.Fire,
+  MinecraftBlockTypes.SoulFire,
+  MinecraftBlockTypes.Magma,
+  MinecraftBlockTypes.Cactus,
+  MinecraftBlockTypes.Water,
+  MinecraftBlockTypes.FlowingWater,
+  MinecraftBlockTypes.SweetBerryBush,
+  MinecraftBlockTypes.PowderSnow,
+  MinecraftBlockTypes.Campfire,
+  MinecraftBlockTypes.SoulCampfire,
+  MinecraftBlockTypes.WitherRose,
+  MinecraftBlockTypes.Web,
+  MinecraftBlockTypes.PointedDripstone,
+  MinecraftBlockTypes.Portal,
+  MinecraftBlockTypes.EndPortal,
+]);
 
-    if (!player.isValid) return;
-
-    // Check if Back system is globally enabled
-    const backConfig = getConfig().back as { enabled?: boolean; saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
-
-    if (!backConfig?.enabled) return;
-
-    if (reason === 'death' && backConfig.saveOnDeath !== true) return;
-
-    if (reason === 'teleport' && backConfig.saveOnTeleport !== true) return;
-
-    try {
-        const location = {
-            x: player.location.x,
-            y: player.location.y,
-            z: player.location.z,
-            dimensionId: player.dimension.id
-        };
-        setPlayerLastLocation(player.id, location);
-    } catch {
-        // Ignore errors (e.g. player disconnected during call)
-    }
+interface Offset3D {
+  dx: number;
+  dy: number;
+  dz: number;
+  distSq: number;
 }
 
-/**
- * Finds a safe location near the target location.
- * Scans a small radius for a solid block with 2 air blocks above.
- * @param dimension The dimension to check.
- * @param location The target location.
- * @returns The safe location or undefined.
- */
-export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vector3 | undefined {
-    const { x: startX, y: startY, z: startZ } = location;
-    const radius = 3; // Scan radius
-    const baseX = Math.floor(startX);
-    const baseY = Math.floor(startY);
-    const baseZ = Math.floor(startZ);
-
-    for (let x = -radius; x <= radius; x++) {
-        for (let z = -radius; z <= radius; z++) {
-            for (let y = -2; y <= 2; y++) {
-                const checkPos = {
-                    x: baseX + x,
-                    y: baseY + y,
-                    z: baseZ + z
-                };
-
-                // Block below feet
-                const ground = dimension.getBlock({ x: checkPos.x, y: checkPos.y - 1, z: checkPos.z });
-                // Block at feet
-                const feet = dimension.getBlock(checkPos);
-                // Block at head
-                const head = dimension.getBlock({ x: checkPos.x, y: checkPos.y + 1, z: checkPos.z });
-
-                if (isDefined(ground) && isDefined(feet) && isDefined(head)) {
-                    const isGroundSafe = !ground.isAir && !ground.isLiquid;
-                    // Ensure feet and head are breathable (air or non-blocking) and NOT liquid (lava/water)
-                    const isFeetSafe = !feet.isLiquid && feet.isAir;
-                    const isHeadSafe = !head.isLiquid && head.isAir;
-
-                    if (isGroundSafe && isFeetSafe && isHeadSafe) {
-                        return {
-                            x: checkPos.x + 0.5,
-                            y: checkPos.y,
-                            z: checkPos.z + 0.5
-                        };
-                    }
-                }
-            }
-        }
+const sortedSearchOffsets: Offset3D[] = (() => {
+  const offsets: Offset3D[] = [];
+  const radius = 3;
+  for (let dx = -radius; dx <= radius; dx++) {
+    for (let dz = -radius; dz <= radius; dz++) {
+      for (let dy = -2; dy <= 2; dy++) {
+        offsets.push({
+          dx,
+          dy,
+          dz,
+          distSq: dx * dx + dz * dz + dy * dy * 1.5,
+        });
+      }
     }
-    return undefined;
+  }
+  return offsets.toSorted((a, b) => a.distSq - b.distSq);
+})();
+
+export interface TeleportTransitionOptions extends mc.TeleportOptions {
+  fadeScreen?: boolean;
+  fadeColor?: mc.RGB;
+  fadeTime?: mc.CameraFadeTimeOptions;
+}
+
+/** Teleports a player safely with optional camera fade transition to prevent abrupt visual popping. */
+export function teleportPlayerWithTransition(
+  player: mc.Player,
+  location: mc.Vector3,
+  options?: TeleportTransitionOptions,
+): void {
+  if (!isDefined(player) || !player.isValid) {
+    return;
+  }
+
+  const fadeScreen = options?.fadeScreen ?? true;
+  if (fadeScreen && isDefined(player.camera) && typeof player.camera.fade === 'function') {
+    try {
+      player.camera.fade({
+        fadeColor: options?.fadeColor ?? { red: 0, green: 0, blue: 0 },
+        fadeTime: options?.fadeTime ?? { fadeInTime: 0.25, holdTime: 0.15, fadeOutTime: 0.35 },
+      });
+    } catch {
+      // Camera fade may fail if player is transitioning dimensions or camera is detached
+    }
+  }
+
+  const teleportOptions: mc.TeleportOptions = {};
+  if (isDefined(options)) {
+    if (isDefined(options.dimension)) {
+      teleportOptions.dimension = options.dimension;
+    }
+    if (isDefined(options.rotation)) {
+      teleportOptions.rotation = options.rotation;
+    }
+    if (isDefined(options.facingLocation)) {
+      teleportOptions.facingLocation = options.facingLocation;
+    }
+    if (isDefined(options.keepVelocity)) {
+      teleportOptions.keepVelocity = options.keepVelocity;
+    }
+    if (isDefined(options.checkForBlocks)) {
+      teleportOptions.checkForBlocks = options.checkForBlocks;
+    }
+  }
+
+  player.teleport(location, Object.keys(teleportOptions).length > 0 ? teleportOptions : undefined);
+}
+
+/** Saves the player's current location as their "last location" for /back command. */
+export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport'): void {
+  if (!isDefined(player) || !player.isValid) {
+    return;
+  }
+
+  const backConfig = getConfig().back as
+    { enabled?: boolean; saveOnDeath?: boolean; saveOnTeleport?: boolean } | undefined;
+  if (!backConfig?.enabled) {
+    return;
+  }
+  if (reason === 'death' && backConfig.saveOnDeath !== true) {
+    return;
+  }
+  if (reason === 'teleport' && backConfig.saveOnTeleport !== true) {
+    return;
+  }
+
+  try {
+    setPlayerLastLocation(player.id, {
+      x: player.location.x,
+      y: player.location.y,
+      z: player.location.z,
+      dimensionId: player.dimension.id,
+    });
+  } catch {
+    // Ignore if player disconnected during call
+  }
+}
+
+/** Checks if a specific block column has safe solid ground and 2 breathable blocks above. */
+export function isSafeTeleportColumn(
+  dimension: mc.Dimension,
+  x: number,
+  y: number,
+  z: number,
+  rejectLeaves = false,
+): boolean {
+  try {
+    const ground = dimension.getBlock({ x, y: y - 1, z });
+    const feet = dimension.getBlock({ x, y, z });
+    const head = dimension.getBlock({ x, y: y + 1, z });
+
+    if (!isDefined(ground) || !isDefined(feet) || !isDefined(head)) {
+      return false;
+    }
+
+    if (ground.isAir || ground.isLiquid || unsafeTeleportBlocks.has(ground.typeId)) {
+      return false;
+    }
+    if (rejectLeaves && ground.typeId.includes('leaves')) {
+      return false;
+    }
+
+    const isFeetSafe = feet.isAir && !feet.isLiquid && !unsafeTeleportBlocks.has(feet.typeId);
+    const isHeadSafe = head.isAir && !head.isLiquid && !unsafeTeleportBlocks.has(head.typeId);
+
+    return isFeetSafe && isHeadSafe;
+  } catch {
+    return false;
+  }
+}
+
+/** Finds the nearest safe location to the target coordinates, checking (0, 0, 0) first. */
+export function findSafeLocation(dimension: mc.Dimension, location: mc.Vector3): mc.Vector3 | undefined {
+  const baseX = Math.floor(location.x);
+  const baseY = Math.floor(location.y);
+  const baseZ = Math.floor(location.z);
+
+  for (const offset of sortedSearchOffsets) {
+    const checkX = baseX + offset.dx;
+    const checkY = baseY + offset.dy;
+    const checkZ = baseZ + offset.dz;
+
+    if (isSafeTeleportColumn(dimension, checkX, checkY, checkZ, false)) {
+      return {
+        x: checkX + 0.5,
+        y: checkY,
+        z: checkZ + 0.5,
+      };
+    }
+  }
+  return undefined;
 }
 
 export interface ExecuteTeleportParams {
-    executor: mc.Player;
-    location: mc.Vector3 & { dimensionId: string };
-    destinationName: string;
-    teleportType: string;
-    warmupSeconds: number;
-    cooldownSeconds: number;
-    cooldownKey: string;
+  executor: mc.Player;
+  location: mc.Vector3 & { dimensionId: string };
+  destinationName: string;
+  teleportType: string;
+  warmupSeconds: number;
+  cooldownSeconds: number;
+  cooldownKey: string;
+  cost?: number;
 }
 
 /**
- * Consolidates the common teleport logic including warmup, dimension resolving, cooldown setting, and error logging.
+ * Consolidates common teleport logic including cooldown check, world border check, warmup, dimension resolution, and
+ * error logging.
  */
 export function executeTeleport(params: ExecuteTeleportParams): void {
-    const { executor, location, destinationName, teleportType, warmupSeconds, cooldownSeconds, cooldownKey } = params;
+  const { executor, location, destinationName, teleportType, warmupSeconds, cooldownSeconds, cooldownKey } = params;
+  const rawCost =
+    params.cost ??
+    (teleportType === 'home'
+      ? Number(getConfig().homes?.cost ?? 0)
+      : teleportType === 'warp'
+        ? Number(getConfig().warps?.cost ?? 0)
+        : 0);
+  const chargeCost = isFeatureActive('eco') && rawCost > 0 && !hasPermission(executor, 'group.admin') ? rawCost : 0;
 
-    const teleportLogic = () => {
-        try {
-            saveLastLocation(executor);
-            const dimension = mc.world.getDimension(location.dimensionId);
-            if (isDefined(dimension)) {
-                executor.teleport(location, { dimension });
-                sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.`, executor);
-                setCooldown(executor.id, cooldownKey, cooldownSeconds);
-            } else {
-                sendMessage(`§cError: Dimension '${location.dimensionId}' not found.`, executor);
-            }
-        } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : String(error);
-            const stack = error instanceof Error ? error.stack : String(error);
-            sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
-            errorLog(`[/${teleportType}] Failed to teleport: ${stack}`);
+  if (chargeCost > 0) {
+    const pData = getOrCreatePlayer(executor);
+    if (pData.balance < chargeCost) {
+      sendMessage(`§cInsufficient funds for /${teleportType}. Cost: §e${formatCurrency(chargeCost)}§c.`, executor);
+      return;
+    }
+  }
+
+  const remainingCd = getCooldown(executor.id, cooldownKey);
+  if (remainingCd > 0) {
+    sendMessage(`§cYou must wait ${formatCooldown(remainingCd)} before using /${teleportType} again.`, executor);
+    return;
+  }
+
+  if (!isWithinWorldBorder(location, location.dimensionId) && !canBypassWorldBorder(executor)) {
+    sendMessage(
+      `§cCannot teleport: ${teleportType} '${destinationName}' is outside the active world border.`,
+      executor,
+    );
+    return;
+  }
+
+  const teleportLogic = () => {
+    try {
+      if (!executor.isValid) {
+        return;
+      }
+      const dimension = mc.world.getDimension(location.dimensionId);
+      if (!isDefined(dimension)) {
+        sendMessage(`§cError: Dimension '${location.dimensionId}' not found.`, executor);
+        return;
+      }
+      if (chargeCost > 0) {
+        const curData = getOrCreatePlayer(executor);
+        if (curData.balance < chargeCost) {
+          sendMessage(`§cTeleport cancelled: Insufficient funds (${formatCurrency(chargeCost)} required).`, executor);
+          return;
         }
-    };
+        incrementPlayerBalance(executor.id, -chargeCost);
+      }
+      saveLastLocation(executor);
+      teleportPlayerWithTransition(executor, location, { dimension });
+      playSound(executor, soundTeleport);
+      const costSuffix = chargeCost > 0 ? ` §7(-${formatCurrency(chargeCost)})` : '';
+      sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.${costSuffix}`, executor);
+      setCooldown(executor.id, cooldownKey, cooldownSeconds);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : String(error);
+      sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
+      errorLog(`[/${teleportType}] Failed to teleport: ${stack}`);
+    }
+  };
 
-    startTeleportWarmup(executor, warmupSeconds, teleportLogic, `${teleportType} '${destinationName}'`);
+  startTeleportWarmup(executor, warmupSeconds, teleportLogic, `${teleportType} '${destinationName}'`);
 }
