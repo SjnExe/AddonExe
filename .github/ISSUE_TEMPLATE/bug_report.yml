@@ -21,7 +21,7 @@ body:
       options:
         - label: I searched existing [GitHub Issues](https://github.com/SjnExe/AddonExe/issues) to ensure this bug has not already been reported.
           required: true
-        - label: I confirm I am running the **latest stable release** of Minecraft Bedrock Edition (Preview/Beta and older versions are not supported).
+        - label: I confirm I am running the latest stable release of Minecraft Bedrock Edition.
           required: true
         - label: I am using the latest version of AddonExe ([CurseForge](https://www.curseforge.com/minecraft-bedrock/addons/addonexe) or [Canary Release](https://github.com/SjnExe/AddonExe/releases)).
           required: true
@@ -86,9 +86,7 @@ body:
       options:
         - 'Minecraft App (Singleplayer / Local World)'
         - 'Minecraft Realm'
-        - 'Bedrock Dedicated Server (BDS - Linux)'
-        - 'Bedrock Dedicated Server (BDS - Windows)'
-        - 'Third-party Server / Host'
+        - 'Bedrock Dedicated Server (BDS)'
     validations:
       required: true
 
