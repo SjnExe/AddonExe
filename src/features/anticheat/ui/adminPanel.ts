@@ -28,6 +28,20 @@ export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<voi
         await showViolationsListPanel(player, 'movementCheck');
       },
     )
+    .button(
+      `§l§fCombat Rules (${config.combatCheck?.violations?.length ?? 0})\n§r§7AutoClicker & Reach punishments`,
+      'textures/items/iron_sword',
+      async () => {
+        await showViolationsListPanel(player, 'combatCheck');
+      },
+    )
+    .button(
+      `§l§fMining Rules (${config.miningCheck?.violations?.length ?? 0})\n§r§7FastBreak & Nuker punishments`,
+      'textures/items/iron_pickaxe',
+      async () => {
+        await showViolationsListPanel(player, 'miningCheck');
+      },
+    )
     .button('§l§bWorld Border Manager\n§r§7Overworld, Nether & End', 'textures/blocks/beacon', async () => {
       const { showWorldBorderAdminPanel } = await import('@features/essentials/worldBorder/ui/panel.js');
       await showWorldBorderAdminPanel(player);
@@ -41,10 +55,18 @@ export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<voi
   await form.show(player);
 }
 
-async function showViolationsListPanel(player: mc.Player, checkKey: 'itemCheck' | 'movementCheck'): Promise<void> {
+type ViolationCheckKey = 'itemCheck' | 'movementCheck' | 'combatCheck' | 'miningCheck';
+
+async function showViolationsListPanel(player: mc.Player, checkKey: ViolationCheckKey): Promise<void> {
   const config = getAnticheatConfig();
   const check = config[checkKey];
-  const title = checkKey === 'itemCheck' ? 'Item Check Violations' : 'Movement Check Violations';
+  const titleMap: Record<ViolationCheckKey, string> = {
+    itemCheck: 'Item Check Violations',
+    movementCheck: 'Movement Check Violations',
+    combatCheck: 'Combat Check Violations',
+    miningCheck: 'Mining Check Violations',
+  };
+  const title = titleMap[checkKey];
 
   const form = new ActionFormBuilder()
     .title(title)
@@ -53,8 +75,9 @@ async function showViolationsListPanel(player: mc.Player, checkKey: 'itemCheck' 
       await showEditViolationModal(player, checkKey);
     });
 
-  check.violations.sort((a, b) => a.threshold - b.threshold);
-  check.violations.forEach((v, idx) => {
+  const violations = check?.violations ?? [];
+  violations.sort((a, b) => a.threshold - b.threshold);
+  violations.forEach((v, idx) => {
     form.button(`VL >= ${v.threshold}\n§7/${v.command}`, 'textures/ui/WarningGlyph', async () => {
       await showEditViolationModal(player, checkKey, idx);
     });
@@ -67,11 +90,7 @@ async function showViolationsListPanel(player: mc.Player, checkKey: 'itemCheck' 
   await form.show(player);
 }
 
-async function showEditViolationModal(
-  player: mc.Player,
-  checkKey: 'itemCheck' | 'movementCheck',
-  index?: number,
-): Promise<void> {
+async function showEditViolationModal(player: mc.Player, checkKey: ViolationCheckKey, index?: number): Promise<void> {
   const config = getAnticheatConfig();
   const violations = config[checkKey].violations;
   const isEdit = isDefined(index) && isDefined(violations[index]);

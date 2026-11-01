@@ -18,6 +18,9 @@ export async function showXrayOresPanel(player: mc.Player, page: number = 1): Pr
     .title('X-Ray Ores Config')
     .button('§l§2+ Add Ore', 'textures/ui/color_plus', async () => {
       await showAddXrayOrePanel(player);
+    })
+    .button('§l§bHeuristics & Ratios\n§r§7Air exposure & suspicion settings', 'textures/ui/icon_setting', async () => {
+      await showXrayHeuristicsModal(player);
     });
 
   const config = getXrayConfig();
@@ -241,4 +244,52 @@ async function showEditXrayBlockRuleModal(player: mc.Player, key: string, blockI
   refreshXrayCache();
   player.sendMessage('§aSaved X-Ray block rule.');
   await showEditXrayOrePanel(player, key);
+}
+
+export async function showXrayHeuristicsModal(player: mc.Player): Promise<void> {
+  const config = getXrayConfig();
+  const heuristics = config.heuristics ?? {
+    enabled: true,
+    checkAirExposure: true,
+    minStoneBreaksForRatio: 30,
+    ratioThreshold: 0.12,
+    alertSuspicionThreshold: 70,
+  };
+
+  const modal = new CustomFormBuilder<{
+    enabled: boolean;
+    checkAirExposure: boolean;
+    minStoneBreaks: string;
+    ratioThreshold: string;
+    alertSuspicion: string;
+  }>('X-Ray Heuristics')
+    .toggle('enabled', 'Enable Statistical Heuristics', heuristics.enabled)
+    .toggle('checkAirExposure', 'Cave Air Check (Suppress Exposed Ores)', heuristics.checkAirExposure)
+    .textField('minStoneBreaks', 'Min Stone Breaks for Ratio', '30', String(heuristics.minStoneBreaksForRatio))
+    .textField('ratioThreshold', 'Ore Ratio Threshold (e.g. 0.12 = 12%)', '0.12', String(heuristics.ratioThreshold))
+    .textField('alertSuspicion', 'Alert Suspicion Threshold (0-100)', '70', String(heuristics.alertSuspicionThreshold))
+    .submitButton('Save Settings');
+
+  const res = await modal.show(player);
+  if (!res) {
+    await showXrayOresPanel(player, 1);
+    return;
+  }
+
+  const minStone = Number.parseInt(res.minStoneBreaks, 10);
+  const ratio = Number.parseFloat(res.ratioThreshold);
+  const suspicion = Number.parseInt(res.alertSuspicion, 10);
+
+  config.heuristics = {
+    enabled: res.enabled,
+    checkAirExposure: res.checkAirExposure,
+    minStoneBreaksForRatio: Number.isNaN(minStone) ? 30 : Math.max(5, minStone),
+    ratioThreshold: Number.isNaN(ratio) ? 0.12 : Math.max(0.01, Math.min(1, ratio)),
+    alertSuspicionThreshold: Number.isNaN(suspicion) ? 70 : Math.max(10, Math.min(100, suspicion)),
+  };
+
+  saveXrayConfig(config);
+  refreshXrayCache();
+  player.sendMessage('§aX-Ray heuristics settings updated.');
+  await showXrayOresPanel(player, 1);
 }
