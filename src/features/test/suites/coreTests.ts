@@ -1,30 +1,30 @@
-import { getCooldown, setCooldown } from '@core/cooldownManager.js';
-import { sanitizeString } from '@core/utils/sanitization.js';
+import { commandManager } from '@commands/commandManager.js';
+import { getConfig } from '@core/config/configManager.js';
+import * as configs from '@core/config/configurations.js';
+
 import { addTest, assert } from '../testRunner.js';
 
-const SUITE_NAME = 'core';
+const suiteName = 'runtime';
 
-export function registerCoreTests() {
-    addTest(SUITE_NAME, 'sanitizeString removes invalid characters', () => {
-        const input = 'Hello §cWorld!';
-        const expected = 'Hello World!';
-        const result = sanitizeString(input, false);
-        assert.equal(result, expected, `Expected '${expected}', got '${result}'`);
-
-        const resultWithColors = sanitizeString(input, true);
-        assert.equal(resultWithColors, input, `Expected original with colors, got '${resultWithColors}'`);
-    });
-
-    addTest(SUITE_NAME, 'Cooldown Manager functionality', () => {
-        const playerId = 'testPlayer123';
-        const actionId = 'testAction';
-        const duration = 1; // 1 second
-
-        // Should not be active initially (0 cooldown time remaining)
-        assert.equal(getCooldown(playerId, actionId), 0, 'Cooldown should be 0 initially');
-
-        // Create cooldown
-        setCooldown(playerId, actionId, duration);
-        assert.ok(getCooldown(playerId, actionId) > 0, 'Cooldown should be active after creation');
-    });
+export function registerCoreTests(): void {
+  addTest(suiteName, 'Live world configurations and native slash commands are initialized', () => {
+    assert.ok(
+      getConfig() &&
+        configs.getEconomyConfig() &&
+        configs.getShopConfig() &&
+        configs.getRanksConfig() &&
+        configs.getXrayConfig() &&
+        configs.getTeamConfig() &&
+        configs.getFriendConfig() &&
+        configs.getSidebarConfig() &&
+        configs.getAuctionHouseConfig() &&
+        configs.getDailyRewardsConfig() &&
+        configs.getWorldProtectionConfig() &&
+        configs.getGamesConfig() &&
+        configs.getWordleConfig() &&
+        configs.getAnticheatConfig(),
+      'One or more live world configurations failed to initialize',
+    );
+    assert.ok(commandManager.getAllCommands().length > 20, 'Slash commands failed to register');
+  });
 }

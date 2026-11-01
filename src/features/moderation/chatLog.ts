@@ -1,0 +1,148 @@
+import { getConfig } from '@core/config/configManager.js';
+import { registerDataSaver } from '@core/data/dataManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
+import { setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
+import { isNonEmptyString } from '@lib/guards.js';
+
+export interface ChatLog {
+  timestamp: number;
+  playerName: string;
+  message: string;
+  rank?: string;
+}
+
+const indexStorage = new StorageManager('exe:logs:chat:index');
+let availableDates: string[] = [];
+let today: string = '';
+const maxDailyChatLogs = 100;
+let currentDayLogs: ChatLog[] = [];
+let isDirty = false;
+
+function getTodayDateString(): string {
+  const now = new Date();
+  return now.toISOString().split('T')[0] ?? ''; // YYYY-MM-DD
+}
+
+export function initializeChatLogger() {
+  const loadedDates = indexStorage.load<string[]>();
+  availableDates = loadedDates ?? [];
+  today = getTodayDateString();
+
+  loadTodayLogs();
+
+  // Prune on init
+  pruneOldLogs();
+
+  registerDataSaver(() => {
+    if (isDirty) {
+      const storage = new StorageManager(`exe:logs:chat:${today}`);
+      storage.save(currentDayLogs);
+      isDirty = false;
+    }
+  });
+
+  // Auto-save loop
+  setTrackedInterval(() => {
+    const newDay = getTodayDateString();
+    if (newDay === today) {
+      saveChatLogs();
+    } else {
+      // Day changed, save old day, reset
+      saveChatLogs();
+      today = newDay;
+      currentDayLogs = []; // Reset first, then load (which creates empty or loads existing if restarted same day)
+      loadTodayLogs();
+      pruneOldLogs();
+    }
+  }, 1200); // 60s
+}
+
+function loadTodayLogs() {
+  const storage = new StorageManager(`exe:logs:chat:${today}`);
+  const logs = storage.load<ChatLog[]>();
+  currentDayLogs = logs ?? [];
+
+  if (!availableDates.includes(today)) {
+    availableDates.push(today);
+    indexStorage.save(availableDates);
+  }
+}
+
+function saveChatLogs() {
+  if (!isDirty) {
+    return;
+  }
+  const storage = new StorageManager(`exe:logs:chat:${today}`);
+  setTrackedJob(storage.saveJob(currentDayLogs));
+  isDirty = false;
+}
+
+export function addChatLog(playerName: string, message: string, rank?: string) {
+  const config = getConfig();
+  if (!config.chat.loggingEnabled) {
+    return;
+  }
+
+  const log: ChatLog = {
+    timestamp: Date.now(),
+    playerName,
+    message,
+  };
+  if (isNonEmptyString(rank)) {
+    log.rank = rank;
+  }
+  currentDayLogs.push(log);
+  if (currentDayLogs.length > maxDailyChatLogs) {
+    currentDayLogs.splice(0, currentDayLogs.length - maxDailyChatLogs);
+  }
+  isDirty = true;
+}
+
+/** Gets chat logs for a specific date. Defaults to today. */
+export function getChatLogs(date?: string): ChatLog[] {
+  if (!isNonEmptyString(date) || date === today) {
+    return [...currentDayLogs];
+  }
+  const storage = new StorageManager(`exe:logs:chat:${date}`);
+  return storage.load<ChatLog[]>() ?? [];
+}
+
+export function getAvailableDates(): string[] {
+  const dates = indexStorage.load<string[]>() ?? [];
+  return [...dates].toSorted((a, b) => a.localeCompare(b)).toReversed(); // Newest first
+}
+
+function pruneOldLogs() {
+  const config = getConfig();
+  // Bound stored in-world history to at most 2 days to protect the 1MB world dynamic property budget
+  const expirationDays = Math.min(2, Math.max(1, config.chat.logExpirationDays || 2));
+  const limit = expirationDays * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  const toRemove: string[] = [];
+
+  for (const dateStr of availableDates) {
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) {
+      continue;
+    }
+
+    // If the date is older than the limit
+    if (now - date.getTime() > limit) {
+      toRemove.push(dateStr);
+    }
+  }
+
+  for (const dateStr of toRemove) {
+    const storage = new StorageManager(`exe:logs:chat:${dateStr}`);
+    storage.delete();
+    const idx = availableDates.indexOf(dateStr);
+    if (idx !== -1) {
+      availableDates.splice(idx, 1);
+    }
+  }
+
+  if (toRemove.length > 0) {
+    indexStorage.save(availableDates);
+  }
+}
