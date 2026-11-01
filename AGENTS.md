@@ -33,6 +33,15 @@ This document is the single source of truth for the architecture, coding standar
 
 ## 3. Coding & Architectural Standards
 
+- **Curated Atomic Commits & Git Hygiene:**
+  - Feature branches must consist of curated, self-contained atomic commits that each build and pass automated tests. Avoid massive kitchen-sink commits.
+  - Never push intermediate noise commits (`fix lint`, `fix typo`, `address review`). Use `git commit --amend --no-edit` (or `--amend -m ...`) and push with `git push --force-with-lease`.
+  - When modifying earlier commits in a stack, use `git commit --fixup <hash>` and `git rebase -i --autosquash origin/main`.
+  - If exploratory or debugging commits accumulate during active development, soft-reset before review (`git reset --soft origin/main`) and re-stage into clean, logical atomic units (e.g. `refactor(core): ...`, `feat(system): ...`, `ui(panel): ...`).
+  - Commit messages must include a concise Conventional Commit title and a detailed message body explaining _why_ the change was made, Bedrock engine invariants respected, and edge cases handled. Keep PR titles and descriptions synchronized with the cumulative diff.
+  - **PR Merge Governance:** Never default to squash-merging. Merge methods are dictated by the PR structure and explicit owner direction:
+    - **Rebase & Merge (`gh pr merge <pr> --rebase`):** Default for feature PRs containing curated atomic commits, preserving individual atomic commits on `main` with a clean linear history.
+    - **Squash & Merge (`gh pr merge <pr> --squash`):** Only when the PR represents a single isolated atomic change, or when explicitly requested by `@SjnExe`.
 - **Never Edit Build Artifacts:** Never manually edit `packs/behavior/scripts/` or generated `manifest.json` files. Edit `src/` and run `bun run build`.
 - **Naming Conventions:**
   - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraftRules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
