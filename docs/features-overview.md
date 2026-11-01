@@ -37,9 +37,12 @@ Accessible via `/panel` (`/ui`, `/menu`) or by right-clicking/using the craftabl
 - **Staff Inventory Swap (`/staffinv`, `/sinv`):** Seamlessly swap between Survival and Staff inventories (including armor and XP levels) with optional auto-swap on gamemode change.
 - **Inventory & Ender Chest Inspector:** View armor, offhand, and inventory slots (`/invsee`), inspect Ender Chests (`/ecsee`), clone inventories (`/copyinv`), clear inventories (`/xclear`), or wipe Ender Chests (`/ecwipe`).
 - **Reports & Audit Logs:** Player reporting (`/report`, `/reports`) and a filterable in-game log viewer (`/logs`, `/chatlog`) for Punishments, Anti-Cheat Flags, and Chat History.
-- **Anti-Cheat & X-Ray Detection:**
-  - **Movement & Item Checks:** Detects speed/fly anomalies and scans for illegal items or over-enchanted gear.
-  - **X-Ray Alerts (`/xraynotify`):** Buffered staff notifications when players mine monitored ores, with configurable ore types and Y-levels in the UI.
+- **Anti-Cheat & Heuristic Detection Suite:**
+  - **Heuristic X-Ray Detection:** Advanced statistical and environmental analysis inspecting 6-neighbor block exposure, 2-block deep cave space openness, rolling stone-to-ore ratios, and spatial vein clustering. Suppresses false alerts for naturally exposed cave wall ores while flagging buried vein excavation.
+  - **Combat Auditing:** Real-time attack analysis tracking eye-origin 3D reach distance and rolling-window CPS rates with token-bucket violation accumulation.
+  - **Mining Rate Limiting:** Tick-based block break rate auditing with instant/soft block exemptions (crops, leaves, foliage, snow layers) and dynamic headroom expansion for Haste effects and Efficiency tools.
+  - **Movement & Flight Checks:** Speed and flight anomaly detection featuring mount riding exemptions, Trident Riptide velocity headroom, climbable/non-cubic grounding resolution (slabs, stairs, scaffolding, cobwebs), and `InvalidSprint` detection.
+  - **In-Game Administration & Logs:** Staff violation toggles (`/notify`, `/xraynotify`), punishment/flag history (`/history`, `/logs`), and dark-mode configuration forms for Combat Rules, Mining Rules, and X-Ray Heuristics in `/panel`.
   - **Hidden World Seed:** Hides the world seed from the client settings screen (`world_section.json`).
 
 ---

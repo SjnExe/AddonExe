@@ -39,7 +39,7 @@ To enable them:
 
 ## How do I install AddonExe?
 
-1. **Download:** Grab the latest `AddonExe.*.mcaddon` file from [GitHub Releases](https://github.com/SjnExe/AddonExe/releases/latest).
+1. **Download:** Grab the latest `AddonExe.*.mcaddon` file from [CurseForge](https://www.curseforge.com/minecraft-bedrock/addons/addonexe) (or check [GitHub Releases](https://github.com/SjnExe/AddonExe/releases) for automated Canary pre-release builds).
 2. **Import:** Open the `.mcaddon` file with Minecraft to import both **AddonExeBP** (Behavior Pack) and **AddonExeRP** (Resource Pack).
 3. **Activate on World:**
    - Place **AddonExeBP** at the **top** of your world's Behavior Packs list.

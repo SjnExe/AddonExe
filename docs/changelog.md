@@ -37,8 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **AFK Protection & Status (`/afk`):** Automatically detect AFK players to protect server economy and reward active engagement.
 - **Auction House & Shop Enhancements:** Added `/ah collect`, `/ah listings`, `/ah cancel`, and `/sellall` for bulk inventory selling.
 
-### 🛡️ Moderation & World Protection
+### 🛡️ Moderation, Anti-Cheat & World Protection
 
+- **Heuristic X-Ray Detection:** Statistical and environmental X-Ray detection featuring 6-neighbor cave air exposure checking, 2-block deep cave space verification, rolling stone-to-ore ratio tracking, spatial vein clustering, and customizable staff alert thresholds.
+- **Combat Monitoring:** Real-time combat analysis checking eye-origin reach distance and rolling-window CPS rates with token-bucket violation accumulation.
+- **Mining Rate Limiting:** Tick-based break rate auditing with instant/soft block exemptions (foliage, crops, snow layers) and dynamic headroom expansion for Haste effects and Efficiency tools to prevent false Nuker flags during network packet batching.
+- **Movement Checks & Grounding:** Mount riding exemptions, Trident Riptide velocity headroom, climbable and non-cubic block grounding (slabs, stairs, scaffolding, cobwebs, fences), and `InvalidSprint` detection.
+- **Anti-Cheat Admin Forms:** Interactive dark-mode configuration forms for Combat Rules, Mining Rules, and X-Ray Heuristics in `/panel` -> **Staff Dashboard** -> **Moderation Center**.
 - **Combat Tagging:** Automatically tag players entering PvP combat to prevent combat-logging, blocking teleport commands and applying disconnect penalties.
 - **Staff Inspection Tools:** Seamlessly view and inspect player inventories (`/sinv`, `/invsee`) and ender chests (`/ecsee`) without disrupting gameplay.
 - **World Border Controls (`/wb`, `/worldborder`):** Configurable Overworld, linked Nether (8:1 ratio), and End boundaries with smooth knockback buffers and an admin UI.
