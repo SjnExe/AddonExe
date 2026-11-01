@@ -147,7 +147,7 @@ function determineScopeFromFiles(files: string[]): string {
   if (files.some((f) => f.startsWith('packs/'))) {
     return 'packs';
   }
-  if (files.some((f) => f.startsWith('.github/') || f.startsWith('scripts/'))) {
+  if (files.some((f) => f.startsWith('.github/') || f.startsWith('scripts/') || f.startsWith('.coderabbit'))) {
     return 'ci';
   }
   if (files.some((f) => f.startsWith('docs/'))) {
