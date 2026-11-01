@@ -9,6 +9,7 @@ import { formatString } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
 import { cancelActiveTeleportWarmup, clearTeleportProtection } from '@core/utils/teleportLogic.js';
 import { clearPlayerCombatState } from '@features/anticheat/combatCheck.js';
+import { clearPlayerMiningRateState } from '@features/anticheat/miningCheck.js';
 import { clearPlayerMovementState } from '@features/anticheat/movementCheck.js';
 import { clearPlayerMiningStats } from '@features/anticheat/xray/manager.js';
 import { clearPlayerPlaytimeState } from '@features/economy/playtime/manager.js';
@@ -53,6 +54,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   leaveGameChatChannel(event.playerId);
   clearPlayerMovementState(event.playerId);
   clearPlayerCombatState(event.playerId);
+  clearPlayerMiningRateState(event.playerId);
   clearPlayerMiningStats(event.playerId);
   clearPlayerAfkState(event.playerId);
   clearPlayerTradeOffers(event.playerId);
