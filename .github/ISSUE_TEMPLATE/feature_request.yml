@@ -1,0 +1,78 @@
+name: '✨ Feature Request'
+description: Suggest an idea or enhancement for AddonExe
+title: '[FEAT]: '
+labels: ['enhancement', 'needs-discussion']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature or improvement for **AddonExe**!
+        Please fill out this form so we can evaluate your proposal effectively.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I searched existing [GitHub Issues](https://github.com/SjnExe/AddonExe/issues) to ensure this feature has not already been requested.
+          required: true
+        - label: I verified this proposal is intended for Bedrock Edition and within the capabilities of the Bedrock Script API.
+          required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: Which part of AddonExe does this feature belong to?
+      options:
+        - 'Economy, Shop & Auction House'
+        - 'Moderation, Security & Anti-Cheat'
+        - 'Teleportation, Spawn & World Protection'
+        - 'Custom Dark-Mode UI & Form Layouts'
+        - 'Ranks, Permissions & Chat Formatting'
+        - 'Sidebar HUD & Visual Displays'
+        - 'Social Systems (Friends, Teams, Mail)'
+        - 'Mini-Games Hub'
+        - 'Survival Quality of Life (VeinMiner, AutoReplant, etc.)'
+        - 'Server Administration & BDS Tools'
+        - 'Other'
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement or Use Case
+      description: Is this feature related to a current limitation or pain point?
+      placeholder: Describe the problem or why this is needed...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution & Gameplay Experience
+      description: Describe what you want to happen and how players or admins would interact with it.
+      placeholder: Explain how the feature should behave in-game...
+    validations:
+      required: true
+
+  - type: textarea
+    id: ui_and_config
+    attributes:
+      label: UI & In-Game Configuration Thoughts
+      description: How should this feature be configured in `/panel`? What default values make sense?
+      placeholder: e.g. Form modal options, cooldowns, toggleable settings...
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions, commands, or workarounds?
+      placeholder: Describe any alternative approaches...
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context & Mockups
+      description: Include any screenshots, mockups, or inspiration from vanilla or community addons.
