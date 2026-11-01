@@ -1,129 +1,250 @@
-import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
-
-import * as mc from '@minecraft/server';
-
-import { errorLog } from '@core/logger.js';
-import { getAllPlayersFromCache } from '@core/playerCache.js';
-import { isDefined } from '@lib/guards.js';
-
-import { AnticheatConfig, getAnticheatConfig } from '@features/anticheat/configLoader.js';
+import { AnticheatConfig, getAnticheatConfig } from '@core/config/configurations.js';
+import { getAllPlayersFromCache } from '@core/data/playerCache.js';
+import { registerEvent } from '@core/events/eventManager.js';
+import { errorLog } from '@core/utils/logger.js';
+import { setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import { flag } from '@features/anticheat/flagManager.js';
+import { isDefined } from '@lib/guards.js';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
+import * as mc from '@minecraft/server';
 
 let isChecking = false;
 
 export function startItemCheckLoop() {
-    mc.system.runInterval(() => {
-        if (isChecking) return;
-        try {
-            const config = getAnticheatConfig();
-            if (config.enabled !== true || config.itemCheck.enabled !== true) return;
+  if (mc.world.afterEvents.playerInventoryItemChange) {
+    registerEvent(
+      mc.world.afterEvents.playerInventoryItemChange,
+      handlePlayerInventoryItemChange,
+      'playerInventoryItemChange',
+    );
+  }
 
-            mc.system.runJob(checkInventoryGenerator(config));
-        } catch (error) {
-            errorLog('Anticheat Item Loop Error', error);
+  setTrackedInterval(() => {
+    if (isChecking) {
+      return;
+    }
+    try {
+      const config = getAnticheatConfig();
+      if (config.enabled !== true || config.itemCheck.enabled !== true) {
+        return;
+      }
+
+      setTrackedJob(checkInventoryGenerator(config));
+    } catch (error) {
+      errorLog('Anticheat Item Loop Error', error);
+    }
+  }, 100); // Check equipment every 5 seconds
+}
+
+const mutatingSlots = new Set<string>();
+
+export function handlePlayerInventoryItemChange(event: mc.PlayerInventoryItemChangeAfterEvent): void {
+  const player = event.player;
+  if (!player || !player.isValid) {
+    return;
+  }
+
+  const config = getAnticheatConfig();
+  if (config.enabled !== true || config.itemCheck.enabled !== true) {
+    return;
+  }
+
+  if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+    return;
+  }
+
+  const item = event.itemStack;
+  if (!isDefined(item)) {
+    return;
+  }
+
+  const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+  if (!isDefined(inventory?.container)) {
+    return;
+  }
+
+  const container = inventory.container;
+  // Hotbar slots are 0..8; Main inventory slots 0..26 map to container slots 9..35
+  const targetSlot = event.inventoryType === mc.PlayerInventoryType.Inventory ? event.slot + 9 : event.slot;
+  if (targetSlot < 0 || targetSlot >= container.size) {
+    return;
+  }
+
+  const slotKey = `${player.id}:${targetSlot}`;
+  if (mutatingSlots.has(slotKey)) {
+    return;
+  }
+
+  const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
+  checkItem(
+    item,
+    player,
+    config.itemCheck,
+    (newItem) => {
+      mutatingSlots.add(slotKey);
+      try {
+        container.setItem(targetSlot, newItem);
+      } catch {
+        // Ignore slot mutation conflicts
+      } finally {
+        if (typeof mc.system?.run === 'function') {
+          mc.system.run(() => {
+            mutatingSlots.delete(slotKey);
+          });
+        } else {
+          mutatingSlots.delete(slotKey);
         }
-    }, 100); // Check every 5 seconds
+      }
+    },
+    bannedSet,
+  );
 }
 
 function* checkInventoryGenerator(config: AnticheatConfig) {
-    isChecking = true;
-    try {
-        // Optimization: Use cached players
-        const players = getAllPlayersFromCache();
-        for (const player of players) {
-            if (player.isValid) {
-                checkPlayerInventory(player, config.itemCheck);
-            }
-            yield;
-        }
-    } catch (error) {
-        errorLog('Anticheat Item Job Error', error);
-    } finally {
-        isChecking = false;
+  isChecking = true;
+  try {
+    // Optimization: Use cached players and restrict periodic sweep to equipment slots
+    const players = getAllPlayersFromCache();
+    const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
+    for (const player of players) {
+      if (player.isValid) {
+        checkPlayerEquipment(player, config.itemCheck, bannedSet);
+      }
+      yield;
     }
+  } catch (error) {
+    errorLog('Anticheat Item Job Error', error);
+  } finally {
+    isChecking = false;
+  }
 }
 
 interface ItemCheckConfig {
-    bannedItems: string[];
-    maxEnchantLevel: number;
-    illegalEnchantments?: boolean;
-    removeIllegalItems?: boolean;
+  bannedItems: string[];
+  maxEnchantLevel: number;
+  illegalEnchantments?: boolean;
+  removeIllegalItems?: boolean;
 }
 
-export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig) {
-    if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) return;
+let cachedBannedArrayRef: string[] | undefined;
+let cachedBannedSet = new Set<string>();
 
-    // Check Main Inventory
-    const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
-    if (isDefined(inventory) && isDefined(inventory.container)) {
-        const container = inventory.container;
-        for (let i = 0; i < container.size; i++) {
-            const item = container.getItem(i);
-            if (isDefined(item)) {
-                checkItem(item, player, config, (newItem) => container.setItem(i, newItem));
-            }
-        }
-    }
-
-    // Check Equipment (Armor + Offhand)
-    const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent;
-    if (isDefined(equippable)) {
-        const slots = [mc.EquipmentSlot.Head, mc.EquipmentSlot.Chest, mc.EquipmentSlot.Legs, mc.EquipmentSlot.Feet, mc.EquipmentSlot.Offhand];
-
-        for (const slot of slots) {
-            const item = equippable.getEquipment(slot);
-            if (isDefined(item)) {
-                checkItem(item, player, config, (newItem) => equippable.setEquipment(slot, newItem));
-            }
-        }
-    }
+function getBannedItemSet(bannedItems: string[]): Set<string> {
+  if (cachedBannedArrayRef !== bannedItems) {
+    cachedBannedArrayRef = bannedItems;
+    cachedBannedSet = new Set(bannedItems ?? []);
+  }
+  return cachedBannedSet;
 }
 
-export function checkItem(item: mc.ItemStack, player: mc.Player, config: ItemCheckConfig, updateItem: (item?: mc.ItemStack) => void) {
-    const bannedItems = config.bannedItems;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const MAX_ENCHANT_LEVEL = config.maxEnchantLevel ?? 5;
-    let modified = false;
+export function checkPlayerEquipment(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
+  if (!player || !player.isValid) {
+    return;
+  }
+  if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+    return;
+  }
 
-    // Check Stack Size
-    if (item.amount > item.maxAmount) {
-        flag(player, 'itemCheck', `Illegal Stack: ${item.typeId} x${item.amount} (Max: ${item.maxAmount})`);
+  const effectiveBannedSet = bannedSet ?? getBannedItemSet(config.bannedItems);
+  const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent;
+  if (isDefined(equippable)) {
+    const slots = [
+      mc.EquipmentSlot.Head,
+      mc.EquipmentSlot.Chest,
+      mc.EquipmentSlot.Legs,
+      mc.EquipmentSlot.Feet,
+      mc.EquipmentSlot.Offhand,
+    ];
+
+    for (const slot of slots) {
+      const item = equippable.getEquipment(slot);
+      if (isDefined(item)) {
+        checkItem(item, player, config, (newItem) => equippable.setEquipment(slot, newItem), effectiveBannedSet);
+      }
+    }
+  }
+}
+
+export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
+  if (!player || !player.isValid) {
+    return;
+  }
+  if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+    return;
+  }
+
+  const effectiveBannedSet = bannedSet ?? getBannedItemSet(config.bannedItems);
+
+  // Check Main Inventory
+  const inventory = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
+  if (isDefined(inventory) && isDefined(inventory.container)) {
+    const container = inventory.container;
+    for (let i = 0; i < container.size; i++) {
+      const item = container.getItem(i);
+      if (isDefined(item)) {
+        checkItem(item, player, config, (newItem) => container.setItem(i, newItem), effectiveBannedSet);
+      }
+    }
+  }
+
+  // Check Equipment (Armor + Offhand)
+  checkPlayerEquipment(player, config, effectiveBannedSet);
+}
+
+export function checkItem(
+  item: mc.ItemStack,
+  player: mc.Player,
+  config: ItemCheckConfig,
+  updateItem: (item?: mc.ItemStack) => void,
+  bannedSet?: Set<string>,
+) {
+  const maxEnchantLevel = config.maxEnchantLevel ?? 5;
+  let modified = false;
+
+  // Check Stack Size
+  if (item.amount > item.maxAmount) {
+    flag(player, 'itemCheck', `Illegal Stack: ${item.typeId} x${item.amount} (Max: ${item.maxAmount})`);
+    if (config.removeIllegalItems === true) {
+      item.amount = item.maxAmount;
+      modified = true;
+    }
+  }
+
+  // Check Enchants
+  const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
+  if (isDefined(enchantable) && 'getEnchantments' in enchantable) {
+    // getEnchantments() returns readonly array
+    const enchants = enchantable.getEnchantments();
+    for (const enchant of enchants) {
+      const vanillaMax = enchant.type.maxLevel;
+      // Allow whichever is higher: Config limit or Vanilla limit.
+      const allowed = Math.max(maxEnchantLevel, vanillaMax);
+
+      if (enchant.level > allowed && config.illegalEnchantments === true) {
+        flag(player, 'itemCheck', `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`);
         if (config.removeIllegalItems === true) {
-            item.amount = item.maxAmount;
-            modified = true;
+          updateItem(); // Remove item
+          return; // Stop checking this item
         }
+      }
     }
+  }
 
-    // Check Enchants
-    const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
-    if (isDefined(enchantable) && 'getEnchantments' in enchantable) {
-        // getEnchantments() returns readonly array
-        const enchants = enchantable.getEnchantments();
-        for (const enchant of enchants) {
-            const vanillaMax = enchant.type.maxLevel;
-            // Allow whichever is higher: Config limit or Vanilla limit.
-            const allowed = Math.max(MAX_ENCHANT_LEVEL, vanillaMax);
-
-            if (enchant.level > allowed && config.illegalEnchantments === true) {
-                flag(player, 'itemCheck', `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`);
-                if (config.removeIllegalItems === true) {
-                    updateItem(); // Remove item
-                    return; // Stop checking this item
-                }
-            }
-        }
+  // Check Banned ID
+  const effectiveBannedSet = bannedSet ?? getBannedItemSet(config.bannedItems);
+  if (effectiveBannedSet.has(item.typeId)) {
+    flag(player, 'itemCheck', `Banned Item: ${item.typeId}`);
+    if (config.removeIllegalItems === true) {
+      updateItem();
+      return;
     }
+  }
 
-    // Check Banned ID
-    if (bannedItems.includes(item.typeId)) {
-        flag(player, 'itemCheck', `Banned Item: ${item.typeId}`);
-        if (config.removeIllegalItems === true) {
-            updateItem();
-            return;
-        }
-    }
+  if (modified) {
+    updateItem(item);
+  }
+}
 
-    if (modified) {
-        updateItem(item);
-    }
+export function _clearItemCheckForTest(): void {
+  mutatingSlots.clear();
 }
