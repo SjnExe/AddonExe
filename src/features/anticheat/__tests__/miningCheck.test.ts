@@ -94,4 +94,68 @@ describe('MiningCheck', () => {
 
     expect(flagSpy).not.toHaveBeenCalled();
   });
+
+  it('should ignore soft blocks like leaves and snow', () => {
+    const player = new PlayerMock('miner_tree', 'LeafBlower');
+    player.getGameMode = () => mc.GameMode.Survival;
+
+    Object.defineProperty(mc.system, 'currentTick', { value: 400, configurable: true });
+
+    const leafEvent = {
+      player,
+      brokenBlockPermutation: { type: { id: MinecraftBlockTypes.OakLeaves } },
+      block: { location: { x: 0, y: 0, z: 0 } },
+    } as unknown as mc.PlayerBreakBlockAfterEvent;
+
+    for (let i = 0; i < 15; i++) {
+      handlePlayerBreakBlockRate(leafEvent);
+    }
+
+    expect(flagSpy).not.toHaveBeenCalled();
+  });
+
+  it('should provide extra buffer for players holding Efficiency tools', () => {
+    const player = new PlayerMock('miner_eff', 'EfficiencyMiner');
+    player.getGameMode = () => mc.GameMode.Survival;
+
+    player.getComponent = (id: string) => {
+      if (id === mc.EntityComponentTypes.Equippable) {
+        return {
+          getEquipment: (slot: string) => {
+            if (slot === mc.EquipmentSlot.Mainhand) {
+              return {
+                getComponent: (cId: string) => {
+                  if (cId === mc.ItemComponentTypes.Enchantable) {
+                    return {
+                      hasEnchantment: () => true, // Has Efficiency
+                    };
+                  }
+                  return undefined;
+                },
+              };
+            }
+            return undefined;
+          },
+        };
+      }
+      return undefined;
+    };
+
+    Object.defineProperty(mc.system, 'currentTick', { value: 500, configurable: true });
+
+    const solidEvent = {
+      player,
+      brokenBlockPermutation: { type: { id: MinecraftBlockTypes.Stone } },
+      block: { location: { x: 0, y: 0, z: 0 } },
+    } as unknown as mc.PlayerBreakBlockAfterEvent;
+
+    // Default 2 + 2 extra buffer for Efficiency = 4 limit.
+    // 4 breaks in 1 tick (packet buffering during lag) should not flag!
+    handlePlayerBreakBlockRate(solidEvent);
+    handlePlayerBreakBlockRate(solidEvent);
+    handlePlayerBreakBlockRate(solidEvent);
+    handlePlayerBreakBlockRate(solidEvent);
+
+    expect(flagSpy).not.toHaveBeenCalled();
+  });
 });

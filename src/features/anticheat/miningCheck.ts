@@ -2,8 +2,9 @@ import { getAnticheatConfig } from '@core/config/configurations.js';
 import { registerEvent } from '@core/events/eventManager.js';
 import { flag } from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
+import { MinecraftBlockTypes, MinecraftEffectTypes, MinecraftEnchantmentTypes } from '@minecraft/vanilla-data';
 
 interface PlayerMiningRateState {
   lastTick: number;
@@ -32,6 +33,26 @@ const instantBreakBlocks = new Set<string>([
   MinecraftBlockTypes.Fire,
   MinecraftBlockTypes.SoulFire,
 ]);
+
+export function isInstantOrSoftBlock(blockId: string): boolean {
+  if (instantBreakBlocks.has(blockId)) {
+    return true;
+  }
+  return (
+    blockId.includes('leaves') ||
+    blockId.includes('flower') ||
+    blockId.includes('sapling') ||
+    blockId.includes('mushroom') ||
+    blockId.includes('plant') ||
+    blockId.includes('candle') ||
+    blockId.includes('coral') ||
+    blockId.includes('carpet') ||
+    blockId.includes('sculk_vein') ||
+    blockId.includes('seagrass') ||
+    blockId.includes('kelp') ||
+    blockId.includes('snow')
+  );
+}
 
 const playerMiningRateStates = new Map<string, PlayerMiningRateState>();
 
@@ -64,9 +85,27 @@ export function handlePlayerBreakBlockRate(event: mc.PlayerBreakBlockAfterEvent)
   const miningConfig = config.miningCheck;
   const blockId = event.brokenBlockPermutation.type.id;
 
-  // Ignore instant-break items (e.g. flowers, grass, torches) which can legitimately be cleared in groups
-  if (instantBreakBlocks.has(blockId)) {
+  // Ignore instant-break and soft blocks (flowers, grass, torches, leaves, crops, snow layers)
+  if (isInstantOrSoftBlock(blockId)) {
     return;
+  }
+
+  // Calculate dynamic limit: provide extra headroom if player is using an Efficiency tool or Haste
+  let effectiveLimit = miningConfig.maxBreaksPerTick;
+
+  const hasHaste = typeof player.getEffect === 'function' && isDefined(player.getEffect(MinecraftEffectTypes.Haste));
+  if (hasHaste) {
+    effectiveLimit += 2; // Buffer for Haste II insta-mining network packet batching
+  }
+
+  const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+  const mainHandItem = equippable?.getEquipment(mc.EquipmentSlot.Mainhand);
+  const enchantable = mainHandItem?.getComponent(ItemComponentTypes.Enchantable) as
+    mc.ItemEnchantableComponent | undefined;
+  if (isDefined(enchantable) && 'hasEnchantment' in enchantable) {
+    if (enchantable.hasEnchantment(MinecraftEnchantmentTypes.Efficiency)) {
+      effectiveLimit += 2; // Extra buffer for Efficiency V network batching
+    }
   }
 
   const currentTick = typeof mc.system.currentTick === 'number' ? mc.system.currentTick : Math.floor(Date.now() / 50);
@@ -81,14 +120,14 @@ export function handlePlayerBreakBlockRate(event: mc.PlayerBreakBlockAfterEvent)
   if (state.lastTick === currentTick) {
     state.breaksInTick++;
 
-    if (state.breaksInTick > miningConfig.maxBreaksPerTick) {
+    if (state.breaksInTick > effectiveLimit) {
       state.nukerVl++;
 
       if (state.nukerVl >= 2) {
         flag(
           player,
           'miningCheck',
-          `FastBreak / Nuker: ${state.breaksInTick} solid blocks in single tick (Limit: ${miningConfig.maxBreaksPerTick})`,
+          `FastBreak / Nuker: ${state.breaksInTick} solid blocks in single tick (Limit: ${effectiveLimit})`,
         );
         state.nukerVl = 1; // Clamp
       }
