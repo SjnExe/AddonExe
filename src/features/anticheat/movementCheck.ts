@@ -209,29 +209,31 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         limit *= 1 + 0.2 * amplifier;
       }
 
-      // Check for Ice/Slime below
-      try {
-        const dimension = player.dimension;
-        const currentPos = player.location;
-        const blockBelow = dimension.getBlock({
-          x: Math.floor(currentPos.x),
-          y: Math.floor(currentPos.y - 0.5),
-          z: Math.floor(currentPos.z),
-        });
-        const blockBelow2 = dimension.getBlock({
-          x: Math.floor(currentPos.x),
-          y: Math.floor(currentPos.y - 1.5),
-          z: Math.floor(currentPos.z),
-        });
+      // Performance optimization: only query blocks below if hSpeed actually exceeds limit
+      if (hSpeed > limit) {
+        try {
+          const dimension = player.dimension;
+          const currentPos = player.location;
+          const blockBelow = dimension.getBlock({
+            x: Math.floor(currentPos.x),
+            y: Math.floor(currentPos.y - 0.5),
+            z: Math.floor(currentPos.z),
+          });
+          const blockBelow2 = dimension.getBlock({
+            x: Math.floor(currentPos.x),
+            y: Math.floor(currentPos.y - 1.5),
+            z: Math.floor(currentPos.z),
+          });
 
-        if (
-          (isDefined(blockBelow) && iceBlocks.has(blockBelow.typeId)) ||
-          (isDefined(blockBelow2) && iceBlocks.has(blockBelow2.typeId))
-        ) {
-          limit = config.maxSpeedIce;
+          if (
+            (isDefined(blockBelow) && iceBlocks.has(blockBelow.typeId)) ||
+            (isDefined(blockBelow2) && iceBlocks.has(blockBelow2.typeId))
+          ) {
+            limit = config.maxSpeedIce;
+          }
+        } catch {
+          // Ignore block read errors (unloaded chunks etc)
         }
-      } catch {
-        // Ignore block read errors (unloaded chunks etc)
       }
     }
   }
@@ -268,15 +270,39 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
       typeof player.getEffect === 'function' && isDefined(player.getEffect(MinecraftEffectTypes.SlowFalling));
 
     let nearGroundOrLiquid = false;
-    try {
-      const pos = player.location;
-      const b0 = player.dimension.getBlock({ x: Math.floor(pos.x), y: Math.floor(pos.y), z: Math.floor(pos.z) });
-      const b1 = player.dimension.getBlock({ x: Math.floor(pos.x), y: Math.floor(pos.y - 1), z: Math.floor(pos.z) });
-      if (isSupportedBlock(b0) || isSupportedBlock(b1)) {
+    // Optimization: if native engine confirms onGround, swimming, or climbing, skip all C++ block queries
+    if (isOnGround || isSwimming || isClimbing || hasLevitation || hasSlowFalling) {
+      nearGroundOrLiquid = true;
+    } else {
+      try {
+        const pos = player.location;
+        const blockX = Math.floor(pos.x);
+        const blockY = Math.floor(pos.y);
+        const blockZ = Math.floor(pos.z);
+        const dim = player.dimension;
+
+        const b0 = dim.getBlock({ x: blockX, y: blockY, z: blockZ });
+        const b1 = dim.getBlock({ x: blockX, y: blockY - 1, z: blockZ });
+
+        if (isSupportedBlock(b0) || isSupportedBlock(b1)) {
+          nearGroundOrLiquid = true;
+        } else {
+          // Bounding box corner tolerance (prevents false flags on block edges, ledges, or fences)
+          const fracX = pos.x - blockX;
+          const fracZ = pos.z - blockZ;
+          const offsetX = fracX < 0.3 ? -1 : fracX > 0.7 ? 1 : 0;
+          const offsetZ = fracZ < 0.3 ? -1 : fracZ > 0.7 ? 1 : 0;
+
+          if (offsetX !== 0 || offsetZ !== 0) {
+            const bEdge = dim.getBlock({ x: blockX + offsetX, y: blockY - 1, z: blockZ + offsetZ });
+            if (isSupportedBlock(bEdge)) {
+              nearGroundOrLiquid = true;
+            }
+          }
+        }
+      } catch {
         nearGroundOrLiquid = true;
       }
-    } catch {
-      nearGroundOrLiquid = true;
     }
 
     if (
@@ -289,13 +315,13 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
       velocity.y >= -0.05
     ) {
       state.airTicks++;
-      if (state.airTicks >= 12) {
+      if (state.airTicks >= 16) {
         flagManager.flag(
           player,
           'movementCheck',
           `Flight/Hover detected (Air checks: ${state.airTicks}, vY: ${velocity.y.toFixed(2)})`,
         );
-        state.airTicks = 8;
+        state.airTicks = 10;
       }
     } else {
       state.airTicks = Math.max(0, state.airTicks - 2);

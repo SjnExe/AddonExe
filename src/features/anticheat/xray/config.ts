@@ -48,9 +48,9 @@ export const xrayConfig: XrayConfig = {
   heuristics: {
     enabled: true,
     checkAirExposure: true,
-    minStoneBreaksForRatio: 30,
+    minStoneBreaksForRatio: 40,
     ratioThreshold: 0.12,
-    alertSuspicionThreshold: 70,
+    alertSuspicionThreshold: 75,
   },
   monitoredOreTypes: {
     diamond: {
