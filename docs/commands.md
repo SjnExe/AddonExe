@@ -119,8 +119,8 @@ All commands in AddonExe are registered as native Minecraft slash commands with 
 - **`/mutechat [toggle|on|off]`** / **`/slowmode [seconds]`** — Toggles global chat mute or sets live chat slowmode.
 - **`/history <player>`** — Views a player's past punishment and anti-cheat flag history.
 - **`/watch <target>`** / **`/listwatched`** — Toggles or lists players on the staff watchlist.
-- **`/notify`** — Toggles Anti-Cheat violation alerts for yourself (or console).
-- **`/xraynotify`** (Alias: `/xray`) — Toggles X-Ray mining notifications for yourself (or console).
+- **`/notify [on|off|status]`** — Toggles live in-game Anti-Cheat violation alerts (combat, movement, mining rate, illegal items) for staff or console.
+- **`/xraynotify [on|off|status]`** (Alias: `/xray`) — Toggles live heuristic X-Ray ore mining alerts and suspicion score updates for staff or console.
 
 ---
 

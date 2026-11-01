@@ -41,7 +41,26 @@ For quick setup questions, check the [Frequently Asked Questions (F.A.Q.)](faq.m
 
 ---
 
-## 4. UI (`/panel`) Issues
+## 4. Anti-Cheat & Moderation Questions
+
+**Problem: Legitimate players are getting flagged for mining speed.**
+
+- Mining rate limiting automatically provides headroom expansion for Haste effects (+2) and Efficiency tools (+2).
+- If players experience heavy client ping fluctuations or packet batching, open `/panel` -> **Staff Dashboard** -> **Moderation Center** -> **Mining Rules** and adjust `Max Breaks Per Second` (e.g. from 24 to 28) or reduce `VL Increment`.
+
+**Problem: Staff are receiving alerts for naturally exposed ores in caves.**
+
+- AddonExe includes 6-neighbor cave air exposure and 2-block deep cave space verification.
+- Verify that **Check Air Exposure** is enabled in `/panel` -> **Staff Dashboard** -> **Moderation Center** -> **X-Ray Heuristics**. This ensures only buried, unexposed ores increment suspicion.
+
+**Problem: Combat checks trigger flags during intense mob swarms or server TPS drops.**
+
+- Reach checks measure distance from the attacker's eye level with a token-bucket accumulator to avoid single-tick spikes.
+- If needed, adjust `Max Reach Distance` (default 4.25 blocks) or `Max CPS` (default 20 CPS) in `/panel` -> **Staff Dashboard** -> **Moderation Center** -> **Combat Rules**.
+
+---
+
+## 5. UI (`/panel`) Issues
 
 **Problem: The UI panel looks like the default light-gray vanilla form or buttons do not render properly.**
 
@@ -50,7 +69,7 @@ For quick setup questions, check the [Frequently Asked Questions (F.A.Q.)](faq.m
 
 ---
 
-## 5. Reporting Bugs
+## 6. Reporting Bugs
 
 If an issue persists, open a report on the [GitHub Issues Page](https://github.com/SjnExe/AddonExe/issues) with:
 
