@@ -128,6 +128,15 @@ function checkBlockAirExposure(dimension: mc.Dimension, loc: mc.Vector3): boolea
         if (airOrLiquidCount >= 2) {
           return true; // At least 2 faces open to cave air or liquid pocket
         }
+        // Deep cave check: if an open face extends further into open cave space
+        const deepNeighbor = dimension.getBlock({
+          x: loc.x + offset.x * 2,
+          y: loc.y + offset.y * 2,
+          z: loc.z + offset.z * 2,
+        });
+        if (isDefined(deepNeighbor) && (deepNeighbor.isAir || deepNeighbor.isLiquid)) {
+          return true; // Single face opening into an expansive open cave
+        }
       }
     }
     return false;

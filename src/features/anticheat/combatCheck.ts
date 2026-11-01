@@ -78,9 +78,9 @@ export function handleEntityHit(event: mc.EntityHitEntityAfterEvent): void {
       const excess = currentCps - combatConfig.maxCps;
       state.cpsVl += excess;
 
-      if (state.cpsVl >= 4) {
+      if (state.cpsVl >= 5) {
         flag(player, 'combatCheck', `AutoClicker / Fast Attack: ${currentCps} CPS (Limit: ${combatConfig.maxCps})`);
-        state.cpsVl = 2; // Clamp
+        state.cpsVl = 2.5; // Clamp
       }
     } else {
       state.cpsVl = Math.max(0, state.cpsVl - 0.5);
@@ -99,13 +99,13 @@ export function handleEntityHit(event: mc.EntityHitEntityAfterEvent): void {
         const excess = distance - combatConfig.maxReach;
         state.reachVl += excess * 2;
 
-        if (state.reachVl >= 3) {
+        if (state.reachVl >= 4) {
           flag(
             player,
             'combatCheck',
             `Reach: ${distance.toFixed(2)} blocks (Limit: ${combatConfig.maxReach.toFixed(2)})`,
           );
-          state.reachVl = 1.5; // Clamp
+          state.reachVl = 2; // Clamp
         }
       } else {
         state.reachVl = Math.max(0, state.reachVl - 0.5);
