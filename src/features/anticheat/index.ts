@@ -1,4 +1,5 @@
 import { serviceLocator } from '@core/services/serviceLocator.js';
+import { startCombatCheck } from '@features/anticheat/combatCheck.js';
 import { showChatFilter } from '@features/anticheat/commands/logs.js';
 import { initializeFlagManager } from '@features/anticheat/flagManager.js';
 import { startItemCheckLoop } from '@features/anticheat/itemCheck.js';
@@ -11,6 +12,7 @@ export async function initialize(_isMigration: boolean) {
   initializeFlagManager();
   startItemCheckLoop();
   startMovementCheckLoop();
+  startCombatCheck();
   initializeXrayDetection();
 
   serviceLocator.registerService('anticheat.logs', {
