@@ -1,252 +1,725 @@
 import { mock } from 'bun:test';
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // --- @minecraft/server Mocks ---
 
 export class Dimension {
-    id: string;
-    constructor(id: string) {
-        this.id = id;
-    }
-    runCommand = mock();
-    spawnEntity = mock();
-    getEntities = mock(() => []);
-    getTopmostBlock = mock();
-    getBlock = mock();
-    playSound = mock();
+  id: string;
+  constructor(id: string) {
+    this.id = id;
+  }
+  runCommand = mock();
+  spawnEntity = mock();
+  getEntities = mock(() => []);
+  getTopmostBlock = mock();
+  getBlock = mock();
+  playSound = mock();
+  spawnParticle = mock();
+  isChunkLoaded = mock(() => true);
+}
+
+const _dimensionMocks = new Map<string, Dimension>();
+export function getDimensionMock(dim: string): Dimension {
+  let inst = _dimensionMocks.get(dim);
+  if (!inst) {
+    inst = new Dimension(dim);
+    _dimensionMocks.set(dim, inst);
+  }
+  return inst;
 }
 
 export class BlockVolume {
-    constructor(
-        public from: { x: number; y: number; z: number },
-        public to: { x: number; y: number; z: number }
-    ) {}
+  constructor(
+    public from: { x: number; y: number; z: number },
+    public to: { x: number; y: number; z: number },
+  ) {}
 }
 
 // Stateful Dynamic Property Store
 const _testDynamicProperties = new Map();
+let _actionFormDepth = 0;
+
+export function _clearTestDynamicProperties(): void {
+  _testDynamicProperties.clear();
+}
+
+export function setCurrentTickForTest(tick: number): void {
+  system.currentTick = tick;
+}
+
+export function _resetMinecraftMocks(): void {
+  _actionFormDepth = 0;
+  _clearTestDynamicProperties();
+
+  world.getDynamicProperty.mockImplementation((key: string) => _testDynamicProperties.get(key));
+  world.setDynamicProperty.mockImplementation((key: string, val: unknown) => {
+    if (val === undefined) {
+      _testDynamicProperties.delete(key);
+    } else {
+      _testDynamicProperties.set(key, val);
+    }
+  });
+  _dimensionMocks.clear();
+  world.getDimension.mockImplementation((dim: string) => getDimensionMock(dim));
+  world.getAllPlayers.mockImplementation(() => []);
+  world.sendMessage.mockImplementation(() => {});
+
+  system.run.mockImplementation((callback: () => void) => {
+    if (callback) {
+      callback();
+    }
+    return 0;
+  });
+  system.runInterval.mockImplementation(() => 1);
+  system.runTimeout.mockImplementation((cb: () => void) => {
+    if (cb) {
+      cb();
+    }
+    return 1;
+  });
+  system.runJob.mockImplementation((generator: Generator) => {
+    if (generator && typeof generator.next === 'function') {
+      let result = generator.next();
+      while (!result.done) {
+        result = generator.next();
+      }
+    }
+    return 0;
+  });
+  system.clearRun.mockImplementation(() => {});
+  if ((system as any).clearJob) {
+    (system as any).clearJob.mockImplementation(() => {});
+  }
+  system.currentTick = 0;
+}
+
 export const world = {
-    getDynamicProperty: mock((key) => _testDynamicProperties.get(key)),
-    setDynamicProperty: mock((key, val) => {
-        if (val === undefined) _testDynamicProperties.delete(key);
-        else _testDynamicProperties.set(key, val);
-    }),
-    getDimension: mock((dim: string) => new Dimension(dim)),
-    getAllPlayers: mock(() => []),
-    afterEvents: {
-        playerSpawn: { subscribe: mock() },
-        playerLeave: { subscribe: mock() },
-        entityDie: { subscribe: mock() },
-        chatSend: { subscribe: mock() }
-    },
-    beforeEvents: {
-        chatSend: { subscribe: mock() },
-        playerInteractWithEntity: { subscribe: mock() },
-        playerInteractWithBlock: { subscribe: mock() },
-        itemUse: { subscribe: mock() },
-        playerBreakBlock: { subscribe: mock() },
-        playerPlaceBlock: { subscribe: mock() }
-    },
-    sendMessage: mock()
+  getDynamicProperty: mock((key) => _testDynamicProperties.get(key)),
+  setDynamicProperty: mock((key, val) => {
+    if (val === undefined) {
+      _testDynamicProperties.delete(key);
+    } else {
+      _testDynamicProperties.set(key, val);
+    }
+  }),
+  getDimension: mock((dim: string) => getDimensionMock(dim)),
+  getAllPlayers: mock(() => []),
+  afterEvents: {
+    playerSpawn: { subscribe: mock(), unsubscribe: mock() },
+    playerLeave: { subscribe: mock(), unsubscribe: mock() },
+    playerDimensionChange: { subscribe: mock(), unsubscribe: mock() },
+    playerBreakBlock: { subscribe: mock(), unsubscribe: mock() },
+    entityDie: { subscribe: mock(), unsubscribe: mock() },
+    entitySpawn: { subscribe: mock(), unsubscribe: mock() },
+    itemUse: { subscribe: mock(), unsubscribe: mock() },
+    chatSend: { subscribe: mock(), unsubscribe: mock() },
+    entityHurt: { subscribe: mock(), unsubscribe: mock() },
+    playerGameModeChange: { subscribe: mock(), unsubscribe: mock() },
+    playerInventoryItemChange: { subscribe: mock(), unsubscribe: mock() },
+    playerEmote: { subscribe: mock(), unsubscribe: mock() },
+  },
+  beforeEvents: {
+    chatSend: { subscribe: mock(), unsubscribe: mock() },
+    explosion: { subscribe: mock(), unsubscribe: mock() },
+    entityHurt: { subscribe: mock(), unsubscribe: mock() },
+    entityItemPickup: { subscribe: mock(), unsubscribe: mock() },
+    playerInteractWithEntity: { subscribe: mock(), unsubscribe: mock() },
+    playerInteractWithBlock: { subscribe: mock(), unsubscribe: mock() },
+    itemUse: { subscribe: mock(), unsubscribe: mock() },
+    playerBreakBlock: { subscribe: mock(), unsubscribe: mock() },
+    playerPlaceBlock: { subscribe: mock(), unsubscribe: mock() },
+    playerItemAttackEntity: { subscribe: mock(), unsubscribe: mock() },
+  },
+  sendMessage: mock(),
+  tickingAreaManager: {
+    createTickingArea: mock(async () => {}),
+    removeTickingArea: mock(() => {}),
+    hasTickingArea: mock(() => false),
+    hasCapacity: mock(() => true),
+    getAllTickingAreas: mock(() => []),
+    getTickingArea: mock(() => undefined),
+    chunkCount: 0,
+    maxChunkCount: 100,
+  },
 };
 
 export const system = {
-    run: mock((callback: () => void) => {
-        callback();
-        return 0;
-    }),
-    runInterval: mock(() => 1),
-    runTimeout: mock((cb: () => void) => {
-        cb();
-        return 1;
-    }), // Run immediately for tests
-    runJob: mock((generator: Generator) => {
-        // Execute generator fully for tests
-        let result = generator.next();
-        while (!result.done) {
-            result = generator.next();
-        }
-        return 0;
-    }),
-    clearRun: mock(),
-    currentTick: 0,
-    beforeEvents: {
-        startup: { subscribe: mock() },
-        shutdown: { subscribe: mock() },
-        watchdogTerminate: { subscribe: mock() }
+  waitTicks: mock(async () => {}),
+  run: mock((callback: () => void) => {
+    callback();
+    return 0;
+  }),
+  runInterval: mock(() => 1),
+  runTimeout: mock((cb: () => void) => {
+    cb();
+    return 1;
+  }), // Run immediately for tests
+  runJob: mock((generator: Generator) => {
+    // Execute generator fully for tests
+    let result = generator.next();
+    while (!result.done) {
+      result = generator.next();
     }
+    return 0;
+  }),
+  clearRun: mock(),
+  clearJob: mock(),
+  currentTick: 0,
+  afterEvents: {
+    scriptEventReceive: { subscribe: mock(), unsubscribe: mock() },
+  },
+  beforeEvents: {
+    startup: { subscribe: mock(), unsubscribe: mock() },
+    shutdown: { subscribe: mock(), unsubscribe: mock() },
+    watchdogTerminate: { subscribe: mock(), unsubscribe: mock() },
+  },
 };
 
 export class Player {
-    id: string;
-    name: string;
-    tags: Set<string>;
-    location: { x: number; y: number; z: number; dimension: Dimension };
+  id: string;
+  name: string;
+  tags: Set<string>;
+  location: { x: number; y: number; z: number; dimension: Dimension };
 
-    constructor(id: string, name: string) {
-        this.id = id;
-        this.name = name;
-        this.tags = new Set();
-        this.location = { x: 0, y: 0, z: 0, dimension: new Dimension('overworld') };
-    }
+  constructor(id: string, name: string) {
+    this.id = id;
+    this.name = name;
+    this.tags = new Set();
+    this.location = { x: 0, y: 0, z: 0, dimension: new Dimension('overworld') };
+  }
 
-    hasTag(tag: string) {
-        return this.tags.has(tag);
-    }
+  hasTag(tag: string) {
+    return this.tags.has(tag);
+  }
 
-    addTag(tag: string) {
-        this.tags.add(tag);
-        return true;
-    }
+  addTag(tag: string) {
+    this.tags.add(tag);
+    return true;
+  }
 
-    removeTag(tag: string) {
-        return this.tags.delete(tag);
-    }
+  removeTag(tag: string) {
+    return this.tags.delete(tag);
+  }
 
-    sendMessage = mock();
-    runCommand = mock();
-    playSound = mock();
-    getDynamicProperty = mock();
-    setDynamicProperty = mock();
-    isValid = true;
-    triggerEvent = mock();
-    getComponent = mock();
+  sendMessage = mock();
+  runCommand = mock();
+  playSound = mock();
+  teleport = mock();
+  camera = {
+    fade: mock(),
+    clear: mock(),
+    setCamera: mock(),
+  };
+  getSpawnPoint = mock(() => undefined);
+  getDynamicProperty = mock();
+  setDynamicProperty = mock();
+  isValid = true;
+  isFlying = false;
+  isSleeping = false;
+  triggerEvent = mock();
+  getComponent = mock();
+  getPing = mock(() => 20);
+  addExperience = mock((amount: number) => amount);
+  onScreenDisplay = {
+    setActionBar: mock(),
+    setTitle: mock(),
+    setSubtitle: mock(),
+  };
 }
 
 export enum CustomCommandParamType {
-    Integer = 'int',
-    Float = 'float',
-    Boolean = 'boolean',
-    String = 'string',
-    BlockType = 'block',
-    ItemType = 'item',
-    PlayerSelector = 'player'
+  Integer = 'int',
+  Float = 'float',
+  Boolean = 'boolean',
+  String = 'string',
+  BlockType = 'block',
+  ItemType = 'item',
+  PlayerSelector = 'player',
 }
 
 export enum GameMode {
-    Survival = 'survival',
-    Creative = 'creative',
-    Adventure = 'adventure',
-    Spectator = 'spectator'
+  Survival = 'survival',
+  Creative = 'creative',
+  Adventure = 'adventure',
+  Spectator = 'spectator',
 }
+
+export enum EquipmentSlot {
+  Head = 'Head',
+  Chest = 'Chest',
+  Legs = 'Legs',
+  Feet = 'Feet',
+  Mainhand = 'Mainhand',
+  Offhand = 'Offhand',
+}
+
+export enum PlayerInventoryType {
+  Hotbar = 'Hotbar',
+  Inventory = 'Inventory',
+}
+
+export enum WatchdogTerminateReason {
+  Hang = 'Hang',
+  StackOverflow = 'StackOverflow',
+}
+
+export enum EntityDamageCause {
+  entityAttack = 'entityAttack',
+  entityExplosion = 'entityExplosion',
+  blockExplosion = 'blockExplosion',
+  fall = 'fall',
+  magic = 'magic',
+  wither = 'wither',
+  fire = 'fire',
+  drowning = 'drowning',
+  void = 'void',
+}
+
+export const EntityTypes = {
+  get: mock((id: string) => ({ id })),
+  getAll: mock(() => [{ id: 'exe:floating_text' }]),
+};
 
 // --- @minecraft/server-ui Mocks ---
 
 export enum FormCancelationReason {
-    UserBusy = 'UserBusy',
-    UserClosed = 'UserClosed'
+  UserBusy = 'UserBusy',
+  UserClosed = 'UserClosed',
 }
 
+export enum DataDrivenScreenClosedReason {
+  ClientClosed = 'ClientClosed',
+  ServerClosed = 'ServerClosed',
+  UserBusy = 'UserBusy',
+}
+
+export class ObservableBoolean {
+  private _data: boolean;
+  private _listeners: Set<(val: boolean) => void> = new Set();
+
+  constructor(
+    initialValue: boolean,
+    public options?: { clientWritable?: boolean },
+  ) {
+    this._data = initialValue;
+  }
+
+  getData(): boolean {
+    return this._data;
+  }
+
+  setData(value: boolean): void {
+    this._data = value;
+    for (const cb of this._listeners) {
+      cb(value);
+    }
+  }
+
+  subscribe(callback: (val: boolean) => void) {
+    this._listeners.add(callback);
+    return callback;
+  }
+
+  unsubscribe(callback: (val: boolean) => void): boolean {
+    return this._listeners.delete(callback);
+  }
+}
+
+export class ObservableNumber {
+  private _data: number;
+  private _listeners: Set<(val: number) => void> = new Set();
+
+  constructor(
+    initialValue: number,
+    public options?: { clientWritable?: boolean },
+  ) {
+    this._data = initialValue;
+  }
+
+  getData(): number {
+    return this._data;
+  }
+
+  setData(value: number): void {
+    this._data = value;
+    for (const cb of this._listeners) {
+      cb(value);
+    }
+  }
+
+  subscribe(callback: (val: number) => void) {
+    this._listeners.add(callback);
+    return callback;
+  }
+
+  unsubscribe(callback: (val: number) => void): boolean {
+    return this._listeners.delete(callback);
+  }
+}
+
+export class ObservableString {
+  private _data: string;
+  private _listeners: Set<(val: string) => void> = new Set();
+
+  constructor(
+    initialValue: string,
+    public options?: { clientWritable?: boolean },
+  ) {
+    this._data = initialValue;
+  }
+
+  getData(): string {
+    return this._data;
+  }
+
+  setData(value: string): void {
+    this._data = value;
+    for (const cb of this._listeners) {
+      cb(value);
+    }
+  }
+
+  subscribe(callback: (val: string) => void) {
+    this._listeners.add(callback);
+    return callback;
+  }
+
+  unsubscribe(callback: (val: string) => void): boolean {
+    return this._listeners.delete(callback);
+  }
+
+  async getFilteredText(_player: Player): Promise<string> {
+    return this._data;
+  }
+}
+
+export class ObservableUIRawMessage {
+  private _data: unknown;
+  private _listeners: Set<(val: unknown) => void> = new Set();
+
+  constructor(
+    initialValue: unknown,
+    public options?: { clientWritable?: boolean },
+  ) {
+    this._data = initialValue;
+  }
+
+  getData(): unknown {
+    return this._data;
+  }
+
+  setData(value: unknown): void {
+    this._data = value;
+    for (const cb of this._listeners) {
+      cb(value);
+    }
+  }
+
+  subscribe(callback: (val: unknown) => void) {
+    this._listeners.add(callback);
+    return callback;
+  }
+
+  unsubscribe(callback: (val: unknown) => void): boolean {
+    return this._listeners.delete(callback);
+  }
+}
+
+export class CustomForm {
+  player: Player;
+  title: ObservableString | string;
+  private _showing = false;
+  private _buttons: { label: unknown; onClick: () => void }[] = [];
+
+  constructor(player: Player, title: ObservableString | string) {
+    this.player = player;
+    this.title = title;
+  }
+
+  button(label: ObservableString | string, onClick: () => void): this {
+    this._buttons.push({ label, onClick });
+    return this;
+  }
+
+  closeButton(): this {
+    return this;
+  }
+
+  divider(): this {
+    return this;
+  }
+
+  dropdown(_label: ObservableString | string, _value: ObservableNumber, _items: unknown[]): this {
+    return this;
+  }
+
+  header(_text: ObservableString | string): this {
+    return this;
+  }
+
+  label(_text: ObservableString | string): this {
+    return this;
+  }
+
+  slider(
+    _label: ObservableString | string,
+    _value: ObservableNumber,
+    _min: number | ObservableNumber,
+    _max: number | ObservableNumber,
+  ): this {
+    return this;
+  }
+
+  spacer(): this {
+    return this;
+  }
+
+  textField(_label: ObservableString | string, _text: ObservableString): this {
+    return this;
+  }
+
+  toggle(_label: ObservableString | string, _toggled: ObservableBoolean): this {
+    return this;
+  }
+
+  close(): void {
+    this._showing = false;
+  }
+
+  isShowing(): boolean {
+    return this._showing;
+  }
+
+  show = mock().mockImplementation(async (): Promise<DataDrivenScreenClosedReason> => {
+    this._showing = true;
+    for (const btn of this._buttons) {
+      btn.onClick();
+    }
+    return DataDrivenScreenClosedReason.ClientClosed;
+  });
+}
+
+export const uiManager = {
+  closeAllForms: mock(),
+};
+
 interface Control {
-    type: string;
-    label: string;
-    placeholder?: string;
-    defaultValue?: string | boolean | number | undefined;
-    options?: string[];
-    defaultValueIndex?: number | undefined;
-    min?: number | undefined;
-    max?: number | undefined;
-    step?: number | undefined;
+  type: string;
+  label: string;
+  placeholder?: string;
+  defaultValue?: string | boolean | number | undefined;
+  options?: string[];
+  defaultValueIndex?: number | undefined;
+  min?: number | undefined;
+  max?: number | undefined;
+  step?: number | undefined;
 }
 
 export class ModalFormData {
-    private _controls: Control[] = [];
+  private _controls: Control[] = [];
 
-    title(_: string) {
-        return this;
-    }
-    textField(label: string, placeholder: string, defaultValue?: string) {
-        this._controls.push({ type: 'textField', label, placeholder, defaultValue });
-        return this;
-    }
-    dropdown(label: string, options: string[], defaultValueIndex?: number) {
-        this._controls.push({ type: 'dropdown', label, options, defaultValueIndex });
-        return this;
-    }
-    toggle(label: string, defaultValue?: boolean) {
-        this._controls.push({ type: 'toggle', label, defaultValue });
-        return this;
-    }
-    slider(label: string, min: number, max: number, step: number, defaultValue?: number) {
-        this._controls.push({ type: 'slider', label, min, max, step, defaultValue });
-        return this;
-    }
-    submitButton(_: string) {
-        return this;
-    }
-
-    show = mock().mockImplementation(async () => {
-        return {
-            formValues: this._controls.map((c): string | number | boolean | undefined => {
-                if (c.type === 'toggle') return c.defaultValue ?? false;
-                if (c.type === 'textField') return c.defaultValue ?? '';
-                if (c.type === 'dropdown') return c.defaultValueIndex ?? 0;
-                if (c.type === 'slider') return c.defaultValue ?? c.min;
-                return undefined;
-            }),
-            canceled: false
-        };
+  title(_: string) {
+    return this;
+  }
+  header(label: string) {
+    this._controls.push({ type: 'header', label });
+    return this;
+  }
+  label(label: string) {
+    this._controls.push({ type: 'label', label });
+    return this;
+  }
+  divider() {
+    this._controls.push({ type: 'divider', label: '' });
+    return this;
+  }
+  textField(label: string, placeholder: string, options?: { defaultValue?: string } | string) {
+    const defaultValue =
+      typeof options === 'object' && options !== null ? options.defaultValue : (options as string | undefined);
+    this._controls.push({
+      type: 'textField',
+      label,
+      placeholder,
+      defaultValue,
     });
+    return this;
+  }
+  dropdown(label: string, optionsList: string[], options?: { defaultValueIndex?: number } | number) {
+    const defaultValueIndex =
+      typeof options === 'object' && options !== null ? options.defaultValueIndex : (options as number | undefined);
+    this._controls.push({
+      type: 'dropdown',
+      label,
+      options: optionsList,
+      defaultValueIndex,
+    });
+    return this;
+  }
+  toggle(label: string, options?: { defaultValue?: boolean } | boolean) {
+    const defaultValue =
+      typeof options === 'object' && options !== null ? options.defaultValue : (options as boolean | undefined);
+    this._controls.push({ type: 'toggle', label, defaultValue });
+    return this;
+  }
+  slider(
+    label: string,
+    min: number,
+    max: number,
+    options?: { valueStep?: number; defaultValue?: number } | number,
+    defaultValueParam?: number,
+  ) {
+    let step = 1;
+    let defaultValue = min;
+    if (typeof options === 'object' && options !== null) {
+      step = options.valueStep ?? 1;
+      defaultValue = options.defaultValue ?? min;
+    } else if (typeof options === 'number') {
+      step = options;
+      defaultValue = defaultValueParam ?? min;
+    }
+    this._controls.push({
+      type: 'slider',
+      label,
+      min,
+      max,
+      step,
+      defaultValue,
+    });
+    return this;
+  }
+  submitButton(_: string) {
+    return this;
+  }
+
+  show = mock().mockImplementation(async () => {
+    const values: (string | number | boolean | undefined)[] = [];
+    for (const c of this._controls) {
+      if (c.type === 'toggle') {
+        values.push(c.defaultValue ?? false);
+      } else if (c.type === 'textField') {
+        values.push(c.defaultValue ?? '');
+      } else if (c.type === 'dropdown') {
+        values.push(c.defaultValueIndex ?? 0);
+      } else if (c.type === 'slider') {
+        values.push(c.defaultValue ?? c.min);
+      }
+    }
+    return {
+      formValues: values,
+      canceled: false,
+    };
+  });
 }
 
 export class ActionFormData {
-    private _buttons: { text: string; iconPath?: string | undefined }[] = [];
+  private _buttons: { text: string; iconPath?: string | undefined }[] = [];
 
-    title(_: string) {
-        return this;
-    }
-    body(_: string) {
-        return this;
-    }
-    button(text: string, iconPath?: string) {
-        this._buttons.push({ text, iconPath });
-        return this;
-    }
+  title(_: string) {
+    return this;
+  }
+  body(_: string) {
+    return this;
+  }
+  header(_: string) {
+    return this;
+  }
+  label(_: string) {
+    return this;
+  }
+  divider() {
+    return this;
+  }
+  button(text: string, iconPath?: string) {
+    this._buttons.push({ text, iconPath });
+    return this;
+  }
 
-    show = mock().mockImplementation(async () => {
-        return { selection: 0, canceled: false };
-    });
+  show = mock().mockImplementation(async () => {
+    if (_actionFormDepth >= 2) {
+      return { selection: undefined, canceled: true };
+    }
+    _actionFormDepth++;
+    try {
+      return { selection: 0, canceled: false };
+    } finally {
+      _actionFormDepth--;
+    }
+  });
 }
 
 export class MessageFormData {
-    title = mock().mockReturnThis();
-    body = mock().mockReturnThis();
-    button1 = mock().mockReturnThis();
-    button2 = mock().mockReturnThis();
-    show = mock().mockImplementation(async () => {
-        return { selection: 0, canceled: false };
-    });
+  title = mock().mockReturnThis();
+  body = mock().mockReturnThis();
+  button1 = mock().mockReturnThis();
+  button2 = mock().mockReturnThis();
+  show = mock().mockImplementation(async () => {
+    return { selection: 0, canceled: false };
+  });
 }
 
 // --- added for itemsManager tests ---
 export class ItemStack {
-    typeId: string;
-    amount: number;
-    maxAmount: number;
+  typeId: string;
+  amount: number;
+  maxAmount: number;
+  nameTag?: string;
+  isStackable: boolean = true;
+  private _lore: string[] = [];
 
-    constructor(typeId: string, amount: number) {
-        if (typeId === 'invalid:item') {
-            throw new Error('Invalid item type');
-        }
-        this.typeId = typeId;
-        this.amount = amount;
-        this.maxAmount = 64; // Default max stack size
+  constructor(typeId: string, amount: number) {
+    if (typeId === 'invalid:item') {
+      throw new Error('Invalid item type');
     }
+    this.typeId = typeId;
+    this.amount = amount;
+    this.maxAmount = 64; // Default max stack size
+  }
+
+  getLore(): string[] {
+    return [...this._lore];
+  }
+
+  setLore(lore?: string[]): void {
+    this._lore = lore ? [...lore] : [];
+  }
+
+  getComponent(_typeId: string): unknown {
+    return undefined;
+  }
+
+  getCanDestroy(): string[] {
+    return [];
+  }
+
+  getCanPlaceOn(): string[] {
+    return [];
+  }
+
+  getDynamicPropertyIds(): string[] {
+    return [];
+  }
+
+  getDynamicProperty(_id: string): unknown {
+    return undefined;
+  }
 }
 
 // --- Component Types added for strict production-grade enum matching ---
+
+// --- Component Types for strict enum matching ---
 export const EntityComponentTypes = {
-    Inventory: 'minecraft:inventory',
-    Equippable: 'minecraft:equippable',
-    EnderInventory: 'minecraft:ender_inventory',
-    Rideable: 'minecraft:rideable',
-    Tameable: 'minecraft:tameable',
-    IsTamed: 'minecraft:is_tamed',
-    TypeFamily: 'minecraft:type_family',
-    Projectile: 'minecraft:projectile'
-};
+  Health: 'minecraft:health',
+  Inventory: 'minecraft:inventory',
+  Equippable: 'minecraft:equippable',
+  EnderInventory: 'minecraft:ender_inventory',
+  Rideable: 'minecraft:rideable',
+  Tameable: 'minecraft:tameable',
+  IsTamed: 'minecraft:is_tamed',
+  TypeFamily: 'minecraft:type_family',
+  Projectile: 'minecraft:projectile',
+} as const;
 
 export const ItemComponentTypes = {
-    Durability: 'minecraft:durability',
-    Enchantable: 'minecraft:enchantable'
-};
+  Durability: 'minecraft:durability',
+  Enchantable: 'minecraft:enchantable',
+  Inventory: 'minecraft:inventory',
+} as const;

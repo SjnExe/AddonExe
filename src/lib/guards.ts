@@ -2,30 +2,50 @@ import type { Nullable } from '@lib/types.js';
 
 /**
  * Checks if a value is defined (not null and not undefined).
+ *
  * @param value The value to check.
  * @returns True if the value is defined.
  */
 export function isDefined<T>(value: Nullable<T>): value is T {
-    return value !== null && value !== undefined;
+  return value !== null && value !== undefined;
 }
 
-/**
- * Checks if a value is a string.
- */
+/** Checks if a value is a string. */
 export function isString(value: unknown): value is string {
-    return typeof value === 'string';
+  return typeof value === 'string';
 }
 
-/**
- * Checks if a value is a number and not NaN.
- */
+/** Checks if a value is a boolean. */
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
+/** Checks if a value is a finite number and not NaN. */
 export function isNumber(value: unknown): value is number {
-    return typeof value === 'number' && !Number.isNaN(value);
+  return typeof value === 'number' && Number.isFinite(value);
 }
 
-/**
- * Checks if a value is a non-empty string.
- */
+/** Checks if a value is a non-empty string. */
 export function isNonEmptyString(value: unknown): value is string {
-    return isString(value) && value.length > 0;
+  return isString(value) && value.length > 0;
+}
+
+/** Checks if a value is a string containing at least one non-whitespace character. */
+export function isNonBlankString(value: unknown): value is string {
+  return isString(value) && value.trim().length > 0;
+}
+
+/** Checks if a value is a non-null object. */
+export function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** Checks if a value is an array. */
+export function isArray<T = unknown>(value: unknown): value is T[] {
+  return Array.isArray(value);
+}
+
+/** Checks if a value is a function. */
+export function isFunction(value: unknown): value is (...args: unknown[]) => unknown {
+  return typeof value === 'function';
 }

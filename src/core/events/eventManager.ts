@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-import * as mc from '@minecraft/server';
-
-import { errorLog } from '@core/logger.js';
-
+import { flushAllActivePlayerData } from '@core/data/playerDataManager.js';
 import handleBeforeChatSend from '@core/events/beforeChatSend.js';
 import handleEntityDie from '@core/events/entityDie.js';
 import handleEntityHurt from '@core/events/entityHurt.js';
@@ -11,74 +7,135 @@ import handlePlayerDimensionChange from '@core/events/playerDimensionChange.js';
 import handlePlayerLeave from '@core/events/playerLeave.js';
 import { handlePlayerSpawn } from '@core/events/playerSpawn.js';
 import {
-    handleBeforeEntityHurt,
-    handleBeforeEntitySpawn,
-    handleBeforeExplosion,
-    handleBeforeItemPickup,
-    handleBeforeItemUse,
-    handleBeforePlayerBreakBlock,
-    handleBeforePlayerPlaceBlock,
-    handlePlayerInteractWithBlock,
-    handlePlayerInteractWithEntity
+  handleBeforeEntityHurt,
+  handleBeforeEntitySpawn,
+  handleBeforeExplosion,
+  handleBeforeItemPickup,
+  handleBeforeItemUse,
+  handleBeforePlayerBreakBlock,
+  handleBeforePlayerItemAttackEntity,
+  handleBeforePlayerPlaceBlock,
+  handlePlayerInteractWithBlock,
+  handlePlayerInteractWithEntity,
 } from '@core/events/protectionEvents.js';
 import { handleScriptEventReceive } from '@core/events/scriptEventReceive.js';
+import { errorLog } from '@core/utils/logger.js';
+import { setPlayerAfk } from '@features/essentials/afk/manager.js';
+import { isDefined } from '@lib/guards.js';
+import * as mc from '@minecraft/server';
+import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
 const cleanupActions: (() => void)[] = [];
 
 /**
  * Registers an event listener safely and stores the cleanup action.
+ *
  * @param signal The event signal to subscribe to.
  * @param handler The handler function for the event.
  * @param name The name of the event for logging purposes.
  */
-export function registerEvent<T>(signal: { subscribe: (handler: (arg: T) => void) => void; unsubscribe: (handler: (arg: T) => void) => void }, handler: (arg: T) => void, name: string) {
-    try {
-        signal.subscribe(handler);
-        cleanupActions.push(() => {
-            try {
-                signal.unsubscribe(handler);
-            } catch (error: unknown) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                // Suppress specific errors that occur during shutdown or reload
-                const ignoredErrors = ['does not have required privileges', 'restricted execution'];
-                if (!ignoredErrors.some((msg) => errorMessage.includes(msg))) {
-                    errorLog(`[EventManager] Failed to unsubscribe from event '${name}'. Error: ${String(error)}`);
-                }
-            }
-        });
-    } catch (error: unknown) {
-        errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${String(error)}`);
+export function registerEvent<T, O = undefined>(
+  signal: {
+    subscribe: (handler: (arg: T) => void, options?: O) => void;
+    unsubscribe: (handler: (arg: T) => void) => void;
+  },
+  handler: (arg: T) => void,
+  name: string,
+  options?: O,
+) {
+  try {
+    if (options !== undefined) {
+      signal.subscribe(handler, options);
+    } else {
+      signal.subscribe(handler);
     }
+    cleanupActions.push(() => {
+      try {
+        signal.unsubscribe(handler);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        // Suppress specific errors that occur during shutdown or reload
+        const ignoredErrors = ['does not have required privileges', 'restricted execution'];
+        if (!ignoredErrors.some((msg) => errorMessage.includes(msg))) {
+          errorLog(`[EventManager] Failed to unsubscribe from event '${name}'. Error: ${String(error)}`);
+        }
+      }
+    });
+  } catch (error: unknown) {
+    errorLog(`[EventManager] Failed to subscribe to event '${name}'. Error: ${String(error)}`);
+  }
 }
 
 export function initializeEventManager() {
-    // Protection Hooks
-    registerEvent(mc.world.beforeEvents.playerBreakBlock, handleBeforePlayerBreakBlock, 'beforePlayerBreakBlock');
-    registerEvent(mc.world.beforeEvents.playerPlaceBlock, handleBeforePlayerPlaceBlock, 'beforePlayerPlaceBlock');
-    registerEvent(mc.world.beforeEvents.explosion, handleBeforeExplosion, 'beforeExplosion');
-    registerEvent(mc.world.beforeEvents.playerInteractWithBlock, handlePlayerInteractWithBlock, 'playerInteractWithBlock');
-    registerEvent(mc.world.beforeEvents.playerInteractWithEntity, handlePlayerInteractWithEntity, 'playerInteractWithEntity');
-    registerEvent(mc.world.beforeEvents.entityHurt, handleBeforeEntityHurt, 'beforeEntityHurt');
-    registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
-    registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
-    registerEvent(mc.world.beforeEvents.itemUse, handleBeforeItemUse, 'beforeItemUse');
-    // Removed old unstable version fallbacks.
-    // Use the official, statically typed API from @minecraft/server without casts.
+  // Protection Hooks
+  registerEvent(mc.world.beforeEvents.playerBreakBlock, handleBeforePlayerBreakBlock, 'beforePlayerBreakBlock');
+  registerEvent(mc.world.beforeEvents.playerPlaceBlock, handleBeforePlayerPlaceBlock, 'beforePlayerPlaceBlock');
+  registerEvent(mc.world.beforeEvents.explosion, handleBeforeExplosion, 'beforeExplosion');
+  registerEvent(
+    mc.world.beforeEvents.playerInteractWithBlock,
+    handlePlayerInteractWithBlock,
+    'playerInteractWithBlock',
+  );
+  registerEvent(
+    mc.world.beforeEvents.playerInteractWithEntity,
+    handlePlayerInteractWithEntity,
+    'playerInteractWithEntity',
+  );
+  registerEvent(mc.world.beforeEvents.entityHurt, handleBeforeEntityHurt, 'beforeEntityHurt');
+  if (mc.world.beforeEvents.playerItemAttackEntity) {
+    registerEvent(
+      mc.world.beforeEvents.playerItemAttackEntity,
+      handleBeforePlayerItemAttackEntity,
+      'beforePlayerItemAttackEntity',
+    );
+  }
+  registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
+  registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
+  registerEvent(mc.world.beforeEvents.itemUse, handleBeforeItemUse, 'beforeItemUse');
+  // Removed old unstable version fallbacks.
+  // Use the official, statically typed API from @minecraft/server without casts.
 
-    // Other Events
-    registerEvent(mc.world.beforeEvents.chatSend, handleBeforeChatSend, 'beforeChatSend');
-    registerEvent(mc.world.afterEvents.playerSpawn, handlePlayerSpawn, 'playerSpawn');
-    registerEvent(mc.world.afterEvents.entityHurt, handleEntityHurt, 'entityHurt');
-    registerEvent(mc.world.afterEvents.playerLeave, handlePlayerLeave, 'playerLeave');
-    registerEvent(mc.world.afterEvents.playerDimensionChange, handlePlayerDimensionChange, 'playerDimensionChange');
-    registerEvent(mc.world.afterEvents.itemUse, handleItemUse, 'itemUse');
-    registerEvent(mc.world.afterEvents.entityDie, handleEntityDie, 'entityDie');
-    registerEvent(mc.system.afterEvents.scriptEventReceive, handleScriptEventReceive, 'scriptEventReceive');
+  // Other Events
+  registerEvent(mc.world.beforeEvents.chatSend, handleBeforeChatSend, 'beforeChatSend');
+  registerEvent(mc.world.afterEvents.playerSpawn, handlePlayerSpawn, 'playerSpawn');
+  registerEvent(mc.world.afterEvents.entityHurt, handleEntityHurt, 'entityHurt', {
+    entityTypes: [MinecraftEntityTypes.Player],
+  });
+  registerEvent(mc.world.afterEvents.playerLeave, handlePlayerLeave, 'playerLeave');
+  registerEvent(mc.world.afterEvents.playerDimensionChange, handlePlayerDimensionChange, 'playerDimensionChange');
+  registerEvent(mc.world.afterEvents.itemUse, handleItemUse, 'itemUse');
+  registerEvent(mc.world.afterEvents.entityDie, handleEntityDie, 'entityDie');
+  registerEvent(mc.system.afterEvents.scriptEventReceive, handleScriptEventReceive, 'scriptEventReceive', {
+    namespaces: ['exe'],
+  });
+
+  if (mc.system?.beforeEvents?.watchdogTerminate) {
+    registerEvent(mc.system.beforeEvents.watchdogTerminate, handleWatchdogTerminate, 'watchdogTerminate');
+  }
+
+  if (mc.world?.afterEvents?.playerEmote) {
+    registerEvent(mc.world.afterEvents.playerEmote, handlePlayerEmote, 'playerEmote');
+  }
+}
+
+export function handlePlayerEmote(event: mc.PlayerEmoteAfterEvent): void {
+  if (isDefined(event.player) && event.player.isValid) {
+    setPlayerAfk(event.player, false);
+  }
+}
+
+export function handleWatchdogTerminate(event: mc.WatchdogTerminateBeforeEvent): void {
+  errorLog(`[EventManager] Script watchdog termination triggered. Reason: ${String(event.terminateReason)}`);
+  try {
+    flushAllActivePlayerData();
+  } catch (error: unknown) {
+    errorLog(`[EventManager] Failed to flush active player data on watchdog termination: ${String(error)}`);
+  }
 }
 
 export function cleanupEventManager() {
-    for (const cleanup of cleanupActions) {
-        cleanup();
-    }
-    cleanupActions.length = 0;
+  for (const cleanup of cleanupActions) {
+    cleanup();
+  }
+  cleanupActions.length = 0;
 }
