@@ -1,0 +1,130 @@
+name: '🐛 Bug Report'
+description: File a bug report to help us improve AddonExe
+title: '[BUG]: '
+labels: ['bug', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please verify the checklist below before submitting.
+
+        > [!IMPORTANT]
+        > **Supported Versions:** AddonExe strictly supports **only the latest official stable Minecraft Bedrock release**. Preview/Beta builds and outdated Minecraft versions are not supported.
+
+        **Do NOT report security vulnerabilities here.** Please see our [Security Policy](https://github.com/SjnExe/AddonExe/blob/main/.github/SECURITY.md).
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-submission Checklist
+      description: Please confirm each item before proceeding.
+      options:
+        - label: I searched existing [GitHub Issues](https://github.com/SjnExe/AddonExe/issues) to ensure this bug has not already been reported.
+          required: true
+        - label: I confirm I am running the **latest stable release** of Minecraft Bedrock Edition (Preview/Beta and older versions are not supported).
+          required: true
+        - label: I am using the latest version of AddonExe ([CurseForge](https://www.curseforge.com/minecraft-bedrock/addons/addonexe) or [Canary Release](https://github.com/SjnExe/AddonExe/releases)).
+          required: true
+        - label: I reviewed the [Troubleshooting Guide](https://github.com/SjnExe/AddonExe/blob/main/docs/troubleshooting.md) and [F.A.Q.](https://github.com/SjnExe/AddonExe/blob/main/docs/faq.md).
+          required: true
+        - label: I tested without conflicting third-party behavior or resource packs.
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened unexpectedly...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Explain step-by-step how to trigger this bug.
+      placeholder: |
+        1. Run command '/panel' or '/...'
+        2. Click on '...'
+        3. See error '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen instead?
+      placeholder: What should have happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: What occurred instead...
+    validations:
+      required: true
+
+  - type: textarea
+    id: content_log
+    attributes:
+      label: Content Log & Error Output
+      description: |
+        Enable Content Log in Minecraft (`Settings -> Creator -> Enable Content Log GUI / File`) and paste relevant errors below.
+      render: text
+      placeholder: Paste any [Scripting][error] or [UI][error] lines here...
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Server / Hosting Environment
+      description: Where is the world being hosted?
+      options:
+        - 'Minecraft App (Singleplayer / Local World)'
+        - 'Minecraft Realm'
+        - 'Bedrock Dedicated Server (BDS - Linux)'
+        - 'Bedrock Dedicated Server (BDS - Windows)'
+        - 'Third-party Server / Host'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Client Device / Platform
+      description: Select the client device experiencing or reporting the issue.
+      options:
+        - 'Windows (PC)'
+        - 'Android (Mobile)'
+        - 'iOS / iPadOS (Mobile)'
+        - 'Xbox (Console)'
+        - 'PlayStation (Console)'
+        - 'Nintendo Switch (Console)'
+    validations:
+      required: true
+
+  - type: input
+    id: addon_version
+    attributes:
+      label: AddonExe Version
+      description: In-game version reported by `/version`.
+      placeholder: e.g. v0.8.0-canary or v0.7.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: active_packs
+    attributes:
+      label: Other Installed Addons / Packs
+      description: List any other behavior or resource packs applied to this world.
+      placeholder: None, or list packs here...
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context, Screenshots, or Videos
+      description: Attach screenshots, video links, or additional context here.
