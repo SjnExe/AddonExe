@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: 'en-US'
+tone_instructions: >
+  You are an expert systems performance engineer reviewing Minecraft Bedrock TypeScript code.
+  Scrutinize every line for micro-optimizations, tick-budget consumption (50ms/tick budget),
+  unnecessary object allocations, memory leaks, and algorithmic complexity.
+  Be direct, highly technical, and prioritize performance and zero-lag execution.
+
+reviews:
+  profile: 'assertive'
+  poem: false
+  high_level_summary: true
+  collapse_walkthrough: true
+  request_changes_workflow: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - 'main'
+
+  path_filters:
+    - '!bun.lock'
+    - '!out/**'
+    - '!packs/behavior/scripts/**'
+    - '!packs/resource/textures/**'
+
+  path_instructions:
+    - path: 'src/**/*.ts'
+      instructions: |
+        - Performance & Tick Budget: Flag any expensive operations or object allocations inside runInterval, system.runInterval, or per-tick loops.
+        - Native C++ Boundary Overhead: Minimize synchronous native engine calls (e.g., dimension.getBlock); recommend caching or batching where possible.
+        - Algorithmic Complexity: Enforce O(1) Map/Set lookups over repeated O(N) array scans in hot paths.
+        - Bedrock Entity Safety: Ensure player.isValid and entity.isValid guards are present after any async delays or tick transitions.
+        - Broken Block Handling: In PlayerBreakBlockAfterEvent, event.block.typeId evaluates to 'minecraft:air'; handlers must inspect event.brokenBlockPermutation.
+        - Constants & Types: Verify vanilla IDs use @minecraft/vanilla-data constants instead of raw strings.
+        - Style & Naming: Enforce camelCase for variables/functions and PascalCase for types; reject snake_case or UPPER_SNAKE_CASE.
+        - Feature Defaults: Player-facing gameplay features must default to 'enabled: false'.
+
+    - path: 'packs/**'
+      instructions: |
+        - Build artifacts under packs/behavior/scripts/ must never be edited manually.
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - 'AGENTS.md'
+      - 'CONTRIBUTING.md'
