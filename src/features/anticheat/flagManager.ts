@@ -38,19 +38,40 @@ export function initializeFlagManager() {
   registerDataSaver(saveFlags);
 }
 
+const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
 export function saveFlags() {
   if (!needsSave) {
     return;
   }
+  const now = Date.now();
   const dataToSave: [string, [string, FlagData][]][] = [];
+
   for (const [playerId, checkMap] of flags) {
-    dataToSave.push([playerId, [...checkMap.entries()]]);
+    const activeEntries: [string, FlagData][] = [];
+    for (const [checkName, data] of checkMap) {
+      // Discard entries older than 7 days or where VL is 0
+      if (data.vl > 0 && now - data.lastFlagTime < sevenDaysMs) {
+        activeEntries.push([checkName, data]);
+      }
+    }
+    if (activeEntries.length > 0) {
+      dataToSave.push([playerId, activeEntries]);
+    } else {
+      flags.delete(playerId);
+    }
   }
+
   storage.save(dataToSave);
   needsSave = false;
 }
 
-export function flag(player: mc.Player, checkName: string, message: string) {
+export function _resetFlagManagerForTest(): void {
+  flags.clear();
+  needsSave = false;
+}
+
+export function flag(player: mc.Player, checkName: string, message: string, vlIncrement: number = 1) {
   const config = getAnticheatConfig();
   const checkConfig = (config as unknown as Record<string, BaseCheckConfig | undefined>)[checkName];
 
@@ -76,7 +97,9 @@ export function flag(player: mc.Player, checkName: string, message: string) {
     }
   }
 
-  data.vl++;
+  const previousVl = data.vl;
+  const effectiveIncrement = Math.max(1, vlIncrement);
+  data.vl += effectiveIncrement;
   data.lastFlagTime = Date.now();
   needsSave = true;
 
@@ -92,10 +115,10 @@ export function flag(player: mc.Player, checkName: string, message: string) {
     }
   }
 
-  // Punish
+  // Punish: Trigger if VL crossed or reached threshold during this flag event
   if (isDefined(checkConfig.violations)) {
     for (const v of checkConfig.violations) {
-      if (data.vl === v.threshold) {
+      if (previousVl < v.threshold && data.vl >= v.threshold) {
         executePunishment(player, v.command);
       }
     }
