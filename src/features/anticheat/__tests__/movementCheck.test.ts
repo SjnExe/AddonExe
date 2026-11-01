@@ -11,7 +11,12 @@ import {
 } from '@features/anticheat/movementCheck.js';
 import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
+import {
+  MinecraftBlockTypes,
+  MinecraftDimensionTypes,
+  MinecraftEffectTypes,
+  MinecraftItemTypes,
+} from '@minecraft/vanilla-data';
 
 describe('MovementCheck', () => {
   let intervalCallback: () => void;
@@ -281,5 +286,97 @@ describe('MovementCheck', () => {
 
     const overworld = mc.world.getDimension(MinecraftDimensionTypes.Overworld);
     expect(overworld.runCommand).toHaveBeenCalledWith('kick "Hacker\' ; say pwned \'" "Nether Roof Detected"');
+  });
+
+  it('should not flag speed check when player is riding a mount or boat', () => {
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const rider = new PlayerMock('p_boat', 'BoatRider');
+    rider.getGameMode = () => mc.GameMode.Survival;
+    rider.getVelocity = () => ({ x: 2.5, y: 0, z: 0 }); // 50 bps on blue ice
+    rider.getEffect = () => undefined;
+    rider.getComponent = (id: string) => (id === EntityComponentTypes.Riding ? ({} as any) : undefined);
+
+    Object.defineProperty(rider, 'dimension', {
+      value: new DimensionMock(MinecraftDimensionTypes.Overworld),
+      writable: true,
+    });
+
+    addPlayerToCache(rider);
+
+    for (let i = 0; i < 5; i++) {
+      intervalCallback();
+    }
+
+    expect(flagSpy).not.toHaveBeenCalled();
+  });
+
+  it('should allow higher speed limit when using trident in rain or water', () => {
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const tridentPlayer = new PlayerMock('p_trident', 'RiptideUser');
+    tridentPlayer.getGameMode = () => mc.GameMode.Survival;
+    tridentPlayer.getVelocity = () => ({ x: 1.8, y: 0.5, z: 0 }); // 36 bps horizontal
+    tridentPlayer.getEffect = () => undefined;
+    tridentPlayer.getComponent = (id: string) => {
+      if (id === EntityComponentTypes.Equippable) {
+        return {
+          getEquipment: (slot: string) =>
+            slot === mc.EquipmentSlot.Mainhand ? ({ typeId: MinecraftItemTypes.Trident } as any) : undefined,
+        } as any;
+      }
+      return undefined;
+    };
+
+    const dimension = new DimensionMock(MinecraftDimensionTypes.Overworld);
+    dimension.isRaining = true;
+
+    Object.defineProperty(tridentPlayer, 'dimension', {
+      value: dimension,
+      writable: true,
+    });
+
+    addPlayerToCache(tridentPlayer);
+
+    for (let i = 0; i < 5; i++) {
+      intervalCallback();
+    }
+
+    expect(flagSpy).not.toHaveBeenCalled();
+  });
+
+  it('should flag InvalidSprint when sprinting with blindness or sneaking', () => {
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const blindSprinter = new PlayerMock('p_blind', 'BlindSprinter');
+    blindSprinter.getGameMode = () => mc.GameMode.Survival;
+    blindSprinter.isSprinting = true;
+    blindSprinter.getVelocity = () => ({ x: 0.2, y: 0, z: 0 });
+    blindSprinter.getEffect = (effect: any) =>
+      effect === MinecraftEffectTypes.Blindness ? ({ amplifier: 0 } as any) : undefined;
+
+    Object.defineProperty(blindSprinter, 'dimension', {
+      value: new DimensionMock(MinecraftDimensionTypes.Overworld),
+      writable: true,
+    });
+
+    addPlayerToCache(blindSprinter);
+
+    intervalCallback();
+
+    expect(flagSpy).toHaveBeenCalledWith(
+      blindSprinter,
+      'movementCheck',
+      expect.stringContaining('InvalidSprint: Sprinting while blinded'),
+    );
   });
 });
