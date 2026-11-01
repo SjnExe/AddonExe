@@ -6,21 +6,7 @@ updates:
       interval: 'daily'
     labels:
       - 'dependencies'
-      - 'actions'
     groups:
       all-actions:
-        patterns:
-          - '*'
-
-  - package-ecosystem: 'bun'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
-    versioning-strategy: lockfile-only
-    labels:
-      - 'dependencies'
-      - 'bun'
-    groups:
-      all-dependencies:
         patterns:
           - '*'
