@@ -173,3 +173,32 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
 
   return activeFlags ?? (defaultFlags as ProtectionFlags);
 }
+
+/**
+ * Checks if a given coordinate lies within the server's configured spawn protection boundary.
+ *
+ * @param location Vector3 location to check.
+ * @param dimensionId Dimension identifier of the location.
+ * @returns True if inside spawn protection radius, false otherwise.
+ */
+export function isLocationInSpawn(location: Vector3, dimensionId: string): boolean {
+  const config = getConfig();
+  if (config?.spawnProtection?.enabled !== true) {
+    return false;
+  }
+  const spawnLoc = config.spawn?.spawnLocation;
+  if (!spawnLoc) {
+    return false;
+  }
+  const x = Number(spawnLoc.x);
+  const z = Number(spawnLoc.z);
+  if (Number.isNaN(x) || Number.isNaN(z)) {
+    return false;
+  }
+  const spawnDimension = spawnLoc.dimensionId || MinecraftDimensionTypes.Overworld;
+  if (dimensionId !== spawnDimension) {
+    return false;
+  }
+  const radius = Number(config.spawnProtection.protectionRadius) || 0;
+  return location.x >= x - radius && location.x <= x + radius && location.z >= z - radius && location.z <= z + radius;
+}

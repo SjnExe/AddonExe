@@ -408,7 +408,7 @@ export async function showTeamHomePanel(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder()
     .title('Manage Team Home')
     .button('Set Home Here', 'textures/ui/color_plus', async () => {
-      const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
+      const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id, player);
       player.sendMessage(res.message ?? 'Done');
       await showTeamHomePanel(player);
     });

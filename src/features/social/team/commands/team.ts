@@ -28,6 +28,7 @@ const teamCommand: CustomCommand = {
         'promote',
         'demote',
         'sethome',
+        'sethq',
         'delhome',
         'disband',
         'list',
@@ -185,13 +186,14 @@ const teamCommand: CustomCommand = {
         executor.sendMessage(res.message ?? 'Done');
         break;
       }
-      case 'sethome': {
+      case 'sethome':
+      case 'sethq': {
         const team = teamManager.getTeamByPlayer(executor.id);
         if (!team || !teamManager.isTeamAdminOrOwner(team, executor.id)) {
           executor.sendMessage('§cYou must be team owner or admin to set team home.');
           return;
         }
-        const res = teamManager.setTeamHome(team.id, executor.location, executor.dimension.id);
+        const res = teamManager.setTeamHome(team.id, executor.location, executor.dimension.id, executor);
         executor.sendMessage(res.message ?? 'Done');
         break;
       }

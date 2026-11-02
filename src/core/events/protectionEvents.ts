@@ -10,7 +10,7 @@ import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
-function canBypass(player: mc.Player): boolean {
+export function canBypass(player: mc.Player): boolean {
   // Check if admin bypass is allowed globally or in spawn configuration
   const config = getConfig();
 
@@ -102,6 +102,7 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
 
   if (sourceFlags.preventExplosions) {
     event.cancel = true;
+    event.setImpactedBlocks([]);
     return;
   }
 
@@ -142,6 +143,20 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
   }
 
   const flags = getProtectionFlags(player.location, player.dimension.id);
+  const isFireStarter =
+    event.itemStack.typeId === MinecraftItemTypes.FlintAndSteel ||
+    event.itemStack.typeId === MinecraftItemTypes.FireCharge;
+
+  if (isFireStarter && (flags.preventPvP || flags.preventBlockPlacing)) {
+    if (!canBypass(player)) {
+      event.cancel = true;
+      mc.system.run(() => {
+        setActionBarOverride(player, '§cYou cannot use fire starters here.', 2500);
+      });
+      return;
+    }
+  }
+
   if (flags.preventProjectileUsage) {
     // Basic list of items that shoot projectiles
     const projectileItems = [
@@ -168,7 +183,7 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
 }
 
 export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockBeforeEvent) {
-  const { player, block } = event;
+  const { player, block, itemStack } = event;
   if (!isDefined(player) || !isDefined(block)) {
     return;
   }
@@ -181,6 +196,19 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
   }
 
   const flags = getProtectionFlags(block.location, player.dimension.id);
+  const isFireStarter =
+    itemStack?.typeId === MinecraftItemTypes.FlintAndSteel || itemStack?.typeId === MinecraftItemTypes.FireCharge;
+
+  if (isFireStarter && (flags.preventPvP || flags.preventBlockPlacing || flags.preventBlockInteraction)) {
+    if (!canBypass(player)) {
+      event.cancel = true;
+      mc.system.run(() => {
+        setActionBarOverride(player, '§cYou cannot use fire starters here.', 2500);
+      });
+      return;
+    }
+  }
+
   if (flags.preventBlockInteraction) {
     if (!canBypass(player)) {
       event.cancel = true;
@@ -362,11 +390,33 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     return;
   }
 
+  // Explosion damage protection (All entities)
+  if (
+    flags.preventExplosions &&
+    (cause === mc.EntityDamageCause.entityExplosion || cause === mc.EntityDamageCause.blockExplosion)
+  ) {
+    event.cancel = true;
+    return;
+  }
+
   if (victim.typeId !== MinecraftEntityTypes.Player) {
     return;
   }
 
   const player = victim as mc.Player;
+
+  // Fire, lava, and burning environment protection in PvP safezones
+  const isFireOrLavaDamage =
+    cause === mc.EntityDamageCause.fire ||
+    cause === mc.EntityDamageCause.fireTick ||
+    cause === mc.EntityDamageCause.lava ||
+    cause === mc.EntityDamageCause.campfire ||
+    cause === mc.EntityDamageCause.soulCampfire;
+
+  if (flags.preventPvP && isFireOrLavaDamage) {
+    event.cancel = true;
+    return;
+  }
 
   if (!flags.preventPvP && !flags.preventHostileDamage) {
     return;
