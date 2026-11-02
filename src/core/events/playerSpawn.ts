@@ -206,6 +206,16 @@ export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
   const config = getConfig();
   const pData = getOrCreatePlayer(player);
 
+  mc.system.runTimeout(() => {
+    try {
+      if (player.isValid) {
+        updatePlayerNameTag(player, config);
+      }
+    } catch {
+      // Ignore
+    }
+  }, 1);
+
   if (pData.lastDeathLocation && !pData.deathNotificationSent) {
     if (config.playerInfo.enableDeathCoords) {
       const formattedCoords = formatLocation(pData.lastDeathLocation);
