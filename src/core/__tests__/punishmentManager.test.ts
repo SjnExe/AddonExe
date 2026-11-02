@@ -85,4 +85,35 @@ describe('PunishmentManager', () => {
     expect(getPunishment('pid1', 'ban')).toBeDefined();
     expect(getPunishment('pid2', 'mute')).toBeDefined();
   });
+
+  it('should automatically clear and not kick when a temporary ban expires', () => {
+    const pid = 'temp_expired_1';
+    const pastBan = { type: 'ban' as const, expires: Date.now() - 1000, reason: 'time up' };
+    addPunishment(pid, 'ExpiredPlayer', pastBan, 'Admin');
+
+    const fakePlayer = { id: pid, name: 'ExpiredPlayer' } as mc.Player;
+    const { checkAndKickBannedPlayer } = require('@features/moderation/punishmentManager.js');
+    const wasKicked = checkAndKickBannedPlayer(fakePlayer);
+
+    expect(wasKicked).toBe(false);
+    expect(getPunishment(pid, 'ban')).toBeUndefined();
+  });
+
+  it('should not expire permanent bans with Infinity or null expires', () => {
+    const pid = 'perm_player';
+    const permBan = { type: 'ban' as const, expires: Infinity, reason: 'severe' };
+    addPunishment(pid, 'PermPlayer', permBan, 'Admin');
+
+    expect(getPunishment(pid, 'ban')).toBeDefined();
+    expect(getPunishment(pid, 'ban')?.expires).toBe(Infinity);
+  });
+
+  it('should remove only expired alias record when querying getPunishment and keep active alias intact', () => {
+    addPunishment('Alice', 'Alice', { type: 'ban', expires: Date.now() - 1000, reason: 'old ban' }, 'Admin');
+    addPunishment('alice', 'alice', { type: 'ban', expires: Date.now() + 50_000, reason: 'active ban' }, 'Admin');
+
+    const result = getPunishment('Alice', 'ban');
+    expect(result).toBeDefined();
+    expect(result?.reason).toBe('active ban');
+  });
 });

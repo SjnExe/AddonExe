@@ -67,6 +67,11 @@ export function loadPunishments() {
       savePunishments();
     }
 
+    clearExpiredPunishments();
+    if (needsSave) {
+      savePunishments();
+    }
+
     debugLog(`[PunishmentManager] Loaded ${punishments.size} punishment records.`);
   } else {
     punishments = new Map();
@@ -81,12 +86,22 @@ export function clearExpiredPunishments() {
   for (const [playerId, record] of punishments.entries()) {
     let changed = false;
 
-    if (isDefined(record.ban) && now > record.ban.expires) {
+    if (
+      isDefined(record.ban) &&
+      typeof record.ban.expires === 'number' &&
+      Number.isFinite(record.ban.expires) &&
+      now > record.ban.expires
+    ) {
       delete record.ban;
       changed = true;
       clearedCount++;
     }
-    if (isDefined(record.mute) && now > record.mute.expires) {
+    if (
+      isDefined(record.mute) &&
+      typeof record.mute.expires === 'number' &&
+      Number.isFinite(record.mute.expires) &&
+      now > record.mute.expires
+    ) {
       delete record.mute;
       changed = true;
       clearedCount++;
@@ -153,13 +168,62 @@ export function addPunishment(playerId: string, playerName: string, punishment: 
 }
 
 /**
+ * Removes a punishment from an exact key entry without affecting alias keys.
+ *
+ * @param key The exact Map key to remove from.
+ * @param type The type of punishment to remove.
+ * @returns True if a punishment record was modified or removed.
+ */
+function removePunishmentFromKey(key: string, type: PunishmentType): boolean {
+  const record = punishments.get(key);
+  if (!isDefined(record)) {
+    return false;
+  }
+
+  let changed = false;
+  if (type === 'ban') {
+    if (isDefined(record.ban)) {
+      delete record.ban;
+      changed = true;
+    }
+  } else {
+    if (isDefined(record.mute)) {
+      delete record.mute;
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    if (!isDefined(record.ban) && !isDefined(record.mute)) {
+      punishments.delete(key);
+    } else {
+      punishments.set(key, record);
+    }
+    needsSave = true;
+    savePunishments();
+  }
+
+  return changed;
+}
+
+/**
  * Gets a player's active punishment of a specific type. It also clears the punishment if it has expired.
  *
  * @param playerId The ID of the player.
  * @param type The type of punishment to retrieve.
  */
 export function getPunishment(playerId: string, type: PunishmentType): Punishment | undefined {
-  const record = punishments.get(playerId);
+  const matchedKey = punishments.has(playerId)
+    ? playerId
+    : punishments.has(playerId.toLowerCase())
+      ? playerId.toLowerCase()
+      : undefined;
+
+  if (!isDefined(matchedKey)) {
+    return undefined;
+  }
+
+  const record = punishments.get(matchedKey);
   if (!isDefined(record)) {
     return undefined;
   }
@@ -169,9 +233,17 @@ export function getPunishment(playerId: string, type: PunishmentType): Punishmen
     return undefined;
   }
 
-  if (Date.now() > punishment.expires) {
+  if (
+    typeof punishment.expires === 'number' &&
+    Number.isFinite(punishment.expires) &&
+    Date.now() > punishment.expires
+  ) {
     debugLog(`[PunishmentManager] ${type} for player ${playerId} has expired. Removing.`);
-    removePunishment(playerId, type);
+    removePunishmentFromKey(matchedKey, type);
+    // If matchedKey expired and differs from playerId.toLowerCase(), check lowercase alias for active punishment
+    if (matchedKey !== playerId.toLowerCase() && punishments.has(playerId.toLowerCase())) {
+      return getPunishment(playerId.toLowerCase(), type);
+    }
     return undefined;
   }
 
@@ -185,7 +257,8 @@ export function getPunishment(playerId: string, type: PunishmentType): Punishmen
  * @returns {boolean} True if the player was kicked (is banned), false otherwise.
  */
 export function checkAndKickBannedPlayer(player: mc.Player): boolean {
-  const punishment = getPunishment(player.id, 'ban');
+  clearExpiredPunishments();
+  const punishment = getPunishment(player.id, 'ban') ?? getPunishment(player.name.toLowerCase(), 'ban');
   if (isDefined(punishment)) {
     const banReason = isNonEmptyString(punishment.reason) ? punishment.reason : 'You are banned.';
     // Use a slight delay to ensure the kick command processes after join
@@ -204,33 +277,16 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
  * @param type The type of punishment to remove.
  */
 export function removePunishment(playerId: string, type: PunishmentType) {
-  const record = punishments.get(playerId);
-  if (!isDefined(record)) {
-    return;
-  }
+  const targetKeys = [playerId, playerId.toLowerCase()];
+  let anyChanged = false;
 
-  let changed = false;
-
-  if (type === 'ban') {
-    if (isDefined(record.ban)) {
-      delete record.ban;
-      changed = true;
-    }
-  } else {
-    if (isDefined(record.mute)) {
-      delete record.mute;
-      changed = true;
+  for (const key of targetKeys) {
+    if (removePunishmentFromKey(key, type)) {
+      anyChanged = true;
     }
   }
 
-  if (changed) {
-    if (!isDefined(record.ban) && !isDefined(record.mute)) {
-      punishments.delete(playerId);
-    } else {
-      punishments.set(playerId, record);
-    }
-    needsSave = true;
-    savePunishments(); // Save immediately for critical actions
+  if (anyChanged) {
     debugLog(`[PunishmentManager] Removed ${type} for player ${playerId}.`);
   }
 }
@@ -277,6 +333,10 @@ export function validateModerationTarget(
 /** Initializes the punishment manager's periodic tasks. */
 export function initializePunishmentManager() {
   registerDataSaver(savePunishments);
+  // Proactively clear expired punishments on startup
+  clearExpiredPunishments();
+  savePunishments();
+
   // Periodically clear expired punishments and save to the world
   const config = getConfig();
   setTrackedInterval(
