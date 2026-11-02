@@ -18,6 +18,11 @@ import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
+/**
+ * Handles player join logic, synchronizing ranks, vanish status, mute punishments, and initial spawn settings.
+ *
+ * @param player The player entity joining the server.
+ */
 export function handlePlayerJoin(player: mc.Player) {
   const pData = getOrCreatePlayer(player);
   const config = getConfig();
@@ -195,6 +200,12 @@ export function handlePlayerJoin(player: mc.Player) {
   }, 1);
 }
 
+/**
+ * Handles player spawn after-events for both initial join and respawn after death, restoring nametags and
+ * notifications.
+ *
+ * @param event The player spawn after-event.
+ */
 export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
   const { player, initialSpawn } = event;
 
@@ -205,6 +216,16 @@ export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
 
   const config = getConfig();
   const pData = getOrCreatePlayer(player);
+
+  mc.system.runTimeout(() => {
+    try {
+      if (player.isValid) {
+        updatePlayerNameTag(player, config);
+      }
+    } catch {
+      // Ignore
+    }
+  }, 1);
 
   if (pData.lastDeathLocation && !pData.deathNotificationSent) {
     if (config.playerInfo.enableDeathCoords) {

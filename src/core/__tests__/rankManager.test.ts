@@ -306,5 +306,26 @@ describe('rankManager', () => {
       updatePlayerNameTag(player, Config);
       expect(player.nameTag).toBe('§e[§rADMIN§e]§r\nPlayerName');
     });
+
+    it('should append heart glyph health indicator when healthIndicator is enabled', () => {
+      (player as any).getComponent = (type: string) => {
+        if (type === mc.EntityComponentTypes.Health) {
+          return { currentValue: 18, effectiveMax: 20 };
+        }
+        return undefined;
+      };
+      Config.ranks.nameTagStyle = 'above';
+      Config.playerInfo = {
+        ...Config.playerInfo,
+        healthIndicator: {
+          enabled: true,
+          showMaxHealth: true,
+          displayMode: 'under',
+        },
+      } as any;
+
+      updatePlayerNameTag(player, Config);
+      expect(player.nameTag).toContain('§c\uE10C §f18/20§r');
+    });
   });
 });

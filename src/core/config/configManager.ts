@@ -65,6 +65,11 @@ export const reloadConfig = () => {
   }
 };
 
+/**
+ * Updates multiple configuration keys at once in the main config manager and notifies listeners.
+ *
+ * @param updates A dictionary of config keys and their updated values.
+ */
 export const updateMultipleConfig = (updates: Record<string, unknown>) => {
   if (isDefined(mainConfigManager)) {
     mainConfigManager.updateMultiple(updates);
@@ -72,6 +77,13 @@ export const updateMultipleConfig = (updates: Record<string, unknown>) => {
   }
 };
 
+/**
+ * Resets a configuration section or all configuration data back to default values.
+ *
+ * @param sectionKey The identifier of the configuration section to reset, or 'all'.
+ * @param player Optional player entity requesting the configuration reset.
+ * @returns An object indicating whether the reset succeeded and an accompanying user message.
+ */
 export async function resetConfigSection(
   sectionKey: string,
   player?: mc.Player,
@@ -84,6 +96,7 @@ export async function resetConfigSection(
       resetPromises.push(config.reset());
     }
     await Promise.all(resetPromises);
+    notifyCallbacks();
 
     for (const key in configResetCallbacks) {
       const cb = configResetCallbacks[key];
