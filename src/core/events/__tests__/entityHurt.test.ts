@@ -1,11 +1,14 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
+import * as configManager from '@core/config/configManager.js';
 import { initializeConfigManager } from '@core/config/configManager.js';
-import handleEntityHurt from '@core/events/entityHurt.js';
+import handleEntityHurt, { handleEntityHealthChanged } from '@core/events/entityHurt.js';
 import { handleBeforeEntityHurt } from '@core/events/protectionEvents.js';
 import { resolveKiller } from '@features/essentials/combat/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
+
+import defaultConfig from '../../../config.js';
 
 describe('Entity Hurt & Explosion Safety', () => {
   beforeEach(async () => {
@@ -73,5 +76,49 @@ describe('Entity Hurt & Explosion Safety', () => {
     } as unknown as mc.EntityHurtBeforeEvent;
 
     expect(() => handleBeforeEntityHurt(event)).not.toThrow();
+  });
+
+  it('handleEntityHealthChanged safely schedules nametag update for valid players', () => {
+    const victim = new mc.Player('player-1', 'Healed');
+    victim.typeId = MinecraftEntityTypes.Player;
+    spyOn(configManager, 'getConfig').mockReturnValue({
+      ...defaultConfig,
+      playerInfo: {
+        ...defaultConfig.playerInfo,
+        healthIndicator: {
+          enabled: true,
+          showMaxHealth: true,
+          displayMode: 'under',
+        },
+      },
+    } as any);
+    (victim as any).getComponent = (type: string) => {
+      if (type === mc.EntityComponentTypes.Health) {
+        return { currentValue: 20, effectiveMax: 20 };
+      }
+      return undefined;
+    };
+
+    let scheduledCallback: (() => void) | undefined;
+    const runTimeoutSpy = spyOn(mc.system, 'runTimeout').mockImplementation(((callback: () => void) => {
+      scheduledCallback = callback;
+      return 1;
+    }) as any);
+
+    const event = {
+      entity: victim,
+      newValue: 20,
+      oldValue: 10,
+    } as unknown as mc.EntityHealthChangedAfterEvent;
+
+    handleEntityHealthChanged(event);
+    expect(scheduledCallback).toBeDefined();
+
+    // Verify coalescing: second call before timeout fires does not schedule duplicate
+    handleEntityHealthChanged(event);
+    expect(runTimeoutSpy).toHaveBeenCalledTimes(1);
+
+    scheduledCallback?.();
+    expect(victim.nameTag).toContain('§c\uE10C §f20/20§r');
   });
 });
