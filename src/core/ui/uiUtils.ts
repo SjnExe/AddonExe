@@ -9,6 +9,7 @@ import {
   getEconomyConfig,
   getFriendConfig,
   getGamesConfig,
+  getLandClaimConfig,
   getRanksConfig,
   getShopConfig,
   getSidebarConfig,
@@ -16,12 +17,14 @@ import {
   getWordleConfig,
   getWorldProtectionConfig,
   getXrayConfig,
+  LandClaimConfig,
   saveAnticheatConfig,
   saveAuctionHouseConfig,
   saveDailyRewardsConfig,
   saveEconomyConfig,
   saveFriendConfig,
   saveGamesConfig,
+  saveLandClaimConfig,
   saveRanksConfig,
   saveShopConfig,
   saveSidebarConfig,
@@ -71,6 +74,7 @@ interface ConfigHandler {
     | WordleConfig
     | DailyRewardsConfig
     | FriendConfig
+    | LandClaimConfig
     | WorldProtectionConfig;
   save: (config: unknown) => void;
 }
@@ -91,6 +95,10 @@ export const configHandlers: Record<string, ConfigHandler> = {
   team: {
     get: getTeamConfig,
     save: (config: unknown) => saveTeamConfig(config as TeamConfig),
+  },
+  landclaim: {
+    get: getLandClaimConfig,
+    save: (config: unknown) => saveLandClaimConfig(config as LandClaimConfig),
   },
   sidebar: {
     get: getSidebarConfig,

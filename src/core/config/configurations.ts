@@ -11,16 +11,18 @@ import { type WordleConfig, wordleConfig } from '@features/games/wordle/config.j
 import ranksConfig from '@features/ranks/config.js';
 import { config as sidebarConfig } from '@features/sidebar/config.js';
 import { friendConfig } from '@features/social/friends/config.js';
+import { type LandClaimConfig, landClaimConfig } from '@features/social/landclaim/config.js';
 import { teamConfig } from '@features/social/team/config.js';
 import * as mc from '@minecraft/server';
 
-export type { AnticheatConfig, GamesConfig, WordleConfig, WorldProtectionConfig };
+export type { AnticheatConfig, GamesConfig, LandClaimConfig, WordleConfig, WorldProtectionConfig };
 export type ShopConfig = typeof shopConfig;
 export type RanksConfig = typeof ranksConfig;
 export type EconomyConfig = typeof economyConfig;
 export type XrayConfig = typeof xrayConfig;
 export type TeamConfig = typeof teamConfig;
 export type FriendConfig = typeof friendConfig;
+export type LandClaimConfigType = LandClaimConfig;
 export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
@@ -143,6 +145,12 @@ export const loadSidebarConfig = sidebarAcc.load;
 export const getSidebarConfig = sidebarAcc.get;
 export const saveSidebarConfig = sidebarAcc.save;
 export const resetSidebarConfig = sidebarAcc.reset;
+
+const landClaimAcc = createConfigAccessors('landclaim', 'exe:landClaimConfig:current', landClaimConfig, 'LandClaim');
+export const loadLandClaimConfig = landClaimAcc.load;
+export const getLandClaimConfig = landClaimAcc.get;
+export const saveLandClaimConfig = landClaimAcc.save;
+export const resetLandClaimConfig = landClaimAcc.reset;
 
 const auctionHouseAcc = createConfigAccessors(
   'auctionHouse',

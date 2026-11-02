@@ -5,12 +5,13 @@ import { frozenTag } from '@core/utils/constants.js';
 import { hasTeleportProtection } from '@core/utils/teleportLogic.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/protection/zoneSelectionManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
+import { canPlayerModify, getClaimAt } from '@features/social/landclaim/manager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
-function canBypass(player: mc.Player): boolean {
+export function canBypass(player: mc.Player): boolean {
   // Check if admin bypass is allowed globally or in spawn configuration
   const config = getConfig();
 
@@ -53,7 +54,15 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
       mc.system.run(() => {
         setActionBarOverride(player, '§cYou cannot break blocks here.', 2500);
       });
+      return;
     }
+  }
+
+  if (!canPlayerModify(player, block.location, player.dimension.id, 'break')) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§cThis land is claimed by another player.', 2500);
+    });
   }
 }
 
@@ -81,7 +90,15 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
       mc.system.run(() => {
         setActionBarOverride(player, '§cYou cannot place blocks here.', 2500);
       });
+      return;
     }
+  }
+
+  if (!canPlayerModify(player, block.location, player.dimension.id, 'place')) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§cThis land is claimed by another player.', 2500);
+    });
   }
 }
 
@@ -116,7 +133,10 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
     }
     const blockFlags = getProtectionFlags(block.location, dimId);
     if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !isMobSource)) {
-      allowedBlocks.push(block);
+      const claim = getClaimAt(block.location, dimId);
+      if (!isDefined(claim) || claim.flags?.allowExplosions === true) {
+        allowedBlocks.push(block);
+      }
     }
   }
   if (allowedBlocks.length !== impactedBlocks.length) {
@@ -187,7 +207,25 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
       mc.system.run(() => {
         setActionBarOverride(player, '§cYou cannot interact with blocks here.', 2500);
       });
+      return;
     }
+  }
+
+  const isContainer =
+    block.hasComponent(mc.BlockComponentTypes.Inventory) ||
+    block.typeId.includes('chest') ||
+    block.typeId.includes('barrel') ||
+    block.typeId.includes('shulker');
+  const actionType = isContainer ? 'container' : 'interact';
+  if (!canPlayerModify(player, block.location, player.dimension.id, actionType)) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(
+        player,
+        `§cThis land is claimed. You cannot access ${isContainer ? 'containers' : 'blocks'} here.`,
+        2500,
+      );
+    });
   }
 }
 
@@ -299,7 +337,14 @@ export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEnt
   }
 
   const flags = getProtectionFlags(targetEntity.location, targetEntity.dimension.id);
-  if (flags.preventPvP && targetEntity.typeId === MinecraftEntityTypes.Player && targetEntity.id !== player.id) {
+  const targetClaim = getClaimAt(targetEntity.location, targetEntity.dimension.id);
+  const isClaimPvPDisabled = isDefined(targetClaim) && targetClaim.flags?.allowPvP === false;
+
+  if (
+    (flags.preventPvP || isClaimPvPDisabled) &&
+    targetEntity.typeId === MinecraftEntityTypes.Player &&
+    targetEntity.id !== player.id
+  ) {
     if (!canBypass(player)) {
       event.cancel = true;
       mc.system.run(() => {
@@ -393,10 +438,16 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     attacker.id !== player.id
   ) {
     let attackerPreventPvP = false;
+    let attackerClaimPreventPvP = false;
     if (isDefined(attacker.location) && isDefined(attacker.dimension?.id)) {
       attackerPreventPvP = getProtectionFlags(attacker.location, attacker.dimension.id).preventPvP;
+      const attackerClaim = getClaimAt(attacker.location, attacker.dimension.id);
+      attackerClaimPreventPvP = isDefined(attackerClaim) && attackerClaim.flags?.allowPvP === false;
     }
-    if (flags.preventPvP || attackerPreventPvP) {
+    const victimClaim = getClaimAt(player.location, player.dimension.id);
+    const victimClaimPreventPvP = isDefined(victimClaim) && victimClaim.flags?.allowPvP === false;
+
+    if (flags.preventPvP || attackerPreventPvP || victimClaimPreventPvP || attackerClaimPreventPvP) {
       event.cancel = true;
       return;
     }

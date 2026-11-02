@@ -39,6 +39,7 @@ export async function initializeConfigManager(isMigration: boolean): Promise<voi
     configs.loadSidebarConfig(isMigration),
     configs.loadAuctionHouseConfig(isMigration),
     configs.loadDailyRewardsConfig(isMigration),
+    configs.loadLandClaimConfig(isMigration),
     configs.loadGamesConfig(isMigration),
     configs.loadWordleConfig(isMigration),
     Promise.resolve().then(() => configs.loadAnticheatConfig(isMigration)),
