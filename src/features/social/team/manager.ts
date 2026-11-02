@@ -2,6 +2,8 @@ import * as configurations from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
+import { canBypass } from '@core/events/protectionEvents.js';
+import { isLocationInSpawn } from '@core/events/protectionService.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { soundTeleport } from '@core/utils/constants.js';
@@ -673,7 +675,24 @@ export function denyApplication(teamId: number, playerId: string): ActionResult 
 
 // --- Settings & Home ---
 
-export function setTeamHome(teamId: number, location: mc.Vector3, dimensionId: string): ActionResult {
+/**
+ * Sets the shared home or headquarters location for a team, validating spawn boundary restrictions.
+ *
+ * @param teamId Unique identifier of the team.
+ * @param location Target world coordinate for the team home.
+ * @param dimensionId Dimension identifier where the home is established.
+ * @param player Optional acting player attempting to set the team home, evaluated for bypass permissions.
+ * @returns Result object indicating success or failure message.
+ */
+export function setTeamHome(
+  teamId: number,
+  location: mc.Vector3,
+  dimensionId: string,
+  player?: mc.Player,
+): ActionResult {
+  if (isLocationInSpawn(location, dimensionId) && (!player || !canBypass(player))) {
+    return { success: false, message: '§cYou cannot set team home/HQ inside the spawn area.' };
+  }
   const team = activeTeam.get(teamId);
   if (!isDefined(team)) {
     return { success: false };

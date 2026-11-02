@@ -6,6 +6,8 @@ import {
   incrementPlayerBalance,
   setPlayerHome as setPlayerDataHome,
 } from '@core/data/playerDataManager.js';
+import { canBypass } from '@core/events/protectionEvents.js';
+import { isLocationInSpawn } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
@@ -25,6 +27,10 @@ interface ActionResult {
  * @returns The result of the operation.
  */
 export function setHome(player: mc.Player, homeName: string): ActionResult {
+  if (isLocationInSpawn(player.location, player.dimension.id) && !canBypass(player)) {
+    return { success: false, message: 'You cannot set a home inside the spawn area.' };
+  }
+
   const pData = getOrCreatePlayer(player);
   if (!isDefined(pData)) {
     return { success: false, message: 'Could not find your player data.' };

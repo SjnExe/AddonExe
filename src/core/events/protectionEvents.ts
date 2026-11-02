@@ -10,7 +10,13 @@ import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
-function canBypass(player: mc.Player): boolean {
+/**
+ * Checks whether a player possesses permission to bypass spawn and zone protection rules.
+ *
+ * @param player The Minecraft player attempting the action.
+ * @returns True if the player is authorized to bypass protection restrictions.
+ */
+export function canBypass(player: mc.Player): boolean {
   // Check if admin bypass is allowed globally or in spawn configuration
   const config = getConfig();
 
@@ -26,7 +32,12 @@ function canBypass(player: mc.Player): boolean {
   }
 }
 
-export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEvent) {
+/**
+ * Validates block breaking attempts against frozen state, teleport protection, and zone rules.
+ *
+ * @param event Block break before event data.
+ */
+export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEvent): void {
   const { player, block } = event;
   if (!isDefined(player) || !isDefined(block)) {
     return;
@@ -57,7 +68,12 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
   }
 }
 
-export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEvent) {
+/**
+ * Validates block placement attempts against frozen state, teleport protection, and zone rules.
+ *
+ * @param event Block placement before event data.
+ */
+export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEvent): void {
   const { player, block } = event;
   if (!isDefined(player) || !isDefined(block)) {
     return;
@@ -85,7 +101,12 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
   }
 }
 
-export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
+/**
+ * Handles explosion before events to prevent explosion block destruction in protected zones.
+ *
+ * @param event Explosion before event data.
+ */
+export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent): void {
   const impactedBlocks = event.getImpactedBlocks();
   const loc = event.source?.location ?? (impactedBlocks.length > 0 ? impactedBlocks[0]?.location : undefined);
   if (!loc) {
@@ -102,6 +123,7 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
 
   if (sourceFlags.preventExplosions) {
     event.cancel = true;
+    event.setImpactedBlocks([]);
     return;
   }
 
@@ -124,7 +146,12 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent) {
   }
 }
 
-export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
+/**
+ * Handles item use events to prevent fire starters and projectiles in protected zones.
+ *
+ * @param event Item use before event data.
+ */
+export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent): void {
   const player = event.source;
   if (!(player instanceof mc.Player)) {
     return;
@@ -142,6 +169,20 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
   }
 
   const flags = getProtectionFlags(player.location, player.dimension.id);
+  const isFireStarter =
+    event.itemStack.typeId === MinecraftItemTypes.FlintAndSteel ||
+    event.itemStack.typeId === MinecraftItemTypes.FireCharge;
+
+  if (isFireStarter && (flags.preventPvP || flags.preventBlockPlacing)) {
+    if (!canBypass(player)) {
+      event.cancel = true;
+      mc.system.run(() => {
+        setActionBarOverride(player, '§cYou cannot use fire starters here.', 2500);
+      });
+      return;
+    }
+  }
+
   if (flags.preventProjectileUsage) {
     // Basic list of items that shoot projectiles
     const projectileItems = [
@@ -167,8 +208,45 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent) {
   }
 }
 
-export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockBeforeEvent) {
-  const { player, block } = event;
+/**
+ * Calculates the adjacent block coordinates for a given block face.
+ *
+ * @param location Origin block coordinates.
+ * @param face Interacted block face direction.
+ * @returns Neighboring block coordinate where placed fire or item will land.
+ */
+function getAdjacentBlockLocation(location: mc.Vector3, face?: mc.Direction): mc.Vector3 {
+  const target: mc.Vector3 = { x: location.x, y: location.y, z: location.z };
+  switch (face) {
+    case mc.Direction.Up:
+      target.y += 1;
+      break;
+    case mc.Direction.Down:
+      target.y -= 1;
+      break;
+    case mc.Direction.North:
+      target.z -= 1;
+      break;
+    case mc.Direction.South:
+      target.z += 1;
+      break;
+    case mc.Direction.East:
+      target.x += 1;
+      break;
+    case mc.Direction.West:
+      target.x -= 1;
+      break;
+  }
+  return target;
+}
+
+/**
+ * Validates block interaction attempts and cross-boundary fire starter usage.
+ *
+ * @param event Player interact with block before event data.
+ */
+export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockBeforeEvent): void {
+  const { player, block, itemStack, blockFace } = event;
   if (!isDefined(player) || !isDefined(block)) {
     return;
   }
@@ -180,8 +258,45 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
     return;
   }
 
-  const flags = getProtectionFlags(block.location, player.dimension.id);
-  if (flags.preventBlockInteraction) {
+  const isFireStarter =
+    itemStack?.typeId === MinecraftItemTypes.FlintAndSteel || itemStack?.typeId === MinecraftItemTypes.FireCharge;
+
+  const blockFlags = getProtectionFlags(block.location, player.dimension.id);
+
+  if (isFireStarter) {
+    const playerFlags = getProtectionFlags(
+      {
+        x: Math.floor(player.location.x),
+        y: Math.floor(player.location.y),
+        z: Math.floor(player.location.z),
+      },
+      player.dimension.id,
+    );
+    const targetLocation = getAdjacentBlockLocation(block.location, blockFace);
+    const targetFlags = getProtectionFlags(targetLocation, player.dimension.id);
+
+    if (
+      blockFlags.preventPvP ||
+      blockFlags.preventBlockPlacing ||
+      blockFlags.preventBlockInteraction ||
+      playerFlags.preventPvP ||
+      playerFlags.preventBlockPlacing ||
+      playerFlags.preventBlockInteraction ||
+      targetFlags.preventPvP ||
+      targetFlags.preventBlockPlacing ||
+      targetFlags.preventBlockInteraction
+    ) {
+      if (!canBypass(player)) {
+        event.cancel = true;
+        mc.system.run(() => {
+          setActionBarOverride(player, '§cYou cannot use fire starters here.', 2500);
+        });
+        return;
+      }
+    }
+  }
+
+  if (blockFlags.preventBlockInteraction) {
     if (!canBypass(player)) {
       event.cancel = true;
       mc.system.run(() => {
@@ -191,7 +306,12 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
   }
 }
 
-export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntityBeforeEvent) {
+/**
+ * Validates entity interaction attempts against frozen state and zone entity protection rules.
+ *
+ * @param event Player interact with entity before event data.
+ */
+export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntityBeforeEvent): void {
   const { player, target } = event;
   if (!isDefined(player) || !isDefined(target)) {
     return;
@@ -227,7 +347,12 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
   }
 }
 
-export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
+/**
+ * Validates item pickup attempts to prevent looting in item-pickup-protected zones.
+ *
+ * @param event Entity item pickup before event data.
+ */
+export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent): void {
   const entity = event.entity;
   if (entity.typeId !== MinecraftEntityTypes.Player) {
     return;
@@ -245,7 +370,12 @@ export function handleBeforeItemPickup(event: mc.EntityItemPickupBeforeEvent) {
   }
 }
 
-export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
+/**
+ * Despawns hostile mobs that spawn inside zones configured with hostile spawn prevention.
+ *
+ * @param event Entity spawn after event data.
+ */
+export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent): void {
   const { entity } = event;
   if (!isDefined(entity)) {
     return;
@@ -281,7 +411,12 @@ export function handleBeforeEntitySpawn(event: mc.EntitySpawnAfterEvent) {
   }
 }
 
-export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEntityBeforeEvent) {
+/**
+ * Validates player combat attacks against teleport protection and zone PvP rules.
+ *
+ * @param event Player item attack entity before event data.
+ */
+export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEntityBeforeEvent): void {
   const player = event.player;
   const targetEntity = event.target;
   if (!isDefined(player) || !isDefined(targetEntity)) {
@@ -320,7 +455,12 @@ export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEnt
   }
 }
 
-export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
+/**
+ * Validates entity damage events against environmental, explosion, fall, magic, hostile, and PvP safezone rules.
+ *
+ * @param event Entity hurt before event data.
+ */
+export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent): void {
   const { damageSource } = event;
   const victim = event.hurtEntity;
 
@@ -362,11 +502,33 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent) {
     return;
   }
 
+  // Explosion damage protection (All entities)
+  if (
+    flags.preventExplosions &&
+    (cause === mc.EntityDamageCause.entityExplosion || cause === mc.EntityDamageCause.blockExplosion)
+  ) {
+    event.cancel = true;
+    return;
+  }
+
   if (victim.typeId !== MinecraftEntityTypes.Player) {
     return;
   }
 
   const player = victim as mc.Player;
+
+  // Fire, lava, and burning environment protection in PvP safezones
+  const isFireOrLavaDamage =
+    cause === mc.EntityDamageCause.fire ||
+    cause === mc.EntityDamageCause.fireTick ||
+    cause === mc.EntityDamageCause.lava ||
+    cause === mc.EntityDamageCause.campfire ||
+    cause === mc.EntityDamageCause.soulCampfire;
+
+  if (flags.preventPvP && isFireOrLavaDamage) {
+    event.cancel = true;
+    return;
+  }
 
   if (!flags.preventPvP && !flags.preventHostileDamage) {
     return;

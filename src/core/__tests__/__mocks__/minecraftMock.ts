@@ -274,8 +274,21 @@ export enum EntityDamageCause {
   magic = 'magic',
   wither = 'wither',
   fire = 'fire',
+  fireTick = 'fireTick',
+  lava = 'lava',
+  campfire = 'campfire',
+  soulCampfire = 'soulCampfire',
   drowning = 'drowning',
   void = 'void',
+}
+
+export enum Direction {
+  Down = 'Down',
+  East = 'East',
+  North = 'North',
+  South = 'South',
+  Up = 'Up',
+  West = 'West',
 }
 
 export const EntityTypes = {
