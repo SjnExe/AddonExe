@@ -286,6 +286,11 @@ export async function handleReportPlayer(player: mc.Player, targetPlayerId: stri
   player.sendMessage('§2Report sent successfully. Admins have been notified.');
 }
 
+/**
+ * Displays the unban management form allowing administrators to unban players by selection or name.
+ *
+ * @param player The administrative player opening the unban menu.
+ */
 export async function handleUnbanForm(player: mc.Player): Promise<void> {
   const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
   const activeBans = punishmentManager.getActivePunishmentsByType('ban');
@@ -313,7 +318,10 @@ export async function handleUnbanForm(player: mc.Player): Promise<void> {
   for (const entry of activeBans) {
     const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
     const expText =
-      entry.punishment.expires === Infinity || entry.punishment.expires > Date.now() + 50 * 365 * 86_400_000
+      !Number.isFinite(entry.punishment.expires) ||
+      entry.punishment.expires === Infinity ||
+      entry.punishment.expires <= 0 ||
+      entry.punishment.expires > Date.now() + 50 * 365 * 86_400_000
         ? 'Permanent'
         : new Date(entry.punishment.expires).toLocaleDateString();
     form.button(
@@ -334,6 +342,11 @@ export async function handleUnbanForm(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Displays the unmute management form allowing administrators to unmute players by selection or name.
+ *
+ * @param player The administrative player opening the unmute menu.
+ */
 export async function handleUnmuteForm(player: mc.Player): Promise<void> {
   const { getPlayerNameById, loadPlayerData } = await import('@core/data/playerDataManager.js');
   const activeMutes = punishmentManager.getActivePunishmentsByType('mute');
@@ -365,7 +378,12 @@ export async function handleUnmuteForm(player: mc.Player): Promise<void> {
   for (const entry of activeMutes) {
     const pName = getPlayerNameById(entry.playerId) ?? loadPlayerData(entry.playerId)?.name ?? entry.playerId;
     const expText =
-      entry.punishment.expires === Infinity ? 'Permanent' : new Date(entry.punishment.expires).toLocaleTimeString();
+      !Number.isFinite(entry.punishment.expires) ||
+      entry.punishment.expires === Infinity ||
+      entry.punishment.expires <= 0 ||
+      entry.punishment.expires > Date.now() + 50 * 365 * 86_400_000
+        ? 'Permanent'
+        : new Date(entry.punishment.expires).toLocaleTimeString();
     form.button(
       `§l§e${pName}§r §8(Until ${expText})\n§7${entry.punishment.reason}`,
       'textures/ui/mute_off',

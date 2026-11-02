@@ -1,9 +1,15 @@
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import * as mc from '@minecraft/server';
 
+interface IntervalEntry {
+  callback: () => void;
+  tickInterval: number;
+  nextRunTick: number;
+}
+
 const timeoutIds = new Set<number>();
 const jobIds = new Set<number>();
-const intervals = new Map<number, { callback: () => void; tickInterval: number }>();
+const intervals = new Map<number, IntervalEntry>();
 let nextIntervalId = 1;
 let masterIntervalId: number | undefined;
 let currentStepTicks = 0;
@@ -52,7 +58,8 @@ function syncMasterInterval(): void {
   masterIntervalId = mc.system.runInterval(() => {
     tickCount += currentStepTicks;
     for (const interval of intervals.values()) {
-      if (tickCount % interval.tickInterval === 0) {
+      if (tickCount >= interval.nextRunTick) {
+        interval.nextRunTick = tickCount + interval.tickInterval;
         try {
           interval.callback();
         } catch (err) {
@@ -63,9 +70,21 @@ function syncMasterInterval(): void {
   }, currentStepTicks);
 }
 
+/**
+ * Schedules a recurring task executed at a fixed tick interval.
+ *
+ * @param callback Callback executed on every interval cycle.
+ * @param tickInterval Interval length in engine ticks.
+ * @returns Unique numeric handle identifying the tracked interval.
+ */
 export function setTrackedInterval(callback: () => void, tickInterval: number): number {
   const id = nextIntervalId++;
-  intervals.set(id, { callback, tickInterval: Math.max(1, Math.floor(tickInterval)) });
+  const safeInterval = Math.max(1, Math.floor(tickInterval));
+  intervals.set(id, {
+    callback,
+    tickInterval: safeInterval,
+    nextRunTick: tickCount + safeInterval,
+  });
   syncMasterInterval();
   return id;
 }

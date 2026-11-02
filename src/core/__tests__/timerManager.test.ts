@@ -70,6 +70,68 @@ describe('timerManager', () => {
       expect(stats.intervals).toBe(1);
       expect(id).toBe(1); // Since nextIntervalId starts at 1
     });
+
+    it('should fire interval callback when tickCount advances to nextRunTick', () => {
+      let masterCb: () => void = () => {};
+      runIntervalSpy.mockImplementationOnce((cb: () => void) => {
+        masterCb = cb;
+        return 1;
+      });
+
+      let firedCount = 0;
+      setTrackedInterval(() => {
+        firedCount++;
+      }, 20);
+
+      // Simulate 1 tick of master runner (20 ticks)
+      masterCb();
+      expect(firedCount).toBe(1);
+
+      // Simulate next 20 ticks
+      masterCb();
+      expect(firedCount).toBe(2);
+    });
+
+    it('should maintain independent cadences when master step changes', () => {
+      let masterCb: () => void = () => {};
+      runIntervalSpy.mockImplementation((cb: () => void) => {
+        masterCb = cb;
+        return 1;
+      });
+
+      let slowFired = 0;
+      let fastFired = 0;
+
+      // Register slow interval (30 ticks)
+      setTrackedInterval(() => {
+        slowFired++;
+      }, 30);
+
+      // Advance 1 master tick (30 ticks advanced) -> slow fires once at 30
+      masterCb();
+      expect(slowFired).toBe(1);
+      expect(fastFired).toBe(0);
+
+      // Register fast interval (20 ticks) at tick 30 -> GCD becomes 10
+      setTrackedInterval(() => {
+        fastFired++;
+      }, 20);
+
+      // Advance by 10 ticks (tick 40)
+      masterCb();
+      expect(slowFired).toBe(1);
+      expect(fastFired).toBe(0);
+
+      // Advance by 10 ticks (tick 50) -> fast interval reaches 50 and fires
+      masterCb();
+      expect(slowFired).toBe(1);
+      expect(fastFired).toBe(1);
+
+      // Advance by 10 ticks (tick 60) -> slow interval reaches 60 and fires
+      masterCb();
+      expect(slowFired).toBe(2);
+      expect(fastFired).toBe(1);
+    });
   });
 
   describe('setTrackedTimeout()', () => {
