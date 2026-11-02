@@ -1,3 +1,4 @@
+import { clearCommandCooldown } from '@core/commands/cooldownManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import * as playerCache from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
@@ -67,6 +68,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   clearPlayerSafeBorderPosition(event.playerId);
   invalidatePlayerPermissionCache(event.playerId);
   clearPlayerRankCache(event.playerId);
+  clearCommandCooldown(event.playerId);
   playerDataManager.handlePlayerLeave(event.playerId);
   playerCache.removePlayerFromCache(event.playerId);
   debugLog(`[AddonExe] Player ${event.playerName} left.`);

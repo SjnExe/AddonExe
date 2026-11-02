@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import { $ } from 'bun';
 
+import { validateJsDocRules } from '../lint/jsdocRules.ts';
 import { validateMinecraftRules } from '../lint/minecraftRules.ts';
 
 const homeDir = os.homedir();
@@ -32,6 +33,10 @@ try {
     if (codeFiles.length > 0) {
       const ruleErrors = await validateMinecraftRules(codeFiles);
       if (ruleErrors > 0) {
+        process.exit(1);
+      }
+      const jsdocErrors = await validateJsDocRules(codeFiles, { staged: true });
+      if (jsdocErrors > 0) {
         process.exit(1);
       }
       const oxlintBin = Bun.which('oxlint') ?? './node_modules/.bin/oxlint';

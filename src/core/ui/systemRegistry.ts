@@ -21,6 +21,11 @@ export interface SystemDefinition {
 
 let cachedSystemRegistry: SystemDefinition[] | undefined;
 
+/**
+ * Retrieves the registered system definitions for in-game configuration panels.
+ *
+ * @returns Array of system definitions.
+ */
 export function getSystemRegistry(): SystemDefinition[] {
   if (isDefined(cachedSystemRegistry)) {
     return cachedSystemRegistry;
@@ -47,6 +52,13 @@ export function getSystemRegistry(): SystemDefinition[] {
         def.showFunction = async (player) => {
           const { showSidebarAdminPanel } = await import('@features/sidebar/ui/adminPanel.js');
           await showSidebarAdminPanel(player);
+        };
+      }
+      if (schema.id === 'gameplay') {
+        def.isSimpleConfig = false;
+        def.showFunction = async (player) => {
+          const { showGameplayPanel } = await import('@features/gameplay/ui/panel.js');
+          await showGameplayPanel(player);
         };
       }
       return def;

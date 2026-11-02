@@ -1,8 +1,14 @@
+import {
+  canBypassCommandCooldown,
+  getRemainingCommandCooldown,
+  setCommandCooldown,
+} from '@core/commands/cooldownManager.js';
 import { getConfig } from '@core/config/configManager.js';
 import { getPlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { frozenTag, noPermission } from '@core/utils/constants.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
+import { formatCooldown } from '@core/utils/time.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -69,6 +75,8 @@ export interface CustomCommand {
   slashName?: string;
   /** Whether to hide the command from the help menu. */
   hidden?: boolean;
+  /** Optional cooldown duration in seconds before the command can be re-executed by a player. */
+  cooldown?: number;
 }
 
 /** Manages the registration and execution of both slash and chat commands. */
@@ -237,6 +245,18 @@ class CommandManager {
     if (!hasPermission(player, command.permissionNode)) {
       player.sendMessage(noPermission);
       return;
+    }
+
+    // Cooldown Check
+    if (isDefined(command.cooldown) && command.cooldown > 0) {
+      if (!canBypassCommandCooldown(player)) {
+        const remaining = getRemainingCommandCooldown(player.id, command.name);
+        if (remaining > 0) {
+          player.sendMessage(`§cPlease wait ${formatCooldown(remaining)} before using /${command.name} again.`);
+          return;
+        }
+        setCommandCooldown(player.id, command.name, command.cooldown);
+      }
     }
 
     // Execute Command

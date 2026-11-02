@@ -570,6 +570,45 @@ export const configPanelSchema: ConfigCategory[] = [
     ],
   },
   {
+    id: 'gameplay',
+    title: 'Gameplay Mechanics',
+    icon: 'textures/ui/refresh',
+    configSource: 'gameplay',
+    category: 'Gameplay',
+    settings: [
+      {
+        key: 'customKnockback',
+        label: 'Enable Custom Knockback',
+        type: 'toggle',
+        description: 'Applies custom velocity multiplier on combat damage.',
+      },
+      {
+        key: 'knockbackScale',
+        label: 'Knockback Multiplier',
+        type: 'textField',
+        description: 'Multiplicative scale for combat knockback (0.0 = none, 1.0 = vanilla, 2.0 = double).',
+      },
+      {
+        key: 'preventFallDamage',
+        label: 'Prevent Fall Damage',
+        type: 'toggle',
+        description: 'Cancels fall damage across all players when active.',
+      },
+      {
+        key: 'keepInventory',
+        label: 'Keep Inventory on Death',
+        type: 'toggle',
+        description: 'Synchronizes keepInventory gamerule on world load and toggle.',
+      },
+      {
+        key: 'voidRescue',
+        label: 'Void Fall Rescue',
+        type: 'toggle',
+        description: 'Safely teleports players falling into the void back to world spawn.',
+      },
+    ],
+  },
+  {
     id: 'general_system',
     title: 'System Settings',
     icon: 'textures/ui/settings_glyph_color_2x',
