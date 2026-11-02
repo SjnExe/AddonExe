@@ -119,6 +119,11 @@ export const essentialsConfig = {
       joinMessage: '§e{playerName} joined the game',
       leaveMessage: '§e{playerName} left the game',
     },
+    healthIndicator: {
+      enabled: false,
+      showMaxHealth: true,
+      displayMode: 'under',
+    },
   },
   serverInfo: {
     discordLink: 'https://discord.gg/example',

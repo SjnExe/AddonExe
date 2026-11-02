@@ -1,7 +1,7 @@
 import { flushAllActivePlayerData } from '@core/data/playerDataManager.js';
 import handleBeforeChatSend from '@core/events/beforeChatSend.js';
 import handleEntityDie from '@core/events/entityDie.js';
-import handleEntityHurt from '@core/events/entityHurt.js';
+import handleEntityHurt, { handleEntityHealthChanged } from '@core/events/entityHurt.js';
 import handleItemUse from '@core/events/itemUse.js';
 import handlePlayerDimensionChange from '@core/events/playerDimensionChange.js';
 import handlePlayerLeave from '@core/events/playerLeave.js';
@@ -101,6 +101,11 @@ export function initializeEventManager() {
   registerEvent(mc.world.afterEvents.entityHurt, handleEntityHurt, 'entityHurt', {
     entityTypes: [MinecraftEntityTypes.Player],
   });
+  if (mc.world?.afterEvents?.entityHealthChanged) {
+    registerEvent(mc.world.afterEvents.entityHealthChanged, handleEntityHealthChanged, 'entityHealthChanged', {
+      entityTypes: [MinecraftEntityTypes.Player],
+    });
+  }
   registerEvent(mc.world.afterEvents.playerLeave, handlePlayerLeave, 'playerLeave');
   registerEvent(mc.world.afterEvents.playerDimensionChange, handlePlayerDimensionChange, 'playerDimensionChange');
   registerEvent(mc.world.afterEvents.itemUse, handleItemUse, 'itemUse');

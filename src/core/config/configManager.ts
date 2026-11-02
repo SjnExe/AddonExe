@@ -84,6 +84,7 @@ export async function resetConfigSection(
       resetPromises.push(config.reset());
     }
     await Promise.all(resetPromises);
+    notifyCallbacks();
 
     for (const key in configResetCallbacks) {
       const cb = configResetCallbacks[key];

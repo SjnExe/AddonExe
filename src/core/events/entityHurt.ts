@@ -1,3 +1,5 @@
+import { getConfig } from '@core/config/configManager.js';
+import { updatePlayerNameTag } from '@core/permissions/rankManager.js';
 import { recordMovementDamage } from '@features/anticheat/movementCheck.js';
 import { setLastHit } from '@features/essentials/combat/manager.js';
 import * as mc from '@minecraft/server';
@@ -12,6 +14,19 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent): void {
   }
 
   recordMovementDamage(victim.id);
+
+  const config = getConfig();
+  if (config.playerInfo?.healthIndicator?.enabled === true) {
+    mc.system.runTimeout(() => {
+      try {
+        if (victim.isValid) {
+          updatePlayerNameTag(victim as mc.Player, config);
+        }
+      } catch {
+        // Ignore
+      }
+    }, 1);
+  }
 
   const damagingEntity = damageSource.damagingEntity;
   if (!damagingEntity || !damagingEntity.isValid) {
@@ -31,6 +46,26 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent): void {
     }
   } catch {
     // Entity may have been removed / invalid in the same tick (e.g. exploding creeper)
+  }
+}
+
+export function handleEntityHealthChanged(event: mc.EntityHealthChangedAfterEvent): void {
+  const victim = event.entity;
+  if (!victim.isValid || victim.typeId !== MinecraftEntityTypes.Player) {
+    return;
+  }
+
+  const config = getConfig();
+  if (config.playerInfo?.healthIndicator?.enabled === true) {
+    mc.system.runTimeout(() => {
+      try {
+        if (victim.isValid) {
+          updatePlayerNameTag(victim as mc.Player, config);
+        }
+      } catch {
+        // Ignore
+      }
+    }, 1);
   }
 }
 

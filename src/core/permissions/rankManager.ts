@@ -1,7 +1,7 @@
 import { CommandExecutor } from '@commands/commandManager.js';
-import { getConfig } from '@core/config/configManager.js';
+import { getConfig, onConfigUpdated } from '@core/config/configManager.js';
 import { getRanksConfig, saveRanksConfig } from '@core/config/configurations.js';
-import { findPlayerByName, getPlayerFromCache } from '@core/data/playerCache.js';
+import { findPlayerByName, getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import * as permissionEngine from '@core/permissions/permissionEngine.js';
 import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
@@ -20,6 +20,27 @@ const rankCache = new Map<string, { rank: RankDefinition; tick: number }>();
 
 // Cache for rank definitions by ID for O(1) lookups
 const ranksMap = new Map<string, RankDefinition>();
+
+let configHookRegistered = false;
+
+function registerNameTagConfigHook(): void {
+  if (configHookRegistered) {
+    return;
+  }
+  configHookRegistered = true;
+  onConfigUpdated((newConfig) => {
+    for (const player of getAllPlayersFromCache()) {
+      try {
+        if (player.isValid) {
+          updatePlayerNameTag(player, newConfig);
+        }
+      } catch {
+        // Ignore
+      }
+    }
+  });
+}
+registerNameTagConfigHook();
 
 /**
  * Reloads and sorts the ranks from the config manager cache. This can be called to refresh ranks after they've been
@@ -233,6 +254,27 @@ export function updatePlayerNameTag(player: mc.Player, config: typeof Config = g
     }
   } else {
     newNameTag = player.name;
+  }
+
+  // Health indicator display (using Bedrock special glyph \uE10C)
+  if (config.playerInfo?.healthIndicator?.enabled === true) {
+    try {
+      const healthComp = player.getComponent(mc.EntityComponentTypes.Health) as mc.EntityHealthComponent | undefined;
+      if (healthComp && isDefined(healthComp.currentValue)) {
+        const curHp = Math.max(0, Math.ceil(healthComp.currentValue));
+        const maxHp = Math.ceil(healthComp.effectiveMax ?? 20);
+        const hpText = config.playerInfo.healthIndicator.showMaxHealth ? `${curHp}/${maxHp}` : `${curHp}`;
+        const healthBadge = `§c\uE10C §f${hpText}§r`;
+
+        if (config.playerInfo.healthIndicator.displayMode === 'suffix') {
+          newNameTag = `${newNameTag} ${healthBadge}`;
+        } else {
+          newNameTag = `${newNameTag}\n${healthBadge}`;
+        }
+      }
+    } catch {
+      // In case component access is temporarily unavailable
+    }
   }
 
   if (player.nameTag !== newNameTag) {

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
 import { initializeConfigManager } from '@core/config/configManager.js';
-import handleEntityHurt from '@core/events/entityHurt.js';
+import handleEntityHurt, { handleEntityHealthChanged } from '@core/events/entityHurt.js';
 import { handleBeforeEntityHurt } from '@core/events/protectionEvents.js';
 import { resolveKiller } from '@features/essentials/combat/manager.js';
 import * as mc from '@minecraft/server';
@@ -73,5 +73,16 @@ describe('Entity Hurt & Explosion Safety', () => {
     } as unknown as mc.EntityHurtBeforeEvent;
 
     expect(() => handleBeforeEntityHurt(event)).not.toThrow();
+  });
+
+  it('handleEntityHealthChanged safely schedules nametag update for valid players', () => {
+    const victim = new mc.Player('player-1', 'Healed');
+    const event = {
+      entity: victim,
+      newValue: 20,
+      oldValue: 10,
+    } as unknown as mc.EntityHealthChangedAfterEvent;
+
+    expect(() => handleEntityHealthChanged(event)).not.toThrow();
   });
 });

@@ -1288,6 +1288,25 @@ export const configPanelSchema: ConfigCategory[] = [
         description: 'Use {playerName} for the player name.',
       },
       {
+        key: 'playerInfo.healthIndicator.enabled',
+        label: 'Player Health Indicator',
+        type: 'toggle',
+        description: 'Displays health hearts under or after other players’ nametags.',
+      },
+      {
+        key: 'playerInfo.healthIndicator.showMaxHealth',
+        label: 'Show Max Health (HP/MaxHP)',
+        type: 'toggle',
+        description: 'Whether to show the maximum health alongside current health.',
+      },
+      {
+        key: 'playerInfo.healthIndicator.displayMode',
+        label: 'Health Indicator Position',
+        type: 'dropdown',
+        options: ['under', 'suffix'],
+        description: 'Whether health appears on a new line under the nametag or as a suffix.',
+      },
+      {
         key: 'ranks.nameTagStyle',
         label: 'Nametag Rank Style',
         type: 'dropdown',
