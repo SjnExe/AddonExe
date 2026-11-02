@@ -398,6 +398,12 @@ export async function showTeamRequestActionPanel(
   await form.show(player);
 }
 
+/**
+ * Displays the team home management interface for establishing or removing team headquarters.
+ *
+ * @param player Player opening the team home interface.
+ * @returns Promise resolving when the UI interaction finishes.
+ */
 export async function showTeamHomePanel(player: mc.Player): Promise<void> {
   const team = teamManager.getTeamByPlayer(player.id);
   if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
@@ -408,7 +414,7 @@ export async function showTeamHomePanel(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder()
     .title('Manage Team Home')
     .button('Set Home Here', 'textures/ui/color_plus', async () => {
-      const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id);
+      const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id, player);
       player.sendMessage(res.message ?? 'Done');
       await showTeamHomePanel(player);
     });
