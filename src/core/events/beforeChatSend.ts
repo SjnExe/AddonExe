@@ -55,6 +55,8 @@ export function _clearChatFilterStateForTest(): void {
 /**
  * Handles chat messages before they are sent. Manages chat formatting, muting, staff chat, team chat, logging, and
  * mentions.
+ *
+ * @param event The chat send before event.
  */
 export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
   const config = getConfig();
@@ -81,7 +83,10 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
   if (isDefined(mute)) {
     event.cancel = true;
     const reason = mute.reason ? ` Reason: ${mute.reason}` : '';
-    const durationStr = mute.expires === Infinity ? 'Permanently' : `Until: ${new Date(mute.expires).toLocaleString()}`;
+    const durationStr =
+      !Number.isFinite(mute.expires) || mute.expires === Infinity || mute.expires <= 0
+        ? 'Permanently'
+        : `Until: ${new Date(mute.expires).toLocaleString()}`;
     player.sendMessage(`§cYou are muted. ${durationStr}${reason}`);
     return;
   }
