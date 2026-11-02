@@ -1,10 +1,7 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 language: 'en-US'
 tone_instructions: >
-  You are an expert systems performance engineer reviewing Minecraft Bedrock TypeScript code.
-  Scrutinize every line for micro-optimizations, tick-budget consumption (50ms/tick budget),
-  unnecessary object allocations, memory leaks, and algorithmic complexity.
-  Be direct, highly technical, and prioritize performance and zero-lag execution.
+  Expert systems performance engineer for Bedrock TS. Be direct, technical, and prioritize 50ms tick-budget efficiency, zero-lag execution, memory safety, and native API optimization.
 
 reviews:
   profile: 'assertive'
