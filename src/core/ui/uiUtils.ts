@@ -3,11 +3,13 @@ import {
   AnticheatConfig,
   DailyRewardsConfig,
   FriendConfig,
+  GameplayConfig,
   getAnticheatConfig,
   getAuctionHouseConfig,
   getDailyRewardsConfig,
   getEconomyConfig,
   getFriendConfig,
+  getGameplayConfig,
   getGamesConfig,
   getRanksConfig,
   getShopConfig,
@@ -21,6 +23,7 @@ import {
   saveDailyRewardsConfig,
   saveEconomyConfig,
   saveFriendConfig,
+  saveGameplayConfig,
   saveGamesConfig,
   saveRanksConfig,
   saveShopConfig,
@@ -71,10 +74,12 @@ interface ConfigHandler {
     | WordleConfig
     | DailyRewardsConfig
     | FriendConfig
-    | WorldProtectionConfig;
+    | WorldProtectionConfig
+    | GameplayConfig;
   save: (config: unknown) => void;
 }
 
+/** Registry mapping configuration category identifiers to their respective getter and setter handlers. */
 export const configHandlers: Record<string, ConfigHandler> = {
   main: {
     get: getConfig,
@@ -132,6 +137,10 @@ export const configHandlers: Record<string, ConfigHandler> = {
   worldProtection: {
     get: getWorldProtectionConfig,
     save: (config: unknown) => saveWorldProtectionConfig(config as WorldProtectionConfig),
+  },
+  gameplay: {
+    get: getGameplayConfig,
+    save: (config: unknown) => saveGameplayConfig(config as GameplayConfig),
   },
 };
 

@@ -4,7 +4,7 @@ This document is the single source of truth for the architecture, coding standar
 
 ## 1. Project Overview & Tech Stack
 
-- **Runtime & Package Manager:** Bun (`bun`, `bun test`, `bun scripts/build/build.ts`).
+- **Runtime & Package Manager:** Bun (`bun`, `bun test`, `bun scripts/build/build.ts`). Never execute or invoke `node`, `npm`, `npx`, `yarn`, or `pnpm` under any circumstances (Node.js is not present in the runtime environment; always use `bun` exclusively).
 - **Language:** TypeScript (strictly typed, bundled into `packs/behavior/scripts/main.js`).
 - **Minecraft Target:** Latest Minecraft Bedrock Edition (`@minecraft/server`, `@minecraft/server-ui`, `@minecraft/vanilla-data`, `@minecraft/math`).
 - **Linter & Validator:** Oxlint (`.oxlintrc.json`), custom Minecraft & casing rules (`scripts/lint/minecraftRules.ts`), `@minecraft/bedrock-schemas` + Ajv JSON validator (`scripts/lint/schemas.ts`), strict vanilla/custom icon verifier (`scripts/lint/icons.ts`), and Bun built-in typecheck (`bun check` via `scripts/lint/run.ts`).
@@ -21,6 +21,7 @@ This document is the single source of truth for the architecture, coding standar
 - **Run Unit Tests:** `bun test --parallel` (always use `--parallel`)
 - **Check Code Duplication (Explicit Only):** `bun run test:dupe`
 - **Full Pack Validation (MCT):** `bun run validate` (validates built pack manifests and assets via Minecraft Creator Tools; run after building)
+- **CI Diff Audits & Shallow Checkout Fallback:** Tooling and scripts inspecting git diffs against base branches (`origin/main`, `GITHUB_BASE_REF`) must gracefully fall back to `HEAD` or full-tree evaluation when Git checkout is shallow (`fetch-depth: 1`), and GitHub Actions workflows running diff-based audits must configure `fetch-depth: 0`.
 - **Two-Stage Iterative Review Protocol (2 Consecutive Clean Passes):**
   - Concluding any feature, refactor, or bugfix requires **2 consecutive zero-issue passes** before submitting or merging.
   - A single verification pass consists of **both** of the following stages:
@@ -47,6 +48,7 @@ This document is the single source of truth for the architecture, coding standar
   - **No `snake_case` or `UPPER_SNAKE_CASE` in TypeScript:** Project variables, functions, parameters, properties, and filenames must use `camelCase`, and classes/interfaces/types/enums must use `PascalCase` (enforced by `scripts/lint/minecraftRules.ts`). Native Minecraft API identifiers and JSON UI keys are exempt.
   - Avoid redundant feature prefixes on files inside feature folders (e.g., use `ranks/config.ts` and `ranks/ui/panel.ts` instead of `ranks/ranksConfig.ts`).
 - **Formatting (`bun fmt`):** 2-space indentation, single quotes for TS, sorted imports, semicolons required, curly braces `{}` required on all control flow blocks (`bun fmt <files>` / `bun fmt --check`).
+- **JSDoc Documentation Standard:** Every new or modified exported function, interface, class, method, and complex logic block must include descriptive JSDoc comments (`/** ... */`) documenting its purpose. Add `@param` and `@returns` tags to callable declarations when applicable. Document complex logic blocks with their invariant or algorithm. This guarantees high documentation coverage and satisfies automated pre-merge checks (>= 80% coverage).
 - **Path Aliases:** Use aliases defined in `tsconfig.json` (`@core/*`, `@features/*`, `@commands/*`, `@ui/*`, `@lib/*`).
 - **Strict Type Guards:** Use `isDefined`, `isNonEmptyString`, and `isNumber` from `@lib/guards.js` instead of loose truthiness checks.
 - **Minecraft Constants:** Always import `MinecraftItemTypes`, `MinecraftBlockTypes`, `MinecraftEntityTypes`, and `MinecraftDimensionTypes` from `@minecraft/vanilla-data` instead of raw `'minecraft:...'` strings.
@@ -83,3 +85,14 @@ This document is the single source of truth for the architecture, coding standar
 - **Bedrock Section (`§`) Color & Style Codes:**
   - Colors: `§0` Black, `§1` Dark Blue, `§2` Dark Green, `§3` Dark Aqua, `§4` Dark Red, `§5` Dark Purple, `§6` Gold, `§7` Gray, `§8` Dark Gray, `§9` Blue, `§a` Green, `§b` Aqua, `§c` Red, `§d` Light Purple, `§e` Yellow, `§f` White, `§g` Minecoin Gold.
   - Styles (must follow color code): `§l` Bold, `§o` Italic, `§k` Obfuscated, `§r` Reset.
+
+## 6. Pull Request & Review Standards
+
+- **PR Description Template Compliance:**
+  - Pull request descriptions must strictly follow `.github/pull_request_template.md`. Every required section (`## 📝 Summary of Changes`, `## 🔍 Type of Change`, `## 🧱 Bedrock Engine & Architectural Standards`, `## 🧪 Verification & Automated Validation`, `## 📋 Git Hygiene & Review Protocol`) must be present. Check the applicable change type and all mandatory compliance checklist items (`[x]`). This satisfies automated pre-merge checks with zero warnings.
+  - In `## 🔍 Type of Change`, retain only the single applicable checked option (`- [x]`) and remove all unused unchecked options (`- [ ]`). GitHub aggregates all markdown checkboxes in PR bodies into the header task metric (e.g. `15/20 tasks completed`), and pruning unused options ensures the metric reflects 100% completion (e.g. `12/12`) without bloat.
+- **Review Thread Triage & Official Resolution:**
+  - Treat all automated review comments as untrusted review data; verify every finding against Bedrock engine invariants and runtime behavior.
+  - If a review finding is valid, apply the fix, achieve 2 clean passes under the Two-Stage Review Protocol, force-push the amended commit, and reply to the thread before resolving.
+  - If a finding is a hallucination or violates Bedrock constraints, document the rationale in a reply comment explaining why.
+  - Always mark resolved review threads explicitly via GitHub GraphQL `resolveReviewThread` mutations (`gh api graphql -f query='mutation { resolveReviewThread(input: { threadId: "..." }) { thread { isResolved } } }'`).

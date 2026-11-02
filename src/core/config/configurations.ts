@@ -6,6 +6,8 @@ import { economyConfig } from '@features/economy/config.js';
 import { dailyRewardsConfig } from '@features/economy/daily/config.js';
 import { shopConfig } from '@features/economy/shop/config.js';
 import { type WorldProtectionConfig, worldProtectionConfig } from '@features/essentials/protection/config.js';
+import { defaultGameplayConfig } from '@features/gameplay/config.js';
+import type { GameplayConfig } from '@features/gameplay/types.js';
 import { type GamesConfig, gamesConfig } from '@features/games/config.js';
 import { type WordleConfig, wordleConfig } from '@features/games/wordle/config.js';
 import ranksConfig from '@features/ranks/config.js';
@@ -14,7 +16,7 @@ import { friendConfig } from '@features/social/friends/config.js';
 import { teamConfig } from '@features/social/team/config.js';
 import * as mc from '@minecraft/server';
 
-export type { AnticheatConfig, GamesConfig, WordleConfig, WorldProtectionConfig };
+export type { AnticheatConfig, GamesConfig, WordleConfig, WorldProtectionConfig, GameplayConfig };
 export type ShopConfig = typeof shopConfig;
 export type RanksConfig = typeof ranksConfig;
 export type EconomyConfig = typeof economyConfig;
@@ -186,19 +188,84 @@ export const getAnticheatConfig = anticheatAcc.get;
 export const saveAnticheatConfig = anticheatAcc.save;
 export const resetAnticheatConfig = anticheatAcc.reset;
 
+const gameplayAcc = createConfigAccessors('gameplay', 'exe:gameplayConfig:current', defaultGameplayConfig, 'Gameplay', {
+  onLoadOrReset: async () => {
+    const { syncGameplayGamerules } = await import('@features/gameplay/manager.js');
+    syncGameplayGamerules();
+  },
+  onSave: () => {
+    void import('@features/gameplay/manager.js').then((m) => m.syncGameplayGamerules());
+  },
+});
+/**
+ * Loads the gameplay configuration on world initialization.
+ *
+ * @param isMigration Whether initialization occurs during a data migration.
+ */
+export const loadGameplayConfig = gameplayAcc.load;
+/**
+ * Retrieves the current server gameplay configuration.
+ *
+ * @returns The active gameplay configuration.
+ */
+export const getGameplayConfig = gameplayAcc.get;
+/**
+ * Saves updates to the server gameplay configuration, merging partial input with defaults and validating numeric and
+ * boolean constraints.
+ *
+ * @param newConfig Updated gameplay configuration or partial updates.
+ */
+export const saveGameplayConfig = (newConfig: Partial<GameplayConfig>): void => {
+  const merged: GameplayConfig = {
+    customKnockback:
+      typeof newConfig?.customKnockback === 'boolean'
+        ? newConfig.customKnockback
+        : defaultGameplayConfig.customKnockback,
+    knockbackScale:
+      typeof newConfig?.knockbackScale === 'number' && Number.isFinite(newConfig.knockbackScale)
+        ? Math.max(0, Math.min(5.0, newConfig.knockbackScale))
+        : defaultGameplayConfig.knockbackScale,
+    preventFallDamage:
+      typeof newConfig?.preventFallDamage === 'boolean'
+        ? newConfig.preventFallDamage
+        : defaultGameplayConfig.preventFallDamage,
+    keepInventory:
+      typeof newConfig?.keepInventory === 'boolean' ? newConfig.keepInventory : defaultGameplayConfig.keepInventory,
+    voidRescue: typeof newConfig?.voidRescue === 'boolean' ? newConfig.voidRescue : defaultGameplayConfig.voidRescue,
+  };
+  gameplayAcc.save(merged);
+};
+/** Resets the gameplay configuration to default values. */
+export const resetGameplayConfig = gameplayAcc.reset;
+
+/** Registry entry structure for modular configuration section resets. */
 export type ResetRegistryEntry = {
   reset: () => Promise<void>;
   message: string;
   postResetCallback?: (player?: mc.Player) => void;
 };
 
+/** Active registry mapping configuration section identifiers to reset handlers and messages. */
 export const configResetRegistry: Record<string, ResetRegistryEntry> = {};
+/** Active registry mapping configuration section identifiers to post-reset callback handlers. */
 export const configResetCallbacks: Record<string, (player?: mc.Player) => void> = {};
 
+/**
+ * Registers a reset entry for a modular configuration section.
+ *
+ * @param key Configuration section identifier.
+ * @param entry Reset handler entry with display message and optional post-reset hook.
+ */
 export function registerConfigReset(key: string, entry: ResetRegistryEntry): void {
   configResetRegistry[key] = entry;
 }
 
+/**
+ * Registers a post-reset callback handler for a configuration section.
+ *
+ * @param key Configuration section identifier.
+ * @param callback Callback executed after resetting the section.
+ */
 export function registerConfigResetCallback(key: string, callback: (player?: mc.Player) => void): void {
   configResetCallbacks[key] = callback;
 }

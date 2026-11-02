@@ -140,6 +140,10 @@ export const world = {
     chunkCount: 0,
     maxChunkCount: 100,
   },
+  gameRules: {
+    keepInventory: false,
+  },
+  getDefaultSpawnLocation: mock(() => ({ x: 0, y: 64, z: 0 })),
 };
 
 export const system = {

@@ -1,6 +1,7 @@
 import { $ } from 'bun';
 
 import { validateIcons } from './icons.ts';
+import { getChangedFiles, validateJsDocRules } from './jsdocRules.ts';
 import { validateMinecraftRules } from './minecraftRules.ts';
 import { validateSchemas } from './schemas.ts';
 
@@ -51,8 +52,22 @@ async function runLintingPipeline() {
   const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());
   const iconTask = runTask('Icon & Texture Integrity', () => validateIcons());
   const typeCheckTask = runTask('TypeScript Type Check', () => $`bun check`.quiet());
+  /**
+   * Performs an automated JSDoc documentation audit on all files modified on the current branch. File selection
+   * invariant: Computes merge base against origin/main to capture all committed, staged, and working-tree changes, plus
+   * untracked files via `git status --porcelain -uall`.
+   */
+  const jsdocTask = runTask('JSDoc Documentation Audit', async () => {
+    const changedFiles = await getChangedFiles();
+    if (changedFiles.length > 0) {
+      const errors = await validateJsDocRules(changedFiles);
+      if (errors > 0) {
+        throw new Error(`Found ${errors} missing JSDoc documentation violation(s).`);
+      }
+    }
+  });
 
-  const results = await Promise.all([mcRulesTask, oxlintTask, schemaTask, iconTask, typeCheckTask]);
+  const results = await Promise.all([mcRulesTask, oxlintTask, schemaTask, iconTask, typeCheckTask, jsdocTask]);
 
   const totalDuration = (performance.now() - overallStart).toFixed(2);
 

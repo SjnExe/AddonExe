@@ -105,6 +105,12 @@ rawFeatures.push(
     dependencies: ['eco'],
     load: () => import('@features/social/team/index.js'),
   },
+  {
+    id: 'gameplay',
+    name: 'Gameplay Mechanics',
+    dependencies: [],
+    load: () => import('@features/gameplay/index.js'),
+  },
 );
 
 if (typeof __CANARY__ !== 'undefined' && __CANARY__) {
