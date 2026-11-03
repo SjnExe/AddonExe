@@ -1462,6 +1462,46 @@ export const configPanelSchema: ConfigCategory[] = [
     ],
   },
   {
+    id: 'itemBlacklist',
+    title: 'Item Blacklist Settings',
+    icon: 'textures/ui/icon_recipe_equipment',
+    configSource: 'itemBlacklist',
+    category: 'Moderation & Rules',
+    settings: [
+      {
+        key: 'enabled',
+        label: 'Enable Item Blacklist',
+        type: 'toggle',
+        description: 'Enforces security policy and confiscation for prohibited server items.',
+      },
+      {
+        key: 'action',
+        label: 'Enforcement Action',
+        type: 'dropdown',
+        options: ['confiscate', 'cancel'],
+        description: 'Action to apply upon detecting a prohibited item (confiscate or cancel).',
+      },
+      {
+        key: 'broadcastToStaff',
+        label: 'Broadcast Staff Alerts',
+        type: 'toggle',
+        description: 'Sends real-time in-game alert to online staff members upon infraction.',
+      },
+      {
+        key: 'persistToLog',
+        label: 'Persist Audit History',
+        type: 'toggle',
+        description: 'Records infraction details to persistent dynamic property storage.',
+      },
+      {
+        key: 'logToConsole',
+        label: 'Console Warning Logs',
+        type: 'toggle',
+        description: 'Outputs a warning entry to the server console log.',
+      },
+    ],
+  },
+  {
     id: 'xray',
     title: 'X-Ray System',
     icon: 'textures/blocks/diamond_ore',

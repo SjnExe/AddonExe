@@ -58,6 +58,9 @@ const clearCommand: CustomCommand = {
           d.offlineInventory = {};
           d.offlineEquipment = {};
           d.pendingInventoryClear = true;
+          d.pendingOfflineInventorySync = false;
+          delete d.pendingOfflineInventoryModifications;
+          delete d.pendingOfflineEquipmentModifications;
         });
         sendMessage(`§aCleared offline inventory for ${displayName} (will apply on next join).`, executor);
         return;

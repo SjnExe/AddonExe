@@ -10,6 +10,7 @@ import { defaultGameplayConfig } from '@features/gameplay/config.js';
 import type { GameplayConfig } from '@features/gameplay/types.js';
 import { type GamesConfig, gamesConfig } from '@features/games/config.js';
 import { type WordleConfig, wordleConfig } from '@features/games/wordle/config.js';
+import { defaultItemBlacklistConfig } from '@features/moderation/blacklist/config.js';
 import ranksConfig from '@features/ranks/config.js';
 import { config as sidebarConfig } from '@features/sidebar/config.js';
 import { friendConfig } from '@features/social/friends/config.js';
@@ -279,6 +280,33 @@ export const saveGameplayConfig = (newConfig: Partial<GameplayConfig>): void => 
 };
 /** Resets the gameplay configuration to default values. */
 export const resetGameplayConfig = gameplayAcc.reset;
+
+const itemBlacklistAcc = createConfigAccessors(
+  'itemBlacklist',
+  'exe:itemBlacklistConfig:current',
+  defaultItemBlacklistConfig,
+  'ItemBlacklist',
+);
+/**
+ * Loads the item blacklist configuration on world initialization.
+ *
+ * @param isMigration Whether initialization occurs during a data migration.
+ */
+export const loadItemBlacklistConfig = itemBlacklistAcc.load;
+/**
+ * Retrieves the current item blacklist configuration.
+ *
+ * @returns The active item blacklist configuration.
+ */
+export const getItemBlacklistConfig = itemBlacklistAcc.get;
+/**
+ * Saves updates to the item blacklist configuration.
+ *
+ * @param newConfig Updated item blacklist configuration.
+ */
+export const saveItemBlacklistConfig = itemBlacklistAcc.save;
+/** Resets the item blacklist configuration to default values. */
+export const resetItemBlacklistConfig = itemBlacklistAcc.reset;
 
 /** Registry entry structure for modular configuration section resets. */
 export type ResetRegistryEntry = {

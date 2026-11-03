@@ -7,6 +7,7 @@ import {
   updatePlayerData,
 } from '@core/data/playerDataManager.js';
 import { canTarget } from '@core/permissions/rankManager.js';
+import { showInventoryPanel } from '@core/ui/panels/inventoryPanel.js';
 import { resolveTarget } from '@core/utils/index.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
@@ -72,6 +73,11 @@ const invseeCommand: CustomCommand = {
         return;
       }
 
+      if (executor instanceof mc.Player) {
+        void showInventoryPanel(executor, targetPlayer.id);
+        return;
+      }
+
       executor.sendMessage(`§eInventory of ${targetPlayer.name}:`);
       const inventory = targetPlayer.getComponent(EntityComponentTypes.Inventory)?.container;
       const equipment = targetPlayer.getComponent(EntityComponentTypes.Equippable);
@@ -102,6 +108,11 @@ const invseeCommand: CustomCommand = {
     }
     if (executor instanceof mc.Player && executor.id !== offlineId && !canTarget(executor, offlineId)) {
       executor.sendMessage('§cYou cannot view the inventory of a player with the same or higher rank than you.');
+      return;
+    }
+
+    if (executor instanceof mc.Player) {
+      void showInventoryPanel(executor, offlineId);
       return;
     }
 
@@ -173,6 +184,8 @@ const ecwipeCommand: CustomCommand = {
         updatePlayerData(onlineTarget.id, (d) => {
           d.offlineEnderChest = {};
           d.pendingEnderChestWipe = false;
+          d.pendingOfflineEnderChestSync = false;
+          delete d.pendingOfflineEnderChestModifications;
         });
         executor.sendMessage(`§aSuccessfully wiped Ender Chest of ${onlineTarget.name}.`);
         return;
@@ -184,6 +197,8 @@ const ecwipeCommand: CustomCommand = {
       updatePlayerData(targetId, (d) => {
         d.offlineEnderChest = {};
         d.pendingEnderChestWipe = true;
+        d.pendingOfflineEnderChestSync = false;
+        delete d.pendingOfflineEnderChestModifications;
       });
       executor.sendMessage(`§aWiped offline Ender Chest of ${displayName} (will apply on next join).`);
       return;
