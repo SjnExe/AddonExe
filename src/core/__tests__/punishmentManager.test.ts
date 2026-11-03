@@ -248,10 +248,10 @@ describe('PunishmentManager', () => {
     const legacyKey = 'AlIcE';
 
     const idSpy = spyOn(playerDataManager, 'getPlayerIdByName').mockImplementation((name: string) => {
-      return name.toLowerCase() === 'alice' ? playerId : undefined;
+      return undefined;
     });
     const nameSpy = spyOn(playerDataManager, 'getPlayerNameById').mockImplementation((id: string) => {
-      return id === playerId ? 'Alice' : undefined;
+      return undefined;
     });
 
     try {
@@ -261,6 +261,13 @@ describe('PunishmentManager', () => {
       ];
       mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
       loadPunishments();
+
+      // Keep the legacy key in place until removal.
+      expect(getPunishment(legacyKey, 'ban')).toBeDefined();
+
+      // Enable alias resolution so removal by player ID reaches the case-variant scan.
+      idSpy.mockImplementation((name: string) => (name.toLowerCase() === 'alice' ? playerId : undefined));
+      nameSpy.mockImplementation((id: string) => (id === playerId ? 'Alice' : undefined));
 
       // Ensure removal by player ID purges the case-variant legacy key
       removePunishment(playerId, 'ban');
