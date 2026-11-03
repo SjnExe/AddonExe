@@ -11,6 +11,7 @@ import {
   getFriendConfig,
   getGameplayConfig,
   getGamesConfig,
+  getLandClaimConfig,
   getRanksConfig,
   getShopConfig,
   getSidebarConfig,
@@ -18,6 +19,7 @@ import {
   getWordleConfig,
   getWorldProtectionConfig,
   getXrayConfig,
+  LandClaimConfig,
   saveAnticheatConfig,
   saveAuctionHouseConfig,
   saveDailyRewardsConfig,
@@ -25,6 +27,7 @@ import {
   saveFriendConfig,
   saveGameplayConfig,
   saveGamesConfig,
+  saveLandClaimConfig,
   saveRanksConfig,
   saveShopConfig,
   saveSidebarConfig,
@@ -35,6 +38,7 @@ import {
   SidebarConfig,
 } from '@core/config/configurations.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { deepClone } from '@core/utils/objectUtils.js';
 import { xrayConfig } from '@features/anticheat/xray/config.js';
 import { auctionHouseConfig } from '@features/economy/auction/config.js';
 import { economyConfig } from '@features/economy/config.js';
@@ -74,16 +78,18 @@ interface ConfigHandler {
     | WordleConfig
     | DailyRewardsConfig
     | FriendConfig
+    | LandClaimConfig
     | WorldProtectionConfig
     | GameplayConfig;
-  save: (config: unknown) => void;
+  save: (config: unknown) => boolean | void;
 }
 
 /** Registry mapping configuration category identifiers to their respective getter and setter handlers. */
 export const configHandlers: Record<string, ConfigHandler> = {
   main: {
     get: getConfig,
-    save: (updates: unknown) => updateMultipleConfig(updates as Record<string, unknown>),
+    save: (updates: unknown): boolean =>
+      (updateMultipleConfig(updates as Record<string, unknown>) as unknown) !== false,
   },
   economy: {
     get: getEconomyConfig,
@@ -96,6 +102,81 @@ export const configHandlers: Record<string, ConfigHandler> = {
   team: {
     get: getTeamConfig,
     save: (config: unknown) => saveTeamConfig(config as TeamConfig),
+  },
+  landclaim: {
+    get: getLandClaimConfig,
+    save: (config: unknown): boolean => {
+      if (!config || typeof config !== 'object' || Array.isArray(config)) {
+        return false;
+      }
+      const raw = config as Record<string, unknown>;
+      const allowedKeys = new Set([
+        'enabled',
+        'maxClaimsPerPlayer',
+        'claimCost',
+        'allowNether',
+        'allowTheEnd',
+        'endIslandProtectedRadius',
+        'preventExplosionsDefault',
+        'preventPvPDefault',
+        'visualizerDurationSeconds',
+      ]);
+      for (const key of Object.keys(raw)) {
+        if (!allowedKeys.has(key)) {
+          return false;
+        }
+      }
+      if (raw.enabled !== undefined && typeof raw.enabled !== 'boolean') {
+        return false;
+      }
+      if (raw.allowNether !== undefined && typeof raw.allowNether !== 'boolean') {
+        return false;
+      }
+      if (raw.allowTheEnd !== undefined && typeof raw.allowTheEnd !== 'boolean') {
+        return false;
+      }
+      if (raw.preventExplosionsDefault !== undefined && typeof raw.preventExplosionsDefault !== 'boolean') {
+        return false;
+      }
+      if (raw.preventPvPDefault !== undefined && typeof raw.preventPvPDefault !== 'boolean') {
+        return false;
+      }
+      if (
+        raw.maxClaimsPerPlayer !== undefined &&
+        (typeof raw.maxClaimsPerPlayer !== 'number' ||
+          !Number.isFinite(raw.maxClaimsPerPlayer) ||
+          raw.maxClaimsPerPlayer < 0)
+      ) {
+        return false;
+      }
+      if (
+        raw.claimCost !== undefined &&
+        (typeof raw.claimCost !== 'number' || !Number.isFinite(raw.claimCost) || raw.claimCost < 0)
+      ) {
+        return false;
+      }
+      if (
+        raw.endIslandProtectedRadius !== undefined &&
+        (typeof raw.endIslandProtectedRadius !== 'number' ||
+          !Number.isFinite(raw.endIslandProtectedRadius) ||
+          raw.endIslandProtectedRadius < 0)
+      ) {
+        return false;
+      }
+      if (
+        raw.visualizerDurationSeconds !== undefined &&
+        (typeof raw.visualizerDurationSeconds !== 'number' ||
+          !Number.isFinite(raw.visualizerDurationSeconds) ||
+          raw.visualizerDurationSeconds < 0 ||
+          raw.visualizerDurationSeconds > 300)
+      ) {
+        return false;
+      }
+      return saveLandClaimConfig({
+        ...deepClone(getLandClaimConfig()),
+        ...(raw as Partial<LandClaimConfig>),
+      });
+    },
   },
   sidebar: {
     get: getSidebarConfig,

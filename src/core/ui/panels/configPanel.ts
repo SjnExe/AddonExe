@@ -2,7 +2,7 @@ import { resetConfigSection, updateMultipleConfig } from '@core/config/configMan
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { debugLog } from '@core/utils/logger.js';
-import { getValueFromPath } from '@core/utils/objectUtils.js';
+import { deepClone, getValueFromPath } from '@core/utils/objectUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
@@ -111,6 +111,14 @@ export async function showConfigCategoryDetailPanel(
   await form.show(player);
 }
 
+/**
+ * Displays the configuration form for a specific system, enabling staff to view and edit settings.
+ *
+ * @param player Administrative player viewing the configuration.
+ * @param systemId Subsystem identifier key.
+ * @param context Optional caller context for navigation back to category views.
+ * @returns Promise that resolves when the form has been processed or closed.
+ */
 export async function showConfigSystemPanel(
   player: mc.Player,
   systemId: string,
@@ -204,6 +212,7 @@ export async function showConfigSystemPanel(
     updatesBySource[src]!.push(s);
   }
 
+  let allSaved = true;
   for (const [src, settingsForSource] of Object.entries(updatesBySource)) {
     const handler = uiConfigHandlers[src];
     if (!isDefined(handler)) {
@@ -212,10 +221,12 @@ export async function showConfigSystemPanel(
     const srcConfig = handler.get() as Record<string, unknown>;
     const updates = _processFormValues(settingsForSource, res, srcConfig);
     debugLog(`[UI Config] Saving updates for source: ${src} - ${JSON.stringify(updates)}`);
-    _saveConfigUpdates(handler, src, updates);
+    if (!_saveConfigUpdates(handler, src, updates)) {
+      allSaved = false;
+    }
   }
 
-  player.sendMessage('§2Configuration saved.');
+  player.sendMessage(allSaved ? '§2Configuration saved.' : '§4One or more configuration sections failed to save.');
   await returnToCaller();
 }
 
@@ -321,29 +332,72 @@ async function _showExportResultPanel(player: mc.Player, jsonString: string): Pr
   await showConfigTransferPanel(player);
 }
 
+/**
+ * Displays a modal dialog allowing staff to import configuration JSON into a specific subsystem or all systems.
+ *
+ * @param player Administrative player importing configuration.
+ * @returns Promise that resolves when the import workflow completes.
+ */
 export async function showConfigImportPanel(player: mc.Player): Promise<void> {
   const modal = new CustomFormBuilder<{ system: string; json: string }>('Import Config')
     .dropdown('system', 'Target', systemOptionsCache)
     .textField('json', 'Paste JSON', '{}')
     .submitButton('Import');
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
     return showConfigTransferPanel(player);
   }
 
   if (isNonEmptyString(res.json)) {
     try {
-      const parsed = JSON.parse(res.json) as Record<string, unknown>;
+      const parsed = JSON.parse(res.json);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        player.sendMessage('§4Invalid JSON format: expected a configuration object.');
+        await showConfigTransferPanel(player);
+        return;
+      }
+      const parsedRecord = parsed as Record<string, unknown>;
       if (res.system === 'All Systems') {
+        const invalidSections: string[] = [];
+        const sectionsToSave: [string, (c: unknown) => boolean | void, unknown][] = [];
         for (const [key, handler] of uiConfigHandlerEntries) {
-          if (isDefined(parsed[key]) && typeof parsed[key] === 'object') {
-            handler.save(parsed[key]);
+          if (parsedRecord[key] !== undefined) {
+            const section = parsedRecord[key];
+            if (!section || typeof section !== 'object' || Array.isArray(section)) {
+              invalidSections.push(key);
+            } else {
+              sectionsToSave.push([key, handler.save, section]);
+            }
           }
         }
+        if (invalidSections.length > 0) {
+          player.sendMessage(`§cImport aborted: invalid section(s): ${invalidSections.join(', ')}.`);
+          await showConfigTransferPanel(player);
+          return;
+        }
+        for (const [key, saveHandler, section] of sectionsToSave) {
+          const ok = saveHandler(section);
+          if (ok === false) {
+            invalidSections.push(key);
+          }
+        }
+        if (invalidSections.length > 0) {
+          player.sendMessage(`§cImport partially failed for section(s): ${invalidSections.join(', ')}.`);
+        } else {
+          player.sendMessage('§aImport completed.');
+        }
       } else if (res.system && uiConfigHandlers[res.system]) {
-        uiConfigHandlers[res.system]!.save(parsed);
+        const ok = uiConfigHandlers[res.system]!.save(parsedRecord);
+        if (ok === false) {
+          player.sendMessage(`§cInvalid configuration format for ${res.system}.`);
+          await showConfigTransferPanel(player);
+          return;
+        }
+        player.sendMessage('§aImport completed.');
       }
-      player.sendMessage('§aImport completed.');
     } catch {
       player.sendMessage('§4Invalid JSON format.');
     }
@@ -401,17 +455,32 @@ function _processFormValues(
   return updates;
 }
 
+/**
+ * Applies configuration updates through the appropriate persistence path.
+ *
+ * For non-main sources without an updateMultiple handler, updates are applied to a detached deep clone before
+ * persisting via handler.save, preventing live state mutation.
+ *
+ * @param handler Configuration getter and update/save delegate.
+ * @param configSource Identifier of the configuration subsystem.
+ * @param updates Key-value map of dot-path setting updates.
+ * @returns True if updates were saved successfully, false otherwise.
+ */
 function _saveConfigUpdates(
-  handler: { get: () => unknown; updateMultiple?: (u: Record<string, unknown>) => void; save?: (c: unknown) => void },
+  handler: {
+    get: () => unknown;
+    updateMultiple?: (u: Record<string, unknown>) => boolean | void;
+    save?: (c: unknown) => boolean | void;
+  },
   configSource: string,
   updates: Record<string, unknown>,
-) {
+): boolean {
   if (handler.updateMultiple) {
-    handler.updateMultiple(updates);
+    return handler.updateMultiple(updates) !== false;
   } else if (configSource === 'main') {
-    updateMultipleConfig(updates);
+    return (updateMultipleConfig(updates) as unknown) !== false;
   } else {
-    const currentConfig = handler.get() as Record<string, unknown>;
+    const currentConfig = deepClone(handler.get() as Record<string, unknown>);
     for (const [key, value] of Object.entries(updates)) {
       const parts = key.split('.');
       let current = currentConfig;
@@ -427,7 +496,7 @@ function _saveConfigUpdates(
         current[lastPart] = value;
       }
     }
-    handler.save?.(currentConfig);
+    return handler.save?.(currentConfig) !== false;
   }
 }
 

@@ -28,7 +28,7 @@ try {
       }
     }
 
-    const codeFiles = existingFiles.filter((f) => /\.(js|ts)$/.test(f));
+    const codeFiles = existingFiles.filter((f) => /\.(js|ts|tsx)$/.test(f));
 
     if (codeFiles.length > 0) {
       const ruleErrors = await validateMinecraftRules(codeFiles);

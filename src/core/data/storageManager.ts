@@ -3,6 +3,7 @@ import * as mc from '@minecraft/server';
 
 const chunkSize = 30_000; // Safe limit below 32kb
 
+/** Utility for persisting structured data across dynamic properties with automatic sharding and rollback safety. */
 export class StorageManager {
   private readonly dbName: string;
 
@@ -10,32 +11,82 @@ export class StorageManager {
     this.dbName = dbName;
   }
 
-  /** Saves data to dynamic properties, handling sharding if necessary. */
-  save<T>(data: T): void {
+  /**
+   * Saves data to dynamic properties, handling sharding if necessary.
+   *
+   * @param data Data payload to serialize and persist.
+   * @returns True if saved successfully, false on error.
+   */
+  save<T>(data: T): boolean {
+    let previousMeta: string | number | boolean | mc.Vector3 | undefined;
+    const backupShards: (string | undefined)[] = [];
     try {
+      previousMeta = mc.world.getDynamicProperty(`${this.dbName}:meta`);
+      const backupCount = typeof previousMeta === 'number' ? previousMeta : 0;
+      for (let i = 0; i < backupCount; i++) {
+        backupShards.push(mc.world.getDynamicProperty(`${this.dbName}:${i}`) as string | undefined);
+      }
+
       const jsonString = JSON.stringify(data);
       const totalLength = jsonString.length;
       const chunks = Math.ceil(totalLength / chunkSize);
 
-      // Save chunk count
-      mc.world.setDynamicProperty(`${this.dbName}:meta`, chunks);
+      const writeShards = () => {
+        for (let i = 0; i < chunks; i++) {
+          const chunk = jsonString.slice(i * chunkSize, (i + 1) * chunkSize);
+          mc.world.setDynamicProperty(`${this.dbName}:${i}`, chunk);
+        }
+      };
 
-      for (let i = 0; i < chunks; i++) {
-        const chunk = jsonString.slice(i * chunkSize, (i + 1) * chunkSize);
-        mc.world.setDynamicProperty(`${this.dbName}:${i}`, chunk);
-      }
+      const cleanupOldChunks = () => {
+        let nextIndex = chunks;
+        while (mc.world.getDynamicProperty(`${this.dbName}:${nextIndex}`) !== undefined) {
+          mc.world.setDynamicProperty(`${this.dbName}:${nextIndex}`, undefined); // Delete
+          nextIndex++;
+        }
+      };
 
-      // Cleanup old chunks if size shrank
-      let nextIndex = chunks;
-      while (mc.world.getDynamicProperty(`${this.dbName}:${nextIndex}`) !== undefined) {
-        mc.world.setDynamicProperty(`${this.dbName}:${nextIndex}`, undefined); // Delete
-        nextIndex++;
+      if (typeof previousMeta !== 'number') {
+        writeShards();
+        cleanupOldChunks();
+        mc.world.setDynamicProperty(`${this.dbName}:meta`, chunks);
+      } else {
+        mc.world.setDynamicProperty(`${this.dbName}:meta`, chunks);
+        writeShards();
+        cleanupOldChunks();
       }
+      return true;
     } catch (error) {
+      // Restore previous valid snapshot on write failure and remove newly written shards
+      try {
+        if (previousMeta !== undefined) {
+          mc.world.setDynamicProperty(`${this.dbName}:meta`, previousMeta);
+          for (let i = 0; i < backupShards.length; i++) {
+            mc.world.setDynamicProperty(`${this.dbName}:${i}`, backupShards[i]);
+          }
+          // Remove any orphaned shard indices written by the failed save
+          let cleanupIdx = backupShards.length;
+          while (mc.world.getDynamicProperty(`${this.dbName}:${cleanupIdx}`) !== undefined) {
+            mc.world.setDynamicProperty(`${this.dbName}:${cleanupIdx}`, undefined);
+            cleanupIdx++;
+          }
+        } else {
+          mc.world.setDynamicProperty(`${this.dbName}:meta`, undefined);
+          let cleanupIdx = 0;
+          while (mc.world.getDynamicProperty(`${this.dbName}:${cleanupIdx}`) !== undefined) {
+            mc.world.setDynamicProperty(`${this.dbName}:${cleanupIdx}`, undefined);
+            cleanupIdx++;
+          }
+        }
+      } catch {
+        // Ignore rollback errors during early execution or hard failures
+      }
+
       const msg = String(error);
       if (!msg.includes('cannot be used in early execution')) {
         errorLog(`[StorageManager] Failed to save ${this.dbName}`, error);
       }
+      return false;
     }
   }
 

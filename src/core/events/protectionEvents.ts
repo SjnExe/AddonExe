@@ -5,10 +5,36 @@ import { frozenTag } from '@core/utils/constants.js';
 import { hasTeleportProtection } from '@core/utils/teleportLogic.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/protection/zoneSelectionManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
+import { canPlayerModify, getEnforcedClaimAt, isClaimOwnerOrTrusted } from '@features/social/landclaim/manager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
-import { MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+import { MinecraftBlockTypes, MinecraftEntityTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+
+/** Container block identifiers that skip the native Inventory component lookup during claim interaction checks. */
+const containerBlockTypes = new Set<string>([
+  MinecraftBlockTypes.Chest,
+  MinecraftBlockTypes.TrappedChest,
+  MinecraftBlockTypes.EnderChest,
+  MinecraftBlockTypes.Barrel,
+  MinecraftBlockTypes.BlackShulkerBox,
+  MinecraftBlockTypes.BlueShulkerBox,
+  MinecraftBlockTypes.BrownShulkerBox,
+  MinecraftBlockTypes.CyanShulkerBox,
+  MinecraftBlockTypes.GrayShulkerBox,
+  MinecraftBlockTypes.GreenShulkerBox,
+  MinecraftBlockTypes.LightBlueShulkerBox,
+  MinecraftBlockTypes.LightGrayShulkerBox,
+  MinecraftBlockTypes.LimeShulkerBox,
+  MinecraftBlockTypes.MagentaShulkerBox,
+  MinecraftBlockTypes.OrangeShulkerBox,
+  MinecraftBlockTypes.PinkShulkerBox,
+  MinecraftBlockTypes.PurpleShulkerBox,
+  MinecraftBlockTypes.RedShulkerBox,
+  MinecraftBlockTypes.UndyedShulkerBox,
+  MinecraftBlockTypes.WhiteShulkerBox,
+  MinecraftBlockTypes.YellowShulkerBox,
+]);
 
 /**
  * Checks whether a player possesses permission to bypass spawn and zone protection rules.
@@ -64,7 +90,15 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
       mc.system.run(() => {
         setActionBarOverride(player, '§cYou cannot break blocks here.', 2500);
       });
+      return;
     }
+  }
+
+  if (!canPlayerModify(player, block.location, player.dimension.id, 'break')) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§cThis land is claimed by another player.', 2500);
+    });
   }
 }
 
@@ -97,7 +131,15 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
       mc.system.run(() => {
         setActionBarOverride(player, '§cYou cannot place blocks here.', 2500);
       });
+      return;
     }
+  }
+
+  if (!canPlayerModify(player, block.location, player.dimension.id, 'place')) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§cThis land is claimed by another player.', 2500);
+    });
   }
 }
 
@@ -132,13 +174,24 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent): void {
   }
 
   const allowedBlocks: mc.Block[] = [];
+  const claimByChunk = new Map<string, ReturnType<typeof getEnforcedClaimAt>>();
   for (const block of impactedBlocks) {
     if (!isDefined(block)) {
       continue;
     }
     const blockFlags = getProtectionFlags(block.location, dimId);
     if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !isMobSource)) {
-      allowedBlocks.push(block);
+      const cx = Math.floor(block.location.x / 16);
+      const cz = Math.floor(block.location.z / 16);
+      const chunkKey = `${cx},${cz}`;
+      let claim = claimByChunk.get(chunkKey);
+      if (!claimByChunk.has(chunkKey)) {
+        claim = getEnforcedClaimAt(block.location, dimId);
+        claimByChunk.set(chunkKey, claim);
+      }
+      if (!isDefined(claim) || claim.flags?.allowExplosions === true) {
+        allowedBlocks.push(block);
+      }
     }
   }
   if (allowedBlocks.length !== impactedBlocks.length) {
@@ -302,6 +355,27 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
       mc.system.run(() => {
         setActionBarOverride(player, '§cYou cannot interact with blocks here.', 2500);
       });
+      return;
+    }
+  }
+
+  const claim = getEnforcedClaimAt(block.location, player.dimension.id);
+  if (isDefined(claim)) {
+    const isOwnerOrTrusted = isClaimOwnerOrTrusted(claim, player);
+
+    if (!isOwnerOrTrusted) {
+      const isContainer = containerBlockTypes.has(block.typeId) || block.hasComponent(mc.BlockComponentTypes.Inventory);
+      const actionType = isContainer ? 'container' : 'interact';
+      if (!canPlayerModify(player, block.location, player.dimension.id, actionType)) {
+        event.cancel = true;
+        mc.system.run(() => {
+          setActionBarOverride(
+            player,
+            `§cThis land is claimed. You cannot access ${isContainer ? 'containers' : 'blocks'} here.`,
+            2500,
+          );
+        });
+      }
     }
   }
 }
@@ -434,7 +508,14 @@ export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEnt
   }
 
   const flags = getProtectionFlags(targetEntity.location, targetEntity.dimension.id);
-  if (flags.preventPvP && targetEntity.typeId === MinecraftEntityTypes.Player && targetEntity.id !== player.id) {
+  const targetClaim = getEnforcedClaimAt(targetEntity.location, targetEntity.dimension.id);
+  const isClaimPvPDisabled = isDefined(targetClaim) && targetClaim.flags?.allowPvP === false;
+
+  if (
+    (flags.preventPvP || isClaimPvPDisabled) &&
+    targetEntity.typeId === MinecraftEntityTypes.Player &&
+    targetEntity.id !== player.id
+  ) {
     if (!canBypass(player)) {
       event.cancel = true;
       mc.system.run(() => {
@@ -530,10 +611,6 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent): void {
     return;
   }
 
-  if (!flags.preventPvP && !flags.preventHostileDamage) {
-    return;
-  }
-
   const damagingEntity = damageSource.damagingEntity;
 
   // Helper to get actual attacker (e.g., owner of projectile)
@@ -547,18 +624,26 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent): void {
     }
   }
 
-  // PvP Protection: evaluate flags for both victim and attacker to prevent safezone border exploits
+  const victimClaim = getEnforcedClaimAt(player.location, player.dimension.id);
+  const victimClaimPreventPvP = isDefined(victimClaim) && victimClaim.flags?.allowPvP === false;
+
+  let attackerPreventPvP = false;
+  let attackerClaimPreventPvP = false;
+
   if (
     isDefined(attacker) &&
     attacker.isValid &&
     attacker.typeId === MinecraftEntityTypes.Player &&
     attacker.id !== player.id
   ) {
-    let attackerPreventPvP = false;
-    if (isDefined(attacker.location) && isDefined(attacker.dimension?.id)) {
+    if (isDefined(attacker.location) && isDefined(attacker.dimension) && isDefined(attacker.dimension.id)) {
       attackerPreventPvP = getProtectionFlags(attacker.location, attacker.dimension.id).preventPvP;
+      const attackerClaim = getEnforcedClaimAt(attacker.location, attacker.dimension.id);
+      attackerClaimPreventPvP = isDefined(attackerClaim) && attackerClaim.flags?.allowPvP === false;
     }
-    if (flags.preventPvP || attackerPreventPvP) {
+
+    // PvP Protection: evaluate flags for both victim and attacker to prevent safezone border exploits
+    if (flags.preventPvP || attackerPreventPvP || victimClaimPreventPvP || attackerClaimPreventPvP) {
       event.cancel = true;
       return;
     }

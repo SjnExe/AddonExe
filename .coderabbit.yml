@@ -13,8 +13,18 @@ reviews:
   auto_review:
     enabled: true
     drafts: false
+    auto_pause_after_reviewed_commits: 0
     base_branches:
       - 'main'
+
+  pre_merge_checks:
+    title:
+      mode: 'warning'
+    description:
+      mode: 'warning'
+    docstrings:
+      mode: 'warning'
+      threshold: 80
 
   path_filters:
     - '!bun.lock'
