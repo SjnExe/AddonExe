@@ -11,6 +11,7 @@ import {
   getFriendConfig,
   getGameplayConfig,
   getGamesConfig,
+  getItemBlacklistConfig,
   getLandClaimConfig,
   getRanksConfig,
   getShopConfig,
@@ -27,6 +28,7 @@ import {
   saveFriendConfig,
   saveGameplayConfig,
   saveGamesConfig,
+  saveItemBlacklistConfig,
   saveLandClaimConfig,
   saveRanksConfig,
   saveShopConfig,
@@ -46,6 +48,8 @@ import { shopConfig } from '@features/economy/shop/config.js';
 import { WorldProtectionConfig } from '@features/essentials/protection/config.js';
 import { gamesConfig } from '@features/games/config.js';
 import { wordleConfig } from '@features/games/wordle/config.js';
+import { defaultItemBlacklistConfig } from '@features/moderation/blacklist/config.js';
+import type { ItemBlacklistConfig } from '@features/moderation/blacklist/types.js';
 import ranksConfig from '@features/ranks/config.js';
 import { teamConfig } from '@features/social/team/config.js';
 import * as mc from '@minecraft/server';
@@ -80,7 +84,8 @@ interface ConfigHandler {
     | FriendConfig
     | LandClaimConfig
     | WorldProtectionConfig
-    | GameplayConfig;
+    | GameplayConfig
+    | ItemBlacklistConfig;
   save: (config: unknown) => boolean | void;
 }
 
@@ -90,6 +95,45 @@ export const configHandlers: Record<string, ConfigHandler> = {
     get: getConfig,
     save: (updates: unknown): boolean =>
       (updateMultipleConfig(updates as Record<string, unknown>) as unknown) !== false,
+  },
+  itemBlacklist: {
+    get: getItemBlacklistConfig,
+    save: (config: unknown): boolean => {
+      if (!config || typeof config !== 'object' || Array.isArray(config)) {
+        return false;
+      }
+      const raw = config as Record<string, unknown>;
+      if (raw.enabled !== undefined && typeof raw.enabled !== 'boolean') {
+        return false;
+      }
+      if (raw.broadcastToStaff !== undefined && typeof raw.broadcastToStaff !== 'boolean') {
+        return false;
+      }
+      if (raw.persistToLog !== undefined && typeof raw.persistToLog !== 'boolean') {
+        return false;
+      }
+      if (raw.logToConsole !== undefined && typeof raw.logToConsole !== 'boolean') {
+        return false;
+      }
+      if (raw.action !== undefined && raw.action !== 'confiscate' && raw.action !== 'cancel') {
+        return false;
+      }
+      if (raw.exemptRanks !== undefined) {
+        if (!Array.isArray(raw.exemptRanks) || !raw.exemptRanks.every((r) => typeof r === 'string')) {
+          return false;
+        }
+      }
+      if (raw.blacklistedItems !== undefined) {
+        if (!Array.isArray(raw.blacklistedItems) || !raw.blacklistedItems.every((item) => typeof item === 'string')) {
+          return false;
+        }
+      }
+      saveItemBlacklistConfig({
+        ...deepClone(defaultItemBlacklistConfig),
+        ...(raw as Partial<ItemBlacklistConfig>),
+      });
+      return true;
+    },
   },
   economy: {
     get: getEconomyConfig,

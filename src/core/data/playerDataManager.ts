@@ -74,6 +74,7 @@ export interface PlayerBankData {
   fixedDeposits: FixedDepositEntry[];
 }
 
+/** Represents persistent data and offline snapshots stored per player. */
 export interface PlayerData {
   name: string;
   ranks: string[];
@@ -118,6 +119,11 @@ export interface PlayerData {
   offlineEnderChest?: Record<number, SerializedItem>;
   pendingInventoryClear?: boolean;
   pendingEnderChestWipe?: boolean;
+  pendingOfflineInventorySync?: boolean;
+  pendingOfflineEnderChestSync?: boolean;
+  pendingOfflineInventoryModifications?: Record<number, SerializedItem | null>;
+  pendingOfflineEquipmentModifications?: Partial<Record<mc.EquipmentSlot, SerializedItem | null>>;
+  pendingOfflineEnderChestModifications?: Record<number, SerializedItem | null>;
   needsSave?: boolean;
 }
 

@@ -1,4 +1,5 @@
 import { getConfig } from '@core/config/configManager.js';
+import { deserializeItem } from '@core/data/itemSerializer.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
@@ -6,22 +7,23 @@ import { getPlayerRank, updatePlayerNameTag } from '@core/permissions/rankManage
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { frozenTag, vanishedTag } from '@core/utils/constants.js';
 import { formatCurrency, formatLocation, formatString } from '@core/utils/index.js';
-import { debugLog, infoLog } from '@core/utils/logger.js';
+import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { getKit, giveKitItems } from '@features/economy/kit/manager.js';
 import { handleCombatPlayerJoin } from '@features/essentials/combat/manager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { isWatched } from '@features/moderation/watchManager.js';
 import { getUnreadMailCount } from '@features/social/mail/manager.js';
-import { isNonEmptyString } from '@lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
 
 /**
- * Handles player join logic, synchronizing ranks, vanish status, mute punishments, and initial spawn settings.
+ * Handles core player joining lifecycle: synchronizes rank, applies pending offline actions, restores pending inventory
+ * syncs, re-applies moderation freeze, and announces join messages.
  *
- * @param player The player entity joining the server.
+ * @param player Newly connected player.
  */
 export function handlePlayerJoin(player: mc.Player) {
   const pData = getOrCreatePlayer(player);
@@ -96,6 +98,7 @@ export function handlePlayerJoin(player: mc.Player) {
         d.offlineInventory = {};
         d.offlineEquipment = {};
       });
+      pData.pendingInventoryClear = false;
       sendMessage('§eYour inventory was cleared by an administrator while you were offline.', player);
     } catch {
       // Ignore
@@ -112,7 +115,164 @@ export function handlePlayerJoin(player: mc.Player) {
         d.pendingEnderChestWipe = false;
         d.offlineEnderChest = {};
       });
+      pData.pendingEnderChestWipe = false;
       sendMessage('§eYour Ender Chest was wiped by an administrator while you were offline.', player);
+    } catch {
+      // Ignore
+    }
+  }
+
+  if (pData.pendingOfflineInventorySync === true) {
+    try {
+      let appliedAny = false;
+      const hasSlotMods =
+        isDefined(pData.pendingOfflineInventoryModifications) || isDefined(pData.pendingOfflineEquipmentModifications);
+      const invComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+      const inv = invComp?.container;
+      if (isDefined(inv)) {
+        if (isDefined(pData.pendingOfflineInventoryModifications)) {
+          for (const [slotStr, mod] of Object.entries(pData.pendingOfflineInventoryModifications)) {
+            const slot = Number(slotStr);
+            if (slot >= 0 && slot < inv.size) {
+              if (mod === null) {
+                inv.setItem(slot, undefined);
+                delete pData.pendingOfflineInventoryModifications[slot];
+                appliedAny = true;
+              } else {
+                const stack = deserializeItem(mod);
+                if (isDefined(stack)) {
+                  inv.setItem(slot, stack);
+                  delete pData.pendingOfflineInventoryModifications[slot];
+                  appliedAny = true;
+                } else {
+                  errorLog(`[OfflineSync] Failed to deserialize pending inventory modification for slot ${slotStr}.`);
+                }
+              }
+            }
+          }
+        } else if (!hasSlotMods && isDefined(pData.offlineInventory)) {
+          for (let i = 0; i < inv.size; i++) {
+            const item = pData.offlineInventory[i];
+            const stack = isDefined(item) ? deserializeItem(item) : undefined;
+            inv.setItem(i, stack);
+            appliedAny = true;
+          }
+        }
+      }
+      const eq = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+      if (isDefined(eq)) {
+        if (isDefined(pData.pendingOfflineEquipmentModifications)) {
+          for (const [slotKey, mod] of Object.entries(pData.pendingOfflineEquipmentModifications)) {
+            const eqSlot = slotKey as mc.EquipmentSlot;
+            if (mod === null) {
+              eq.setEquipment(eqSlot, undefined);
+              delete pData.pendingOfflineEquipmentModifications[eqSlot];
+              appliedAny = true;
+            } else if (isDefined(mod)) {
+              const stack = deserializeItem(mod);
+              if (isDefined(stack)) {
+                eq.setEquipment(eqSlot, stack);
+                delete pData.pendingOfflineEquipmentModifications[eqSlot];
+                appliedAny = true;
+              } else {
+                errorLog(`[OfflineSync] Failed to deserialize pending equipment modification for slot ${slotKey}.`);
+              }
+            }
+          }
+        } else if (!hasSlotMods && isDefined(pData.offlineEquipment)) {
+          const eqSlots = [
+            mc.EquipmentSlot.Head,
+            mc.EquipmentSlot.Chest,
+            mc.EquipmentSlot.Legs,
+            mc.EquipmentSlot.Feet,
+            mc.EquipmentSlot.Offhand,
+          ];
+          for (const slot of eqSlots) {
+            const item = pData.offlineEquipment[slot];
+            const stack = isDefined(item) ? deserializeItem(item) : undefined;
+            eq.setEquipment(slot, stack);
+            appliedAny = true;
+          }
+        }
+      }
+      updatePlayerData(player.id, (d) => {
+        if (isDefined(pData.pendingOfflineInventoryModifications)) {
+          if (Object.keys(pData.pendingOfflineInventoryModifications).length === 0) {
+            delete d.pendingOfflineInventoryModifications;
+          } else {
+            d.pendingOfflineInventoryModifications = pData.pendingOfflineInventoryModifications;
+          }
+        }
+        if (isDefined(pData.pendingOfflineEquipmentModifications)) {
+          if (Object.keys(pData.pendingOfflineEquipmentModifications).length === 0) {
+            delete d.pendingOfflineEquipmentModifications;
+          } else {
+            d.pendingOfflineEquipmentModifications = pData.pendingOfflineEquipmentModifications;
+          }
+        }
+        if (!isDefined(d.pendingOfflineInventoryModifications) && !isDefined(d.pendingOfflineEquipmentModifications)) {
+          d.pendingOfflineInventorySync = false;
+        }
+      });
+      if (appliedAny) {
+        sendMessage('§eYour inventory was updated by an administrator while you were offline.', player);
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  if (pData.pendingOfflineEnderChestSync === true) {
+    try {
+      let appliedAny = false;
+      const ecComp = player.getComponent(EntityComponentTypes.EnderInventory) as
+        mc.EntityEnderInventoryComponent | undefined;
+      const ec = ecComp?.container;
+      if (isDefined(ec)) {
+        if (isDefined(pData.pendingOfflineEnderChestModifications)) {
+          for (const [slotStr, mod] of Object.entries(pData.pendingOfflineEnderChestModifications)) {
+            const slot = Number(slotStr);
+            if (slot >= 0 && slot < ec.size) {
+              if (mod === null) {
+                ec.setItem(slot, undefined);
+                delete pData.pendingOfflineEnderChestModifications[slot];
+                appliedAny = true;
+              } else {
+                const stack = deserializeItem(mod);
+                if (isDefined(stack)) {
+                  ec.setItem(slot, stack);
+                  delete pData.pendingOfflineEnderChestModifications[slot];
+                  appliedAny = true;
+                } else {
+                  errorLog(`[OfflineSync] Failed to deserialize pending Ender Chest modification for slot ${slotStr}.`);
+                }
+              }
+            }
+          }
+        } else if (isDefined(pData.offlineEnderChest)) {
+          for (let i = 0; i < ec.size; i++) {
+            const item = pData.offlineEnderChest[i];
+            const stack = isDefined(item) ? deserializeItem(item) : undefined;
+            ec.setItem(i, stack);
+            appliedAny = true;
+          }
+        }
+      }
+      updatePlayerData(player.id, (d) => {
+        if (isDefined(pData.pendingOfflineEnderChestModifications)) {
+          if (Object.keys(pData.pendingOfflineEnderChestModifications).length === 0) {
+            delete d.pendingOfflineEnderChestModifications;
+            d.pendingOfflineEnderChestSync = false;
+          } else {
+            d.pendingOfflineEnderChestModifications = pData.pendingOfflineEnderChestModifications;
+          }
+        } else {
+          d.pendingOfflineEnderChestSync = false;
+        }
+      });
+      if (appliedAny) {
+        sendMessage('§eYour Ender Chest was updated by an administrator while you were offline.', player);
+      }
     } catch {
       // Ignore
     }
@@ -201,10 +361,10 @@ export function handlePlayerJoin(player: mc.Player) {
 }
 
 /**
- * Handles player spawn after-events for both initial join and respawn after death, restoring nametags and
- * notifications.
+ * Handles player spawn events, differentiating initial session joins from subsequent respawns, restoring nametags, and
+ * dispatching death coordinate notifications.
  *
- * @param event The player spawn after-event.
+ * @param event Player spawn event data from Minecraft Bedrock.
  */
 export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
   const { player, initialSpawn } = event;
