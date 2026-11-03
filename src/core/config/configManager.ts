@@ -9,6 +9,11 @@ import defaultConfig, { type config as Config } from '../../config.js';
 let mainConfigManager: ConfigManager<typeof Config>;
 const updateCallbacks: ((config: typeof Config) => void)[] = [];
 
+/**
+ * Registers a listener to be notified when the main server configuration changes.
+ *
+ * @param callback Callback receiving the updated configuration object.
+ */
 export function onConfigUpdated(callback: (config: typeof Config) => void): void {
   updateCallbacks.push(callback);
 }
@@ -22,6 +27,11 @@ function notifyCallbacks(): void {
   }
 }
 
+/**
+ * Initializes the primary configuration manager and asynchronously triggers subsystem loads.
+ *
+ * @param isMigration Whether this initialization runs as part of a SemVer migration step.
+ */
 export async function initializeConfigManager(isMigration: boolean): Promise<void> {
   mainConfigManager = factoryModule.default('exe:config:current', defaultConfig, 'Main');
   mainConfigManager.load(isMigration);
@@ -39,6 +49,7 @@ export async function initializeConfigManager(isMigration: boolean): Promise<voi
     configs.loadSidebarConfig(isMigration),
     configs.loadAuctionHouseConfig(isMigration),
     configs.loadDailyRewardsConfig(isMigration),
+    configs.loadLandClaimConfig(isMigration),
     configs.loadGamesConfig(isMigration),
     configs.loadWordleConfig(isMigration),
     Promise.resolve().then(() => configs.loadAnticheatConfig(isMigration)),

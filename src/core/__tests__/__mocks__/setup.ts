@@ -1,6 +1,8 @@
 // Suppress expected addon logger output during unit tests
 const _suppressedPrefixes = [
   '[DEBUG]',
+  '[Player]',
+  '[ItemBlacklist]',
   '[PlayerDataManager]',
   '[TimerManager]',
   '[MigrationManager]',

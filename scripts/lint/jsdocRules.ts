@@ -1,6 +1,7 @@
 const normalizePath = (p: string) => p.replace(/\\/g, '/').replace(/^\.\//, '');
 
-let cachedBase: string | null | undefined;
+let testOverrideBase: string | null | undefined;
+const cachedBaseByRepo = new Map<string, string | null>();
 
 /**
  * Overrides or resets the cached merge-base SHA for testing purposes.
@@ -8,37 +9,46 @@ let cachedBase: string | null | undefined;
  * @param base Merge-base SHA string, null to simulate shallow checkout, or undefined to clear.
  */
 export function setCachedBaseForTesting(base: string | null | undefined): void {
-  cachedBase = base;
+  testOverrideBase = base;
+  if (base === undefined) {
+    cachedBaseByRepo.clear();
+  }
 }
 
 /**
- * Resolves and caches the merge base SHA against the target base branch.
+ * Resolves and caches the merge base SHA against the target base branch, scoped by repository directory.
  *
+ * @param cwd Optional working directory for git execution.
  * @returns Resolved Git merge-base SHA string, or null if resolution fails (e.g. shallow checkout).
  */
-function resolveMergeBase(): string | null {
-  if (cachedBase !== undefined) {
-    return cachedBase;
+export function resolveMergeBase(cwd?: string): string | null {
+  if (testOverrideBase !== undefined) {
+    return testOverrideBase;
   }
+  const repoKey = cwd ? path.resolve(cwd) : process.cwd();
+  if (cachedBaseByRepo.has(repoKey)) {
+    return cachedBaseByRepo.get(repoKey)!;
+  }
+
   const baseRef = process.env.GITHUB_BASE_REF;
   const candidates: string[] = [];
   if (baseRef) {
     candidates.push(`origin/${baseRef}`, baseRef);
   }
-  candidates.push('origin/main', 'main', 'HEAD~1');
+  candidates.push('origin/main', 'main');
 
   for (const cand of candidates) {
-    const mbRes = Bun.spawnSync(['git', 'merge-base', cand, 'HEAD']);
+    const mbRes = Bun.spawnSync(['git', 'merge-base', cand, 'HEAD'], cwd ? { cwd } : {});
     if (mbRes.exitCode === 0) {
       const sha = mbRes.stdout.toString().trim();
       if (sha) {
-        cachedBase = sha;
+        cachedBaseByRepo.set(repoKey, sha);
         return sha;
       }
     }
   }
 
-  cachedBase = null;
+  cachedBaseByRepo.set(repoKey, null);
   return null;
 }
 
@@ -111,12 +121,13 @@ export function parseDiffHunks(diffText: string): Set<number> {
  *
  * @param filePath Normalized repository relative path.
  * @param staged Whether to evaluate against staged changes in the Git index.
+ * @param cwd Optional working directory for git execution.
  * @returns Set of 1-based line numbers modified, or 'ALL'.
  */
-export function getChangedLineNumbers(filePath: string, staged = false): Set<number> | 'ALL' {
+export function getChangedLineNumbers(filePath: string, staged = false, cwd?: string): Set<number> | 'ALL' {
   try {
     if (staged) {
-      const diffRes = Bun.spawnSync(['git', 'diff', '--cached', '-U0', '--', filePath]);
+      const diffRes = Bun.spawnSync(['git', 'diff', '--cached', '-U0', '--', filePath], cwd ? { cwd } : {});
       if (diffRes.exitCode !== 0) {
         return 'ALL';
       }
@@ -127,16 +138,16 @@ export function getChangedLineNumbers(filePath: string, staged = false): Set<num
       return parseDiffHunks(diffText);
     }
 
-    const statusRes = Bun.spawnSync(['git', 'status', '--porcelain', '-uall', filePath]);
+    const statusRes = Bun.spawnSync(['git', 'status', '--porcelain', '-uall', filePath], cwd ? { cwd } : {});
     const statusOut = statusRes.stdout.toString().trim();
     if (statusOut.startsWith('??') || statusOut.startsWith('A ')) {
       return 'ALL';
     }
 
-    const base = resolveMergeBase();
+    const base = resolveMergeBase(cwd);
     let diffText = '';
     if (base) {
-      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', base, '--', filePath]);
+      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', base, '--', filePath], cwd ? { cwd } : {});
       if (diffRes.exitCode !== 0) {
         return 'ALL';
       }
@@ -144,8 +155,8 @@ export function getChangedLineNumbers(filePath: string, staged = false): Set<num
     } else {
       // In shallow checkouts where merge-base resolution fails, inspect HEAD's commit diff
       // combined with any uncommitted changes in the working tree.
-      const showRes = Bun.spawnSync(['git', 'show', '-U0', '--format=', 'HEAD', '--', filePath]);
-      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', 'HEAD', '--', filePath]);
+      const showRes = Bun.spawnSync(['git', 'show', '-U0', '--format=', 'HEAD', '--', filePath], cwd ? { cwd } : {});
+      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', 'HEAD', '--', filePath], cwd ? { cwd } : {});
       if (showRes.exitCode !== 0 && diffRes.exitCode !== 0) {
         return 'ALL';
       }

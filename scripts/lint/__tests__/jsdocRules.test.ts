@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import {
   getChangedLineNumbers,
@@ -7,6 +10,15 @@ import {
   setCachedBaseForTesting,
   validateJsDocRules,
 } from '../jsdocRules.js';
+
+// silence-console-error: suppress intentional negative test error logs
+let consoleErrorSpy: { mockRestore: () => void } | undefined;
+beforeEach(() => {
+  consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
+});
+afterEach(() => {
+  consoleErrorSpy?.mockRestore();
+});
 
 describe('jsdocRules - Arrow Function Initializer Detection', () => {
   it('detects simple arrow functions', () => {
@@ -79,14 +91,28 @@ describe('jsdocRules - Shallow Checkout Fallback', () => {
 
   it('inspects HEAD commit diff when merge-base resolution fails (shallow checkout)', () => {
     setCachedBaseForTesting(null);
-    const changed = getChangedLineNumbers('scripts/lint/jsdocRules.ts');
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-shallow-test-'));
+    try {
+      Bun.spawnSync(['git', 'init'], { cwd: tempDir });
+      Bun.spawnSync(['git', 'config', 'user.name', 'Test'], { cwd: tempDir });
+      Bun.spawnSync(['git', 'config', 'user.email', 'test@example.com'], { cwd: tempDir });
 
-    // In a shallow checkout without merge-base, committed changes in HEAD must NOT be silently skipped as empty
-    expect(changed).not.toEqual(new Set<number>());
-    if (changed instanceof Set) {
-      expect(changed.size).toBeGreaterThan(0);
-    } else {
-      expect(changed).toBe('ALL');
+      const testFile = 'sample.ts';
+      const fullPath = join(tempDir, testFile);
+      writeFileSync(fullPath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
+      Bun.spawnSync(['git', 'add', testFile], { cwd: tempDir });
+      Bun.spawnSync(['git', 'commit', '-m', 'initial'], { cwd: tempDir });
+
+      // Modify lines 2 and 4 in second commit
+      writeFileSync(fullPath, 'line 1\nline 2 modified\nline 3\nline 4 modified\nline 5\n', 'utf8');
+      Bun.spawnSync(['git', 'add', testFile], { cwd: tempDir });
+      Bun.spawnSync(['git', 'commit', '-m', 'modify lines'], { cwd: tempDir });
+
+      const changed = getChangedLineNumbers(testFile, false, tempDir);
+      expect(changed).toBeInstanceOf(Set);
+      expect(changed).toEqual(new Set([2, 4]));
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
     }
   });
 
@@ -101,5 +127,21 @@ describe('jsdocRules - validateJsDocRules', () => {
   it('passes cleanly for documented codebase files', async () => {
     const violations = await validateJsDocRules(['scripts/lint/jsdocRules.ts']);
     expect(violations).toBe(0);
+  });
+
+  it('reports invalid JSDoc for undocumented or tagless exports', async () => {
+    const fixture = 'scripts/lint/tmpUndocumentedFixture.ts';
+    await Bun.write(
+      fixture,
+      'export function undocumented(a: number): number {\n  return a;\n}\n\n' +
+        '/* Plain block comment. */\nexport function plainComment(a: number): number {\n  return a;\n}\n\n' +
+        '/** Documented without tags. */\nexport function missingTags(a: number): number {\n  return a;\n}\n',
+    );
+    try {
+      const violations = await validateJsDocRules([fixture]);
+      expect(violations).toBeGreaterThan(0);
+    } finally {
+      rmSync(fixture, { force: true });
+    }
   });
 });

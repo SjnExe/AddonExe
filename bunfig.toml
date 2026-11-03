@@ -13,7 +13,7 @@ shell = "bun"
 noOrphans = true
 
 [test]
-preload = ["./src/core/__tests__/__mocks__/bunSetup.ts"]
+preload = ["./src/core/__tests__/__mocks__/setup.ts"]
 smol = false
 onlyFailures = true
 isolate = false

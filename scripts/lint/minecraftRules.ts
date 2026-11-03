@@ -1,22 +1,28 @@
 import path from 'node:path';
 
-const srcGlob = new Bun.Glob('src/**/*.ts');
-const scriptsGlob = new Bun.Glob('scripts/**/*.ts');
+const srcGlob = new Bun.Glob('src/**/*.{ts,tsx}');
+const scriptsGlob = new Bun.Glob('scripts/**/*.{ts,tsx}');
 const allowedExactStrings = new Set(['minecraft:', 'minecraft:script_unload']);
 const unnecessaryCommandsRegex =
   /\.runCommand\(\s*['"\x60]\/?(?:tp|teleport|tag|xp|effect|gamemode|setblock|fill|clear|kill|playsound|say|tell|w|msg|title|summon|time|weather|gamerule|scoreboard)\b/;
 
-const camelCaseFileRegex = /^[a-z][a-zA-Z0-9]*(?:\.(?:test|d))?\.ts$/;
+const camelCaseFileRegex = /^[a-z][a-zA-Z0-9]*(?:\.(?:test|d))?\.tsx?$/;
 const snakeCaseDeclRegex =
   /^\s*(?:export\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([a-zA-Z0-9_$]+_[a-zA-Z0-9_$]*)/;
 
 const normalizePath = (p: string) => p.replace(/\\/g, '/').replace(/^\.\//, '');
 
+/**
+ * Validates Minecraft API usage rules, naming conventions, and casing rules across the project.
+ *
+ * @param targetFiles Optional array of specific file paths to validate.
+ * @returns Number of rule violations discovered.
+ */
 export async function validateMinecraftRules(targetFiles?: string[]): Promise<number> {
   const allPaths = targetFiles
     ? targetFiles
         .map(normalizePath)
-        .filter((p) => p.endsWith('.ts') && (p.startsWith('src/') || p.startsWith('scripts/')))
+        .filter((p) => /\.(ts|tsx)$/.test(p) && (p.startsWith('src/') || p.startsWith('scripts/')))
     : [...Array.from(srcGlob.scanSync('.')), ...Array.from(scriptsGlob.scanSync('.'))];
 
   let errors = 0;

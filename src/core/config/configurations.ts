@@ -13,16 +13,19 @@ import { type WordleConfig, wordleConfig } from '@features/games/wordle/config.j
 import ranksConfig from '@features/ranks/config.js';
 import { config as sidebarConfig } from '@features/sidebar/config.js';
 import { friendConfig } from '@features/social/friends/config.js';
+import { type LandClaimConfig, landClaimConfig } from '@features/social/landclaim/config.js';
 import { teamConfig } from '@features/social/team/config.js';
 import * as mc from '@minecraft/server';
 
-export type { AnticheatConfig, GamesConfig, WordleConfig, WorldProtectionConfig, GameplayConfig };
+export type { AnticheatConfig, GamesConfig, LandClaimConfig, WordleConfig, WorldProtectionConfig, GameplayConfig };
 export type ShopConfig = typeof shopConfig;
 export type RanksConfig = typeof ranksConfig;
 export type EconomyConfig = typeof economyConfig;
 export type XrayConfig = typeof xrayConfig;
 export type TeamConfig = typeof teamConfig;
 export type FriendConfig = typeof friendConfig;
+/** Type alias for land claim system configuration. */
+export type LandClaimConfigType = LandClaimConfig;
 export type SidebarConfig = typeof sidebarConfig;
 export type AuctionHouseConfig = typeof auctionHouseConfig;
 export type DailyRewardsConfig = typeof dailyRewardsConfig;
@@ -63,9 +66,10 @@ function createConfigAccessors<T>(
       await hooks?.onLoadOrReset?.();
     },
     get: (): T => getOrCreateManager(id, propKey, defaults, label).get(),
-    save: (cfg: T): void => {
-      getOrCreateManager(id, propKey, defaults, label).set(cfg);
+    save: (cfg: T): boolean => {
+      const saved = getOrCreateManager(id, propKey, defaults, label).set(cfg);
       hooks?.onSave?.();
+      return saved;
     },
     reset: async (): Promise<void> => {
       await getOrCreateManager(id, propKey, defaults, label).reset();
@@ -145,6 +149,44 @@ export const loadSidebarConfig = sidebarAcc.load;
 export const getSidebarConfig = sidebarAcc.get;
 export const saveSidebarConfig = sidebarAcc.save;
 export const resetSidebarConfig = sidebarAcc.reset;
+
+const landClaimAcc = createConfigAccessors('landclaim', 'exe:landClaimConfig:current', landClaimConfig, 'LandClaim');
+export const loadLandClaimConfig = landClaimAcc.load;
+export const getLandClaimConfig = landClaimAcc.get;
+/**
+ * Validates and persists the Land Claim system configuration, preserving existing values for invalid numeric inputs.
+ *
+ * @param cfg New land claim configuration to validate and save.
+ * @returns True if the configuration was saved successfully to storage, false otherwise.
+ */
+export const saveLandClaimConfig = (cfg: LandClaimConfig): boolean => {
+  const current = landClaimAcc.get();
+  const maxClaims =
+    Number.isFinite(cfg.maxClaimsPerPlayer) && cfg.maxClaimsPerPlayer >= 0
+      ? Math.floor(cfg.maxClaimsPerPlayer)
+      : current.maxClaimsPerPlayer;
+  const cost = Number.isFinite(cfg.claimCost) && cfg.claimCost >= 0 ? cfg.claimCost : current.claimCost;
+  const radius =
+    Number.isFinite(cfg.endIslandProtectedRadius) && cfg.endIslandProtectedRadius >= 0
+      ? cfg.endIslandProtectedRadius
+      : current.endIslandProtectedRadius;
+  const maxVisualizerDuration = 300;
+  const visualDuration =
+    Number.isFinite(cfg.visualizerDurationSeconds) &&
+    cfg.visualizerDurationSeconds >= 0 &&
+    cfg.visualizerDurationSeconds <= maxVisualizerDuration
+      ? cfg.visualizerDurationSeconds
+      : current.visualizerDurationSeconds;
+
+  return landClaimAcc.save({
+    ...cfg,
+    maxClaimsPerPlayer: maxClaims,
+    claimCost: cost,
+    endIslandProtectedRadius: radius,
+    visualizerDurationSeconds: visualDuration,
+  });
+};
+export const resetLandClaimConfig = landClaimAcc.reset;
 
 const auctionHouseAcc = createConfigAccessors(
   'auctionHouse',
@@ -270,11 +312,13 @@ export function registerConfigResetCallback(key: string, callback: (player?: mc.
   configResetCallbacks[key] = callback;
 }
 
+/** Clears cached configuration managers and lookup caches for isolated unit tests. */
 export function _clearConfigManagersForTest(): void {
   managers.clear();
   void import('@features/economy/shop/manager.js').then((m) => m.invalidateShopLookupCache());
 }
 
+/** Reloads all registered configuration managers from persistent storage. */
 export async function reloadAllConfigs(): Promise<void> {
   await Promise.resolve();
   for (const mgr of managers.values()) {

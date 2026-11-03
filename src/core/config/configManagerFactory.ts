@@ -3,17 +3,27 @@ import { debugLog, errorLog } from '@core/utils/logger.js';
 import { deepClone, deepMerge, setValueByPath } from '@core/utils/objectUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 
+/** Configuration subsystem manager providing getters, setters, persistence, and reset capabilities. */
 export interface ConfigManager<T = unknown> {
   load: (isMigration?: boolean) => boolean;
   get: () => T;
-  save: () => void;
-  set: (newConfig: T) => void;
+  save: () => boolean;
+  set: (newConfig: T) => boolean;
   reload: () => void;
   update: (pathStr: string, value: unknown) => void;
-  updateMultiple: (updates: Record<string, unknown>) => void;
+  updateMultiple: (updates: Record<string, unknown>) => boolean;
   reset: () => Promise<void>;
 }
 
+/**
+ * Factory creating a scoped configuration manager backed by StorageManager persistence.
+ *
+ * @param key Dynamic property key identifier for storage persistence.
+ * @param defaultConfig Default configuration template.
+ * @param name Diagnostic identifier name for debug logging.
+ * @param wrapperKey Optional nested root property wrapper key.
+ * @returns ConfigManager instance managing the given configuration.
+ */
 export default function createConfigManager<T>(
   key: string,
   defaultConfig: T,
@@ -58,17 +68,27 @@ export default function createConfigManager<T>(
     return currentConfig;
   }
 
-  function saveConfig(): void {
+  function saveConfig(): boolean {
     try {
-      configStorage.save(currentConfig);
+      return configStorage.save(currentConfig);
     } catch (error) {
       errorLog(`[${name}ConfigManager] Failed to save config.`, error);
+      return false;
     }
   }
 
-  function setConfig(newConfig: T): void {
-    currentConfig = newConfig;
-    saveConfig();
+  function setConfig(newConfig: T): boolean {
+    try {
+      const saved = configStorage.save(newConfig);
+      if (saved) {
+        currentConfig = newConfig;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      errorLog(`[${name}ConfigManager] Failed to save config.`, error);
+      return false;
+    }
   }
 
   function reloadConfig(): void {
@@ -80,11 +100,12 @@ export default function createConfigManager<T>(
     saveConfig();
   }
 
-  function updateMultipleConfig(updates: Record<string, unknown>): void {
-    for (const pathStr in updates) {
-      setValueByPath(currentConfig, pathStr, updates[pathStr]);
+  function updateMultipleConfig(updates: Record<string, unknown>): boolean {
+    const candidate = deepClone(currentConfig);
+    for (const pathStr of Object.keys(updates)) {
+      setValueByPath(candidate as Record<string, unknown>, pathStr, updates[pathStr]);
     }
-    saveConfig();
+    return setConfig(candidate);
   }
 
   function resetConfig(): Promise<void> {
