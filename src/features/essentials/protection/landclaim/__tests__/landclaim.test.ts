@@ -88,6 +88,7 @@ describe('Land Claim System', () => {
     spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation((_pid: string, amt: number) => {
       playerBalance += amt;
     });
+    spyOn(playerDataManager, 'savePlayerData').mockReturnValue(true);
   });
 
   describe('Chunk Coordinates & Math', () => {

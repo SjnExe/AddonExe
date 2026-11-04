@@ -6,6 +6,7 @@ import {
   getPlayerIdByName,
   getPlayerNameById,
   incrementPlayerBalance,
+  savePlayerData,
 } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
@@ -404,6 +405,10 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
       };
     }
     incrementPlayerBalance(player.id, -cost);
+    if (!savePlayerData(player.id)) {
+      incrementPlayerBalance(player.id, cost);
+      return { success: false, message: '§cFailed to save balance. Claim has been rolled back.' };
+    }
     debited = true;
   }
 
@@ -441,6 +446,7 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
     }
     if (debited) {
       incrementPlayerBalance(player.id, cost);
+      savePlayerData(player.id);
     }
     return { success: false, message: '§cFailed to save claim data. Claim has been rolled back.' };
   }
@@ -530,6 +536,13 @@ export function claimRadius(player: mc.Player, radius = 1): ClaimActionResult & 
     };
   }
 
+  // Sort candidate chunks by distance from center chunk so center and closest chunks are claimed first
+  candidateCoords.sort((a, b) => {
+    const distA = Math.hypot(a.cx - centerCx, a.cz - centerCz);
+    const distB = Math.hypot(b.cx - centerCx, b.cz - centerCz);
+    return distA - distB;
+  });
+
   // Check claim limits
   const userClaims = playerClaims.get(player.id)?.size ?? 0;
   const maxAllowed = getMaxClaimsForPlayer(player);
@@ -557,6 +570,10 @@ export function claimRadius(player: mc.Player, radius = 1): ClaimActionResult & 
       };
     }
     incrementPlayerBalance(player.id, -totalCost);
+    if (!savePlayerData(player.id)) {
+      incrementPlayerBalance(player.id, totalCost);
+      return { success: false, message: '§cFailed to save balance. No chunks were claimed.' };
+    }
     debited = true;
   }
 
@@ -601,6 +618,7 @@ export function claimRadius(player: mc.Player, radius = 1): ClaimActionResult & 
     }
     if (debited) {
       incrementPlayerBalance(player.id, totalCost);
+      savePlayerData(player.id);
     }
     return { success: false, message: '§cFailed to save claim data. Batch claim was rolled back.' };
   }

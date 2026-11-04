@@ -71,8 +71,14 @@ const claimCommand: CustomCommand = {
       }
       case 'radius':
       case 'area': {
-        const radiusNum = Number.parseInt(argument, 10);
-        const radius = Number.isFinite(radiusNum) && radiusNum >= 1 ? radiusNum : 1;
+        let radius = 1;
+        if (argument) {
+          if (!/^\d+$/.test(argument)) {
+            executor.sendMessage('§cInvalid radius. Please specify a positive integer (e.g. /claim radius 1).');
+            return;
+          }
+          radius = Number.parseInt(argument, 10);
+        }
         const res = claimRadius(executor, radius);
         executor.sendMessage(res.message);
         break;

@@ -70,7 +70,19 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
       player.sendMessage(res.message);
       await showLandClaimPanel(player, context);
     });
+  } else if (currentClaim.ownerId === player.id) {
+    form.button('Unclaim Current Chunk', 'textures/ui/cancel', async () => {
+      if (!player.isValid) {
+        return;
+      }
+      const res = unclaimChunk(player, cx, cz);
+      player.sendMessage(res.message);
+      await showLandClaimPanel(player, context);
+    });
+  }
 
+  // Show 3x3 area claim option if current chunk is unclaimed or already owned by the player
+  if (!isDefined(currentClaim) || currentClaim.ownerId === player.id) {
     const radiusCostEstimate = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 9)})` : ' (Free)';
     form.button(`Claim 3x3 Area${radiusCostEstimate}`, 'textures/ui/icon_recipe_nature', async () => {
       if (!player.isValid) {
@@ -93,15 +105,6 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
           await showLandClaimPanel(player, context);
         },
       });
-    });
-  } else if (currentClaim.ownerId === player.id) {
-    form.button('Unclaim Current Chunk', 'textures/ui/cancel', async () => {
-      if (!player.isValid) {
-        return;
-      }
-      const res = unclaimChunk(player, cx, cz);
-      player.sendMessage(res.message);
-      await showLandClaimPanel(player, context);
     });
   }
 
