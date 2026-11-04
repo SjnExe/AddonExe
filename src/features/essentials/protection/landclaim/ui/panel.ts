@@ -81,17 +81,17 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
     });
   }
 
-  // Show 3x3 area claim option if current chunk is unclaimed or already owned by the player
+  // Show area claim options (3x3, 5x5, 7x7) if current chunk is unclaimed or already owned by the player
   if (!isDefined(currentClaim) || currentClaim.ownerId === player.id) {
-    const radiusCostEstimate = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 9)})` : ' (Free)';
-    form.button(`Claim 3x3 Area${radiusCostEstimate}`, 'textures/ui/icon_recipe_nature', async () => {
+    const r1Cost = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 9)})` : ' (Free)';
+    form.button(`Claim 3x3 Area${r1Cost}`, 'textures/ui/icon_recipe_nature', async () => {
       if (!player.isValid) {
         return;
       }
       await showConfirmationDialog(player, {
         title: 'Claim 3x3 Chunk Area',
         body:
-          `This will attempt to claim up to 9 chunks centered on your current position.\n\n` +
+          `This will attempt to claim up to 9 chunks (3x3 area) centered on your current position.\n\n` +
           `• Cost: ${costDisplay} per chunk\n` +
           `• Your Balance: ${formatCurrency(balance)}\n` +
           `• Claim Limit: ${myClaims.length}/${maxClaims} chunks\n\n` +
@@ -101,6 +101,54 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
             return;
           }
           const res = claimRadius(player, 1);
+          player.sendMessage(res.message);
+          await showLandClaimPanel(player, context);
+        },
+      });
+    });
+
+    const r2Cost = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 25)})` : ' (Free)';
+    form.button(`Claim 5x5 Area${r2Cost}`, 'textures/ui/icon_recipe_nature', async () => {
+      if (!player.isValid) {
+        return;
+      }
+      await showConfirmationDialog(player, {
+        title: 'Claim 5x5 Chunk Area',
+        body:
+          `This will attempt to claim up to 25 chunks (5x5 area) centered on your current position.\n\n` +
+          `• Cost: ${costDisplay} per chunk\n` +
+          `• Your Balance: ${formatCurrency(balance)}\n` +
+          `• Claim Limit: ${myClaims.length}/${maxClaims} chunks\n\n` +
+          `Any chunks already claimed by other players or in protected zones will be safely skipped.`,
+        onConfirm: async () => {
+          if (!player.isValid) {
+            return;
+          }
+          const res = claimRadius(player, 2);
+          player.sendMessage(res.message);
+          await showLandClaimPanel(player, context);
+        },
+      });
+    });
+
+    const r3Cost = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 49)})` : ' (Free)';
+    form.button(`Claim 7x7 Area${r3Cost}`, 'textures/ui/icon_recipe_nature', async () => {
+      if (!player.isValid) {
+        return;
+      }
+      await showConfirmationDialog(player, {
+        title: 'Claim 7x7 Chunk Area',
+        body:
+          `This will attempt to claim up to 49 chunks (7x7 area) centered on your current position.\n\n` +
+          `• Cost: ${costDisplay} per chunk\n` +
+          `• Your Balance: ${formatCurrency(balance)}\n` +
+          `• Claim Limit: ${myClaims.length}/${maxClaims} chunks\n\n` +
+          `Any chunks already claimed by other players or in protected zones will be safely skipped.`,
+        onConfirm: async () => {
+          if (!player.isValid) {
+            return;
+          }
+          const res = claimRadius(player, 3);
           player.sendMessage(res.message);
           await showLandClaimPanel(player, context);
         },
