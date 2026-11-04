@@ -9,6 +9,7 @@ import {
   _clearClaimsForTest,
   canPlayerModify,
   claimChunk,
+  claimRadius,
   getChunkBounds,
   getChunkKey,
   getClaim,
@@ -17,14 +18,13 @@ import {
   initializeLandClaim,
   isChunkOverlappingEndIsland,
   isChunkOverlappingSpawn,
+  isClaimOwnerOrTrusted,
   toChunkCoord,
   trustPlayer,
   unclaimAll,
   unclaimChunk,
   untrustPlayer,
   updateClaimFlags,
-  claimRadius,
-  isClaimOwnerOrTrusted,
 } from '@features/essentials/protection/landclaim/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes, MinecraftEntityTypes } from '@minecraft/vanilla-data';
@@ -599,7 +599,9 @@ describe('Land Claim System', () => {
 
       const teamManager = require('@features/social/team/manager.js');
       const teamSpy = spyOn(teamManager, 'getPlayerTeamId').mockImplementation((pid: string) => {
-        if (pid === 'team_owner' || pid === 'teammate_p') {return 42;}
+        if (pid === 'team_owner' || pid === 'teammate_p') {
+          return 42;
+        }
         return undefined;
       });
 

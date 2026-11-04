@@ -14,8 +14,7 @@ export async function initialize(_isMigration: boolean) {
   });
 
   // Register configurations
-  const { resetFriendConfig, registerConfigReset } =
-    await import('@core/config/configurations.js');
+  const { resetFriendConfig, registerConfigReset } = await import('@core/config/configurations.js');
   registerConfigReset('friend', {
     reset: resetFriendConfig,
     message: 'The friend configuration section has been reset to default.',

@@ -7,15 +7,20 @@ import {
   getPlayerNameById,
   incrementPlayerBalance,
 } from '@core/data/playerDataManager.js';
-import { isFriend } from '@features/social/friends/manager.js';
-import { getPlayerTeamId } from '@features/social/team/manager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { adminTag, villagerHappyParticleId } from '@core/utils/constants.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { debugLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
-import type { ClaimActionResult, LandClaim, LandClaimFlags, TrustedPlayer } from '@features/essentials/protection/landclaim/types.js';
+import type {
+  ClaimActionResult,
+  LandClaim,
+  LandClaimFlags,
+  TrustedPlayer,
+} from '@features/essentials/protection/landclaim/types.js';
+import { isFriend } from '@features/social/friends/manager.js';
+import { getPlayerTeamId } from '@features/social/team/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -440,7 +445,7 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
     return { success: false, message: '§cFailed to save claim data. Claim has been rolled back.' };
   }
 
-  const remainingBalance = debited ? getBalance(player.id) ?? 0 : undefined;
+  const remainingBalance = debited ? (getBalance(player.id) ?? 0) : undefined;
   const costNotice = debited
     ? ` for ${formatCurrency(cost)} (Remaining balance: ${formatCurrency(remainingBalance!)})`
     : '';
@@ -453,10 +458,10 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
 }
 
 /**
- * Claims a square area of chunks centered on the player's current chunk within a given radius.
- * e.g., radius 1 = 3x3 chunks (up to 9 chunks), radius 2 = 5x5 chunks (up to 25 chunks).
- * Strictly guarantees that existing claims of other players, protected zones, dimension restrictions,
- * claim limits, and economy costs are verified upfront before creating claims or deducting funds.
+ * Claims a square area of chunks centered on the player's current chunk within a given radius. e.g., radius 1 = 3x3
+ * chunks (up to 9 chunks), radius 2 = 5x5 chunks (up to 25 chunks). Strictly guarantees that existing claims of other
+ * players, protected zones, dimension restrictions, claim limits, and economy costs are verified upfront before
+ * creating claims or deducting funds.
  *
  * @param player The player claiming the area.
  * @param radius Radius of chunks around the player's current chunk (1 to 3).
@@ -600,7 +605,7 @@ export function claimRadius(player: mc.Player, radius = 1): ClaimActionResult & 
     return { success: false, message: '§cFailed to save claim data. Batch claim was rolled back.' };
   }
 
-  const remainingBalance = debited ? getBalance(player.id) ?? 0 : undefined;
+  const remainingBalance = debited ? (getBalance(player.id) ?? 0) : undefined;
   const costNotice = debited
     ? ` for ${formatCurrency(totalCost)} (Remaining: ${formatCurrency(remainingBalance!)})`
     : '';
