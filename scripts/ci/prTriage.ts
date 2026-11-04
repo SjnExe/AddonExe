@@ -160,16 +160,22 @@ function determineSize(totalLines: number): string {
   if (totalLines < 30) {
     return 'XS';
   }
-  if (totalLines < 150) {
+  if (totalLines < 100) {
     return 'S';
   }
-  if (totalLines < 400) {
+  if (totalLines < 300) {
     return 'M';
   }
-  if (totalLines < 800) {
+  if (totalLines < 600) {
     return 'L';
   }
-  return 'XL';
+  if (totalLines < 1200) {
+    return 'XL';
+  }
+  if (totalLines < 2500) {
+    return 'XXL';
+  }
+  return 'XXXL';
 }
 
 function runBedrockAudit(files: string[], baseRef: string): AuditResult {
@@ -291,7 +297,7 @@ async function main() {
 
   if (process.env.GITHUB_ACTIONS && prNumber) {
     // Synchronize size tag and remove any conflicting prior size tag
-    const allSizes = ['XS', 'S', 'M', 'L', 'XL'];
+    const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
     for (const sizeTag of allSizes) {
       if (sizeTag !== meta.size) {
         runCmd(`gh pr edit ${prNumber} --remove-label "${sizeTag}" || true`);
