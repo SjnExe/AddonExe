@@ -4,6 +4,7 @@ import {
   adminUnclaim,
   canBypassLandClaim,
   claimChunk,
+  claimRadius,
   getClaimAt,
   getClaimsByPlayer,
   getMaxClaimsForPlayer,
@@ -13,8 +14,8 @@ import {
   unclaimAll,
   unclaimChunk,
   untrustPlayer,
-} from '@features/social/landclaim/manager.js';
-import { showLandClaimPanel } from '@features/social/landclaim/ui/panel.js';
+} from '@features/essentials/protection/landclaim/manager.js';
+import { showLandClaimPanel } from '@features/essentials/protection/landclaim/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -22,14 +23,26 @@ const claimCommand: CustomCommand = {
   name: 'claim',
   aliases: ['landclaim', 'chunkclaim'],
   description: 'Manage, view, and protect your claimed chunks.',
-  category: 'Social',
+  category: 'World',
   permissionNode: 'cmd.claim',
   parameters: [
     {
       name: 'action',
       type: 'string',
       optional: true,
-      enumOptions: ['here', 'unclaim', 'unclaimall', 'trust', 'untrust', 'list', 'info', 'visual', 'panel', 'admin'],
+      enumOptions: [
+        'here',
+        'radius',
+        'unclaim',
+        'unclaimall',
+        'trust',
+        'untrust',
+        'list',
+        'info',
+        'visual',
+        'panel',
+        'admin',
+      ],
     },
     { name: 'argument', type: 'string', optional: true, description: 'Player name or admin subcommand' },
   ],
@@ -53,6 +66,21 @@ const claimCommand: CustomCommand = {
       case 'here':
       case 'chunk': {
         const res = claimChunk(executor);
+        executor.sendMessage(res.message);
+        break;
+      }
+      case 'radius':
+      case 'area': {
+        let radius = 1;
+        if (argument) {
+          const parsedRadius = Number.parseInt(argument, 10);
+          if (!/^\d+$/.test(argument) || parsedRadius < 1) {
+            executor.sendMessage('§cInvalid radius. Please specify a positive integer (e.g. /claim radius 1).');
+            return;
+          }
+          radius = parsedRadius;
+        }
+        const res = claimRadius(executor, radius);
         executor.sendMessage(res.message);
         break;
       }
@@ -140,7 +168,7 @@ const claimCommand: CustomCommand = {
       }
       default:
         executor.sendMessage(
-          '§cUnknown claim action. Use /claim or /claim <here|unclaim|unclaimall|trust|untrust|list|info|visual>',
+          '§cUnknown claim action. Use /claim or /claim <here|radius|unclaim|unclaimall|trust|untrust|list|info|visual>',
         );
         break;
     }

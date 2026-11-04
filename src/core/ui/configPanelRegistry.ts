@@ -1674,7 +1674,7 @@ export const configPanelSchema: ConfigCategory[] = [
     title: 'Land Claim System',
     icon: 'textures/ui/world_glyph',
     configSource: 'landclaim',
-    category: 'Social',
+    category: 'Teleportation & World',
     settings: [
       {
         key: 'enabled',

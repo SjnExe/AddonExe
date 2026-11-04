@@ -17,6 +17,7 @@ export type MenuHubId =
   | 'staff_world'
   | 'staff_config';
 
+/** Item definition registered in a UI hub menu. */
 export interface MenuItem {
   id: string;
   title: string;
@@ -25,6 +26,7 @@ export interface MenuItem {
   hub: MenuHubId;
   featureId?: string;
   permissionNode?: string;
+  canAccess?: (player: mc.Player) => boolean;
   action: (player: mc.Player) => Promise<void> | void;
   order?: number;
 }
@@ -41,11 +43,20 @@ export function registerMenuItem(item: MenuItem): void {
   }
 }
 
-/** Retrieves all registered menu items for a specific hub that are available to the player. */
+/**
+ * Retrieves all registered menu items for a specific hub that are available to the player.
+ *
+ * @param hub The target menu hub category.
+ * @param player The player requesting the menu view.
+ * @returns Sorted list of accessible menu items for the hub.
+ */
 export function getMenuItemsForHub(hub: MenuHubId, player: mc.Player): MenuItem[] {
   return menuRegistry
     .filter((item) => {
       if (item.hub !== hub) {
+        return false;
+      }
+      if (isDefined(item.canAccess) && !item.canAccess(player)) {
         return false;
       }
       if (isDefined(item.permissionNode) && !hasPermission(player, item.permissionNode)) {
@@ -255,6 +266,29 @@ export function initializeDefaultMenuItems(): void {
   });
 
   // --- TELEPORT HUB ITEMS ---
+  registerMenuItem({
+    id: 'tp_claims',
+    title: 'Land Claims',
+    description: 'Claim chunks & protect your builds',
+    icon: 'textures/ui/world_glyph',
+    hub: 'teleport',
+    featureId: 'world.claim',
+    canAccess: (p) => {
+      return (
+        hasPermission(p, 'cmd.claim') ||
+        p.hasTag('admin') ||
+        hasPermission(p, 'cmd.admin') ||
+        hasPermission(p, 'cmd.claim.admin') ||
+        hasPermission(p, 'bypass.landclaim')
+      );
+    },
+    order: 5,
+    action: async (p) => {
+      const { showLandClaimPanel } = await import('@features/essentials/protection/landclaim/ui/panel.js');
+      await showLandClaimPanel(p);
+    },
+  });
+
   registerMenuItem({
     id: 'tp_homes',
     title: 'My Homes',
@@ -726,6 +760,20 @@ export function initializeDefaultMenuItems(): void {
     action: async (p) => {
       const { showWorldProtectionListPanel } = await import('@features/essentials/protection/ui/panel.js');
       await showWorldProtectionListPanel(p);
+    },
+  });
+
+  registerMenuItem({
+    id: 'staff_landclaim',
+    title: 'Land Claims',
+    description: 'Manage claims & chunk boundaries',
+    icon: 'textures/ui/world_glyph',
+    hub: 'staff_world',
+    permissionNode: 'ui.panel.mod',
+    order: 25,
+    action: async (p) => {
+      const { showLandClaimPanel } = await import('@features/essentials/protection/landclaim/ui/panel.js');
+      await showLandClaimPanel(p);
     },
   });
 

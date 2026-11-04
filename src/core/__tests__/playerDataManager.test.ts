@@ -40,12 +40,13 @@ describe('PlayerDataManager - updatePlayerData', () => {
     cleanupPlayerDataManager();
     mockStorageLoad.mockReset();
     mockStorageSave.mockReset();
+    mockStorageSave.mockReturnValue(true);
     mockStorageLoad.mockImplementation(() => undefined);
     loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
       return mockStorageLoad(this.dbName);
     });
     saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
-      return mockStorageSave(this.dbName, data);
+      return mockStorageSave(this.dbName, data) ?? true;
     });
   });
 

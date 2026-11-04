@@ -6,6 +6,7 @@ import { economyConfig } from '@features/economy/config.js';
 import { dailyRewardsConfig } from '@features/economy/daily/config.js';
 import { shopConfig } from '@features/economy/shop/config.js';
 import { type WorldProtectionConfig, worldProtectionConfig } from '@features/essentials/protection/config.js';
+import { type LandClaimConfig, landClaimConfig } from '@features/essentials/protection/landclaim/config.js';
 import { defaultGameplayConfig } from '@features/gameplay/config.js';
 import type { GameplayConfig } from '@features/gameplay/types.js';
 import { type GamesConfig, gamesConfig } from '@features/games/config.js';
@@ -14,7 +15,6 @@ import { defaultItemBlacklistConfig } from '@features/moderation/blacklist/confi
 import ranksConfig from '@features/ranks/config.js';
 import { config as sidebarConfig } from '@features/sidebar/config.js';
 import { friendConfig } from '@features/social/friends/config.js';
-import { type LandClaimConfig, landClaimConfig } from '@features/social/landclaim/config.js';
 import { teamConfig } from '@features/social/team/config.js';
 import * as mc from '@minecraft/server';
 

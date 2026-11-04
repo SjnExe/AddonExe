@@ -1,6 +1,12 @@
 import { getConfig } from '@core/config/configManager.js';
 import * as configs from '@core/config/configurations.js';
 
+/**
+ * Evaluates whether a registered feature system is currently active based on server configuration toggles.
+ *
+ * @param featureId The unique identifier of the feature to evaluate.
+ * @returns True if the feature is enabled in system configurations, false otherwise.
+ */
 export function isFeatureActive(featureId: string): boolean {
   let mainConfig: ReturnType<typeof getConfig> | undefined;
   try {
@@ -76,6 +82,9 @@ export function isFeatureActive(featureId: string): boolean {
       return mainConfig?.warps?.enabled === true;
     case 'tp.back':
       return mainConfig?.back?.enabled === true;
+
+    case 'world.claim':
+      return configs.getLandClaimConfig()?.enabled === true;
 
     default:
       return true;

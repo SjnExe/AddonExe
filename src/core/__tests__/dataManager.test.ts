@@ -41,13 +41,14 @@ describe('DataManager - saveAllData & saveAllDataJob', () => {
       maxBalance: 1_000_000,
     } as any);
     mockStorageSave.mockReset();
+    mockStorageSave.mockReturnValue(true);
     mockStorageLoad.mockReset();
     mockStorageLoad.mockImplementation(() => undefined);
     loadSpy = spyOn(StorageManager.prototype, 'load').mockImplementation(function (this: any) {
       return mockStorageLoad(this.dbName);
     });
     saveSpy = spyOn(StorageManager.prototype, 'save').mockImplementation(function (this: any, data: any) {
-      return mockStorageSave(this.dbName, data);
+      return mockStorageSave(this.dbName, data) ?? true;
     });
   });
 

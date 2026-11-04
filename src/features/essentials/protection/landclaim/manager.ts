@@ -6,6 +6,7 @@ import {
   getPlayerIdByName,
   getPlayerNameById,
   incrementPlayerBalance,
+  savePlayerData,
 } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
@@ -13,7 +14,14 @@ import { adminTag, villagerHappyParticleId } from '@core/utils/constants.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { debugLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
-import type { ClaimActionResult, LandClaim, LandClaimFlags, TrustedPlayer } from '@features/social/landclaim/types.js';
+import type {
+  ClaimActionResult,
+  LandClaim,
+  LandClaimFlags,
+  TrustedPlayer,
+} from '@features/essentials/protection/landclaim/types.js';
+import { isFriend } from '@features/social/friends/manager.js';
+import { getPlayerTeamId } from '@features/social/team/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -219,6 +227,8 @@ export function initializeLandClaim(): void {
           allowExplosions: Boolean(claim.flags?.allowExplosions),
           allowInteract: Boolean(claim.flags?.allowInteract),
           allowContainers: Boolean(claim.flags?.allowContainers),
+          trustTeam: Boolean(claim.flags?.trustTeam),
+          trustFriends: Boolean(claim.flags?.trustFriends),
         };
         const normalizedClaim: LandClaim = {
           ...claim,
@@ -395,6 +405,10 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
       };
     }
     incrementPlayerBalance(player.id, -cost);
+    if (!savePlayerData(player.id)) {
+      incrementPlayerBalance(player.id, cost);
+      return { success: false, message: '§cFailed to save balance. Claim has been rolled back.' };
+    }
     debited = true;
   }
 
@@ -432,14 +446,205 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
     }
     if (debited) {
       incrementPlayerBalance(player.id, cost);
+      const refunded = savePlayerData(player.id);
+      if (!refunded) {
+        return {
+          success: false,
+          message: '§cFailed to save claim data. Your refund is pending and will be applied on the next save cycle.',
+        };
+      }
     }
     return { success: false, message: '§cFailed to save claim data. Claim has been rolled back.' };
   }
 
+  const remainingBalance = debited ? (getBalance(player.id) ?? 0) : undefined;
+  const costNotice = debited
+    ? ` for ${formatCurrency(cost)} (Remaining balance: ${formatCurrency(remainingBalance!)})`
+    : '';
+
   return {
     success: true,
-    message: `§aChunk [${cx}, ${cz}] successfully claimed!`,
+    message: `§aChunk [${cx}, ${cz}] successfully claimed${costNotice}!`,
     claim: newClaim,
+  };
+}
+
+/**
+ * Claims a square area of chunks centered on the player's current chunk within a given radius. e.g., radius 1 = 3x3
+ * chunks (up to 9 chunks), radius 2 = 5x5 chunks (up to 25 chunks). Strictly guarantees that existing claims of other
+ * players, protected zones, dimension restrictions, claim limits, and economy costs are verified upfront before
+ * creating claims or deducting funds.
+ *
+ * @param player The player claiming the area.
+ * @param radius Radius of chunks around the player's current chunk (1 to 3).
+ * @returns Result object with outcome message and list of claimed chunks.
+ */
+export function claimRadius(player: mc.Player, radius = 1): ClaimActionResult & { claimedCount?: number } {
+  const config = getLandClaimConfig();
+  if (!config.enabled) {
+    return { success: false, message: '§cLand claiming is currently disabled on this server.' };
+  }
+
+  const r = Math.max(1, Math.min(Math.floor(radius), 3));
+  const centerCx = toChunkCoord(player.location.x);
+  const centerCz = toChunkCoord(player.location.z);
+  const dimId = player.dimension.id;
+
+  // 1. Dimension Verification
+  if (dimId === MinecraftDimensionTypes.Nether && !config.allowNether) {
+    return { success: false, message: '§cLand claiming is prohibited in the Nether.' };
+  }
+  if (dimId === MinecraftDimensionTypes.TheEnd && !config.allowTheEnd) {
+    return { success: false, message: '§cLand claiming is prohibited in The End.' };
+  }
+
+  const endRadius = Number(config.endIslandProtectedRadius) || 300;
+  const bypass = canBypassLandClaim(player);
+  const candidateCoords: Array<{ cx: number; cz: number; key: string }> = [];
+
+  for (let dx = -r; dx <= r; dx++) {
+    for (let dz = -r; dz <= r; dz++) {
+      const cx = centerCx + dx;
+      const cz = centerCz + dz;
+      const chunkKey = getChunkKey(dimId, cx, cz);
+
+      // Verify End island
+      if (dimId === MinecraftDimensionTypes.TheEnd && isChunkOverlappingEndIsland(dimId, cx, cz, endRadius)) {
+        continue;
+      }
+      // Verify spawn and server zones
+      if (!bypass) {
+        if (isChunkOverlappingSpawn(dimId, cx, cz) || isChunkOverlappingWorldProtection(dimId, cx, cz)) {
+          continue;
+        }
+      }
+
+      // Check existing claim
+      const existing = claimsMap.get(chunkKey);
+      if (isDefined(existing)) {
+        // Skip chunks already owned by this player; fail or skip if owned by someone else
+        if (existing.ownerId !== player.id) {
+          // Safety: chunks claimed by other players cannot be claimed
+          continue;
+        }
+        // Already owned by self - no need to re-claim
+        continue;
+      }
+
+      candidateCoords.push({ cx, cz, key: chunkKey });
+    }
+  }
+
+  if (candidateCoords.length === 0) {
+    return {
+      success: false,
+      message: '§eNo claimable wilderness chunks found in this area (already claimed or in protected zones).',
+    };
+  }
+
+  // Sort candidate chunks by distance from center chunk so center and closest chunks are claimed first
+  candidateCoords.sort((a, b) => {
+    const distA = Math.hypot(a.cx - centerCx, a.cz - centerCz);
+    const distB = Math.hypot(b.cx - centerCx, b.cz - centerCz);
+    return distA - distB;
+  });
+
+  // Check claim limits
+  const userClaims = playerClaims.get(player.id)?.size ?? 0;
+  const maxAllowed = getMaxClaimsForPlayer(player);
+  const availableSlots = bypass ? candidateCoords.length : Math.max(0, maxAllowed - userClaims);
+
+  if (availableSlots <= 0) {
+    return {
+      success: false,
+      message: `§cYou have reached your claim limit of ${maxAllowed} chunks (${userClaims}/${maxAllowed}).`,
+    };
+  }
+
+  // Limit candidates to available slots
+  const toClaim = candidateCoords.slice(0, availableSlots);
+  const costPerChunk = Number(config.claimCost) || 0;
+  const totalCost = costPerChunk * toClaim.length;
+
+  let debited = false;
+  if (totalCost > 0 && !bypass) {
+    const balance = getBalance(player.id) ?? 0;
+    if (balance < totalCost) {
+      return {
+        success: false,
+        message: `§cInsufficient funds to claim ${toClaim.length} chunks. Cost: ${formatCurrency(totalCost)} (Your balance: ${formatCurrency(balance)}).`,
+      };
+    }
+    incrementPlayerBalance(player.id, -totalCost);
+    if (!savePlayerData(player.id)) {
+      incrementPlayerBalance(player.id, totalCost);
+      return { success: false, message: '§cFailed to save balance. No chunks were claimed.' };
+    }
+    debited = true;
+  }
+
+  // Create and persist claims
+  const newlyCreated: LandClaim[] = [];
+  let userSet = playerClaims.get(player.id);
+  if (!userSet) {
+    userSet = new Set();
+    playerClaims.set(player.id, userSet);
+  }
+
+  const now = Date.now();
+  for (const item of toClaim) {
+    const claim: LandClaim = {
+      id: item.key,
+      dimension: dimId,
+      chunkX: item.cx,
+      chunkZ: item.cz,
+      ownerId: player.id,
+      ownerName: player.name,
+      claimedAt: now,
+      trusted: [],
+      flags: {
+        allowPvP: !config.preventPvPDefault,
+        allowExplosions: !config.preventExplosionsDefault,
+        allowInteract: false,
+        allowContainers: false,
+      },
+    };
+    claimsMap.set(item.key, claim);
+    userSet.add(item.key);
+    newlyCreated.push(claim);
+  }
+
+  if (!saveClaims()) {
+    for (const item of toClaim) {
+      claimsMap.delete(item.key);
+      userSet.delete(item.key);
+    }
+    if (userSet.size === 0) {
+      playerClaims.delete(player.id);
+    }
+    if (debited) {
+      incrementPlayerBalance(player.id, totalCost);
+      const refunded = savePlayerData(player.id);
+      if (!refunded) {
+        return {
+          success: false,
+          message: '§cFailed to save claim data. Your refund is pending and will be applied on the next save cycle.',
+        };
+      }
+    }
+    return { success: false, message: '§cFailed to save claim data. Batch claim was rolled back.' };
+  }
+
+  const remainingBalance = debited ? (getBalance(player.id) ?? 0) : undefined;
+  const costNotice = debited
+    ? ` for ${formatCurrency(totalCost)} (Remaining: ${formatCurrency(remainingBalance!)})`
+    : '';
+
+  return {
+    success: true,
+    message: `§aSuccessfully claimed ${toClaim.length} chunk${toClaim.length === 1 ? '' : 's'}${costNotice}!`,
+    claimedCount: toClaim.length,
+    claim: newlyCreated[0],
   };
 }
 
@@ -725,7 +930,27 @@ export function isClaimOwner(claim: LandClaim, player: mc.Player): boolean {
  * @returns True if player is owner or trusted.
  */
 export function isClaimOwnerOrTrusted(claim: LandClaim, player: mc.Player): boolean {
-  return claim.ownerId === player.id || claim.trusted.some((t) => t.id === player.id);
+  if (claim.ownerId === player.id) {
+    return true;
+  }
+  if (claim.trusted.some((t) => t.id === player.id)) {
+    return true;
+  }
+  // Check auto-trust team toggle
+  if (claim.flags.trustTeam) {
+    const ownerTeamId = getPlayerTeamId(claim.ownerId);
+    const playerTeamId = getPlayerTeamId(player.id);
+    if (isDefined(ownerTeamId) && ownerTeamId === playerTeamId) {
+      return true;
+    }
+  }
+  // Check auto-trust friends toggle
+  if (claim.flags.trustFriends) {
+    if (isFriend(claim.ownerId, player.id)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

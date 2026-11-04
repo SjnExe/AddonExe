@@ -1,5 +1,11 @@
+import { getLandClaimConfig } from '@core/config/configurations.js';
+import { getBalance } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { formatCurrency } from '@core/utils/economy.js';
 import {
+  canBypassLandClaim,
   claimChunk,
+  claimRadius,
   getClaimAt,
   getClaimsByPlayer,
   getMaxClaimsForPlayer,
@@ -10,8 +16,8 @@ import {
   unclaimChunk,
   untrustPlayer,
   updateClaimFlags,
-} from '@features/social/landclaim/manager.js';
-import type { LandClaim } from '@features/social/landclaim/types.js';
+} from '@features/essentials/protection/landclaim/manager.js';
+import type { LandClaim } from '@features/essentials/protection/landclaim/types.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
@@ -29,12 +35,20 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
     return;
   }
 
+  if (!hasPermission(player, 'cmd.claim') && !canBypassLandClaim(player)) {
+    player.sendMessage('§cYou do not have permission to use the Land Claim system.');
+    return;
+  }
+
   const cx = toChunkCoord(player.location.x);
   const cz = toChunkCoord(player.location.z);
   const dimId = player.dimension.id;
   const currentClaim = getClaimAt(player.location, dimId);
   const myClaims = getClaimsByPlayer(player.id);
   const maxClaims = getMaxClaimsForPlayer(player);
+  const config = getLandClaimConfig();
+  const chunkCost = canBypassLandClaim(player) ? 0 : Number(config.claimCost) || 0;
+  const balance = getBalance(player.id) ?? 0;
 
   const statusText = isDefined(currentClaim)
     ? currentClaim.ownerId === player.id
@@ -42,16 +56,20 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
       : `§cClaimed by ${currentClaim.ownerName}`
     : '§7Wilderness (Unclaimed)';
 
+  const costDisplay = chunkCost > 0 ? formatCurrency(chunkCost) : 'Free';
+
   const form = new ActionFormBuilder()
     .title('§l§2Land Claim§r')
     .body(
-      `§7Current Chunk: §e[${cx}, ${cz}]\n` +
+      `§7Current Chunk: §e[${cx}, ${cz}] §7(16x16 blocks)\n` +
         `§7Status: ${statusText}\n` +
-        `§7Your Claims: §a${myClaims.length}§7/§e${maxClaims}§r`,
+        `§7Your Claims: §a${myClaims.length}§7/§e${maxClaims} chunks§r\n` +
+        `§7Price per Chunk: §e${costDisplay} §7| Balance: §a${formatCurrency(balance)}§r`,
     );
 
   if (!isDefined(currentClaim)) {
-    form.button('Claim Current Chunk', 'textures/ui/color_plus', async () => {
+    const claimBtnText = chunkCost > 0 ? `Claim Current Chunk (${costDisplay})` : 'Claim Current Chunk (Free)';
+    form.button(claimBtnText, 'textures/ui/color_plus', async () => {
       if (!player.isValid) {
         return;
       }
@@ -67,6 +85,81 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
       const res = unclaimChunk(player, cx, cz);
       player.sendMessage(res.message);
       await showLandClaimPanel(player, context);
+    });
+  }
+
+  // Show area claim options (3x3, 5x5, 7x7) if current chunk is unclaimed or already owned by the player
+  if (!isDefined(currentClaim) || currentClaim.ownerId === player.id) {
+    const r1Cost = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 9)})` : ' (Free)';
+    form.button(`Claim 3x3 Area${r1Cost}`, 'textures/ui/icon_recipe_nature', async () => {
+      if (!player.isValid) {
+        return;
+      }
+      await showConfirmationDialog(player, {
+        title: 'Claim 3x3 Chunk Area',
+        body:
+          `This will attempt to claim up to 9 chunks (3x3 area) centered on your current position.\n\n` +
+          `• Cost: ${costDisplay} per chunk\n` +
+          `• Your Balance: ${formatCurrency(balance)}\n` +
+          `• Claim Limit: ${myClaims.length}/${maxClaims} chunks\n\n` +
+          `Any chunks already claimed by other players or in protected zones will be safely skipped.`,
+        onConfirm: async () => {
+          if (!player.isValid) {
+            return;
+          }
+          const res = claimRadius(player, 1);
+          player.sendMessage(res.message);
+          await showLandClaimPanel(player, context);
+        },
+      });
+    });
+
+    const r2Cost = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 25)})` : ' (Free)';
+    form.button(`Claim 5x5 Area${r2Cost}`, 'textures/ui/icon_recipe_nature', async () => {
+      if (!player.isValid) {
+        return;
+      }
+      await showConfirmationDialog(player, {
+        title: 'Claim 5x5 Chunk Area',
+        body:
+          `This will attempt to claim up to 25 chunks (5x5 area) centered on your current position.\n\n` +
+          `• Cost: ${costDisplay} per chunk\n` +
+          `• Your Balance: ${formatCurrency(balance)}\n` +
+          `• Claim Limit: ${myClaims.length}/${maxClaims} chunks\n\n` +
+          `Any chunks already claimed by other players or in protected zones will be safely skipped.`,
+        onConfirm: async () => {
+          if (!player.isValid) {
+            return;
+          }
+          const res = claimRadius(player, 2);
+          player.sendMessage(res.message);
+          await showLandClaimPanel(player, context);
+        },
+      });
+    });
+
+    const r3Cost = chunkCost > 0 ? ` (up to ${formatCurrency(chunkCost * 49)})` : ' (Free)';
+    form.button(`Claim 7x7 Area${r3Cost}`, 'textures/ui/icon_recipe_nature', async () => {
+      if (!player.isValid) {
+        return;
+      }
+      await showConfirmationDialog(player, {
+        title: 'Claim 7x7 Chunk Area',
+        body:
+          `This will attempt to claim up to 49 chunks (7x7 area) centered on your current position.\n\n` +
+          `• Cost: ${costDisplay} per chunk\n` +
+          `• Your Balance: ${formatCurrency(balance)}\n` +
+          `• Claim Limit: ${myClaims.length}/${maxClaims} chunks\n\n` +
+          `Any chunks already claimed by other players or in protected zones will be safely skipped.`,
+        onConfirm: async () => {
+          if (!player.isValid) {
+            return;
+          }
+          const res = claimRadius(player, 3);
+          player.sendMessage(res.message);
+          await showLandClaimPanel(player, context);
+        },
+      });
     });
   }
 
@@ -235,7 +328,8 @@ export async function showTrustManagementPanel(player: mc.Player, context?: Reco
   const form = new ActionFormBuilder()
     .title('§l§2Trust Management§r')
     .body(
-      `§7Trusted players can build, break, and interact inside your claims.\nCurrently trusted: §e${trustedMap.size}§7 player(s).`,
+      `§7Trusted players can build, break, and interact inside your claims.\nCurrently trusted: §e${trustedMap.size}§7 specific player(s).\n\n` +
+        `§7Tip: You can also enable §aTrust All Friends§7 and §aTrust All Team Members§7 in Claim Flags.`,
     )
     .button('Trust New Player', 'textures/ui/permissions_member_star', async () => {
       if (!player.isValid) {
@@ -310,11 +404,15 @@ export async function showClaimFlagsPanel(
   }
 
   const form = new CustomFormBuilder<{
+    trustTeam: boolean;
+    trustFriends: boolean;
     allowPvP: boolean;
     allowExplosions: boolean;
     allowInteract: boolean;
     allowContainers: boolean;
   }>(`Flags: [${claim.chunkX}, ${claim.chunkZ}]`)
+    .toggle('trustTeam', 'Trust All Team Members (build/break)', Boolean(claim.flags.trustTeam))
+    .toggle('trustFriends', 'Trust All Friends (build/break)', Boolean(claim.flags.trustFriends))
     .toggle('allowPvP', 'Allow PvP inside claim', Boolean(claim.flags.allowPvP))
     .toggle('allowExplosions', 'Allow Explosions inside claim', Boolean(claim.flags.allowExplosions))
     .toggle('allowInteract', 'Allow Visitors to Interact (Doors/Levers)', Boolean(claim.flags.allowInteract))
@@ -327,6 +425,8 @@ export async function showClaimFlagsPanel(
   }
   if (isDefined(res)) {
     const success = updateClaimFlags(player, claim.id, {
+      trustTeam: res.trustTeam,
+      trustFriends: res.trustFriends,
       allowPvP: res.allowPvP,
       allowExplosions: res.allowExplosions,
       allowInteract: res.allowInteract,
