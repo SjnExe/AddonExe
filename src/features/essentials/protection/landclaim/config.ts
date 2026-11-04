@@ -23,7 +23,7 @@ export interface LandClaimConfig {
 export const landClaimConfig: LandClaimConfig = {
   enabled: false,
   maxClaimsPerPlayer: 4,
-  claimCost: 0,
+  claimCost: 100,
   allowNether: true,
   allowTheEnd: false,
   endIslandProtectedRadius: 300,

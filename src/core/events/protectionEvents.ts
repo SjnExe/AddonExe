@@ -5,7 +5,7 @@ import { frozenTag } from '@core/utils/constants.js';
 import { hasTeleportProtection } from '@core/utils/teleportLogic.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/protection/zoneSelectionManager.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
-import { canPlayerModify, getEnforcedClaimAt, isClaimOwnerOrTrusted } from '@features/social/landclaim/manager.js';
+import { canPlayerModify, getEnforcedClaimAt, isClaimOwnerOrTrusted } from '@features/essentials/protection/landclaim/manager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';

@@ -14,7 +14,7 @@ import { defaultItemBlacklistConfig } from '@features/moderation/blacklist/confi
 import ranksConfig from '@features/ranks/config.js';
 import { config as sidebarConfig } from '@features/sidebar/config.js';
 import { friendConfig } from '@features/social/friends/config.js';
-import { type LandClaimConfig, landClaimConfig } from '@features/social/landclaim/config.js';
+import { type LandClaimConfig, landClaimConfig } from '@features/essentials/protection/landclaim/config.js';
 import { teamConfig } from '@features/social/team/config.js';
 import * as mc from '@minecraft/server';
 

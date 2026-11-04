@@ -23,11 +23,13 @@ import {
   unclaimChunk,
   untrustPlayer,
   updateClaimFlags,
-} from '@features/social/landclaim/manager.js';
+  claimRadius,
+  isClaimOwnerOrTrusted,
+} from '@features/essentials/protection/landclaim/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes, MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
-import defaultConfig from '../../../../config.js';
+import defaultConfig from '../../../../../config.js';
 
 describe('Land Claim System', () => {
   let landConfig = {
@@ -518,6 +520,106 @@ describe('Land Claim System', () => {
 
       handleBeforeEntityHurt(event);
       expect(event.cancel).toBe(true);
+    });
+
+    it('claims chunks with price deduction and formats receipt', () => {
+      landConfig.claimCost = 100;
+      const buyer = {
+        id: 'buyer1',
+        name: 'Buyer',
+        location: { x: 320, y: 64, z: 320 },
+        dimension: { id: MinecraftDimensionTypes.Overworld },
+        hasTag: () => false,
+        getTags: () => [],
+      } as unknown as mc.Player;
+
+      const res = claimChunk(buyer, 20, 20);
+      expect(res.success).toBe(true);
+      expect(res.message).toContain('Chunk [20, 20] successfully claimed for');
+      expect(getClaimsByPlayer('buyer1').length).toBe(1);
+    });
+
+    it('claimRadius claims up to 9 chunks safely and skips already claimed chunks', () => {
+      const radiusPlayer = {
+        id: 'radius_p',
+        name: 'RadiusPlayer',
+        location: { x: 800, y: 64, z: 800 },
+        dimension: { id: MinecraftDimensionTypes.Overworld },
+        hasTag: () => false,
+        getTags: () => ['landclaim.max.20'],
+      } as unknown as mc.Player;
+
+      const otherPlayer = {
+        id: 'other_p',
+        name: 'OtherPlayer',
+        location: { x: 816, y: 64, z: 800 },
+        dimension: { id: MinecraftDimensionTypes.Overworld },
+        hasTag: () => false,
+        getTags: () => [],
+      } as unknown as mc.Player;
+
+      // Pre-claim one chunk in that 3x3 area with otherPlayer (51, 50)
+      claimChunk(otherPlayer, 51, 50);
+
+      // radiusPlayer is at (50, 50), claims 3x3 (radius = 1)
+      const res = claimRadius(radiusPlayer, 1);
+      expect(res.success).toBe(true);
+      // 9 chunks minus 1 already claimed by otherPlayer = 8 chunks claimed
+      expect(res.claimedCount).toBe(8);
+
+      // Verify the other player's chunk was NOT overwritten
+      const otherClaim = getClaim('minecraft:overworld:51,50');
+      expect(otherClaim?.ownerId).toBe('other_p');
+    });
+
+    it('respects trustFriends and trustTeam toggles in isClaimOwnerOrTrusted', () => {
+      const owner = {
+        id: 'team_owner',
+        name: 'TeamOwner',
+        location: { x: 1600, y: 64, z: 1600 },
+        dimension: { id: MinecraftDimensionTypes.Overworld },
+        hasTag: () => false,
+        getTags: () => [],
+      } as unknown as mc.Player;
+
+      const res = claimChunk(owner, 100, 100);
+      expect(res.success).toBe(true);
+      const claim = res.claim!;
+
+      const teammate = {
+        id: 'teammate_p',
+        name: 'Teammate',
+      } as unknown as mc.Player;
+
+      // Without trustTeam, not trusted
+      expect(isClaimOwnerOrTrusted(claim, teammate)).toBe(false);
+
+      // Update flag to trustTeam
+      claim.flags.trustTeam = true;
+
+      const teamManager = require('@features/social/team/manager.js');
+      const teamSpy = spyOn(teamManager, 'getPlayerTeamId').mockImplementation((pid: string) => {
+        if (pid === 'team_owner' || pid === 'teammate_p') {return 42;}
+        return undefined;
+      });
+
+      expect(isClaimOwnerOrTrusted(claim, teammate)).toBe(true);
+      teamSpy.mockRestore();
+
+      // Check trustFriends
+      const friend = {
+        id: 'friend_p',
+        name: 'Friend',
+      } as unknown as mc.Player;
+
+      claim.flags.trustFriends = true;
+      const friendManager = require('@features/social/friends/manager.js');
+      const friendSpy = spyOn(friendManager, 'isFriend').mockImplementation((p1: string, p2: string) => {
+        return p1 === 'team_owner' && p2 === 'friend_p';
+      });
+
+      expect(isClaimOwnerOrTrusted(claim, friend)).toBe(true);
+      friendSpy.mockRestore();
     });
   });
 });

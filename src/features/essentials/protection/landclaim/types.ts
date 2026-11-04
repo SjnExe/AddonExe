@@ -8,6 +8,10 @@ export interface LandClaimFlags {
   allowInteract?: boolean;
   /** Whether non-trusted visitors are permitted to open chests, barrels, and storage containers. */
   allowContainers?: boolean;
+  /** Whether members of the claim owner's team are automatically granted trusted access. */
+  trustTeam?: boolean;
+  /** Whether players on the claim owner's friends list are automatically granted trusted access. */
+  trustFriends?: boolean;
 }
 
 /** Record representing a trusted player authorized to modify and access claimed land. */

@@ -256,6 +256,20 @@ export function initializeDefaultMenuItems(): void {
 
   // --- TELEPORT HUB ITEMS ---
   registerMenuItem({
+    id: 'tp_claims',
+    title: 'Land Claims',
+    description: 'Claim chunks & protect your builds',
+    icon: 'textures/ui/world_glyph',
+    hub: 'teleport',
+    featureId: 'world.claim',
+    order: 5,
+    action: async (p) => {
+      const { showLandClaimPanel } = await import('@features/essentials/protection/landclaim/ui/panel.js');
+      await showLandClaimPanel(p);
+    },
+  });
+
+  registerMenuItem({
     id: 'tp_homes',
     title: 'My Homes',
     description: 'Teleport to or set your homes',
@@ -726,6 +740,20 @@ export function initializeDefaultMenuItems(): void {
     action: async (p) => {
       const { showWorldProtectionListPanel } = await import('@features/essentials/protection/ui/panel.js');
       await showWorldProtectionListPanel(p);
+    },
+  });
+
+  registerMenuItem({
+    id: 'staff_landclaim',
+    title: 'Land Claims',
+    description: 'Manage claims & chunk boundaries',
+    icon: 'textures/ui/world_glyph',
+    hub: 'staff_world',
+    permissionNode: 'ui.panel.mod',
+    order: 25,
+    action: async (p) => {
+      const { showLandClaimPanel } = await import('@features/essentials/protection/landclaim/ui/panel.js');
+      await showLandClaimPanel(p);
     },
   });
 
