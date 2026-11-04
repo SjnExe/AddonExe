@@ -262,6 +262,7 @@ export function initializeDefaultMenuItems(): void {
     icon: 'textures/ui/world_glyph',
     hub: 'teleport',
     featureId: 'world.claim',
+    permissionNode: 'cmd.claim',
     order: 5,
     action: async (p) => {
       const { showLandClaimPanel } = await import('@features/essentials/protection/landclaim/ui/panel.js');

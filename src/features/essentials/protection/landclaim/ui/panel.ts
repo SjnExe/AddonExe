@@ -1,7 +1,9 @@
 import { getLandClaimConfig } from '@core/config/configurations.js';
 import { getBalance } from '@core/data/playerDataManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import {
+  canBypassLandClaim,
   claimChunk,
   claimRadius,
   getClaimAt,
@@ -33,6 +35,11 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
     return;
   }
 
+  if (!hasPermission(player, 'cmd.claim') && !canBypassLandClaim(player)) {
+    player.sendMessage('§cYou do not have permission to use the Land Claim system.');
+    return;
+  }
+
   const cx = toChunkCoord(player.location.x);
   const cz = toChunkCoord(player.location.z);
   const dimId = player.dimension.id;
@@ -40,7 +47,7 @@ export async function showLandClaimPanel(player: mc.Player, context?: Record<str
   const myClaims = getClaimsByPlayer(player.id);
   const maxClaims = getMaxClaimsForPlayer(player);
   const config = getLandClaimConfig();
-  const chunkCost = Number(config.claimCost) || 0;
+  const chunkCost = canBypassLandClaim(player) ? 0 : Number(config.claimCost) || 0;
   const balance = getBalance(player.id) ?? 0;
 
   const statusText = isDefined(currentClaim)
