@@ -347,6 +347,13 @@ export function snapshotOnlinePlayerContainers(player: mc.Player, pData: PlayerD
   }
 }
 
+/**
+ * Persists cached player data to dynamic property storage, optionally capturing container snapshots.
+ *
+ * @param playerId Entity ID of the target player.
+ * @param includeContainers Whether to snapshot and persist inventory and ender chest slots.
+ * @returns True if player data was saved successfully, false on error or write failure.
+ */
 export function savePlayerData(playerId: string, includeContainers = false): boolean {
   if (!activePlayerData.has(playerId)) {
     errorLog(`[PlayerDataManager] Attempted to save data for non-cached player: ${playerId}`);
@@ -372,9 +379,11 @@ export function savePlayerData(playerId: string, includeContainers = false): boo
       }
 
       const storage = new StorageManager(`${playerPropertyPrefix}${playerId}`);
-      storage.save(playerData);
-      playerData.needsSave = false;
-      return true;
+      const saved = storage.save(playerData);
+      if (saved) {
+        playerData.needsSave = false;
+      }
+      return saved;
     }
   } catch (error: unknown) {
     const stack = error instanceof Error ? error.stack : String(error);
