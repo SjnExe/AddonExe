@@ -446,7 +446,13 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
     }
     if (debited) {
       incrementPlayerBalance(player.id, cost);
-      savePlayerData(player.id);
+      const refunded = savePlayerData(player.id);
+      if (!refunded) {
+        return {
+          success: false,
+          message: '§cFailed to save claim data. Your refund is pending and will be applied on the next save cycle.',
+        };
+      }
     }
     return { success: false, message: '§cFailed to save claim data. Claim has been rolled back.' };
   }
@@ -618,7 +624,13 @@ export function claimRadius(player: mc.Player, radius = 1): ClaimActionResult & 
     }
     if (debited) {
       incrementPlayerBalance(player.id, totalCost);
-      savePlayerData(player.id);
+      const refunded = savePlayerData(player.id);
+      if (!refunded) {
+        return {
+          success: false,
+          message: '§cFailed to save claim data. Your refund is pending and will be applied on the next save cycle.',
+        };
+      }
     }
     return { success: false, message: '§cFailed to save claim data. Batch claim was rolled back.' };
   }
