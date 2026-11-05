@@ -16,10 +16,12 @@ describe('Type Guards', () => {
       expect(isDefined({})).toBeTrue();
       expect(isDefined([])).toBeTrue();
 
-      const val: string | undefined = 'hello';
-      if (isDefined(val)) {
-        expectTypeOf(val).toBeString();
-      }
+      const assertDefined = (value: string | undefined): void => {
+        if (isDefined(value)) {
+          expectTypeOf(value).toBeString();
+        }
+      };
+      assertDefined('hello');
     });
   });
 

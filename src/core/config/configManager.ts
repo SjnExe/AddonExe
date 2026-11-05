@@ -6,6 +6,8 @@ import * as mc from '@minecraft/server';
 
 import defaultConfig, { type config as Config } from '../../config.js';
 
+const defaultConfigSnapshot = deepClone(defaultConfig);
+
 let mainConfigManager: ConfigManager<typeof Config>;
 const updateCallbacks: ((config: typeof Config) => void)[] = [];
 
@@ -80,7 +82,7 @@ export const reloadConfig = () => {
 export function _clearMainConfigManagerForTest(): void {
   if (isDefined(mainConfigManager) && typeof mainConfigManager.set === 'function') {
     try {
-      mainConfigManager.set(deepClone(defaultConfig));
+      mainConfigManager.set(deepClone(defaultConfigSnapshot));
     } catch {
       // Ignore if mock instance does not support set
     }
