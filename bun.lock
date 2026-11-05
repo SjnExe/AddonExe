@@ -12,8 +12,8 @@
         "@minecraft/bedrock-schemas": "beta",
         "@minecraft/common": "latest",
         "@minecraft/creator-tools": "latest",
-        "@minecraft/server": "2.12.0-beta.1.26.61-stable",
-        "@minecraft/server-ui": "2.4.0-beta.1.26.61-stable",
+        "@minecraft/server": "2.12.0-beta.1.26.62-stable",
+        "@minecraft/server-ui": "2.4.0-beta.1.26.62-stable",
         "@types/bun": "latest",
         "oxlint": "latest",
       },
@@ -69,9 +69,9 @@
 
     "@minecraft/math": ["@minecraft/math@2.4.1", "", { "peerDependencies": { "@minecraft/server": "^1.15.0 || ^2.0.0" } }, "sha512-Ar6nuXYZvfnZHkEGYUUzBLbx1r38m8KQmu0/Nz/P6LCiumCs7lpV4Vka0cltXjckz8nbosQjjzWe/VZL0Fk8Uw=="],
 
-    "@minecraft/server": ["@minecraft/server@2.12.0-beta.1.26.61-stable", "", { "peerDependencies": { "@minecraft/common": "^1.2.0", "@minecraft/vanilla-data": ">=1.20.70" } }, "sha512-ZWzqIcvk9lVtJXSoP1WGnRHmhdL+MZza8Uu0zs79IuqiIk2n0/X6DQyxttI8r1t7R03Bpi7lJL/F7cbUtLFEeA=="],
+    "@minecraft/server": ["@minecraft/server@2.12.0-beta.1.26.62-stable", "", { "peerDependencies": { "@minecraft/common": "^1.2.0", "@minecraft/vanilla-data": ">=1.20.70" } }, "sha512-hywSa1LJmKcmAYbh2s15eNF1pZ13BSa9EfG+9HvsUUbnx+HBUhHe229VJt5A48UP5atVzVkH3YN0xAqpcWJV8g=="],
 
-    "@minecraft/server-ui": ["@minecraft/server-ui@2.4.0-beta.1.26.61-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^2.0.0 || ^2.12.0-beta.1.26.61-stable" } }, "sha512-DZY/kslyTTPFgVUVgCN3sSDOPXDh/orViDeoossOqpQJ+kefVTu+mW5HkOUTRjQRUgzniI8RJjkWmMctEq2qDQ=="],
+    "@minecraft/server-ui": ["@minecraft/server-ui@2.4.0-beta.1.26.62-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^2.0.0 || ^2.12.0-beta.1.26.62-stable" } }, "sha512-0awLiUf3BJWn3vCd3t+vNx7KcmQO+MhAd/ibkfIhLeqde+GuTdcH569UYf69cN6aG53l0+Qa26hZtEUvV2zu4Q=="],
 
     "@minecraft/vanilla-data": ["@minecraft/vanilla-data@1.26.60", "", {}, "sha512-6ARh4/fbNRA4XRRrMO3ys0ldO208ipcpyLAf4tpc3KXw/E6EUeaFKuFqJ2ESMQ6sSUUIfK1dNXm9MtFdWj9BPg=="],
 
