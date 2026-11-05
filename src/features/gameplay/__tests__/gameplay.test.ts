@@ -37,7 +37,7 @@ describe('Gameplay Mechanics System', () => {
       } as any;
 
       handleGameplayHurt(event);
-      expect(event.cancel).toBe(false);
+      expect(event.cancel).toBeFalse();
     });
 
     it('cancels fall damage when preventFallDamage is true', () => {
@@ -54,7 +54,7 @@ describe('Gameplay Mechanics System', () => {
       } as any;
 
       handleGameplayHurt(event);
-      expect(event.cancel).toBe(true);
+      expect(event.cancel).toBeTrue();
     });
 
     it('does not cancel non-fall damage', () => {
@@ -71,7 +71,7 @@ describe('Gameplay Mechanics System', () => {
       } as any;
 
       handleGameplayHurt(event);
-      expect(event.cancel).toBe(false);
+      expect(event.cancel).toBeFalse();
     });
   });
 
@@ -154,14 +154,14 @@ describe('Gameplay Mechanics System', () => {
         keepInventory: true,
       });
       syncGameplayGamerules();
-      expect(world.gameRules.keepInventory).toBe(true);
+      expect(world.gameRules.keepInventory).toBeTrue();
 
       saveGameplayConfig({
         ...defaultGameplayConfig,
         keepInventory: false,
       });
       syncGameplayGamerules();
-      expect(world.gameRules.keepInventory).toBe(false);
+      expect(world.gameRules.keepInventory).toBeFalse();
     });
   });
 
@@ -204,7 +204,7 @@ describe('Gameplay Mechanics System', () => {
       } as any;
 
       cmd.execute(executor, { action: 'knockback', value: '1.5' });
-      expect(getGameplayConfig().customKnockback).toBe(true);
+      expect(getGameplayConfig().customKnockback).toBeTrue();
       expect(getGameplayConfig().knockbackScale).toBe(1.5);
       expect(messages[0]).toContain('1.5x');
     });
@@ -230,7 +230,7 @@ describe('Gameplay Mechanics System', () => {
       } as any;
 
       cmd.execute(executor, { action: 'falldamage' });
-      expect(getGameplayConfig().preventFallDamage).toBe(true);
+      expect(getGameplayConfig().preventFallDamage).toBeTrue();
       expect(messages[0]).toContain('enabled');
     });
 
@@ -241,7 +241,7 @@ describe('Gameplay Mechanics System', () => {
       } as any;
 
       cmd.execute(executor, { action: 'keepinventory' });
-      expect(getGameplayConfig().keepInventory).toBe(true);
+      expect(getGameplayConfig().keepInventory).toBeTrue();
       expect(messages[0]).toContain('enabled');
     });
 
@@ -252,7 +252,7 @@ describe('Gameplay Mechanics System', () => {
       } as any;
 
       cmd.execute(executor, { action: 'voidrescue' });
-      expect(getGameplayConfig().voidRescue).toBe(true);
+      expect(getGameplayConfig().voidRescue).toBeTrue();
       expect(messages[0]).toContain('enabled');
     });
 

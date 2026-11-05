@@ -38,7 +38,7 @@ describe('worldBorderManager', () => {
     setWorldBorder(true, 100, 200, 500, MinecraftDimensionTypes.Overworld);
     const config = getWorldBorder();
 
-    expect(config.enabled).toBe(true);
+    expect(config.enabled).toBeTrue();
     expect(config.centerX).toBe(100);
     expect(config.centerZ).toBe(200);
     expect(config.radius).toBe(500);

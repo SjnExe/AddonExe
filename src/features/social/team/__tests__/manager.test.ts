@@ -111,7 +111,7 @@ describe('Team Manager', () => {
       (getTeamConfig as ReturnType<typeof mock>).mockReturnValue({ enabled: false });
       const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
       const result = createTeam(player, 'MyTeam');
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('disabled');
     });
 
@@ -119,7 +119,7 @@ describe('Team Manager', () => {
       getMockPlayer('player1').teamId = 1;
       const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
       const result = createTeam(player, 'MyTeam');
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('already in a team');
     });
 
@@ -128,15 +128,15 @@ describe('Team Manager', () => {
 
       // Too short
       let result = createTeam(player, 'ab');
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
 
       // Invalid chars
       result = createTeam(player, 'MyTeam!');
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
 
       // Blacklisted
       result = createTeam(player, 'SomeBadWordTeam');
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
     });
 
     it('should handle economy cost if enabled', () => {
@@ -154,7 +154,7 @@ describe('Team Manager', () => {
 
       const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
       const result = createTeam(player, 'MyTeam');
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('Insufficient funds');
     });
 
@@ -174,7 +174,7 @@ describe('Team Manager', () => {
       const player = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
       const result = createTeam(player, 'MyTeam');
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(incrementPlayerBalance).toHaveBeenCalledWith('player1', -50);
 
       // Verify team exists
@@ -192,7 +192,7 @@ describe('Team Manager', () => {
       getMockPlayer('player2').teamId = undefined; // mock next player isn't in team
       const result = createTeam(player2, 'myteam'); // duplicate name, different case
 
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('already taken');
     });
 
@@ -214,7 +214,7 @@ describe('Team Manager', () => {
         const player1 = { id: 'player1', sendMessage: mock() } as unknown as mc.Player;
         const result = createTeam(player1, 'NewTeam');
 
-        expect(result.success).toBe(true);
+        expect(result.success).toBeTrue();
         const team = getTeamByPlayer('player1');
         expect(team).toBeDefined();
         expect(team?.id).toBeGreaterThan(1);
@@ -264,7 +264,7 @@ describe('Team Manager', () => {
         for (let i = 0; i < iterations; i++) {
           const player = { id: `benchPlayer${i}`, sendMessage: mock() } as unknown as mc.Player;
           const res = createTeam(player, `BTeam${i}`);
-          expect(res.success).toBe(true);
+          expect(res.success).toBeTrue();
         }
         const elapsed = performance.now() - start;
         console.log(
@@ -302,7 +302,7 @@ describe('Team Manager', () => {
       expect(team).toBeDefined();
 
       const result = deleteTeam(team!.id);
-      expect(result).toBe(true);
+      expect(result).toBeTrue();
       expect(getTeam(team!.id)).toBeUndefined();
 
       // Expect incrementPlayerBalance to be called to refund
@@ -310,7 +310,7 @@ describe('Team Manager', () => {
     });
 
     it('should return false if team not found', () => {
-      expect(deleteTeam(999)).toBe(false);
+      expect(deleteTeam(999)).toBeFalse();
     });
   });
 
@@ -329,7 +329,7 @@ describe('Team Manager', () => {
 
     it('kickMember should remove member from team', () => {
       const result = kickMember(teamId, 'player3');
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
 
       const team = getTeam(teamId)!;
       expect(team.members).not.toContain('player3');
@@ -337,26 +337,26 @@ describe('Team Manager', () => {
 
     it('kickMember should not kick owner', () => {
       const result = kickMember(teamId, 'player1');
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
     });
 
     it('promoteMember should make member admin', () => {
       const result = promoteMember(teamId, 'player3');
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       const team = getTeam(teamId)!;
       expect(team.admins).toContain('player3');
     });
 
     it('demoteMember should remove admin status', () => {
       const result = demoteMember(teamId, 'player2');
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       const team = getTeam(teamId)!;
       expect(team.admins).not.toContain('player2');
     });
 
     it('transferOwnership should change owner', () => {
       const result = transferOwnership(teamId, 'player2');
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       const team = getTeam(teamId)!;
       expect(team.ownerId).toBe('player2');
       expect(team.admins).not.toContain('player2');
@@ -374,7 +374,7 @@ describe('Team Manager', () => {
 
     it('invitePlayer should add pending invite', () => {
       const result = invitePlayer(teamId, 'player2');
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(getMockPlayer('player2').pendingInvites.length).toBe(1);
       expect(getMockPlayer('player2').pendingInvites[0].teamId).toBe(teamId);
     });
@@ -384,7 +384,7 @@ describe('Team Manager', () => {
       const player2 = { id: 'player2', sendMessage: mock() } as unknown as mc.Player;
 
       const result = acceptInvite(player2, teamId);
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
 
       const team = getTeam(teamId)!;
       expect(team.members).toContain('player2');
@@ -395,7 +395,7 @@ describe('Team Manager', () => {
     it('denyInvite should remove pending invite', () => {
       getMockPlayer('player2').pendingInvites = [{ teamId, timestamp: Date.now() }];
       const result = denyInvite('player2', teamId);
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(getMockPlayer('player2').pendingInvites.length).toBe(0);
     });
   });
@@ -413,9 +413,9 @@ describe('Team Manager', () => {
       const player2 = { id: 'player2', name: 'PlayerTwo', sendMessage: mock() } as unknown as mc.Player;
       const result = applyToTeam(player2, teamId);
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       const team = getTeam(teamId)!;
-      expect(team.applications.length).toBe(1);
+      expect(team.applications).toBeArrayOfSize(1);
       expect(team.applications[0].playerId).toBe('player2');
     });
 
@@ -425,7 +425,7 @@ describe('Team Manager', () => {
 
       const player2 = { id: 'player2', name: 'PlayerTwo', sendMessage: mock() } as unknown as mc.Player;
       const result = applyToTeam(player2, teamId);
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
     });
 
     it('acceptApplication should add player to team', () => {
@@ -433,9 +433,9 @@ describe('Team Manager', () => {
       team.applications = [{ playerId: 'player2', playerName: 'PlayerTwo', timestamp: Date.now() }];
 
       const result = acceptApplication(teamId, 'player2');
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(team.members).toContain('player2');
-      expect(team.applications.length).toBe(0);
+      expect(team.applications).toBeEmpty();
     });
 
     it('denyApplication should remove application', () => {
@@ -443,8 +443,8 @@ describe('Team Manager', () => {
       team.applications = [{ playerId: 'player2', playerName: 'PlayerTwo', timestamp: Date.now() }];
 
       const result = denyApplication(teamId, 'player2');
-      expect(result.success).toBe(true);
-      expect(team.applications.length).toBe(0);
+      expect(result.success).toBeTrue();
+      expect(team.applications).toBeEmpty();
     });
   });
 });

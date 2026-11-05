@@ -47,8 +47,8 @@ describe('countdown command', () => {
 
   it('starts a countdown successfully, renders first step immediately, and schedules next timeout', () => {
     const started = startCountdown(10, 'Get Ready');
-    expect(started).toBe(true);
-    expect(isCountdownActive()).toBe(true);
+    expect(started).toBeTrue();
+    expect(isCountdownActive()).toBeTrue();
     expect(sendMessageSpy).toHaveBeenCalledWith(expect.stringContaining('10s'));
     expect(mockPlayer.onScreenDisplay.setTitle).toHaveBeenCalledWith(
       expect.stringContaining('10'),
@@ -59,7 +59,7 @@ describe('countdown command', () => {
 
   it('advances countdown sequence through completion and clears active status', () => {
     startCountdown(2, 'Duel');
-    expect(isCountdownActive()).toBe(true);
+    expect(isCountdownActive()).toBeTrue();
     expect(mockPlayer.onScreenDisplay.setTitle).toHaveBeenCalledWith(
       expect.stringContaining('2'),
       expect.objectContaining({ subtitle: 'Duel' }),
@@ -82,20 +82,20 @@ describe('countdown command', () => {
       expect.stringContaining('DUEL'),
       expect.objectContaining({ subtitle: '' }),
     );
-    expect(isCountdownActive()).toBe(false);
+    expect(isCountdownActive()).toBeFalse();
   });
 
   it('prevents starting duplicate countdowns', () => {
     startCountdown(10);
     const second = startCountdown(5);
-    expect(second).toBe(false);
+    expect(second).toBeFalse();
   });
 
   it('cancels active countdown on cancel command and clears tracked timeout', () => {
     startCountdown(10);
     const cancelled = cancelActiveCountdown('Admin');
-    expect(cancelled).toBe(true);
-    expect(isCountdownActive()).toBe(false);
+    expect(cancelled).toBeTrue();
+    expect(isCountdownActive()).toBeFalse();
     expect(clearTrackedTimeoutSpy).toHaveBeenCalled();
   });
 
@@ -106,14 +106,14 @@ describe('countdown command', () => {
     } as any;
 
     countdownCommand.execute(executor, { secondsOrAction: '5', message: 'Duel!' });
-    expect(isCountdownActive()).toBe(true);
+    expect(isCountdownActive()).toBeTrue();
     cancelActiveCountdown();
 
     countdownCommand.execute(executor, { secondsOrAction: '5abc' });
     expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
-    expect(isCountdownActive()).toBe(false);
+    expect(isCountdownActive()).toBeFalse();
 
     countdownCommand.execute(executor, { secondsOrAction: '5.8' });
-    expect(isCountdownActive()).toBe(false);
+    expect(isCountdownActive()).toBeFalse();
   });
 });

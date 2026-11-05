@@ -70,7 +70,7 @@ describe('Item Blacklist System', () => {
   describe('Configuration Defaults', () => {
     it('should default to disabled per feature defaulting policy', () => {
       const config = getItemBlacklistConfig();
-      expect(config.enabled).toBe(false);
+      expect(config.enabled).toBeFalse();
       expect(config.action).toBe('confiscate');
       expect(config.blacklistedItems).toContain(MinecraftItemTypes.Bedrock);
       expect(config.blacklistedItems).toContain(MinecraftItemTypes.Barrier);
@@ -80,32 +80,32 @@ describe('Item Blacklist System', () => {
   describe('isItemBlacklisted', () => {
     it('should return false when system is disabled', () => {
       saveItemBlacklistConfig({ ...defaultItemBlacklistConfig, enabled: false });
-      expect(isItemBlacklisted(MinecraftItemTypes.Bedrock)).toBe(false);
+      expect(isItemBlacklisted(MinecraftItemTypes.Bedrock)).toBeFalse();
     });
 
     it('should return true for blacklisted items when enabled', () => {
       saveItemBlacklistConfig({ ...defaultItemBlacklistConfig, enabled: true });
-      expect(isItemBlacklisted(MinecraftItemTypes.Bedrock)).toBe(true);
-      expect(isItemBlacklisted(MinecraftItemTypes.Barrier)).toBe(true);
+      expect(isItemBlacklisted(MinecraftItemTypes.Bedrock)).toBeTrue();
+      expect(isItemBlacklisted(MinecraftItemTypes.Barrier)).toBeTrue();
     });
 
     it('should return false for permitted items', () => {
       saveItemBlacklistConfig({ ...defaultItemBlacklistConfig, enabled: true });
-      expect(isItemBlacklisted(MinecraftItemTypes.Diamond)).toBe(false);
-      expect(isItemBlacklisted(MinecraftItemTypes.Apple)).toBe(false);
+      expect(isItemBlacklisted(MinecraftItemTypes.Diamond)).toBeFalse();
+      expect(isItemBlacklisted(MinecraftItemTypes.Apple)).toBeFalse();
     });
 
     it('should correctly handle item identifiers with or without namespace', () => {
       saveItemBlacklistConfig({ ...defaultItemBlacklistConfig, enabled: true });
-      expect(isItemBlacklisted('bedrock')).toBe(true);
-      expect(isItemBlacklisted('BEDROCK')).toBe(true);
-      expect(isItemBlacklisted('Minecraft:Bedrock')).toBe(true);
+      expect(isItemBlacklisted('bedrock')).toBeTrue();
+      expect(isItemBlacklisted('BEDROCK')).toBeTrue();
+      expect(isItemBlacklisted('Minecraft:Bedrock')).toBeTrue();
     });
   });
 
   describe('canBypassItemBlacklist', () => {
     it('should return false for regular players without exempt rank', () => {
-      expect(canBypassItemBlacklist(mockPlayer)).toBe(false);
+      expect(canBypassItemBlacklist(mockPlayer)).toBeFalse();
     });
 
     it('should return true for players with bypass permission', () => {
@@ -113,7 +113,7 @@ describe('Item Blacklist System', () => {
         (_player, node) => node === 'cmd.blacklist.bypass',
       );
       try {
-        expect(canBypassItemBlacklist(mockPlayer)).toBe(true);
+        expect(canBypassItemBlacklist(mockPlayer)).toBeTrue();
       } finally {
         spy.mockRestore();
       }
@@ -130,7 +130,7 @@ describe('Item Blacklist System', () => {
         priority: 10,
       } as any);
       try {
-        expect(canBypassItemBlacklist(mockPlayer)).toBe(true);
+        expect(canBypassItemBlacklist(mockPlayer)).toBeTrue();
       } finally {
         spy.mockRestore();
       }
@@ -167,10 +167,10 @@ describe('Item Blacklist System', () => {
       handleProhibitedItem(mockPlayer, fakeItem, 'test_trigger', 0);
 
       expect(mockContainer.setItem).toHaveBeenCalledWith(0, undefined);
-      expect(sentMessages.some((m) => m.includes('confiscated'))).toBe(true);
+      expect(sentMessages.some((m) => m.includes('confiscated'))).toBeTrue();
 
       const logs = getBlacklistAuditLogs();
-      expect(logs.length).toBe(1);
+      expect(logs).toBeArrayOfSize(1);
       expect(logs[0]?.playerName).toBe('PlayerOne');
       expect(logs[0]?.itemTypeId).toBe(MinecraftItemTypes.Bedrock);
       expect(logs[0]?.trigger).toBe('test_trigger');
@@ -188,9 +188,9 @@ describe('Item Blacklist System', () => {
       const fakeItem = new ItemStackMock(MinecraftItemTypes.Barrier, 1);
       handleProhibitedItem(mockPlayer, fakeItem, 'itemUse');
 
-      expect(sentMessages.some((m) => m.includes('not permitted'))).toBe(true);
+      expect(sentMessages.some((m) => m.includes('not permitted'))).toBeTrue();
       const logs = getBlacklistAuditLogs();
-      expect(logs.length).toBe(1);
+      expect(logs).toBeArrayOfSize(1);
       expect(logs[0]?.action).toBe('cancel');
     });
   });
@@ -269,8 +269,8 @@ describe('Item Blacklist System', () => {
       expect(setEquipment).toHaveBeenCalled();
 
       const logs = getBlacklistAuditLogs();
-      expect(logs.some((l) => l.trigger === 'held' && l.itemTypeId === MinecraftItemTypes.Bedrock)).toBe(true);
-      expect(logs.some((l) => l.trigger === 'equipped' && l.itemTypeId === MinecraftItemTypes.Bedrock)).toBe(true);
+      expect(logs.some((l) => l.trigger === 'held' && l.itemTypeId === MinecraftItemTypes.Bedrock)).toBeTrue();
+      expect(logs.some((l) => l.trigger === 'equipped' && l.itemTypeId === MinecraftItemTypes.Bedrock)).toBeTrue();
     });
 
     it('should not confiscate items if player has bypass permission', () => {
@@ -354,14 +354,14 @@ describe('Item Blacklist System', () => {
           cancel: false,
         };
         itemUseCallback!(event1);
-        expect(event1.cancel).toBe(true);
+        expect(event1.cancel).toBeTrue();
         expect(deferredCallbacks.length).toBeGreaterThan(0);
         // Enforcement must be deferred to next tick outside the read-only beforeEvents handler
         expect(getBlacklistAuditLogs().length).toBe(0);
         for (const fn of deferredCallbacks.splice(0)) {
           fn();
         }
-        expect(getBlacklistAuditLogs().some((l) => l.trigger === 'itemUse')).toBe(true);
+        expect(getBlacklistAuditLogs().some((l) => l.trigger === 'itemUse')).toBeTrue();
 
         // 2. Block interaction path cancels and defers handleProhibitedItem
         const event3 = {
@@ -370,11 +370,11 @@ describe('Item Blacklist System', () => {
           cancel: false,
         };
         interactCallback!(event3);
-        expect(event3.cancel).toBe(true);
+        expect(event3.cancel).toBeTrue();
         for (const fn of deferredCallbacks.splice(0)) {
           fn();
         }
-        expect(getBlacklistAuditLogs().some((l) => l.trigger === 'playerInteractWithBlock')).toBe(true);
+        expect(getBlacklistAuditLogs().some((l) => l.trigger === 'playerInteractWithBlock')).toBeTrue();
 
         // 3. Bypass player does not get cancelled or deferred
         const spy = spyOn(permissionEngine, 'hasPermission').mockReturnValue(true);
@@ -386,8 +386,8 @@ describe('Item Blacklist System', () => {
             cancel: false,
           };
           itemUseCallback!(event2);
-          expect(event2.cancel).toBe(false);
-          expect(deferredCallbacks.length).toBe(deferredCountBefore);
+          expect(event2.cancel).toBeFalse();
+          expect(deferredCallbacks).toBeArrayOfSize(deferredCountBefore);
         } finally {
           spy.mockRestore();
         }
@@ -410,12 +410,12 @@ describe('Item Blacklist System', () => {
       };
 
       cmd.execute(executor, { action: 'toggle' });
-      expect(getItemBlacklistConfig().enabled).toBe(true);
-      expect(messages.some((m) => m.includes('enabled'))).toBe(true);
+      expect(getItemBlacklistConfig().enabled).toBeTrue();
+      expect(messages.some((m) => m.includes('enabled'))).toBeTrue();
 
       cmd.execute(executor, { action: 'toggle' });
-      expect(getItemBlacklistConfig().enabled).toBe(false);
-      expect(messages.some((m) => m.includes('disabled'))).toBe(true);
+      expect(getItemBlacklistConfig().enabled).toBeFalse();
+      expect(messages.some((m) => m.includes('disabled'))).toBeTrue();
     });
 
     it('should add and remove prohibited items via command arguments', () => {
@@ -440,7 +440,7 @@ describe('Item Blacklist System', () => {
       };
 
       cmd.execute(executor, { action: 'list' });
-      expect(messages.some((m) => m.includes(MinecraftItemTypes.Bedrock))).toBe(true);
+      expect(messages.some((m) => m.includes(MinecraftItemTypes.Bedrock))).toBeTrue();
     });
   });
 });

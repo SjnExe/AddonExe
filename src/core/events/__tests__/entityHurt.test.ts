@@ -105,20 +105,25 @@ describe('Entity Hurt & Explosion Safety', () => {
       return 1;
     }) as any);
 
-    const event = {
-      entity: victim,
-      newValue: 20,
-      oldValue: 10,
-    } as unknown as mc.EntityHealthChangedAfterEvent;
+    try {
+      runTimeoutSpy.mockClear();
+      const event = {
+        entity: victim,
+        newValue: 20,
+        oldValue: 10,
+      } as unknown as mc.EntityHealthChangedAfterEvent;
 
-    handleEntityHealthChanged(event);
-    expect(scheduledCallback).toBeDefined();
+      handleEntityHealthChanged(event);
+      expect(scheduledCallback).toBeDefined();
 
-    // Verify coalescing: second call before timeout fires does not schedule duplicate
-    handleEntityHealthChanged(event);
-    expect(runTimeoutSpy).toHaveBeenCalledTimes(1);
+      // Verify coalescing: second call before timeout fires does not schedule duplicate
+      handleEntityHealthChanged(event);
+      expect(runTimeoutSpy).toHaveBeenCalledTimes(1);
 
-    scheduledCallback?.();
-    expect(victim.nameTag).toContain('§c\uE10C §f20/20§r');
+      scheduledCallback?.();
+      expect(victim.nameTag).toContain('§c\uE10C §f20/20§r');
+    } finally {
+      runTimeoutSpy.mockRestore();
+    }
   });
 });

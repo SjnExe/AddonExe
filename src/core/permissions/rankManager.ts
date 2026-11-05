@@ -63,6 +63,13 @@ export function reloadRanks() {
   debugLog(`[RankManager] Reloaded and sorted ${sortedRanks.length} ranks.`);
 }
 
+/** Clears internal rank definitions and player rank caches for test isolation. */
+export function _clearRankManagerForTest(): void {
+  rankCache.clear();
+  ranksMap.clear();
+  sortedRanks = [];
+}
+
 /** Initializes the rank manager by loading and sorting ranks. This is called once at startup. */
 export function clearPlayerRankCache(playerId: string): void {
   rankCache.delete(playerId);

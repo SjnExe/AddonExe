@@ -101,7 +101,7 @@ describe('ClearLag Lag Sweeper', () => {
   });
 
   it('manages pending sweep countdown timers and cancellation', () => {
-    expect(isPendingSweep()).toBe(false);
-    expect(cancelPendingSweep()).toBe(false);
+    expect(isPendingSweep()).toBeFalse();
+    expect(cancelPendingSweep()).toBeFalse();
   });
 });

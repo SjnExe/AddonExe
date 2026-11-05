@@ -9,6 +9,11 @@ export const eventName = 'entityHurt';
 
 const pendingHealthRefreshes = new Set<string>();
 
+/** Clears pending health refreshes for test isolation. */
+export function _clearEntityHurtStateForTest(): void {
+  pendingHealthRefreshes.clear();
+}
+
 /**
  * Schedules a coalesced nametag health refresh for a player after one tick delay.
  *

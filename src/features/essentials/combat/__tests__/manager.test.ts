@@ -36,7 +36,7 @@ describe('combatManager', () => {
       expect(hitInfo).toBeDefined();
       expect(hitInfo?.attackerId).toBe('attacker1');
       expect(hitInfo?.timestamp).toBe(mockTimestamp);
-      expect(isInCombat('victim1')).toBe(true);
+      expect(isInCombat('victim1')).toBeTrue();
       expect(getRemainingCombatCooldown('victim1')).toBeGreaterThan(0);
     });
 
@@ -46,7 +46,7 @@ describe('combatManager', () => {
       setLastHit('victim1', 'attacker1');
 
       Date.now = () => start + 20_000;
-      expect(isInCombat('victim1')).toBe(false);
+      expect(isInCombat('victim1')).toBeFalse();
       expect(getRemainingCombatCooldown('victim1')).toBe(0);
     });
 

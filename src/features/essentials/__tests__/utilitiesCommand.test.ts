@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import * as configManager from '@core/config/configManager.js';
@@ -85,10 +85,18 @@ describe('repairCommand', () => {
       return perm === 'cmd.repair.vip' || perm === 'cmd.repair.all.vip';
     });
 
-    spyOn(playerDataManager, 'getOrCreatePlayer').mockReturnValue({
+    getOrCreatePlayerSpy = spyOn(playerDataManager, 'getOrCreatePlayer').mockReturnValue({
       balance: 1000,
     } as any);
-    spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(() => {});
+    incrementBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(() => {});
+  });
+
+  let getOrCreatePlayerSpy: any;
+  let incrementBalanceSpy: any;
+
+  afterEach(() => {
+    getOrCreatePlayerSpy?.mockRestore();
+    incrementBalanceSpy?.mockRestore();
   });
 
   it('repairs main hand held item successfully', () => {

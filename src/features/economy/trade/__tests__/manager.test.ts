@@ -79,7 +79,7 @@ describe('Player Trading Manager Suite (/trade)', () => {
       requireTargetHeldItem: false,
     });
 
-    expect(res.success).toBe(true);
+    expect(res.success).toBeTrue();
     expect(getBalance(sender.id)).toBe(150); // 50 escrowed
     expect(target.sendMessage).toHaveBeenCalled();
   });
@@ -99,7 +99,7 @@ describe('Player Trading Manager Suite (/trade)', () => {
       requestMoney: 0,
       requireTargetHeldItem: false,
     });
-    expect(selfRes.success).toBe(false);
+    expect(selfRes.success).toBeFalse();
     expect(selfRes.message).toContain('cannot trade with yourself');
 
     // Empty trade offer
@@ -109,7 +109,7 @@ describe('Player Trading Manager Suite (/trade)', () => {
       requestMoney: 0,
       requireTargetHeldItem: false,
     });
-    expect(emptyRes.success).toBe(false);
+    expect(emptyRes.success).toBeFalse();
     expect(emptyRes.message).toContain('Cannot send an empty trade offer');
   });
 
@@ -135,7 +135,7 @@ describe('Player Trading Manager Suite (/trade)', () => {
     expect(getBalance(sender.id)).toBe(400); // 100 escrowed
 
     const acceptRes = acceptTradeOffer(target);
-    expect(acceptRes.success).toBe(true);
+    expect(acceptRes.success).toBeTrue();
 
     // Sender receives 50: 400 + 50 = 450
     expect(getBalance(sender.id)).toBe(450);
@@ -162,7 +162,7 @@ describe('Player Trading Manager Suite (/trade)', () => {
     expect(getBalance(sender.id)).toBe(225);
 
     const denyRes = denyTradeOffer(target);
-    expect(denyRes.success).toBe(true);
+    expect(denyRes.success).toBeTrue();
     // Escrow returned
     expect(getBalance(sender.id)).toBe(300);
   });
@@ -186,7 +186,7 @@ describe('Player Trading Manager Suite (/trade)', () => {
     expect(getBalance(sender.id)).toBe(280);
 
     const cancelRes = cancelTradeOffer(sender);
-    expect(cancelRes.success).toBe(true);
+    expect(cancelRes.success).toBeTrue();
     // Escrow returned
     expect(getBalance(sender.id)).toBe(400);
   });
@@ -229,13 +229,13 @@ describe('Player Trading Manager Suite (/trade)', () => {
       requestMoney: 0,
       requireTargetHeldItem: false,
     });
-    expect(res.success).toBe(true);
+    expect(res.success).toBeTrue();
 
     const senderInv = (sender.getComponent(EntityComponentTypes.Inventory) as any).container;
     expect(senderInv.getItem(0)).toBeUndefined();
 
     const acceptRes = acceptTradeOffer(target);
-    expect(acceptRes.success).toBe(true);
+    expect(acceptRes.success).toBeTrue();
 
     const targetInv = (target.getComponent(EntityComponentTypes.Inventory) as any).container;
     expect(targetInv.addItem).toHaveBeenCalled();
@@ -256,7 +256,7 @@ describe('Player Trading Manager Suite (/trade)', () => {
       requestMoney: 0,
       requireTargetHeldItem: false,
     });
-    expect(res.success).toBe(false);
+    expect(res.success).toBeFalse();
     expect(res.message).toContain('cannot be traded');
   });
 });

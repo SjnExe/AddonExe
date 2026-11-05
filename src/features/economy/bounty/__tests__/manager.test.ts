@@ -30,7 +30,7 @@ describe('BountyManager', () => {
 
     const result = placeBounty('p1', 'p2', 100);
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(incrementPlayerBalanceSpy).toHaveBeenCalledWith('p1', -110);
 
     const bounty = getBounty('p2');
@@ -40,7 +40,7 @@ describe('BountyManager', () => {
 
   it('should reject invalid amounts', () => {
     const result = placeBounty('p1', 'p2', -50);
-    expect(result.success).toBe(false);
+    expect(result.success).toBeFalse();
     expect(result.message).toContain('Invalid amount');
   });
 
@@ -49,7 +49,7 @@ describe('BountyManager', () => {
     getPlayerSpy.mockReturnValue(source);
 
     const result = placeBounty('p1', 'p2', 100);
-    expect(result.success).toBe(false);
+    expect(result.success).toBeFalse();
     expect(result.message).toContain('Insufficient funds');
   });
 });

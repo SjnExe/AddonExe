@@ -96,7 +96,7 @@ describe('PunishmentManager', () => {
     const fakePlayer = { id: pid, name: 'ExpiredPlayer' } as mc.Player;
     const wasKicked = checkAndKickBannedPlayer(fakePlayer);
 
-    expect(wasKicked).toBe(false);
+    expect(wasKicked).toBeFalse();
     expect(getPunishment(pid, 'ban')).toBeUndefined();
   });
 

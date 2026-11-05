@@ -66,16 +66,16 @@ describe('Rock Paper Scissors Manager', () => {
 
     // Round 1: Alice (rock) vs Bob (scissors) -> Alice 1-0
     const r1p1 = submitRpsChoice(match!.id, p1.id, 'rock');
-    expect(r1p1.waitingForOpponent).toBe(true);
+    expect(r1p1.waitingForOpponent).toBeTrue();
     const r1p2 = submitRpsChoice(match!.id, p2.id, 'scissors');
-    expect(r1p2.roundResolved).toBe(true);
-    expect(r1p2.matchEnded).toBe(false);
+    expect(r1p2.roundResolved).toBeTrue();
+    expect(r1p2.matchEnded).toBeFalse();
     expect(match!.p1Wins).toBe(1);
 
     // Round 2: Alice (paper) vs Bob (rock) -> Alice 2-0 (Wins Best of 3!)
     submitRpsChoice(match!.id, p1.id, 'paper');
     const r2p2 = submitRpsChoice(match!.id, p2.id, 'rock');
-    expect(r2p2.matchEnded).toBe(true);
+    expect(r2p2.matchEnded).toBeTrue();
     expect(match!.status).toBe('won');
     expect(match!.winnerId).toBe(p1.id);
     expect(getBalance(p1.id)).toBe(590);
@@ -89,9 +89,9 @@ describe('Rock Paper Scissors Manager', () => {
 
     const botMatch = startRpsBotMatch(p1);
     const res = submitRpsChoice(botMatch.id, p1.id, 'rock');
-    expect(res.valid).toBe(true);
-    expect(res.roundResolved).toBe(true);
-    expect(botMatch.rounds.length).toBe(1);
+    expect(res.valid).toBeTrue();
+    expect(res.roundResolved).toBeTrue();
+    expect(botMatch.rounds).toBeArrayOfSize(1);
 
     forfeitRpsMatch(botMatch.id, p1.id, 'closed UI');
     expect(botMatch.status).toBe('forfeit');

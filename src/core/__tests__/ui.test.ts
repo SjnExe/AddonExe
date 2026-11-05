@@ -20,7 +20,7 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     const seenIds = new Set<string>();
 
     for (const category of configPanelSchema) {
-      expect(seenIds.has(category.id)).toBe(false);
+      expect(seenIds.has(category.id)).toBeFalse();
       seenIds.add(category.id);
 
       const defaultSource = category.configSource ?? 'main';
@@ -46,9 +46,9 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     const nonAsciiEmojiRegex = /[^\x20-\x7E\n\r\t§]/;
 
     for (const sys of systems) {
-      expect(ids.has(sys.id)).toBe(false);
+      expect(ids.has(sys.id)).toBeFalse();
       ids.add(sys.id);
-      expect(nonAsciiEmojiRegex.test(sys.title)).toBe(false);
+      expect(nonAsciiEmojiRegex.test(sys.title)).toBeFalse();
     }
   });
 
@@ -72,9 +72,9 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
       const items = getMenuItemsForHub(hub, mockOwner);
       expect(items.length).toBeGreaterThan(0);
       for (const item of items) {
-        expect(nonAsciiEmojiRegex.test(item.title)).toBe(false);
+        expect(nonAsciiEmojiRegex.test(item.title)).toBeFalse();
         if (item.description) {
-          expect(nonAsciiEmojiRegex.test(item.description)).toBe(false);
+          expect(nonAsciiEmojiRegex.test(item.description)).toBeFalse();
         }
       }
     }
@@ -110,11 +110,11 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     const f1 = getProtectionFlags({ x: 0, y: 64, z: 0 }, 'minecraft:overworld');
     const f2 = getProtectionFlags({ x: 100, y: 64, z: 100 }, 'minecraft:overworld');
     expect(f1).toBe(f2);
-    expect(f1.preventBlockBreaking).toBe(false);
+    expect(f1.preventBlockBreaking).toBeFalse();
   });
 
   it('category-based config hierarchy exposes Survival & Utilities without monolithic master toggles', () => {
-    expect(configPanelSchema.some((s) => s.id === 'featureToggles')).toBe(false);
+    expect(configPanelSchema.some((s) => s.id === 'featureToggles')).toBeFalse();
 
     const mockAdmin = {
       id: 'admin_1',
@@ -123,7 +123,7 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     } as any;
 
     const categories = getVisibleCategories(mockAdmin);
-    expect(categories.some((c) => c.id === 'Survival & Utilities')).toBe(true);
+    expect(categories.some((c) => c.id === 'Survival & Utilities')).toBeTrue();
 
     const survivalSystems = getSystemsByCategory(mockAdmin, 'Survival & Utilities');
     const systemIds = survivalSystems.map((s) => s.id);

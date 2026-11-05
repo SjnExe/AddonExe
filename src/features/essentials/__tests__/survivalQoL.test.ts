@@ -385,7 +385,7 @@ describe('Survival QoL Utilities', () => {
       } as unknown as mc.Block;
 
       const replanted = handleAutoReplant(player, block, { enabled: true });
-      expect(replanted).toBe(false);
+      expect(replanted).toBeFalse();
     });
 
     it('triggers replant when mature crop is harvested', () => {
@@ -406,7 +406,7 @@ describe('Survival QoL Utilities', () => {
       };
 
       const replanted = handleAutoReplant(player, cropBlock, { enabled: true });
-      expect(replanted).toBe(true);
+      expect(replanted).toBeTrue();
     });
   });
 
@@ -502,7 +502,7 @@ describe('Survival QoL Utilities', () => {
       };
 
       const synced = handleDoubleDoorInteract(player, mainDoor, { enabled: true });
-      expect(synced).toBe(true);
+      expect(synced).toBeTrue();
       expect(setPermMock).toHaveBeenCalled();
     });
   });

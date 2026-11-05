@@ -130,9 +130,9 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(map['node.a']).toBe(true);
-      expect(map['node.b']).toBe(true);
-      expect(map['node.c']).toBe(true);
+      expect(map['node.a']).toBeTrue();
+      expect(map['node.b']).toBeTrue();
+      expect(map['node.c']).toBeTrue();
       expect(Object.keys(map).length).toBe(3);
     });
 
@@ -148,8 +148,8 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(map['node.a']).toBe(true);
-      expect(map['node.b']).toBe(true);
+      expect(map['node.a']).toBeTrue();
+      expect(map['node.b']).toBeTrue();
       expect(Object.keys(map).length).toBe(2);
     });
 
@@ -165,10 +165,10 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(map['node.a']).toBe(true);
-      expect(map['node.b']).toBe(true);
-      expect(map['node.x']).toBe(true);
-      expect(map['node.y']).toBe(true);
+      expect(map['node.a']).toBeTrue();
+      expect(map['node.b']).toBeTrue();
+      expect(map['node.x']).toBeTrue();
+      expect(map['node.y']).toBeTrue();
       expect(Object.keys(map).length).toBe(4);
     });
 
@@ -184,11 +184,11 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(map['node.a']).toBe(false);
-      expect(map['node.b']).toBe(true);
-      expect(map['node.c']).toBe(false);
-      expect(map['node.x']).toBe(true);
-      expect(map['node.y']).toBe(false);
+      expect(map['node.a']).toBeFalse();
+      expect(map['node.b']).toBeTrue();
+      expect(map['node.c']).toBeFalse();
+      expect(map['node.x']).toBeTrue();
+      expect(map['node.y']).toBeFalse();
       expect(Object.keys(map).length).toBe(5);
     });
 
@@ -219,8 +219,8 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(map['node.a']).toBe(true);
-      expect(map['node.b']).toBe(true);
+      expect(map['node.a']).toBeTrue();
+      expect(map['node.b']).toBeTrue();
       expect(Object.keys(map).length).toBe(2);
     });
 
@@ -236,8 +236,8 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(map['node.a']).toBe(true);
-      expect(map['node.b']).toBe(true);
+      expect(map['node.a']).toBeTrue();
+      expect(map['node.b']).toBeTrue();
       expect(Object.keys(map).length).toBe(2);
     });
 
@@ -265,9 +265,9 @@ describe('permissionEngine', () => {
 
       const result = calculatePlayerMap(player);
 
-      expect(result.map['node.a']).toBe(true);
-      expect(result.map['node.b']).toBe(true);
-      expect(result.map['node.custom']).toBe(true);
+      expect(result.map['node.a']).toBeTrue();
+      expect(result.map['node.b']).toBeTrue();
+      expect(result.map['node.custom']).toBeTrue();
       expect(Object.keys(result.map).length).toBe(3);
     });
 
@@ -283,7 +283,7 @@ describe('permissionEngine', () => {
       const cachedResult = calculatePlayerMap(player);
 
       expect(cachedResult.map).toBe(initialResult.map);
-      expect(cachedResult.map['injected-for-test']).toBe(true);
+      expect(cachedResult.map['injected-for-test']).toBeTrue();
     });
 
     it('should recalculate map after 20 ticks', () => {
@@ -299,7 +299,7 @@ describe('permissionEngine', () => {
 
       expect(newResult.map).not.toBe(initialResult.map);
       expect(newResult.map['injected-for-test']).toBeUndefined();
-      expect(newResult.map['node.a']).toBe(true);
+      expect(newResult.map['node.a']).toBeTrue();
     });
   });
 
@@ -400,7 +400,7 @@ describe('permissionEngine', () => {
       mockGetAllRanks.mockReturnValue([autoDefaultRank]);
 
       const ranks = getPlayerRanks(mockPlayer);
-      expect(ranks.some((r) => r.id === 'autoDefault')).toBe(true);
+      expect(ranks.some((r) => r.id === 'autoDefault')).toBeTrue();
     });
 
     it('should explicitely add default config rank if absolutely no ranks were assigned or conditions met', () => {
@@ -429,23 +429,23 @@ describe('permissionEngine', () => {
       const player1 = { id: 'player1', name: 'Player 1', hasTag: () => false } as any;
       const player2 = { id: 'player2', name: 'Player 2', hasTag: () => false } as any;
 
-      expect(hasPermission(player1, 'node.a')).toBe(true);
-      expect(hasPermission(player1, 'node.new')).toBe(false);
+      expect(hasPermission(player1, 'node.a')).toBeTrue();
+      expect(hasPermission(player1, 'node.new')).toBeFalse();
 
-      expect(hasPermission(player2, 'node.b')).toBe(true);
-      expect(hasPermission(player2, 'node.new')).toBe(false);
+      expect(hasPermission(player2, 'node.b')).toBeTrue();
+      expect(hasPermission(player2, 'node.new')).toBeFalse();
 
       rankPermissions.rank1 = ['node.a', 'node.new'];
-      expect(hasPermission(player1, 'node.new')).toBe(false);
+      expect(hasPermission(player1, 'node.new')).toBeFalse();
 
       invalidateRankCache('rank1');
-      expect(hasPermission(player1, 'node.new')).toBe(true);
+      expect(hasPermission(player1, 'node.new')).toBeTrue();
 
       rankPermissions.rank2 = ['node.b', 'node.new'];
-      expect(hasPermission(player2, 'node.new')).toBe(false);
+      expect(hasPermission(player2, 'node.new')).toBeFalse();
 
       invalidateRankCache('rank2');
-      expect(hasPermission(player2, 'node.new')).toBe(true);
+      expect(hasPermission(player2, 'node.new')).toBeTrue();
     });
   });
 });

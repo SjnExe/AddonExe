@@ -52,7 +52,7 @@ describe('TPA Manager Suite', () => {
     getOrCreatePlayer(target);
 
     const res = createRequest(sender, target, 'tpa');
-    expect(res.success).toBe(true);
+    expect(res.success).toBeTrue();
     expect(res.message).toBe('TPA request sent.');
 
     const outReq = getOutgoingRequest(sender);
@@ -74,7 +74,7 @@ describe('TPA Manager Suite', () => {
 
     createRequest(sender, target, 'tpa');
     const dupRes = createRequest(sender, target, 'tpa');
-    expect(dupRes.success).toBe(false);
+    expect(dupRes.success).toBeFalse();
     expect(dupRes.message).toContain('already have an outgoing TPA request');
   });
 
@@ -88,7 +88,7 @@ describe('TPA Manager Suite', () => {
     targetData.tpaRequestsDisabled = true;
 
     const res = createRequest(sender, target, 'tpa');
-    expect(res.success).toBe(false);
+    expect(res.success).toBeFalse();
     expect(res.message).toContain('is not accepting TPA requests');
   });
 
@@ -102,7 +102,7 @@ describe('TPA Manager Suite', () => {
     blockPlayer(target, sender.id);
 
     const res = createRequest(sender, target, 'tpa');
-    expect(res.success).toBe(false);
+    expect(res.success).toBeFalse();
     expect(res.message).toContain('blocked from sending TPA requests');
   });
 
@@ -119,12 +119,12 @@ describe('TPA Manager Suite', () => {
     expect(pData.tpaBlockedPlayerIds).not.toContain('badGuy');
 
     const toggledOff = toggleTpaRequests(p1);
-    expect(toggledOff).toBe(true);
-    expect(getOrCreatePlayer(p1).tpaRequestsDisabled).toBe(true);
+    expect(toggledOff).toBeTrue();
+    expect(getOrCreatePlayer(p1).tpaRequestsDisabled).toBeTrue();
 
     const toggledOn = toggleTpaRequests(p1);
-    expect(toggledOn).toBe(false);
-    expect(getOrCreatePlayer(p1).tpaRequestsDisabled).toBe(false);
+    expect(toggledOn).toBeFalse();
+    expect(getOrCreatePlayer(p1).tpaRequestsDisabled).toBeFalse();
   });
 
   it('allows sender to cancel outgoing request', () => {

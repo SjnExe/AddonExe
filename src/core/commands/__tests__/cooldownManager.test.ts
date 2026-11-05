@@ -92,13 +92,13 @@ describe('Command Cooldown Engine', () => {
   });
 
   it('should evaluate bypass permissions correctly', () => {
-    expect(canBypassCommandCooldown(mockPlayer)).toBe(false);
+    expect(canBypassCommandCooldown(mockPlayer)).toBeFalse();
 
     const spy = spyOn(permissionEngine, 'hasPermission').mockImplementation(
       (_player, node) => node === 'cmd.cooldown.bypass',
     );
     try {
-      expect(canBypassCommandCooldown(mockPlayer)).toBe(true);
+      expect(canBypassCommandCooldown(mockPlayer)).toBeTrue();
     } finally {
       spy.mockRestore();
     }

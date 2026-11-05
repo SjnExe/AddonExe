@@ -53,14 +53,14 @@ describe('Kit Items Manager', () => {
   describe('addItemToKit', () => {
     it('should add a valid item successfully', () => {
       const result = addItemToKit('TestKit', { typeId: MinecraftItemTypes.Apple, amount: 5 });
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(result.message).toBe('Item added successfully.');
       expect(mockUpdateMultipleConfig).toHaveBeenCalled();
     });
 
     it('should cap the amount to maxAmount', () => {
       const result = addItemToKit('TestKit', { typeId: MinecraftItemTypes.Apple, amount: 100 });
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
 
       // Check what updateMultipleConfig was called with
       const callArgs = mockUpdateMultipleConfig.mock.calls[0][0];
@@ -70,26 +70,26 @@ describe('Kit Items Manager', () => {
 
     it('should catch error for invalid item type ID', () => {
       const result = addItemToKit('TestKit', { typeId: 'invalid:item', amount: 1 });
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('Invalid item type ID');
       expect(mockUpdateMultipleConfig).not.toHaveBeenCalled();
     });
 
     it('should fail if kit is full', () => {
       const result = addItemToKit('FullKit', { typeId: MinecraftItemTypes.Apple, amount: 1 });
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('is full');
     });
 
     it('should fail if kit is not found', () => {
       const result = addItemToKit('NonExistentKit', { typeId: MinecraftItemTypes.Apple, amount: 1 });
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('not found');
     });
 
     it('should fail if amount is 0 or less', () => {
       const result = addItemToKit('TestKit', { typeId: MinecraftItemTypes.Apple, amount: 0 });
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(result.message).toContain('amount must be greater than 0');
     });
   });

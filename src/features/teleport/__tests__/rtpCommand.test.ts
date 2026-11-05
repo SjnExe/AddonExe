@@ -84,6 +84,7 @@ describe('RTP Command Sanitization Test', () => {
 
     if (runCommandCall) {
       const commandStr = runCommandCall[0] as string;
+      expect(commandStr).toStartWith('tickingarea add');
       expect(commandStr).not.toContain('p123"; say injected command; "');
       expect(commandStr).toContain("rtp_p123'; say injected command; '_");
     }
@@ -104,10 +105,10 @@ describe('RTP Command Sanitization Test', () => {
   it('should cache warps in memory and allow overwriting when allowOverwrite is true', () => {
     warpsManager.invalidateWarpsCache();
     const res1 = warpsManager.setWarp('arena', { x: 10, y: 64, z: 10 }, MinecraftDimensionTypes.Overworld);
-    expect(res1.success).toBe(true);
+    expect(res1.success).toBeTrue();
 
     const resDuplicate = warpsManager.setWarp('arena', { x: 20, y: 64, z: 20 }, MinecraftDimensionTypes.Overworld);
-    expect(resDuplicate.success).toBe(false);
+    expect(resDuplicate.success).toBeFalse();
 
     const resOverwrite = warpsManager.setWarp(
       'arena',
@@ -115,7 +116,7 @@ describe('RTP Command Sanitization Test', () => {
       MinecraftDimensionTypes.Overworld,
       true,
     );
-    expect(resOverwrite.success).toBe(true);
+    expect(resOverwrite.success).toBeTrue();
     expect(warpsManager.getWarp('arena')?.x).toBe(50);
   });
 
@@ -128,9 +129,9 @@ describe('RTP Command Sanitization Test', () => {
     });
     addPlayerToCache(otherPlayer);
 
-    expect(isLocationFarFromOtherPlayers(520, 520, MinecraftDimensionTypes.Overworld, 100, 'requester_1')).toBe(false);
-    expect(isLocationFarFromOtherPlayers(700, 700, MinecraftDimensionTypes.Overworld, 100, 'requester_1')).toBe(true);
-    expect(isLocationFarFromOtherPlayers(500, 500, MinecraftDimensionTypes.Overworld, 100, 'other_1')).toBe(true);
+    expect(isLocationFarFromOtherPlayers(520, 520, MinecraftDimensionTypes.Overworld, 100, 'requester_1')).toBeFalse();
+    expect(isLocationFarFromOtherPlayers(700, 700, MinecraftDimensionTypes.Overworld, 100, 'requester_1')).toBeTrue();
+    expect(isLocationFarFromOtherPlayers(500, 500, MinecraftDimensionTypes.Overworld, 100, 'other_1')).toBeTrue();
   });
 
   it('should sample coordinates within bounds for both circle and square shapes', () => {

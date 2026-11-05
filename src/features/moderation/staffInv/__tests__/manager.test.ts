@@ -175,8 +175,8 @@ describe('staffInventoryManager & staffChat', () => {
 
     // Swap to staff inventory
     const toStaff = toggleStaffInventory(player);
-    expect(toStaff.success).toBe(true);
-    expect(toStaff.switched).toBe(true);
+    expect(toStaff.success).toBeTrue();
+    expect(toStaff.switched).toBeTrue();
     expect(player.slots.size).toBe(0);
     expect(player.equipment.size).toBe(0);
     expect(player.level).toBe(0);
@@ -187,13 +187,13 @@ describe('staffInventoryManager & staffChat', () => {
 
     // Swap back to survival inventory
     const toSurvival = toggleStaffInventory(player);
-    expect(toSurvival.success).toBe(true);
-    expect(toSurvival.switched).toBe(true);
+    expect(toSurvival.success).toBeTrue();
+    expect(toSurvival.switched).toBeTrue();
 
     expect(player.slots.get(0)?.typeId).toBe(MinecraftItemTypes.DiamondSword);
     expect(player.slots.get(8)?.typeId).toBe(MinecraftItemTypes.GoldenApple);
     expect(player.slots.get(8)?.amount).toBe(16);
-    expect(player.slots.has(4)).toBe(false);
+    expect(player.slots.has(4)).toBeFalse();
     expect(player.equipment.get('Head')?.typeId).toBe(MinecraftItemTypes.NetheriteHelmet);
     expect(player.level).toBe(15);
 
@@ -215,7 +215,7 @@ describe('staffInventoryManager & staffChat', () => {
 
     // Disable auto-swap
     const autoState = toggleStaffAutoSwap(player);
-    expect(autoState).toBe(false);
+    expect(autoState).toBeFalse();
 
     // Creative -> Survival should NOT auto-swap while disabled
     handleGameModeInventorySwap(player, mc.GameMode.Survival, mc.GameMode.Creative);
@@ -230,17 +230,17 @@ describe('staffInventoryManager & staffChat', () => {
 
   it('should keep Staff Chat and Team Chat mutually exclusive when toggled', () => {
     const playerId = 'chatTester';
-    expect(toggleStaffChat(playerId)).toBe(true);
-    expect(isStaffChatEnabled(playerId)).toBe(true);
+    expect(toggleStaffChat(playerId)).toBeTrue();
+    expect(isStaffChatEnabled(playerId)).toBeTrue();
 
     // Toggling team chat on disables staff chat
-    expect(toggleTeamChat(playerId)).toBe(true);
-    expect(isTeamChatEnabled(playerId)).toBe(true);
-    expect(isStaffChatEnabled(playerId)).toBe(false);
+    expect(toggleTeamChat(playerId)).toBeTrue();
+    expect(isTeamChatEnabled(playerId)).toBeTrue();
+    expect(isStaffChatEnabled(playerId)).toBeFalse();
 
     // Toggling staff chat on disables team chat
-    expect(toggleStaffChat(playerId)).toBe(true);
-    expect(isStaffChatEnabled(playerId)).toBe(true);
-    expect(isTeamChatEnabled(playerId)).toBe(false);
+    expect(toggleStaffChat(playerId)).toBeTrue();
+    expect(isStaffChatEnabled(playerId)).toBeTrue();
+    expect(isTeamChatEnabled(playerId)).toBeFalse();
   });
 });

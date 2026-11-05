@@ -67,12 +67,12 @@ describe('DataManager - saveAllData & saveAllDataJob', () => {
       pData.kills = 5;
     });
 
-    expect(getPlayer('p1')?.needsSave).toBe(true);
+    expect(getPlayer('p1')?.needsSave).toBeTrue();
 
     const saved = saveAllData({ log: false });
 
-    expect(saved).toBe(true);
-    expect(getPlayer('p1')?.needsSave).toBe(false);
+    expect(saved).toBeTrue();
+    expect(getPlayer('p1')?.needsSave).toBeFalse();
     expect(mockStorageSave).toHaveBeenCalled();
   });
 
@@ -89,8 +89,8 @@ describe('DataManager - saveAllData & saveAllDataJob', () => {
       pData.deaths = 2;
     });
 
-    expect(getPlayer('p1')?.needsSave).toBe(true);
-    expect(getPlayer('p2')?.needsSave).toBe(true);
+    expect(getPlayer('p1')?.needsSave).toBeTrue();
+    expect(getPlayer('p2')?.needsSave).toBeTrue();
 
     const job = saveAllDataJob({ log: false });
 
@@ -102,8 +102,8 @@ describe('DataManager - saveAllData & saveAllDataJob', () => {
     }
 
     expect(steps).toBeGreaterThan(0);
-    expect(getPlayer('p1')?.needsSave).toBe(false);
-    expect(getPlayer('p2')?.needsSave).toBe(false);
+    expect(getPlayer('p1')?.needsSave).toBeFalse();
+    expect(getPlayer('p2')?.needsSave).toBeFalse();
     expect(mockStorageSave).toHaveBeenCalled();
   });
 });
