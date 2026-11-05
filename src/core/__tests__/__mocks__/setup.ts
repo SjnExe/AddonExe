@@ -101,6 +101,7 @@ import { _resetMinecraftMocks } from './minecraftMock.ts';
 (globalThis as unknown as Record<string, unknown>).__CANARY__ = true;
 
 const { _clearConfigManagersForTest } = await import('@core/config/configurations.js');
+const { _clearMainConfigManagerForTest } = await import('@core/config/configManager.js');
 const { clearPlayerCache } = await import('@core/data/playerCache.js');
 const { cleanupPlayerDataManager } = await import('@core/data/playerDataManager.js');
 const { invalidateAllRankCaches } = await import('@core/permissions/permissionEngine.js');
@@ -119,10 +120,15 @@ const { invalidateWarpsCache } = await import('@features/teleport/warp/manager.j
 const { _clearXrayForTest } = await import('@features/anticheat/xray/manager.js');
 const { _clearTpaForTest } = await import('@features/teleport/tpa/manager.js');
 const { _clearCooldownsForTest } = await import('@core/data/cooldownManager.js');
+const { _clearRankManagerForTest } = await import('@core/permissions/rankManager.js');
+const { _clearEntityHurtStateForTest } = await import('@core/events/entityHurt.js');
+const { _clearStaffInventoryForTest } = await import('@features/moderation/staffInv/manager.js');
+const { _clearStaffChatForTest } = await import('@features/moderation/commands/staffchat.js');
 
 beforeEach(() => {
   mock.restore();
   _resetMinecraftMocks();
+  _clearMainConfigManagerForTest();
   _clearConfigManagersForTest();
   clearPlayerCache();
   cleanupPlayerDataManager();
@@ -142,4 +148,8 @@ beforeEach(() => {
   _clearXrayForTest();
   _clearTpaForTest();
   _clearCooldownsForTest();
+  _clearRankManagerForTest();
+  _clearEntityHurtStateForTest();
+  _clearStaffInventoryForTest();
+  _clearStaffChatForTest();
 });

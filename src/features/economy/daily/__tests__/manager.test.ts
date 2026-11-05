@@ -62,7 +62,7 @@ describe('Daily Rewards Manager', () => {
     const mockPlayer: any = { id: 'p1', name: 'TestPlayer' };
 
     const result = claimDailyReward(mockPlayer);
-    expect(result.success).toBe(false);
+    expect(result.success).toBeFalse();
     expect(result.message).toContain('disabled');
   });
 
@@ -76,7 +76,7 @@ describe('Daily Rewards Manager', () => {
     };
 
     const result = claimDailyReward(mockPlayer);
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(result.message).toContain('Daily Reward Claimed!');
     expect(updatePlayerDataSpy).toHaveBeenCalled();
     expect(incrementPlayerBalanceSpy).toHaveBeenCalledWith('p1', 100);
@@ -90,7 +90,7 @@ describe('Daily Rewards Manager', () => {
 
     const mockPlayer: any = { id: 'p1', name: 'TestPlayer' };
     const result = claimDailyReward(mockPlayer);
-    expect(result.success).toBe(false);
+    expect(result.success).toBeFalse();
     expect(result.message).toContain('already claimed');
   });
 
@@ -120,7 +120,7 @@ describe('Daily Rewards Manager', () => {
     };
 
     const result = claimDailyReward(mockPlayer);
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(mockRunCommand).toHaveBeenCalledWith('give "Exploiter\'  op attacker" diamond 1');
   });
 
@@ -150,7 +150,7 @@ describe('Daily Rewards Manager', () => {
     };
 
     const result = claimDailyReward(mockPlayer);
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(mockRunCommand).toHaveBeenCalledWith('give "Bad\'User" apple 5');
   });
 });

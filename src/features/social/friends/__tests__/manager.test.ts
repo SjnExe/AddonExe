@@ -56,7 +56,7 @@ describe('friendManager', () => {
 
       const result = removeFriend(player, friendId);
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(result.message).toBe('§aFriend removed.');
       expect(updatePlayerDataSpy).toHaveBeenCalledTimes(2);
       expect(exFriend.sendMessage).toHaveBeenCalledWith(`§cPlayerOne removed you from their friends list.`);
@@ -73,7 +73,7 @@ describe('friendManager', () => {
 
       const result = removeFriend(player, friendId);
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(result.message).toBe('§aFriend removed.');
       expect(updatePlayerDataSpy).toHaveBeenCalledTimes(2);
     });
@@ -90,7 +90,7 @@ describe('friendManager', () => {
 
       const result = removeFriend(player, friendId);
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(updatePlayerDataSpy).toHaveBeenCalledTimes(2);
     });
   });

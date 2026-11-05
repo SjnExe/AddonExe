@@ -73,18 +73,18 @@ describe('2048, Connect 4, Codebreaker, Scramble, Fast Math & Number Guess (/gc)
     session.board = [1024, 1024, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
     const res = perform2048Move(p1, 'left');
-    expect(res.moved).toBe(true);
+    expect(res.moved).toBeTrue();
     expect(session.maxTile).toBe(2048);
-    expect(session.won2048).toBe(true);
+    expect(session.won2048).toBeTrue();
     expect(session.status).toBe('won_prompt');
     expect(getBalance(p1.id)).toBe(300);
 
     continue2048Endless(p1.id);
-    expect(session.endlessMode).toBe(true);
+    expect(session.endlessMode).toBeTrue();
     expect(session.status).toBe('active');
 
     const slideRes = apply2048BoardSlide([2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'left');
-    expect(slideRes.changed).toBe(true);
+    expect(slideRes.changed).toBeTrue();
     expect(slideRes.pointsEarned).toBe(12);
   });
 
@@ -99,7 +99,7 @@ describe('2048, Connect 4, Codebreaker, Scramble, Fast Math & Number Guess (/gc)
     setPlayerBalance(p2.id, 100);
 
     const match = startConnect4Match(p1, p2, 50)!;
-    expect(match.board.length).toBe(42);
+    expect(match.board).toBeArrayOfSize(42);
 
     // P1 drops in col 0, 1, 2, 3 while P2 drops in col 6
     dropConnect4Disc(match.id, p1.id, 0);
@@ -110,7 +110,7 @@ describe('2048, Connect 4, Codebreaker, Scramble, Fast Math & Number Guess (/gc)
     dropConnect4Disc(match.id, p2.id, 6);
     const winMove = dropConnect4Disc(match.id, p1.id, 3);
 
-    expect(winMove.matchEnded).toBe(true);
+    expect(winMove.matchEnded).toBeTrue();
     expect(match.status).toBe('won');
     expect(match.winnerId).toBe(p1.id);
     expect(evaluateConnect4Board(match.board).winner).toBe('R');
@@ -148,7 +148,7 @@ describe('2048, Connect 4, Codebreaker, Scramble, Fast Math & Number Guess (/gc)
 
     startScrambleRound({ word: 'emerald', poolPrize: 100, entryFee: 20, taxRatePercentage: 10, timeLimitSeconds: 0 });
     const scrWin = submitScrambleAttempt(p1, 'emerald');
-    expect(scrWin.won).toBe(true);
+    expect(scrWin.won).toBeTrue();
     // Paid 20 -> balance 180; Pool became 120 -> minus 10% tax = 108 -> balance 288
     expect(getBalance(p1.id)).toBe(288);
 
@@ -161,7 +161,7 @@ describe('2048, Connect 4, Codebreaker, Scramble, Fast Math & Number Guess (/gc)
       timeLimitSeconds: 0,
     });
     const mathWin = submitFastMathAttempt(p1, 144);
-    expect(mathWin.won).toBe(true);
+    expect(mathWin.won).toBeTrue();
     expect(getBalance(p1.id)).toBe(388);
 
     startNumberGuessRound({
@@ -175,12 +175,12 @@ describe('2048, Connect 4, Codebreaker, Scramble, Fast Math & Number Guess (/gc)
       guessCooldownSeconds: 0,
     });
     const lowTry = submitNumberGuessAttempt(p1, 10);
-    expect(lowTry.won).toBe(false);
+    expect(lowTry.won).toBeFalse();
     expect(lowTry.hint).toBe('higher');
-    expect(isPlayerInGameChatChannel(p1.id)).toBe(true);
+    expect(isPlayerInGameChatChannel(p1.id)).toBeTrue();
 
     const exactTry = submitNumberGuessAttempt(p1, 25);
-    expect(exactTry.won).toBe(true);
+    expect(exactTry.won).toBeTrue();
     expect(getBalance(p1.id)).toBe(488);
   });
 });

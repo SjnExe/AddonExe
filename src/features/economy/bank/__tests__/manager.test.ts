@@ -49,7 +49,7 @@ describe('Bank System (Savings AMB, Free Withdrawal Quotas, Fixed Deposits & Ran
 
     // Deposit $1,000 at the very start of the 24h cycle -> 100% of cycle remaining -> AMB = $1,000
     const dep1 = depositToSavings(player, 1000, startMs);
-    expect(dep1.success).toBe(true);
+    expect(dep1.success).toBeTrue();
     expect(ensurePlayerBankState(player, startMs).bank.ambBalance).toBe(1000);
 
     // Deposit another $1,000 1 minute before the 24h cycle ends -> almost 0% weight in current cycle AMB!
@@ -98,23 +98,23 @@ describe('Bank System (Savings AMB, Free Withdrawal Quotas, Fixed Deposits & Ran
     setPlayerBalance(player.id, 2000);
 
     const fd1 = createFixedDeposit(player, 1000, '1d', startMs);
-    expect(fd1.success).toBe(true);
+    expect(fd1.success).toBeTrue();
     expect(getBalance(player.id)).toBe(1000);
 
     // Cannot claim without breaking before 24h
     const premature = claimOrBreakFixedDeposit(player, '1', false, startMs + 3600_000);
-    expect(premature.success).toBe(false);
+    expect(premature.success).toBeFalse();
 
     // Matured after 24h: $1,000 + 3% ($30) = $1,030
     const matured = claimOrBreakFixedDeposit(player, '1', false, startMs + 25 * 3600_000);
-    expect(matured.success).toBe(true);
+    expect(matured.success).toBeTrue();
     expect(matured.payout).toBe(1030);
     expect(getBalance(player.id)).toBe(2030);
 
     // Create second FD and break early -> 10% penalty ($500 -> $450)
     createFixedDeposit(player, 500, '3d', startMs);
     const broken = claimOrBreakFixedDeposit(player, '1', true, startMs + 1000);
-    expect(broken.success).toBe(true);
+    expect(broken.success).toBeTrue();
     expect(broken.payout).toBe(450);
   });
 });

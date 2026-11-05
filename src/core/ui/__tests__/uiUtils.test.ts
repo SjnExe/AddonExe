@@ -7,21 +7,21 @@ describe('uiUtils', () => {
     it('returns the correct items for the first page', () => {
       const items = Array.from({ length: itemsPerPage * 2 + 4 }, (_, i) => i + 1);
       const page1 = getPaginatedItems(items, 1);
-      expect(page1.length).toBe(itemsPerPage);
+      expect(page1).toBeArrayOfSize(itemsPerPage);
       expect(page1[0]).toBe(1);
     });
 
     it('returns the correct items for the second page', () => {
       const items = Array.from({ length: itemsPerPage * 2 + 4 }, (_, i) => i + 1);
       const page2 = getPaginatedItems(items, 2);
-      expect(page2.length).toBe(itemsPerPage);
+      expect(page2).toBeArrayOfSize(itemsPerPage);
       expect(page2[0]).toBe(itemsPerPage + 1);
     });
 
     it('returns the remaining items for the last page', () => {
       const items = Array.from({ length: itemsPerPage * 2 + 4 }, (_, i) => i + 1);
       const page3 = getPaginatedItems(items, 3);
-      expect(page3.length).toBe(4);
+      expect(page3).toBeArrayOfSize(4);
     });
 
     it('handles an empty array', () => {

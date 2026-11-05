@@ -76,6 +76,17 @@ export const reloadConfig = () => {
   }
 };
 
+/** Clears or resets the main config manager for test isolation. */
+export function _clearMainConfigManagerForTest(): void {
+  if (isDefined(mainConfigManager) && typeof mainConfigManager.set === 'function') {
+    try {
+      mainConfigManager.set(deepClone(defaultConfig));
+    } catch {
+      // Ignore if mock instance does not support set
+    }
+  }
+}
+
 /**
  * Updates multiple configuration keys at once in the main config manager and notifies listeners.
  *

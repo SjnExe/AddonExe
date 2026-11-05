@@ -40,9 +40,9 @@ describe('protectionEvents & spawn safety', () => {
   });
 
   it('isLocationInSpawn correctly identifies coordinates inside and outside spawn radius', () => {
-    expect(isLocationInSpawn({ x: 10, y: 64, z: 10 }, MinecraftDimensionTypes.Overworld)).toBe(true);
-    expect(isLocationInSpawn({ x: 55, y: 64, z: 0 }, MinecraftDimensionTypes.Overworld)).toBe(false);
-    expect(isLocationInSpawn({ x: 0, y: 64, z: 0 }, MinecraftDimensionTypes.Nether)).toBe(false);
+    expect(isLocationInSpawn({ x: 10, y: 64, z: 10 }, MinecraftDimensionTypes.Overworld)).toBeTrue();
+    expect(isLocationInSpawn({ x: 55, y: 64, z: 0 }, MinecraftDimensionTypes.Overworld)).toBeFalse();
+    expect(isLocationInSpawn({ x: 0, y: 64, z: 0 }, MinecraftDimensionTypes.Nether)).toBeFalse();
   });
 
   it('prevents non-admin players from setting home in spawn', () => {
@@ -55,7 +55,7 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.Player;
 
     const res = setHome(fakePlayer, 'myhome');
-    expect(res.success).toBe(false);
+    expect(res.success).toBeFalse();
     expect(res.message).toContain('spawn area');
   });
 
@@ -91,7 +91,7 @@ describe('protectionEvents & spawn safety', () => {
       } as unknown as mc.PlayerInteractWithBlockBeforeEvent;
 
       handlePlayerInteractWithBlock(fakeInteractEvent);
-      expect(fakeInteractEvent.cancel).toBe(true);
+      expect(fakeInteractEvent.cancel).toBeTrue();
 
       // Test item use
       const fakeItemUseEvent = {
@@ -101,7 +101,7 @@ describe('protectionEvents & spawn safety', () => {
       } as unknown as mc.ItemUseBeforeEvent;
 
       handleBeforeItemUse(fakeItemUseEvent);
-      expect(fakeItemUseEvent.cancel).toBe(true);
+      expect(fakeItemUseEvent.cancel).toBeTrue();
     },
   );
 
@@ -139,7 +139,7 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.PlayerInteractWithBlockBeforeEvent;
 
     handlePlayerInteractWithBlock(crossBorderEvent);
-    expect(crossBorderEvent.cancel).toBe(true);
+    expect(crossBorderEvent.cancel).toBeTrue();
   });
 
   it('normalizes fractional player location to block coordinates when evaluating fire starter protection', () => {
@@ -181,7 +181,7 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.PlayerInteractWithBlockBeforeEvent;
 
     handlePlayerInteractWithBlock(event);
-    expect(event.cancel).toBe(true);
+    expect(event.cancel).toBeTrue();
   });
 
   it.each([
@@ -209,7 +209,7 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.EntityHurtBeforeEvent;
 
     handleBeforeEntityHurt(fakeEvent);
-    expect(fakeEvent.cancel).toBe(true);
+    expect(fakeEvent.cancel).toBeTrue();
   });
 
   it('empties impacted blocks and cancels explosion when preventExplosions is active', () => {
@@ -229,7 +229,7 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.ExplosionBeforeEvent;
 
     handleBeforeExplosion(fakeEvent);
-    expect(fakeEvent.cancel).toBe(true);
+    expect(fakeEvent.cancel).toBeTrue();
     expect(clearedBlocks).toEqual([]);
   });
 
@@ -271,7 +271,7 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.ExplosionBeforeEvent;
 
     handleBeforeExplosion(explosionEvent);
-    expect(explosionEvent.cancel).toBe(false);
+    expect(explosionEvent.cancel).toBeFalse();
     expect(clearedBlocks).toBeUndefined();
 
     const victim = {
@@ -290,7 +290,7 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.EntityHurtBeforeEvent;
 
     handleBeforeEntityHurt(hurtEvent);
-    expect(hurtEvent.cancel).toBe(false);
+    expect(hurtEvent.cancel).toBeFalse();
   });
 
   it.each([
@@ -315,6 +315,6 @@ describe('protectionEvents & spawn safety', () => {
     } as unknown as mc.EntityHurtBeforeEvent;
 
     handleBeforeEntityHurt(fakeEvent);
-    expect(fakeEvent.cancel).toBe(true);
+    expect(fakeEvent.cancel).toBeTrue();
   });
 });

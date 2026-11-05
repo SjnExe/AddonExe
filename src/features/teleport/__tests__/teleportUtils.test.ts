@@ -91,7 +91,7 @@ describe('teleportUtils', () => {
         getBlock: mock(() => undefined),
       } as unknown as mc.Dimension;
 
-      expect(isSafeTeleportColumn(dim, 0, 64, 0)).toBe(false);
+      expect(isSafeTeleportColumn(dim, 0, 64, 0)).toBeFalse();
     });
 
     it('returns false if ground is air or liquid', () => {
@@ -103,7 +103,7 @@ describe('teleportUtils', () => {
           return { isAir: true, isLiquid: false, typeId: MinecraftBlockTypes.Air };
         }),
       } as unknown as mc.Dimension;
-      expect(isSafeTeleportColumn(dimAir, 0, 64, 0)).toBe(false);
+      expect(isSafeTeleportColumn(dimAir, 0, 64, 0)).toBeFalse();
     });
 
     it('returns true for solid stone ground and air head/feet', () => {
@@ -115,7 +115,7 @@ describe('teleportUtils', () => {
           return { isAir: true, isLiquid: false, typeId: MinecraftBlockTypes.Air };
         }),
       } as unknown as mc.Dimension;
-      expect(isSafeTeleportColumn(dimValid, 0, 64, 0)).toBe(true);
+      expect(isSafeTeleportColumn(dimValid, 0, 64, 0)).toBeTrue();
     });
   });
 });

@@ -17,7 +17,7 @@ describe('floatingTextManager', () => {
     } as any;
 
     const result = floatingTextManager.createText(mockPlayer, 'test_1', 'Hello World');
-    expect(result).toBe(true);
+    expect(result).toBeTrue();
 
     const textConfig = floatingTextManager.getTextById('test_1');
     expect(textConfig).toBeDefined();
@@ -25,7 +25,7 @@ describe('floatingTextManager', () => {
     expect(textConfig?.dimension).toBe(MinecraftDimensionTypes.Overworld);
 
     const allTexts = floatingTextManager.getAllTexts();
-    expect(allTexts.length).toBe(1);
+    expect(allTexts).toBeArrayOfSize(1);
     expect(allTexts[0].id).toBe('test_1');
   });
 

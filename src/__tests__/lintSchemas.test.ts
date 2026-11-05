@@ -29,7 +29,7 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
       },
     };
     const errs = validateUiJson('packs/resource/ui/server_form.json', badUi);
-    expect(errs.some((e) => e.includes("'collection_index' is not a valid direct JSON UI property"))).toBe(true);
+    expect(errs.some((e) => e.includes("'collection_index' is not a valid direct JSON UI property"))).toBeTrue();
     expect(errs.some((e) => e.includes("'collection_name' is only valid on 'grid' or controls with a 'factory'"))).toBe(
       true,
     );
@@ -44,8 +44,8 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
       },
     };
     const errs = validateUiJson('packs/resource/ui/server_form.json', badSizeUi);
-    expect(errs.some((e) => e.includes("Avoid scalar variable '$icon_panel_w' inside size array"))).toBe(true);
-    expect(errs.some((e) => e.includes("Dangling number or invalid size expression '42'"))).toBe(true);
+    expect(errs.some((e) => e.includes("Avoid scalar variable '$icon_panel_w' inside size array"))).toBeTrue();
+    expect(errs.some((e) => e.includes("Dangling number or invalid size expression '42'"))).toBeTrue();
   });
 
   it('catches unknown JSON UI control properties and broken local @ references', () => {
@@ -62,8 +62,8 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
       },
     };
     const errs = validateUiJson('packs/resource/ui/server_form.json', badUi);
-    expect(errs.some((e) => e.includes("Unknown JSON UI control property 'made_up_property'"))).toBe(true);
-    expect(errs.some((e) => e.includes("Local namespace reference 'server_form.non_existent_template'"))).toBe(true);
+    expect(errs.some((e) => e.includes("Unknown JSON UI control property 'made_up_property'"))).toBeTrue();
+    expect(errs.some((e) => e.includes("Local namespace reference 'server_form.non_existent_template'"))).toBeTrue();
   });
 
   it('catches malformed Bedrock content JSON files (recipes, entities, manifests)', () => {
@@ -88,7 +88,7 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
     const bracketEnumRegex = /\bMinecraft(?:Item|Block|Entity|Dimension|Effect|Enchantment|Biome)Types\s*\[/;
     for (const file of glob.scanSync('.')) {
       const text = await Bun.file(file).text();
-      expect(bracketEnumRegex.test(text)).toBe(false);
+      expect(bracketEnumRegex.test(text)).toBeFalse();
     }
   });
 
@@ -96,11 +96,11 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
     const rpLang = await Bun.file('packs/resource/texts/en_US.lang').text();
     const validRes = validateLangFile('packs/resource/texts/en_US.lang', rpLang);
     expect(validRes.errors).toEqual([]);
-    expect(validRes.keys.has('item.exe:panel.name')).toBe(true);
-    expect(validRes.keys.has('entity.exe:floating_text.name')).toBe(true);
+    expect(validRes.keys.has('item.exe:panel.name')).toBeTrue();
+    expect(validRes.keys.has('entity.exe:floating_text.name')).toBeTrue();
 
     const badLang = 'valid.key=Hello\nbad line without equals\nvalid.key=Duplicate';
     const badRes = validateLangFile('packs/resource/texts/en_US.lang', badLang);
-    expect(badRes.errors.length).toBe(2);
+    expect(badRes.errors).toBeArrayOfSize(2);
   });
 });

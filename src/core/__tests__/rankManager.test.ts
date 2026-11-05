@@ -135,13 +135,13 @@ describe('rankManager', () => {
 
     it('should allow console to target anyone', () => {
       const executor = {} as any;
-      expect(canTarget(executor, 'somePlayerId', Config)).toBe(true);
+      expect(canTarget(executor, 'somePlayerId', Config)).toBeTrue();
     });
 
     it('should return false for self-targeting', () => {
       const executor = { id: 'selfId' } as mc.Player;
       Object.setPrototypeOf(executor, mc.Player.prototype);
-      expect(canTarget(executor, 'selfId', Config)).toBe(false);
+      expect(canTarget(executor, 'selfId', Config)).toBeFalse();
     });
 
     it('should allow higher priority (lower number) to target lower priority', () => {
@@ -164,7 +164,7 @@ describe('rankManager', () => {
       } as mc.Player;
       addPlayerToCache(targetPlayer);
 
-      expect(canTarget(executor, 'modId', Config)).toBe(true);
+      expect(canTarget(executor, 'modId', Config)).toBeTrue();
     });
 
     it('should deny lower priority (higher number) targeting higher priority', () => {
@@ -187,7 +187,7 @@ describe('rankManager', () => {
       } as mc.Player;
       addPlayerToCache(targetPlayer);
 
-      expect(canTarget(executor, 'adminId', Config)).toBe(false);
+      expect(canTarget(executor, 'adminId', Config)).toBeFalse();
     });
 
     it('should resolve target rank for offline players via data manager', () => {
@@ -199,7 +199,7 @@ describe('rankManager', () => {
         ranks: ['mod'],
       });
 
-      expect(canTarget(executor, 'offlineModId', Config)).toBe(true);
+      expect(canTarget(executor, 'offlineModId', Config)).toBeTrue();
     });
 
     it('should fallback for offline players with no data', () => {
@@ -209,7 +209,7 @@ describe('rankManager', () => {
 
       loadPlayerDataSpy.mockReturnValue(undefined);
 
-      expect(canTarget(executor, 'offlineNewbieId', Config)).toBe(true);
+      expect(canTarget(executor, 'offlineNewbieId', Config)).toBeTrue();
     });
   });
 

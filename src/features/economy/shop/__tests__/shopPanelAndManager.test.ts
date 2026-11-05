@@ -79,7 +79,7 @@ describe('Shop Admin Manager & Utils - Key Updates and Overrides', () => {
       rankMultiplierOverrides: { vip: { buy: 0.8, sell: 1.2 } },
     });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(mockConfig.categories['Tools'].items['custom_sword']).toEqual({
       buyPrice: 200,
       sellPrice: 100,
@@ -101,7 +101,7 @@ describe('Shop Admin Manager & Utils - Key Updates and Overrides', () => {
       rankOverrides: { vip: { buy: 0.9, sell: 1.1 } },
     });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(mockConfig.categories['Tools'].items['old_sword']).toBeUndefined();
     expect(mockConfig.categories['Tools'].items['new_sword']).toEqual({
       buyPrice: 150,

@@ -14,6 +14,11 @@ import * as mc from '@minecraft/server';
 
 const staffChatActive = new Map<string, boolean>();
 
+/** Clears staff chat active player records for test isolation. */
+export function _clearStaffChatForTest(): void {
+  staffChatActive.clear();
+}
+
 export function setStaffChatState(playerId: string, enabled: boolean): void {
   if (enabled) {
     staffChatActive.set(playerId, true);

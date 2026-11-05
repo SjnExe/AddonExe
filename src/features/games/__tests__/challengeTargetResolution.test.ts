@@ -95,7 +95,7 @@ describe('Game Challenge Target Resolution Deduplication', () => {
 
     it('successfully challenges an online opponent', async () => {
       await tttCommand.execute(p1, { actionOrFriend: 'Bob' });
-      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBe(true);
+      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBeTrue();
     });
   });
 
@@ -122,7 +122,7 @@ describe('Game Challenge Target Resolution Deduplication', () => {
 
     it('successfully challenges an online opponent', async () => {
       await rpsCommand.execute(p1, { actionOrFriend: 'Bob' });
-      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBe(true);
+      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBeTrue();
     });
   });
 
@@ -149,7 +149,7 @@ describe('Game Challenge Target Resolution Deduplication', () => {
 
     it('successfully challenges an online opponent', async () => {
       await coinFlipCommand.execute(p1, { sideOrTarget: 'Bob' });
-      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBe(true);
+      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBeTrue();
     });
   });
 
@@ -176,7 +176,7 @@ describe('Game Challenge Target Resolution Deduplication', () => {
 
     it('successfully challenges an online opponent', async () => {
       await connect4Command.execute(p1, { actionOrFriend: 'Bob' });
-      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBe(true);
+      expect(p1._messages.some((m) => m.includes('invitation to §eBob'))).toBeTrue();
     });
   });
 });

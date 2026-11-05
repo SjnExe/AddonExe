@@ -104,7 +104,7 @@ describe('Economy System', () => {
 
       const result = transfer('p1', 'p2', 200);
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(getBalance('p1')).toBe(300);
       expect(getBalance('p2')).toBe(300);
     });
@@ -119,7 +119,7 @@ describe('Economy System', () => {
 
       const result = transfer('p1', 'p2', 100);
 
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(getBalance('p1')).toBe(50);
     });
 
@@ -132,10 +132,10 @@ describe('Economy System', () => {
       incrementPlayerBalance('p1', 500);
 
       const resultZero = transfer('p1', 'p2', 0);
-      expect(resultZero.success).toBe(false);
+      expect(resultZero.success).toBeFalse();
 
       const resultNeg = transfer('p1', 'p2', -50);
-      expect(resultNeg.success).toBe(false);
+      expect(resultNeg.success).toBeFalse();
     });
 
     it('should handle offline targets correctly', () => {
@@ -153,7 +153,7 @@ describe('Economy System', () => {
 
       const result = transfer('p1', 'p2', 200);
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTrue();
       expect(getBalance('p1')).toBe(300);
     });
 
@@ -168,7 +168,7 @@ describe('Economy System', () => {
 
       const result = transfer('p1', 'p2', 200);
 
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalse();
       expect(getBalance('p1')).toBe(1_000_000);
       expect(getBalance('p2')).toBe(999_900);
     });

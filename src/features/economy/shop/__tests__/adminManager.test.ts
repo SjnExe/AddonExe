@@ -33,7 +33,7 @@ describe('Shop Admin Manager - addCategory', () => {
   it('should successfully add a new category', () => {
     const result = addCategory('Weapons', 'textures/items/diamond_sword');
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(result.message).toBe("Successfully added category 'Weapons'.");
 
     expect(mockConfig.categories['Weapons']).toBeDefined();
@@ -49,7 +49,7 @@ describe('Shop Admin Manager - addCategory', () => {
     const longName = 'A'.repeat(33);
     const result = addCategory(longName, '');
 
-    expect(result.success).toBe(false);
+    expect(result.success).toBeFalse();
     expect(result.message).toBe('Category name is too long (max 32).');
     expect(Object.keys(mockConfig.categories).length).toBe(0);
     expect(mockSaveShopConfig).not.toHaveBeenCalled();
@@ -64,7 +64,7 @@ describe('Shop Admin Manager - addCategory', () => {
 
     const result = addCategory('Existing', 'some_icon');
 
-    expect(result.success).toBe(false);
+    expect(result.success).toBeFalse();
     expect(result.message).toBe("A category with the name 'Existing' already exists.");
     expect(mockSaveShopConfig).not.toHaveBeenCalled();
   });
@@ -72,7 +72,7 @@ describe('Shop Admin Manager - addCategory', () => {
   it('should fall back to default icon when icon is empty', () => {
     const result = addCategory('Blocks', '');
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
     expect(mockConfig.categories['Blocks']).toBeDefined();
     expect(mockConfig.categories['Blocks'].icon).toBe('');
     expect(mockSaveShopConfig).toHaveBeenCalledWith(mockConfig);
@@ -83,7 +83,7 @@ describe('Shop Admin Manager - addCategory', () => {
     // It does trim the string however.
     const result = addCategory(' §cColored ', 'some_icon');
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBeTrue();
 
     expect(mockConfig.categories['§cColored']).toBeDefined();
   });

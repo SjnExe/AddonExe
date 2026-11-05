@@ -67,7 +67,7 @@ describe('PlayerDataManager - updatePlayerData', () => {
 
     const pData = getPlayer('p1');
     expect(pData?.kills).toBe(10);
-    expect(pData?.needsSave).toBe(true);
+    expect(pData?.needsSave).toBeTrue();
   });
 
   it('should load offline player data, update it, and save immediately', () => {
@@ -91,7 +91,7 @@ describe('PlayerDataManager - updatePlayerData', () => {
     expect(saveCall).toBeDefined();
     if (saveCall) {
       expect(saveCall[1].kills).toBe(5);
-      expect(saveCall[1].needsSave).toBe(false);
+      expect(saveCall[1].needsSave).toBeFalse();
     }
   });
 
@@ -102,6 +102,6 @@ describe('PlayerDataManager - updatePlayerData', () => {
       callbackCalled = true;
     });
 
-    expect(callbackCalled).toBe(false);
+    expect(callbackCalled).toBeFalse();
   });
 });

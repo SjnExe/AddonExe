@@ -118,25 +118,25 @@ describe('Land Claim System', () => {
     it('detects chunk overlap with spawn area', () => {
       // Spawn is (0, 0), radius 50 (from -50 to +50)
       // Chunk 0 (0 to 15) is inside spawn
-      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Overworld, 0, 0)).toBe(true);
+      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Overworld, 0, 0)).toBeTrue();
       // Chunk 3 (48 to 63) overlaps spawn boundary at 50
-      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Overworld, 3, 0)).toBe(true);
+      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Overworld, 3, 0)).toBeTrue();
       // Chunk 4 (64 to 79) is completely outside spawn
-      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Overworld, 4, 0)).toBe(false);
+      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Overworld, 4, 0)).toBeFalse();
       // Nether chunk at (0, 0) does not overlap Overworld spawn
-      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Nether, 0, 0)).toBe(false);
+      expect(isChunkOverlappingSpawn(MinecraftDimensionTypes.Nether, 0, 0)).toBeFalse();
     });
 
     it('strictly guards central End Island from claiming', () => {
       // End Island safe radius = 300
       // Chunk 0, 0 is at the center of the End
-      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.TheEnd, 0, 0, 300)).toBe(true);
+      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.TheEnd, 0, 0, 300)).toBeTrue();
       // Chunk 10, 10 (160 to 175) is within 300 radius
-      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.TheEnd, 10, 10, 300)).toBe(true);
+      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.TheEnd, 10, 10, 300)).toBeTrue();
       // Chunk 20, 0 (320 to 335) is safely outside 300 radius
-      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.TheEnd, 20, 0, 300)).toBe(false);
+      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.TheEnd, 20, 0, 300)).toBeFalse();
       // Overworld chunk at (0, 0) is not End Island
-      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.Overworld, 0, 0, 300)).toBe(false);
+      expect(isChunkOverlappingEndIsland(MinecraftDimensionTypes.Overworld, 0, 0, 300)).toBeFalse();
     });
 
     it('rejects claiming inside spawn area for regular players', () => {
@@ -150,7 +150,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       const res = claimChunk(player, 0, 0);
-      expect(res.success).toBe(false);
+      expect(res.success).toBeFalse();
       expect(res.message).toContain('spawn area');
     });
 
@@ -165,7 +165,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       const res = claimChunk(player, 0, 0);
-      expect(res.success).toBe(false);
+      expect(res.success).toBeFalse();
       expect(res.message).toContain('central End island');
     });
 
@@ -181,7 +181,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       const res = claimChunk(player, 10, 10);
-      expect(res.success).toBe(false);
+      expect(res.success).toBeFalse();
       expect(res.message).toContain('Nether');
     });
   });
@@ -197,13 +197,13 @@ describe('Land Claim System', () => {
         getTags: () => [],
       } as unknown as mc.Player;
 
-      expect(claimChunk(player, 10, 10).success).toBe(true);
-      expect(claimChunk(player, 11, 10).success).toBe(true);
-      expect(claimChunk(player, 12, 10).success).toBe(true);
+      expect(claimChunk(player, 10, 10).success).toBeTrue();
+      expect(claimChunk(player, 11, 10).success).toBeTrue();
+      expect(claimChunk(player, 12, 10).success).toBeTrue();
 
       // 4th claim exceeds max of 3
       const fourth = claimChunk(player, 13, 10);
-      expect(fourth.success).toBe(false);
+      expect(fourth.success).toBeFalse();
       expect(fourth.message).toContain('claim limit');
     });
 
@@ -219,12 +219,12 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       // First claim succeeds and subtracts 600
-      expect(claimChunk(player, 10, 10).success).toBe(true);
+      expect(claimChunk(player, 10, 10).success).toBeTrue();
       expect(playerBalance).toBe(400);
 
       // Second claim requires 600 but balance is 400
       const second = claimChunk(player, 11, 10);
-      expect(second.success).toBe(false);
+      expect(second.success).toBeFalse();
       expect(second.message).toContain('Insufficient funds');
     });
   });
@@ -252,13 +252,13 @@ describe('Land Claim System', () => {
       claimChunk(owner, 10, 10);
 
       const blockLoc = { x: 165, y: 64, z: 165 };
-      expect(canPlayerModify(owner, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBe(true);
-      expect(canPlayerModify(owner, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBe(true);
+      expect(canPlayerModify(owner, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeTrue();
+      expect(canPlayerModify(owner, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBeTrue();
 
-      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBe(false);
-      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBe(false);
-      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'container')).toBe(false);
-      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'interact')).toBe(false);
+      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeFalse();
+      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBeFalse();
+      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'container')).toBeFalse();
+      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'interact')).toBeFalse();
     });
 
     it('allows trusted player to build and break', () => {
@@ -286,12 +286,12 @@ describe('Land Claim System', () => {
       trustPlayer(owner, 'BestFriend');
 
       const blockLoc = { x: 165, y: 64, z: 165 };
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBe(true);
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBe(true);
+      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeTrue();
+      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBeTrue();
 
       // Untrusting removes permissions
       untrustPlayer(owner, 'BestFriend');
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBe(false);
+      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeFalse();
     });
 
     it('revokes permissions when target is offline at untrust time', () => {
@@ -319,7 +319,7 @@ describe('Land Claim System', () => {
       trustPlayer(owner, 'BestFriend');
 
       const blockLoc = { x: 165, y: 64, z: 165 };
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBe(true);
+      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeTrue();
 
       // Target disconnects (empty online player cache)
       cacheSpy.mockReturnValue([]);
@@ -328,7 +328,7 @@ describe('Land Claim System', () => {
       untrustPlayer(owner, 'BestFriend');
 
       // Target reconnects; verify modification permissions remain revoked
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBe(false);
+      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeFalse();
     });
 
     it('enforces claims only when land claim system is enabled', () => {
@@ -409,16 +409,16 @@ describe('Land Claim System', () => {
       const blockLoc = { x: 165, y: 64, z: 165 };
 
       // Reject unauthorized flag updates
-      expect(updateClaimFlags(visitor, claimKey, { allowInteract: true })).toBe(false);
+      expect(updateClaimFlags(visitor, claimKey, { allowInteract: true })).toBeFalse();
 
       // Enable visitor interact
-      expect(updateClaimFlags(owner, claimKey, { allowInteract: true, allowContainers: false })).toBe(true);
-      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'interact')).toBe(true);
-      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'container')).toBe(false);
+      expect(updateClaimFlags(owner, claimKey, { allowInteract: true, allowContainers: false })).toBeTrue();
+      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'interact')).toBeTrue();
+      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'container')).toBeFalse();
 
       // Enable containers
-      expect(updateClaimFlags(owner, claimKey, { allowContainers: true })).toBe(true);
-      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'container')).toBe(true);
+      expect(updateClaimFlags(owner, claimKey, { allowContainers: true })).toBeTrue();
+      expect(canPlayerModify(visitor, blockLoc, MinecraftDimensionTypes.Overworld, 'container')).toBeTrue();
     });
   });
 
@@ -437,7 +437,7 @@ describe('Land Claim System', () => {
       expect(getClaimsByPlayer('owner1').length).toBe(1);
 
       const unclaimRes = unclaimChunk(owner, 10, 10);
-      expect(unclaimRes.success).toBe(true);
+      expect(unclaimRes.success).toBeTrue();
       expect(getClaimsByPlayer('owner1').length).toBe(0);
     });
 
@@ -456,7 +456,7 @@ describe('Land Claim System', () => {
       expect(getClaimsByPlayer('owner1').length).toBe(2);
 
       const res = unclaimAll(owner);
-      expect(res.success).toBe(true);
+      expect(res.success).toBeTrue();
       expect(getClaimsByPlayer('owner1').length).toBe(0);
     });
 
@@ -483,7 +483,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       const res = unclaimChunk(ownerInOverworld, 10, 10, MinecraftDimensionTypes.Nether);
-      expect(res.success).toBe(true);
+      expect(res.success).toBeTrue();
       expect(getClaimsByPlayer('owner1').length).toBe(0);
     });
 
@@ -520,7 +520,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.EntityHurtBeforeEvent;
 
       handleBeforeEntityHurt(event);
-      expect(event.cancel).toBe(true);
+      expect(event.cancel).toBeTrue();
     });
 
     it('claims chunks with price deduction and formats receipt', () => {
@@ -535,7 +535,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       const res = claimChunk(buyer, 20, 20);
-      expect(res.success).toBe(true);
+      expect(res.success).toBeTrue();
       expect(res.message).toContain('Chunk [20, 20] successfully claimed for');
       expect(getClaimsByPlayer('buyer1').length).toBe(1);
     });
@@ -564,7 +564,7 @@ describe('Land Claim System', () => {
 
       // radiusPlayer is at (50, 50), claims 3x3 (radius = 1)
       const res = claimRadius(radiusPlayer, 1);
-      expect(res.success).toBe(true);
+      expect(res.success).toBeTrue();
       // 9 chunks minus 1 already claimed by otherPlayer = 8 chunks claimed
       expect(res.claimedCount).toBe(8);
 
@@ -584,7 +584,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       const res = claimChunk(owner, 100, 100);
-      expect(res.success).toBe(true);
+      expect(res.success).toBeTrue();
       const claim = res.claim!;
 
       const teammate = {
@@ -593,7 +593,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       // Without trustTeam, not trusted
-      expect(isClaimOwnerOrTrusted(claim, teammate)).toBe(false);
+      expect(isClaimOwnerOrTrusted(claim, teammate)).toBeFalse();
 
       // Update flag to trustTeam
       claim.flags.trustTeam = true;
@@ -606,7 +606,7 @@ describe('Land Claim System', () => {
         return undefined;
       });
 
-      expect(isClaimOwnerOrTrusted(claim, teammate)).toBe(true);
+      expect(isClaimOwnerOrTrusted(claim, teammate)).toBeTrue();
       teamSpy.mockRestore();
 
       // Check trustFriends
@@ -621,7 +621,7 @@ describe('Land Claim System', () => {
         return p1 === 'team_owner' && p2 === 'friend_p';
       });
 
-      expect(isClaimOwnerOrTrusted(claim, friend)).toBe(true);
+      expect(isClaimOwnerOrTrusted(claim, friend)).toBeTrue();
       friendSpy.mockRestore();
     });
   });

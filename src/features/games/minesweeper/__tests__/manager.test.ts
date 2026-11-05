@@ -67,11 +67,11 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
     const firstIdx = 40;
     const res = handleMinesweeperCellTap(player, firstIdx);
     expect(res.status).toBe('active');
-    expect(hardGame.minesPlaced).toBe(true);
-    expect(hardGame.cells[firstIdx]?.hasMine).toBe(false);
+    expect(hardGame.minesPlaced).toBeTrue();
+    expect(hardGame.cells[firstIdx]?.hasMine).toBeFalse();
 
     for (const nIdx of getNeighborIndices(firstIdx, hardGame.cols, hardGame.rows)) {
-      expect(hardGame.cells[nIdx]?.hasMine).toBe(false);
+      expect(hardGame.cells[nIdx]?.hasMine).toBeFalse();
     }
 
     const totalMinesPlaced = hardGame.cells.filter((c) => c.hasMine).length;
@@ -123,7 +123,7 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
         game.cells[safeNeighborIdx]!.flagged = false;
         const chordRes = handleMinesweeperCellTap(player, targetCell.index);
         expect(chordRes.status).toBe('active');
-        expect(game.cells[safeNeighborIdx]?.revealed).toBe(true);
+        expect(game.cells[safeNeighborIdx]?.revealed).toBeTrue();
       }
     }
 

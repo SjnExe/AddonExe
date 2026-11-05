@@ -74,12 +74,12 @@ describe('Auction House Manager Suite', () => {
     setPlayerBalance(seller.id, 100);
 
     const res = createListing(seller, dummyItem, 500, false, 3600);
-    expect(res.success).toBe(true);
+    expect(res.success).toBeTrue();
     expect(getBalance(seller.id)).toBe(90); // 100 - 10 fee
     expect(getListingsCount()).toBe(1);
 
     const listings = getListings();
-    expect(listings.length).toBe(1);
+    expect(listings).toBeArrayOfSize(1);
     expect(listings[0]?.price).toBe(500);
     expect(listings[0]?.sellerId).toBe('seller1');
   });
@@ -91,11 +91,11 @@ describe('Auction House Manager Suite', () => {
     setPlayerBalance(seller.id, 5); // Cannot afford 10 fee
 
     const badPrice = createListing(seller, dummyItem, 0, false, 3600);
-    expect(badPrice.success).toBe(false);
+    expect(badPrice.success).toBeFalse();
     expect(badPrice.message).toContain('Price must be positive');
 
     const noFee = createListing(seller, dummyItem, 100, false, 3600);
-    expect(noFee.success).toBe(false);
+    expect(noFee.success).toBeFalse();
     expect(noFee.message).toContain('Insufficient funds for listing fee');
   });
 
@@ -114,7 +114,7 @@ describe('Auction House Manager Suite', () => {
     const listingId = getListings()[0]!.id;
 
     const buyRes = buyItem(buyer, listingId);
-    expect(buyRes.success).toBe(true);
+    expect(buyRes.success).toBeTrue();
     expect(getBalance(buyer.id)).toBe(800); // 1000 - 200
     // Seller gets 200 - 5% tax (10) = 190. Starting balance 50 - 10 fee + 190 = 230
     expect(getBalance(seller.id)).toBe(230);
@@ -136,11 +136,11 @@ describe('Auction House Manager Suite', () => {
     const listingId = getListings()[0]!.id;
 
     const selfBuy = buyItem(seller, listingId);
-    expect(selfBuy.success).toBe(false);
+    expect(selfBuy.success).toBeFalse();
     expect(selfBuy.message).toContain('cannot buy your own item');
 
     const brokeBuy = buyItem(brokeBuyer, listingId);
-    expect(brokeBuy.success).toBe(false);
+    expect(brokeBuy.success).toBeFalse();
     expect(brokeBuy.message).toContain('Insufficient funds');
   });
 
@@ -164,12 +164,12 @@ describe('Auction House Manager Suite', () => {
 
     // Bidder 1 bids 150
     const b1Res = placeBid(bidder1, listingId, 150);
-    expect(b1Res.success).toBe(true);
+    expect(b1Res.success).toBeTrue();
     expect(getBalance(bidder1.id)).toBe(350); // 500 - 150
 
     // Bidder 2 outbids with 200
     const b2Res = placeBid(bidder2, listingId, 200);
-    expect(b2Res.success).toBe(true);
+    expect(b2Res.success).toBeTrue();
     expect(getBalance(bidder2.id)).toBe(800); // 1000 - 200
     // Bidder 1 should have received their 150 refund!
     expect(getBalance(bidder1.id)).toBe(500);
@@ -197,7 +197,7 @@ describe('Auction House Manager Suite', () => {
 
     // Cancel should be blocked because active bid exists
     const cancelRes = cancelListing(seller, listingId);
-    expect(cancelRes.success).toBe(false);
+    expect(cancelRes.success).toBeFalse();
     expect(cancelRes.message).toContain('active bids');
   });
 
@@ -218,7 +218,7 @@ describe('Auction House Manager Suite', () => {
     expect(getListingsCount('nonexistent')).toBe(0);
 
     const searchResults = getListings(1, 45, 'excalibur');
-    expect(searchResults.length).toBe(1);
+    expect(searchResults).toBeArrayOfSize(1);
     expect(searchResults[0]?.item.nameTag).toBe('Excalibur');
   });
 

@@ -37,6 +37,11 @@ function getEquipmentSlots(): mc.EquipmentSlot[] {
 
 const memoryCache = new Map<string, StaffInventoryRecord>();
 
+/** Clears cached staff inventory records in memory for test isolation. */
+export function _clearStaffInventoryForTest(): void {
+  memoryCache.clear();
+}
+
 function getStorage(playerId: string): StorageManager {
   return new StorageManager(`${staffInvPrefix}${playerId}`);
 }

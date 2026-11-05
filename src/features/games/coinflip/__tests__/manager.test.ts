@@ -47,8 +47,8 @@ describe('CoinFlip, 2P Wager Tax, AFK & Mail Systems', () => {
     getOrCreatePlayer(p1);
 
     const res = broadcastRandomCoinFlip(p1);
-    expect(res.success).toBe(true);
-    expect(res.result === 'heads' || res.result === 'tails').toBe(true);
+    expect(res.success).toBeTrue();
+    expect(res.result === 'heads' || res.result === 'tails').toBeTrue();
     expect(mc.world.sendMessage).toHaveBeenCalledWith(expect.stringContaining('Shajahan'));
   });
 
@@ -62,7 +62,7 @@ describe('CoinFlip, 2P Wager Tax, AFK & Mail Systems', () => {
     setPlayerBalance(p2.id, 200);
 
     const soloRes = playSoloWagerCoinFlip(p1, 'heads', 50);
-    expect(soloRes.success).toBe(true);
+    expect(soloRes.success).toBeTrue();
     if (soloRes.won) {
       expect(getBalance(p1.id)).toBe(250);
     } else {
@@ -73,7 +73,7 @@ describe('CoinFlip, 2P Wager Tax, AFK & Mail Systems', () => {
     setPlayerBalance(p2.id, 100);
     // 2P wager of 100 each => 200 pot, 5% default tax => winner receives 190 (net balance 190)
     const matchRes = runTwoPlayerCoinFlipMatch(p1, p2, 100);
-    expect(matchRes.success).toBe(true);
+    expect(matchRes.success).toBeTrue();
     expect(matchRes.netPayout).toBe(190);
     const totalAfter = (getBalance(p1.id) ?? 0) + (getBalance(p2.id) ?? 0);
     expect(totalAfter).toBe(190);
@@ -86,13 +86,13 @@ describe('CoinFlip, 2P Wager Tax, AFK & Mail Systems', () => {
     getOrCreatePlayer(p1);
     getOrCreatePlayer(p2);
 
-    expect(togglePlayerAfk(p1, 'Lunch')).toBe(true);
-    expect(isPlayerAfk(p1.id)).toBe(true);
-    expect(togglePlayerAfk(p1)).toBe(false);
-    expect(isPlayerAfk(p1.id)).toBe(false);
+    expect(togglePlayerAfk(p1, 'Lunch')).toBeTrue();
+    expect(isPlayerAfk(p1.id)).toBeTrue();
+    expect(togglePlayerAfk(p1)).toBeFalse();
+    expect(isPlayerAfk(p1.id)).toBeFalse();
 
     const mailRes = sendMailToPlayer(p1, 'Receiver', 'Meet at spawn shop!');
-    expect(mailRes.success).toBe(true);
+    expect(mailRes.success).toBeTrue();
     expect(getUnreadMailCount(p2.id)).toBe(1);
     expect(getPlayerInbox(p2.id)[0]?.message).toBe('Meet at spawn shop!');
   });

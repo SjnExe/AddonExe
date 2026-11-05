@@ -70,7 +70,7 @@ describe('Item Customization Commands (/rename, /lore)', () => {
 
     // Add line
     loreCmd.execute(player, { action: 'add', arg1: '&aSharp I' });
-    expect(loreList.length).toBe(1);
+    expect(loreList).toBeArrayOfSize(1);
     expect(loreList[0]).toBe('§aSharp I§r');
 
     // Set line
@@ -79,6 +79,6 @@ describe('Item Customization Commands (/rename, /lore)', () => {
 
     // Clear lore
     loreCmd.execute(player, { action: 'clear' });
-    expect(loreList.length).toBe(0);
+    expect(loreList).toBeEmpty();
   });
 });
