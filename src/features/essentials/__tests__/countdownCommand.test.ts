@@ -13,6 +13,7 @@ describe('countdown command', () => {
   let sendMessageSpy: any;
   let setTrackedTimeoutSpy: any;
   let clearTrackedTimeoutSpy: any;
+  let playerCacheSpy: any;
   let mockPlayer: any;
   let scheduledCallbacks: (() => void)[];
 
@@ -29,7 +30,7 @@ describe('countdown command', () => {
       },
       playSound: mock(),
     };
-    spyOn(playerCache, 'getAllPlayersFromCache').mockReturnValue([mockPlayer]);
+    playerCacheSpy = spyOn(playerCache, 'getAllPlayersFromCache').mockReturnValue([mockPlayer]);
     sendMessageSpy = spyOn(mc.world, 'sendMessage').mockImplementation(() => {});
     setTrackedTimeoutSpy = spyOn(timerManager, 'setTrackedTimeout').mockImplementation((cb: () => void) => {
       scheduledCallbacks.push(cb);
@@ -43,6 +44,7 @@ describe('countdown command', () => {
     sendMessageSpy?.mockRestore();
     setTrackedTimeoutSpy?.mockRestore();
     clearTrackedTimeoutSpy?.mockRestore();
+    playerCacheSpy?.mockRestore();
   });
 
   it('starts a countdown successfully, renders first step immediately, and schedules next timeout', () => {

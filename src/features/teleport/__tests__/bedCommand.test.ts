@@ -27,6 +27,7 @@ describe('bedCommand', () => {
   let isWithinWorldBorderSpy: any;
   let teleportPlayerWithTransitionSpy: any;
   let safeLocationSpy: any;
+  let getConfigSpy: any;
 
   beforeEach(async () => {
     await loadEconomyConfig(false);
@@ -51,7 +52,7 @@ describe('bedCommand', () => {
     teleportPlayerWithTransitionSpy = spyOn(teleportUtils, 'teleportPlayerWithTransition').mockImplementation(() => {});
     safeLocationSpy = spyOn(teleportUtils, 'findSafeLocation').mockImplementation((_dim, loc) => loc);
 
-    spyOn(configManager, 'getConfig').mockReturnValue({
+    getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
       homes: {
         cost: 25,
         teleportWarmupSeconds: 3,
@@ -70,6 +71,7 @@ describe('bedCommand', () => {
     isWithinWorldBorderSpy?.mockRestore();
     teleportPlayerWithTransitionSpy?.mockRestore();
     safeLocationSpy?.mockRestore();
+    getConfigSpy?.mockRestore();
   });
 
   it('notifies player when no spawn point is set', () => {

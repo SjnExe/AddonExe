@@ -375,7 +375,7 @@ describe('Team Manager', () => {
     it('invitePlayer should add pending invite', () => {
       const result = invitePlayer(teamId, 'player2');
       expect(result.success).toBeTrue();
-      expect(getMockPlayer('player2').pendingInvites.length).toBe(1);
+      expect(getMockPlayer('player2').pendingInvites).toBeArrayOfSize(1);
       expect(getMockPlayer('player2').pendingInvites[0].teamId).toBe(teamId);
     });
 
@@ -389,14 +389,14 @@ describe('Team Manager', () => {
       const team = getTeam(teamId)!;
       expect(team.members).toContain('player2');
       expect(getMockPlayer('player2').teamId).toBe(teamId);
-      expect(getMockPlayer('player2').pendingInvites.length).toBe(0);
+      expect(getMockPlayer('player2').pendingInvites).toBeEmpty();
     });
 
     it('denyInvite should remove pending invite', () => {
       getMockPlayer('player2').pendingInvites = [{ teamId, timestamp: Date.now() }];
       const result = denyInvite('player2', teamId);
       expect(result.success).toBeTrue();
-      expect(getMockPlayer('player2').pendingInvites.length).toBe(0);
+      expect(getMockPlayer('player2').pendingInvites).toBeEmpty();
     });
   });
 
