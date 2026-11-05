@@ -256,9 +256,7 @@ describe('PunishmentManager', () => {
     });
 
     // Direct raw storage with mixed case variant
-    const legacyData = [
-      [legacyKey, { ban: { type: 'ban', expires: Date.now() + 60_000, reason: 'mixed case ban' } }],
-    ];
+    const legacyData = [[legacyKey, { ban: { type: 'ban', expires: Date.now() + 60_000, reason: 'mixed case ban' } }]];
     mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
     loadPunishments();
 

@@ -91,9 +91,11 @@ describe('Land Claim System', () => {
     } as any);
 
     getBalanceSpy = spyOn(playerDataManager, 'getBalance').mockImplementation(() => playerBalance);
-    incBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation((_pid: string, amt: number) => {
-      playerBalance += amt;
-    });
+    incBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(
+      (_pid: string, amt: number) => {
+        playerBalance += amt;
+      },
+    );
     savePlayerSpy = spyOn(playerDataManager, 'savePlayerData').mockReturnValue(true);
   });
 
