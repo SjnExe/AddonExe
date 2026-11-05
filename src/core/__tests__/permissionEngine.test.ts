@@ -133,7 +133,7 @@ describe('permissionEngine', () => {
       expect(map['node.a']).toBeTrue();
       expect(map['node.b']).toBeTrue();
       expect(map['node.c']).toBeTrue();
-      expect(Object.keys(map).length).toBe(3);
+      expect(Object.keys(map)).toBeArrayOfSize(3);
     });
 
     it('should handle missing groups gracefully', () => {
@@ -150,7 +150,7 @@ describe('permissionEngine', () => {
       const map = calculateRankMap(rank);
       expect(map['node.a']).toBeTrue();
       expect(map['node.b']).toBeTrue();
-      expect(Object.keys(map).length).toBe(2);
+      expect(Object.keys(map)).toBeArrayOfSize(2);
     });
 
     it('should combine group permissions with allow array', () => {
@@ -169,7 +169,7 @@ describe('permissionEngine', () => {
       expect(map['node.b']).toBeTrue();
       expect(map['node.x']).toBeTrue();
       expect(map['node.y']).toBeTrue();
-      expect(Object.keys(map).length).toBe(4);
+      expect(Object.keys(map)).toBeArrayOfSize(4);
     });
 
     it('should override group and allow permissions with deny array', () => {
@@ -189,7 +189,7 @@ describe('permissionEngine', () => {
       expect(map['node.c']).toBeFalse();
       expect(map['node.x']).toBeTrue();
       expect(map['node.y']).toBeFalse();
-      expect(Object.keys(map).length).toBe(5);
+      expect(Object.keys(map)).toBeArrayOfSize(5);
     });
 
     it('should handle empty inputs gracefully', () => {
@@ -204,7 +204,7 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(Object.keys(map).length).toBe(0);
+      expect(Object.keys(map)).toBeEmpty();
     });
 
     it('should handle overlapping group permissions', () => {
@@ -221,7 +221,7 @@ describe('permissionEngine', () => {
       const map = calculateRankMap(rank);
       expect(map['node.a']).toBeTrue();
       expect(map['node.b']).toBeTrue();
-      expect(Object.keys(map).length).toBe(2);
+      expect(Object.keys(map)).toBeArrayOfSize(2);
     });
 
     it('should handle duplicate groups', () => {
@@ -238,7 +238,7 @@ describe('permissionEngine', () => {
       const map = calculateRankMap(rank);
       expect(map['node.a']).toBeTrue();
       expect(map['node.b']).toBeTrue();
-      expect(Object.keys(map).length).toBe(2);
+      expect(Object.keys(map)).toBeArrayOfSize(2);
     });
 
     it('should handle empty groups', () => {
@@ -253,7 +253,7 @@ describe('permissionEngine', () => {
       } as unknown as RankDefinition;
 
       const map = calculateRankMap(rank);
-      expect(Object.keys(map).length).toBe(0);
+      expect(Object.keys(map)).toBeEmpty();
     });
   });
 
@@ -268,7 +268,7 @@ describe('permissionEngine', () => {
       expect(result.map['node.a']).toBeTrue();
       expect(result.map['node.b']).toBeTrue();
       expect(result.map['node.custom']).toBeTrue();
-      expect(Object.keys(result.map).length).toBe(3);
+      expect(Object.keys(result.map)).toBeArrayOfSize(3);
     });
 
     it('should return cached map within 20 ticks', () => {

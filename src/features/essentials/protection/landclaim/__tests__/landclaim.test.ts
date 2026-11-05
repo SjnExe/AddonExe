@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as configManager from '@core/config/configManager.js';
 import * as configurations from '@core/config/configurations.js';
@@ -32,6 +32,12 @@ import { MinecraftDimensionTypes, MinecraftEntityTypes } from '@minecraft/vanill
 import defaultConfig from '../../../../../config.js';
 
 describe('Land Claim System', () => {
+  let landConfigSpy: any;
+  let getConfigSpy: any;
+  let getBalanceSpy: any;
+  let incBalanceSpy: any;
+  let savePlayerSpy: any;
+
   let landConfig = {
     enabled: true,
     maxClaimsPerPlayer: 3,
@@ -64,8 +70,8 @@ describe('Land Claim System', () => {
 
     playerBalance = 1000;
 
-    spyOn(configurations, 'getLandClaimConfig').mockImplementation(() => landConfig as any);
-    spyOn(configManager, 'getConfig').mockReturnValue({
+    landConfigSpy = spyOn(configurations, 'getLandClaimConfig').mockImplementation(() => landConfig as any);
+    getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
       ...defaultConfig,
       spawn: {
         ...defaultConfig.spawn,
@@ -84,11 +90,19 @@ describe('Land Claim System', () => {
       },
     } as any);
 
-    spyOn(playerDataManager, 'getBalance').mockImplementation(() => playerBalance);
-    spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation((_pid: string, amt: number) => {
+    getBalanceSpy = spyOn(playerDataManager, 'getBalance').mockImplementation(() => playerBalance);
+    incBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation((_pid: string, amt: number) => {
       playerBalance += amt;
     });
-    spyOn(playerDataManager, 'savePlayerData').mockReturnValue(true);
+    savePlayerSpy = spyOn(playerDataManager, 'savePlayerData').mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    landConfigSpy?.mockRestore();
+    getConfigSpy?.mockRestore();
+    getBalanceSpy?.mockRestore();
+    incBalanceSpy?.mockRestore();
+    savePlayerSpy?.mockRestore();
   });
 
   describe('Chunk Coordinates & Math', () => {
@@ -280,18 +294,21 @@ describe('Land Claim System', () => {
         getTags: () => [],
       } as unknown as mc.Player;
 
-      spyOn(playerCache, 'getAllPlayersFromCache').mockReturnValue([friend]);
+      const cacheSpy = spyOn(playerCache, 'getAllPlayersFromCache').mockReturnValue([friend]);
+      try {
+        claimChunk(owner, 10, 10);
+        trustPlayer(owner, 'BestFriend');
 
-      claimChunk(owner, 10, 10);
-      trustPlayer(owner, 'BestFriend');
+        const blockLoc = { x: 165, y: 64, z: 165 };
+        expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeTrue();
+        expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBeTrue();
 
-      const blockLoc = { x: 165, y: 64, z: 165 };
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeTrue();
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'place')).toBeTrue();
-
-      // Untrusting removes permissions
-      untrustPlayer(owner, 'BestFriend');
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeFalse();
+        // Untrusting removes permissions
+        untrustPlayer(owner, 'BestFriend');
+        expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeFalse();
+      } finally {
+        cacheSpy.mockRestore();
+      }
     });
 
     it('revokes permissions when target is offline at untrust time', () => {
@@ -314,21 +331,24 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       const cacheSpy = spyOn(playerCache, 'getAllPlayersFromCache').mockReturnValue([friend]);
+      try {
+        claimChunk(owner, 10, 10);
+        trustPlayer(owner, 'BestFriend');
 
-      claimChunk(owner, 10, 10);
-      trustPlayer(owner, 'BestFriend');
+        const blockLoc = { x: 165, y: 64, z: 165 };
+        expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeTrue();
 
-      const blockLoc = { x: 165, y: 64, z: 165 };
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeTrue();
+        // Target disconnects (empty online player cache)
+        cacheSpy.mockReturnValue([]);
 
-      // Target disconnects (empty online player cache)
-      cacheSpy.mockReturnValue([]);
+        // Owner untrusts target by gamertag while target is offline
+        untrustPlayer(owner, 'BestFriend');
 
-      // Owner untrusts target by gamertag while target is offline
-      untrustPlayer(owner, 'BestFriend');
-
-      // Target reconnects; verify modification permissions remain revoked
-      expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeFalse();
+        // Target reconnects; verify modification permissions remain revoked
+        expect(canPlayerModify(friend, blockLoc, MinecraftDimensionTypes.Overworld, 'break')).toBeFalse();
+      } finally {
+        cacheSpy.mockRestore();
+      }
     });
 
     it('enforces claims only when land claim system is enabled', () => {
@@ -351,7 +371,7 @@ describe('Land Claim System', () => {
     });
 
     it('migrates legacy string trusted entries during initializeLandClaim', () => {
-      spyOn(playerDataManager, 'getPlayerNameById').mockImplementation((id: string) => {
+      const nameSpy = spyOn(playerDataManager, 'getPlayerNameById').mockImplementation((id: string) => {
         if (id === 'legacy_id') {
           return 'LegacyPlayer';
         }
@@ -372,16 +392,19 @@ describe('Land Claim System', () => {
         },
       ]);
 
-      initializeLandClaim();
+      try {
+        initializeLandClaim();
 
-      const claim = getClaim(`${MinecraftDimensionTypes.Overworld}:5,5`);
-      expect(claim).toBeDefined();
-      expect(claim?.trusted).toEqual([
-        { id: 'legacy_id', name: 'LegacyPlayer' },
-        { id: 'UnknownPlayer', name: 'UnknownPlayer' },
-      ]);
-
-      storageSpy.mockRestore();
+        const claim = getClaim(`${MinecraftDimensionTypes.Overworld}:5,5`);
+        expect(claim).toBeDefined();
+        expect(claim?.trusted).toEqual([
+          { id: 'legacy_id', name: 'LegacyPlayer' },
+          { id: 'UnknownPlayer', name: 'UnknownPlayer' },
+        ]);
+      } finally {
+        storageSpy.mockRestore();
+        nameSpy.mockRestore();
+      }
     });
 
     it('respects visitor interact and container flags', () => {
@@ -434,11 +457,11 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       claimChunk(owner, 10, 10);
-      expect(getClaimsByPlayer('owner1').length).toBe(1);
+      expect(getClaimsByPlayer('owner1')).toBeArrayOfSize(1);
 
       const unclaimRes = unclaimChunk(owner, 10, 10);
       expect(unclaimRes.success).toBeTrue();
-      expect(getClaimsByPlayer('owner1').length).toBe(0);
+      expect(getClaimsByPlayer('owner1')).toBeEmpty();
     });
 
     it('unclaimAll releases all player claims', () => {
@@ -453,11 +476,11 @@ describe('Land Claim System', () => {
 
       claimChunk(owner, 10, 10);
       claimChunk(owner, 11, 10);
-      expect(getClaimsByPlayer('owner1').length).toBe(2);
+      expect(getClaimsByPlayer('owner1')).toBeArrayOfSize(2);
 
       const res = unclaimAll(owner);
       expect(res.success).toBeTrue();
-      expect(getClaimsByPlayer('owner1').length).toBe(0);
+      expect(getClaimsByPlayer('owner1')).toBeEmpty();
     });
 
     it('unclaims chunk from a different dimension when dimensionId is explicitly passed', () => {
@@ -471,7 +494,7 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       claimChunk(ownerInNether, 10, 10);
-      expect(getClaimsByPlayer('owner1').length).toBe(1);
+      expect(getClaimsByPlayer('owner1')).toBeArrayOfSize(1);
 
       const ownerInOverworld = {
         id: 'owner1',
@@ -484,7 +507,7 @@ describe('Land Claim System', () => {
 
       const res = unclaimChunk(ownerInOverworld, 10, 10, MinecraftDimensionTypes.Nether);
       expect(res.success).toBeTrue();
-      expect(getClaimsByPlayer('owner1').length).toBe(0);
+      expect(getClaimsByPlayer('owner1')).toBeEmpty();
     });
 
     it('cancels PvP damage when victim is in a claim where PvP is disabled', () => {
@@ -537,7 +560,7 @@ describe('Land Claim System', () => {
       const res = claimChunk(buyer, 20, 20);
       expect(res.success).toBeTrue();
       expect(res.message).toContain('Chunk [20, 20] successfully claimed for');
-      expect(getClaimsByPlayer('buyer1').length).toBe(1);
+      expect(getClaimsByPlayer('buyer1')).toBeArrayOfSize(1);
     });
 
     it('claimRadius claims up to 9 chunks safely and skips already claimed chunks', () => {

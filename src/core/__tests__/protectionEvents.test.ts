@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 
 import * as configManager from '@core/config/configManager.js';
 import {
@@ -17,6 +17,7 @@ import defaultConfig from '../../config.js';
 
 describe('protectionEvents & spawn safety', () => {
   let getConfigSpy: any;
+  let protectionFlagsSpy: any;
 
   beforeEach(() => {
     getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
@@ -37,6 +38,11 @@ describe('protectionEvents & spawn safety', () => {
         allowAdminBypass: true,
       },
     } as any);
+  });
+
+  afterEach(() => {
+    getConfigSpy?.mockRestore();
+    protectionFlagsSpy?.mockRestore();
   });
 
   it('isLocationInSpawn correctly identifies coordinates inside and outside spawn radius', () => {
@@ -62,7 +68,7 @@ describe('protectionEvents & spawn safety', () => {
   it.each([MinecraftItemTypes.FlintAndSteel, MinecraftItemTypes.FireCharge])(
     'cancels fire starter item %s in PvP-protected zones during block interaction and item use',
     (itemTypeId) => {
-      spyOn(protectionService, 'getProtectionFlags').mockReturnValue({
+      protectionFlagsSpy = spyOn(protectionService, 'getProtectionFlags').mockReturnValue({
         preventPvP: true,
         preventBlockInteraction: false,
         preventBlockPlacing: false,
@@ -106,7 +112,7 @@ describe('protectionEvents & spawn safety', () => {
   );
 
   it('cancels fire starters when attempting cross-boundary ignition into protected zones', () => {
-    spyOn(protectionService, 'getProtectionFlags').mockImplementation((loc) => {
+    protectionFlagsSpy = spyOn(protectionService, 'getProtectionFlags').mockImplementation((loc) => {
       // Zone boundary at x = 0 (x >= 0 is protected safezone, x < 0 is unprotected wilderness)
       const isInside = loc.x >= 0;
       return {
@@ -143,7 +149,7 @@ describe('protectionEvents & spawn safety', () => {
   });
 
   it('normalizes fractional player location to block coordinates when evaluating fire starter protection', () => {
-    spyOn(protectionService, 'getProtectionFlags').mockImplementation((loc) => {
+    protectionFlagsSpy = spyOn(protectionService, 'getProtectionFlags').mockImplementation((loc) => {
       // Zone bounds: [0, 0, 0] to [10, 10, 10]
       const inZone = loc.x >= 0 && loc.x <= 10 && loc.y >= 0 && loc.y <= 10 && loc.z >= 0 && loc.z <= 10;
       return {
@@ -234,7 +240,7 @@ describe('protectionEvents & spawn safety', () => {
   });
 
   it('allows explosions and entity damage when preventExplosions is disabled', () => {
-    spyOn(configManager, 'getConfig').mockReturnValue({
+    getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
       spawn: {
         cooldownSeconds: 60,
         teleportWarmupSeconds: 10,

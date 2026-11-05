@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { beforeEach, describe, expect, it, mock, onTestFinished, spyOn } from 'bun:test';
 
 import * as configManager from '@core/config/configManager.js';
 import { initializeConfigManager } from '@core/config/configManager.js';
@@ -81,7 +81,7 @@ describe('Entity Hurt & Explosion Safety', () => {
   it('handleEntityHealthChanged safely schedules nametag update for valid players', () => {
     const victim = new mc.Player('player-1', 'Healed');
     victim.typeId = MinecraftEntityTypes.Player;
-    spyOn(configManager, 'getConfig').mockReturnValue({
+    const cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
       ...defaultConfig,
       playerInfo: {
         ...defaultConfig.playerInfo,
@@ -104,26 +104,26 @@ describe('Entity Hurt & Explosion Safety', () => {
       scheduledCallback = callback;
       return 1;
     }) as any);
-
-    try {
-      runTimeoutSpy.mockClear();
-      const event = {
-        entity: victim,
-        newValue: 20,
-        oldValue: 10,
-      } as unknown as mc.EntityHealthChangedAfterEvent;
-
-      handleEntityHealthChanged(event);
-      expect(scheduledCallback).toBeDefined();
-
-      // Verify coalescing: second call before timeout fires does not schedule duplicate
-      handleEntityHealthChanged(event);
-      expect(runTimeoutSpy).toHaveBeenCalledTimes(1);
-
-      scheduledCallback?.();
-      expect(victim.nameTag).toContain('§c\uE10C §f20/20§r');
-    } finally {
+    onTestFinished(() => {
       runTimeoutSpy.mockRestore();
-    }
+      cfgSpy.mockRestore();
+    });
+
+    runTimeoutSpy.mockClear();
+    const event = {
+      entity: victim,
+      newValue: 20,
+      oldValue: 10,
+    } as unknown as mc.EntityHealthChangedAfterEvent;
+
+    handleEntityHealthChanged(event);
+    expect(scheduledCallback).toBeDefined();
+
+    // Verify coalescing: second call before timeout fires does not schedule duplicate
+    handleEntityHealthChanged(event);
+    expect(runTimeoutSpy).toHaveBeenCalledTimes(1);
+
+    scheduledCallback?.();
+    expect(victim.nameTag).toContain('§c\uE10C §f20/20§r');
   });
 });

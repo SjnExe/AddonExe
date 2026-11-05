@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, onTestFinished, setSystemTime, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import { initializeConfigManager } from '@core/config/configManager.js';
@@ -18,11 +18,10 @@ describe('Command Cooldown Engine', () => {
   const playerMockConstructor = mc.Player as unknown as MockConstructable<mc.Player>;
   let mockPlayer: mc.Player;
   let currentTime = 1_000_000;
-  let dateSpy: ReturnType<typeof spyOn>;
 
   beforeEach(async () => {
     currentTime = 1_000_000;
-    dateSpy = spyOn(Date, 'now').mockImplementation(() => currentTime);
+    setSystemTime(currentTime);
     await initializeConfigManager(false);
     resetAllCooldownsForTest();
 
@@ -32,7 +31,7 @@ describe('Command Cooldown Engine', () => {
   });
 
   afterEach(() => {
-    dateSpy.mockRestore();
+    setSystemTime();
   });
 
   it('should return 0 when no cooldown is active', () => {
@@ -45,10 +44,12 @@ describe('Command Cooldown Engine', () => {
 
     // Advance clock by 4 seconds
     currentTime += 4000;
+    setSystemTime(currentTime);
     expect(getRemainingCommandCooldown('player_test_1', 'feed')).toBe(6);
 
     // Advance past expiry
     currentTime += 6500;
+    setSystemTime(currentTime);
     expect(getRemainingCommandCooldown('player_test_1', 'feed')).toBe(0);
   });
 
@@ -85,6 +86,7 @@ describe('Command Cooldown Engine', () => {
     setCommandCooldown('player_test_2', 'heal', 10);
 
     currentTime += 6000; // feed expired, heal still active
+    setSystemTime(currentTime);
     cleanupExpiredCooldowns();
 
     expect(getRemainingCommandCooldown('player_test_1', 'feed')).toBe(0);
@@ -97,10 +99,9 @@ describe('Command Cooldown Engine', () => {
     const spy = spyOn(permissionEngine, 'hasPermission').mockImplementation(
       (_player, node) => node === 'cmd.cooldown.bypass',
     );
-    try {
-      expect(canBypassCommandCooldown(mockPlayer)).toBeTrue();
-    } finally {
+    onTestFinished(() => {
       spy.mockRestore();
-    }
+    });
+    expect(canBypassCommandCooldown(mockPlayer)).toBeTrue();
   });
 });

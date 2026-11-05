@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, spyOn } from 'bun:test';
 
 import * as configManager from '@core/config/configManager.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
@@ -150,27 +150,26 @@ describe('PunishmentManager', () => {
     const nameSpy = spyOn(playerDataManager, 'getPlayerNameById').mockImplementation((id: string) => {
       return id === playerId ? playerName : undefined;
     });
-
-    try {
-      // Legacy punishment was stored under player name
-      addPunishment(
-        playerName.toLowerCase(),
-        playerName,
-        { type: 'ban', expires: Date.now() + 50_000, reason: 'legacy ban' },
-        'Admin',
-      );
-      expect(getPunishment(playerId, 'ban')).toBeDefined();
-
-      // Moderation unban resolves name to ID and calls removePunishment(playerId, 'ban')
-      removePunishment(playerId, 'ban');
-
-      // Both ID and legacy name key must be completely cleared
-      expect(getPunishment(playerId, 'ban')).toBeUndefined();
-      expect(getPunishment(playerName.toLowerCase(), 'ban')).toBeUndefined();
-    } finally {
+    onTestFinished(() => {
       idSpy.mockRestore();
       nameSpy.mockRestore();
-    }
+    });
+
+    // Legacy punishment was stored under player name
+    addPunishment(
+      playerName.toLowerCase(),
+      playerName,
+      { type: 'ban', expires: Date.now() + 50_000, reason: 'legacy ban' },
+      'Admin',
+    );
+    expect(getPunishment(playerId, 'ban')).toBeDefined();
+
+    // Moderation unban resolves name to ID and calls removePunishment(playerId, 'ban')
+    removePunishment(playerId, 'ban');
+
+    // Both ID and legacy name key must be completely cleared
+    expect(getPunishment(playerId, 'ban')).toBeUndefined();
+    expect(getPunishment(playerName.toLowerCase(), 'ban')).toBeUndefined();
   });
 
   it('should migrate legacy name-keyed records to player ID and persist on loadPunishments', () => {
@@ -182,36 +181,35 @@ describe('PunishmentManager', () => {
     const nameSpy = spyOn(playerDataManager, 'getPlayerNameById').mockImplementation((id: string) => {
       return id === playerId ? playerName : undefined;
     });
-
-    try {
-      new StorageManager('exe:punishments').delete();
-      // Destination has an expired ban; legacy name record has an active ban
-      const legacyData = [
-        [playerId, { ban: { type: 'ban', expires: Date.now() - 1000, reason: 'expired ban' } }],
-        ['david', { ban: { type: 'ban', expires: Date.now() + 60_000, reason: 'active name ban' } }],
-      ];
-      mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
-
-      loadPunishments();
-
-      // Disable alias resolution so these lowercase lookups use exact keys.
-      idSpy.mockImplementation(() => undefined);
-      nameSpy.mockImplementation(() => undefined);
-
-      // Should be migrated to playerId and active ban preserved
-      expect(getPunishment(playerId, 'ban')).toBeDefined();
-      expect(getPunishment(playerId, 'ban')?.reason).toBe('active name ban');
-      expect(getPunishment('david', 'ban')).toBeUndefined();
-
-      // Verify persistence: second reload should maintain ID-keyed active ban without re-migrating
-      loadPunishments();
-      expect(getPunishment(playerId, 'ban')).toBeDefined();
-      expect(getPunishment(playerId, 'ban')?.reason).toBe('active name ban');
-      expect(getPunishment('david', 'ban')).toBeUndefined();
-    } finally {
+    onTestFinished(() => {
       idSpy.mockRestore();
       nameSpy.mockRestore();
-    }
+    });
+
+    new StorageManager('exe:punishments').delete();
+    // Destination has an expired ban; legacy name record has an active ban
+    const legacyData = [
+      [playerId, { ban: { type: 'ban', expires: Date.now() - 1000, reason: 'expired ban' } }],
+      ['david', { ban: { type: 'ban', expires: Date.now() + 60_000, reason: 'active name ban' } }],
+    ];
+    mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
+
+    loadPunishments();
+
+    // Disable alias resolution so these lowercase lookups use exact keys.
+    idSpy.mockImplementation(() => undefined);
+    nameSpy.mockImplementation(() => undefined);
+
+    // Should be migrated to playerId and active ban preserved
+    expect(getPunishment(playerId, 'ban')).toBeDefined();
+    expect(getPunishment(playerId, 'ban')?.reason).toBe('active name ban');
+    expect(getPunishment('david', 'ban')).toBeUndefined();
+
+    // Verify persistence: second reload should maintain ID-keyed active ban without re-migrating
+    loadPunishments();
+    expect(getPunishment(playerId, 'ban')).toBeDefined();
+    expect(getPunishment(playerId, 'ban')?.reason).toBe('active name ban');
+    expect(getPunishment('david', 'ban')).toBeUndefined();
   });
 
   it('should resolve canonical name from resolved ID when querying getPunishment by lowercase name', () => {
@@ -223,24 +221,23 @@ describe('PunishmentManager', () => {
     const nameSpy = spyOn(playerDataManager, 'getPlayerNameById').mockImplementation((id: string) => {
       return id === playerId ? canonicalName : undefined;
     });
-
-    try {
-      // Stored under exact mixed-case canonical name
-      addPunishment(
-        canonicalName,
-        canonicalName,
-        { type: 'ban', expires: Date.now() + 50_000, reason: 'canonical ban' },
-        'Admin',
-      );
-
-      // Querying with all lowercase should resolve through ID -> canonical name
-      const found = getPunishment('evecustom', 'ban');
-      expect(found).toBeDefined();
-      expect(found?.reason).toBe('canonical ban');
-    } finally {
+    onTestFinished(() => {
       idSpy.mockRestore();
       nameSpy.mockRestore();
-    }
+    });
+
+    // Stored under exact mixed-case canonical name
+    addPunishment(
+      canonicalName,
+      canonicalName,
+      { type: 'ban', expires: Date.now() + 50_000, reason: 'canonical ban' },
+      'Admin',
+    );
+
+    // Querying with all lowercase should resolve through ID -> canonical name
+    const found = getPunishment('evecustom', 'ban');
+    expect(found).toBeDefined();
+    expect(found?.reason).toBe('canonical ban');
   });
 
   it('should remove arbitrary case-variant legacy keys when unpunishing by player ID', () => {
@@ -253,30 +250,29 @@ describe('PunishmentManager', () => {
     const nameSpy = spyOn(playerDataManager, 'getPlayerNameById').mockImplementation((id: string) => {
       return undefined;
     });
-
-    try {
-      // Direct raw storage with mixed case variant
-      const legacyData = [
-        [legacyKey, { ban: { type: 'ban', expires: Date.now() + 60_000, reason: 'mixed case ban' } }],
-      ];
-      mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
-      loadPunishments();
-
-      // Keep the legacy key in place until removal.
-      expect(getPunishment(legacyKey, 'ban')).toBeDefined();
-
-      // Enable alias resolution so removal by player ID reaches the case-variant scan.
-      idSpy.mockImplementation((name: string) => (name.toLowerCase() === 'alice' ? playerId : undefined));
-      nameSpy.mockImplementation((id: string) => (id === playerId ? 'Alice' : undefined));
-
-      // Ensure removal by player ID purges the case-variant legacy key
-      removePunishment(playerId, 'ban');
-      expect(getPunishment(legacyKey, 'ban')).toBeUndefined();
-      expect(getPunishment('Alice', 'ban')).toBeUndefined();
-      expect(getPunishment(playerId, 'ban')).toBeUndefined();
-    } finally {
+    onTestFinished(() => {
       idSpy.mockRestore();
       nameSpy.mockRestore();
-    }
+    });
+
+    // Direct raw storage with mixed case variant
+    const legacyData = [
+      [legacyKey, { ban: { type: 'ban', expires: Date.now() + 60_000, reason: 'mixed case ban' } }],
+    ];
+    mc.world.setDynamicProperty('exe:punishments', JSON.stringify(legacyData));
+    loadPunishments();
+
+    // Keep the legacy key in place until removal.
+    expect(getPunishment(legacyKey, 'ban')).toBeDefined();
+
+    // Enable alias resolution so removal by player ID reaches the case-variant scan.
+    idSpy.mockImplementation((name: string) => (name.toLowerCase() === 'alice' ? playerId : undefined));
+    nameSpy.mockImplementation((id: string) => (id === playerId ? 'Alice' : undefined));
+
+    // Ensure removal by player ID purges the case-variant legacy key
+    removePunishment(playerId, 'ban');
+    expect(getPunishment(legacyKey, 'ban')).toBeUndefined();
+    expect(getPunishment('Alice', 'ban')).toBeUndefined();
+    expect(getPunishment(playerId, 'ban')).toBeUndefined();
   });
 });

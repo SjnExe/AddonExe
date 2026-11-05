@@ -230,7 +230,7 @@ describe('Item Blacklist System', () => {
 
       expect(setItem).not.toHaveBeenCalled();
       expect(setEquipment).not.toHaveBeenCalled();
-      expect(getBlacklistAuditLogs().length).toBe(0);
+      expect(getBlacklistAuditLogs()).toBeEmpty();
     });
 
     it('should confiscate items in confiscate mode and record audit logs', () => {
@@ -357,7 +357,7 @@ describe('Item Blacklist System', () => {
         expect(event1.cancel).toBeTrue();
         expect(deferredCallbacks.length).toBeGreaterThan(0);
         // Enforcement must be deferred to next tick outside the read-only beforeEvents handler
-        expect(getBlacklistAuditLogs().length).toBe(0);
+        expect(getBlacklistAuditLogs()).toBeEmpty();
         for (const fn of deferredCallbacks.splice(0)) {
           fn();
         }

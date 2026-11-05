@@ -74,14 +74,14 @@ describe('repairCommand', () => {
       return undefined;
     });
 
-    spyOn(configManager, 'getConfig').mockReturnValue({
+    getConfigSpy = spyOn(configManager, 'getConfig').mockReturnValue({
       playerUtilities: {
         repairEnabled: true,
         repairCost: 10,
       },
     } as any);
 
-    spyOn(permissionEngine, 'hasPermission').mockImplementation((_, perm) => {
+    permEngineSpy = spyOn(permissionEngine, 'hasPermission').mockImplementation((_, perm) => {
       return perm === 'cmd.repair.vip' || perm === 'cmd.repair.all.vip';
     });
 
@@ -93,10 +93,14 @@ describe('repairCommand', () => {
 
   let getOrCreatePlayerSpy: any;
   let incrementBalanceSpy: any;
+  let getConfigSpy: any;
+  let permEngineSpy: any;
 
   afterEach(() => {
     getOrCreatePlayerSpy?.mockRestore();
     incrementBalanceSpy?.mockRestore();
+    getConfigSpy?.mockRestore();
+    permEngineSpy?.mockRestore();
   });
 
   it('repairs main hand held item successfully', () => {

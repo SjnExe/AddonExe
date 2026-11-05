@@ -51,7 +51,7 @@ describe('Shop Admin Manager - addCategory', () => {
 
     expect(result.success).toBeFalse();
     expect(result.message).toBe('Category name is too long (max 32).');
-    expect(Object.keys(mockConfig.categories).length).toBe(0);
+    expect(Object.keys(mockConfig.categories)).toBeEmpty();
     expect(mockSaveShopConfig).not.toHaveBeenCalled();
   });
 
