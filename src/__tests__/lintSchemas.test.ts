@@ -30,9 +30,9 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
     };
     const errs = validateUiJson('packs/resource/ui/server_form.json', badUi);
     expect(errs.some((e) => e.includes("'collection_index' is not a valid direct JSON UI property"))).toBeTrue();
-    expect(errs.some((e) => e.includes("'collection_name' is only valid on 'grid' or controls with a 'factory'"))).toBe(
-      true,
-    );
+    expect(
+      errs.some((e) => e.includes("'collection_name' is only valid on 'grid' or controls with a 'factory'")),
+    ).toBeTrue();
   });
 
   it('catches scalar $variables and dangling number strings inside JSON UI size arrays', () => {
