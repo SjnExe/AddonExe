@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, spyOn } from 'bun:test';
+import { describe, expect, it, mock, onTestFinished, spyOn } from 'bun:test';
 
 import { handlePlayerEmote, initializeEventManager } from '@core/events/eventManager.js';
 import * as afkManager from '@features/essentials/afk/manager.js';
@@ -7,6 +7,7 @@ import * as mc from '@minecraft/server';
 describe('EventManager Player Emote', () => {
   it('should reset player AFK status when player emotes', () => {
     const setAfkSpy = spyOn(afkManager, 'setPlayerAfk').mockImplementation(() => false);
+    onTestFinished(() => setAfkSpy.mockRestore());
     const mockPlayer = new mc.Player('p_emote', 'EmotePlayer');
 
     const mockEvent = {
@@ -17,7 +18,6 @@ describe('EventManager Player Emote', () => {
     handlePlayerEmote(mockEvent);
 
     expect(setAfkSpy).toHaveBeenCalledWith(mockPlayer, false);
-    setAfkSpy.mockRestore();
   });
 
   it('should safely subscribe playerEmote during initializeEventManager', () => {

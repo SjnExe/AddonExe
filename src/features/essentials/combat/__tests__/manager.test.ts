@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, setSystemTime } from 'bun:test';
 
 import {
   clearLastHit,
@@ -16,19 +16,13 @@ describe('combatManager', () => {
   });
 
   describe('setLastHit() & combat cooldown', () => {
-    let originalDateNow: () => number;
-
-    beforeEach(() => {
-      originalDateNow = Date.now;
-    });
-
     afterEach(() => {
-      Date.now = originalDateNow;
+      setSystemTime();
     });
 
     it('should set last hit data with an exact timestamp and report active combat', () => {
       const mockTimestamp = 1600000000000;
-      Date.now = () => mockTimestamp;
+      setSystemTime(mockTimestamp);
 
       setLastHit('victim1', 'attacker1');
 
@@ -42,10 +36,10 @@ describe('combatManager', () => {
 
     it('should expire combat tag after timeout', () => {
       const start = 1600000000000;
-      Date.now = () => start;
+      setSystemTime(start);
       setLastHit('victim1', 'attacker1');
 
-      Date.now = () => start + 20_000;
+      setSystemTime(start + 20_000);
       expect(isInCombat('victim1')).toBeFalse();
       expect(getRemainingCombatCooldown('victim1')).toBe(0);
     });

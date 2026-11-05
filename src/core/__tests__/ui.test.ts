@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it, setSystemTime } from 'bun:test';
 
 import { initializeConfigManager } from '@core/config/configManager.js';
 import { configPanelSchema } from '@core/ui/configPanelRegistry.js';
@@ -90,18 +90,21 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
   });
 
   it('generateId should generate valid RFC 9562 v7 UUIDs with accurate embedded timestamps', () => {
-    const before = Date.now();
-    const id1 = generateId();
-    const id2 = generateId();
-    const after = Date.now();
+    const fixedTs = 1700000000000;
+    setSystemTime(fixedTs);
+    try {
+      const id1 = generateId();
+      const id2 = generateId();
 
-    expect(id1).toMatch(/^[0-9a-z]+-[0-9a-z]{7}$/);
-    expect(id2).toMatch(/^[0-9a-z]+-[0-9a-z]{7}$/);
-    expect(id1).not.toBe(id2);
+      expect(id1).toMatch(/^[0-9a-z]+-[0-9a-z]{7}$/);
+      expect(id2).toMatch(/^[0-9a-z]+-[0-9a-z]{7}$/);
+      expect(id1).not.toBe(id2);
 
-    const extractedTs = getIdTimestamp(id1);
-    expect(extractedTs).toBeGreaterThanOrEqual(before - 100);
-    expect(extractedTs).toBeLessThanOrEqual(after + 100);
+      const extractedTs = getIdTimestamp(id1);
+      expect(extractedTs).toBe(fixedTs);
+    } finally {
+      setSystemTime();
+    }
   });
 
   it('protectionService fast path returns frozen defaultFlags when no zones or spawn protection are active', async () => {

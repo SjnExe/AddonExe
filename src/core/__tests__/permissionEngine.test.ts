@@ -327,7 +327,7 @@ describe('permissionEngine', () => {
       mockGetAllRanks.mockReturnValue([]);
 
       const ranks = getPlayerRanks(mockPlayer);
-      expect(ranks).toHaveLength(1);
+      expect(ranks).toBeArrayOfSize(1);
       expect(ranks[0].id).toBe('admin');
     });
 
@@ -338,7 +338,7 @@ describe('permissionEngine', () => {
       mockGetAllRanks.mockReturnValue([]);
 
       const ranks = getPlayerRanks(mockPlayer);
-      expect(ranks).toHaveLength(1);
+      expect(ranks).toBeArrayOfSize(1);
       expect(ranks[0].id).toBe('defaultRank');
     });
 
@@ -351,7 +351,7 @@ describe('permissionEngine', () => {
       mockGetAllRanks.mockReturnValue([]);
 
       const ranks = getPlayerRanks(mockPlayer);
-      expect(ranks).toHaveLength(1);
+      expect(ranks).toBeArrayOfSize(1);
       expect(ranks[0].id).toBe('member');
     });
 
@@ -366,7 +366,7 @@ describe('permissionEngine', () => {
       mockGetAllRanks.mockReturnValue([ownerRank, memberRank]);
 
       const ranks = getPlayerRanks(mockPlayer);
-      expect(ranks).toHaveLength(2);
+      expect(ranks).toBeArrayOfSize(2);
       expect(ranks[0].id).toBe('owner');
       expect(ranks[1].id).toBe('member');
     });
@@ -382,7 +382,7 @@ describe('permissionEngine', () => {
       mockGetAllRanks.mockReturnValue([vipRank, memberRank]);
 
       const ranks = getPlayerRanks(mockPlayer);
-      expect(ranks).toHaveLength(2);
+      expect(ranks).toBeArrayOfSize(2);
       expect(ranks[0].id).toBe('vip');
       expect(ranks[1].id).toBe('member');
     });
@@ -411,7 +411,7 @@ describe('permissionEngine', () => {
       mockGetAllRanks.mockReturnValue([]);
 
       const ranks = getPlayerRanks(mockPlayer);
-      expect(ranks).toHaveLength(1);
+      expect(ranks).toBeArrayOfSize(1);
       expect(ranks[0].id).toBe('defaultRank');
     });
   });

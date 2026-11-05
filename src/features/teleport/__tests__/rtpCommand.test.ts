@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, onTestFinished, spyOn } from 'bun:test';
 
 import * as configManager from '@core/config/configManager.js';
 import { addPlayerToCache, clearPlayerCache } from '@core/data/playerCache.js';
@@ -92,6 +92,7 @@ describe('RTP Command Sanitization Test', () => {
 
   it('should block RTP immediately before chunk loading if player is in combat', async () => {
     const combatSpy = spyOn(combatManager, 'getRemainingCombatCooldown').mockReturnValue(12);
+    onTestFinished(() => combatSpy.mockRestore());
     const mockPlayer = new mc.Player('p_combat', 'CombatPlayer');
     Object.setPrototypeOf(mockPlayer, mc.Player.prototype);
     mockPlayer.dimension = new mc.Dimension(MinecraftDimensionTypes.Overworld);
@@ -99,7 +100,6 @@ describe('RTP Command Sanitization Test', () => {
     await rtpCommand.execute(mockPlayer, {});
 
     expect(mockPlayer.sendMessage).toHaveBeenCalledWith('§cYou cannot use /rtp while in combat! (12s remaining)');
-    combatSpy.mockRestore();
   });
 
   it('should cache warps in memory and allow overwriting when allowOverwrite is true', () => {
@@ -164,6 +164,7 @@ describe('RTP Command Sanitization Test', () => {
       preventEntityInteraction: false,
       preventProjectileUsage: false,
     });
+    onTestFinished(() => protSpy.mockRestore());
 
     const mockDimension = {
       id: MinecraftDimensionTypes.Overworld as string,
@@ -183,6 +184,5 @@ describe('RTP Command Sanitization Test', () => {
       '§cCould not find a safe dry land location away from players/claims. Please try /rtp again!',
     );
     expect(mockDimension.runCommand).not.toHaveBeenCalled();
-    protSpy.mockRestore();
   });
 });
