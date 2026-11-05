@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, spyOn } from 'bun:test';
 
 import * as permissionEngine from '@core/permissions/permissionEngine.js';
 import * as featureManager from '@core/services/featureManager.js';
@@ -45,10 +45,10 @@ describe('Menu Registry', () => {
     expect(ranksItem).toBeDefined();
     if (ranksItem) {
       const showMyStatsPanelSpy = spyOn(playerPanel, 'showMyStatsPanel').mockImplementation(() => Promise.resolve());
+      onTestFinished(() => showMyStatsPanelSpy.mockRestore());
 
       await ranksItem.action(player as any);
       expect(showMyStatsPanelSpy).toHaveBeenCalled();
-      showMyStatsPanelSpy.mockRestore();
     }
   });
 });

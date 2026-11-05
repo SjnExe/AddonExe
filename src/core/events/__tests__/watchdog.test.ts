@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, spyOn } from 'bun:test';
+import { describe, expect, it, mock, onTestFinished, spyOn } from 'bun:test';
 
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { handleWatchdogTerminate } from '@core/events/eventManager.js';
@@ -9,6 +9,10 @@ describe('Watchdog Terminate Event Handler', () => {
   it('should log diagnostic reason and flush active player data on watchdog termination', () => {
     const errorSpy = spyOn(logger, 'errorLog').mockImplementation(() => {});
     const flushSpy = spyOn(playerDataManager, 'flushAllActivePlayerData').mockImplementation(() => {});
+    onTestFinished(() => {
+      errorSpy.mockRestore();
+      flushSpy.mockRestore();
+    });
 
     const mockEvent = {
       cancel: false,
@@ -21,8 +25,5 @@ describe('Watchdog Terminate Event Handler', () => {
       expect.stringContaining('[EventManager] Script watchdog termination triggered. Reason: Hang'),
     );
     expect(flushSpy).toHaveBeenCalledTimes(1);
-
-    errorSpy.mockRestore();
-    flushSpy.mockRestore();
   });
 });

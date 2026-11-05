@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, onTestFinished, spyOn } from 'bun:test';
 
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import * as configurations from '@core/config/configurations.js';
@@ -129,6 +129,7 @@ describe('ItemCheck', () => {
       movementCheck: {} as any,
       antiNetherRoof: {} as any,
     });
+    onTestFinished(() => configSpy.mockRestore());
 
     const setItemMock = mock();
     player.getGameMode = mock(() => mc.GameMode.Survival);
@@ -186,8 +187,6 @@ describe('ItemCheck', () => {
       expect.stringContaining(`Banned Item: ${MinecraftItemTypes.Bedrock}`),
     );
     expect(setItemMock).toHaveBeenCalledWith(12, undefined);
-
-    configSpy.mockRestore();
   });
 
   it('should check equipment slots via checkPlayerEquipment', () => {

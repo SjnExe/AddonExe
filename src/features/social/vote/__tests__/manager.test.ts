@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, setSystemTime, spyOn } from 'bun:test';
 
 import { StorageManager } from '@core/data/storageManager.js';
 import * as logger from '@core/utils/logger.js';
@@ -18,9 +18,6 @@ let intervalCallback: (() => void) | undefined;
 const { initializeVoting, createVote, castVote, endVote, getActiveVote, getLastVote } = await import('../manager.js');
 
 describe('Vote Manager', () => {
-  let mockDateNow: ReturnType<typeof mock>;
-  let originalDateNow: any;
-
   beforeEach(() => {
     runIntervalSpy = spyOn(mc.system, 'runInterval').mockImplementation((cb: () => void, step?: number) => {
       const loops = step && step >= 200 ? 1 : 200;
@@ -43,18 +40,13 @@ describe('Vote Manager', () => {
     mockStorageSave.mockReset();
     intervalCallback = undefined;
 
+    setSystemTime(1000000);
     mockStorageLoad.mockReturnValue(undefined);
     initializeVoting();
-
-    // Spy on Date.now
-    originalDateNow = global.Date.now;
-    mockDateNow = mock(() => 1000000);
-    global.Date.now = mockDateNow;
   });
 
   afterEach(() => {
-    // Reset Date.now to original
-    global.Date.now = originalDateNow;
+    setSystemTime();
     runIntervalSpy?.mockRestore();
     sendMessageSpy?.mockRestore();
     debugLogSpy?.mockRestore();
@@ -75,7 +67,7 @@ describe('Vote Manager', () => {
       mockStorageLoad.mockReturnValue(activeVote);
 
       // Time is 1000000 + 60000 = 1060000 for expiry. Current time is 1060001
-      mockDateNow.mockReturnValue(1060001);
+      setSystemTime(1060001);
 
       initializeVoting();
 
@@ -91,7 +83,7 @@ describe('Vote Manager', () => {
       createVote(creator, 'Q', ['A', 'B'], 0);
 
       // Advance time significantly
-      mockDateNow.mockReturnValue(2000000);
+      setSystemTime(2000000);
 
       if (intervalCallback) {
         intervalCallback();
@@ -105,7 +97,7 @@ describe('Vote Manager', () => {
       createVote(creator, 'Q', ['A', 'B'], 60);
 
       // Start time is 1000000, expiry is 1060000
-      mockDateNow.mockReturnValue(1059999);
+      setSystemTime(1059999);
 
       if (intervalCallback) {
         intervalCallback();
@@ -119,7 +111,7 @@ describe('Vote Manager', () => {
       createVote(creator, 'Q', ['A', 'B'], 60);
 
       // Start time is 1000000, expiry is 1060000
-      mockDateNow.mockReturnValue(1060000);
+      setSystemTime(1060000);
 
       if (intervalCallback) {
         intervalCallback();
@@ -170,7 +162,7 @@ describe('Vote Manager', () => {
       expect(activeVote?.status).toBe('active');
       expect(activeVote?.startTime).toBe(1000000);
 
-      expect(activeVote?.options).toHaveLength(2);
+      expect(activeVote?.options).toBeArrayOfSize(2);
       expect(activeVote?.options[0]).toEqual({ id: 0, text: 'Red', count: 0 });
       expect(activeVote?.options[1]).toEqual({ id: 1, text: 'Blue', count: 0 });
 
