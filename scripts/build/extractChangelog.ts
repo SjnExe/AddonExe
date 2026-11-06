@@ -1,5 +1,12 @@
-import path from 'node:path';
+import { resolve } from 'node:path';
 
+/**
+ * Extracts and returns the changelog markdown contents corresponding to a specific version section.
+ *
+ * @param markdown Full markdown text containing versioned changelog headers.
+ * @param targetVersion Version identifier or 'unreleased' keyword to locate.
+ * @returns Trimmed markdown section contents, or null if the section header was not found.
+ */
 export function parseChangelogSection(markdown: string, targetVersion: string): string | null {
   const cleanTarget = targetVersion.replace(/^v/i, '').trim();
   const escapedTarget = cleanTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -32,8 +39,15 @@ export function parseChangelogSection(markdown: string, targetVersion: string): 
   return trimmed.length > 0 ? trimmed : null;
 }
 
+/**
+ * Reads a changelog file and extracts the changelog section for a given version.
+ *
+ * @param version Version identifier to extract.
+ * @param changelogPath Optional explicit path to the changelog file (defaults to docs/changelog.md).
+ * @returns Extracted changelog markdown text, or null if the file or section is missing.
+ */
 export async function extractChangelog(version: string, changelogPath?: string): Promise<string | null> {
-  const filePath = changelogPath ?? path.resolve(process.cwd(), 'docs/changelog.md');
+  const filePath = changelogPath ?? resolve(process.cwd(), 'docs/changelog.md');
   const file = Bun.file(filePath);
 
   if (!(await file.exists())) {

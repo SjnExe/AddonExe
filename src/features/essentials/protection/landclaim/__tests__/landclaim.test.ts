@@ -5,6 +5,7 @@ import * as configurations from '@core/config/configurations.js';
 import * as playerCache from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
+import { handleBeforeEntityHurt } from '@core/events/protectionEvents.js';
 import {
   _clearClaimsForTest,
   canPlayerModify,
@@ -26,6 +27,8 @@ import {
   untrustPlayer,
   updateClaimFlags,
 } from '@features/essentials/protection/landclaim/manager.js';
+import * as friendManager from '@features/social/friends/manager.js';
+import * as teamManager from '@features/social/team/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes, MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
@@ -513,7 +516,6 @@ describe('Land Claim System', () => {
     });
 
     it('cancels PvP damage when victim is in a claim where PvP is disabled', () => {
-      const { handleBeforeEntityHurt } = require('@core/events/protectionEvents.js');
       const owner = {
         id: 'owner1',
         name: 'Owner',
@@ -623,7 +625,6 @@ describe('Land Claim System', () => {
       // Update flag to trustTeam
       claim.flags.trustTeam = true;
 
-      const teamManager = require('@features/social/team/manager.js');
       const teamSpy = spyOn(teamManager, 'getPlayerTeamId').mockImplementation((pid: string) => {
         if (pid === 'team_owner' || pid === 'teammate_p') {
           return 42;
@@ -641,7 +642,6 @@ describe('Land Claim System', () => {
       } as unknown as mc.Player;
 
       claim.flags.trustFriends = true;
-      const friendManager = require('@features/social/friends/manager.js');
       const friendSpy = spyOn(friendManager, 'isFriend').mockImplementation((p1: string, p2: string) => {
         return p1 === 'team_owner' && p2 === 'friend_p';
       });

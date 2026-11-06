@@ -1,15 +1,15 @@
-import { execSync } from 'node:child_process';
-import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
-interface AuditResult {
+/** Result of the Bedrock safety and architectural audit. */
+export interface AuditResult {
   passed: boolean;
   warnings: string[];
   infos: string[];
 }
 
-interface PRMetadata {
+/** Aggregated pull request metadata and audit results. */
+export interface PRMetadata {
   title: string;
   type: string;
   scope: string;
@@ -20,9 +20,19 @@ interface PRMetadata {
   audit: AuditResult;
 }
 
-function runCmd(cmd: string): string {
+/**
+ * Executes a shell command synchronously and returns its trimmed stdout.
+ *
+ * @param cmd Shell command string to execute.
+ * @returns Trimmed standard output, or empty string on failure.
+ */
+export function runCmd(cmd: string): string {
   try {
-    return execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    const res = Bun.spawnSync(['sh', '-c', cmd], {
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    return res.exitCode === 0 ? res.stdout.toString().trim() : '';
   } catch {
     return '';
   }
@@ -77,7 +87,13 @@ const knownAreas = new Set([
   'ci',
 ]);
 
-function normalizeArea(raw: string): string {
+/**
+ * Normalizes a raw scope or subsystem identifier to a canonical repository area.
+ *
+ * @param raw Raw scope string from conventional commit or path.
+ * @returns Canonical area name or empty string if unrecognized.
+ */
+export function normalizeArea(raw: string): string {
   const lower = raw
     .toLowerCase()
     .trim()
@@ -94,10 +110,19 @@ function normalizeArea(raw: string): string {
   if (lower === 'essentials' || lower === 'protection' || lower === 'social') {
     return 'essentials';
   }
+  if (lower === 'pr' || lower === 'actions' || lower === 'workflow') {
+    return 'ci';
+  }
   return knownAreas.has(lower) ? lower : '';
 }
 
-function parseConventionalCommit(title: string): { type: string; scope: string } {
+/**
+ * Parses a Conventional Commit title into a PR label type and normalized subsystem scope.
+ *
+ * @param title Commit or PR title string.
+ * @returns Parsed PR classification object.
+ */
+export function parseConventionalCommit(title: string): { type: string; scope: string } {
   const regex = /^(feat|fix|perf|refactor|docs|test|chore|ci|style|build)(?:\(([^)]+)\))?:\s*(.+)$/i;
   const match = regex.exec(title);
 
@@ -126,7 +151,13 @@ function parseConventionalCommit(title: string): { type: string; scope: string }
   return { type: 'maintenance', scope: '' };
 }
 
-function determineScopeFromFiles(files: string[]): string {
+/**
+ * Infers the primary affected subsystem from changed file paths.
+ *
+ * @param files List of repository-relative changed file paths.
+ * @returns Canonical area name or empty string if undetermined.
+ */
+export function determineScopeFromFiles(files: string[]): string {
   // Dynamically resolve feature area from file path
   for (const file of files) {
     const match = /^src\/features\/([^/]+)/.exec(file);
@@ -156,7 +187,13 @@ function determineScopeFromFiles(files: string[]): string {
   return '';
 }
 
-function determineSize(totalLines: number): string {
+/**
+ * Categorizes PR size based on total added and deleted line count.
+ *
+ * @param totalLines Total number of lines modified (added + deleted).
+ * @returns PR size label (XS, S, M, L, XL, XXL, XXXL).
+ */
+export function determineSize(totalLines: number): string {
   if (totalLines < 30) {
     return 'XS';
   }
@@ -178,7 +215,14 @@ function determineSize(totalLines: number): string {
   return 'XXXL';
 }
 
-function runBedrockAudit(files: string[], baseRef: string): AuditResult {
+/**
+ * Audits modified files and git diffs against Bedrock Script API invariants.
+ *
+ * @param files List of changed file paths.
+ * @param baseRef Base git reference for diff evaluation.
+ * @returns Audit result with warnings and checklist items.
+ */
+export function runBedrockAudit(files: string[], baseRef: string): AuditResult {
   const warnings: string[] = [];
   const infos: string[] = [];
 
@@ -238,7 +282,13 @@ function runBedrockAudit(files: string[], baseRef: string): AuditResult {
   };
 }
 
-function generateMarkdownReport(meta: PRMetadata): string {
+/**
+ * Formats PR metadata and audit findings into a structured markdown report.
+ *
+ * @param meta PR metadata and audit results.
+ * @returns Markdown report text.
+ */
+export function generateMarkdownReport(meta: PRMetadata): string {
   const auditStatus = meta.audit.passed
     ? '✅ Passed (No critical Bedrock traps detected)'
     : '⚠️ Warning (Review recommended)';
@@ -268,6 +318,7 @@ ${warningsList}${infosList}`.trimEnd() + '\n'
   );
 }
 
+/** Main entry point for PR triage CLI, generating reports and posting PR audit comments. */
 async function main() {
   const { prNumber, prTitle, baseRef } = getPRDetails();
   const changedFiles = getChangedFiles(baseRef);
@@ -317,7 +368,7 @@ async function main() {
       `gh api repos/${process.env.GITHUB_REPOSITORY}/issues/${prNumber}/comments --jq '.[] | select(.body | contains("<!-- pr-triage-bot -->")) | .id'`,
     );
 
-    const tmpFile = path.join(os.tmpdir(), `pr_triage_${prNumber}_${Date.now()}.md`);
+    const tmpFile = join(tmpdir(), `pr_triage_${prNumber}_${Date.now()}.md`);
     await Bun.write(tmpFile, report);
 
     try {
@@ -332,7 +383,7 @@ async function main() {
       }
     } finally {
       try {
-        await fs.unlink(tmpFile);
+        await Bun.file(tmpFile).delete();
       } catch {
         // Ignore file cleanup error
       }
@@ -340,7 +391,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error('Error running PR triage:', err);
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error('Error running PR triage:', err);
+    process.exit(1);
+  });
+}

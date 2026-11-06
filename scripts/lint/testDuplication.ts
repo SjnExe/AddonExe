@@ -1,6 +1,7 @@
 const minTokens = 50;
 const minLines = 5;
 
+/** Represents a matching token window occurrence within a specific file and line range. */
 interface WindowHit {
   file: string;
   startLine: number;
@@ -10,6 +11,12 @@ interface WindowHit {
 const tokenRegex =
   /[A-Za-z_$][A-Za-z0-9_$]*|\d+(?:\.\d+)?|==|!=|===|!==|<=|>=|=>|&&|\|\||[{}()[\].,:;?+\-*/%&|^!~<>]=?/g;
 
+/**
+ * Tokenizes TypeScript source code while tracking 1-based source line numbers for each token hash.
+ *
+ * @param source Raw TypeScript source text.
+ * @returns Object with hashes and lines arrays.
+ */
 function tokenizeWithLines(source: string): { hashes: BigUint64Array; lines: Uint32Array } {
   const clean = source.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, (m) => m.replace(/[^\n]/g, ' '));
   const tokenHashes: bigint[] = [];
@@ -38,6 +45,7 @@ function tokenizeWithLines(source: string): { hashes: BigUint64Array; lines: Uin
   };
 }
 
+/** Scans all TypeScript source files to detect identical token windows across disjoint file locations. */
 export async function checkDuplication(): Promise<void> {
   const t0 = performance.now();
   const glob = new Bun.Glob('src/**/*.ts');

@@ -1,16 +1,53 @@
-import path from 'node:path';
+import { resolve } from 'node:path';
 
+/** Parsed command-line arguments configuring the build and packaging pipeline. */
 export interface ParsedArgs {
+  /** Whether watch mode is enabled to automatically rebuild on source changes. */
   isWatch: boolean;
+  /** Whether the build is configured for release packaging. */
   isRelease: boolean;
+  /** Whether the build produces a canary / pre-release archive with test framework enabled. */
   isCanary: boolean;
+  /** Whether to package build output into a .mcaddon zip archive. */
   isZip: boolean;
+  /** Whether JavaScript output should be minified. */
   isMinify: boolean;
+  /** Optional flag indicating whether source maps should be generated. */
   sourcemap?: boolean;
+  /** Monotonically increasing build or CI run number used in canary versions. */
   buildNumber: number;
+  /** Custom semantic version string overriding package.json version. */
   customVersion?: string;
 }
 
+/** Options passed to resolve the version context for manifest generation and archive naming. */
+export interface VersionContextOptions {
+  /** Explicit custom semantic version string overriding package.json. */
+  customVersion?: string;
+  /** Whether canary version formatting should be applied. */
+  isCanary?: boolean;
+  /** Build number applied to the canary version tuple. */
+  buildNumber?: number;
+  /** Whether release mode is active. */
+  isRelease?: boolean;
+}
+
+/** Resolved version metadata representation including string and tuple formats. */
+export interface VersionContext {
+  /** Formatted version string for displays and archive filenames. */
+  versionStr: string;
+  /** Three-element numerical tuple [major, minor, patch] required by Minecraft manifests. */
+  versionArray: number[];
+  /** Sanitized base semantic version string without pre-release suffixes. */
+  baseVersionStr: string;
+}
+
+/**
+ * Parses CLI arguments into structured configuration flags for build workflows.
+ *
+ * @param argv Command line argument array (defaults to process.argv.slice(2)).
+ * @returns ParsedArgs structure with normalized flags.
+ */
 export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
   let isWatch = false;
   let isRelease = false;
@@ -70,16 +107,15 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
   };
 }
 
-export async function getVersionContext(
-  rootDir: string,
-  options: {
-    customVersion?: string;
-    isCanary?: boolean;
-    buildNumber?: number;
-    isRelease?: boolean;
-  },
-) {
-  const pkgPath = path.resolve(rootDir, 'package.json');
+/**
+ * Resolves version information from package.json or CLI options for manifest and artifact naming.
+ *
+ * @param rootDir Root directory of the repository containing package.json.
+ * @param options Version context options including customVersion, isCanary, and buildNumber.
+ * @returns Resolved version metadata object with versionStr, versionArray, and baseVersionStr.
+ */
+export async function getVersionContext(rootDir: string, options: VersionContextOptions = {}): Promise<VersionContext> {
+  const pkgPath = resolve(rootDir, 'package.json');
   let baseVersionStr = options.customVersion;
 
   if (!baseVersionStr) {
