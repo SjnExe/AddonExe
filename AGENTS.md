@@ -22,6 +22,7 @@ This document is the single source of truth for the architecture, coding standar
 - **Check Code Duplication (Explicit Only):** `bun run test:dupe`
 - **Full Pack Validation (MCT):** `bun run validate` (validates built pack manifests and assets via Minecraft Creator Tools; run after building)
 - **CI Diff Audits & Shallow Checkout Fallback:** Tooling and scripts inspecting git diffs against base branches (`origin/main`, `GITHUB_BASE_REF`) must gracefully fall back to `HEAD` or full-tree evaluation when Git checkout is shallow (`fetch-depth: 1`), and GitHub Actions workflows running diff-based audits must configure `fetch-depth: 0`.
+- **Isolated Git Subprocess Execution in Hooks & Tests:** When spawning Git child processes against a foreign working directory (`cwd`) during Git hooks or unit tests, scrub all repository-local environment variables (per `git rev-parse --local-env-vars`, notably `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, `GIT_COMMON_DIR`) from `process.env` to prevent Git from redirecting object lookups and index reads to the host repository.
 - **Two-Stage Iterative Review Protocol (2 Consecutive Clean Passes):**
   - Concluding any feature, refactor, or bugfix requires **2 consecutive zero-issue passes** before submitting or merging.
   - A single verification pass consists of **both** of the following stages:

@@ -1,4 +1,5 @@
-import path from 'node:path';
+import { readFileSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
 
 const validAnchors = new Set([
   'top_left',
@@ -153,13 +154,19 @@ interface JsonSchemaNode {
 
 const schemaFileCache = new Map<string, JsonSchemaNode>();
 
+/**
+ * Loads and parses a JSON schema file from an absolute path, caching the result in memory.
+ *
+ * @param absPath Absolute filesystem path to the JSON schema file.
+ * @returns Parsed JSON schema AST node or undefined if missing or unparseable.
+ */
 function loadSchemaFile(absPath: string): JsonSchemaNode | undefined {
   const cached = schemaFileCache.get(absPath);
   if (cached) {
     return cached;
   }
   try {
-    const raw = require('node:fs').readFileSync(absPath, 'utf8') as string;
+    const raw = readFileSync(absPath, 'utf8') as string;
     const parsed = Bun.JSON5.parse(raw) as JsonSchemaNode;
     if (parsed && typeof parsed === 'object') {
       schemaFileCache.set(absPath, parsed);
@@ -181,7 +188,7 @@ function resolveSchemaRef(
   let targetRoot = rootSchema;
 
   if (filePart && filePart.length > 0) {
-    targetFile = path.resolve(path.dirname(currentFilePath), filePart);
+    targetFile = resolve(dirname(currentFilePath), filePart);
     const loaded = loadSchemaFile(targetFile);
     if (!loaded) {
       return { filePath: targetFile, root: targetRoot };
@@ -276,6 +283,11 @@ interface BedrockSchemasRegistry {
 
 let cachedBedrockSchemas: BedrockSchemasRegistry | undefined;
 
+/**
+ * Discovers and parses all Bedrock component and recipe schema definitions from node_modules.
+ *
+ * @returns Registry containing discovered entity components, item components, and recipe types.
+ */
 function loadBedrockSchemasRegistry(): BedrockSchemasRegistry {
   if (cachedBedrockSchemas) {
     return cachedBedrockSchemas;
@@ -288,7 +300,7 @@ function loadBedrockSchemasRegistry(): BedrockSchemasRegistry {
   };
 
   try {
-    const schemasBase = path.resolve(process.cwd(), 'node_modules/@minecraft/bedrock-schemas');
+    const schemasBase = resolve(process.cwd(), 'node_modules/@minecraft/bedrock-schemas');
     const schemaGlob = new Bun.Glob('**/*.json');
     const files = Array.from(schemaGlob.scanSync({ cwd: schemasBase, absolute: true }));
     if (files.length > 0) {
@@ -312,7 +324,7 @@ function loadBedrockSchemasRegistry(): BedrockSchemasRegistry {
             }
           }
         }
-        const raw = require('node:fs').readFileSync(file, 'utf8') as string;
+        const raw = readFileSync(file, 'utf8') as string;
         for (const m of raw.matchAll(/"(minecraft:[a-z0-9_.:-]+)"/g)) {
           const id = m[1];
           if (id) {
@@ -775,7 +787,7 @@ export async function runSchemaValidation(): Promise<boolean> {
 
   const jsonResults = await Promise.all(
     packJsonFiles.map(async (filePath) => {
-      const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
+      const relativePath = relative(rootDir, filePath).replaceAll('\\', '/');
       let json: Record<string, unknown>;
       try {
         json = await Bun.file(filePath).json();
@@ -830,7 +842,7 @@ export async function runSchemaValidation(): Promise<boolean> {
   const rpLangKeys = new Set<string>();
 
   for (const langPath of langFiles) {
-    const relLang = path.relative(rootDir, langPath).replace(/\\/g, '/');
+    const relLang = relative(rootDir, langPath).replaceAll('\\', '/');
     const rawLang = await Bun.file(langPath).text();
     const { errors: langErrs, keys } = validateLangFile(relLang, rawLang);
     if (relLang === 'packs/resource/texts/en_US.lang') {
@@ -853,7 +865,7 @@ export async function runSchemaValidation(): Promise<boolean> {
     'packs/resource/texts/en_US.lang',
   ];
   for (const reqFile of requiredLangFiles) {
-    if (!(await Bun.file(path.join(rootDir, reqFile)).exists())) {
+    if (!(await Bun.file(join(rootDir, reqFile)).exists())) {
       console.error(`[Validator] Missing required localization file: ${reqFile}`);
       errors++;
     }
@@ -869,7 +881,7 @@ export async function runSchemaValidation(): Promise<boolean> {
     for (const m of matches) {
       const key = m[1];
       if (key && !rpLangKeys.has(key)) {
-        const relTs = path.relative(rootDir, tsFile).replace(/\\/g, '/');
+        const relTs = relative(rootDir, tsFile).replaceAll('\\', '/');
         console.error(
           `[Validator] Missing translation key '${key}' in packs/resource/texts/en_US.lang (used in ${relTs}).`,
         );

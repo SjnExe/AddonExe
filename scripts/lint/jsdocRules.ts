@@ -3,6 +3,51 @@ const normalizePath = (p: string) => p.replace(/\\/g, '/').replace(/^\.\//, '');
 let testOverrideBase: string | null | undefined;
 const cachedBaseByRepo = new Map<string, string | null>();
 
+const gitLocalEnvVars = [
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+  'GIT_CONFIG',
+  'GIT_CONFIG_PARAMETERS',
+  'GIT_CONFIG_COUNT',
+  'GIT_OBJECT_DIRECTORY',
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_IMPLICIT_WORK_TREE',
+  'GIT_GRAFT_FILE',
+  'GIT_INDEX_FILE',
+  'GIT_NO_REPLACE_OBJECTS',
+  'GIT_REPLACE_REF_BASE',
+  'GIT_PREFIX',
+  'GIT_SHALLOW_FILE',
+  'GIT_COMMON_DIR',
+] as const;
+
+/**
+ * Constructs spawn options for Git invocations, scrubbing repository-local Git environment variables when a custom cwd
+ * is used.
+ *
+ * @param cwd Optional working directory.
+ * @param overrides Optional environment variable overrides to preserve or supply explicitly.
+ * @returns Spawn options object.
+ */
+export function getGitSpawnOptions(
+  cwd?: string,
+  overrides?: Record<string, string | undefined>,
+): { cwd?: string; env?: Record<string, string | undefined> } {
+  if (!cwd && !overrides) {
+    return {};
+  }
+  const cleanEnv = { ...process.env };
+  if (cwd) {
+    for (const key of gitLocalEnvVars) {
+      delete cleanEnv[key];
+    }
+  }
+  if (overrides) {
+    Object.assign(cleanEnv, overrides);
+  }
+  return { ...(cwd ? { cwd } : {}), env: cleanEnv };
+}
+
 /**
  * Overrides or resets the cached merge-base SHA for testing purposes.
  *
@@ -38,7 +83,7 @@ export function resolveMergeBase(cwd?: string): string | null {
   candidates.push('origin/main', 'main');
 
   for (const cand of candidates) {
-    const mbRes = Bun.spawnSync(['git', 'merge-base', cand, 'HEAD'], cwd ? { cwd } : {});
+    const mbRes = Bun.spawnSync(['git', 'merge-base', cand, 'HEAD'], getGitSpawnOptions(cwd));
     if (mbRes.exitCode === 0) {
       const sha = mbRes.stdout.toString().trim();
       if (sha) {
@@ -126,8 +171,9 @@ export function parseDiffHunks(diffText: string): Set<number> {
  */
 export function getChangedLineNumbers(filePath: string, staged = false, cwd?: string): Set<number> | 'ALL' {
   try {
+    const spawnOpts = getGitSpawnOptions(cwd);
     if (staged) {
-      const diffRes = Bun.spawnSync(['git', 'diff', '--cached', '-U0', '--', filePath], cwd ? { cwd } : {});
+      const diffRes = Bun.spawnSync(['git', 'diff', '--cached', '-U0', '--', filePath], spawnOpts);
       if (diffRes.exitCode !== 0) {
         return 'ALL';
       }
@@ -138,7 +184,7 @@ export function getChangedLineNumbers(filePath: string, staged = false, cwd?: st
       return parseDiffHunks(diffText);
     }
 
-    const statusRes = Bun.spawnSync(['git', 'status', '--porcelain', '-uall', filePath], cwd ? { cwd } : {});
+    const statusRes = Bun.spawnSync(['git', 'status', '--porcelain', '-uall', filePath], spawnOpts);
     const statusOut = statusRes.stdout.toString().trim();
     if (statusOut.startsWith('??') || statusOut.startsWith('A ')) {
       return 'ALL';
@@ -147,7 +193,7 @@ export function getChangedLineNumbers(filePath: string, staged = false, cwd?: st
     const base = resolveMergeBase(cwd);
     let diffText = '';
     if (base) {
-      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', base, '--', filePath], cwd ? { cwd } : {});
+      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', base, '--', filePath], spawnOpts);
       if (diffRes.exitCode !== 0) {
         return 'ALL';
       }
@@ -155,8 +201,8 @@ export function getChangedLineNumbers(filePath: string, staged = false, cwd?: st
     } else {
       // In shallow checkouts where merge-base resolution fails, inspect HEAD's commit diff
       // combined with any uncommitted changes in the working tree.
-      const showRes = Bun.spawnSync(['git', 'show', '-U0', '--format=', 'HEAD', '--', filePath], cwd ? { cwd } : {});
-      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', 'HEAD', '--', filePath], cwd ? { cwd } : {});
+      const showRes = Bun.spawnSync(['git', 'show', '-U0', '--format=', 'HEAD', '--', filePath], spawnOpts);
+      const diffRes = Bun.spawnSync(['git', 'diff', '-U0', 'HEAD', '--', filePath], spawnOpts);
       if (showRes.exitCode !== 0 && diffRes.exitCode !== 0) {
         return 'ALL';
       }

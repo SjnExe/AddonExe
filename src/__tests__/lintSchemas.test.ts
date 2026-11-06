@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'bun:test';
-import path from 'node:path';
 
 import { validateContentJson, validateLangFile, validateUiJson } from '../../scripts/lint/schemas.js';
 
 describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negative Checks)', () => {
   it('validates all existing pack JSON and JSON UI files with zero false positives', async () => {
-    const rootDir = process.cwd();
     const glob = new Bun.Glob('packs/**/*.json');
-    const files = Array.from(glob.scanSync({ cwd: rootDir, absolute: true }));
+    const files = Array.from(glob.scanSync('.'));
 
     expect(files.length).toBeGreaterThanOrEqual(18);
 
-    for (const filePath of files) {
-      const rel = path.relative(rootDir, filePath).replace(/\\/g, '/');
-      const json = (await Bun.file(filePath).json()) as Record<string, unknown>;
-      const errs = rel.startsWith('packs/resource/ui/') ? validateUiJson(rel, json) : validateContentJson(rel, json);
+    for (const rel of files) {
+      const normalizedPath = rel.replaceAll('\\', '/');
+      const json = (await Bun.file(normalizedPath).json()) as Record<string, unknown>;
+      const errs = normalizedPath.startsWith('packs/resource/ui/')
+        ? validateUiJson(normalizedPath, json)
+        : validateContentJson(normalizedPath, json);
       expect(errs).toEqual([]);
     }
   });

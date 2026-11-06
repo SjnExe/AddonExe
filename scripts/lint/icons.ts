@@ -1,10 +1,15 @@
-import path from 'node:path';
+import { resolve } from 'node:path';
 
-const rootDir = path.resolve(import.meta.dirname, '../..');
-const cacheFile = path.resolve(rootDir, '.cache/vanilla_textures.json');
-const srcDir = path.resolve(rootDir, 'src');
-const resourcePackDir = path.resolve(rootDir, 'packs/resource/textures');
+const rootDir = resolve(import.meta.dirname, '../..');
+const cacheFile = resolve(rootDir, '.cache/vanilla_textures.json');
+const srcDir = resolve(rootDir, 'src');
+const resourcePackDir = resolve(rootDir, 'packs/resource/textures');
 
+/**
+ * Fetches and caches canonical vanilla Minecraft texture paths from Mojang's bedrock-samples repository.
+ *
+ * @returns Set of valid vanilla texture identifier paths.
+ */
 export async function fetchVanillaTextures(): Promise<Set<string>> {
   const validTextures = new Set<string>();
 
@@ -130,6 +135,11 @@ export async function fetchVanillaTextures(): Promise<Set<string>> {
   return validTextures;
 }
 
+/**
+ * Discovers all custom resource pack texture paths present in the local workspace.
+ *
+ * @returns Set of valid custom texture identifier paths.
+ */
 async function getCustomTextures(): Promise<Set<string>> {
   const customTextures = new Set<string>();
   const pngGlob = new Bun.Glob('**/*.png');
@@ -137,7 +147,7 @@ async function getCustomTextures(): Promise<Set<string>> {
 
   for (const file of pngFiles) {
     const noExt = file.replace(/\.png$/, '');
-    const normalized = noExt.split(path.sep).join('/');
+    const normalized = noExt.replaceAll('\\', '/');
     customTextures.add(`textures/${normalized}`);
     customTextures.add(`textures/${normalized}`.toLowerCase());
   }
@@ -146,6 +156,11 @@ async function getCustomTextures(): Promise<Set<string>> {
   return customTextures;
 }
 
+/**
+ * Scans all TypeScript source files to extract referenced UI texture paths.
+ *
+ * @returns Map mapping referenced texture paths to the source files using them.
+ */
 async function extractUsedIcons(): Promise<Map<string, string[]>> {
   const tsGlob = new Bun.Glob('**/*.ts');
   const tsFiles = Array.from(tsGlob.scanSync({ cwd: srcDir, absolute: true })).filter(
@@ -181,7 +196,8 @@ async function extractUsedIcons(): Promise<Map<string, string[]>> {
   return usedIcons;
 }
 
-export async function validateIcons() {
+/** Performs strict validation verifying that every texture path used in source code exists in vanilla or custom packs. */
+export async function validateIcons(): Promise<void> {
   console.log('--- Starting Strict Icon Validation ---');
 
   const [vanillaTextures, customTextures, usedIcons] = await Promise.all([

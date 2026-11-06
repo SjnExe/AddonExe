@@ -1,18 +1,28 @@
-import path from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { $ } from 'bun';
 
-const rootDir = path.resolve(import.meta.dirname, '../..');
-const packageJsonPath = path.join(rootDir, 'package.json');
-const manifestJsonPath = path.join(rootDir, 'packs/behavior/manifest.json');
+const rootDir = resolve(import.meta.dirname, '../..');
 
-export async function checkDependencies() {
-  const pkgFile = Bun.file(packageJsonPath);
-  const manifestFile = Bun.file(manifestJsonPath);
+interface ManifestDependency {
+  module_name?: string;
+  version?: string | number[];
+  uuid?: string;
+}
+
+/**
+ * Verifies that all Bedrock server modules in package.json dependencies are declared in manifest.json.
+ *
+ * @param baseDir - Base workspace directory containing package.json and packs/. Defaults to the project root.
+ * @returns Array of validation error messages, or an empty array if all dependencies match.
+ */
+export async function checkDependencies(baseDir = rootDir): Promise<string[]> {
+  const pkgFile = Bun.file(join(baseDir, 'package.json'));
+  const manifestFile = Bun.file(join(baseDir, 'packs/behavior/manifest.json'));
 
   if (!(await pkgFile.exists()) || !(await manifestFile.exists())) {
     console.warn('Could not find package.json or packs/behavior/manifest.json. Skipping dependency check.');
-    return;
+    return [];
   }
 
   const [packageJson, manifestJson] = await Promise.all([pkgFile.json(), manifestFile.json()]);
@@ -21,11 +31,11 @@ export async function checkDependencies() {
     ...packageJson.devDependencies,
   };
 
-  const manifestDeps = manifestJson.dependencies || [];
+  const manifestDeps: ManifestDependency[] = Array.isArray(manifestJson.dependencies) ? manifestJson.dependencies : [];
   const minecraftPackageKeys = Object.keys(packageDeps).filter((d) => d.startsWith('@minecraft/'));
   const minecraftManifestModules = manifestDeps
-    .filter((d: any) => d.module_name && d.module_name.startsWith('@minecraft/'))
-    .map((d: any) => d.module_name as string);
+    .filter((d) => d.module_name && d.module_name.startsWith('@minecraft/'))
+    .map((d) => d.module_name as string);
 
   const runtimeModules = new Set<string>([
     '@minecraft/server',
@@ -57,16 +67,22 @@ export async function checkDependencies() {
     for (const e of errors) {
       console.error(`- ${e}`);
     }
-    process.exit(1);
+  } else {
+    console.log('Dependency check passed.');
   }
-  console.log('Dependency check passed.');
+
+  return errors;
 }
 
-async function main() {
+/** Main entry point for workspace validation, checking manifests and invoking Minecraft Creator Tools. */
+async function main(): Promise<void> {
   console.log('🔍 Running project dependency verification...');
-  await checkDependencies();
+  const errors = await checkDependencies();
+  if (errors.length > 0) {
+    process.exit(1);
+  }
 
-  const scriptEntry = path.join(rootDir, 'packs/behavior/scripts/main.js');
+  const scriptEntry = join(rootDir, 'packs/behavior/scripts/main.js');
   if (!(await Bun.file(scriptEntry).exists())) {
     console.error('❌ packs/behavior/scripts/main.js not found. Run "bun run build" first.');
     process.exit(1);

@@ -1,8 +1,14 @@
-import path from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { getVersionContext, parseCliArgs } from './cliUtils.ts';
 
-function getEngineVersion(serverVersion?: string): [number, number, number] {
+/**
+ * Resolves the Bedrock min_engine_version tuple from the @minecraft/server version string.
+ *
+ * @param serverVersion Semantic version string of @minecraft/server.
+ * @returns Three-element integer array [major, minor, patch] rounded to nearest minor/patch floor.
+ */
+export function getEngineVersion(serverVersion?: string): [number, number, number] {
   const match = serverVersion?.match(/\b(1)\.(\d+)\.(\d+)/);
   if (!match) {
     return [1, 26, 60];
@@ -13,13 +19,19 @@ function getEngineVersion(serverVersion?: string): [number, number, number] {
   return [major, minor, Math.floor(patch / 10) * 10];
 }
 
-const rootDir = path.resolve(import.meta.dirname, '../..');
-const pkgPath = path.resolve(rootDir, 'package.json');
+const rootDir = resolve(import.meta.dirname, '../..');
+const pkgPath = resolve(rootDir, 'package.json');
 const cliArgs = parseCliArgs(process.argv.slice(2));
 
+/**
+ * Resolves the latest version of an npm package from local node_modules or the npm registry.
+ *
+ * @param pkgName Package identifier (e.g. '@minecraft/server').
+ * @returns Resolved latest semantic version string or fallback '1.0.0'.
+ */
 async function fetchLatestVersion(pkgName: string): Promise<string> {
   try {
-    const localPkg = Bun.file(path.join(rootDir, 'node_modules', pkgName, 'package.json'));
+    const localPkg = Bun.file(join(rootDir, 'node_modules', pkgName, 'package.json'));
     if (await localPkg.exists()) {
       const localData = await localPkg.json();
       if (localData.version) {
@@ -42,7 +54,14 @@ async function fetchLatestVersion(pkgName: string): Promise<string> {
   }
 }
 
-async function resolveModuleVersion(pkgName: string, npmVersion: string): Promise<string> {
+/**
+ * Resolves the dependency module version for Minecraft manifest declaration.
+ *
+ * @param pkgName Package name (e.g. '@minecraft/server').
+ * @param npmVersion Version string declared in package.json.
+ * @returns Manifest version string (e.g. 'beta' or clean semver string).
+ */
+export async function resolveModuleVersion(pkgName: string, npmVersion: string): Promise<string> {
   if (!npmVersion) {
     return '1.0.0';
   }
@@ -59,7 +78,12 @@ async function resolveModuleVersion(pkgName: string, npmVersion: string): Promis
   return cleanVersion;
 }
 
-export async function updateManifests(options = cliArgs) {
+/**
+ * Synchronizes behavior and resource pack manifest.json files with current version metadata and dependencies.
+ *
+ * @param options Build CLI options indicating customVersion, isCanary, buildNumber, etc.
+ */
+export async function updateManifests(options = cliArgs): Promise<void> {
   const pkg = await Bun.file(pkgPath).json();
   const { versionStr: finalStr, versionArray: finalParts } = await getVersionContext(rootDir, {
     customVersion: options.customVersion,
@@ -167,8 +191,8 @@ export async function updateManifests(options = cliArgs) {
     },
   };
 
-  await Bun.write(path.join(rootDir, 'packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 2) + '\n');
-  await Bun.write(path.join(rootDir, 'packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 2) + '\n');
+  await Bun.write(join(rootDir, 'packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 2) + '\n');
+  await Bun.write(join(rootDir, 'packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 2) + '\n');
 }
 
 if (import.meta.main) {

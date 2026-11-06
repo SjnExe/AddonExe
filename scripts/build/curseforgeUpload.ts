@@ -1,10 +1,11 @@
-import path from 'node:path';
+import { resolve } from 'node:path';
 
 import { extractChangelog } from './extractChangelog.ts';
 
 const projectId = '1341886';
 const cfBaseUrl = 'https://minecraft-bedrock.curseforge.com';
 
+/** Representation of a CurseForge game version entry. */
 export interface CfGameVersion {
   id: number;
   gameVersionTypeID: number;
@@ -14,6 +15,12 @@ export interface CfGameVersion {
 
 const unstablePattern = /\b(?:preview|beta|snapshot|pre(?:-?release|\d+)?|rc\d*)\b/i;
 
+/**
+ * Checks whether a CurseForge game version corresponds to a stable Minecraft Bedrock release.
+ *
+ * @param v CurseForge game version entry.
+ * @returns True if the version is a stable Bedrock release.
+ */
 export function isStableBedrockVersion(v: CfGameVersion): boolean {
   const name = v.name.trim();
   const slug = v.slug || '';
@@ -32,6 +39,12 @@ export function isStableBedrockVersion(v: CfGameVersion): boolean {
   return /\b\d+\.\d+(?:\.\d+)?\b/.test(name);
 }
 
+/**
+ * Extracts and normalizes semantic version string from raw Bedrock version names.
+ *
+ * @param raw Raw version string (e.g. '1.21.50' or 'v1.20').
+ * @returns Normalized major.minor.patch semver string.
+ */
 export function parseBedrockSemver(raw: string): string {
   const match = raw.match(/(?:^|\D)v?(\d+)\.(\d+)(?:\.(\d+))?/i);
   if (!match) {
@@ -43,6 +56,13 @@ export function parseBedrockSemver(raw: string): string {
   return `${major}.${minor}.${patch}`;
 }
 
+/**
+ * Selects the latest Minecraft Bedrock game version from a list of CurseForge versions.
+ *
+ * @param versions List of candidate game versions.
+ * @param allowBeta Whether preview/beta versions are accepted.
+ * @returns Latest matching game version or null if none available.
+ */
 export function selectLatestBedrockVersion(versions: CfGameVersion[], allowBeta = false): CfGameVersion | null {
   const candidates = allowBeta ? versions : versions.filter(isStableBedrockVersion);
   const pool = candidates.length > 0 ? candidates : versions;
@@ -59,6 +79,14 @@ export function selectLatestBedrockVersion(versions: CfGameVersion[], allowBeta 
   return sorted[sorted.length - 1] ?? null;
 }
 
+/**
+ * Selects compatible Bedrock version IDs for tagging a release file on CurseForge.
+ *
+ * @param versions Available game versions from CurseForge.
+ * @param allowBeta Whether preview/beta versions are accepted.
+ * @param minVersion Optional minimum version threshold.
+ * @returns Array of unique CurseForge game version IDs.
+ */
 export function selectBedrockVersionIds(versions: CfGameVersion[], allowBeta = false, minVersion?: string): number[] {
   const latest = selectLatestBedrockVersion(versions, allowBeta);
   if (!latest) {
@@ -122,12 +150,21 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, de
   throw new Error(`[CurseForge] Network request failed after ${retries} attempts: ${url}`);
 }
 
+/** Options configuring CurseForge artifact upload. */
 export interface UploadOptions {
+  /** Whether the upload should be simulated without modifying remote state. */
   dryRun?: boolean;
+  /** Release type classification ('release', 'beta', or 'alpha'). */
   releaseType?: 'release' | 'beta' | 'alpha';
+  /** Target version string to upload. */
   version?: string;
 }
 
+/**
+ * Uploads built .mcaddon distribution archives to CurseForge with metadata and changelog.
+ *
+ * @param opts Upload configuration options.
+ */
 export async function uploadToCurseForge(opts: UploadOptions = {}) {
   const isDryRun = opts.dryRun ?? (process.argv.includes('--dry-run') || process.env.DRY_RUN === 'true');
   const token = process.env.CF_API_TOKEN;
@@ -138,7 +175,7 @@ export async function uploadToCurseForge(opts: UploadOptions = {}) {
 
   const version = opts.version || process.env.ARCHIVE_VERSION || (await Bun.file('package.json').json()).version;
   const addonFileName = `AddonExe.${version}.mcaddon`;
-  const addonFilePath = path.resolve(process.cwd(), addonFileName);
+  const addonFilePath = resolve(process.cwd(), addonFileName);
   const addonFile = Bun.file(addonFilePath);
 
   if (!isDryRun && !(await addonFile.exists())) {

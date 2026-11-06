@@ -1,14 +1,19 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { watch } from 'node:fs/promises';
+import { basename, join, resolve } from 'node:path';
 
 import { getVersionContext, parseCliArgs } from './cliUtils.ts';
 import { updateManifests } from './updateManifests.ts';
 
-const rootDir = path.resolve(import.meta.dirname, '../..');
+const rootDir = resolve(import.meta.dirname, '../..');
 
 const cliArgs = parseCliArgs(process.argv.slice(2));
 const { isWatch, isRelease, isCanary, isZip, isMinify, buildNumber, customVersion } = cliArgs;
 
+/**
+ * Resolves version context tuple and formatted string based on active CLI build flags.
+ *
+ * @returns VersionContext object with versionStr and versionArray.
+ */
 async function getVersionParts() {
   return getVersionContext(rootDir, {
     customVersion,
@@ -20,6 +25,10 @@ async function getVersionParts() {
 
 import * as vanillaDataModule from '@minecraft/vanilla-data';
 
+/**
+ * Bun build plugin that inlines @minecraft/vanilla-data enum constants directly into string literals, stripping unused
+ * package imports and reducing runtime memory footprint.
+ */
 export const vanillaDataInlinerPlugin = {
   name: 'inline-vanilla-data',
   setup(build: import('bun').PluginBuilder) {
@@ -80,6 +89,7 @@ export const vanillaDataInlinerPlugin = {
   },
 };
 
+/** Bun build plugin that discovers all feature command definitions and generates a virtual command index module. */
 export const commandIndexPlugin = {
   name: 'generate-command-index',
   setup(build: import('bun').PluginBuilder) {
@@ -92,8 +102,8 @@ export const commandIndexPlugin = {
 
     build.onLoad({ filter: /.*/, namespace: 'virtual-command-index' }, async () => {
       console.log('[Plugin] Generating virtual command index...');
-      const srcDir = path.resolve(rootDir, 'src');
-      const featuresDir = path.join(srcDir, 'features');
+      const srcDir = resolve(rootDir, 'src');
+      const featuresDir = join(srcDir, 'features');
 
       const cmdGlob = new Bun.Glob('**/commands/*.ts');
       const scannedFiles = Array.from(cmdGlob.scanSync({ cwd: featuresDir, absolute: false }));
@@ -192,8 +202,8 @@ async function collectPackFiles(
       if (excludeExts.some((ext) => relPath.endsWith(ext))) {
         return;
       }
-      const fullPath = path.join(sourceDir, relPath);
-      const normalizedPath = relPath.replace(/\\/g, '/');
+      const fullPath = join(sourceDir, relPath);
+      const normalizedPath = relPath.replaceAll('\\', '/');
 
       if (relPath.endsWith('.json')) {
         try {
@@ -306,9 +316,9 @@ function buildZipArchive(entries: Map<string, PrecompressedEntry>): Uint8Array {
 async function createArchives(versionStr: string) {
   console.log(`[Build] Creating release archives (${versionStr})...`);
 
-  const packsDir = path.resolve(rootDir, 'packs');
-  const behaviorDir = path.join(packsDir, 'behavior');
-  const resourceDir = path.join(packsDir, 'resource');
+  const packsDir = resolve(rootDir, 'packs');
+  const behaviorDir = join(packsDir, 'behavior');
+  const resourceDir = join(packsDir, 'resource');
 
   const [bpEntries, rpEntries] = await Promise.all([collectPackFiles(behaviorDir), collectPackFiles(resourceDir)]);
 
@@ -365,9 +375,9 @@ async function createArchives(versionStr: string) {
     mcaddonEntries.set(`resource/${relPath}`, content);
   }
 
-  const mcaddonPath = path.resolve(rootDir, `AddonExe.${versionStr}.mcaddon`);
-  const bpPath = path.resolve(rootDir, `AddonExe_BP.${versionStr}.mcpack`);
-  const rpPath = path.resolve(rootDir, `AddonExe_RP.${versionStr}.mcpack`);
+  const mcaddonPath = resolve(rootDir, `AddonExe.${versionStr}.mcaddon`);
+  const bpPath = resolve(rootDir, `AddonExe_BP.${versionStr}.mcpack`);
+  const rpPath = resolve(rootDir, `AddonExe_RP.${versionStr}.mcpack`);
 
   const mcaddonData = buildZipArchive(mcaddonEntries);
   const bpData = buildZipArchive(bpEntries);
@@ -376,16 +386,16 @@ async function createArchives(versionStr: string) {
   await Promise.all([Bun.write(mcaddonPath, mcaddonData), Bun.write(bpPath, bpData), Bun.write(rpPath, rpData)]);
 
   console.log(`[Build] Archives generated successfully:`);
-  console.log(`  - ${path.basename(mcaddonPath)}`);
-  console.log(`  - ${path.basename(bpPath)}`);
-  console.log(`  - ${path.basename(rpPath)}`);
+  console.log(`  - ${basename(mcaddonPath)}`);
+  console.log(`  - ${basename(bpPath)}`);
+  console.log(`  - ${basename(rpPath)}`);
 }
 
 async function compileScripts(_versionArray: number[], versionStr: string, outDirSuffix: string = '') {
   console.log(`[Build] Compiling Scripts...`);
 
   const coreEntrypoints = ['src/main.ts'];
-  const outDir = path.resolve(rootDir, `packs/behavior/scripts${outDirSuffix}`);
+  const outDir = resolve(rootDir, `packs/behavior/scripts${outDirSuffix}`);
 
   const externalModules = ['@minecraft/server', '@minecraft/server-ui'];
 
@@ -431,7 +441,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
   console.log(`[Build] Scripts compiled successfully (${inputCount} modules -> ${sizeKb} KB main.js).`);
 
   if (process.argv.includes('--analyze')) {
-    const mdFile = Bun.file(path.resolve(rootDir, 'bundle-meta.md'));
+    const mdFile = Bun.file(resolve(rootDir, 'bundle-meta.md'));
     if (await mdFile.exists()) {
       const mdText = await mdFile.text();
       console.log('\n' + mdText.trim() + '\n');
@@ -457,6 +467,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
   }
 }
 
+/** Main build pipeline orchestrator, executing compilation, packaging, and optional watcher loops. */
 async function main() {
   console.log('--- Starting Build Pipeline ---');
 
@@ -484,7 +495,7 @@ async function main() {
     `BUILD_DATE=${new Date().toUTCString()}`,
     `PREFIX=${isCanary ? 'Canary' : 'Release'}`,
   ].join('\n');
-  await Bun.write(path.resolve(rootDir, 'build_meta.env'), buildMetaContent);
+  await Bun.write(resolve(rootDir, 'build_meta.env'), buildMetaContent);
 
   console.log('--- Build Complete ---');
 
@@ -506,9 +517,14 @@ async function main() {
       }, 300);
     };
 
+    /**
+     * Watches a directory recursively for source changes and triggers debounced rebuilds.
+     *
+     * @param dir Directory path to watch recursively.
+     */
     const watchDir = async (dir: string) => {
       try {
-        const watcher = fs.watch(dir, { recursive: true });
+        const watcher = watch(dir, { recursive: true });
         for await (const event of watcher) {
           if (
             event.filename &&
@@ -524,7 +540,7 @@ async function main() {
       }
     };
 
-    watchDir(path.resolve(rootDir, 'src'));
+    watchDir(resolve(rootDir, 'src'));
   }
 }
 

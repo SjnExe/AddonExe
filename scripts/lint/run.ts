@@ -11,18 +11,29 @@ interface TaskResult {
   Status: string;
 }
 
-const isFix = process.argv.includes('--fix');
+/** Configuration options for the project linting pipeline. */
+export interface LintPipelineOptions {
+  fix?: boolean;
+}
 
+/**
+ * Executes a named lint task asynchronously, capturing runtime duration and error output.
+ *
+ * @param name Display label for the lint task.
+ * @param command Asynchronous task function to execute.
+ * @returns Task execution result with duration and status indicators.
+ */
 async function runTask(name: string, command: () => Promise<unknown>): Promise<TaskResult> {
   const start = performance.now();
   let status = '✅ Passed';
   let errorDetail = '';
   try {
     await command();
-  } catch (err: any) {
+  } catch (err: unknown) {
     status = '❌ Failed';
-    const stdout = err?.stdout ? err.stdout.toString() : '';
-    const stderr = err?.stderr ? err.stderr.toString() : '';
+    const errObj = err as { stdout?: Buffer | string; stderr?: Buffer | string } | undefined;
+    const stdout = errObj?.stdout ? errObj.stdout.toString() : '';
+    const stderr = errObj?.stderr ? errObj.stderr.toString() : '';
     errorDetail = [stdout.trim(), stderr.trim()].filter(Boolean).join('\n') || String(err);
   }
   const duration = (performance.now() - start).toFixed(2);
@@ -32,7 +43,14 @@ async function runTask(name: string, command: () => Promise<unknown>): Promise<T
   return { Task: name, 'Duration (ms)': `${duration} ms`, Status: status };
 }
 
-async function runLintingPipeline() {
+/**
+ * Main coordinator executing all project validation and linting tasks in parallel.
+ *
+ * @param options - Pipeline options controlling fix mode.
+ * @returns Resolves with true if all lint tasks passed, false if any failed.
+ */
+export async function runLintingPipeline(options?: LintPipelineOptions): Promise<boolean> {
+  const isFix = options?.fix ?? false;
   const overallStart = performance.now();
   console.log(`⚡ Launching profiled Bun-native linting pipeline (${isFix ? 'Fix Mode' : 'Check Mode'})...\n`);
 
@@ -75,9 +93,13 @@ async function runLintingPipeline() {
   console.log(`\n⏱️ Total Pipeline Execution Wall-Clock Time: ${totalDuration} ms`);
 
   const hasFailure = results.some((r) => r.Status.includes('Failed'));
-  if (hasFailure) {
+  return !hasFailure;
+}
+
+if (import.meta.main) {
+  const isFix = process.argv.includes('--fix');
+  const success = await runLintingPipeline({ fix: isFix });
+  if (!success) {
     process.exit(1);
   }
 }
-
-runLintingPipeline();

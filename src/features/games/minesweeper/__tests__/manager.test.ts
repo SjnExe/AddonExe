@@ -113,14 +113,27 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
     handleMinesweeperCellTap(player, 40);
 
     const targetCell = game.cells.find((c) => c.revealed && c.adjacentMines === 1);
+    expect(targetCell).toBeDefined();
     if (targetCell) {
       const neighbors = getNeighborIndices(targetCell.index, game.cols, game.rows);
       const mineNeighborIdx = neighbors.find((idx) => game.cells[idx]?.hasMine);
       const safeNeighborIdx = neighbors.find((idx) => !game.cells[idx]?.hasMine);
+      expect(mineNeighborIdx).toBeDefined();
+      expect(safeNeighborIdx).toBeDefined();
       if (mineNeighborIdx !== undefined && safeNeighborIdx !== undefined) {
+        const otherSafeCell = game.cells.find(
+          (c) => !neighbors.includes(c.index) && c.index !== targetCell.index && !c.hasMine,
+        );
+        if (otherSafeCell) {
+          otherSafeCell.revealed = false;
+          otherSafeCell.flagged = false;
+        }
+
         game.cells[mineNeighborIdx]!.flagged = true;
         game.cells[safeNeighborIdx]!.revealed = false;
         game.cells[safeNeighborIdx]!.flagged = false;
+        game.safeCleared = game.cells.filter((c) => c.revealed && !c.hasMine).length;
+
         const chordRes = handleMinesweeperCellTap(player, targetCell.index);
         expect(chordRes.status).toBe('active');
         expect(game.cells[safeNeighborIdx]?.revealed).toBeTrue();
@@ -129,6 +142,8 @@ describe('Minesweeper Manager (Beginner 9x9, Intermediate 12x12, Expert 16x12 & 
 
     const safeHidden = game.cells.find((c) => !c.revealed && !c.hasMine && !c.flagged);
     const mineHidden = game.cells.find((c) => !c.revealed && c.hasMine);
+    expect(safeHidden).toBeDefined();
+    expect(mineHidden).toBeDefined();
     if (safeHidden && mineHidden) {
       safeHidden.flagged = true;
       mineHidden.flagged = false;

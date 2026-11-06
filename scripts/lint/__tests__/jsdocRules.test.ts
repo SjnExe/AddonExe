@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
   getChangedLineNumbers,
+  getGitSpawnOptions,
   isArrowFunctionInitializer,
   parseDiffHunks,
   setCachedBaseForTesting,
@@ -89,28 +90,47 @@ describe('jsdocRules - Shallow Checkout Fallback', () => {
     setCachedBaseForTesting(undefined);
   });
 
-  it('inspects HEAD commit diff when merge-base resolution fails (shallow checkout)', () => {
+  it('inspects HEAD commit diff when merge-base resolution fails (shallow checkout)', async () => {
     setCachedBaseForTesting(null);
     const tempDir = mkdtempSync(join(tmpdir(), 'git-shallow-test-'));
     try {
-      Bun.spawnSync(['git', 'init'], { cwd: tempDir });
-      Bun.spawnSync(['git', 'config', 'user.name', 'Test'], { cwd: tempDir });
-      Bun.spawnSync(['git', 'config', 'user.email', 'test@example.com'], { cwd: tempDir });
+      const spawnOpts = getGitSpawnOptions(tempDir);
+
+      Bun.spawnSync(['git', 'init'], spawnOpts);
+      Bun.spawnSync(['git', 'config', 'user.name', 'Test'], spawnOpts);
+      Bun.spawnSync(['git', 'config', 'user.email', 'test@example.com'], spawnOpts);
 
       const testFile = 'sample.ts';
       const fullPath = join(tempDir, testFile);
-      writeFileSync(fullPath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
-      Bun.spawnSync(['git', 'add', testFile], { cwd: tempDir });
-      Bun.spawnSync(['git', 'commit', '-m', 'initial'], { cwd: tempDir });
+      await Bun.write(fullPath, 'line 1\nline 2\nline 3\nline 4\nline 5\n');
+      Bun.spawnSync(['git', 'add', testFile], spawnOpts);
+      Bun.spawnSync(['git', 'commit', '-m', 'initial'], spawnOpts);
 
       // Modify lines 2 and 4 in second commit
-      writeFileSync(fullPath, 'line 1\nline 2 modified\nline 3\nline 4 modified\nline 5\n', 'utf8');
-      Bun.spawnSync(['git', 'add', testFile], { cwd: tempDir });
-      Bun.spawnSync(['git', 'commit', '-m', 'modify lines'], { cwd: tempDir });
+      await Bun.write(fullPath, 'line 1\nline 2 modified\nline 3\nline 4 modified\nline 5\n');
+      Bun.spawnSync(['git', 'add', testFile], spawnOpts);
+      Bun.spawnSync(['git', 'commit', '-m', 'modify lines'], spawnOpts);
 
-      const changed = getChangedLineNumbers(testFile, false, tempDir);
-      expect(changed).toBeInstanceOf(Set);
-      expect(changed).toEqual(new Set([2, 4]));
+      const originalGitDir = process.env.GIT_DIR;
+      const originalGitObjDir = process.env.GIT_OBJECT_DIRECTORY;
+      process.env.GIT_DIR = join(tempDir, 'missing-git-dir');
+      process.env.GIT_OBJECT_DIRECTORY = join(tempDir, 'missing-objects');
+      try {
+        const changed = getChangedLineNumbers(testFile, false, tempDir);
+        expect(changed).toBeInstanceOf(Set);
+        expect(changed).toEqual(new Set([2, 4]));
+      } finally {
+        if (originalGitDir === undefined) {
+          delete process.env.GIT_DIR;
+        } else {
+          process.env.GIT_DIR = originalGitDir;
+        }
+        if (originalGitObjDir === undefined) {
+          delete process.env.GIT_OBJECT_DIRECTORY;
+        } else {
+          process.env.GIT_OBJECT_DIRECTORY = originalGitObjDir;
+        }
+      }
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -141,7 +161,54 @@ describe('jsdocRules - validateJsDocRules', () => {
       const violations = await validateJsDocRules([fixture]);
       expect(violations).toBeGreaterThan(0);
     } finally {
-      rmSync(fixture, { force: true });
+      await Bun.file(fixture).delete();
     }
+  });
+});
+
+describe('jsdocRules - getGitSpawnOptions', () => {
+  it('returns empty spawn options when neither cwd nor overrides are provided', () => {
+    const opts = getGitSpawnOptions();
+    expect(opts).toEqual({});
+  });
+
+  it('cleanses all Git repository-local environment variables when cwd is provided', () => {
+    const originalGitDir = process.env.GIT_DIR;
+    const originalGitObjectDir = process.env.GIT_OBJECT_DIRECTORY;
+    const originalGitIndex = process.env.GIT_INDEX_FILE;
+    try {
+      process.env.GIT_DIR = '/custom/git/dir';
+      process.env.GIT_OBJECT_DIRECTORY = '/custom/objects';
+      process.env.GIT_INDEX_FILE = '/custom/index';
+
+      const opts = getGitSpawnOptions('/test/repo');
+      expect(opts.cwd).toBe('/test/repo');
+      expect(opts.env).toBeDefined();
+      expect(opts.env?.GIT_DIR).toBeUndefined();
+      expect(opts.env?.GIT_OBJECT_DIRECTORY).toBeUndefined();
+      expect(opts.env?.GIT_INDEX_FILE).toBeUndefined();
+    } finally {
+      if (originalGitDir === undefined) {
+        delete process.env.GIT_DIR;
+      } else {
+        process.env.GIT_DIR = originalGitDir;
+      }
+      if (originalGitObjectDir === undefined) {
+        delete process.env.GIT_OBJECT_DIRECTORY;
+      } else {
+        process.env.GIT_OBJECT_DIRECTORY = originalGitObjectDir;
+      }
+      if (originalGitIndex === undefined) {
+        delete process.env.GIT_INDEX_FILE;
+      } else {
+        process.env.GIT_INDEX_FILE = originalGitIndex;
+      }
+    }
+  });
+
+  it('preserves explicitly supplied environment overrides', () => {
+    const opts = getGitSpawnOptions('/test/repo', { GIT_DIR: '/explicit/dir' });
+    expect(opts.cwd).toBe('/test/repo');
+    expect(opts.env?.GIT_DIR).toBe('/explicit/dir');
   });
 });

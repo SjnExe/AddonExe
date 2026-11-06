@@ -1,4 +1,4 @@
-import path from 'node:path';
+import { basename } from 'node:path';
 
 const srcGlob = new Bun.Glob('src/**/*.{ts,tsx}');
 const scriptsGlob = new Bun.Glob('scripts/**/*.{ts,tsx}');
@@ -10,7 +10,7 @@ const camelCaseFileRegex = /^[a-z][a-zA-Z0-9]*(?:\.(?:test|d))?\.tsx?$/;
 const snakeCaseDeclRegex =
   /^\s*(?:export\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([a-zA-Z0-9_$]+_[a-zA-Z0-9_$]*)/;
 
-const normalizePath = (p: string) => p.replace(/\\/g, '/').replace(/^\.\//, '');
+const normalizePath = (p: string) => p.replaceAll('\\', '/').replace(/^\.\//, '');
 
 /**
  * Validates Minecraft API usage rules, naming conventions, and casing rules across the project.
@@ -28,7 +28,7 @@ export async function validateMinecraftRules(targetFiles?: string[]): Promise<nu
   let errors = 0;
 
   for (const filePath of allPaths) {
-    const baseName = path.basename(filePath);
+    const baseName = basename(filePath);
     if (baseName === 'pre-commit.ts') {
       continue;
     }
