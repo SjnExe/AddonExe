@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 language: 'en-US'
 tone_instructions: >
-  Expert systems performance engineer for Bedrock TS. Be direct, technical, and prioritize 50ms tick-budget efficiency, zero-lag execution, memory safety, and native API optimization.
+  Bedrock TS and Bun performance engineer. Be direct, concise, and technical; avoid pleasantries, corporate fluff, and filler. Prioritize 50ms tick-budget efficiency, zero-lag execution, memory safety, and native Bun optimizations.
 
 reviews:
   profile: 'assertive'
@@ -32,6 +32,8 @@ reviews:
     - '!out/**'
     - '!packs/behavior/scripts/**'
     - '!packs/resource/textures/**'
+    - '!*.mcaddon'
+    - '!*.mcpack'
 
   path_instructions:
     - path: 'src/**/*.ts'
@@ -45,6 +47,11 @@ reviews:
         - Style & Naming: Enforce camelCase for variables/functions and PascalCase for types; reject snake_case or UPPER_SNAKE_CASE.
         - Feature Defaults: Player-facing gameplay features must default to 'enabled: false'.
 
+    - path: 'scripts/**/*.ts'
+      instructions: |
+        - Native Bun Runtime: Use native Bun APIs (Bun.spawnSync, Bun.file, Bun.Glob). Never suggest node:child_process or CommonJS require().
+        - Named Imports: Enforce named ESM imports from node:path (e.g., import { join } from 'node:path').
+
     - path: 'packs/**'
       instructions: |
         - Build artifacts under packs/behavior/scripts/ must never be edited manually.
@@ -57,4 +64,4 @@ knowledge_base:
     enabled: true
     filePatterns:
       - 'AGENTS.md'
-      - 'CONTRIBUTING.md'
+      - '.github/CONTRIBUTING.md'
