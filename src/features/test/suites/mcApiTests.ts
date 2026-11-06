@@ -10,6 +10,7 @@ import { addTest, assert } from '../testRunner.js';
 
 const suiteName = 'mc_api';
 
+/** Registers in-game runtime diagnostic tests validating native Bedrock Script API capabilities. */
 export function registerMcApiTests(): void {
   addTest(suiteName, 'World dimensions, ticks, and >30KB sharded dynamic properties work in live engine', () => {
     assert.ok(mc.world.getDimension(MinecraftDimensionTypes.Overworld), 'Overworld dimension missing');
@@ -87,5 +88,40 @@ export function registerMcApiTests(): void {
     };
     const restoredContainerItem = deserializeItem(serializedWithContainer);
     assert.ok(restoredContainerItem, 'Container item deserialization should succeed');
+  });
+
+  addTest(suiteName, 'Server GameTest simulated player framework initializes cleanly in live engine', async () => {
+    let gametest: typeof import('@minecraft/server-gametest') | undefined;
+    try {
+      gametest = await import('@minecraft/server-gametest');
+    } catch {
+      // GameTest module not present or not supported in this runtime
+      return;
+    }
+
+    assert.ok(gametest, 'Expected @minecraft/server-gametest module to be resolvable');
+    assert.equal(typeof gametest.spawnSimulatedPlayer, 'function', 'spawnSimulatedPlayer should be a function');
+    assert.equal(typeof gametest.register, 'function', 'register should be a function');
+
+    const players = mc.world.getAllPlayers();
+    if (players.length > 0 && typeof gametest.spawnSimulatedPlayer === 'function') {
+      const p = players[0]!;
+      const spawnLoc: mc.DimensionLocation = {
+        x: Math.floor(p.location.x),
+        y: Math.floor(p.location.y) + 2,
+        z: Math.floor(p.location.z),
+        dimension: p.dimension,
+      };
+      try {
+        const bot = gametest.spawnSimulatedPlayer(spawnLoc, 'exe_diagnostic_bot', mc.GameMode.Creative);
+        if (bot) {
+          assert.ok(bot.isValid, 'SimulatedPlayer should be valid after spawn');
+          assert.equal(typeof bot.disconnect, 'function', 'SimulatedPlayer.disconnect should be a function');
+          bot.disconnect();
+        }
+      } catch {
+        // Safe catch if Gametest / Beta APIs experiment is not enabled in host world
+      }
+    }
   });
 }

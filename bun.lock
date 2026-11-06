@@ -13,6 +13,7 @@
         "@minecraft/common": "latest",
         "@minecraft/creator-tools": "latest",
         "@minecraft/server": "2.12.0-beta.1.26.62-stable",
+        "@minecraft/server-gametest": "1.0.0-beta.1.26.62-stable",
         "@minecraft/server-ui": "2.4.0-beta.1.26.62-stable",
         "@types/bun": "latest",
         "oxlint": "latest",
@@ -70,6 +71,8 @@
     "@minecraft/math": ["@minecraft/math@2.4.1", "", { "peerDependencies": { "@minecraft/server": "^1.15.0 || ^2.0.0" } }, "sha512-Ar6nuXYZvfnZHkEGYUUzBLbx1r38m8KQmu0/Nz/P6LCiumCs7lpV4Vka0cltXjckz8nbosQjjzWe/VZL0Fk8Uw=="],
 
     "@minecraft/server": ["@minecraft/server@2.12.0-beta.1.26.62-stable", "", { "peerDependencies": { "@minecraft/common": "^1.2.0", "@minecraft/vanilla-data": ">=1.20.70" } }, "sha512-hywSa1LJmKcmAYbh2s15eNF1pZ13BSa9EfG+9HvsUUbnx+HBUhHe229VJt5A48UP5atVzVkH3YN0xAqpcWJV8g=="],
+
+    "@minecraft/server-gametest": ["@minecraft/server-gametest@1.0.0-beta.1.26.62-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^1.17.0 || ^2.0.0 || ^2.12.0-beta.1.26.62-stable" } }, "sha512-hHZlZR8GongN1cWjw2yjPb/w6ftzWdrM7DucrKdfCv2HYyF8GSL7NOI3IrjmNbeRKMzwAH5+lObb2fZzgqtvAg=="],
 
     "@minecraft/server-ui": ["@minecraft/server-ui@2.4.0-beta.1.26.62-stable", "", { "peerDependencies": { "@minecraft/common": "^1.0.0", "@minecraft/server": "^2.0.0 || ^2.12.0-beta.1.26.62-stable" } }, "sha512-0awLiUf3BJWn3vCd3t+vNx7KcmQO+MhAd/ibkfIhLeqde+GuTdcH569UYf69cN6aG53l0+Qa26hZtEUvV2zu4Q=="],
 

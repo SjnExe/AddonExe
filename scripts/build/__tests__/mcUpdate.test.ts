@@ -52,6 +52,7 @@ describe('mcUpdate - autoAlignDependencies', () => {
       },
       devDependencies: {
         '@minecraft/server': '1.21.50-beta.1.21.50-stable',
+        '@minecraft/server-gametest': '1.21.50-beta.1.21.50-stable',
       },
       overrides: {
         '@minecraft/server': '1.21.50-beta.1.21.50-stable',
@@ -82,11 +83,13 @@ describe('mcUpdate - autoAlignDependencies', () => {
     expect(result.changesMade).toBe(true);
     expect(result.updates['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
     expect(result.updates['@minecraft/server-ui']).toBe('1.21.60-beta.1.21.60-stable');
+    expect(result.updates['@minecraft/server-gametest']).toBe('1.21.60-beta.1.21.60-stable');
 
     const updatedPkg = await Bun.file(pkgPath).json();
     expect(updatedPkg.dependencies['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
     expect(updatedPkg.dependencies['@minecraft/server-ui']).toBe('1.21.60-beta.1.21.60-stable');
     expect(updatedPkg.devDependencies['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
+    expect(updatedPkg.devDependencies['@minecraft/server-gametest']).toBe('1.21.60-beta.1.21.60-stable');
     expect(updatedPkg.overrides['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
 
     // Running again without changing mock should detect no changes needed

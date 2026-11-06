@@ -740,3 +740,38 @@ export const ItemComponentTypes = {
   Enchantable: 'minecraft:enchantable',
   Inventory: 'minecraft:inventory',
 } as const;
+
+// --- @minecraft/server-gametest Mocks ---
+
+export class SimulatedPlayer extends Player {
+  attack = mock(() => true);
+  attackEntity = mock(() => true);
+  breakBlock = mock(() => true);
+  chat = mock();
+  disconnect = mock();
+  giveItem = mock(() => true);
+  interact = mock(() => true);
+  jump = mock(() => true);
+  lookAtBlock = mock();
+  lookAtLocation = mock();
+  move = mock();
+  moveToBlock = mock();
+  navigateToBlock = mock(() => ({ isFullPath: true }));
+  respawn = mock(() => true);
+}
+
+export const spawnSimulatedPlayer = mock((_location: unknown, name = 'SimulatedPlayer') => new SimulatedPlayer(name));
+
+export const register = mock(() => ({
+  structureName: mock().mockReturnThis(),
+  tag: mock().mockReturnThis(),
+  batch: mock().mockReturnThis(),
+  maxTicks: mock().mockReturnThis(),
+}));
+
+export const registerAsync = mock(() => ({
+  structureName: mock().mockReturnThis(),
+  tag: mock().mockReturnThis(),
+  batch: mock().mockReturnThis(),
+  maxTicks: mock().mockReturnThis(),
+}));

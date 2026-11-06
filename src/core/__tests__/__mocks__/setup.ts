@@ -59,6 +59,7 @@ import { beforeEach, mock } from 'bun:test';
 // Global Minecraft Engine API Mocks
 mock.module('@minecraft/server', () => import('./minecraftMock.ts'));
 mock.module('@minecraft/server-ui', () => import('./minecraftMock.ts'));
+mock.module('@minecraft/server-gametest', () => import('./minecraftMock.ts'));
 
 mock.module('@minecraft/common', () => ({
   EngineError: class EngineError extends Error {},

@@ -108,6 +108,9 @@ export async function updateManifests(options = cliArgs): Promise<void> {
 
   const allDeps = { ...pkg.devDependencies, ...pkg.dependencies };
   const modulesToInclude = ['@minecraft/server', '@minecraft/server-ui'];
+  if (options.isCanary && allDeps['@minecraft/server-gametest']) {
+    modulesToInclude.push('@minecraft/server-gametest');
+  }
 
   const resolvedModules = await Promise.all(
     modulesToInclude
