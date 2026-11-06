@@ -8,4 +8,5 @@
 *.png binary
 *.mcaddon binary
 *.mcpack binary
+bun.lock text eol=lf linguist-generated=true
 src/features/games/wordle/wordPool.ts linguist-generated=true -diff

@@ -1,4 +1,3 @@
-import os from 'node:os';
 import path from 'node:path';
 
 import { $ } from 'bun';
@@ -6,12 +5,13 @@ import { $ } from 'bun';
 import { validateJsDocRules } from '../lint/jsdocRules.ts';
 import { validateMinecraftRules } from '../lint/minecraftRules.ts';
 
-const homeDir = os.homedir();
-const termuxBinDir = '/data/data/com.termux/files/usr/bin';
-const cargoBinDir = `${homeDir}/.cargo/bin`;
-
-const paths = [cargoBinDir, termuxBinDir, process.env.PATH].filter(Boolean);
-process.env.PATH = paths.join(path.delimiter);
+if (process.env.PREFIX) {
+  const prefixBinDir = path.join(process.env.PREFIX, 'bin');
+  const pathEntries = (process.env.PATH ?? '').split(path.delimiter);
+  if (!pathEntries.includes(prefixBinDir)) {
+    process.env.PATH = `${prefixBinDir}${path.delimiter}${process.env.PATH ?? ''}`;
+  }
+}
 
 try {
   const stagedOutput = await $`git diff --cached --name-only --diff-filter=ACMR`.text();
