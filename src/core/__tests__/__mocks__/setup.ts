@@ -60,6 +60,7 @@ import { beforeEach, mock } from 'bun:test';
 mock.module('@minecraft/server', () => import('./minecraftMock.ts'));
 mock.module('@minecraft/server-ui', () => import('./minecraftMock.ts'));
 mock.module('@minecraft/server-gametest', () => import('./minecraftMock.ts'));
+mock.module('@minecraft/debug-utilities', () => import('./minecraftMock.ts'));
 
 mock.module('@minecraft/common', () => ({
   EngineError: class EngineError extends Error {},

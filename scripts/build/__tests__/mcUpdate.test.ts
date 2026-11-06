@@ -52,7 +52,8 @@ describe('mcUpdate - autoAlignDependencies', () => {
       },
       devDependencies: {
         '@minecraft/server': '1.21.50-beta.1.21.50-stable',
-        '@minecraft/server-gametest': '1.21.50-beta.1.21.50-stable',
+        '@minecraft/server-gametest': '1.0.0-beta.1.21.50-stable',
+        '@minecraft/debug-utilities': '1.0.0-beta.1.21.50-stable',
       },
       overrides: {
         '@minecraft/server': '1.21.50-beta.1.21.50-stable',
@@ -67,9 +68,21 @@ describe('mcUpdate - autoAlignDependencies', () => {
         '1.21.70-preview': {}, // Should be ignored (does not match beta-stable regex)
       },
     };
+    const canaryToolsRegistryResponse = {
+      versions: {
+        '1.0.0-beta.1.21.50-stable': {},
+        '1.0.0-beta.1.21.60-stable': {},
+      },
+    };
 
     fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(async (input: string | URL | Request) => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes('@minecraft/server-gametest') || url.includes('@minecraft/debug-utilities')) {
+        return new Response(JSON.stringify(canaryToolsRegistryResponse), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
       if (targetPackages.some((pkg) => url.includes(pkg))) {
         return new Response(JSON.stringify(mockRegistryResponse), {
           status: 200,
@@ -83,13 +96,15 @@ describe('mcUpdate - autoAlignDependencies', () => {
     expect(result.changesMade).toBe(true);
     expect(result.updates['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
     expect(result.updates['@minecraft/server-ui']).toBe('1.21.60-beta.1.21.60-stable');
-    expect(result.updates['@minecraft/server-gametest']).toBe('1.21.60-beta.1.21.60-stable');
+    expect(result.updates['@minecraft/server-gametest']).toBe('1.0.0-beta.1.21.60-stable');
+    expect(result.updates['@minecraft/debug-utilities']).toBe('1.0.0-beta.1.21.60-stable');
 
     const updatedPkg = await Bun.file(pkgPath).json();
     expect(updatedPkg.dependencies['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
     expect(updatedPkg.dependencies['@minecraft/server-ui']).toBe('1.21.60-beta.1.21.60-stable');
     expect(updatedPkg.devDependencies['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
-    expect(updatedPkg.devDependencies['@minecraft/server-gametest']).toBe('1.21.60-beta.1.21.60-stable');
+    expect(updatedPkg.devDependencies['@minecraft/server-gametest']).toBe('1.0.0-beta.1.21.60-stable');
+    expect(updatedPkg.devDependencies['@minecraft/debug-utilities']).toBe('1.0.0-beta.1.21.60-stable');
     expect(updatedPkg.overrides['@minecraft/server']).toBe('1.21.60-beta.1.21.60-stable');
 
     // Running again without changing mock should detect no changes needed

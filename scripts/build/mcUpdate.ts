@@ -1,6 +1,11 @@
 import { join } from 'node:path';
 
-export const targetPackages = ['@minecraft/server', '@minecraft/server-ui', '@minecraft/server-gametest'];
+export const targetPackages = [
+  '@minecraft/server',
+  '@minecraft/server-ui',
+  '@minecraft/server-gametest',
+  '@minecraft/debug-utilities',
+];
 
 /**
  * Compares two semantic version strings using Bun.semver.

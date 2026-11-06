@@ -399,7 +399,7 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
 
   const externalModules = ['@minecraft/server', '@minecraft/server-ui'];
   if (isCanary) {
-    externalModules.push('@minecraft/server-gametest');
+    externalModules.push('@minecraft/server-gametest', '@minecraft/debug-utilities');
   }
 
   // Bundle Core Engine Module into main.js

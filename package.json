@@ -39,6 +39,7 @@
     "@minecraft/bedrock-schemas": "beta",
     "@minecraft/common": "latest",
     "@minecraft/creator-tools": "latest",
+    "@minecraft/debug-utilities": "1.0.0-beta.1.26.62-stable",
     "@minecraft/server": "2.12.0-beta.1.26.62-stable",
     "@minecraft/server-gametest": "1.0.0-beta.1.26.62-stable",
     "@minecraft/server-ui": "2.4.0-beta.1.26.62-stable",

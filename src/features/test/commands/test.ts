@@ -37,18 +37,30 @@ const testCommand: CustomCommand = {
           `§7- §f${s.suiteName}: ${s.failed === 0 ? `§a${s.passed} passed` : `§a${s.passed} passed, §c${s.failed} failed`} §8(${s.durationMs}ms)`,
       );
 
+      let memorySuffix = '';
+      try {
+        const debugUtils = await import('@minecraft/debug-utilities');
+        if (typeof debugUtils.collectRuntimeStats === 'function') {
+          const stats = debugUtils.collectRuntimeStats();
+          const usedMb = (stats.memoryUsedSize / (1024 * 1024)).toFixed(2);
+          memorySuffix = ` §8(Heap: §f${usedMb}MB§8, Objects: §f${stats.objectCount}§8)`;
+        }
+      } catch {
+        // Module unavailable
+      }
+
       if (results.failed > 0) {
         const errorPreview = results.errors
           .slice(0, 5)
           .map((e) => `§c  * [${e.testName}]: §f${e.error instanceof Error ? e.error.message : String(e.error)}`)
           .join('\n');
         sendMessage(
-          `§c[TestRunner] Completed in ${results.durationMs}ms: ${results.passed} passed, ${results.failed} failed!\n${suiteLines.join('\n')}\n§4Failures:\n${errorPreview}`,
+          `§c[TestRunner] Completed in ${results.durationMs}ms: ${results.passed} passed, ${results.failed} failed!${memorySuffix}\n${suiteLines.join('\n')}\n§4Failures:\n${errorPreview}`,
           executor,
         );
       } else {
         sendMessage(
-          `§a[TestRunner] All ${results.passed} runtime tests passed in ${results.durationMs}ms!\n${suiteLines.join('\n')}`,
+          `§a[TestRunner] All ${results.passed} runtime tests passed in ${results.durationMs}ms!${memorySuffix}\n${suiteLines.join('\n')}`,
           executor,
         );
       }

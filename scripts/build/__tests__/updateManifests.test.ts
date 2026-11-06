@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'bun:test';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { getEngineVersion, resolveModuleVersion } from '../updateManifests.ts';
 
@@ -25,6 +28,7 @@ describe('updateManifests - resolveModuleVersion', () => {
     const version = '1.21.60-beta.1.21.60-stable';
     expect(await resolveModuleVersion('@minecraft/server', version)).toBe('beta');
     expect(await resolveModuleVersion('@minecraft/server-gametest', '1.0.0-beta.1.26.62-stable')).toBe('beta');
+    expect(await resolveModuleVersion('@minecraft/debug-utilities', '1.0.0-beta.1.26.62-stable')).toBe('beta');
   });
 
   it('cleans caret and tilde prefixes from release versions', async () => {
@@ -37,29 +41,55 @@ describe('updateManifests - resolveModuleVersion', () => {
   });
 });
 
-describe('updateManifests - canary gametest inclusion', () => {
-  it('omits @minecraft/server-gametest on standard builds and includes it on canary builds', async () => {
+describe('updateManifests - canary test modules inclusion', () => {
+  it('omits @minecraft/server-gametest and @minecraft/debug-utilities on standard builds and includes them on canary builds', async () => {
     const { updateManifests } = await import('../updateManifests.ts');
-    const bpManifestPath = new URL('../../../packs/behavior/manifest.json', import.meta.url).pathname;
+    const tempDir = mkdtempSync(join(tmpdir(), 'manifest-test-'));
+    const bpPath = join(tempDir, 'behavior-manifest.json');
+    const rpPath = join(tempDir, 'resource-manifest.json');
 
     try {
-      await updateManifests({ isCanary: false, isRelease: false, isWatch: false, isZip: false, isMinify: false });
-      const standardBp = await Bun.file(bpManifestPath).json();
+      await updateManifests({
+        isCanary: false,
+        isRelease: false,
+        isWatch: false,
+        isZip: false,
+        isMinify: false,
+        bpManifestPath: bpPath,
+        rpManifestPath: rpPath,
+      });
+      const standardBp = await Bun.file(bpPath).json();
       const standardHasGametest = standardBp.dependencies.some(
         (dep: { module_name?: string }) => dep.module_name === '@minecraft/server-gametest',
       );
+      const standardHasDebug = standardBp.dependencies.some(
+        (dep: { module_name?: string }) => dep.module_name === '@minecraft/debug-utilities',
+      );
       expect(standardHasGametest).toBe(false);
+      expect(standardHasDebug).toBe(false);
 
-      await updateManifests({ isCanary: true, isRelease: false, isWatch: false, isZip: false, isMinify: false });
-      const canaryBp = await Bun.file(bpManifestPath).json();
+      await updateManifests({
+        isCanary: true,
+        isRelease: false,
+        isWatch: false,
+        isZip: false,
+        isMinify: false,
+        bpManifestPath: bpPath,
+        rpManifestPath: rpPath,
+      });
+      const canaryBp = await Bun.file(bpPath).json();
       const canaryGametestDep = canaryBp.dependencies.find(
         (dep: { module_name?: string }) => dep.module_name === '@minecraft/server-gametest',
       );
+      const canaryDebugDep = canaryBp.dependencies.find(
+        (dep: { module_name?: string }) => dep.module_name === '@minecraft/debug-utilities',
+      );
       expect(canaryGametestDep).toBeDefined();
       expect(canaryGametestDep.version).toBe('beta');
+      expect(canaryDebugDep).toBeDefined();
+      expect(canaryDebugDep.version).toBe('beta');
     } finally {
-      // Restore standard manifest
-      await updateManifests({ isCanary: false, isRelease: false, isWatch: false, isZip: false, isMinify: false });
+      rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });
