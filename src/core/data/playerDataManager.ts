@@ -446,29 +446,52 @@ export function loadPlayerData(playerId: string): PlayerData | undefined {
 
 /** Updates the name-to-ID map if the player's name has changed. */
 function _updateNameMap(player: mc.Player) {
-  const playerNameLower = player.name.toLowerCase();
-  // Update if ID mismatch (name change) OR if ID not in reverse map (init)
-  if (playerNameIdMap.get(playerNameLower) !== player.id || !playerIdNameMap.has(player.id)) {
-    const oldName = playerIdNameMap.get(player.id);
-    if (isNonEmptyString(oldName)) {
-      playerNameIdMap.delete(oldName.toLowerCase());
+  if (player.isValid === false) {
+    return;
+  }
+  try {
+    const playerName = player.name;
+    const playerNameLower = playerName.toLowerCase();
+    // Update if ID mismatch (name change) OR if ID not in reverse map (init)
+    if (playerNameIdMap.get(playerNameLower) !== player.id || !playerIdNameMap.has(player.id)) {
+      const oldName = playerIdNameMap.get(player.id);
+      if (isNonEmptyString(oldName)) {
+        playerNameIdMap.delete(oldName.toLowerCase());
+      }
+      playerNameIdMap.set(playerNameLower, player.id);
+      playerIdNameMap.set(player.id, playerName);
+      isNameIdMapDirty = true;
     }
-    playerNameIdMap.set(playerNameLower, player.id);
-    playerIdNameMap.set(player.id, player.name);
-    isNameIdMapDirty = true;
+  } catch {
+    // Player invalidated concurrently
   }
 }
 
 /**
  * Creates a new player data object with default values.
  *
- * @param player
+ * @param player Active Minecraft player instance.
+ * @returns The newly created player data record.
  */
 function _createNewPlayerData(player: mc.Player): PlayerData {
+  let playerName = '';
+  try {
+    if (player.isValid !== false) {
+      playerName = player.name;
+    }
+  } catch {
+    // Fall back to stored map
+  }
+  if (!playerName) {
+    playerName = playerIdNameMap.get(player.id) ?? '';
+  }
+  if (!playerName) {
+    throw new Error(`Cannot initialize player data for ${player.id}: player name is unavailable`);
+  }
   const config = getConfig();
   const economyConfig = getEconomyConfig();
   const newPlayerData: PlayerData = {
-    name: player.name,
+    name: playerName,
     ...defaultPlayerData,
     ranks: config.playerDefaults.ranks,
     rankId: config.playerDefaults.rankId,
@@ -504,10 +527,11 @@ function _createNewPlayerData(player: mc.Player): PlayerData {
 /**
  * Gets a player's data from the cache, or loads/creates it if it doesn't exist.
  *
- * @param player
+ * @param player Active Minecraft player instance.
+ * @returns The active or newly initialized player data record.
  */
 export function getOrCreatePlayer(player: mc.Player): PlayerData {
-  if (!isDefined(player)) {
+  if (!isDefined(player) || player.isValid === false) {
     throw new Error('getOrCreatePlayer called with invalid/undefined player object');
   }
   _updateNameMap(player);
@@ -523,10 +547,14 @@ export function getOrCreatePlayer(player: mc.Player): PlayerData {
   }
 
   // Ensure name in data matches current player name
-  if (pData.name !== player.name) {
-    updatePlayerData(player.id, (data) => {
-      data.name = player.name;
-    });
+  try {
+    if (pData.name !== player.name) {
+      updatePlayerData(player.id, (data) => {
+        data.name = player.name;
+      });
+    }
+  } catch {
+    // Player invalidated concurrently
   }
 
   if (!sessionStartTimes.has(player.id)) {
@@ -632,11 +660,18 @@ export function getVisiblePlayers(observer: mc.Player): mc.Player[] {
  *
  * @param name The name to search for.
  * @param observer The player performing the search.
+ * @returns The matching visible mc.Player reference if online and not vanished, otherwise undefined.
  */
 export function findVisiblePlayerByName(name: string, observer: mc.Player): mc.Player | undefined {
   const visible = getVisiblePlayers(observer);
   const lowerName = name.toLowerCase();
-  return visible.find((p) => p.name.toLowerCase() === lowerName);
+  return visible.find((p) => {
+    try {
+      return p.isValid !== false && p.name.toLowerCase() === lowerName;
+    } catch {
+      return false;
+    }
+  });
 }
 
 // --- Pending Payment Management ---

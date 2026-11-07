@@ -1,6 +1,14 @@
 import { join, resolve } from 'node:path';
 
-import { getVersionContext, parseCliArgs } from './cliUtils.ts';
+import { getVersionContext, parseCliArgs, type ParsedArgs } from './cliUtils.ts';
+
+/** Options configuring manifest synchronization behavior. */
+export interface UpdateManifestsOptions extends Partial<ParsedArgs> {
+  /** Optional custom path for writing the behavior pack manifest.json. */
+  bpManifestPath?: string;
+  /** Optional custom path for writing the resource pack manifest.json. */
+  rpManifestPath?: string;
+}
 
 /**
  * Resolves the Bedrock min_engine_version tuple from the @minecraft/server version string.
@@ -81,9 +89,9 @@ export async function resolveModuleVersion(pkgName: string, npmVersion: string):
 /**
  * Synchronizes behavior and resource pack manifest.json files with current version metadata and dependencies.
  *
- * @param options Build CLI options indicating customVersion, isCanary, buildNumber, etc.
+ * @param options Build CLI options indicating customVersion, isCanary, buildNumber, and optional output manifest paths.
  */
-export async function updateManifests(options = cliArgs): Promise<void> {
+export async function updateManifests(options: UpdateManifestsOptions = cliArgs): Promise<void> {
   const pkg = await Bun.file(pkgPath).json();
   const { versionStr: finalStr, versionArray: finalParts } = await getVersionContext(rootDir, {
     customVersion: options.customVersion,
@@ -108,6 +116,14 @@ export async function updateManifests(options = cliArgs): Promise<void> {
 
   const allDeps = { ...pkg.devDependencies, ...pkg.dependencies };
   const modulesToInclude = ['@minecraft/server', '@minecraft/server-ui'];
+  if (options.isCanary) {
+    if (allDeps['@minecraft/server-gametest']) {
+      modulesToInclude.push('@minecraft/server-gametest');
+    }
+    if (allDeps['@minecraft/debug-utilities']) {
+      modulesToInclude.push('@minecraft/debug-utilities');
+    }
+  }
 
   const resolvedModules = await Promise.all(
     modulesToInclude
@@ -191,8 +207,11 @@ export async function updateManifests(options = cliArgs): Promise<void> {
     },
   };
 
-  await Bun.write(join(rootDir, 'packs/behavior/manifest.json'), JSON.stringify(bpManifest, null, 2) + '\n');
-  await Bun.write(join(rootDir, 'packs/resource/manifest.json'), JSON.stringify(rpManifest, null, 2) + '\n');
+  const bpManifestPath = options.bpManifestPath ?? join(rootDir, 'packs/behavior/manifest.json');
+  const rpManifestPath = options.rpManifestPath ?? join(rootDir, 'packs/resource/manifest.json');
+
+  await Bun.write(bpManifestPath, JSON.stringify(bpManifest, null, 2) + '\n');
+  await Bun.write(rpManifestPath, JSON.stringify(rpManifest, null, 2) + '\n');
 }
 
 if (import.meta.main) {

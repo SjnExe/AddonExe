@@ -2,7 +2,8 @@ import { getConfig } from '@core/config/configManager.js';
 import { getXrayConfig } from '@core/config/configurations.js';
 import { deserializeItem, serializeItem } from '@core/data/itemSerializer.js';
 import { StorageManager } from '@core/data/storageManager.js';
-import { floatingTextId } from '@core/utils/constants.js';
+import { diagnosticBotName, floatingTextId } from '@core/utils/constants.js';
+import { debugLog, warnLog } from '@core/utils/logger.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes, MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
@@ -10,6 +11,7 @@ import { addTest, assert } from '../testRunner.js';
 
 const suiteName = 'mc_api';
 
+/** Registers in-game runtime diagnostic tests validating native Bedrock Script API capabilities. */
 export function registerMcApiTests(): void {
   addTest(suiteName, 'World dimensions, ticks, and >30KB sharded dynamic properties work in live engine', () => {
     assert.ok(mc.world.getDimension(MinecraftDimensionTypes.Overworld), 'Overworld dimension missing');
@@ -88,4 +90,110 @@ export function registerMcApiTests(): void {
     const restoredContainerItem = deserializeItem(serializedWithContainer);
     assert.ok(restoredContainerItem, 'Container item deserialization should succeed');
   });
+
+  if (typeof __CANARY__ !== 'undefined' && __CANARY__) {
+    addTest(suiteName, 'Server GameTest simulated player framework initializes cleanly in live engine', async () => {
+      let gametest: typeof import('@minecraft/server-gametest');
+      try {
+        gametest = await import('@minecraft/server-gametest');
+      } catch (err: unknown) {
+        throw new Error(
+          `Failed to import @minecraft/server-gametest: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+
+      assert.ok(gametest, 'Expected @minecraft/server-gametest module to be resolvable');
+      assert.equal(typeof gametest.spawnSimulatedPlayer, 'function', 'spawnSimulatedPlayer should be a function');
+      assert.equal(typeof gametest.register, 'function', 'register should be a function');
+
+      const players = mc.world.getAllPlayers();
+      const spawnLoc: mc.DimensionLocation =
+        players.length > 0
+          ? {
+              x: Math.floor(players[0]!.location.x),
+              y: Math.floor(players[0]!.location.y) + 2,
+              z: Math.floor(players[0]!.location.z),
+              dimension: players[0]!.dimension,
+            }
+          : {
+              x: 0,
+              y: 100,
+              z: 0,
+              dimension: mc.world.getDimension(MinecraftDimensionTypes.Overworld),
+            };
+
+      let bot: ReturnType<typeof gametest.spawnSimulatedPlayer>;
+      try {
+        bot = gametest.spawnSimulatedPlayer(spawnLoc, diagnosticBotName, mc.GameMode.Creative);
+      } catch (err: unknown) {
+        throw new Error(
+          `Failed to spawn simulated player (${players.length > 0 ? 'near player' : 'default location, no players online'}): ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+
+      assert.ok(bot, 'Expected simulated player instance to be created');
+
+      let assertionError: unknown;
+      try {
+        assert.ok(bot.isValid, 'SimulatedPlayer should be valid after spawn');
+        assert.equal(typeof bot.disconnect, 'function', 'SimulatedPlayer.disconnect should be a function');
+      } catch (err: unknown) {
+        assertionError = err;
+      }
+
+      let cleanupError: unknown;
+      try {
+        if (typeof bot.disconnect === 'function') {
+          bot.disconnect();
+        }
+      } catch (err: unknown) {
+        cleanupError = err;
+      }
+
+      if (assertionError) {
+        if (cleanupError) {
+          warnLog(
+            `[TestRunner] Failed to disconnect simulated bot during cleanup: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
+          );
+        }
+        throw assertionError;
+      }
+
+      if (cleanupError) {
+        throw new Error(
+          `Failed to disconnect simulated bot: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
+        );
+      }
+    });
+
+    addTest(suiteName, 'Debug utilities collectRuntimeStats and collectPluginStats report memory metrics', async () => {
+      let debugUtils: typeof import('@minecraft/debug-utilities');
+      try {
+        debugUtils = await import('@minecraft/debug-utilities');
+      } catch (err: unknown) {
+        throw new Error(
+          `Failed to import @minecraft/debug-utilities: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+
+      assert.ok(debugUtils, 'Expected @minecraft/debug-utilities to resolve');
+      assert.equal(typeof debugUtils.collectRuntimeStats, 'function', 'collectRuntimeStats should be a function');
+      const runtimeStats = debugUtils.collectRuntimeStats();
+      assert.ok(runtimeStats && typeof runtimeStats.memoryUsedSize === 'number', 'Invalid runtime memory stats');
+
+      assert.equal(typeof debugUtils.collectPluginStats, 'function', 'collectPluginStats should be a function');
+      const pluginStats = debugUtils.collectPluginStats();
+      assert.ok(pluginStats && Array.isArray(pluginStats.plugins), 'Invalid plugin stats');
+
+      const usedMb = (runtimeStats.memoryUsedSize / (1024 * 1024)).toFixed(2);
+      const allocMb = (runtimeStats.memoryAllocatedSize / (1024 * 1024)).toFixed(2);
+      let totalHandles = 0;
+      for (const plugin of pluginStats.plugins) {
+        totalHandles += Object.values(plugin.handleCounts).reduce((acc, count) => acc + count, 0);
+      }
+      debugLog(
+        `[TestRunner] Memory: ${usedMb}/${allocMb} MB | Objects: ${runtimeStats.objectCount} (str: ${runtimeStats.stringCount}, arr: ${runtimeStats.arrayCount}) | Handles: ${totalHandles}`,
+      );
+    });
+  }
 }

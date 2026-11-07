@@ -81,13 +81,40 @@ export function initialize() {
 }
 
 /**
+ * Creates a minimal, safe fallback RankDefinition when no default rank exists or entity is invalid.
+ *
+ * @returns A new fallback RankDefinition instance.
+ */
+function createFallbackRank(): RankDefinition {
+  return {
+    id: 'fallback',
+    name: 'Fallback',
+    priority: 1000,
+    groups: ['default'],
+    allow: [],
+    deny: [],
+    conditions: [{ type: 'default' }],
+    chatFormatting: { prefixText: '', nameColor: '§7', messageColor: '§r' },
+  };
+}
+
+/**
  * Gets the highest priority rank for a given player. Uses the permission engine to fetch all active ranks and returns
  * the one with the lowest priority number.
  *
- * @param player
+ * @param player Target Minecraft player instance.
  * @param config The addon's configuration object.
+ * @returns The resolved highest priority RankDefinition for the player.
  */
 export function getPlayerRank(player: mc.Player, config: typeof Config = getConfig()): RankDefinition {
+  if (player.isValid === false) {
+    const defaultRank = getRankById(config.playerDefaults.rankId);
+    if (isDefined(defaultRank)) {
+      return defaultRank;
+    }
+    return createFallbackRank();
+  }
+
   const currentTick = mc.system.currentTick;
   const cached = rankCache.get(player.id);
 
@@ -120,16 +147,7 @@ export function getPlayerRank(player: mc.Player, config: typeof Config = getConf
   errorLog(
     `[RankManager] CRITICAL: The configured default rank with id "${config.playerDefaults.rankId}" was not found. Please check your configuration.`,
   );
-  const fallback: RankDefinition = {
-    id: 'fallback',
-    name: 'Fallback',
-    priority: 1000,
-    groups: ['default'],
-    allow: [],
-    deny: [],
-    conditions: [{ type: 'default' }],
-    chatFormatting: { prefixText: '', nameColor: '§7', messageColor: '§r' },
-  };
+  const fallback = createFallbackRank();
   rankCache.set(player.id, { rank: fallback, tick: currentTick });
   return fallback;
 }
@@ -224,6 +242,9 @@ export function getAllRanks(): RankDefinition[] {
  * @param config The addon's configuration object.
  */
 export function updatePlayerNameTag(player: mc.Player, config: typeof Config = getConfig()) {
+  if (player.isValid === false) {
+    return;
+  }
   // Invalidate caches to force fresh calculation when explicitly updating nametags
   rankCache.delete(player.id);
   permissionEngine.invalidatePlayerPermissionCache(player.id);

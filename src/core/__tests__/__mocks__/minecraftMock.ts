@@ -740,3 +740,76 @@ export const ItemComponentTypes = {
   Enchantable: 'minecraft:enchantable',
   Inventory: 'minecraft:inventory',
 } as const;
+
+// --- @minecraft/server-gametest Mocks ---
+
+export class SimulatedPlayer extends Player {
+  attack = mock(() => true);
+  attackEntity = mock(() => true);
+  breakBlock = mock(() => true);
+  chat = mock();
+  disconnect = mock();
+  giveItem = mock(() => true);
+  interact = mock(() => true);
+  jump = mock(() => true);
+  lookAtBlock = mock();
+  lookAtLocation = mock();
+  move = mock();
+  moveToBlock = mock();
+  navigateToBlock = mock(() => ({ isFullPath: true }));
+  respawn = mock(() => true);
+}
+
+export const spawnSimulatedPlayer = mock((_location: unknown, name = 'SimulatedPlayer') => new SimulatedPlayer(name));
+
+export const register = mock(() => ({
+  structureName: mock().mockReturnThis(),
+  tag: mock().mockReturnThis(),
+  batch: mock().mockReturnThis(),
+  maxTicks: mock().mockReturnThis(),
+}));
+
+export const registerAsync = mock(() => ({
+  structureName: mock().mockReturnThis(),
+  tag: mock().mockReturnThis(),
+  batch: mock().mockReturnThis(),
+  maxTicks: mock().mockReturnThis(),
+}));
+
+// --- @minecraft/debug-utilities Mocks ---
+
+export const collectPluginStats = mock(() => ({
+  plugins: [
+    {
+      name: 'AddonExe',
+      packId: '1564bfa3-6796-4b67-826a-03ca1ac2f3c1',
+      scriptModuleUUID: 'ecb49e35-ade4-459d-83ff-85c3770c1e74',
+      handleCounts: {},
+    },
+  ],
+}));
+
+export const collectRuntimeStats = mock(() => ({
+  arrayCount: 10,
+  atomCount: 10,
+  atomSize: 100,
+  fastArrayCount: 0,
+  fastArrayElementCount: 0,
+  functionCodeSize: 1000,
+  functionCount: 50,
+  functionLineCount: 500,
+  functionSize: 2000,
+  memoryAllocatedCount: 100,
+  memoryAllocatedLimit: 104857600,
+  memoryAllocatedSize: 5242880,
+  memoryUsedCount: 80,
+  memoryUsedSize: 2097152,
+  objectCount: 200,
+  objectSize: 5000,
+  propertyCount: 300,
+  propertySize: 3000,
+  stringCount: 150,
+  stringSize: 2500,
+}));
+
+export const disableWatchdogTimingWarnings = mock();

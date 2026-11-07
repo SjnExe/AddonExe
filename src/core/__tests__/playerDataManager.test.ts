@@ -104,4 +104,18 @@ describe('PlayerDataManager - updatePlayerData', () => {
 
     expect(callbackCalled).toBeFalse();
   });
+
+  it('should throw and defer initialization when player name cannot be resolved', () => {
+    const unnamedPlayer = {
+      id: 'p_noname',
+      isValid: true,
+      get name(): string {
+        throw new Error('Native getter failed');
+      },
+    } as unknown as mc.Player;
+
+    expect(() => getOrCreatePlayer(unnamedPlayer)).toThrow('Cannot initialize player data');
+    expect(getPlayer('p_noname')).toBeUndefined();
+    expect(mockStorageSave).not.toHaveBeenCalled();
+  });
 });
