@@ -1,5 +1,5 @@
 import { escapeBedrockPercent } from '@core/utils/formatting.js';
-import { uiWait } from '@core/utils/ui.js';
+import { uiWait, type UiWaitOptions } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ModalFormData, ModalFormResponse } from '@minecraft/server-ui';
 
@@ -38,6 +38,7 @@ interface ControlItem {
   onClick?: () => void;
 }
 
+/** Strongly typed builder for ModalFormData supporting toggles, sliders, dropdowns, text fields, and headers. */
 export class CustomFormBuilder<T extends Record<string, unknown> = Record<string, unknown>> {
   private titleText: string;
   private readonly controls: ControlItem[] = [];
@@ -157,7 +158,7 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
     return { ...this.currentValues } as T;
   }
 
-  public async show(player: Player): Promise<T | undefined> {
+  public async show(player: Player, options?: UiWaitOptions): Promise<T | undefined> {
     const form = new ModalFormData().title(escapeBedrockPercent(this.titleText));
     const valueControlOrder: ControlItem[] = [];
     const buttonCallbacks: (() => void)[] = [];
@@ -209,7 +210,7 @@ export class CustomFormBuilder<T extends Record<string, unknown> = Record<string
       form.submitButton(this.submitText);
     }
 
-    const response = (await uiWait(player, form)) as ModalFormResponse;
+    const response = (await uiWait(player, form, options)) as ModalFormResponse;
     if (response.canceled || !response.formValues) {
       return undefined;
     }

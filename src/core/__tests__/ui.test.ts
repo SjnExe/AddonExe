@@ -1,15 +1,27 @@
-import { beforeEach, describe, expect, it, setSystemTime } from 'bun:test';
+import { beforeEach, describe, expect, it, setSystemTime, spyOn } from 'bun:test';
 
 import { initializeConfigManager } from '@core/config/configManager.js';
+import { ActionFormBuilder } from '@core/ui/builders/actionFormBuilder.js';
 import { configPanelSchema } from '@core/ui/configPanelRegistry.js';
 import { getMenuItemsForHub, MenuHubId } from '@core/ui/menuRegistry.js';
 import { getSystemRegistry } from '@core/ui/systemRegistry.js';
 import { configHandlers, getSystemsByCategory, getVisibleCategories } from '@core/ui/uiUtils.js';
 import { getIdTimestamp } from '@core/utils/index.js';
 import { getValueFromPath } from '@core/utils/objectUtils.js';
+import {
+  beginUiSession,
+  clearPlayerUiSession,
+  endUiSession,
+  isUiSessionActive,
+  nextTick,
+  sleepTicks,
+  uiWait,
+} from '@core/utils/ui.js';
 import { registerAllSuites } from '@features/test/suites/index.js';
 import { runTests } from '@features/test/testRunner.js';
 import { generateId } from '@lib/id.js';
+import * as mc from '@minecraft/server';
+import { FormCancelationReason } from '@minecraft/server-ui';
 
 describe('UI, Config Schema & UUIDv7 Integrity', () => {
   beforeEach(async () => {
@@ -134,5 +146,107 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
     expect(systemIds).toContain('clearLag');
     expect(systemIds).toContain('playerUtilities');
     expect(systemIds).toContain('afk');
+  });
+
+  it('UI session lifecycle tracks tokens, isolates concurrent loops, and clears correctly', () => {
+    const playerId = 'session_test_p1';
+    clearPlayerUiSession(playerId);
+
+    expect(isUiSessionActive(playerId, 1)).toBeFalse();
+
+    const v1 = beginUiSession(playerId);
+    expect(v1).toBeGreaterThan(0);
+    expect(isUiSessionActive(playerId, v1)).toBeTrue();
+
+    const v2 = beginUiSession(playerId);
+    expect(v2).toBeGreaterThan(v1);
+    expect(isUiSessionActive(playerId, v1)).toBeFalse();
+    expect(isUiSessionActive(playerId, v2)).toBeTrue();
+
+    endUiSession(playerId);
+    expect(isUiSessionActive(playerId, v2)).toBeFalse();
+
+    const v3 = beginUiSession(playerId);
+    expect(v3).toBeGreaterThan(v2);
+    expect(isUiSessionActive(playerId, v1)).toBeFalse();
+    expect(isUiSessionActive(playerId, v2)).toBeFalse();
+    expect(isUiSessionActive(playerId, v3)).toBeTrue();
+    clearPlayerUiSession(playerId);
+    expect(isUiSessionActive(playerId, v3)).toBeFalse();
+  });
+
+  it('sleepTicks and nextTick resolve cleanly via server system timer', async () => {
+    await expect(sleepTicks(1)).resolves.toBeUndefined();
+    await expect(sleepTicks(0)).resolves.toBeUndefined();
+    await expect(nextTick()).resolves.toBeUndefined();
+  });
+
+  it('ActionFormBuilder tracks button count and indexes callbacks correctly', async () => {
+    const builder = new ActionFormBuilder();
+    builder.grid('board').title('Fast Grid');
+
+    builder.rawButton('Square 0');
+    builder.rawButton('Square 1', 'textures/items/diamond');
+
+    expect(builder.getButtonCount()).toBe(2);
+
+    let callbackTriggered = false;
+    builder.button('Action 2', null, () => {
+      callbackTriggered = true;
+    });
+
+    expect(builder.getButtonCount()).toBe(3);
+
+    const mockPlayer = { id: 'p_btn_test', isValid: true } as any;
+    const res = await builder.show(mockPlayer);
+    expect(res.canceled).toBeFalse();
+    expect(res.selection).toBe(0);
+    expect(callbackTriggered).toBeFalse();
+  });
+
+  it('uiWait handles chained continuation with nextTick deferral', async () => {
+    const runTimeoutSpy = spyOn(mc.system, 'runTimeout').mockImplementation((cb: () => void) => {
+      cb();
+      return 1;
+    });
+    runTimeoutSpy.mockClear();
+
+    try {
+      const mockPlayer = { id: 'p_wait_chained', isValid: true } as any;
+      const formChained = new ActionFormBuilder().rawButton('A').rawButton('B');
+
+      const resChained = await formChained.show(mockPlayer, { chained: true });
+      expect(resChained).toBeDefined();
+      expect(resChained.canceled).toBeFalse();
+      expect(resChained.selection).toBe(0);
+      expect(runTimeoutSpy).toHaveBeenCalledTimes(1);
+      expect(runTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 1);
+
+      runTimeoutSpy.mockClear();
+
+      const mockPlayerImmediate = { id: 'p_wait_immediate', isValid: true } as any;
+      const formImmediate = new ActionFormBuilder().rawButton('C');
+      const resImmediate = await formImmediate.show(mockPlayerImmediate, { chained: false });
+      expect(resImmediate).toBeDefined();
+      expect(resImmediate.canceled).toBeFalse();
+      expect(resImmediate.selection).toBe(0);
+      expect(runTimeoutSpy).not.toHaveBeenCalled();
+    } finally {
+      runTimeoutSpy.mockRestore();
+    }
+  });
+
+  it('uiWait cancels immediately without presentation when sessionVersion is stale', async () => {
+    const mockPlayer = { id: 'p_stale_wait', isValid: true } as any;
+    const v1 = beginUiSession(mockPlayer.id);
+    const v2 = beginUiSession(mockPlayer.id);
+
+    const form = new ActionFormBuilder().rawButton('A');
+    const res = await form.show(mockPlayer, { sessionVersion: v1 });
+    expect(res.canceled).toBeTrue();
+    expect(res.cancelationReason).toBe(FormCancelationReason.UserClosed);
+
+    const validRes = await form.show(mockPlayer, { sessionVersion: v2 });
+    expect(validRes.canceled).toBeFalse();
   });
 });
