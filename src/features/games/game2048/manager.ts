@@ -197,6 +197,13 @@ export function continue2048Endless(playerId: string): void {
   }
 }
 
+/**
+ * Executes a directional slide move on the player's 2048 board and updates session state.
+ *
+ * @param player The player executing the slide move.
+ * @param direction The slide direction ('up' | 'down' | 'left' | 'right').
+ * @returns Result object with movement status, feedback message, and updated session.
+ */
 export function perform2048Move(
   player: mc.Player,
   direction: Direction2048,
@@ -243,7 +250,12 @@ export function perform2048Move(
     playSound(player, 'note.bass');
   }
 
-  savePlayer2048Stats(player.id, session.score, session.maxTile, justWon2048);
+  const prevStats = getPlayer(player.id)?.gameStats?.game2048;
+  const isGameOver = session.status === 'gameover';
+  const isNewRecord = session.score > (prevStats?.bestScore ?? 0) || session.maxTile > (prevStats?.bestTile ?? 0);
+  if (justWon2048 || isGameOver || isNewRecord) {
+    savePlayer2048Stats(player.id, session.score, session.maxTile, justWon2048);
+  }
   return {
     moved: true,
     ...(pointsEarned > 0 ? { message: `§a+${pointsEarned} pts!` } : {}),

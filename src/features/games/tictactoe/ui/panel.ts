@@ -3,6 +3,7 @@ import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { beginUiSession, isUiSessionActive, nextTick } from '@core/utils/ui.js';
 import {
   appendGameInviteButtons,
   getIncomingGameInvites,
@@ -27,22 +28,37 @@ import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 const diamondIcon = 'textures/items/diamond';
 const emeraldIcon = 'textures/items/emerald';
 
+const visualEmpty = { label: ' ' } as const;
+const visualX = { label: ' ', icon: diamondIcon } as const;
+const visualXWin = { label: '§l§a★', icon: diamondIcon } as const;
+const visualO = { label: ' ', icon: emeraldIcon } as const;
+const visualOWin = { label: '§l§a★', icon: emeraldIcon } as const;
+
 function getSquareVisual(match: TicTacToeMatch, idx: number): { label: string; icon?: string } {
   const mark = match.board[idx];
   const isWinSquare = match.winningLine?.includes(idx) === true;
   if (mark === 'X') {
-    return { label: isWinSquare ? '§l§a★' : ' ', icon: diamondIcon };
+    return isWinSquare ? visualXWin : visualX;
   }
   if (mark === 'O') {
-    return { label: isWinSquare ? '§l§a★' : ' ', icon: emeraldIcon };
+    return isWinSquare ? visualOWin : visualO;
   }
-  return { label: ' ' };
+  return visualEmpty;
 }
 
+/**
+ * Displays the 3x3 Tic-Tac-Toe interactive board using raw buttons and chained UI transitions.
+ *
+ * @param player The player participating in the match.
+ * @param matchId The unique match session identifier.
+ * @param initialNotice Optional initial banner or turn message.
+ * @returns Promise resolving when the board loop concludes.
+ */
 export async function showTicTacToeBoard(player: mc.Player, matchId: string, initialNotice?: string): Promise<void> {
   let notice: string | undefined = initialNotice;
+  const sessionVersion = beginUiSession(player.id);
 
-  while (player.isValid) {
+  while (player.isValid && isUiSessionActive(player.id, sessionVersion)) {
     const match = getTicTacToeMatch(matchId);
     if (!isDefined(match)) {
       player.sendMessage('§cMatch has ended.');
@@ -66,17 +82,16 @@ export async function showTicTacToeBoard(player: mc.Player, matchId: string, ini
 
     const form = new ActionFormBuilder().grid('board').title(`§r§l§bTic-Tac-Toe §8vs §f${opponentName}`).body(bodyText);
 
-    let clickedSquare: number | undefined;
-
     for (let i = 0; i < 9; i++) {
-      const squareIdx = i;
-      const visual = getSquareVisual(match, squareIdx);
-      form.button(visual.label, visual.icon, () => {
-        clickedSquare = squareIdx;
-      });
+      const visual = getSquareVisual(match, i);
+      form.rawButton(visual.label, visual.icon);
     }
 
-    const response = await form.show(player, { wait: true });
+    const response = await form.show(player, { chained: true, sessionVersion });
+
+    if (!isUiSessionActive(player.id, sessionVersion)) {
+      return;
+    }
 
     const freshMatch = getTicTacToeMatch(matchId);
     if (!isDefined(freshMatch)) {
@@ -86,6 +101,7 @@ export async function showTicTacToeBoard(player: mc.Player, matchId: string, ini
     if (freshMatch.refreshingPlayers.has(player.id)) {
       freshMatch.refreshingPlayers.delete(player.id);
       notice = undefined;
+      await nextTick();
       continue;
     }
 
@@ -103,8 +119,9 @@ export async function showTicTacToeBoard(player: mc.Player, matchId: string, ini
       return;
     }
 
-    if (clickedSquare !== undefined) {
-      const moveRes = makeTicTacToeMove(matchId, player.id, clickedSquare);
+    const selection = response.selection;
+    if (selection !== undefined && selection >= 0 && selection < 9) {
+      const moveRes = makeTicTacToeMove(matchId, player.id, selection);
       const postMoveMatch = getTicTacToeMatch(matchId);
       if (!isDefined(postMoveMatch)) {
         return;
@@ -121,6 +138,13 @@ export async function showTicTacToeBoard(player: mc.Player, matchId: string, ini
   }
 }
 
+/**
+ * Displays the end-game result panel for a completed Tic-Tac-Toe match.
+ *
+ * @param player The player viewing the result.
+ * @param match The finalized match state.
+ * @returns Promise resolving when the result form is acknowledged.
+ */
 export async function showTicTacToeResultPanel(player: mc.Player, match: TicTacToeMatch): Promise<void> {
   if (!player.isValid) {
     return;
@@ -134,12 +158,13 @@ export async function showTicTacToeResultPanel(player: mc.Player, match: TicTacT
 
   for (let i = 0; i < 9; i++) {
     const visual = getSquareVisual(match, i);
-    form.button(visual.label, visual.icon, async () => {
-      await showTicTacToeMenu(player);
-    });
+    form.rawButton(visual.label, visual.icon);
   }
 
-  await form.show(player, { wait: true });
+  const response = await form.show(player, { chained: true });
+  if (!response.canceled) {
+    await showTicTacToeMenu(player);
+  }
 }
 
 export async function showTicTacToeMenu(player: mc.Player): Promise<void> {

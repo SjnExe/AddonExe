@@ -2,6 +2,7 @@ import { getGamesConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { formatCurrency, uiWait } from '@core/utils/index.js';
+import { beginUiSession, isUiSessionActive } from '@core/utils/ui.js';
 import {
   continue2048Endless,
   type Direction2048,
@@ -60,10 +61,18 @@ export async function show2048Menu(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Shows the active 2048 4x4 sliding tile game board with chained move transitions.
+ *
+ * @param player The player viewing the board.
+ * @param initialNotice Optional initial banner or turn message.
+ * @returns Promise resolving when the game session concludes.
+ */
 export async function show2048Board(player: mc.Player, initialNotice?: string): Promise<void> {
   let notice = initialNotice;
+  const sessionVersion = beginUiSession(player.id);
 
-  while (player.isValid) {
+  while (player.isValid && isUiSessionActive(player.id, sessionVersion)) {
     const session = getPlayer2048Game(player.id) ?? start2048Game(player);
 
     if (session.status === 'won_prompt') {
@@ -82,7 +91,10 @@ export async function show2048Board(player: mc.Player, initialNotice?: string): 
         .addBackButton(() => {
           winChoice = 'menu';
         });
-      await winForm.show(player, { wait: true });
+      await winForm.show(player, { chained: true, sessionVersion });
+      if (!isUiSessionActive(player.id, sessionVersion)) {
+        return;
+      }
 
       if (winChoice === 'endless') {
         continue2048Endless(player.id);
@@ -125,7 +137,10 @@ export async function show2048Board(player: mc.Player, initialNotice?: string): 
       rawForm.button('§1§r', 'textures/ui/refresh_light');
     }
 
-    const response = (await uiWait(player, rawForm)) as ActionFormResponse;
+    const response = (await uiWait(player, rawForm, { chained: true, sessionVersion })) as ActionFormResponse;
+    if (!isUiSessionActive(player.id, sessionVersion)) {
+      return;
+    }
     if (response.canceled) {
       if (response.cancelationReason === FormCancelationReason.UserBusy) {
         continue;

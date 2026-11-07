@@ -1,5 +1,6 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { beginUiSession, isUiSessionActive } from '@core/utils/ui.js';
 import {
   type CodebreakerSession,
   type CodePeg,
@@ -73,66 +74,105 @@ export async function showCodemakerSetCodeModal(player: mc.Player, session: Code
   );
 }
 
-export async function showCodebreakerBoard(player: mc.Player, notice?: string): Promise<void> {
-  const session = getPlayerCodebreakerSession(player.id);
-  if (!isDefined(session)) {
-    await showCodebreakerMenu(player);
+/**
+ * Displays the Codebreaker game board loop with chained UI transitions and attempt history.
+ *
+ * @param player The participating player.
+ * @param initialNotice Optional initial status message.
+ * @returns Promise resolving when the board session concludes.
+ */
+export async function showCodebreakerBoard(player: mc.Player, initialNotice?: string): Promise<void> {
+  if (!player.isValid) {
     return;
   }
+  const sessionVersion = beginUiSession(player.id);
+  let notice: string | undefined = initialNotice;
 
-  const historyLines =
-    session.guesses.length === 0
-      ? ['§8No attempts yet. Tap "Submit 4-Peg Guess" below!']
-      : session.guesses.map(
-          (g, idx) =>
-            `§7#${idx + 1}: ${formatCodePegs(g.pegs)} §8— §a${g.exactMatches} Exact§7, §e${g.partialMatches} Partial`,
-        );
+  while (player.isValid && isUiSessionActive(player.id, sessionVersion)) {
+    const session = getPlayerCodebreakerSession(player.id);
+    if (!isDefined(session)) {
+      await showCodebreakerMenu(player);
+      return;
+    }
 
-  const header = [
-    `§7Codemaker: §e${session.codemakerName} §8| §7Attempts: §b${session.guesses.length}/${session.maxAttempts}`,
-    ...(isNonEmptyString(notice) ? [notice] : []),
-    '',
-    ...historyLines,
-  ];
+    const historyLines =
+      session.guesses.length === 0
+        ? ['§8No attempts yet. Tap "Submit 4-Peg Guess" below!']
+        : session.guesses.map(
+            (g, idx) =>
+              `§7#${idx + 1}: ${formatCodePegs(g.pegs)} §8— §a${g.exactMatches} Exact§7, §e${g.partialMatches} Partial`,
+          );
 
-  const form = new ActionFormBuilder().title('Codebreaker').body(header.join('\n'));
+    const header = [
+      `§7Codemaker: §e${session.codemakerName} §8| §7Attempts: §b${session.guesses.length}/${session.maxAttempts}`,
+      ...(isNonEmptyString(notice) ? [notice] : []),
+      '',
+      ...historyLines,
+    ];
 
-  if (session.status === 'active') {
-    form.button(
-      `§l§2Submit Guess (${session.guesses.length + 1}/${session.maxAttempts})`,
-      'textures/items/comparator',
-      async () => {
-        const opts = [...codePegOptions];
-        const modal = new CustomFormBuilder<{ p1: string; p2: string; p3: string; p4: string }>('Enter 4-Peg Guess')
-          .dropdown('p1', 'Slot 1 Color', opts, 0)
-          .dropdown('p2', 'Slot 2 Color', opts, 1)
-          .dropdown('p3', 'Slot 3 Color', opts, 2)
-          .dropdown('p4', 'Slot 4 Color', opts, 3)
-          .submitButton('Submit Guess');
-        const res = await modal.show(player);
-        if (res) {
-          const out = submitCodebreakerAttempt(player, [
-            res.p1 as CodePeg,
-            res.p2 as CodePeg,
-            res.p3 as CodePeg,
-            res.p4 as CodePeg,
-          ]);
-          await showCodebreakerBoard(player, out.message);
-          return;
-        }
-        await showCodebreakerBoard(player);
-      },
-    );
-  } else {
-    form.button('§l§aPlay Again (Solo)', 'textures/ui/refresh_light', async () => {
-      startSoloCodebreaker(player);
-      await showCodebreakerBoard(player);
+    const form = new ActionFormBuilder().title('Codebreaker').body(header.join('\n'));
+    let action: 'guess' | 'again' | 'menu' | undefined;
+
+    if (session.status === 'active') {
+      form.button(
+        `§l§2Submit Guess (${session.guesses.length + 1}/${session.maxAttempts})`,
+        'textures/items/comparator',
+        () => {
+          action = 'guess';
+        },
+      );
+    } else {
+      form.button('§l§aPlay Again (Solo)', 'textures/ui/refresh_light', () => {
+        action = 'again';
+      });
+    }
+
+    form.addBackButton(() => {
+      action = 'menu';
     });
+
+    const response = await form.show(player, { chained: true, sessionVersion });
+    if (!isUiSessionActive(player.id, sessionVersion) || response.canceled) {
+      return;
+    }
+
+    if (action === 'guess') {
+      const opts = [...codePegOptions];
+      const modal = new CustomFormBuilder<{ p1: string; p2: string; p3: string; p4: string }>('Enter 4-Peg Guess')
+        .dropdown('p1', 'Slot 1 Color', opts, 0)
+        .dropdown('p2', 'Slot 2 Color', opts, 1)
+        .dropdown('p3', 'Slot 3 Color', opts, 2)
+        .dropdown('p4', 'Slot 4 Color', opts, 3)
+        .submitButton('Submit Guess');
+      const res = await modal.show(player, { chained: true, sessionVersion });
+      if (!player.isValid || !isUiSessionActive(player.id, sessionVersion)) {
+        return;
+      }
+      if (res) {
+        const out = submitCodebreakerAttempt(player, [
+          res.p1 as CodePeg,
+          res.p2 as CodePeg,
+          res.p3 as CodePeg,
+          res.p4 as CodePeg,
+        ]);
+        notice = out.message;
+      } else {
+        notice = undefined;
+      }
+      continue;
+    }
+
+    if (action === 'again') {
+      startSoloCodebreaker(player);
+      notice = undefined;
+      continue;
+    }
+
+    if (action === 'menu') {
+      await showCodebreakerMenu(player);
+      return;
+    }
+
+    break;
   }
-
-  form.addBackButton(async () => {
-    await showCodebreakerMenu(player);
-  });
-
-  await form.show(player);
 }

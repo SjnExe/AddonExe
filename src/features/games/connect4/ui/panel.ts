@@ -1,5 +1,6 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { beginUiSession, isUiSessionActive, nextTick } from '@core/utils/ui.js';
 import {
   type Connect4Match,
   connect4TotalCells,
@@ -18,22 +19,37 @@ const redDiscIcon = 'textures/items/redstone_dust';
 const yellowDiscIcon = 'textures/items/gold_ingot';
 const emptySlotIcon = 'textures/blocks/glass';
 
+const visualSlotEmpty = { label: ' ', icon: emptySlotIcon } as const;
+const visualSlotRed = { label: ' ', icon: redDiscIcon } as const;
+const visualSlotRedWin = { label: '§l§a★', icon: redDiscIcon } as const;
+const visualSlotYellow = { label: ' ', icon: yellowDiscIcon } as const;
+const visualSlotYellowWin = { label: '§l§a★', icon: yellowDiscIcon } as const;
+
 function getConnect4SlotVisual(match: Connect4Match, idx: number): { label: string; icon: string } {
   const disc = match.board[idx];
   const isWinning = match.winningCells?.includes(idx) === true;
   if (disc === 'R') {
-    return { label: isWinning ? '§l§a★' : ' ', icon: redDiscIcon };
+    return isWinning ? visualSlotRedWin : visualSlotRed;
   }
   if (disc === 'Y') {
-    return { label: isWinning ? '§l§a★' : ' ', icon: yellowDiscIcon };
+    return isWinning ? visualSlotYellowWin : visualSlotYellow;
   }
-  return { label: ' ', icon: emptySlotIcon };
+  return visualSlotEmpty;
 }
 
+/**
+ * Displays the 7x6 Connect 4 board with fast-path raw buttons and chained UI transitions.
+ *
+ * @param player The participating player.
+ * @param matchId The unique Connect 4 match identifier.
+ * @param initialNotice Optional initial notice or turn update.
+ * @returns Promise resolving when the board session concludes.
+ */
 export async function showConnect4Board(player: mc.Player, matchId: string, initialNotice?: string): Promise<void> {
   let notice: string | undefined = initialNotice;
+  const sessionVersion = beginUiSession(player.id);
 
-  while (player.isValid) {
+  while (player.isValid && isUiSessionActive(player.id, sessionVersion)) {
     const match = getConnect4Match(matchId);
     if (!isDefined(match)) {
       player.sendMessage('§cMatch has ended.');
@@ -55,30 +71,24 @@ export async function showConnect4Board(player: mc.Player, matchId: string, init
       statusLine = `${notice}\n${statusLine}`;
     }
 
-    let tappedIndex: number | undefined;
-    let toolbarTapped = false;
-
     const form = new ActionFormBuilder().grid('c4').title(`§r§l§bConnect 4 §8vs §f${oppName}`).body(statusLine);
 
     for (let i = 0; i < connect4TotalCells; i++) {
-      const cellIdx = i;
-      const vis = getConnect4SlotVisual(match, cellIdx);
-      form.button(vis.label, vis.icon, () => {
-        tappedIndex = cellIdx;
-      });
+      const vis = getConnect4SlotVisual(match, i);
+      form.rawButton(vis.label, vis.icon);
     }
 
     if (match.status === 'active') {
-      form.button('§r§l§b[Refresh Board]', 'textures/ui/refresh_light', () => {
-        toolbarTapped = true;
-      });
+      form.rawButton('§r§l§b[Refresh Board]', 'textures/ui/refresh_light');
     } else {
-      form.button('§r§l§e[Return to Connect 4 Menu]', 'textures/ui/arrow_left', () => {
-        toolbarTapped = true;
-      });
+      form.rawButton('§r§l§e[Return to Connect 4 Menu]', 'textures/ui/arrow_left');
     }
 
-    const response = await form.show(player, { wait: true });
+    const response = await form.show(player, { chained: true, sessionVersion });
+
+    if (!isUiSessionActive(player.id, sessionVersion)) {
+      return;
+    }
 
     const fresh = getConnect4Match(matchId);
     if (!isDefined(fresh)) {
@@ -88,6 +98,7 @@ export async function showConnect4Board(player: mc.Player, matchId: string, init
     if (fresh.refreshingPlayers.has(player.id)) {
       fresh.refreshingPlayers.delete(player.id);
       notice = undefined;
+      await nextTick();
       continue;
     }
 
@@ -100,6 +111,11 @@ export async function showConnect4Board(player: mc.Player, matchId: string, init
       }
       return;
     }
+
+    const selection = response.selection;
+    const toolbarTapped = selection === connect4TotalCells;
+    const tappedIndex =
+      selection !== undefined && selection >= 0 && selection < connect4TotalCells ? selection : undefined;
 
     if (fresh.status !== 'active' || toolbarTapped) {
       if (fresh.status === 'active') {
