@@ -1,6 +1,7 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { beginUiSession, isUiSessionActive, nextTick } from '@core/utils/ui.js';
 import {
   appendGameInviteButtons,
   getIncomingGameInvites,
@@ -28,107 +29,126 @@ const rockIcon = 'textures/blocks/cobblestone';
 const paperIcon = 'textures/items/paper';
 const scissorsIcon = 'textures/items/shears';
 
-export async function showRpsMatchPanel(player: mc.Player, matchId: string, notice?: string): Promise<void> {
+/**
+ * Displays the real-time Rock-Paper-Scissors interactive match panel with chained turn transitions.
+ *
+ * @param player The participating player.
+ * @param matchId The unique RPS match identifier.
+ * @param initialNotice Optional status update message.
+ * @returns Promise resolving when the match panel concludes.
+ */
+export async function showRpsMatchPanel(player: mc.Player, matchId: string, initialNotice?: string): Promise<void> {
   if (!player.isValid) {
     return;
   }
+  const sessionVersion = beginUiSession(player.id);
+  let notice: string | undefined = initialNotice;
 
-  const match = getRpsMatch(matchId);
-  if (!isDefined(match)) {
-    player.sendMessage('§cMatch has ended.');
-    return;
-  }
-
-  if (match.status !== 'active') {
-    await showRpsResultPanel(player, match);
-    return;
-  }
-
-  const isP1 = player.id === match.player1Id;
-  const myWins = isP1 ? match.p1Wins : match.p2Wins;
-  const oppWins = isP1 ? match.p2Wins : match.p1Wins;
-  const opponentName = isP1 ? match.player2Name : match.player1Name;
-  const myLockedChoice = isP1 ? match.p1Choice : match.p2Choice;
-
-  const headerLines = [
-    `§7Round: §e#${match.round} §8(First to ${match.targetWins} wins) §8| §7Score: §aYou ${myWins} §7- §c${oppWins} ${opponentName}`,
-  ];
-  if (isNonEmptyString(notice)) {
-    headerLines.push(notice);
-  } else if (isNonEmptyString(match.lastRoundSummary)) {
-    headerLines.push(match.lastRoundSummary);
-  }
-
-  let selectedChoice: RpsChoice | undefined;
-  let manualRefresh = false;
-
-  const form = new ActionFormBuilder().title(`§r§l§6RPS §8vs §f${opponentName}`);
-
-  if (isDefined(myLockedChoice)) {
-    headerLines.push(
-      `\n§aYou locked in ${formatRpsChoice(myLockedChoice)}§a!\n§eWaiting for §f${opponentName}§e to pick...`,
-    );
-    form.grid(1).body(headerLines.join('\n'));
-    form.button('§bRefresh Status\n§r§7Tap if opponent has moved', 'textures/ui/refresh_light', () => {
-      manualRefresh = true;
-    });
-  } else {
-    headerLines.push('\n§fSelect your move below:');
-    form.grid(3).body(headerLines.join('\n'));
-    form.button('§l§fRock\n§r§7Crushes Scissors', rockIcon, () => {
-      selectedChoice = 'rock';
-    });
-    form.button('§l§fPaper\n§r§7Covers Rock', paperIcon, () => {
-      selectedChoice = 'paper';
-    });
-    form.button('§l§fScissors\n§r§7Cuts Paper', scissorsIcon, () => {
-      selectedChoice = 'scissors';
-    });
-  }
-
-  const response = await form.show(player, { wait: true });
-
-  const freshMatch = getRpsMatch(matchId);
-  if (!isDefined(freshMatch)) {
-    return;
-  }
-
-  if (freshMatch.refreshingPlayers.has(player.id)) {
-    freshMatch.refreshingPlayers.delete(player.id);
-    await showRpsMatchPanel(player, matchId);
-    return;
-  }
-
-  if (freshMatch.status !== 'active') {
-    await showRpsResultPanel(player, freshMatch);
-    return;
-  }
-
-  if (response.canceled) {
-    if (response.cancelationReason === FormCancelationReason.UserBusy) {
-      await showRpsMatchPanel(player, matchId);
+  while (player.isValid && isUiSessionActive(player.id, sessionVersion)) {
+    const match = getRpsMatch(matchId);
+    if (!isDefined(match)) {
+      player.sendMessage('§cMatch has ended.');
       return;
     }
-    forfeitRpsMatch(matchId, player.id, 'closed the game UI');
-    return;
-  }
 
-  if (manualRefresh) {
-    await showRpsMatchPanel(player, matchId);
-    return;
-  }
-
-  if (isDefined(selectedChoice)) {
-    const res = submitRpsChoice(matchId, player.id, selectedChoice);
-    const postMoveMatch = getRpsMatch(matchId);
-    if (!isDefined(postMoveMatch)) {
+    if (match.status !== 'active') {
+      await showRpsResultPanel(player, match);
       return;
     }
-    if (postMoveMatch.status !== 'active') {
-      await showRpsResultPanel(player, postMoveMatch);
+
+    const isP1 = player.id === match.player1Id;
+    const myWins = isP1 ? match.p1Wins : match.p2Wins;
+    const oppWins = isP1 ? match.p2Wins : match.p1Wins;
+    const opponentName = isP1 ? match.player2Name : match.player1Name;
+    const myLockedChoice = isP1 ? match.p1Choice : match.p2Choice;
+
+    const headerLines = [
+      `§7Round: §e#${match.round} §8(First to ${match.targetWins} wins) §8| §7Score: §aYou ${myWins} §7- §c${oppWins} ${opponentName}`,
+    ];
+    if (isNonEmptyString(notice)) {
+      headerLines.push(notice);
+    } else if (isNonEmptyString(match.lastRoundSummary)) {
+      headerLines.push(match.lastRoundSummary);
+    }
+
+    let selectedChoice: RpsChoice | undefined;
+    let manualRefresh = false;
+
+    const form = new ActionFormBuilder().title(`§r§l§6RPS §8vs §f${opponentName}`);
+
+    if (isDefined(myLockedChoice)) {
+      headerLines.push(
+        `\n§aYou locked in ${formatRpsChoice(myLockedChoice)}§a!\n§eWaiting for §f${opponentName}§e to pick...`,
+      );
+      form.grid(1).body(headerLines.join('\n'));
+      form.button('§bRefresh Status\n§r§7Tap if opponent has moved', 'textures/ui/refresh_light', () => {
+        manualRefresh = true;
+      });
+    } else {
+      headerLines.push('\n§fSelect your move below:');
+      form.grid(3).body(headerLines.join('\n'));
+      form.button('§l§fRock\n§r§7Crushes Scissors', rockIcon, () => {
+        selectedChoice = 'rock';
+      });
+      form.button('§l§fPaper\n§r§7Covers Rock', paperIcon, () => {
+        selectedChoice = 'paper';
+      });
+      form.button('§l§fScissors\n§r§7Cuts Paper', scissorsIcon, () => {
+        selectedChoice = 'scissors';
+      });
+    }
+
+    const response = await form.show(player, { chained: true, sessionVersion });
+
+    if (!isUiSessionActive(player.id, sessionVersion)) {
       return;
     }
-    await showRpsMatchPanel(player, matchId, res.message);
+
+    const freshMatch = getRpsMatch(matchId);
+    if (!isDefined(freshMatch)) {
+      return;
+    }
+
+    if (freshMatch.refreshingPlayers.has(player.id)) {
+      freshMatch.refreshingPlayers.delete(player.id);
+      notice = undefined;
+      await nextTick();
+      continue;
+    }
+
+    if (freshMatch.status !== 'active') {
+      await showRpsResultPanel(player, freshMatch);
+      return;
+    }
+
+    if (response.canceled) {
+      if (response.cancelationReason === FormCancelationReason.UserBusy) {
+        continue;
+      }
+      forfeitRpsMatch(matchId, player.id, 'closed the game UI');
+      return;
+    }
+
+    if (manualRefresh) {
+      notice = undefined;
+      continue;
+    }
+
+    if (isDefined(selectedChoice)) {
+      const res = submitRpsChoice(matchId, player.id, selectedChoice);
+      const postMoveMatch = getRpsMatch(matchId);
+      if (!isDefined(postMoveMatch)) {
+        return;
+      }
+      if (postMoveMatch.status !== 'active') {
+        await showRpsResultPanel(player, postMoveMatch);
+        return;
+      }
+      notice = res.message;
+      continue;
+    }
+
+    break;
   }
 }
 

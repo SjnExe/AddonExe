@@ -2,6 +2,7 @@ import { getGamesConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { escapeBedrockPercent, formatCurrency, uiWait } from '@core/utils/index.js';
+import { beginUiSession, isUiSessionActive, nextTick } from '@core/utils/ui.js';
 import {
   appendGameInviteButtons,
   getIncomingGameInvites,
@@ -25,9 +26,13 @@ import {
   toggleMinesweeperFlagMode,
 } from '@features/games/minesweeper/manager.js';
 
-function buildProgressBar(percent: number, segments = 8): string {
-  const filled = Math.max(0, Math.min(segments, Math.round((percent / 100) * segments)));
-  return `§8[§a${'■'.repeat(filled)}§7${'□'.repeat(segments - filled)}§8]`;
+const precomputedProgressBars: string[] = Array.from({ length: 9 }, (_, filled) => {
+  return `§8[§a${'■'.repeat(filled)}§7${'□'.repeat(8 - filled)}§8]`;
+});
+
+function buildProgressBar(percent: number): string {
+  const filled = Math.max(0, Math.min(8, Math.round((percent / 100) * 8)));
+  return precomputedProgressBars[filled]!;
 }
 import { showInviteFriendToGameModal } from '@features/games/tictactoe/ui/panel.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
@@ -147,121 +152,139 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
-export async function showMinesweeperBoard(player: mc.Player, notice?: string): Promise<void> {
+/**
+ * Renders and loops the interactive Minesweeper game board with next-tick chained continuation.
+ *
+ * @param player The player viewing the board.
+ * @param initialNotice Optional status message banner.
+ * @returns Promise resolving when the board session concludes.
+ */
+export async function showMinesweeperBoard(player: mc.Player, initialNotice?: string): Promise<void> {
   if (!player.isValid) {
     return;
   }
+  const sessionVersion = beginUiSession(player.id);
+  let notice: string | undefined = initialNotice;
 
-  const game = getPlayerMinesweeperGame(player.id);
-  if (!isDefined(game)) {
-    await showMinesweeperMenu(player);
-    return;
-  }
-
-  const raceMatch = isDefined(game.multiplayerMatchId) ? getMinesweeperRaceMatch(game.multiplayerMatchId) : undefined;
-  if (isDefined(raceMatch) && raceMatch.status !== 'active' && game.status === 'active') {
-    game.status = raceMatch.winnerId === player.id ? 'won' : 'lost';
-  }
-
-  const progress = getMinesweeperBoardProgress(game);
-  const elapsedSec = game.netElapsedSeconds ?? calculateNetElapsedSeconds(game);
-  const modeLabel = game.flagMode ? '§e[⚑ FLAG]' : '§a[DIG]';
-  const progBar = buildProgressBar(progress.percent);
-
-  let statusLine = `${progBar} §f${progress.percent}% §8| §7Mines: §c${progress.remainingMines} §8| §7Time: §b${elapsedSec.toFixed(1)}s §8| ${modeLabel}`;
-  if (isDefined(raceMatch)) {
-    const oppId = player.id === raceMatch.player1Id ? raceMatch.player2Id : raceMatch.player1Id;
-    const oppName = player.id === raceMatch.player1Id ? raceMatch.player2Name : raceMatch.player1Name;
-    const oppGame = getPlayerMinesweeperGame(oppId);
-    const oppPercent = isDefined(oppGame) ? getMinesweeperBoardProgress(oppGame).percent : 0;
-    statusLine = `§d[VS ${oppName}: ${oppPercent}%] §r${statusLine}`;
-  }
-
-  if (game.status === 'won') {
-    const winText = isDefined(raceMatch)
-      ? (raceMatch.endReason ?? 'You won the race!')
-      : (notice ?? 'All mines cleared!');
-    statusLine = `§a§lVICTORY! §r${winText}`;
-  } else if (game.status === 'lost') {
-    const loseText =
-      isDefined(raceMatch) && isNonEmptyString(raceMatch.endReason)
-        ? raceMatch.endReason
-        : (notice ?? 'You hit a mine!');
-    statusLine = `§c§lGAME OVER! §r${loseText} §8(${progress.percent}% cleared)`;
-  } else if (isNonEmptyString(notice)) {
-    statusLine = `${statusLine}\n${notice}`;
-  }
-
-  const rawForm = new ActionFormData()
-    .title(
-      `${msGridTitlePrefix[game.gridMode]}§r§l§bMinesweeper ${game.cols}x${game.rows} §8(${game.difficulty.toUpperCase()})`,
-    )
-    .body(escapeBedrockPercent(statusLine));
-
-  const cellCount = game.totalCells;
-  renderBoardButtons(game, rawForm);
-
-  if (game.status === 'active') {
-    const toolbarText = game.flagMode
-      ? '\uE101§r§l§e[⚑ MODE: FLAG MINE] §r§7(Tap to Dig)'
-      : '\uE101§r§l§a[⛏ MODE: DIG TILE] §r§7(Tap to Flag)';
-    const toolbarIcon = game.flagMode ? 'textures/blocks/tnt_side' : 'textures/items/iron_pickaxe';
-    rawForm.button(toolbarText, toolbarIcon);
-  } else if (!isDefined(raceMatch)) {
-    rawForm.button(
-      `\uE101§r§l§a[Play Again: ${game.cols}x${game.rows} ${game.difficulty.toUpperCase()}]`,
-      'textures/ui/refresh_light',
-    );
-    rawForm.button('\uE101§r§l§e[Minesweeper Menu]', 'textures/ui/arrow_left');
-  } else {
-    rawForm.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left');
-  }
-
-  recordMinesweeperTurnShown(player.id);
-  const response = (await uiWait(player, rawForm)) as ActionFormResponse;
-
-  const freshRace = isDefined(game.multiplayerMatchId) ? getMinesweeperRaceMatch(game.multiplayerMatchId) : undefined;
-  if (isDefined(freshRace) && freshRace.refreshingPlayers.has(player.id)) {
-    freshRace.refreshingPlayers.delete(player.id);
-    await showMinesweeperBoard(player);
-    return;
-  }
-
-  if (response.canceled) {
-    if (response.cancelationReason === FormCancelationReason.UserBusy) {
-      await showMinesweeperBoard(player, notice);
+  while (player.isValid && isUiSessionActive(player.id, sessionVersion)) {
+    const game = getPlayerMinesweeperGame(player.id);
+    if (!isDefined(game)) {
+      await showMinesweeperMenu(player);
       return;
     }
-    if (isDefined(game.multiplayerMatchId) && game.status === 'active') {
-      forfeitMinesweeperRace(game.multiplayerMatchId, player.id, 'closed the game UI');
+
+    const raceMatch = isDefined(game.multiplayerMatchId) ? getMinesweeperRaceMatch(game.multiplayerMatchId) : undefined;
+    if (isDefined(raceMatch) && raceMatch.status !== 'active' && game.status === 'active') {
+      game.status = raceMatch.winnerId === player.id ? 'won' : 'lost';
     }
-    return;
-  }
 
-  const selection = response.selection;
-  const tappedPlayAgain = game.status !== 'active' && !isDefined(freshRace) && selection === cellCount;
-  const tappedToolbar = selection !== undefined && selection >= cellCount && !tappedPlayAgain;
-  const tappedCell = selection !== undefined && selection >= 0 && selection < cellCount ? selection : undefined;
+    const progress = getMinesweeperBoardProgress(game);
+    const elapsedSec = game.netElapsedSeconds ?? calculateNetElapsedSeconds(game);
+    const modeLabel = game.flagMode ? '§e[⚑ FLAG]' : '§a[DIG]';
+    const progBar = buildProgressBar(progress.percent);
 
-  if (game.status !== 'active' || (isDefined(freshRace) && freshRace.status !== 'active')) {
-    if (tappedPlayAgain && !isDefined(freshRace)) {
-      startMinesweeperGame(player, game.difficulty);
-      await showMinesweeperBoard(player);
+    let statusLine = `${progBar} §f${progress.percent}% §8| §7Mines: §c${progress.remainingMines} §8| §7Time: §b${elapsedSec.toFixed(1)}s §8| ${modeLabel}`;
+    if (isDefined(raceMatch)) {
+      const oppId = player.id === raceMatch.player1Id ? raceMatch.player2Id : raceMatch.player1Id;
+      const oppName = player.id === raceMatch.player1Id ? raceMatch.player2Name : raceMatch.player1Name;
+      const oppGame = getPlayerMinesweeperGame(oppId);
+      const oppPercent = isDefined(oppGame) ? getMinesweeperBoardProgress(oppGame).percent : 0;
+      statusLine = `§d[VS ${oppName}: ${oppPercent}%] §r${statusLine}`;
+    }
+
+    if (game.status === 'won') {
+      const winText = isDefined(raceMatch)
+        ? (raceMatch.endReason ?? 'You won the race!')
+        : (notice ?? 'All mines cleared!');
+      statusLine = `§a§lVICTORY! §r${winText}`;
+    } else if (game.status === 'lost') {
+      const loseText =
+        isDefined(raceMatch) && isNonEmptyString(raceMatch.endReason)
+          ? raceMatch.endReason
+          : (notice ?? 'You hit a mine!');
+      statusLine = `§c§lGAME OVER! §r${loseText} §8(${progress.percent}% cleared)`;
+    } else if (isNonEmptyString(notice)) {
+      statusLine = `${statusLine}\n${notice}`;
+    }
+
+    const rawForm = new ActionFormData()
+      .title(
+        `${msGridTitlePrefix[game.gridMode]}§r§l§bMinesweeper ${game.cols}x${game.rows} §8(${game.difficulty.toUpperCase()})`,
+      )
+      .body(escapeBedrockPercent(statusLine));
+
+    const cellCount = game.totalCells;
+    renderBoardButtons(game, rawForm);
+
+    if (game.status === 'active') {
+      const toolbarText = game.flagMode
+        ? '\uE101§r§l§e[⚑ MODE: FLAG MINE] §r§7(Tap to Dig)'
+        : '\uE101§r§l§a[⛏ MODE: DIG TILE] §r§7(Tap to Flag)';
+      const toolbarIcon = game.flagMode ? 'textures/blocks/tnt_side' : 'textures/items/iron_pickaxe';
+      rawForm.button(toolbarText, toolbarIcon);
+    } else if (!isDefined(raceMatch)) {
+      rawForm.button(
+        `\uE101§r§l§a[Play Again: ${game.cols}x${game.rows} ${game.difficulty.toUpperCase()}]`,
+        'textures/ui/refresh_light',
+      );
+      rawForm.button('\uE101§r§l§e[Minesweeper Menu]', 'textures/ui/arrow_left');
+    } else {
+      rawForm.button('\uE101§r§l§e[Return to Minesweeper Menu]', 'textures/ui/arrow_left');
+    }
+
+    recordMinesweeperTurnShown(player.id);
+    const response = (await uiWait(player, rawForm, { chained: true, sessionVersion })) as ActionFormResponse;
+
+    if (!isUiSessionActive(player.id, sessionVersion)) {
       return;
     }
-    clearPlayerMinesweeperGame(player.id);
-    await showMinesweeperMenu(player);
-    return;
-  }
 
-  if (tappedToolbar) {
-    const isFlag = toggleMinesweeperFlagMode(player.id);
-    await showMinesweeperBoard(player, isFlag ? '§eSwitched to [⚑ FLAG] Mode' : '§aSwitched to [DIG] Mode');
-    return;
-  }
+    const freshRace = isDefined(game.multiplayerMatchId) ? getMinesweeperRaceMatch(game.multiplayerMatchId) : undefined;
+    if (isDefined(freshRace) && freshRace.refreshingPlayers.has(player.id)) {
+      freshRace.refreshingPlayers.delete(player.id);
+      notice = undefined;
+      await nextTick();
+      continue;
+    }
 
-  if (tappedCell !== undefined) {
-    const res = handleMinesweeperCellTap(player, tappedCell);
-    await showMinesweeperBoard(player, res.message);
+    if (response.canceled) {
+      if (response.cancelationReason === FormCancelationReason.UserBusy) {
+        continue;
+      }
+      if (isDefined(game.multiplayerMatchId) && game.status === 'active') {
+        forfeitMinesweeperRace(game.multiplayerMatchId, player.id, 'closed the game UI');
+      }
+      return;
+    }
+
+    const selection = response.selection;
+    const tappedPlayAgain = game.status !== 'active' && !isDefined(freshRace) && selection === cellCount;
+    const tappedToolbar = selection !== undefined && selection >= cellCount && !tappedPlayAgain;
+    const tappedCell = selection !== undefined && selection >= 0 && selection < cellCount ? selection : undefined;
+
+    if (game.status !== 'active' || (isDefined(freshRace) && freshRace.status !== 'active')) {
+      if (tappedPlayAgain && !isDefined(freshRace)) {
+        startMinesweeperGame(player, game.difficulty);
+        notice = undefined;
+        continue;
+      }
+      clearPlayerMinesweeperGame(player.id);
+      await showMinesweeperMenu(player);
+      return;
+    }
+
+    if (tappedToolbar) {
+      const isFlag = toggleMinesweeperFlagMode(player.id);
+      notice = isFlag ? '§eSwitched to [⚑ FLAG] Mode' : '§aSwitched to [DIG] Mode';
+      continue;
+    }
+
+    if (tappedCell !== undefined) {
+      const res = handleMinesweeperCellTap(player, tappedCell);
+      notice = res.message;
+      continue;
+    }
+
+    break;
   }
 }
