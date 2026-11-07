@@ -1,8 +1,9 @@
 import { escapeBedrockPercent } from '@core/utils/formatting.js';
-import { uiWait } from '@core/utils/ui.js';
+import { uiWait, type UiWaitOptions } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { MessageFormData, MessageFormResponse } from '@minecraft/server-ui';
 
+/** Builder for 2-button MessageFormData confirmation dialogs. */
 export class MessageFormBuilder {
   private readonly form: MessageFormData;
   private button1Callback?: () => void | Promise<void>;
@@ -34,8 +35,8 @@ export class MessageFormBuilder {
     return this;
   }
 
-  public async show(player: Player, _options?: { wait?: boolean }): Promise<MessageFormResponse> {
-    const response = (await uiWait(player, this.form)) as MessageFormResponse;
+  public async show(player: Player, options?: UiWaitOptions): Promise<MessageFormResponse> {
+    const response = (await uiWait(player, this.form, options)) as MessageFormResponse;
 
     if (response.canceled) {
       return response;

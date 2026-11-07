@@ -10,6 +10,7 @@ import { diagnosticBotName } from '@core/utils/constants.js';
 import { formatString } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
 import { cancelActiveTeleportWarmup, clearTeleportProtection } from '@core/utils/teleportLogic.js';
+import { clearPlayerUiSession } from '@core/utils/ui.js';
 import { clearPlayerCombatState } from '@features/anticheat/combatCheck.js';
 import { clearPlayerMiningRateState } from '@features/anticheat/miningCheck.js';
 import { clearPlayerMovementState } from '@features/anticheat/movementCheck.js';
@@ -64,6 +65,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   clearPlayerChatFilterState(event.playerId);
   clearPlayerWordleConfirmation(event.playerId);
   clearPlayerUiTimestamp(event.playerId);
+  clearPlayerUiSession(event.playerId);
   clearPlayerReplyPartner(event.playerId);
   clearPlayerPlaytimeState(event.playerId);
   clearPlayerSafeBorderPosition(event.playerId);

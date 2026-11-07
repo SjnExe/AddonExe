@@ -1,15 +1,18 @@
 import { escapeBedrockPercent } from '@core/utils/formatting.js';
-import { uiWait } from '@core/utils/ui.js';
+import { uiWait, type UiWaitOptions } from '@core/utils/ui.js';
 import { Player } from '@minecraft/server';
 import { ActionFormData, ActionFormResponse } from '@minecraft/server-ui';
 
+/** Supported grid layouts for Bedrock custom JSON UI action forms. */
 export type GridColumns = 1 | 2 | 3 | 4 | 'board' | '2048' | 'c4' | 'minesweeper' | 'ms9' | 'ms12' | 'ms16';
 
+/** Fluent builder for ActionFormData supporting custom grid columns, button callbacks, and high-frequency raw buttons. */
 export class ActionFormBuilder {
   private readonly form: ActionFormData;
-  private readonly callbacks: Map<number, (() => void | Promise<void>) | undefined>;
+  private readonly callbacks: Map<number, () => void | Promise<void>>;
   private gridColumns: GridColumns = 2;
   private rawTitle = '';
+  private totalButtonCount = 0;
 
   constructor() {
     this.form = new ActionFormData();
@@ -59,7 +62,7 @@ export class ActionFormBuilder {
       this.form.title(`§8§1§6§f§r${this.rawTitle}`);
       return;
     }
-    const buttonCount = Math.max(1, this.callbacks.size);
+    const buttonCount = Math.max(1, this.totalButtonCount);
     const maxRows = 24;
     const rows = Math.max(1, Math.min(maxRows, Math.ceil(buttonCount / this.gridColumns)));
     const tens = Math.floor(rows / 10);
@@ -69,6 +72,15 @@ export class ActionFormBuilder {
 
   public getColumns(): GridColumns {
     return this.gridColumns;
+  }
+
+  /**
+   * Returns the total number of buttons added to this form builder.
+   *
+   * @returns Total button count.
+   */
+  public getButtonCount(): number {
+    return this.totalButtonCount;
   }
 
   public body(bodyText: string): this {
@@ -97,6 +109,25 @@ export class ActionFormBuilder {
     return this;
   }
 
+  /**
+   * Appends a button without allocating a callback closure or Map entry. Optimizes performance for high-frequency game
+   * grids and boards where button selection is handled by numeric index.
+   *
+   * @param text The button label.
+   * @param iconPath Optional icon texture path.
+   * @returns This builder instance.
+   */
+  public rawButton(text: string, iconPath?: string | null): this {
+    const safeText = escapeBedrockPercent(text);
+    if (iconPath) {
+      this.form.button(safeText, iconPath);
+    } else {
+      this.form.button(safeText);
+    }
+    this.totalButtonCount++;
+    return this;
+  }
+
   public button(text: string, iconPath?: string | null, onClick?: () => void | Promise<void>): this {
     const safeText = escapeBedrockPercent(text);
     if (iconPath) {
@@ -105,10 +136,9 @@ export class ActionFormBuilder {
       this.form.button(safeText);
     }
 
+    const buttonIndex = this.totalButtonCount++;
     if (onClick) {
-      this.callbacks.set(this.callbacks.size, onClick);
-    } else {
-      this.callbacks.set(this.callbacks.size, undefined);
+      this.callbacks.set(buttonIndex, onClick);
     }
     return this;
   }
@@ -118,18 +148,18 @@ export class ActionFormBuilder {
     return this;
   }
 
-  public async show(player: Player, _options?: { wait?: boolean }): Promise<ActionFormResponse> {
+  public async show(player: Player, options?: UiWaitOptions): Promise<ActionFormResponse> {
     if (this.rawTitle) {
       this.applyTitleWithGrid();
     }
-    const response = (await uiWait(player, this.form)) as ActionFormResponse;
+    const response = (await uiWait(player, this.form, options)) as ActionFormResponse;
 
     if (response.canceled) {
       return response;
     }
 
     const selection = response.selection;
-    if (selection !== undefined) {
+    if (selection !== undefined && this.callbacks.size > 0) {
       const callback = this.callbacks.get(selection);
       if (callback) {
         await callback();
