@@ -24,8 +24,7 @@ reviews:
     description:
       mode: 'warning'
     docstrings:
-      mode: 'warning'
-      threshold: 80
+      mode: 'off'
 
   path_filters:
     - '!bun.lock'

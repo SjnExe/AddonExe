@@ -28,7 +28,9 @@ export interface Punishment {
   reason: string;
 }
 
+/** Active punishment state associated with a player entity ID or username key. */
 export interface PlayerPunishmentRecord {
+  playerName?: string;
   mute?: Punishment;
   ban?: Punishment;
 }
@@ -193,6 +195,10 @@ export function addPunishment(playerId: string, playerName: string, punishment: 
   }
   const record = punishments.get(playerId) ?? {};
 
+  if (isNonEmptyString(playerName)) {
+    record.playerName = playerName;
+  }
+
   if (punishment.type === 'ban') {
     record.ban = punishment;
   } else {
@@ -268,6 +274,11 @@ function resolvePunishmentTargetKeys(playerIdOrName: string): Set<string> {
     keys.add(resolvedName);
     keys.add(resolvedName.toLowerCase());
   }
+  const idRecord = punishments.get(playerIdOrName);
+  if (isDefined(idRecord?.playerName)) {
+    keys.add(idRecord.playerName);
+    keys.add(idRecord.playerName.toLowerCase());
+  }
   const resolvedId = getPlayerIdByName(playerIdOrName);
   if (isDefined(resolvedId)) {
     keys.add(resolvedId);
@@ -276,6 +287,11 @@ function resolvePunishmentTargetKeys(playerIdOrName: string): Set<string> {
     if (isDefined(canonicalName)) {
       keys.add(canonicalName);
       keys.add(canonicalName.toLowerCase());
+    }
+    const mappedRecord = punishments.get(resolvedId);
+    if (isDefined(mappedRecord?.playerName)) {
+      keys.add(mappedRecord.playerName);
+      keys.add(mappedRecord.playerName.toLowerCase());
     }
   }
   return keys;
@@ -371,13 +387,74 @@ export function getPunishment(playerId: string, type: PunishmentType): Punishmen
  */
 export function checkAndKickBannedPlayer(player: mc.Player): boolean {
   clearExpiredPunishments();
-  const punishment = getPunishment(player.id, 'ban') ?? getPunishment(player.name.toLowerCase(), 'ban');
+  let playerId = '';
+  try {
+    playerId = player.id;
+  } catch {
+    // Native entity getter failed or entity is invalid
+  }
+  if (!isNonEmptyString(playerId)) {
+    return false;
+  }
+
+  let resolvedName = '';
+  try {
+    if (player.isValid !== false) {
+      resolvedName = player.name;
+    }
+  } catch {
+    // Player entity getter failed
+  }
+  if (!resolvedName) {
+    resolvedName = getPlayerNameById(playerId) ?? '';
+  }
+
+  if (!resolvedName) {
+    const storedName = punishments.get(playerId)?.playerName;
+    if (isNonEmptyString(storedName)) {
+      resolvedName = storedName;
+    }
+  }
+
+  const punishment =
+    getPunishment(playerId, 'ban') ?? (resolvedName ? getPunishment(resolvedName.toLowerCase(), 'ban') : undefined);
   if (isDefined(punishment)) {
     const banReason = isNonEmptyString(punishment.reason) ? punishment.reason : 'You are banned.';
+    const targetName = resolvedName;
     // Use a slight delay to ensure the kick command processes after join
-    mc.system.runTimeout(() => {
-      kickPlayer(player.name, banReason);
-    }, 5);
+    const enforceKick = (attemptsLeft = 20) => {
+      if (player.isValid === false) {
+        return;
+      }
+      let finalName = targetName;
+      try {
+        const rawName = player.name;
+        if (isNonEmptyString(rawName)) {
+          finalName = rawName;
+        }
+      } catch {
+        // Fall back to targetName / ID mappings
+      }
+      if (!finalName) {
+        finalName = (getPlayerNameById(playerId) || punishments.get(playerId)?.playerName) ?? '';
+      }
+
+      if (isNonEmptyString(finalName)) {
+        if (!kickPlayer(finalName, banReason)) {
+          errorLog(`[PunishmentManager] Kick command failed for banned player ${playerId}.`);
+        }
+        return;
+      }
+
+      if (attemptsLeft > 0) {
+        mc.system.runTimeout(() => enforceKick(attemptsLeft - 1), 5);
+        return;
+      }
+
+      errorLog(`[PunishmentManager] No name resolved for banned player ${playerId}. Ban not enforced.`);
+    };
+
+    mc.system.runTimeout(() => enforceKick(), 5);
     return true;
   }
   return false;

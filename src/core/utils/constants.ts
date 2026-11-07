@@ -44,6 +44,10 @@ export const afkDisabled: RawMessage = tr('error.afk_disabled');
 export const soundTeleport = 'random.orb';
 export const soundError = 'note.bass';
 
+// --- Diagnostic & Testing Constants ---
+/** Name identifier for the canary automated diagnostic simulated bot. */
+export const diagnosticBotName = 'exe_diagnostic_bot';
+
 // --- Creator Cosmetic Badge (No Permission Elevation) ---
 export const developerUsernames = new Set(['sjntechmlmyt']);
 export const developerBadge = '§b[§dDev§b]§r';

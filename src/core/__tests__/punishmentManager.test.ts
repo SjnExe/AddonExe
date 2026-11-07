@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, onTestFinished, spyOn } fr
 import * as configManager from '@core/config/configManager.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
+import * as logger from '@core/utils/logger.js';
+import * as playerUtils from '@core/utils/player.js';
 import * as logManager from '@features/anticheat/logManager.js';
 import {
   addPunishment,
@@ -98,6 +100,170 @@ describe('PunishmentManager', () => {
 
     expect(wasKicked).toBeFalse();
     expect(getPunishment(pid, 'ban')).toBeUndefined();
+  });
+
+  it('should kick banned player by ID even if player.name getter throws', () => {
+    const pid = 'banned_throwing_1';
+    const ban = { type: 'ban' as const, expires: Infinity, reason: 'id ban' };
+    addPunishment(pid, 'BannedThrowing', ban, 'Admin');
+
+    const throwingPlayer = {
+      id: pid,
+      isValid: true,
+      get name(): string {
+        throw new Error('Native getter failed');
+      },
+    } as unknown as mc.Player;
+
+    const kickSpy = spyOn(playerUtils, 'kickPlayer').mockImplementation(() => true);
+    try {
+      const wasKicked = checkAndKickBannedPlayer(throwingPlayer);
+      expect(wasKicked).toBeTrue();
+      expect(kickSpy).toHaveBeenCalledWith('BannedThrowing', 'id ban');
+    } finally {
+      kickSpy.mockRestore();
+    }
+  });
+
+  it('should retry delayed ban enforcement until player name becomes available', () => {
+    const pid = 'banned_delayed_1';
+    const ban = { type: 'ban' as const, expires: Infinity, reason: 'delayed ban' };
+    addPunishment(pid, '', ban, 'Admin');
+
+    let nameAccessCount = 0;
+    const delayedPlayer = {
+      id: pid,
+      isValid: true,
+      get name(): string {
+        nameAccessCount++;
+        if (nameAccessCount < 3) {
+          throw new Error('Native getter not ready');
+        }
+        return 'DelayedBannedPlayer';
+      },
+    } as unknown as mc.Player;
+
+    const kickSpy = spyOn(playerUtils, 'kickPlayer').mockImplementation(() => true);
+    try {
+      const wasKicked = checkAndKickBannedPlayer(delayedPlayer);
+      expect(wasKicked).toBeTrue();
+      expect(kickSpy).toHaveBeenCalledWith('DelayedBannedPlayer', 'delayed ban');
+      expect(nameAccessCount).toBe(3);
+    } finally {
+      kickSpy.mockRestore();
+    }
+  });
+
+  it('should abort delayed ban enforcement if player entity becomes invalid during enforcement', () => {
+    const pid = 'banned_disconnected_1';
+    const ban = { type: 'ban' as const, expires: Infinity, reason: 'disconnect ban' };
+    addPunishment(pid, '', ban, 'Admin');
+
+    const disconnectedPlayer = {
+      id: pid,
+      isValid: true,
+      get name(): string {
+        throw new Error('Entity is loading');
+      },
+    } as unknown as mc.Player;
+
+    // Simulate player disconnecting before delayed enforcement executes
+    disconnectedPlayer.isValid = false;
+
+    const kickSpy = spyOn(playerUtils, 'kickPlayer').mockImplementation(() => true);
+    try {
+      const wasKicked = checkAndKickBannedPlayer(disconnectedPlayer);
+      expect(wasKicked).toBeTrue();
+      expect(kickSpy).not.toHaveBeenCalled();
+    } finally {
+      kickSpy.mockRestore();
+    }
+  });
+
+  it('should log an error when kickPlayer returns false', () => {
+    const pid = 'banned_kick_fail_1';
+    const ban = { type: 'ban' as const, expires: Infinity, reason: 'fail ban' };
+    addPunishment(pid, 'FailPlayer', ban, 'Admin');
+
+    const mockPlayer = {
+      id: pid,
+      isValid: true,
+      name: 'FailPlayer',
+    } as unknown as mc.Player;
+
+    const errorSpy = spyOn(logger, 'errorLog').mockImplementation(() => {});
+    const kickSpy = spyOn(playerUtils, 'kickPlayer').mockImplementation(() => false);
+    try {
+      const wasKicked = checkAndKickBannedPlayer(mockPlayer);
+      expect(wasKicked).toBeTrue();
+      expect(kickSpy).toHaveBeenCalledWith('FailPlayer', 'fail ban');
+      expect(errorSpy).toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+      kickSpy.mockRestore();
+    }
+  });
+
+  it('should log an error when name resolution retries are exhausted', () => {
+    const pid = 'banned_exhausted_1';
+    const ban = { type: 'ban' as const, expires: Infinity, reason: 'exhausted ban' };
+    addPunishment(pid, '', ban, 'Admin');
+
+    const unresolvablePlayer = {
+      id: pid,
+      isValid: true,
+      get name(): string {
+        throw new Error('Never ready');
+      },
+    } as unknown as mc.Player;
+
+    const errorSpy = spyOn(logger, 'errorLog').mockImplementation(() => {});
+    const kickSpy = spyOn(playerUtils, 'kickPlayer').mockImplementation(() => true);
+    try {
+      const wasKicked = checkAndKickBannedPlayer(unresolvablePlayer);
+      expect(wasKicked).toBeTrue();
+      expect(kickSpy).not.toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+      kickSpy.mockRestore();
+    }
+  });
+
+  it('should fall back to stored punishment name when getPlayerNameById returns empty string', () => {
+    const pid = 'banned_empty_map_name_1';
+    const ban = { type: 'ban' as const, expires: Infinity, reason: 'empty map ban' };
+    addPunishment(pid, 'StoredPunishmentName', ban, 'Admin');
+
+    const throwingPlayer = {
+      id: pid,
+      isValid: true,
+      get name(): string {
+        throw new Error('Getter error');
+      },
+    } as unknown as mc.Player;
+
+    const nameSpy = spyOn(playerDataManager, 'getPlayerNameById').mockReturnValue('');
+    const kickSpy = spyOn(playerUtils, 'kickPlayer').mockImplementation(() => true);
+    try {
+      const wasKicked = checkAndKickBannedPlayer(throwingPlayer);
+      expect(wasKicked).toBeTrue();
+      expect(kickSpy).toHaveBeenCalledWith('StoredPunishmentName', 'empty map ban');
+    } finally {
+      nameSpy.mockRestore();
+      kickSpy.mockRestore();
+    }
+  });
+
+  it('should return false if player.id getter throws on invalid entity', () => {
+    const invalidPlayer = {
+      isValid: false,
+      get id(): string {
+        throw new Error('Entity is invalid');
+      },
+    } as unknown as mc.Player;
+
+    expect(checkAndKickBannedPlayer(invalidPlayer)).toBeFalse();
   });
 
   it('should not expire permanent bans with Infinity or null expires', () => {

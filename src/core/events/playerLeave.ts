@@ -6,6 +6,7 @@ import { clearPlayerChatFilterState } from '@core/events/beforeChatSend.js';
 import { hasPermission, invalidatePlayerPermissionCache } from '@core/permissions/permissionEngine.js';
 import { clearPlayerRankCache } from '@core/permissions/rankManager.js';
 import { clearPlayerUiTimestamp } from '@core/ui/uiManager.js';
+import { diagnosticBotName } from '@core/utils/constants.js';
 import { formatString } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
 import { cancelActiveTeleportWarmup, clearTeleportProtection } from '@core/utils/teleportLogic.js';
@@ -34,7 +35,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   const config = getConfig();
   const joinLeaveConfig = config.playerInfo.customJoinLeave;
 
-  if (pData?.isVanished !== true && joinLeaveConfig?.leaveMessage) {
+  if (pData?.isVanished !== true && joinLeaveConfig?.leaveMessage && event.playerName !== diagnosticBotName) {
     const msg = formatString(joinLeaveConfig.leaveMessage, { playerName: event.playerName });
     mc.world.sendMessage(msg);
   }

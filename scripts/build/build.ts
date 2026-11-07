@@ -398,6 +398,9 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
   const outDir = resolve(rootDir, `packs/behavior/scripts${outDirSuffix}`);
 
   const externalModules = ['@minecraft/server', '@minecraft/server-ui'];
+  if (isCanary) {
+    externalModules.push('@minecraft/server-gametest', '@minecraft/debug-utilities');
+  }
 
   // Bundle Core Engine Module into main.js
   const coreResult = await Bun.build({
