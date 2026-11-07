@@ -1,11 +1,11 @@
 import { getConfig } from '@core/config/configManager.js';
 import { deserializeItem } from '@core/data/itemSerializer.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
-import { getOrCreatePlayer, updatePlayerData } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, type PlayerData, updatePlayerData } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { getPlayerRank, updatePlayerNameTag } from '@core/permissions/rankManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { frozenTag, vanishedTag } from '@core/utils/constants.js';
+import { diagnosticBotName, frozenTag, vanishedTag } from '@core/utils/constants.js';
 import { formatCurrency, formatLocation, formatString } from '@core/utils/index.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
@@ -26,7 +26,16 @@ import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
  * @param player Newly connected player.
  */
 export function handlePlayerJoin(player: mc.Player) {
-  const pData = getOrCreatePlayer(player);
+  if (player.isValid === false) {
+    return;
+  }
+  let pData: PlayerData;
+  try {
+    pData = getOrCreatePlayer(player);
+  } catch (err: unknown) {
+    debugLog(`[PlayerJoin] Skipped player initialization: ${err instanceof Error ? err.message : String(err)}`);
+    return;
+  }
   const config = getConfig();
 
   // Sync Rank from Manager to PlayerData
@@ -39,7 +48,7 @@ export function handlePlayerJoin(player: mc.Player) {
     sendMessage('§6[AddonExe] §eNo Server Owner is set yet! Run §a/function owner§e to claim Server Owner.', player);
   }
   if (pData.rankId !== calculatedRank.id) {
-    infoLog(`[Add-on] Syncing rank for ${player.name}: ${pData.rankId} -> ${calculatedRank.id}`);
+    infoLog(`[Add-on] Syncing rank for ${pData.name}: ${pData.rankId} -> ${calculatedRank.id}`);
     updatePlayerData(player.id, (d) => {
       d.rankId = calculatedRank.id;
     });
@@ -60,7 +69,7 @@ export function handlePlayerJoin(player: mc.Player) {
     }
   }
 
-  debugLog(`[Add-on] Player ${player.name} joined with rank ${pData.rankId}.`);
+  debugLog(`[Add-on] Player ${pData.name} joined with rank ${pData.rankId}.`);
 
   if (checkAndKickBannedPlayer(player)) {
     return;
@@ -69,7 +78,7 @@ export function handlePlayerJoin(player: mc.Player) {
   if (isWatched(player.id)) {
     for (const staff of getAllPlayersFromCache()) {
       if (staff.isValid && hasPermission(staff, 'group.mod')) {
-        staff.sendMessage(`§6[Watchlist] §e${player.name} §7joined the server.`);
+        staff.sendMessage(`§6[Watchlist] §e${pData.name} §7joined the server.`);
       }
     }
   }
@@ -288,14 +297,30 @@ export function handlePlayerJoin(player: mc.Player) {
   }
 
   // Core Custom Join Message (RP hides vanilla join/leave across locales)
+  let playerName = '';
+  try {
+    playerName = player.name;
+  } catch {
+    // Player invalidated concurrently
+  }
   const joinLeaveConfig = config.playerInfo.customJoinLeave;
-  if (!player.hasTag(vanishedTag) && isNonEmptyString(joinLeaveConfig?.joinMessage)) {
-    const msg = formatString(joinLeaveConfig.joinMessage, { playerName: player.name });
+  if (
+    playerName &&
+    playerName !== diagnosticBotName &&
+    !player.hasTag(vanishedTag) &&
+    isNonEmptyString(joinLeaveConfig?.joinMessage)
+  ) {
+    const msg = formatString(joinLeaveConfig.joinMessage, { playerName });
     mc.world.sendMessage(msg);
   }
-  if (config.playerInfo.enableWelcomer && config.playerInfo.welcomeMessage) {
+  if (
+    playerName &&
+    playerName !== diagnosticBotName &&
+    config.playerInfo.enableWelcomer &&
+    config.playerInfo.welcomeMessage
+  ) {
     const welcomeMsg = formatString(config.playerInfo.welcomeMessage, {
-      playerName: player.name,
+      playerName,
       serverName: config.serverName || 'Server',
       discordLink: config.serverInfo.discordLink || '',
       websiteLink: config.serverInfo.websiteLink || '',
@@ -353,7 +378,9 @@ export function handlePlayerJoin(player: mc.Player) {
 
   mc.system.runTimeout(() => {
     try {
-      updatePlayerNameTag(player, getConfig());
+      if (player.isValid !== false) {
+        updatePlayerNameTag(player, getConfig());
+      }
     } catch {
       // This can sometimes fail if the player object isn't fully ready.
     }
@@ -369,17 +396,26 @@ export function handlePlayerJoin(player: mc.Player) {
 export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
   const { player, initialSpawn } = event;
 
+  if (player.isValid === false) {
+    return;
+  }
+
   if (initialSpawn) {
     handlePlayerJoin(player);
     return;
   }
 
   const config = getConfig();
-  const pData = getOrCreatePlayer(player);
+  let pData: PlayerData;
+  try {
+    pData = getOrCreatePlayer(player);
+  } catch {
+    return;
+  }
 
   mc.system.runTimeout(() => {
     try {
-      if (player.isValid) {
+      if (player.isValid !== false) {
         updatePlayerNameTag(player, config);
       }
     } catch {

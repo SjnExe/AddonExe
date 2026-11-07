@@ -2,7 +2,7 @@ import { getConfig } from '@core/config/configManager.js';
 import { getXrayConfig } from '@core/config/configurations.js';
 import { deserializeItem, serializeItem } from '@core/data/itemSerializer.js';
 import { StorageManager } from '@core/data/storageManager.js';
-import { floatingTextId } from '@core/utils/constants.js';
+import { diagnosticBotName, floatingTextId } from '@core/utils/constants.js';
 import { debugLog, warnLog } from '@core/utils/logger.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes, MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
@@ -124,7 +124,7 @@ export function registerMcApiTests(): void {
 
       let bot: ReturnType<typeof gametest.spawnSimulatedPlayer>;
       try {
-        bot = gametest.spawnSimulatedPlayer(spawnLoc, 'exe_diagnostic_bot', mc.GameMode.Creative);
+        bot = gametest.spawnSimulatedPlayer(spawnLoc, diagnosticBotName, mc.GameMode.Creative);
       } catch (err: unknown) {
         throw new Error(
           `Failed to spawn simulated player (${players.length > 0 ? 'near player' : 'default location, no players online'}): ${err instanceof Error ? err.message : String(err)}`,
