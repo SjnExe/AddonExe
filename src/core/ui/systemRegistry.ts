@@ -1,6 +1,7 @@
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
 
+/** Represents a registered addon subsystem configuration entry and its presentation handler. */
 export interface SystemDefinition {
   /** Unique identifier for the system (used for reset logic). */
   id: string;
@@ -8,8 +9,13 @@ export interface SystemDefinition {
   title: string;
   /** Icon path for the system button. */
   icon: string;
+  /** Optional human-readable description for search and previews. */
+  description?: string;
   /** The panel ID to open when configured. */
-  showFunction?: (player: import('@minecraft/server').Player) => Promise<void> | void;
+  showFunction?: (
+    player: import('@minecraft/server').Player,
+    context?: Record<string, unknown>,
+  ) => Promise<void> | void;
   configPanelId?: string;
   /** The category of the system. */
   category?: string;
@@ -56,9 +62,9 @@ export function getSystemRegistry(): SystemDefinition[] {
       }
       if (schema.id === 'gameplay') {
         def.isSimpleConfig = false;
-        def.showFunction = async (player) => {
+        def.showFunction = async (player, context) => {
           const { showGameplayPanel } = await import('@features/gameplay/ui/panel.js');
-          await showGameplayPanel(player);
+          await showGameplayPanel(player, context as import('@features/gameplay/ui/panel.js').GameplayPanelContext);
         };
       }
       return def;
@@ -124,9 +130,9 @@ export function getSystemRegistry(): SystemDefinition[] {
       id: 'world_border_manager',
       title: 'World Border Manager',
       icon: 'textures/blocks/beacon',
-      showFunction: async (player) => {
+      showFunction: async (player, context) => {
         const { showWorldBorderAdminPanel } = await import('@features/essentials/worldBorder/ui/panel.js');
-        await showWorldBorderAdminPanel(player);
+        await showWorldBorderAdminPanel(player, context);
       },
       category: 'Teleportation & World',
       isSimpleConfig: false,
@@ -166,11 +172,13 @@ export function getSystemRegistry(): SystemDefinition[] {
     },
     {
       id: 'mob_money_editor',
-      title: 'Mob Money Rewards Editor',
+      title: 'Mob Kill Rewards & Penalties',
       icon: 'textures/items/iron_sword',
-      showFunction: async (player) => {
+      description:
+        'Configure economy money rewards and penalty amounts for killing mobs (e.g. pandas, villagers, hostile mobs).',
+      showFunction: async (player, context) => {
         const { showMobMoneyPanel } = await import('@features/economy/ui/mobMoneyPanel.js');
-        await showMobMoneyPanel(player);
+        await showMobMoneyPanel(player, 1, undefined, context);
       },
       category: 'Economy',
       isSimpleConfig: false,
@@ -193,4 +201,75 @@ export function getSystemRegistry(): SystemDefinition[] {
 
 export function getSystemDefinition(id: string): SystemDefinition | undefined {
   return getSystemRegistry().find((s) => s.id === id);
+}
+
+let cachedSchemaCorpus: Map<string, string> | undefined;
+
+function getSchemaCorpus(): Map<string, string> {
+  if (cachedSchemaCorpus !== undefined) {
+    return cachedSchemaCorpus;
+  }
+  const map = new Map<string, string>();
+  for (const cat of configPanelSchema) {
+    const parts: string[] = [cat.id, cat.title];
+    if (cat.category) {
+      parts.push(cat.category);
+    }
+    for (const setting of cat.settings) {
+      parts.push(setting.key, setting.label);
+      if (setting.description) {
+        parts.push(setting.description);
+      }
+    }
+    map.set(cat.id, parts.join(' ').toLowerCase());
+  }
+  cachedSchemaCorpus = map;
+  return map;
+}
+
+const systemCorpusCache = new WeakMap<SystemDefinition, string>();
+
+function getSystemCorpus(sys: SystemDefinition): string {
+  let cached = systemCorpusCache.get(sys);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const schemaMap = getSchemaCorpus();
+  const schemaCorpus = schemaMap.get(sys.id) ?? '';
+  cached = `${sys.id} ${sys.title} ${sys.category ?? ''} ${sys.description ?? ''} ${schemaCorpus}`.toLowerCase();
+  systemCorpusCache.set(sys, cached);
+  return cached;
+}
+
+/**
+ * Searches the system registry and config schema settings for systems matching a query string. Matches against system
+ * titles, IDs, descriptions, categories, and contained setting keys/labels.
+ *
+ * @param query The search query string.
+ * @param availableSystems Optional array of system definitions to search within (defaults to all registry systems).
+ * @returns Array of system definitions matching the search query.
+ */
+export function searchConfigSystems(
+  query: string,
+  availableSystems: SystemDefinition[] = getSystemRegistry(),
+): SystemDefinition[] {
+  const trimmed = query.trim().toLowerCase();
+  if (trimmed.length === 0) {
+    return [];
+  }
+
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+
+  return availableSystems.filter((sys) => {
+    if (sys.hidden === true) {
+      return false;
+    }
+    const corpus = getSystemCorpus(sys);
+
+    if (corpus.includes(trimmed)) {
+      return true;
+    }
+
+    return tokens.every((token) => corpus.includes(token));
+  });
 }

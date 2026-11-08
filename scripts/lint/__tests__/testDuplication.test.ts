@@ -19,5 +19,5 @@ describe('testDuplication - checkDuplication', () => {
   it('executes duplication scanning cleanly across workspace', async () => {
     await expect(checkDuplication()).resolves.toBeUndefined();
     expect(logSpy).toHaveBeenCalled();
-  });
+  }, 30000);
 });

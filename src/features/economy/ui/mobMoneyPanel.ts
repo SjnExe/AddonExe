@@ -6,30 +6,46 @@ import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
-export async function showMobMoneyPanel(player: mc.Player, page: number = 1, searchQuery?: string): Promise<void> {
+/**
+ * Displays the Mob Kill Rewards & Penalties configuration panel for managing mob payouts.
+ *
+ * @param player Administrative player managing mob money values.
+ * @param page Current pagination page.
+ * @param searchQuery Optional filter string for entity type IDs.
+ * @param context Caller navigation context for returning to prior menus.
+ * @returns Promise that resolves when the panel has been processed.
+ */
+export async function showMobMoneyPanel(
+  player: mc.Player,
+  page: number = 1,
+  searchQuery?: string,
+  context: Record<string, unknown> = {},
+): Promise<void> {
   const config = getEconomyConfig();
   const entries = Object.entries(config.mobMoney)
     .filter(([mobId]) => !isNonEmptyString(searchQuery) || mobId.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => a[0].localeCompare(b[0]));
 
   const form = new ActionFormBuilder()
-    .title(isNonEmptyString(searchQuery) ? `Mob Money: "${searchQuery}"` : 'Mob Money Rewards')
-    .body('Positive values reward players on kill; negative values penalize players:')
-    .button('§2+ Add / Set Mob Reward', 'textures/ui/color_plus', async () => {
-      await showEditMobMoneyModal(player, undefined, page, searchQuery);
+    .title(isNonEmptyString(searchQuery) ? `Mob Rewards & Penalties: "${searchQuery}"` : 'Mob Kill Rewards & Penalties')
+    .body(
+      'Positive amounts reward players on kill; negative amounts penalize players (e.g. killing pandas or villagers):',
+    )
+    .button('§2+ Add / Set Mob Reward or Penalty', 'textures/ui/color_plus', async () => {
+      await showEditMobMoneyModal(player, undefined, page, searchQuery, context);
     })
     .button(
       isNonEmptyString(searchQuery) ? '§cClear Search' : '§6Search Mob',
       'textures/ui/magnifyingGlass',
       async () => {
         if (isNonEmptyString(searchQuery)) {
-          await showMobMoneyPanel(player, 1);
+          await showMobMoneyPanel(player, 1, undefined, context);
         } else {
           const modal = new CustomFormBuilder<{ q: string }>('Search Mob Money')
             .textField('q', 'Mob ID Filter', 'zombie', '')
             .submitButton('Search');
           const res = await modal.show(player);
-          await showMobMoneyPanel(player, 1, res?.q.trim() || undefined);
+          await showMobMoneyPanel(player, 1, res?.q.trim() || undefined, context);
         }
       },
     );
@@ -43,19 +59,29 @@ export async function showMobMoneyPanel(player: mc.Player, page: number = 1, sea
         `${mobId.replace(/^minecraft:/, '')}\n${color}${formatCurrency(amount)}`,
         'textures/items/iron_sword',
         async () => {
-          await showEditMobMoneyModal(player, mobId, page, searchQuery);
+          await showEditMobMoneyModal(player, mobId, page, searchQuery, context);
         },
       );
     },
     async (newPage) => {
-      await showMobMoneyPanel(player, newPage, searchQuery);
+      await showMobMoneyPanel(player, newPage, searchQuery, context);
     },
     45,
   );
 
   form.addBackButton(async () => {
-    const { showConfigCategoryDetailPanel } = await import('@core/ui/panels/configPanel.js');
-    await showConfigCategoryDetailPanel(player, 'Economy');
+    if (!player.isValid) {
+      return;
+    }
+    if (typeof context.onReturn === 'function') {
+      await (context.onReturn as (player: mc.Player) => Promise<void>)(player);
+    } else {
+      const { showConfigCategoryDetailPanel } = await import('@core/ui/panels/configPanel.js');
+      if (!player.isValid) {
+        return;
+      }
+      await showConfigCategoryDetailPanel(player, 'Economy', context);
+    }
   });
 
   await form.show(player);
@@ -66,6 +92,7 @@ async function showEditMobMoneyModal(
   existingMobId?: string,
   page: number = 1,
   searchQuery?: string,
+  context: Record<string, unknown> = {},
 ): Promise<void> {
   const config = getEconomyConfig();
   const isEdit = isNonEmptyString(existingMobId);
@@ -75,9 +102,14 @@ async function showEditMobMoneyModal(
     mobId: string;
     amount: string;
     deleteEntry?: boolean;
-  }>(isEdit ? `Edit Mob: ${existingMobId}` : 'Add Mob Reward / Penalty')
-    .textField('mobId', 'Entity Type ID', MinecraftEntityTypes.Zombie, existingMobId ?? MinecraftEntityTypes.Zombie)
-    .textField('amount', 'Money Reward (Negative for penalty)', '5', String(currentAmount));
+  }>(isEdit ? `Edit Mob: ${existingMobId}` : 'Add Mob Reward or Penalty')
+    .textField(
+      'mobId',
+      'Entity Type ID (e.g. panda, zombie, villager)',
+      MinecraftEntityTypes.Zombie,
+      existingMobId ?? MinecraftEntityTypes.Zombie,
+    )
+    .textField('amount', 'Money Amount (Positive = Reward, Negative = Penalty)', '5', String(currentAmount));
 
   if (isEdit) {
     modal.toggle('deleteEntry', '§cRemove this mob from Mob Money', false);
@@ -87,7 +119,7 @@ async function showEditMobMoneyModal(
 
   const res = await modal.show(player);
   if (!res) {
-    await showMobMoneyPanel(player, page, searchQuery);
+    await showMobMoneyPanel(player, page, searchQuery, context);
     return;
   }
 
@@ -95,13 +127,13 @@ async function showEditMobMoneyModal(
     delete config.mobMoney[existingMobId];
     saveEconomyConfig(config);
     player.sendMessage(`§aRemoved ${existingMobId} from Mob Money.`);
-    await showMobMoneyPanel(player, page, searchQuery);
+    await showMobMoneyPanel(player, page, searchQuery, context);
     return;
   }
 
   let mobId = res.mobId.trim();
   if (!isNonEmptyString(mobId)) {
-    await showMobMoneyPanel(player, page, searchQuery);
+    await showMobMoneyPanel(player, page, searchQuery, context);
     return;
   }
   if (!mobId.includes(':')) {
@@ -111,7 +143,7 @@ async function showEditMobMoneyModal(
   const parsedAmount = Number.parseFloat(res.amount);
   if (Number.isNaN(parsedAmount)) {
     player.sendMessage('§cInvalid amount.');
-    await showMobMoneyPanel(player, page, searchQuery);
+    await showMobMoneyPanel(player, page, searchQuery, context);
     return;
   }
 
@@ -122,5 +154,5 @@ async function showEditMobMoneyModal(
   config.mobMoney[mobId] = parsedAmount;
   saveEconomyConfig(config);
   player.sendMessage(`§aSaved Mob Money for ${mobId}: ${formatCurrency(parsedAmount)}.`);
-  await showMobMoneyPanel(player, page, searchQuery);
+  await showMobMoneyPanel(player, page, searchQuery, context);
 }

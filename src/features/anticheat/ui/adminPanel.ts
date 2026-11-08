@@ -4,6 +4,12 @@ import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
+/**
+ * Displays the advanced anti-cheat configuration and world border navigation menu.
+ *
+ * @param player Administrative player viewing anti-cheat settings.
+ * @returns Promise that resolves when the menu has been handled.
+ */
 export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<void> {
   const config = getAnticheatConfig();
 
@@ -44,7 +50,7 @@ export async function showAnticheatAdvancedPanel(player: mc.Player): Promise<voi
     )
     .button('§l§bWorld Border Manager\n§r§7Overworld, Nether & End', 'textures/blocks/beacon', async () => {
       const { showWorldBorderAdminPanel } = await import('@features/essentials/worldBorder/ui/panel.js');
-      await showWorldBorderAdminPanel(player);
+      await showWorldBorderAdminPanel(player, { returnTo: 'anticheat' });
     });
 
   form.addBackButton(async () => {

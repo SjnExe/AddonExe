@@ -4,7 +4,7 @@ import { initializeConfigManager } from '@core/config/configManager.js';
 import { ActionFormBuilder } from '@core/ui/builders/actionFormBuilder.js';
 import { configPanelSchema } from '@core/ui/configPanelRegistry.js';
 import { getMenuItemsForHub, MenuHubId } from '@core/ui/menuRegistry.js';
-import { getSystemRegistry } from '@core/ui/systemRegistry.js';
+import { getSystemDefinition, getSystemRegistry, searchConfigSystems } from '@core/ui/systemRegistry.js';
 import { configHandlers, getSystemsByCategory, getVisibleCategories } from '@core/ui/uiUtils.js';
 import { getIdTimestamp } from '@core/utils/index.js';
 import { getValueFromPath } from '@core/utils/objectUtils.js';
@@ -248,5 +248,38 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
 
     const validRes = await form.show(mockPlayer, { sessionVersion: v2 });
     expect(validRes.canceled).toBeFalse();
+  });
+
+  it('mob_money_editor is titled "Mob Kill Rewards & Penalties" with search indexing', () => {
+    const mobSys = getSystemDefinition('mob_money_editor');
+    expect(mobSys).toBeDefined();
+    expect(mobSys?.title).toBe('Mob Kill Rewards & Penalties');
+    expect(mobSys?.category).toBe('Economy');
+    expect(mobSys?.description).toContain('penalty');
+    expect(mobSys?.description).toContain('rewards');
+  });
+
+  it('searchConfigSystems filters systems by title, description, schema settings, and tokens', () => {
+    // Empty queries return empty array
+    expect(searchConfigSystems('')).toEqual([]);
+    expect(searchConfigSystems('   ')).toEqual([]);
+
+    // Direct title/ID search
+    const mobMatches = searchConfigSystems('Mob Kill Rewards');
+    expect(mobMatches.some((s) => s.id === 'mob_money_editor')).toBeTrue();
+
+    // Keyword search in description (e.g. pandas, penalty)
+    const penaltyMatches = searchConfigSystems('pandas');
+    expect(penaltyMatches.some((s) => s.id === 'mob_money_editor')).toBeTrue();
+
+    const killMatches = searchConfigSystems('penalty');
+    expect(killMatches.some((s) => s.id === 'mob_money_editor')).toBeTrue();
+
+    // Setting key / label search (e.g. treeCapitator in survivalQoL)
+    const treeMatches = searchConfigSystems('treeCapitator');
+    expect(treeMatches.some((s) => s.id === 'survivalQoL')).toBeTrue();
+
+    const veinMatches = searchConfigSystems('vein miner');
+    expect(veinMatches.some((s) => s.id === 'survivalQoL')).toBeTrue();
   });
 });

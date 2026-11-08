@@ -9,7 +9,17 @@ import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
-export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void> {
+/**
+ * Displays the world border management panel and links to dimension-specific border modals.
+ *
+ * @param player Administrative player managing world border configurations.
+ * @param context Caller navigation context for returning to prior menus.
+ * @returns Promise that resolves when the panel has been processed.
+ */
+export async function showWorldBorderAdminPanel(
+  player: mc.Player,
+  context: Record<string, unknown> = {},
+): Promise<void> {
   const cfg = getWorldBorder();
   const netherRadius = getNetherBorderRadius(cfg.overworldRadius, cfg.netherMultiplier);
   const netherCenterX = Math.floor(cfg.overworldCenterX / Math.max(1, cfg.netherMultiplier));
@@ -40,7 +50,7 @@ export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void
         const next = !cfg.overworldEnabled;
         setOverworldBorder(next);
         player.sendMessage(`§aOverworld + Nether border is now ${next ? '§2ENABLED' : '§cDISABLED'}§a.`);
-        await showWorldBorderAdminPanel(player);
+        await showWorldBorderAdminPanel(player, context);
       },
     )
     .button(
@@ -50,32 +60,48 @@ export async function showWorldBorderAdminPanel(player: mc.Player): Promise<void
         const next = !cfg.endEnabled;
         setEndBorder(next);
         player.sendMessage(`§aThe End border is now ${next ? '§2ENABLED' : '§cDISABLED'}§a.`);
-        await showWorldBorderAdminPanel(player);
+        await showWorldBorderAdminPanel(player, context);
       },
     )
     .button(
       `Configure Overworld + Nether\n§7OW: ${cfg.overworldRadius} | Nether: ${netherRadius}`,
       'textures/blocks/grass_carried',
       async () => {
-        await showEditOverworldBorderModal(player);
+        await showEditOverworldBorderModal(player, context);
       },
     )
     .button(`§l§dEdit End Border\n§r§7Radius: ±${cfg.endRadius}`, 'textures/blocks/end_stone', async () => {
-      await showEditEndBorderModal(player);
+      await showEditEndBorderModal(player, context);
     })
     .button('§l§eBorder Settings\n§r§7Ratio, buffer & bypass', 'textures/ui/icon_setting', async () => {
-      await showEditGeneralBorderModal(player);
+      await showEditGeneralBorderModal(player, context);
     });
 
   form.addBackButton(async () => {
-    const { showStaffWorldHub } = await import('@core/ui/panels/adminPanel.js');
-    await showStaffWorldHub(player);
+    if (!player.isValid) {
+      return;
+    }
+    if (typeof context.onReturn === 'function') {
+      await (context.onReturn as (player: mc.Player) => Promise<void>)(player);
+    } else if (context.returnTo === 'anticheat') {
+      const { showAnticheatAdvancedPanel } = await import('@features/anticheat/ui/adminPanel.js');
+      if (!player.isValid) {
+        return;
+      }
+      await showAnticheatAdvancedPanel(player);
+    } else {
+      const { showStaffWorldHub } = await import('@core/ui/panels/adminPanel.js');
+      if (!player.isValid) {
+        return;
+      }
+      await showStaffWorldHub(player);
+    }
   });
 
   await form.show(player);
 }
 
-async function showEditOverworldBorderModal(player: mc.Player): Promise<void> {
+async function showEditOverworldBorderModal(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
   const cfg = getWorldBorder();
   const modal = new CustomFormBuilder<{
     enabled: boolean;
@@ -97,8 +123,11 @@ async function showEditOverworldBorderModal(player: mc.Player): Promise<void> {
     .submitButton('Save Border');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
-    await showWorldBorderAdminPanel(player);
+    await showWorldBorderAdminPanel(player, context);
     return;
   }
 
@@ -108,7 +137,7 @@ async function showEditOverworldBorderModal(player: mc.Player): Promise<void> {
 
   if (Number.isNaN(parsedRadius) || parsedRadius < 16) {
     player.sendMessage('§cInvalid radius. Minimum radius is 16 blocks.');
-    await showWorldBorderAdminPanel(player);
+    await showWorldBorderAdminPanel(player, context);
     return;
   }
 
@@ -122,10 +151,10 @@ async function showEditOverworldBorderModal(player: mc.Player): Promise<void> {
   player.sendMessage(
     `§aSaved Overworld + Nether border: §e±${updated.overworldRadius}§a in Overworld / §d±${netherRad}§a in Nether (Center: ${updated.overworldCenterX}, ${updated.overworldCenterZ}).`,
   );
-  await showWorldBorderAdminPanel(player);
+  await showWorldBorderAdminPanel(player, context);
 }
 
-async function showEditEndBorderModal(player: mc.Player): Promise<void> {
+async function showEditEndBorderModal(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
   const cfg = getWorldBorder();
   const modal = new CustomFormBuilder<{
     enabled: boolean;
@@ -142,8 +171,11 @@ async function showEditEndBorderModal(player: mc.Player): Promise<void> {
     .submitButton('Save End Border');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
-    await showWorldBorderAdminPanel(player);
+    await showWorldBorderAdminPanel(player, context);
     return;
   }
 
@@ -153,7 +185,7 @@ async function showEditEndBorderModal(player: mc.Player): Promise<void> {
 
   if (Number.isNaN(parsedRadius) || parsedRadius < 16) {
     player.sendMessage('§cInvalid radius. Minimum radius is 16 blocks.');
-    await showWorldBorderAdminPanel(player);
+    await showWorldBorderAdminPanel(player, context);
     return;
   }
 
@@ -166,10 +198,10 @@ async function showEditEndBorderModal(player: mc.Player): Promise<void> {
   player.sendMessage(
     `§aSaved The End border: §e±${updated.endRadius}§a blocks (Center: ${updated.endCenterX}, ${updated.endCenterZ}).`,
   );
-  await showWorldBorderAdminPanel(player);
+  await showWorldBorderAdminPanel(player, context);
 }
 
-async function showEditGeneralBorderModal(player: mc.Player): Promise<void> {
+async function showEditGeneralBorderModal(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
   const cfg = getWorldBorder();
   const modal = new CustomFormBuilder<{
     adminBypass: boolean;
@@ -187,8 +219,11 @@ async function showEditGeneralBorderModal(player: mc.Player): Promise<void> {
     .submitButton('Save Settings');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
-    await showWorldBorderAdminPanel(player);
+    await showWorldBorderAdminPanel(player, context);
     return;
   }
 
@@ -202,5 +237,5 @@ async function showEditGeneralBorderModal(player: mc.Player): Promise<void> {
   });
 
   player.sendMessage('§aUpdated general World Border settings.');
-  await showWorldBorderAdminPanel(player);
+  await showWorldBorderAdminPanel(player, context);
 }

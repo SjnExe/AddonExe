@@ -12,6 +12,8 @@ export interface GameplayPanelContext {
   category?: string;
   /** Parent page number. */
   page?: number;
+  /** Optional return callback for arbitrary caller views (e.g. search results). */
+  onReturn?: (player: mc.Player) => Promise<void> | void;
 }
 
 /**
@@ -109,7 +111,9 @@ export async function showGameplayPanel(player: mc.Player, context?: GameplayPan
     if (!player.isValid) {
       return;
     }
-    if (isNonEmptyString(context?.category)) {
+    if (typeof context?.onReturn === 'function') {
+      await context.onReturn(player);
+    } else if (isNonEmptyString(context?.category)) {
       const { showConfigCategoryDetailPanel } = await import('@core/ui/panels/configPanel.js');
       await showConfigCategoryDetailPanel(player, context.category, { page: context.page });
     } else {
