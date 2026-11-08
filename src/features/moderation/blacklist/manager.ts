@@ -3,6 +3,7 @@ import { registerDataSaver } from '@core/data/dataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { getPlayerRank } from '@core/permissions/rankManager.js';
+import { normalizeNamespace } from '@core/utils/index.js';
 import { warnLog } from '@core/utils/logger.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -37,8 +38,7 @@ const equipmentSlots = [
  * @returns Fully qualified item type identifier.
  */
 function normalizeId(id: string): string {
-  const lower = id.toLowerCase();
-  return lower.includes(':') ? lower : 'minecraft:' + lower;
+  return normalizeNamespace(id);
 }
 
 /**
