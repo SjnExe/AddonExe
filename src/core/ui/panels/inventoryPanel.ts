@@ -4,6 +4,7 @@ import { getPlayerNameById, loadPlayerData, updatePlayerData } from '@core/data/
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { canTarget } from '@core/permissions/rankManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { normalizeNamespace } from '@core/utils/index.js';
 import { resolveTradeItemDisplayName, resolveTradeItemIcon } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -557,9 +558,10 @@ async function showAddItemModal(
     return;
   }
 
-  let typeId = res.typeId.trim();
-  if (!typeId.includes(':')) {
-    typeId = 'minecraft:' + typeId;
+  const typeId = normalizeNamespace(res.typeId);
+  if (!isNonEmptyString(typeId)) {
+    staff.sendMessage('§cInvalid item identifier.');
+    return;
   }
   const amount = Number.parseInt(res.amount, 10);
   if (Number.isNaN(amount) || amount < 1 || amount > 64) {
@@ -571,7 +573,9 @@ async function showAddItemModal(
   try {
     newItem = new mc.ItemStack(typeId, 1);
     if (amount > newItem.maxAmount) {
-      staff.sendMessage(`§cInvalid amount. '${typeId}' max stack size is ${newItem.maxAmount}.`);
+      staff.sendMessage(
+        `§cInvalid amount. '${resolveTradeItemDisplayName(typeId)}' max stack size is ${newItem.maxAmount}.`,
+      );
       return;
     }
     newItem.amount = amount;
@@ -582,6 +586,8 @@ async function showAddItemModal(
     staff.sendMessage(`§cInvalid item identifier '${typeId}'.`);
     return;
   }
+
+  const itemDisplayName = isNonEmptyString(newItem.nameTag) ? newItem.nameTag : resolveTradeItemDisplayName(typeId);
 
   const targetPlayer = getPlayerFromCache(targetPlayerId);
   if (isDefined(targetPlayer) && targetPlayer.isValid) {
@@ -600,13 +606,13 @@ async function showAddItemModal(
       !isDefined(container.getItem(targetSlot))
     ) {
       container.setItem(targetSlot, newItem);
-      staff.sendMessage(`§aPlaced ${typeId} x${amount} into slot ${targetSlot} for ${targetName}.`);
+      staff.sendMessage(`§aPlaced ${itemDisplayName} x${amount} into slot ${targetSlot} for ${targetName}.`);
     } else {
       const leftover = container.addItem(newItem);
       if (isDefined(leftover)) {
         staff.sendMessage(`§eContainer was full; gave what could fit (leftover x${leftover.amount}).`);
       } else {
-        staff.sendMessage(`§aAdded ${typeId} x${amount} to ${targetName}'s ${mode}.`);
+        staff.sendMessage(`§aAdded ${itemDisplayName} x${amount} to ${targetName}'s ${mode}.`);
       }
     }
   } else {
@@ -657,7 +663,9 @@ async function showAddItemModal(
     if (isFull) {
       staff.sendMessage(`§cCould not add item: ${targetName}'s offline ${mode} is full.`);
     } else {
-      staff.sendMessage(`§aAdded ${typeId} x${amount} to ${targetName}'s offline ${mode} (slot ${assignedSlot}).`);
+      staff.sendMessage(
+        `§aAdded ${itemDisplayName} x${amount} to ${targetName}'s offline ${mode} (slot ${assignedSlot}).`,
+      );
     }
   }
 

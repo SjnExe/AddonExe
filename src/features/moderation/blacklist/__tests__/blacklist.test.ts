@@ -432,6 +432,33 @@ describe('Item Blacklist System', () => {
       expect(getItemBlacklistConfig().blacklistedItems).not.toContain(MinecraftItemTypes.Tnt);
     });
 
+    it('should reject malformed identifiers on add and remove', () => {
+      const messages: string[] = [];
+      const executor = {
+        isConsole: true as const,
+        sendMessage: (msg: string | mc.RawMessage) => messages.push(String(msg)),
+      };
+
+      cmd.execute(executor, { action: 'add', item: 'minecraft:' });
+      expect(messages.some((m) => m.includes('Invalid item identifier'))).toBeTrue();
+
+      messages.length = 0;
+      cmd.execute(executor, { action: 'remove', item: ':::' });
+      expect(messages.some((m) => m.includes('Invalid item identifier'))).toBeTrue();
+    });
+
+    it('should reject duplicate items when specified in unnormalized format', () => {
+      const messages: string[] = [];
+      const executor = {
+        isConsole: true as const,
+        sendMessage: (msg: string | mc.RawMessage) => messages.push(String(msg)),
+      };
+
+      // Bedrock is already in the default blacklist as MinecraftItemTypes.Bedrock ('minecraft:bedrock')
+      cmd.execute(executor, { action: 'add', item: 'bedrock' });
+      expect(messages.some((m) => m.includes('already blacklisted'))).toBeTrue();
+    });
+
     it('should list blacklisted items', () => {
       const messages: string[] = [];
       const executor = {

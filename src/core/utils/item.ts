@@ -119,6 +119,45 @@ const familyIconFallbacks: [string, string][] = [
   ['nether_wart', 'textures/items/nether_wart'],
 ];
 
+/**
+ * Normalizes an item or entity identifier to ensure it contains a namespace prefix. If candidate already has a colon
+ * (`:`), it is returned as is (trimmed). Otherwise converts camelCase, spaces, and delimiters to snake_case and
+ * prepends the default namespace.
+ *
+ * @param candidate Raw item or entity identifier (e.g. "diamondSword", "Diamond Sword", "minecraft:zombie").
+ * @param defaultNamespace Default namespace prefix to use when missing (defaults to "minecraft").
+ * @returns Fully qualified namespaced identifier (e.g. "minecraft:diamond_sword").
+ */
+export function normalizeNamespace(candidate: string, defaultNamespace: string = 'minecraft'): string {
+  if (!candidate || candidate.trim().length === 0) {
+    return '';
+  }
+  const trimmed = candidate.trim();
+  if (trimmed.includes(':')) {
+    const lowered = trimmed.toLowerCase();
+    const [ns, id] = lowered.split(':', 2);
+    return ns && id ? lowered : '';
+  }
+  const snake = trimmed
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[\s\-_.]+/g, '_')
+    .toLowerCase()
+    .replace(/^_+|_+$/g, '');
+
+  if (snake.length === 0) {
+    return '';
+  }
+
+  return `${defaultNamespace.toLowerCase()}:${snake}`;
+}
+
+/**
+ * Determines whether a given display name is already cleanly formatted with title casing.
+ *
+ * @param name Display name string to evaluate.
+ * @returns True if the string is formatted without raw identifiers or namespaces.
+ */
 export function isFormattedDisplayName(name: string | undefined): boolean {
   if (!name || name.trim().length === 0) {
     return false;
@@ -136,6 +175,12 @@ export function isFormattedDisplayName(name: string | undefined): boolean {
   return true;
 }
 
+/**
+ * Generates a clean, title-cased display name from an item or entity identifier without the namespace.
+ *
+ * @param typeId Namespaced or raw type identifier (e.g. "minecraft:panda", "wither_skeleton").
+ * @returns Formatted title-cased display name (e.g. "Panda", "Wither Skeleton").
+ */
 export function generateDisplayName(typeId: string): string {
   if (!typeId || typeId.trim().length === 0) {
     return 'Unknown Item';
@@ -164,6 +209,12 @@ export function generateDisplayName(typeId: string): string {
   return result;
 }
 
+/**
+ * Resolves the texture icon resource path for a given item or block identifier.
+ *
+ * @param typeId Item or block identifier to look up.
+ * @returns Valid Bedrock texture resource path.
+ */
 export function resolveIcon(typeId: string): string {
   if (!typeId || typeId.trim().length === 0) {
     return 'textures/ui/icon_recipe_equipment';

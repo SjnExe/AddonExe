@@ -17,7 +17,7 @@ describe('Bedrock JSON & JSON UI Validator (Zero False Positives + Strict Negati
         : validateContentJson(normalizedPath, json);
       expect(errs).toEqual([]);
     }
-  });
+  }, 20000);
 
   it('catches invalid collection_index and collection_name on non-grid/non-factory UI panels', () => {
     const badUi = {

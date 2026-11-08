@@ -8,10 +8,29 @@ import {
 } from '@core/data/playerDataManager.js';
 import { canTarget } from '@core/permissions/rankManager.js';
 import { showInventoryPanel } from '@core/ui/panels/inventoryPanel.js';
-import { resolveTarget } from '@core/utils/index.js';
+import { generateDisplayName, resolveTarget } from '@core/utils/index.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
+
+/**
+ * Formats an item display name for chat/text output, preserving custom name tags, formatting vanilla items with
+ * human-readable titles, and appending namespaced identifiers for custom addon items to prevent namespace collisions.
+ *
+ * @param typeId Full namespaced item identifier.
+ * @param nameTag Optional custom rename tag on the item stack.
+ * @returns Formatted display string suitable for chat logs and inspection output.
+ */
+export function formatItemDisplayName(typeId: string, nameTag?: string): string {
+  if (isNonEmptyString(nameTag)) {
+    return nameTag;
+  }
+  if (!isNonEmptyString(typeId)) {
+    return 'Unknown Item';
+  }
+  const displayName = generateDisplayName(typeId);
+  return typeId.startsWith('minecraft:') ? displayName : `${displayName} (§7${typeId}§f)`;
+}
 
 function inspectArmor(equipment: mc.EntityEquippableComponent): string {
   let output = '';
@@ -28,7 +47,7 @@ function inspectArmor(equipment: mc.EntityEquippableComponent): string {
   for (const [index, slot] of armorSlots.entries()) {
     const item = equipment.getEquipment(slot);
     if (isDefined(item)) {
-      const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
+      const name = formatItemDisplayName(item.typeId, item.nameTag);
       output += ` §7${armorNames[index]}: §f${name} §7x${item.amount}\n`;
     }
   }
@@ -43,7 +62,7 @@ function inspectInventory(inventory: mc.Container): string {
   for (let i = 0; i < inventory.size; i++) {
     const item = inventory.getItem(i);
     if (isDefined(item)) {
-      const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
+      const name = formatItemDisplayName(item.typeId, item.nameTag);
       const isHotbar = i < hotbarSize;
       const prefix = isHotbar ? '§e' : '§7';
       output += ` ${prefix}[${i}] §f${name} §7x${item.amount}\n`;
@@ -128,7 +147,7 @@ const invseeCommand: CustomCommand = {
       output += '§6[Armor & Offhand (Offline)]§r\n';
       for (const [slotName, item] of Object.entries(offlineData.offlineEquipment)) {
         if (isDefined(item)) {
-          const name = isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
+          const name = formatItemDisplayName(item.typeId, item.nameTag);
           output += ` §7${slotName}: §f${name} §7x${item.amount}\n`;
         }
       }
@@ -137,7 +156,7 @@ const invseeCommand: CustomCommand = {
       output += '§6[Inventory (Offline)]§r\n';
       for (const [slotStr, item] of Object.entries(offlineData.offlineInventory)) {
         const slotIdx = Number(slotStr);
-        const name = isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
+        const name = formatItemDisplayName(item.typeId, item.nameTag);
         const prefix = slotIdx < 9 ? '§e' : '§7';
         output += ` ${prefix}[${slotStr}] §f${name} §7x${item.amount}\n`;
       }
@@ -306,7 +325,7 @@ const ecseeCommand: CustomCommand = {
       for (let i = 0; i < container.size; i++) {
         const item = container.getItem(i);
         if (isDefined(item)) {
-          const name = isDefined(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
+          const name = formatItemDisplayName(item.typeId, item.nameTag);
           output += ` §d[${i}] §f${name} §7x${item.amount}\n`;
         }
       }
@@ -341,7 +360,7 @@ const ecseeCommand: CustomCommand = {
     const ecRecord = offlineData?.offlineEnderChest ?? {};
     let output = '';
     for (const [slotStr, item] of Object.entries(ecRecord)) {
-      const name = isNonEmptyString(item.nameTag) ? item.nameTag : item.typeId.replace(/^minecraft:/, '');
+      const name = formatItemDisplayName(item.typeId, item.nameTag);
       output += ` §d[${slotStr}] §f${name} §7x${item.amount}\n`;
     }
 

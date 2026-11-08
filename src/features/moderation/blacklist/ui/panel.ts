@@ -1,4 +1,5 @@
 import { getItemBlacklistConfig, saveItemBlacklistConfig } from '@core/config/configurations.js';
+import { normalizeNamespace } from '@core/utils/index.js';
 import { resolveTradeItemDisplayName, resolveTradeItemIcon } from '@features/economy/tradeUtils.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -111,10 +112,14 @@ async function showManageItemsPanel(player: mc.Player, context?: ItemBlacklistPa
         )
         .submitButton('Add to Blacklist');
       const res = await modal.show(player);
+      if (!player.isValid) {
+        return;
+      }
       if (res && isNonEmptyString(res.typeId.trim())) {
-        const rawInput = res.typeId.trim();
-        const cleanId = rawInput.includes(':') ? rawInput : 'minecraft:' + rawInput;
-        if (config.blacklistedItems.includes(cleanId)) {
+        const cleanId = normalizeNamespace(res.typeId);
+        if (!isNonEmptyString(cleanId)) {
+          player.sendMessage(`§cInvalid item identifier: '${res.typeId.trim()}'.`);
+        } else if (config.blacklistedItems.some((item) => normalizeNamespace(item) === cleanId)) {
           player.sendMessage(`§eItem '${cleanId}' is already on the blacklist.`);
         } else {
           const updated = [...config.blacklistedItems, cleanId];

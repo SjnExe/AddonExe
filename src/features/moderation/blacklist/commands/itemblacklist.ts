@@ -1,5 +1,6 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getItemBlacklistConfig, saveItemBlacklistConfig } from '@core/config/configurations.js';
+import { normalizeNamespace } from '@core/utils/index.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -58,8 +59,12 @@ const itemBlacklistCommand: CustomCommand = {
         executor.sendMessage('§cUsage: /itemblacklist add <item_identifier>');
         return;
       }
-      const cleanId = itemArg.includes(':') ? itemArg : 'minecraft:' + itemArg;
-      if (config.blacklistedItems.includes(cleanId)) {
+      const cleanId = normalizeNamespace(itemArg);
+      if (!isNonEmptyString(cleanId)) {
+        executor.sendMessage(`§cInvalid item identifier: '${itemArg}'.`);
+        return;
+      }
+      if (config.blacklistedItems.some((item) => normalizeNamespace(item) === cleanId)) {
         executor.sendMessage(`§eItem '${cleanId}' is already blacklisted.`);
         return;
       }
@@ -74,12 +79,16 @@ const itemBlacklistCommand: CustomCommand = {
         executor.sendMessage('§cUsage: /itemblacklist remove <item_identifier>');
         return;
       }
-      const cleanId = itemArg.includes(':') ? itemArg : 'minecraft:' + itemArg;
-      if (!config.blacklistedItems.includes(cleanId)) {
+      const cleanId = normalizeNamespace(itemArg);
+      if (!isNonEmptyString(cleanId)) {
+        executor.sendMessage(`§cInvalid item identifier: '${itemArg}'.`);
+        return;
+      }
+      if (!config.blacklistedItems.some((i) => normalizeNamespace(i) === cleanId)) {
         executor.sendMessage(`§eItem '${cleanId}' is not in the blacklist.`);
         return;
       }
-      const updatedList = config.blacklistedItems.filter((i) => i !== cleanId);
+      const updatedList = config.blacklistedItems.filter((i) => normalizeNamespace(i) !== cleanId);
       saveItemBlacklistConfig({ ...config, blacklistedItems: updatedList });
       executor.sendMessage(`§aRemoved '${cleanId}' from the item blacklist.`);
       return;

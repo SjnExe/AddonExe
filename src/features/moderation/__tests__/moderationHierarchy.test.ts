@@ -8,7 +8,7 @@ import * as utils from '@core/utils/index.js';
 import * as mc from '@minecraft/server';
 
 import { freezePlayer } from '../commands/freeze.js';
-import { default as inventoryCommands } from '../commands/inventory.js';
+import { default as inventoryCommands, formatItemDisplayName } from '../commands/inventory.js';
 import { default as warnCommand } from '../commands/warn.js';
 
 describe('Moderation Hierarchy', () => {
@@ -112,6 +112,16 @@ describe('Moderation Hierarchy', () => {
       setupCanTarget(false);
       copyinv.execute(executor, { player: 'target' });
       expect(executor.sendMessage).toHaveBeenCalledWith(expect.stringContaining('cannot copy'));
+    });
+
+    it('formatItemDisplayName formats vanilla items, custom addon items, and named items correctly', () => {
+      expect(formatItemDisplayName('minecraft:diamond_sword')).toBe('Diamond Sword');
+      expect(formatItemDisplayName('custom_addon:laser_blaster')).toBe(
+        'Laser Blaster (§7custom_addon:laser_blaster§f)',
+      );
+      expect(formatItemDisplayName('minecraft:diamond_sword', 'Excalibur')).toBe('Excalibur');
+      expect(formatItemDisplayName('custom_addon:laser_blaster', 'My Blaster')).toBe('My Blaster');
+      expect(formatItemDisplayName('')).toBe('Unknown Item');
     });
   });
 });

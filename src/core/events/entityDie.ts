@@ -9,7 +9,7 @@ import {
   setPlayerLastDeathLocation,
 } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { calculateTaxWithPolicy, formatCurrency } from '@core/utils/index.js';
+import { calculateTaxWithPolicy, formatCurrency, generateDisplayName } from '@core/utils/index.js';
 import { errorLog, infoLog } from '@core/utils/logger.js';
 import { processBountyAndSteal, resolveKiller } from '@features/essentials/combat/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
@@ -26,6 +26,11 @@ interface MobKillWindow {
 
 const playerMobKillWindows = new Map<string, Map<string, MobKillWindow>>();
 
+/**
+ * Processes entity death events, applying death taxes, kill streaks, mob kill rewards, and penalties.
+ *
+ * @param event Bedrock entity death event payload.
+ */
 export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
   try {
     const { deadEntity, damageSource } = event;
@@ -79,6 +84,7 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
     const economyConfig = getEconomyConfig();
     const reward = economyConfig.mobMoney[deadEntity.typeId];
     if (isNumber(reward) && reward !== 0) {
+      const mobDisplayName = generateDisplayName(deadEntity.typeId);
       if (reward > 0 && economyConfig.mobFarmCap?.enabled) {
         const now = Date.now();
         const windowMs = Math.max(10, Number(economyConfig.mobFarmCap.windowSeconds ?? 180)) * 1000;
@@ -96,7 +102,7 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
           if (entry.count > maxKills) {
             if (entry.count === maxKills + 1) {
               killer.sendMessage(
-                `§e[Economy] Mob grinder limit reached for ${deadEntity.typeId.replace(/^minecraft:/, '')}. Payouts paused briefly.`,
+                `§e[Economy] Mob grinder limit reached for ${mobDisplayName}. Payouts paused briefly.§r`,
               );
             }
             return;
@@ -106,15 +112,15 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
       incrementPlayerBalance(killer.id, reward);
       if (reward > 0) {
         if (economyConfig.logToConsole) {
-          infoLog(`[Economy] Gave ${killer.name} ${formatCurrency(reward)} for killing a ${deadEntity.typeId}.`);
+          infoLog(`[Economy] Gave ${killer.name} ${formatCurrency(reward)} for killing a ${mobDisplayName}.`);
         }
       } else {
         if (economyConfig.logToConsole) {
           infoLog(
-            `[Economy] Took ${formatCurrency(Math.abs(reward))} from ${killer.name} for killing a ${deadEntity.typeId}.`,
+            `[Economy] Took ${formatCurrency(Math.abs(reward))} from ${killer.name} for killing a ${mobDisplayName}.`,
           );
         }
-        killer.sendMessage(`§cPenalty: ${formatCurrency(reward)} for killing a ${deadEntity.typeId}.`);
+        killer.sendMessage(`§cPenalty: ${formatCurrency(reward)} for killing a ${mobDisplayName}.§r`);
       }
     }
   } catch (error: unknown) {

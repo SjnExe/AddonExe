@@ -1,5 +1,5 @@
 import { getEconomyConfig, saveEconomyConfig } from '@core/config/configurations.js';
-import { formatCurrency } from '@core/utils/index.js';
+import { formatCurrency, generateDisplayName, normalizeNamespace } from '@core/utils/index.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
@@ -10,8 +10,8 @@ import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
  * Displays the Mob Kill Rewards & Penalties configuration panel for managing mob payouts.
  *
  * @param player Administrative player managing mob money values.
- * @param page Current pagination page.
- * @param searchQuery Optional filter string for entity type IDs.
+ * @param page Current pagination page index.
+ * @param searchQuery Optional mob ID or display name filter.
  * @param context Caller navigation context for returning to prior menus.
  * @returns Promise that resolves when the panel has been processed.
  */
@@ -22,8 +22,12 @@ export async function showMobMoneyPanel(
   context: Record<string, unknown> = {},
 ): Promise<void> {
   const config = getEconomyConfig();
+  const query = isNonEmptyString(searchQuery) ? searchQuery.toLowerCase() : undefined;
   const entries = Object.entries(config.mobMoney)
-    .filter(([mobId]) => !isNonEmptyString(searchQuery) || mobId.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(
+      ([mobId]) =>
+        !query || mobId.toLowerCase().includes(query) || generateDisplayName(mobId).toLowerCase().includes(query),
+    )
     .sort((a, b) => a[0].localeCompare(b[0]));
 
   const form = new ActionFormBuilder()
@@ -56,7 +60,7 @@ export async function showMobMoneyPanel(
     ([mobId, amount], f) => {
       const color = amount > 0 ? '§2+' : amount < 0 ? '§c' : '§7';
       f.button(
-        `${mobId.replace(/^minecraft:/, '')}\n${color}${formatCurrency(amount)}`,
+        `${generateDisplayName(mobId)} (${mobId})\n${color}${formatCurrency(amount)}`,
         'textures/items/iron_sword',
         async () => {
           await showEditMobMoneyModal(player, mobId, page, searchQuery, context);
@@ -102,7 +106,7 @@ async function showEditMobMoneyModal(
     mobId: string;
     amount: string;
     deleteEntry?: boolean;
-  }>(isEdit ? `Edit Mob: ${existingMobId}` : 'Add Mob Reward or Penalty')
+  }>(isEdit && existingMobId ? `Edit Mob: ${generateDisplayName(existingMobId)}` : 'Add Mob Reward or Penalty')
     .textField(
       'mobId',
       'Entity Type ID (e.g. panda, zombie, villager)',
@@ -126,18 +130,16 @@ async function showEditMobMoneyModal(
   if (isEdit && res.deleteEntry && existingMobId) {
     delete config.mobMoney[existingMobId];
     saveEconomyConfig(config);
-    player.sendMessage(`§aRemoved ${existingMobId} from Mob Money.`);
+    player.sendMessage(`§aRemoved ${generateDisplayName(existingMobId)} (${existingMobId}) from Mob Money.`);
     await showMobMoneyPanel(player, page, searchQuery, context);
     return;
   }
 
-  let mobId = res.mobId.trim();
+  const mobId = normalizeNamespace(res.mobId);
   if (!isNonEmptyString(mobId)) {
+    player.sendMessage('§cInvalid entity identifier.');
     await showMobMoneyPanel(player, page, searchQuery, context);
     return;
-  }
-  if (!mobId.includes(':')) {
-    mobId = 'minecraft:' + mobId;
   }
 
   const parsedAmount = Number.parseFloat(res.amount);
@@ -153,6 +155,8 @@ async function showEditMobMoneyModal(
 
   config.mobMoney[mobId] = parsedAmount;
   saveEconomyConfig(config);
-  player.sendMessage(`§aSaved Mob Money for ${mobId}: ${formatCurrency(parsedAmount)}.`);
+  player.sendMessage(
+    `§aSaved Mob Money for ${generateDisplayName(mobId)} (${mobId}): ${formatCurrency(parsedAmount)}.`,
+  );
   await showMobMoneyPanel(player, page, searchQuery, context);
 }

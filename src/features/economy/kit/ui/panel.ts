@@ -1,6 +1,6 @@
 import { getConfig, updateMultipleConfig } from '@core/config/configManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
-import { formatCooldown, formatCurrency } from '@core/utils/index.js';
+import { formatCooldown, formatCurrency, generateDisplayName, normalizeNamespace } from '@core/utils/index.js';
 import * as kitAdminManager from '@features/economy/kit/adminManager.js';
 import * as kitItemsManager from '@features/economy/kit/itemsManager.js';
 import * as kitsManager from '@features/economy/kit/manager.js';
@@ -202,6 +202,13 @@ export async function showKitSettingsPanel(player: mc.Player, kitName: string): 
   await showKitActionMenu(player, kitName);
 }
 
+/**
+ * Displays the items configuration panel for managing items within a specific kit.
+ *
+ * @param player Administrative player managing kit items.
+ * @param kitName Identifier of the kit being configured.
+ * @param page Current pagination page index.
+ */
 export async function showKitItemsPanel(player: mc.Player, kitName: string, page: number = 1): Promise<void> {
   const form = new ActionFormBuilder()
     .title(`Kit Items: ${kitName}`)
@@ -214,8 +221,10 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
       if (res) {
         const amountParsed = Number.parseInt(res.amount);
         const amount = Number.isNaN(amountParsed) || amountParsed <= 0 ? 1 : amountParsed;
-        if (res.typeId) {
-          const result = kitItemsManager.addItemToKit(kitName, { typeId: res.typeId, amount });
+        const rawTypeId = res.typeId?.trim();
+        if (rawTypeId) {
+          const normalizedTypeId = normalizeNamespace(rawTypeId);
+          const result = kitItemsManager.addItemToKit(kitName, { typeId: normalizedTypeId, amount });
           player.sendMessage(result.message);
         }
       }
@@ -237,15 +246,16 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
       ({ item, index }, formBuilder) => {
         const customLabel = item.nameTag ? ` (${item.nameTag}§r)` : '';
         const enchCount = item.enchantments?.length ? ` §d[${item.enchantments.length} ench]` : '';
+        const displayItemName = generateDisplayName(item.typeId);
         formBuilder.button(
-          `${index + 1}. ${item.typeId.replace(/^minecraft:/, '')} x${item.amount}${customLabel}${enchCount}`,
+          `${index + 1}. ${displayItemName} x${item.amount}${customLabel}${enchCount}`,
           'textures/items/book_normal',
           async () => {
             const manageForm = new ActionFormBuilder()
               .title(`Manage Item #${index + 1}`)
               .body(
                 [
-                  `§7Type: §f${item.typeId}`,
+                  `§7Item: §f${displayItemName} §8(${item.typeId})`,
                   `§7Quantity: §ex${item.amount}`,
                   ...(item.nameTag ? [`§7Custom Name: §r${item.nameTag}`] : []),
                   ...(item.enchantments?.length
@@ -264,9 +274,11 @@ export async function showKitItemsPanel(player: mc.Player, kitName: string, page
                 const editRes = await editModal.show(player);
                 if (editRes) {
                   const parsedAmt = Number.parseInt(editRes.amount, 10);
+                  const rawTypeId = editRes.typeId.trim();
+                  const normalizedTypeId = rawTypeId ? normalizeNamespace(rawTypeId) : item.typeId;
                   const updatedItem = {
                     ...item,
-                    typeId: editRes.typeId.trim() || item.typeId,
+                    typeId: normalizedTypeId,
                     amount: Number.isNaN(parsedAmt) ? item.amount : parsedAmt,
                     ...(editRes.nameTag.trim().length > 0
                       ? { nameTag: editRes.nameTag.trim() }
