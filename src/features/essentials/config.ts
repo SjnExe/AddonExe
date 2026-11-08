@@ -111,13 +111,13 @@ export const essentialsConfig = {
   },
   playerInfo: {
     enableWelcomer: false,
-    welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.',
+    welcomeMessage: 'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.§r',
     notifyAdminOnNewPlayer: true,
     enableDeathCoords: false,
-    deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.',
+    deathCoordsMessage: '§7You died at {x}, {y}, {z} in {dimensionId}.§r',
     customJoinLeave: {
-      joinMessage: '§e{playerName} joined the game',
-      leaveMessage: '§e{playerName} left the game',
+      joinMessage: '§e{playerName}§r joined the game',
+      leaveMessage: '§e{playerName}§r left the game',
     },
     healthIndicator: {
       enabled: false,

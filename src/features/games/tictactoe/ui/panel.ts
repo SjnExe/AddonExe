@@ -76,9 +76,9 @@ export async function showTicTacToeBoard(player: mc.Player, matchId: string, ini
     const isMyTurn = match.currentTurnId === player.id;
 
     const statusLine = isMyTurn
-      ? `§a§lYOUR TURN (${myMark}§a§l) §r§7— Tap a square!`
-      : `§eWaiting for §f${opponentName}§e's move...`;
-    const bodyText = isNonEmptyString(notice) ? `${notice}\n${statusLine}` : statusLine;
+      ? `§a§lYOUR TURN (${myMark}§a§l) §r§7— Tap a square!§r`
+      : `§eWaiting for §f${opponentName}§r§e's move...§r`;
+    const bodyText = isNonEmptyString(notice) ? `${notice}§r\n${statusLine}` : statusLine;
 
     const form = new ActionFormBuilder().grid('board').title(`§r§l§bTic-Tac-Toe §8vs §f${opponentName}`).body(bodyText);
 

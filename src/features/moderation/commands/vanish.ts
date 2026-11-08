@@ -31,7 +31,7 @@ const vanishCommand: CustomCommand = {
       });
       sendMessage('§aYou are no longer vanished. You are now visible to other players.', executor);
 
-      const joinTemplate = joinLeaveConfig?.joinMessage || '§e{playerName} joined the game';
+      const joinTemplate = joinLeaveConfig?.joinMessage || '§e{playerName}§r joined the game';
       mc.world.sendMessage(formatString(joinTemplate, { playerName: executor.name }));
     } else {
       executor.addTag(vanishedTag);
@@ -41,7 +41,7 @@ const vanishCommand: CustomCommand = {
       });
       sendMessage('§aYou are now vanished. You are hidden from other players.', executor);
 
-      const leaveTemplate = joinLeaveConfig?.leaveMessage || '§e{playerName} left the game';
+      const leaveTemplate = joinLeaveConfig?.leaveMessage || '§e{playerName}§r left the game';
       mc.world.sendMessage(formatString(leaveTemplate, { playerName: executor.name }));
     }
   },

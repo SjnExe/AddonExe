@@ -197,6 +197,14 @@ function finalizeMatchCleanup(match: Connect4Match): void {
   }, 600);
 }
 
+/**
+ * Drops a Connect 4 disc into the target column for the current player's turn.
+ *
+ * @param matchId Identifier of the active match.
+ * @param playerId Identifier of the player attempting the move.
+ * @param tappedCellOrCol Selected board cell or column index (0-6).
+ * @returns Object indicating move validity, status message, and whether the match concluded.
+ */
 export function dropConnect4Disc(
   matchId: string,
   playerId: string,
@@ -204,17 +212,17 @@ export function dropConnect4Disc(
 ): { valid: boolean; message?: string; matchEnded: boolean } {
   const match = activeMatches.get(matchId);
   if (!isDefined(match) || match.status !== 'active') {
-    return { valid: false, message: '§cMatch is no longer active.', matchEnded: true };
+    return { valid: false, message: '§cMatch is no longer active.§r', matchEnded: true };
   }
 
   if (match.currentTurnId !== playerId) {
-    return { valid: false, message: "§eWaiting for your opponent's move...", matchEnded: false };
+    return { valid: false, message: "§eWaiting for your opponent's move...§r", matchEnded: false };
   }
 
   const col = tappedCellOrCol % connect4Cols;
   const targetRow = findLowestEmptyConnect4Row(match.board, col);
   if (targetRow === -1) {
-    return { valid: false, message: '§cThat column is already full! Pick another column.', matchEnded: false };
+    return { valid: false, message: '§cThat column is already full! Pick another column.§r', matchEnded: false };
   }
 
   const disc: Connect4Disc = playerId === match.playerRId ? 'R' : 'Y';
@@ -233,7 +241,7 @@ export function dropConnect4Disc(
 
     const winnerName = playerId === match.playerRId ? match.playerRName : match.playerYName;
     const loserName = playerId === match.playerRId ? match.playerYName : match.playerRName;
-    match.endReason = `§a${winnerName} §7connected 4 in a row against §c${loserName}§7!`;
+    match.endReason = `§a${winnerName}§r §7connected 4 in a row against §c${loserName}§r§7!§r`;
 
     const payout = match.wager > 0 ? payoutWagerPot(playerId, match.wager) : { netPrize: 0, taxRate: 0 };
     const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
@@ -241,11 +249,11 @@ export function dropConnect4Disc(
     const pR = getPlayerFromCache(match.playerRId);
     const pY = getPlayerFromCache(match.playerYId);
     if (isDefined(pR)) {
-      pR.sendMessage(`§e[Connect 4] §a${winnerName} §fwon the match!${prizeText}`);
+      pR.sendMessage(`§e[Connect 4] §a${winnerName}§r §fwon the match!${prizeText}§r`);
       playSound(pR, playerId === match.playerRId ? 'random.levelup' : 'note.bass');
     }
     if (isDefined(pY)) {
-      pY.sendMessage(`§e[Connect 4] §a${winnerName} §fwon the match!${prizeText}`);
+      pY.sendMessage(`§e[Connect 4] §a${winnerName}§r §fwon the match!${prizeText}§r`);
       playSound(pY, playerId === match.playerYId ? 'random.levelup' : 'note.bass');
     }
 
@@ -256,7 +264,7 @@ export function dropConnect4Disc(
 
   if (evalRes.isDraw) {
     match.status = 'draw';
-    match.endReason = '§eAll 42 slots filled — Match ended in a Draw!';
+    match.endReason = '§eAll 42 slots filled — Match ended in a Draw!§r';
     if (match.wager > 0) {
       incrementPlayerBalance(match.playerRId, match.wager);
       incrementPlayerBalance(match.playerYId, match.wager);
@@ -280,6 +288,13 @@ export function dropConnect4Disc(
   return { valid: true, matchEnded: false };
 }
 
+/**
+ * Forfeits an active Connect 4 match on behalf of a player and awards the wager pot to the opponent.
+ *
+ * @param matchId Identifier of the active match.
+ * @param forfeitingPlayerId Identifier of the player who conceded or left.
+ * @param reason Reason description for the forfeit.
+ */
 export function forfeitConnect4Match(matchId: string, forfeitingPlayerId: string, reason = 'closed the UI'): void {
   const match = activeMatches.get(matchId);
   if (!isDefined(match) || match.status !== 'active') {
@@ -292,13 +307,13 @@ export function forfeitConnect4Match(matchId: string, forfeitingPlayerId: string
 
   match.status = 'forfeit';
   match.winnerId = winnerId;
-  match.endReason = `§c${loserName} §7${reason}. §a${winnerName} §7wins by forfeit!`;
+  match.endReason = `§c${loserName}§r §7${reason}. §a${winnerName}§r §7wins by forfeit!§r`;
 
   const payout = match.wager > 0 ? payoutWagerPot(winnerId, match.wager) : { netPrize: 0, taxRate: 0 };
   const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
 
-  getPlayerFromCache(winnerId)?.sendMessage(`§e[Connect 4] §c${loserName} §7${reason}. §aYou won!${prizeText}`);
-  getPlayerFromCache(forfeitingPlayerId)?.sendMessage(`§e[Connect 4] §cYou forfeited (${reason}).`);
+  getPlayerFromCache(winnerId)?.sendMessage(`§e[Connect 4] §c${loserName}§r §7${reason}. §aYou won!${prizeText}§r`);
+  getPlayerFromCache(forfeitingPlayerId)?.sendMessage(`§e[Connect 4] §cYou forfeited (${reason}).§r`);
 
   finalizeMatchCleanup(match);
   triggerOpponentRefresh(match, winnerId);

@@ -78,7 +78,7 @@ export async function showRpsMatchPanel(player: mc.Player, matchId: string, init
 
     if (isDefined(myLockedChoice)) {
       headerLines.push(
-        `\n§aYou locked in ${formatRpsChoice(myLockedChoice)}§a!\n§eWaiting for §f${opponentName}§e to pick...`,
+        `\n§aYou locked in ${formatRpsChoice(myLockedChoice)}§a!\n§eWaiting for §f${opponentName}§r§e to pick...§r`,
       );
       form.grid(1).body(headerLines.join('\n'));
       form.button('§bRefresh Status\n§r§7Tap if opponent has moved', 'textures/ui/refresh_light', () => {

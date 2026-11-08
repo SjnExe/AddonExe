@@ -44,7 +44,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   if (isWatched(event.playerId)) {
     for (const staff of playerCache.getAllPlayersFromCache()) {
       if (staff.isValid && hasPermission(staff, 'group.mod')) {
-        staff.sendMessage(`§6[Watchlist] §e${event.playerName} §7left the server.`);
+        staff.sendMessage(`§6[Watchlist] §e${event.playerName}§r §7left the server.§r`);
       }
     }
   }

@@ -78,7 +78,7 @@ export function handlePlayerJoin(player: mc.Player) {
   if (isWatched(player.id)) {
     for (const staff of getAllPlayersFromCache()) {
       if (staff.isValid && hasPermission(staff, 'group.mod')) {
-        staff.sendMessage(`§6[Watchlist] §e${pData.name} §7joined the server.`);
+        staff.sendMessage(`§6[Watchlist] §e${pData.name}§r §7joined the server.§r`);
       }
     }
   }
@@ -333,7 +333,7 @@ export function handlePlayerJoin(player: mc.Player) {
     const unreadMail = getUnreadMailCount(player.id);
     if (unreadMail > 0) {
       sendMessage(
-        `§6[Mail] §eYou have §a${unreadMail}§e unread mail message(s)! Type §a/mail read§e to view them.`,
+        `§6[Mail] §eYou have §a${unreadMail}§e unread mail message(s)! Type §a/mail read§e to view them.§r`,
         player,
       );
     }
@@ -349,7 +349,7 @@ export function handlePlayerJoin(player: mc.Player) {
   if (pData.lastDeathLocation && !pData.deathNotificationSent) {
     if (config.playerInfo.enableDeathCoords) {
       const formattedCoords = formatLocation(pData.lastDeathLocation);
-      sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.`, player);
+      sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.§r`, player);
     }
     pData.deathNotificationSent = true;
   }
@@ -426,7 +426,7 @@ export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
   if (pData.lastDeathLocation && !pData.deathNotificationSent) {
     if (config.playerInfo.enableDeathCoords) {
       const formattedCoords = formatLocation(pData.lastDeathLocation);
-      sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.`, player);
+      sendMessage(`§7You died at ${formattedCoords}. Use §e/deathcoords§7 to see it again.§r`, player);
     }
     updatePlayerData(player.id, (d) => {
       d.deathNotificationSent = true;

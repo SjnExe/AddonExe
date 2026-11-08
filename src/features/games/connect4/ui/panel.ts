@@ -62,13 +62,13 @@ export async function showConnect4Board(player: mc.Player, matchId: string, init
     const isMyTurn = match.currentTurnId === player.id;
 
     let statusLine = isMyTurn
-      ? `§a§lYOUR TURN (${myBadge}§a§l) §r§7— Tap any column to drop disc!`
-      : `§eWaiting for §f${oppName}§e to drop a disc...`;
+      ? `§a§lYOUR TURN (${myBadge}§a§l) §r§7— Tap any column to drop disc!§r`
+      : `§eWaiting for §f${oppName}§r§e to drop a disc...§r`;
 
     if (match.status !== 'active') {
       statusLine = match.endReason ?? 'Match complete.';
     } else if (isNonEmptyString(notice)) {
-      statusLine = `${notice}\n${statusLine}`;
+      statusLine = `${notice}§r\n${statusLine}`;
     }
 
     const form = new ActionFormBuilder().grid('c4').title(`§r§l§bConnect 4 §8vs §f${oppName}`).body(statusLine);

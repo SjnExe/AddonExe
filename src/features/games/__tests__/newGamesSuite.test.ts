@@ -25,6 +25,7 @@ import {
   _clear2048ForTest,
   apply2048BoardSlide,
   continue2048Endless,
+  format2048Tile,
   perform2048Move,
   start2048Game,
 } from '@features/games/game2048/manager.js';
@@ -86,6 +87,17 @@ describe('2048, Connect 4, Codebreaker, Scramble, Fast Math & Number Guess (/gc)
     const slideRes = apply2048BoardSlide([2, 2, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'left');
     expect(slideRes.changed).toBeTrue();
     expect(slideRes.pointsEarned).toBe(12);
+
+    // Verify format2048Tile terminates color formatting with §r
+    expect(format2048Tile(0)).toBe(' ');
+    expect(format2048Tile(2)).toBe('§f§l2§r');
+    expect(format2048Tile(4)).toBe('§e§l4§r');
+    expect(format2048Tile(32)).toBe('§4§l32§r');
+    expect(format2048Tile(2048)).toBe('§2§l2048§r');
+    expect(format2048Tile(16384)).toBe('§g§l16384§r');
+    for (const val of [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]) {
+      expect(format2048Tile(val).endsWith('§r')).toBeTrue();
+    }
   });
 
   it('Connect 4 drops discs to the lowest empty row in a 7x6 grid and detects 4-in-a-row', () => {

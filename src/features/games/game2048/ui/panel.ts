@@ -98,7 +98,7 @@ export async function show2048Board(player: mc.Player, initialNotice?: string): 
 
       if (winChoice === 'endless') {
         continue2048Endless(player.id);
-        notice = '§dEndless Mode unlocked! Keep merging!';
+        notice = '§dEndless Mode unlocked! Keep merging!§r';
         continue;
       }
       if (winChoice === 'new') {
@@ -115,8 +115,8 @@ export async function show2048Board(player: mc.Player, initialNotice?: string): 
     const pData = getOrCreatePlayer(player);
     const bestScore = Math.max(session.score, pData.gameStats?.game2048?.bestScore ?? 0);
 
-    const inlineNotice = isNonEmptyString(notice) ? ` §8(${notice}§8)` : '';
-    let statusLine = `§7Score: §b${session.score}${inlineNotice} §8| §7Best: §e${bestScore} §8| §7Tile: §a${session.maxTile} §8| §7Moves: §f${session.moves}`;
+    const inlineNotice = isNonEmptyString(notice) ? ` §8(${notice}§8)§r` : '';
+    let statusLine = `§7Score: §b${session.score}§r${inlineNotice} §8| §7Best: §e${bestScore}§r §8| §7Tile: §a${session.maxTile}§r §8| §7Moves: §f${session.moves}§r`;
     if (session.status === 'gameover') {
       statusLine = `§c§lGAME OVER! §r${statusLine}`;
     }
@@ -166,6 +166,6 @@ export async function show2048Board(player: mc.Player, initialNotice?: string): 
       continue;
     }
 
-    notice = '§7Tap the D-Pad arrow keys on the right to slide tiles.';
+    notice = '§7Tap the D-Pad arrow keys on the right to slide tiles.§r';
   }
 }

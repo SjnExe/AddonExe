@@ -23,26 +23,32 @@ const activeSessions = new Map<string, Game2048Session>();
 
 const tileColors: Record<number, string> = {
   0: ' ',
-  2: '§f§l2',
-  4: '§e§l4',
-  8: '§6§l8',
-  16: '§c§l16',
-  32: '§4§l32',
-  64: '§c§l64',
-  128: '§g§l128',
-  256: '§e§l256',
-  512: '§6§l512',
-  1024: '§a§l1024',
-  2048: '§2§l2048',
-  4096: '§d§l4096',
-  8192: '§b§l8192',
+  2: '§f§l2§r',
+  4: '§e§l4§r',
+  8: '§6§l8§r',
+  16: '§c§l16§r',
+  32: '§4§l32§r',
+  64: '§c§l64§r',
+  128: '§g§l128§r',
+  256: '§e§l256§r',
+  512: '§6§l512§r',
+  1024: '§a§l1024§r',
+  2048: '§2§l2048§r',
+  4096: '§d§l4096§r',
+  8192: '§b§l8192§r',
 };
 
+/**
+ * Formats a numerical 2048 tile with dark-mode Bedrock color and bold styling.
+ *
+ * @param value The numerical value of the 2048 tile.
+ * @returns Formatted tile string terminating with a §r reset code.
+ */
 export function format2048Tile(value: number): string {
   if (value <= 0) {
     return ' ';
   }
-  return tileColors[value] ?? `§g§l${value}`;
+  return tileColors[value] ?? `§g§l${value}§r`;
 }
 
 export function spawnRandom2048Tile(board: number[]): boolean {
@@ -214,13 +220,13 @@ export function perform2048Move(
   }
 
   if (session.status === 'gameover') {
-    return { moved: false, message: '§cNo more moves available! Game Over.', session };
+    return { moved: false, message: '§cNo more moves available! Game Over.§r', session };
   }
 
   const { changed, pointsEarned, highestTile } = apply2048BoardSlide(session.board, direction);
   if (!changed) {
     playSound(player, 'note.bass');
-    return { moved: false, message: '§eNo tiles could slide in that direction!', session };
+    return { moved: false, message: '§eNo tiles could slide in that direction!§r', session };
   }
 
   session.score += pointsEarned;
@@ -240,7 +246,7 @@ export function perform2048Move(
     if (!session.rewardClaimed && reward > 0 && isFeatureActive('eco')) {
       session.rewardClaimed = true;
       incrementPlayerBalance(player.id, reward);
-      player.sendMessage(`§6[2048] §aYou reached the §2§l2048§r§a tile and earned §6${formatCurrency(reward)}§a!`);
+      player.sendMessage(`§6[2048] §aYou reached the §2§l2048§r§a tile and earned §6${formatCurrency(reward)}§a!§r`);
     }
     playSound(player, 'random.levelup');
   }
@@ -258,7 +264,7 @@ export function perform2048Move(
   }
   return {
     moved: true,
-    ...(pointsEarned > 0 ? { message: `§a+${pointsEarned} pts!` } : {}),
+    ...(pointsEarned > 0 ? { message: `§a+${pointsEarned} pts!§r` } : {}),
     session,
   };
 }
