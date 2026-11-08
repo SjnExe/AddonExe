@@ -9,11 +9,12 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 import { configPanelSchema } from '@ui/configPanelRegistry.js';
-import { getSystemDefinition } from '@ui/systemRegistry.js';
+import { getSystemDefinition, searchConfigSystems } from '@ui/systemRegistry.js';
 import {
   configHandlers as uiConfigHandlers,
   getSystemsByCategory,
   getVisibleCategories,
+  getVisibleSystems,
   itemsPerPage,
 } from '@ui/uiUtils.js';
 
@@ -29,11 +30,22 @@ interface SettingSchema {
   configSource?: string;
 }
 
+/**
+ * Displays the root system configuration category panel with search and danger zone access.
+ *
+ * @param player Administrative player viewing the configuration.
+ * @param context Caller navigation context containing active pagination.
+ * @returns Promise that resolves when the panel has been processed.
+ */
 export async function showConfigCategoryPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
   const categories = getVisibleCategories(player);
   const form = new ActionFormBuilder().title('System Configurations');
   form.body('Select a configuration category to fine-tune server settings:');
   const page = (context.page as number) || 1;
+
+  form.button('§l§6Find Configuration\n§r§7Search systems and settings', 'textures/ui/magnifyingGlass', () => {
+    void showConfigSearchModal(player, { ...context, page });
+  });
 
   const totalPages = Math.ceil(categories.length / itemsPerPage);
   if (page >= totalPages && hasPermission(player, 'ui.panel.owner')) {
@@ -54,7 +66,7 @@ export async function showConfigCategoryPanel(player: mc.Player, context: Record
     (cat, f) => {
       if (isDefined(cat)) {
         f.button(cat.title, cat.icon, () => {
-          void showConfigCategoryDetailPanel(player, cat.id, { page: 1 });
+          void showConfigCategoryDetailPanel(player, cat.id, { page: 1, categoryPage: page });
         });
       }
     },
@@ -65,12 +77,23 @@ export async function showConfigCategoryPanel(player: mc.Player, context: Record
   );
 
   form.addBackButton(async () => {
+    if (!player.isValid) {
+      return;
+    }
     await showPanel(player, 'staffConfigHub');
   });
 
   await form.show(player);
 }
 
+/**
+ * Displays the detail panel listing all systems belonging to a specific configuration category.
+ *
+ * @param player Administrative player viewing the systems.
+ * @param category Target category identifier.
+ * @param context Caller navigation context preserving page numbers.
+ * @returns Promise that resolves when the panel has been processed.
+ */
 export async function showConfigCategoryDetailPanel(
   player: mc.Player,
   category: string,
@@ -88,10 +111,11 @@ export async function showConfigCategoryDetailPanel(
       if (isDefined(sys)) {
         f.button(sys.title, sys.icon, () => {
           const systemDef = getSystemDefinition(sys.id);
+          const callerContext = { category, page, categoryPage: context.categoryPage ?? 1 };
           if (systemDef && systemDef.showFunction) {
-            void systemDef.showFunction(player);
+            void systemDef.showFunction(player, callerContext);
           } else if (systemDef && systemDef.isSimpleConfig) {
-            void showConfigSystemPanel(player, systemDef.id, { category, page });
+            void showConfigSystemPanel(player, systemDef.id, callerContext);
           } else {
             player.sendMessage('§cThis system configuration is not available.');
           }
@@ -105,7 +129,10 @@ export async function showConfigCategoryDetailPanel(
   );
 
   form.addBackButton(async () => {
-    await showConfigCategoryPanel(player, { page: 1 });
+    if (!player.isValid) {
+      return;
+    }
+    await showConfigCategoryPanel(player, { page: (context.categoryPage as number) ?? 1 });
   });
 
   await form.show(player);
@@ -127,9 +154,15 @@ export async function showConfigSystemPanel(
   await Promise.resolve();
 
   const returnToCaller = async () => {
-    if (isNonEmptyString(context.category)) {
+    if (!player.isValid) {
+      return;
+    }
+    if (typeof context.onReturn === 'function') {
+      await (context.onReturn as (player: mc.Player) => Promise<void>)(player);
+    } else if (isNonEmptyString(context.category)) {
       await showConfigCategoryDetailPanel(player, context.category as string, {
         page: context.page ?? 1,
+        categoryPage: context.categoryPage ?? 1,
       });
     } else {
       await showConfigCategoryPanel(player, { page: context.page ?? 1 });
@@ -512,4 +545,102 @@ async function _handleResetCategory(player: mc.Player, category: string): Promis
       player.sendMessage('§aCategory reset complete.');
     },
   });
+}
+
+/**
+ * Opens a modal allowing administrators to search through available configuration systems.
+ *
+ * @param player Administrative player initiating the search.
+ * @param context Caller navigation context.
+ * @returns Promise that resolves when the search has been submitted or dismissed.
+ */
+export async function showConfigSearchModal(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
+  const modal = new CustomFormBuilder<{ query: string }>('Find Configuration')
+    .textField('query', 'Search Systems & Settings', 'panda, veinminer, tax, death...', '')
+    .submitButton('Search');
+
+  const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
+  if (!res || !isNonEmptyString(res.query.trim())) {
+    await showConfigCategoryPanel(player, context);
+    return;
+  }
+
+  await showConfigSearchResultsPanel(player, res.query.trim(), 1, context);
+}
+
+/**
+ * Displays search results across all visible configuration systems matching the query.
+ *
+ * @param player Administrative player viewing results.
+ * @param query Search query string.
+ * @param page Current pagination page.
+ * @param context Caller context for returning to the originating menu.
+ * @returns Promise that resolves when the panel has been processed.
+ */
+export async function showConfigSearchResultsPanel(
+  player: mc.Player,
+  query: string,
+  page: number = 1,
+  context: Record<string, unknown> = {},
+): Promise<void> {
+  const visibleSystems = getVisibleSystems(player);
+  const results = searchConfigSystems(query, visibleSystems);
+
+  const form = new ActionFormBuilder()
+    .title(`Search: "${query}"`)
+    .body(
+      results.length > 0
+        ? `Found §e${results.length}§r matching configuration module(s):`
+        : `§cNo configuration modules matched "${query}".§r\nTry searching by feature name (e.g. veinMiner), entity (e.g. panda), or setting keyword.`,
+    );
+
+  form.button('§l§6New Search\n§r§7Filter with a different query', 'textures/ui/magnifyingGlass', async () => {
+    await showConfigSearchModal(player, context);
+  });
+
+  form.addPaginatedButtons(
+    results,
+    page,
+    (sys, f) => {
+      if (isDefined(sys)) {
+        const catLabel = sys.category ? `§8[${sys.category}] ` : '';
+        f.button(`${catLabel}§f${sys.title}\n§r§7Tap to configure`, sys.icon, async () => {
+          const systemDef = getSystemDefinition(sys.id);
+          const searchCallerContext: Record<string, unknown> = {
+            ...context,
+            category: sys.category,
+            onReturn: async (p: mc.Player) => {
+              if (!p.isValid) {
+                return;
+              }
+              await showConfigSearchResultsPanel(p, query, page, context);
+            },
+          };
+          if (systemDef && systemDef.showFunction) {
+            await systemDef.showFunction(player, searchCallerContext);
+          } else if (systemDef && systemDef.isSimpleConfig) {
+            await showConfigSystemPanel(player, systemDef.id, searchCallerContext);
+          } else {
+            player.sendMessage('§cThis system configuration is not available.');
+          }
+        });
+      }
+    },
+    async (newPage) => {
+      await showConfigSearchResultsPanel(player, query, newPage, context);
+    },
+    itemsPerPage,
+  );
+
+  form.addBackButton(async () => {
+    if (!player.isValid) {
+      return;
+    }
+    await showConfigCategoryPanel(player, context);
+  });
+
+  await form.show(player);
 }
