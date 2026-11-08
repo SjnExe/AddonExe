@@ -214,7 +214,7 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
         const target = findPlayerByName(cleanName) ?? getPlayerFromCache(cleanName);
         if (isDefined(target)) {
           target.playSound('random.orb');
-          target.sendMessage(`§e${player.name} mentioned you!`);
+          target.sendMessage(`§e${player.name}§r §ementioned you!§r`);
         }
       }
     }

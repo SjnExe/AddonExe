@@ -27,7 +27,7 @@ import {
 } from '@features/games/minesweeper/manager.js';
 
 const precomputedProgressBars: string[] = Array.from({ length: 9 }, (_, filled) => {
-  return `§8[§a${'■'.repeat(filled)}§7${'□'.repeat(8 - filled)}§8]`;
+  return `§8[§a${'■'.repeat(filled)}§7${'□'.repeat(8 - filled)}§8]§r`;
 });
 
 function buildProgressBar(percent: number): string {
@@ -180,10 +180,10 @@ export async function showMinesweeperBoard(player: mc.Player, initialNotice?: st
 
     const progress = getMinesweeperBoardProgress(game);
     const elapsedSec = game.netElapsedSeconds ?? calculateNetElapsedSeconds(game);
-    const modeLabel = game.flagMode ? '§e[⚑ FLAG]' : '§a[DIG]';
+    const modeLabel = game.flagMode ? '§e[⚑ FLAG]§r' : '§a[DIG]§r';
     const progBar = buildProgressBar(progress.percent);
 
-    let statusLine = `${progBar} §f${progress.percent}% §8| §7Mines: §c${progress.remainingMines} §8| §7Time: §b${elapsedSec.toFixed(1)}s §8| ${modeLabel}`;
+    let statusLine = `${progBar} §f${progress.percent}% §8| §7Mines: §c${progress.remainingMines}§r §8| §7Time: §b${elapsedSec.toFixed(1)}s§r §8| ${modeLabel}`;
     if (isDefined(raceMatch)) {
       const oppId = player.id === raceMatch.player1Id ? raceMatch.player2Id : raceMatch.player1Id;
       const oppName = player.id === raceMatch.player1Id ? raceMatch.player2Name : raceMatch.player1Name;
@@ -196,15 +196,15 @@ export async function showMinesweeperBoard(player: mc.Player, initialNotice?: st
       const winText = isDefined(raceMatch)
         ? (raceMatch.endReason ?? 'You won the race!')
         : (notice ?? 'All mines cleared!');
-      statusLine = `§a§lVICTORY! §r${winText}`;
+      statusLine = `§a§lVICTORY! §r${winText}§r`;
     } else if (game.status === 'lost') {
       const loseText =
         isDefined(raceMatch) && isNonEmptyString(raceMatch.endReason)
           ? raceMatch.endReason
           : (notice ?? 'You hit a mine!');
-      statusLine = `§c§lGAME OVER! §r${loseText} §8(${progress.percent}% cleared)`;
+      statusLine = `§c§lGAME OVER! §r${loseText} §8(${progress.percent}% cleared)§r`;
     } else if (isNonEmptyString(notice)) {
-      statusLine = `${statusLine}\n${notice}`;
+      statusLine = `${statusLine}\n${notice}§r`;
     }
 
     const rawForm = new ActionFormData()

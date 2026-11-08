@@ -43,15 +43,40 @@ export default function createConfigManager<T>(
     const savedConfig = configStorage.load<Record<string, unknown>>();
 
     if (isDefined(savedConfig)) {
-      if (name === 'Main' && isDefined(savedConfig.spawnLocation) && typeof savedConfig.spawnLocation === 'object') {
-        if (!isDefined(savedConfig.spawn)) {
-          savedConfig.spawn = {};
+      if (name === 'Main') {
+        if (isDefined(savedConfig.spawnLocation) && typeof savedConfig.spawnLocation === 'object') {
+          if (!isDefined(savedConfig.spawn)) {
+            savedConfig.spawn = {};
+          }
+          const spawn = savedConfig.spawn as Record<string, unknown>;
+          if (!isDefined(spawn.spawnLocation)) {
+            spawn.spawnLocation = deepClone(savedConfig.spawnLocation);
+          }
+          delete savedConfig.spawnLocation;
         }
-        const spawn = savedConfig.spawn as Record<string, unknown>;
-        if (!isDefined(spawn.spawnLocation)) {
-          spawn.spawnLocation = deepClone(savedConfig.spawnLocation);
+
+        const playerInfo = savedConfig.playerInfo as Record<string, unknown> | undefined;
+        if (isDefined(playerInfo) && typeof playerInfo === 'object') {
+          const customJoinLeave = playerInfo.customJoinLeave as Record<string, unknown> | undefined;
+          if (isDefined(customJoinLeave) && typeof customJoinLeave === 'object') {
+            if (customJoinLeave.joinMessage === '§e{playerName} joined the game') {
+              customJoinLeave.joinMessage = '§e{playerName}§r joined the game';
+            }
+            if (customJoinLeave.leaveMessage === '§e{playerName} left the game') {
+              customJoinLeave.leaveMessage = '§e{playerName}§r left the game';
+            }
+          }
+          if (
+            playerInfo.welcomeMessage ===
+            'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.'
+          ) {
+            playerInfo.welcomeMessage =
+              'Welcome, §a{playerName}§r, to {serverName}!§r\nUse §e/h§r to see available commands.§r';
+          }
+          if (playerInfo.deathCoordsMessage === '§7You died at {x}, {y}, {z} in {dimensionId}.') {
+            playerInfo.deathCoordsMessage = '§7You died at {x}, {y}, {z} in {dimensionId}.§r';
+          }
         }
-        delete savedConfig.spawnLocation;
       }
 
       currentConfig = deepMerge(freshDefaults, savedConfig) as T;

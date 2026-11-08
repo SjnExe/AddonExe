@@ -14,8 +14,10 @@ import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { uiManager } from '@minecraft/server-ui';
 
+/** Choice options available in Rock Paper Scissors. */
 export type RpsChoice = 'rock' | 'paper' | 'scissors';
 
+/** Record of a completed round in an RPS match. */
 export interface RpsRoundRecord {
   round: number;
   p1Choice: RpsChoice;
@@ -23,6 +25,7 @@ export interface RpsRoundRecord {
   winnerId?: string;
 }
 
+/** Active state and history of an RPS match. */
 export interface RpsMatch {
   id: string;
   player1Id: string;
@@ -54,6 +57,12 @@ const activeMatches = new Map<string, RpsMatch>();
 const playerMatchMap = new Map<string, string>();
 let turnTimerInitialized = false;
 
+/**
+ * Formats an RPS choice with an emoji and styled color code.
+ *
+ * @param choice The choice to format.
+ * @returns Formatted choice string.
+ */
 export function formatRpsChoice(choice: RpsChoice): string {
   if (choice === 'rock') {
     return '§7🪨 Rock§r';
@@ -64,6 +73,13 @@ export function formatRpsChoice(choice: RpsChoice): string {
   return '§c✂ Scissors§r';
 }
 
+/**
+ * Evaluates the outcome of an RPS round between two choices.
+ *
+ * @param p1Choice Choice made by player 1.
+ * @param p2Choice Choice made by player 2.
+ * @returns Winner indicator ('p1', 'p2', or 'draw').
+ */
 export function evaluateRpsRound(p1Choice: RpsChoice, p2Choice: RpsChoice): 'p1' | 'p2' | 'draw' {
   if (p1Choice === p2Choice) {
     return 'draw';
@@ -78,6 +94,7 @@ export function evaluateRpsRound(p1Choice: RpsChoice, p2Choice: RpsChoice): 'p1'
   return 'p2';
 }
 
+/** Initializes the Rock Paper Scissors multiplayer game registration and turn timer. */
 export function initializeRps(): void {
   registerMultiplayerGame({
     id: 'rps',
@@ -123,6 +140,14 @@ function normalizeBestOf(rawBestOf?: number): number {
   return 3;
 }
 
+/**
+ * Starts a new 2-player Rock Paper Scissors match between two players.
+ *
+ * @param player1 The host or initiating player.
+ * @param player2 The opponent player.
+ * @param wager Optional wager amount for the match.
+ * @returns The initialized match instance, or undefined if invalid.
+ */
 export function startRpsMatch(player1: mc.Player, player2: mc.Player, wager: number = 0): RpsMatch | undefined {
   if (wager > 0) {
     incrementPlayerBalance(player1.id, -wager);
@@ -168,6 +193,12 @@ export function startRpsMatch(player1: mc.Player, player2: mc.Player, wager: num
   return match;
 }
 
+/**
+ * Starts a solo Rock Paper Scissors match against the AI bot.
+ *
+ * @param player The human player initiating the match.
+ * @returns The initialized bot match instance.
+ */
 export function startRpsBotMatch(player: mc.Player): RpsMatch {
   const existing = getPlayerRpsMatch(player.id);
   if (isDefined(existing) && existing.isBotMatch) {
@@ -203,10 +234,22 @@ export function startRpsBotMatch(player: mc.Player): RpsMatch {
   return match;
 }
 
+/**
+ * Retrieves an active RPS match by its unique match ID.
+ *
+ * @param matchId Identifier of the match.
+ * @returns Active match object, or undefined if not found.
+ */
 export function getRpsMatch(matchId: string): RpsMatch | undefined {
   return activeMatches.get(matchId);
 }
 
+/**
+ * Retrieves the active RPS match for a specific player ID.
+ *
+ * @param playerId Identifier of the player.
+ * @returns Active match object, or undefined if the player is not currently in a match.
+ */
 export function getPlayerRpsMatch(playerId: string): RpsMatch | undefined {
   const matchId = playerMatchMap.get(playerId);
   return isDefined(matchId) ? activeMatches.get(matchId) : undefined;
@@ -241,6 +284,14 @@ function finalizeMatchCleanup(match: RpsMatch): void {
   }, 600);
 }
 
+/**
+ * Submits a player's move choice for the active Rock-Paper-Scissors match round.
+ *
+ * @param matchId Identifier of the target match session.
+ * @param playerId Identifier of the participating player submitting the choice.
+ * @param choice Selected move option ('rock', 'paper', or 'scissors').
+ * @returns Result object detailing validity, resolution state, and outcome messages.
+ */
 export function submitRpsChoice(
   matchId: string,
   playerId: string,
@@ -253,7 +304,7 @@ export function submitRpsChoice(
       waitingForOpponent: false,
       roundResolved: false,
       matchEnded: true,
-      message: '§cMatch is no longer active.',
+      message: '§cMatch is no longer active.§r',
     };
   }
 
@@ -265,7 +316,7 @@ export function submitRpsChoice(
       waitingForOpponent: false,
       roundResolved: false,
       matchEnded: false,
-      message: '§cYou are not part of this match.',
+      message: '§cYou are not part of this match.§r',
     };
   }
 
@@ -275,7 +326,7 @@ export function submitRpsChoice(
       waitingForOpponent: true,
       roundResolved: false,
       matchEnded: false,
-      message: '§eYou already locked in your choice for this round!',
+      message: '§eYou already locked in your choice for this round!§r',
     };
   }
 
@@ -302,7 +353,7 @@ export function submitRpsChoice(
       waitingForOpponent: true,
       roundResolved: false,
       matchEnded: false,
-      message: `§aLocked in ${formatRpsChoice(choice)}§a! Waiting for opponent...`,
+      message: `§aLocked in ${formatRpsChoice(choice)}§a! Waiting for opponent...§r`,
     };
   }
 
@@ -315,13 +366,13 @@ export function submitRpsChoice(
   if (outcome === 'p1') {
     match.p1Wins++;
     roundWinnerId = match.player1Id;
-    match.lastRoundSummary = `§eRound ${currentRound}: §b${match.player1Name} §7(${formatRpsChoice(c1)}§7) beat §f${match.player2Name} §7(${formatRpsChoice(c2)}§7)!`;
+    match.lastRoundSummary = `§eRound ${currentRound}: §b${match.player1Name}§r §7(${formatRpsChoice(c1)}§7) beat §f${match.player2Name}§r §7(${formatRpsChoice(c2)}§7)!§r`;
   } else if (outcome === 'p2') {
     match.p2Wins++;
     roundWinnerId = match.player2Id;
-    match.lastRoundSummary = `§eRound ${currentRound}: §b${match.player2Name} §7(${formatRpsChoice(c2)}§7) beat §f${match.player1Name} §7(${formatRpsChoice(c1)}§7)!`;
+    match.lastRoundSummary = `§eRound ${currentRound}: §b${match.player2Name}§r §7(${formatRpsChoice(c2)}§7) beat §f${match.player1Name}§r §7(${formatRpsChoice(c1)}§7)!§r`;
   } else {
-    match.lastRoundSummary = `§eRound ${currentRound}: §6Draw! §7Both picked ${formatRpsChoice(c1)}§7.`;
+    match.lastRoundSummary = `§eRound ${currentRound}: §6Draw! §7Both picked ${formatRpsChoice(c1)}§7.§r`;
   }
 
   match.rounds.push({
@@ -350,7 +401,7 @@ export function submitRpsChoice(
     const winnerName = p1Won ? match.player1Name : match.player2Name;
     const loserName = p1Won ? match.player2Name : match.player1Name;
 
-    match.endReason = `§a${winnerName} §7defeated §c${loserName} §7(${match.p1Wins} - ${match.p2Wins})!`;
+    match.endReason = `§a${winnerName}§r §7defeated §c${loserName}§r §7(${match.p1Wins} - ${match.p2Wins})!§r`;
 
     const payout =
       match.wager > 0 && isDefined(match.winnerId) && match.winnerId !== botPlayerId
@@ -363,13 +414,13 @@ export function submitRpsChoice(
 
     if (isDefined(p1)) {
       p1.sendMessage(
-        `§e[RPS] ${match.lastRoundSummary}\n§e[RPS] §a${winnerName} §fwon the match (${match.p1Wins}-${match.p2Wins})!${prizeText}`,
+        `§e[RPS] ${match.lastRoundSummary}§r\n§e[RPS] §a${winnerName}§r §fwon the match (${match.p1Wins}-${match.p2Wins})!${prizeText}§r`,
       );
       playSound(p1, p1Won ? 'random.levelup' : 'note.bass');
     }
     if (isDefined(p2)) {
       p2.sendMessage(
-        `§e[RPS] ${match.lastRoundSummary}\n§e[RPS] §a${winnerName} §fwon the match (${match.p1Wins}-${match.p2Wins})!${prizeText}`,
+        `§e[RPS] ${match.lastRoundSummary}§r\n§e[RPS] §a${winnerName}§r §fwon the match (${match.p1Wins}-${match.p2Wins})!${prizeText}§r`,
       );
       playSound(p2, !p1Won ? 'random.levelup' : 'note.bass');
     }
@@ -405,6 +456,13 @@ export function submitRpsChoice(
   };
 }
 
+/**
+ * Forfeits an active RPS match on behalf of a player and awards the wager pot to the remaining player.
+ *
+ * @param matchId Identifier of the active match.
+ * @param forfeitingPlayerId Identifier of the player who conceded or disconnected.
+ * @param reason Reason description for the forfeit.
+ */
 export function forfeitRpsMatch(matchId: string, forfeitingPlayerId: string, reason: string = 'closed the UI'): void {
   const match = activeMatches.get(matchId);
   if (!isDefined(match) || match.status !== 'active') {
@@ -414,7 +472,7 @@ export function forfeitRpsMatch(matchId: string, forfeitingPlayerId: string, rea
   if (match.isBotMatch) {
     match.status = 'forfeit';
     match.winnerId = botPlayerId;
-    match.endReason = '§eYou ended the solo match.';
+    match.endReason = '§eYou ended the solo match.§r';
     finalizeMatchCleanup(match);
     return;
   }
@@ -425,7 +483,7 @@ export function forfeitRpsMatch(matchId: string, forfeitingPlayerId: string, rea
 
   match.status = 'forfeit';
   match.winnerId = winnerId;
-  match.endReason = `§c${loserName} §7${reason}. §a${winnerName} §7wins by forfeit!`;
+  match.endReason = `§c${loserName}§r §7${reason}. §a${winnerName}§r §7wins by forfeit!§r`;
 
   const payout = match.wager > 0 ? payoutWagerPot(winnerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
@@ -434,11 +492,11 @@ export function forfeitRpsMatch(matchId: string, forfeitingPlayerId: string, rea
   const loserPlayer = getPlayerFromCache(forfeitingPlayerId);
 
   if (isDefined(winnerPlayer)) {
-    winnerPlayer.sendMessage(`§e[RPS] §c${loserName} §7${reason}. §aYou won by forfeit!${prizeText}`);
+    winnerPlayer.sendMessage(`§e[RPS] §c${loserName}§r §7${reason}. §aYou won by forfeit!${prizeText}§r`);
     playSound(winnerPlayer, 'random.levelup');
   }
   if (isDefined(loserPlayer)) {
-    loserPlayer.sendMessage(`§e[RPS] §cYou forfeited the match (${reason}). §e${winnerName} §cwins!`);
+    loserPlayer.sendMessage(`§e[RPS] §cYou forfeited the match (${reason}). §e${winnerName}§r §cwins!§r`);
     playSound(loserPlayer, 'note.bass');
   }
 
@@ -446,6 +504,7 @@ export function forfeitRpsMatch(matchId: string, forfeitingPlayerId: string, rea
   triggerOpponentUiRefresh(match, winnerId);
 }
 
+/** Clears active RPS matches and player mappings for testing purposes. */
 export function _clearRpsForTest(): void {
   activeMatches.clear();
   playerMatchMap.clear();

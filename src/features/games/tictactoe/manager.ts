@@ -171,6 +171,14 @@ function finalizeMatchCleanup(match: TicTacToeMatch): void {
   }, 600);
 }
 
+/**
+ * Submits a cell selection for the active Tic-Tac-Toe turn.
+ *
+ * @param matchId Identifier of the active match.
+ * @param playerId Identifier of the player making the move.
+ * @param cellIndex Selected board index (0-8).
+ * @returns Object indicating move validity, status message, and whether the match concluded.
+ */
 export function makeTicTacToeMove(
   matchId: string,
   playerId: string,
@@ -178,15 +186,15 @@ export function makeTicTacToeMove(
 ): { valid: boolean; message?: string; matchEnded: boolean } {
   const match = activeMatches.get(matchId);
   if (!isDefined(match) || match.status !== 'active') {
-    return { valid: false, message: '§cMatch is no longer active.', matchEnded: true };
+    return { valid: false, message: '§cMatch is no longer active.§r', matchEnded: true };
   }
 
   if (match.currentTurnId !== playerId) {
-    return { valid: false, message: "§eWaiting for your opponent's move...", matchEnded: false };
+    return { valid: false, message: "§eWaiting for your opponent's move...§r", matchEnded: false };
   }
 
   if (cellIndex < 0 || cellIndex >= 9 || match.board[cellIndex] !== '') {
-    return { valid: false, message: '§cThat square is already occupied!', matchEnded: false };
+    return { valid: false, message: '§cThat square is already occupied!§r', matchEnded: false };
   }
 
   const mark: CellMark = playerId === match.playerXId ? 'X' : 'O';
@@ -205,7 +213,7 @@ export function makeTicTacToeMove(
     recordSimpleGameStat(opponentId, 'ttt', 'losses');
     const winnerName = playerId === match.playerXId ? match.playerXName : match.playerOName;
     const loserName = playerId === match.playerXId ? match.playerOName : match.playerXName;
-    match.endReason = `§a${winnerName} §7connected 3 in a row against §c${loserName}§7!`;
+    match.endReason = `§a${winnerName}§r §7connected 3 in a row against §c${loserName}§r§7!§r`;
 
     const payout = match.wager > 0 ? payoutWagerPot(playerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
@@ -213,11 +221,11 @@ export function makeTicTacToeMove(
     const pO = getPlayerFromCache(match.playerOId);
     const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
     if (isDefined(pX)) {
-      pX.sendMessage(`§e[Tic-Tac-Toe] §a${winnerName} §fwon the match!${prizeText}`);
+      pX.sendMessage(`§e[Tic-Tac-Toe] §a${winnerName}§r §fwon the match!${prizeText}§r`);
       playSound(pX, playerId === match.playerXId ? 'random.levelup' : 'note.bass');
     }
     if (isDefined(pO)) {
-      pO.sendMessage(`§e[Tic-Tac-Toe] §a${winnerName} §fwon the match!${prizeText}`);
+      pO.sendMessage(`§e[Tic-Tac-Toe] §a${winnerName}§r §fwon the match!${prizeText}§r`);
       playSound(pO, playerId === match.playerOId ? 'random.levelup' : 'note.bass');
     }
 
@@ -228,7 +236,7 @@ export function makeTicTacToeMove(
 
   if (evalResult.isDraw) {
     match.status = 'draw';
-    match.endReason = '§eAll 9 squares filled — Match ended in a Draw!';
+    match.endReason = '§eAll 9 squares filled — Match ended in a Draw!§r';
 
     if (match.wager > 0) {
       incrementPlayerBalance(match.playerXId, match.wager);
@@ -239,11 +247,11 @@ export function makeTicTacToeMove(
     const pO = getPlayerFromCache(match.playerOId);
     const refundText = match.wager > 0 ? ` §7(${formatCurrency(match.wager)} refunded)` : '';
     if (isDefined(pX)) {
-      pX.sendMessage(`§e[Tic-Tac-Toe] §fMatch ended in a §eDraw§f!${refundText}`);
+      pX.sendMessage(`§e[Tic-Tac-Toe] §fMatch ended in a §eDraw§f!${refundText}§r`);
       playSound(pX, 'random.orb');
     }
     if (isDefined(pO)) {
-      pO.sendMessage(`§e[Tic-Tac-Toe] §fMatch ended in a §eDraw§f!${refundText}`);
+      pO.sendMessage(`§e[Tic-Tac-Toe] §fMatch ended in a §eDraw§f!${refundText}§r`);
       playSound(pO, 'random.orb');
     }
 
@@ -266,6 +274,13 @@ export function makeTicTacToeMove(
   return { valid: true, matchEnded: false };
 }
 
+/**
+ * Forfeits an active Tic-Tac-Toe match on behalf of a player and awards the wager pot to the opponent.
+ *
+ * @param matchId Identifier of the active match.
+ * @param forfeitingPlayerId Identifier of the player who conceded or disconnected.
+ * @param reason Reason description for the forfeit.
+ */
 export function forfeitTicTacToeMatch(
   matchId: string,
   forfeitingPlayerId: string,
@@ -282,7 +297,7 @@ export function forfeitTicTacToeMatch(
 
   match.status = 'forfeit';
   match.winnerId = winnerId;
-  match.endReason = `§c${loserName} §7${reason}. §a${winnerName} §7wins by forfeit!`;
+  match.endReason = `§c${loserName}§r §7${reason}. §a${winnerName}§r §7wins by forfeit!§r`;
 
   const payout = match.wager > 0 ? payoutWagerPot(winnerId, match.wager) : { netPrize: 0, taxRate: 0 };
 
@@ -291,11 +306,11 @@ export function forfeitTicTacToeMatch(
   const loserPlayer = getPlayerFromCache(forfeitingPlayerId);
 
   if (isDefined(winnerPlayer)) {
-    winnerPlayer.sendMessage(`§e[Tic-Tac-Toe] §c${loserName} §7${reason}. §aYou won by forfeit!${prizeText}`);
+    winnerPlayer.sendMessage(`§e[Tic-Tac-Toe] §c${loserName}§r §7${reason}. §aYou won by forfeit!${prizeText}§r`);
     playSound(winnerPlayer, 'random.levelup');
   }
   if (isDefined(loserPlayer)) {
-    loserPlayer.sendMessage(`§e[Tic-Tac-Toe] §cYou forfeited the match (${reason}). §e${winnerName} §cwins!`);
+    loserPlayer.sendMessage(`§e[Tic-Tac-Toe] §cYou forfeited the match (${reason}). §e${winnerName}§r §cwins!§r`);
     playSound(loserPlayer, 'note.bass');
   }
 

@@ -463,6 +463,13 @@ function finalizeRaceCleanup(match: MinesweeperRaceMatch): void {
   }, 600);
 }
 
+/**
+ * Concedes an active multiplayer Minesweeper race and crowns the opponent as victor.
+ *
+ * @param matchId Identifier of the multiplayer race match.
+ * @param losingPlayerId Identifier of the player forfeiting or detonating.
+ * @param reason Forfeit explanation banner.
+ */
 export function forfeitMinesweeperRace(matchId: string, losingPlayerId: string, reason: string): void {
   const match = activeRaceMatches.get(matchId);
   if (!isDefined(match) || match.status !== 'active') {
@@ -475,7 +482,7 @@ export function forfeitMinesweeperRace(matchId: string, losingPlayerId: string, 
 
   match.status = 'forfeit';
   match.winnerId = winnerId;
-  match.endReason = `§c${loserName} §7${reason}! §a${winnerName} §7wins the Minesweeper Race!`;
+  match.endReason = `§c${loserName}§r §7${reason}! §a${winnerName}§r §7wins the Minesweeper Race!§r`;
 
   const winnerGame = activeGames.get(winnerId);
   if (isDefined(winnerGame) && winnerGame.status === 'active') {
@@ -489,11 +496,11 @@ export function forfeitMinesweeperRace(matchId: string, losingPlayerId: string, 
   const loserPlayer = getPlayerFromCache(losingPlayerId);
 
   if (isDefined(winnerPlayer)) {
-    winnerPlayer.sendMessage(`§e[Minesweeper Race] §c${loserName} §7${reason}! §aYou win!${prizeText}`);
+    winnerPlayer.sendMessage(`§e[Minesweeper Race] §c${loserName}§r §7${reason}! §aYou win!${prizeText}§r`);
     playSound(winnerPlayer, 'random.levelup');
   }
   if (isDefined(loserPlayer)) {
-    loserPlayer.sendMessage(`§e[Minesweeper Race] §cYou lost (${reason}). §e${winnerName} §cwins the match!`);
+    loserPlayer.sendMessage(`§e[Minesweeper Race] §cYou lost (${reason}). §e${winnerName}§r §cwins the match!§r`);
     playSound(loserPlayer, 'note.bass');
   }
 
@@ -520,7 +527,7 @@ function handleRaceBoardCleared(matchId: string, finisherId: string, netSeconds:
 
   match.status = 'won';
   match.winnerId = finisherId;
-  match.endReason = `§a${winnerName} §7cleared the minefield first in §b${netSeconds.toFixed(1)}s §7against §c${loserName}§7!`;
+  match.endReason = `§a${winnerName}§r §7cleared the minefield first in §b${netSeconds.toFixed(1)}s§r §7against §c${loserName}§r§7!§r`;
 
   const oppGame = activeGames.get(opponentId);
   if (isDefined(oppGame) && oppGame.status === 'active') {
@@ -534,11 +541,11 @@ function handleRaceBoardCleared(matchId: string, finisherId: string, netSeconds:
   const p2 = getPlayerFromCache(match.player2Id);
 
   if (isDefined(p1)) {
-    p1.sendMessage(`§e[Minesweeper Race] ${match.endReason}${prizeText}`);
+    p1.sendMessage(`§e[Minesweeper Race] ${match.endReason}${prizeText}§r`);
     playSound(p1, isP1 ? 'random.levelup' : 'note.bass');
   }
   if (isDefined(p2)) {
-    p2.sendMessage(`§e[Minesweeper Race] ${match.endReason}${prizeText}`);
+    p2.sendMessage(`§e[Minesweeper Race] ${match.endReason}${prizeText}§r`);
     playSound(p2, !isP1 ? 'random.levelup' : 'note.bass');
   }
 
