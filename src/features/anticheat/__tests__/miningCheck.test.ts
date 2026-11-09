@@ -158,4 +158,38 @@ describe('MiningCheck', () => {
 
     expect(flagSpy).not.toHaveBeenCalled();
   });
+
+  it('should defer effect and equipment queries when break count is within base limit', () => {
+    const player = new PlayerMock('miner_deferred', 'DeferredMiner');
+    player.getGameMode = () => mc.GameMode.Survival;
+
+    const getEffectSpy = spyOn(player, 'getEffect').mockReturnValue(undefined);
+    const getComponentSpy = spyOn(player, 'getComponent').mockReturnValue(undefined);
+
+    Object.defineProperty(mc.system, 'currentTick', { value: 600, configurable: true });
+
+    const solidEvent = {
+      player,
+      brokenBlockPermutation: { type: { id: MinecraftBlockTypes.Stone } },
+      block: { location: { x: 0, y: 0, z: 0 } },
+    } as unknown as mc.PlayerBreakBlockAfterEvent;
+
+    // First break within tick: breaksInTick = 1 <= maxBreaksPerTick (2)
+    handlePlayerBreakBlockRate(solidEvent);
+    expect(getEffectSpy).not.toHaveBeenCalled();
+    expect(getComponentSpy).not.toHaveBeenCalled();
+
+    // Second break within tick: breaksInTick = 2 <= maxBreaksPerTick (2)
+    handlePlayerBreakBlockRate(solidEvent);
+    expect(getEffectSpy).not.toHaveBeenCalled();
+    expect(getComponentSpy).not.toHaveBeenCalled();
+
+    // Third break within tick: breaksInTick = 3 > maxBreaksPerTick (2), now deferred lookup triggers!
+    handlePlayerBreakBlockRate(solidEvent);
+    expect(getEffectSpy).toHaveBeenCalled();
+    expect(getComponentSpy).toHaveBeenCalled();
+
+    getEffectSpy.mockRestore();
+    getComponentSpy.mockRestore();
+  });
 });

@@ -116,4 +116,93 @@ describe('CombatCheck', () => {
 
     expect(flagSpy).not.toHaveBeenCalled();
   });
+
+  it('should not flag AutoClicker when hitting multiple distinct mobs in a mob farm sweep', () => {
+    const attacker = new PlayerMock('attacker_farm', 'MobFarmer');
+    attacker.typeId = MinecraftEntityTypes.Player;
+    attacker.getGameMode = () => mc.GameMode.Survival;
+    attacker.location = { x: 0, y: 64, z: 0 };
+    attacker.getHeadLocation = () => ({ x: 0, y: 65.6, z: 0 });
+
+    // Simulate hitting 25 distinct chickens in a mob farm cluster within the exact same attack swing
+    for (let i = 0; i < 25; i++) {
+      const distinctMob = {
+        id: `mob_farm_${i}`,
+        typeId: MinecraftEntityTypes.Chicken,
+        location: { x: 1, y: 64, z: 0 },
+        isValid: true,
+      } as unknown as mc.Entity;
+
+      const sweepEvent = {
+        damagingEntity: attacker,
+        hitEntity: distinctMob,
+      } as unknown as mc.EntityHitEntityAfterEvent;
+
+      handleEntityHit(sweepEvent);
+    }
+
+    expect(flagSpy).not.toHaveBeenCalled();
+  });
+
+  it('should grant hitbox allowance when attacking large boss entities like Ender Dragon', () => {
+    const attacker = new PlayerMock('attacker_dragon', 'DragonSlayer');
+    attacker.typeId = MinecraftEntityTypes.Player;
+    attacker.getGameMode = () => mc.GameMode.Survival;
+    attacker.location = { x: 0, y: 64, z: 0 };
+    attacker.getHeadLocation = () => ({ x: 0, y: 65.6, z: 0 });
+
+    // Ender Dragon located 6.5 blocks away (normal reach limit is 4.0, but dragon has wide hitbox allowance ~11.5)
+    const dragon = {
+      id: 'boss_dragon',
+      typeId: MinecraftEntityTypes.EnderDragon,
+      location: { x: 6.5, y: 64, z: 0 },
+      isValid: true,
+    } as unknown as mc.Entity;
+
+    const event = {
+      damagingEntity: attacker,
+      hitEntity: dragon,
+    } as unknown as mc.EntityHitEntityAfterEvent;
+
+    handleEntityHit(event);
+    handleEntityHit(event);
+    handleEntityHit(event);
+
+    expect(flagSpy).not.toHaveBeenCalled();
+
+    // Negative control 1: Regular entity (Chicken) at 6.5 blocks away must be flagged
+    const distantChicken = {
+      id: 'distant_chicken',
+      typeId: MinecraftEntityTypes.Chicken,
+      location: { x: 6.5, y: 64, z: 0 },
+      isValid: true,
+    } as unknown as mc.Entity;
+
+    const chickenEvent = {
+      damagingEntity: attacker,
+      hitEntity: distantChicken,
+    } as unknown as mc.EntityHitEntityAfterEvent;
+
+    handleEntityHit(chickenEvent);
+    handleEntityHit(chickenEvent);
+    expect(flagSpy).toHaveBeenCalledWith(attacker, 'combatCheck', expect.stringContaining('Reach:'));
+
+    // Negative control 2: Boss entity beyond total allowance (e.g. 15 blocks away) must be flagged
+    flagSpy.mockClear();
+    const outOfReachDragon = {
+      id: 'boss_dragon_far',
+      typeId: MinecraftEntityTypes.EnderDragon,
+      location: { x: 15, y: 64, z: 0 },
+      isValid: true,
+    } as unknown as mc.Entity;
+
+    const farDragonEvent = {
+      damagingEntity: attacker,
+      hitEntity: outOfReachDragon,
+    } as unknown as mc.EntityHitEntityAfterEvent;
+
+    handleEntityHit(farDragonEvent);
+    handleEntityHit(farDragonEvent);
+    expect(flagSpy).toHaveBeenCalledWith(attacker, 'combatCheck', expect.stringContaining('Reach:'));
+  });
 });
