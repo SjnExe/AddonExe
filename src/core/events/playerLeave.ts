@@ -12,6 +12,7 @@ import { debugLog } from '@core/utils/logger.js';
 import { cancelActiveTeleportWarmup, clearTeleportProtection } from '@core/utils/teleportLogic.js';
 import { clearPlayerUiSession } from '@core/utils/ui.js';
 import { clearPlayerCombatState } from '@features/anticheat/combatCheck.js';
+import { clearPlayerAntiCheatState } from '@features/anticheat/core/checkRegistry.js';
 import { clearPlayerMiningRateState } from '@features/anticheat/miningCheck.js';
 import { clearPlayerMovementState } from '@features/anticheat/movementCheck.js';
 import { clearPlayerMiningStats } from '@features/anticheat/xray/manager.js';
@@ -55,6 +56,7 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   setStaffChatState(event.playerId, false);
   setTeamChatState(event.playerId, false);
   leaveGameChatChannel(event.playerId);
+  clearPlayerAntiCheatState(event.playerId);
   clearPlayerMovementState(event.playerId);
   clearPlayerCombatState(event.playerId);
   clearPlayerMiningRateState(event.playerId);

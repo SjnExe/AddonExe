@@ -2,24 +2,34 @@ import { AnticheatConfig, getAnticheatConfig } from '@core/config/configurations
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { registerEvent } from '@core/events/eventManager.js';
 import { errorLog } from '@core/utils/logger.js';
-import { setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
+import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
+import { AntiCheatCheck } from '@features/anticheat/core/check.js';
+import { checkRegistry } from '@features/anticheat/core/checkRegistry.js';
 import { flag } from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 
 let isChecking = false;
+let itemCheckIntervalId: number | undefined;
+let isItemCheckRegistered = false;
 
-export function startItemCheckLoop() {
-  if (mc.world.afterEvents.playerInventoryItemChange) {
+/** Starts the periodic inventory inspection loop and registers item change event listeners. */
+export function startItemCheckLoop(): void {
+  if (!isItemCheckRegistered && isDefined(mc.world?.afterEvents?.playerInventoryItemChange)) {
     registerEvent(
       mc.world.afterEvents.playerInventoryItemChange,
       handlePlayerInventoryItemChange,
       'playerInventoryItemChange',
     );
+    isItemCheckRegistered = true;
   }
 
-  setTrackedInterval(() => {
+  if (isDefined(itemCheckIntervalId)) {
+    clearTrackedInterval(itemCheckIntervalId);
+  }
+
+  itemCheckIntervalId = setTrackedInterval(() => {
     if (isChecking) {
       return;
     }
@@ -38,6 +48,11 @@ export function startItemCheckLoop() {
 
 const mutatingSlots = new Set<string>();
 
+/**
+ * Evaluates individual slot item modifications to detect illegal items immediately upon inventory interaction.
+ *
+ * @param event The player inventory item change after-event payload.
+ */
 export function handlePlayerInventoryItemChange(event: mc.PlayerInventoryItemChangeAfterEvent): void {
   const player = event.player;
   if (!player || !player.isValid) {
@@ -103,7 +118,6 @@ export function handlePlayerInventoryItemChange(event: mc.PlayerInventoryItemCha
 function* checkInventoryGenerator(config: AnticheatConfig) {
   isChecking = true;
   try {
-    // Optimization: Use cached players and restrict periodic sweep to equipment slots
     const players = getAllPlayersFromCache();
     const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
     for (const player of players) {
@@ -137,7 +151,14 @@ function getBannedItemSet(bannedItems: string[]): Set<string> {
   return cachedBannedSet;
 }
 
-export function checkPlayerEquipment(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
+/**
+ * Inspects all armor and offhand equipment slots on a player.
+ *
+ * @param player The player whose equipment is inspected.
+ * @param config Item check configuration parameters.
+ * @param bannedSet Optional pre-computed Set of banned item identifiers.
+ */
+export function checkPlayerEquipment(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>): void {
   if (!player || !player.isValid) {
     return;
   }
@@ -165,7 +186,14 @@ export function checkPlayerEquipment(player: mc.Player, config: ItemCheckConfig,
   }
 }
 
-export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>) {
+/**
+ * Inspects the entire inventory (main container + equipment) of a player.
+ *
+ * @param player The player whose full inventory is inspected.
+ * @param config Item check configuration parameters.
+ * @param bannedSet Optional pre-computed Set of banned item identifiers.
+ */
+export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig, bannedSet?: Set<string>): void {
   if (!player || !player.isValid) {
     return;
   }
@@ -191,13 +219,22 @@ export function checkPlayerInventory(player: mc.Player, config: ItemCheckConfig,
   checkPlayerEquipment(player, config, effectiveBannedSet);
 }
 
+/**
+ * Verifies a single item stack against illegal stack sizes, enchantment levels, and banned item identifiers.
+ *
+ * @param item The item stack under inspection.
+ * @param player The player holding the item stack.
+ * @param config Item check configuration parameters.
+ * @param updateItem Callback invoked to replace or remove the item stack if modified or purged.
+ * @param bannedSet Optional pre-computed Set of banned item identifiers.
+ */
 export function checkItem(
   item: mc.ItemStack,
   player: mc.Player,
   config: ItemCheckConfig,
   updateItem: (item?: mc.ItemStack) => void,
   bannedSet?: Set<string>,
-) {
+): void {
   const maxEnchantLevel = config.maxEnchantLevel ?? 5;
   let modified = false;
 
@@ -213,18 +250,16 @@ export function checkItem(
   // Check Enchants
   const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
   if (isDefined(enchantable) && 'getEnchantments' in enchantable) {
-    // getEnchantments() returns readonly array
     const enchants = enchantable.getEnchantments();
     for (const enchant of enchants) {
       const vanillaMax = enchant.type.maxLevel;
-      // Allow whichever is higher: Config limit or Vanilla limit.
       const allowed = Math.max(maxEnchantLevel, vanillaMax);
 
       if (enchant.level > allowed && config.illegalEnchantments === true) {
         flag(player, 'itemCheck', `Illegal Enchant: ${enchant.type.id} Level ${enchant.level} (Max: ${allowed})`);
         if (config.removeIllegalItems === true) {
           updateItem(); // Remove item
-          return; // Stop checking this item
+          return;
         }
       }
     }
@@ -245,6 +280,40 @@ export function checkItem(
   }
 }
 
+/** Clears mutating slot tracking states for test isolation. */
 export function _clearItemCheckForTest(): void {
   mutatingSlots.clear();
+  isChecking = false;
+  isItemCheckRegistered = false;
+  if (isDefined(itemCheckIntervalId)) {
+    clearTrackedInterval(itemCheckIntervalId);
+    itemCheckIntervalId = undefined;
+  }
 }
+
+/** Modular item check registration. */
+export const itemCheck: AntiCheatCheck = {
+  id: 'itemCheck',
+  name: 'Item & Inventory Inspection Check',
+  category: 'inventory',
+  description: 'Inspects item stack sizes, enchantment levels, and banned item possession.',
+  start: () => startItemCheckLoop(),
+  stop: () => {
+    if (isItemCheckRegistered) {
+      try {
+        mc.world?.afterEvents?.playerInventoryItemChange?.unsubscribe?.(handlePlayerInventoryItemChange);
+      } catch {
+        // Ignore unsubscribe errors in test environments
+      }
+      isItemCheckRegistered = false;
+    }
+    if (isDefined(itemCheckIntervalId)) {
+      clearTrackedInterval(itemCheckIntervalId);
+      itemCheckIntervalId = undefined;
+    }
+  },
+  clearPlayer: (_playerId: string) => {},
+  reset: () => _clearItemCheckForTest(),
+};
+
+checkRegistry.registerCheck(itemCheck);

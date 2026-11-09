@@ -3,18 +3,20 @@ import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:te
 import { MockConstructable } from '@core/__tests__/__mocks__/utils.js';
 import * as configLoader from '@core/config/configurations.js';
 import { addPlayerToCache, clearPlayerCache } from '@core/data/playerCache.js';
+import { _resetGraceManagerForTest, hasGrace } from '@features/anticheat/core/graceManager.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import {
   _resetMovementCheckForTest,
   recordMovementDamage,
   startMovementCheckLoop,
 } from '@features/anticheat/movementCheck.js';
-import { EntityComponentTypes } from '@minecraft/server';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 import {
   MinecraftBlockTypes,
   MinecraftDimensionTypes,
   MinecraftEffectTypes,
+  MinecraftEnchantmentTypes,
   MinecraftItemTypes,
 } from '@minecraft/vanilla-data';
 
@@ -28,6 +30,7 @@ describe('MovementCheck', () => {
 
   beforeEach(() => {
     _resetMovementCheckForTest();
+    _resetGraceManagerForTest();
     clearPlayerCache();
     flagSpy = spyOn(flagManager, 'flag').mockImplementation(() => {});
     getAnticheatConfigSpy = spyOn(configLoader, 'getAnticheatConfig').mockReturnValue({
@@ -61,6 +64,7 @@ describe('MovementCheck', () => {
 
   afterEach(() => {
     _resetMovementCheckForTest();
+    _resetGraceManagerForTest();
     clearPlayerCache();
     flagSpy?.mockRestore();
     getAnticheatConfigSpy?.mockRestore();
@@ -314,7 +318,7 @@ describe('MovementCheck', () => {
     expect(flagSpy).not.toHaveBeenCalled();
   });
 
-  it('should allow higher speed limit when using trident in rain or water', () => {
+  it('should allow higher speed limit when using trident with Riptide enchantment', () => {
     startMovementCheckLoop();
 
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
@@ -328,7 +332,17 @@ describe('MovementCheck', () => {
       if (id === EntityComponentTypes.Equippable) {
         return {
           getEquipment: (slot: string) =>
-            slot === mc.EquipmentSlot.Mainhand ? ({ typeId: MinecraftItemTypes.Trident } as any) : undefined,
+            slot === mc.EquipmentSlot.Mainhand
+              ? ({
+                  typeId: MinecraftItemTypes.Trident,
+                  getComponent: (cId: string) =>
+                    cId === ItemComponentTypes.Enchantable
+                      ? {
+                          hasEnchantment: (ench: string) => ench === MinecraftEnchantmentTypes.Riptide,
+                        }
+                      : undefined,
+                } as any)
+              : undefined,
         } as any;
       }
       return undefined;
@@ -349,6 +363,46 @@ describe('MovementCheck', () => {
     }
 
     expect(flagSpy).not.toHaveBeenCalled();
+  });
+
+  it('should flag high speed when holding a plain unenchanted trident without Riptide', () => {
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const plainTridentPlayer = new PlayerMock('p_plain_trident', 'UnenchantedTridentUser');
+    plainTridentPlayer.getGameMode = () => mc.GameMode.Survival;
+    plainTridentPlayer.getVelocity = () => ({ x: 1.8, y: 0.5, z: 0 }); // 36 bps horizontal
+    plainTridentPlayer.getEffect = () => undefined;
+    plainTridentPlayer.getComponent = (id: string) => {
+      if (id === EntityComponentTypes.Equippable) {
+        return {
+          getEquipment: (slot: string) =>
+            slot === mc.EquipmentSlot.Mainhand
+              ? ({
+                  typeId: MinecraftItemTypes.Trident,
+                  getComponent: () => undefined, // No enchantable component or no Riptide
+                } as any)
+              : undefined,
+        } as any;
+      }
+      return undefined;
+    };
+
+    const dimension = new DimensionMock(MinecraftDimensionTypes.Overworld);
+    Object.defineProperty(plainTridentPlayer, 'dimension', {
+      value: dimension,
+      writable: true,
+    });
+
+    addPlayerToCache(plainTridentPlayer);
+
+    for (let i = 0; i < 5; i++) {
+      intervalCallback();
+    }
+
+    expect(flagSpy).toHaveBeenCalledWith(plainTridentPlayer, 'movementCheck', expect.stringContaining('Speed:'));
   });
 
   it('should flag InvalidSprint when sprinting with blindness or sneaking', () => {
@@ -378,5 +432,94 @@ describe('MovementCheck', () => {
       'movementCheck',
       expect.stringContaining('InvalidSprint: Sprinting while blinded'),
     );
+  });
+
+  it('should grant ice inertia grace when jumping off slippery blocks', () => {
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const iceJumper = new PlayerMock('p_ice_inertia', 'IceJumper');
+    iceJumper.getGameMode = () => mc.GameMode.Survival;
+    iceJumper.getVelocity = () => ({ x: 0.7, y: 0, z: 0 }); // 14 bps (exceeds normal limit 10, within ice limit 15)
+
+    const dim = new DimensionMock(MinecraftDimensionTypes.Overworld);
+    dim.getBlock = () => ({ typeId: MinecraftBlockTypes.PackedIce, isAir: false, isLiquid: false }) as any;
+
+    Object.defineProperty(iceJumper, 'dimension', {
+      value: dim,
+      writable: true,
+    });
+
+    addPlayerToCache(iceJumper);
+
+    // Initial ticks on ice: recognizes ice (14 bps <= 15 bps limit, 0 flags)
+    for (let i = 0; i < 6; i++) {
+      intervalCallback();
+    }
+    expect(flagSpy).not.toHaveBeenCalled();
+
+    // Now player jumps off into air: block below is air, but within ice grace window (14 bps <= 15 bps limit)
+    dim.getBlock = () => ({ typeId: MinecraftBlockTypes.Air, isAir: true, isLiquid: false }) as any;
+
+    for (let i = 0; i < 6; i++) {
+      intervalCallback();
+    }
+    expect(flagSpy).not.toHaveBeenCalled();
+
+    // Negative control: speed exceeding the ice limit (e.g. 20 bps) should flag
+    iceJumper.getVelocity = () => ({ x: 1.0, y: 0, z: 0 }); // 20 bps > 15
+    for (let i = 0; i < 6; i++) {
+      intervalCallback();
+    }
+    expect(flagSpy).toHaveBeenCalledWith(iceJumper, 'movementCheck', expect.stringContaining('Speed:'));
+  });
+
+  it('should require genuine upward bounce velocity on slime blocks before granting bounce grace', () => {
+    startMovementCheckLoop();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const DimensionMock = mc.Dimension as unknown as MockConstructable<mc.Dimension>;
+
+    const slimePlayer = new PlayerMock('p_slime', 'SlimeBouncer');
+    slimePlayer.getGameMode = () => mc.GameMode.Survival;
+    slimePlayer.isOnGround = false;
+
+    let blockBelowTypeId = MinecraftBlockTypes.Slime;
+    let getBlockCallCount = 0;
+
+    const dim = new DimensionMock(MinecraftDimensionTypes.Overworld);
+    dim.getBlock = () => {
+      getBlockCallCount++;
+      return { typeId: blockBelowTypeId, isAir: blockBelowTypeId === MinecraftBlockTypes.Air, isLiquid: false } as any;
+    };
+
+    Object.defineProperty(slimePlayer, 'dimension', {
+      value: dim,
+      writable: true,
+    });
+
+    addPlayerToCache(slimePlayer);
+
+    // 1. Weak vertical velocity (vy = 0.2 < 0.45) e.g. bunny hop or falling down: does NOT grant bounce grace
+    slimePlayer.getVelocity = () => ({ x: 0.6, y: 0.2, z: 0 }); // 12 bps horizontal > 10 normal
+    intervalCallback();
+    expect(hasGrace(slimePlayer.id, 'bounce')).toBe(false);
+
+    // 2. Pure vertical upward bounce (x: 0, vy = 0.8 > 0.45): GRANTS bounce grace even with 0 horizontal speed
+    slimePlayer.getVelocity = () => ({ x: 0, y: 0.8, z: 0 });
+    intervalCallback();
+    expect(hasGrace(slimePlayer.id, 'bounce')).toBe(true);
+    expect(flagSpy).not.toHaveBeenCalled();
+
+    // 3. Airborne continuation with bounce grace: block below is now Air, speed is 14 bps (exceeds normal 10 limit)
+    blockBelowTypeId = MinecraftBlockTypes.Air;
+    getBlockCallCount = 0;
+    slimePlayer.getVelocity = () => ({ x: 0.7, y: 0.1, z: 0 }); // 14 bps horizontal <= 15 maxSpeedIce
+    intervalCallback();
+    expect(flagSpy).not.toHaveBeenCalled();
+    // Fast path skips block lookups entirely while bounce grace is active
+    expect(getBlockCallCount).toBe(0);
   });
 });

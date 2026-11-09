@@ -4,14 +4,23 @@ import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { errorLog } from '@core/utils/logger.js';
 import { kickPlayer } from '@core/utils/player.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
+import { AntiCheatCheck } from '@features/anticheat/core/check.js';
+import { checkRegistry } from '@features/anticheat/core/checkRegistry.js';
+import {
+  addGrace,
+  hasGrace,
+  recordPlayerBounceGrace,
+  recordPlayerDamageGrace,
+} from '@features/anticheat/core/graceManager.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
-import { EntityComponentTypes } from '@minecraft/server';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 import {
   MinecraftBlockTypes,
   MinecraftDimensionTypes,
   MinecraftEffectTypes,
+  MinecraftEnchantmentTypes,
   MinecraftItemTypes,
 } from '@minecraft/vanilla-data';
 
@@ -19,13 +28,23 @@ interface PlayerMovementState {
   violationLevel: number; // Token bucket
   airTicks: number;
   lastDamageTimestamp?: number;
+  lastIceTimestamp?: number;
 }
 
 const movementStates = new Map<string, PlayerMovementState>();
 let isChecking = false;
 let movementIntervalId: number | undefined;
 
+const movementGraceReasons = ['teleport', 'respawn', 'damage', 'knockback', 'vehicle', 'bounce'] as const;
+const flightGraceReasons = ['bounce', 'riptide'] as const;
+
+/**
+ * Records that a player took damage or knockback, granting movement grace and reducing violation levels.
+ *
+ * @param playerId The damaged player's unique identifier.
+ */
 export function recordMovementDamage(playerId: string): void {
+  recordPlayerDamageGrace(playerId, 2500);
   let state = movementStates.get(playerId);
   if (!isDefined(state)) {
     state = { violationLevel: 0, airTicks: 0, lastDamageTimestamp: Date.now() };
@@ -36,11 +55,17 @@ export function recordMovementDamage(playerId: string): void {
   }
 }
 
+/**
+ * Clears cached movement tracking state for a player upon leaving.
+ *
+ * @param playerId The leaving player's unique identifier.
+ */
 export function clearPlayerMovementState(playerId: string): void {
   movementStates.delete(playerId);
 }
 
-export function _resetMovementCheckForTest() {
+/** Resets movement check states and clears active interval timers for test isolation. */
+export function _resetMovementCheckForTest(): void {
   movementStates.clear();
   isChecking = false;
   if (isDefined(movementIntervalId)) {
@@ -54,11 +79,13 @@ const iceBlocks = new Set<string>([
   MinecraftBlockTypes.Ice,
   MinecraftBlockTypes.PackedIce,
   MinecraftBlockTypes.BlueIce,
-  MinecraftBlockTypes.Slime,
   MinecraftBlockTypes.FrostedIce,
 ]);
 
-export function startMovementCheckLoop() {
+const bounceBlocks = new Set<string>([MinecraftBlockTypes.Slime]);
+
+/** Starts the periodic movement inspection loop. */
+export function startMovementCheckLoop(): void {
   if (isDefined(movementIntervalId)) {
     clearTrackedInterval(movementIntervalId);
   }
@@ -79,17 +106,18 @@ export function startMovementCheckLoop() {
   }, 5);
 }
 
-function* checkPlayersGenerator(config: AnticheatConfig) {
+/**
+ * Generator job iterating through active players to execute movement checks slice-by-slice.
+ *
+ * @param config Active anti-cheat master configuration.
+ */
+export function* checkPlayersGenerator(config: AnticheatConfig) {
   isChecking = true;
   try {
-    // Use cached players list to avoid expensive engine call
     const players = getAllPlayersFromCache();
     for (const player of players) {
-      // Process one player per tick/slice
-
       if (player && player.isValid) {
         try {
-          // Run checks
           if (config.movementCheck.enabled === true) {
             checkMovement(player, config.movementCheck);
           }
@@ -115,6 +143,8 @@ interface MovementCheckConfig {
   maxSpeedElytra: number;
   flightDetection?: boolean;
   invalidSprint?: boolean;
+  iceFrictionGraceMs?: number;
+  slimeBounceGraceMs?: number;
 }
 
 function isSupportedBlock(block: mc.Block | undefined): boolean {
@@ -133,9 +163,26 @@ function isSupportedBlock(block: mc.Block | undefined): boolean {
     typeId.includes('carpet') ||
     typeId.includes('scaffolding') ||
     typeId.includes('ladder') ||
+    typeId.includes('vine') ||
     typeId.includes('web') ||
+    typeId.includes('powder_snow') ||
+    typeId.includes('sweet_berry_bush') ||
     typeId.includes('bubble_column')
   );
+}
+
+/**
+ * Checks whether an item stack is a trident enchanted with Riptide.
+ *
+ * @param item The item stack to inspect.
+ * @returns True if the item is a Riptide-enchanted trident.
+ */
+function isRiptideTrident(item: mc.ItemStack | undefined): boolean {
+  if (item?.typeId !== MinecraftItemTypes.Trident) {
+    return false;
+  }
+  const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent | undefined;
+  return isDefined(enchantable) && enchantable.hasEnchantment(MinecraftEnchantmentTypes.Riptide);
 }
 
 function checkMovement(player: mc.Player, config: MovementCheckConfig) {
@@ -175,13 +222,17 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     return;
   }
 
+  // 3. Centralized Grace Exemption (teleport, respawn, knockback, vehicle dismount)
+  const isGraceActive = hasGrace(player.id, movementGraceReasons);
+  const isUnderKnockback =
+    isGraceActive || (isDefined(state.lastDamageTimestamp) && Date.now() - state.lastDamageTimestamp < 2500);
+
   // Use native velocity API for robust speed check
   const velocity = typeof player.getVelocity === 'function' ? player.getVelocity() : undefined;
   if (!isDefined(velocity)) {
     return;
   }
 
-  // Convert blocks/tick to blocks/second (approximate)
   // Strictly check HORIZONTAL speed to avoid flagging falling players
   const hSpeed = Math.hypot(velocity.x, velocity.z) * 20;
 
@@ -194,53 +245,108 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   if (isGliding) {
     limit = config.maxSpeedElytra;
   } else {
-    // Check if player has a trident equipped for Riptide boost
-    const equippable = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
-    const mainHandItem = equippable?.getEquipment(mc.EquipmentSlot.Mainhand);
-    if (mainHandItem?.typeId === MinecraftItemTypes.Trident) {
-      limit = Math.max(limit, 55); // Riptide III boost threshold
-    } else {
-      // Check for Speed Effect
-      const speedEffect =
-        typeof player.getEffect === 'function' ? player.getEffect(MinecraftEffectTypes.Speed) : undefined;
-      if (isDefined(speedEffect)) {
-        // Speed 1 = +20%, Speed 2 = +40%
-        const amplifier = speedEffect.amplifier + 1;
-        limit *= 1 + 0.2 * amplifier;
-      }
+    const now = Date.now();
+    const iceGraceMs = config.iceFrictionGraceMs ?? 1500;
+    const isIceGraceActive = isDefined(state.lastIceTimestamp) && now - state.lastIceTimestamp < iceGraceMs;
 
-      // Performance optimization: only query blocks below if hSpeed actually exceeds limit
-      if (hSpeed > limit) {
-        try {
-          const dimension = player.dimension;
-          const currentPos = player.location;
-          const blockBelow = dimension.getBlock({
-            x: Math.floor(currentPos.x),
-            y: Math.floor(currentPos.y - 0.5),
-            z: Math.floor(currentPos.z),
-          });
-          const blockBelow2 = dimension.getBlock({
-            x: Math.floor(currentPos.x),
-            y: Math.floor(currentPos.y - 1.5),
-            z: Math.floor(currentPos.z),
-          });
+    // Fast path: if player velocity is within normal speed limit and no ice inertia is active,
+    // skip native component, equipment, and block queries.
+    const hasRiptideGrace = hasGrace(player.id, 'riptide');
+    const hasBounceGrace = hasGrace(player.id, 'bounce');
+    const isPotentialBounce = player.isOnGround !== true && velocity.y > 0.45 && !hasBounceGrace;
 
-          if (
-            (isDefined(blockBelow) && iceBlocks.has(blockBelow.typeId)) ||
-            (isDefined(blockBelow2) && iceBlocks.has(blockBelow2.typeId))
-          ) {
-            limit = config.maxSpeedIce;
+    if (hSpeed > limit || isIceGraceActive || hasRiptideGrace || hasBounceGrace || isPotentialBounce) {
+      if (hasRiptideGrace) {
+        limit = Math.max(limit, 55);
+      } else if (hasBounceGrace) {
+        limit = config.maxSpeedIce;
+      } else {
+        const equippable = player.getComponent(EntityComponentTypes.Equippable) as
+          mc.EntityEquippableComponent | undefined;
+        const mainHandItem = equippable?.getEquipment(mc.EquipmentSlot.Mainhand);
+        const offhandItem = equippable?.getEquipment(mc.EquipmentSlot.Offhand);
+        const hasTrident = isRiptideTrident(mainHandItem) || isRiptideTrident(offhandItem);
+
+        if (hasTrident) {
+          if (hSpeed > 15) {
+            addGrace(player.id, 'riptide', 3000);
           }
-        } catch {
-          // Ignore block read errors (unloaded chunks etc)
+          limit = Math.max(limit, 55); // Riptide III boost threshold
+        } else {
+          // Check for Speed Effect
+          const speedEffect =
+            typeof player.getEffect === 'function' ? player.getEffect(MinecraftEffectTypes.Speed) : undefined;
+          if (isDefined(speedEffect)) {
+            const amplifier = speedEffect.amplifier + 1;
+            limit *= 1 + 0.2 * amplifier;
+          }
+
+          // Check slippery / bounce blocks below
+          const slimeGraceMs = config.slimeBounceGraceMs ?? 2500;
+
+          // Inspect block below if speed is elevated, checking ice inertia, or potential bounce
+          if (hSpeed > limit || isIceGraceActive || isPotentialBounce) {
+            try {
+              const dimension = player.dimension;
+              const currentPos = player.location;
+              const bBelow = dimension.getBlock({
+                x: Math.floor(currentPos.x),
+                y: Math.floor(currentPos.y - 0.5),
+                z: Math.floor(currentPos.z),
+              });
+              const bBelow2 = dimension.getBlock({
+                x: Math.floor(currentPos.x),
+                y: Math.floor(currentPos.y - 1.5),
+                z: Math.floor(currentPos.z),
+              });
+
+              const type1 = bBelow?.typeId;
+              const type2 = bBelow2?.typeId;
+
+              if ((isDefined(type1) && iceBlocks.has(type1)) || (isDefined(type2) && iceBlocks.has(type2))) {
+                state.lastIceTimestamp = now;
+                limit = config.maxSpeedIce;
+              } else if (
+                isPotentialBounce &&
+                ((isDefined(type1) && bounceBlocks.has(type1)) || (isDefined(type2) && bounceBlocks.has(type2)))
+              ) {
+                recordPlayerBounceGrace(player.id, slimeGraceMs);
+                limit = config.maxSpeedIce;
+              } else if (isIceGraceActive) {
+                // Apply ice inertia buffer for jumping off ice
+                limit = config.maxSpeedIce;
+              }
+
+              // Check Soul Speed boots on soul sand/soil
+              const boots = equippable?.getEquipment(mc.EquipmentSlot.Feet);
+              if (isDefined(boots)) {
+                const enchantable = boots.getComponent(ItemComponentTypes.Enchantable) as
+                  mc.ItemEnchantableComponent | undefined;
+                if (
+                  isDefined(enchantable) &&
+                  'hasEnchantment' in enchantable &&
+                  enchantable.hasEnchantment(MinecraftEnchantmentTypes.SoulSpeed)
+                ) {
+                  if (
+                    type1 === MinecraftBlockTypes.SoulSand ||
+                    type1 === MinecraftBlockTypes.SoulSoil ||
+                    type2 === MinecraftBlockTypes.SoulSand ||
+                    type2 === MinecraftBlockTypes.SoulSoil
+                  ) {
+                    limit *= 1.45;
+                  }
+                }
+              }
+            } catch {
+              // Ignore block read errors (unloaded chunks etc)
+            }
+          }
         }
       }
     }
   }
 
   // Token Bucket / Violation Accumulator
-  // Knockback / explosion / wind charge grace window: 2.5 seconds
-  const isUnderKnockback = isDefined(state.lastDamageTimestamp) && Date.now() - state.lastDamageTimestamp < 2500;
   const effectiveLimit = isUnderKnockback ? Math.max(limit * 2.5, 35) : limit;
 
   // If speed > limit, accumulate violation
@@ -259,7 +365,8 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     !player.isFlying &&
     !player.isSleeping &&
     !isRiding &&
-    !isUnderKnockback
+    !isUnderKnockback &&
+    !hasGrace(player.id, flightGraceReasons)
   ) {
     const isOnGround = player.isOnGround === true;
     const isSwimming = player.isSwimming === true;
@@ -270,7 +377,6 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
       typeof player.getEffect === 'function' && isDefined(player.getEffect(MinecraftEffectTypes.SlowFalling));
 
     let nearGroundOrLiquid = false;
-    // Optimization: if native engine confirms onGround, swimming, or climbing, skip all C++ block queries
     if (isOnGround || isSwimming || isClimbing || hasLevitation || hasSlowFalling) {
       nearGroundOrLiquid = true;
     } else {
@@ -287,7 +393,6 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
         if (isSupportedBlock(b0) || isSupportedBlock(b1)) {
           nearGroundOrLiquid = true;
         } else {
-          // Bounding box corner tolerance (prevents false flags on block edges, ledges, or fences)
           const fracX = pos.x - blockX;
           const fracZ = pos.z - blockZ;
           const offsetX = fracX < 0.3 ? -1 : fracX > 0.7 ? 1 : 0;
@@ -339,7 +444,6 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
       'movementCheck',
       `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`,
     );
-    // Clamp VL to prevent infinite buildup
     state.violationLevel = Math.min(state.violationLevel, 50);
   }
 }
@@ -356,7 +460,7 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
     (player.getGameMode() === mc.GameMode.Spectator || player.getGameMode() === mc.GameMode.Creative)
   ) {
     return;
-  } // Allow admins/spectators
+  }
 
   if (player.location.y > config.maxHeight) {
     const kicked = kickPlayer(player.name, 'Nether Roof Detected');
@@ -369,3 +473,22 @@ function checkNetherRoof(player: mc.Player, config: { maxHeight: number }) {
     }
   }
 }
+
+/** Modular movement check registration. */
+export const movementCheck: AntiCheatCheck = {
+  id: 'movementCheck',
+  name: 'Movement & Speed Check',
+  category: 'movement',
+  description: 'Verifies horizontal speed, flight/hover physics, and invalid sprint states.',
+  start: () => startMovementCheckLoop(),
+  stop: () => {
+    if (isDefined(movementIntervalId)) {
+      clearTrackedInterval(movementIntervalId);
+      movementIntervalId = undefined;
+    }
+  },
+  clearPlayer: (playerId: string) => clearPlayerMovementState(playerId),
+  reset: () => _resetMovementCheckForTest(),
+};
+
+checkRegistry.registerCheck(movementCheck);
