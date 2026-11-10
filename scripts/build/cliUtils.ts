@@ -14,6 +14,8 @@ export interface ParsedArgs {
   isMinify: boolean;
   /** Optional flag indicating whether source maps should be generated. */
   sourcemap?: boolean;
+  /** Whether type checking should be performed during script bundling. */
+  isCheck?: boolean;
   /** Monotonically increasing build or CI run number used in canary versions. */
   buildNumber: number;
   /** Custom semantic version string overriding package.json version. */
@@ -56,6 +58,7 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
   let isMinify = false;
   let noMinify = false;
   let sourcemap = false;
+  let isCheck = false;
   let buildNumber = 0;
   let customVersion: string | undefined;
 
@@ -76,6 +79,8 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
       noMinify = true;
     } else if (arg === '--sourcemap') {
       sourcemap = true;
+    } else if (arg === '--check') {
+      isCheck = true;
     } else if (arg === '-b' || arg === '--build-number') {
       if (i + 1 < argv.length && !argv[i + 1]!.startsWith('-')) {
         buildNumber = Number.parseInt(argv[++i]!, 10) || 0;
@@ -102,6 +107,7 @@ export function parseCliArgs(argv: string[] = process.argv.slice(2)): ParsedArgs
     isZip,
     isMinify,
     sourcemap,
+    isCheck,
     buildNumber,
     customVersion,
   };

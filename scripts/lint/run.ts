@@ -54,8 +54,6 @@ export async function runLintingPipeline(options?: LintPipelineOptions): Promise
   const overallStart = performance.now();
   console.log(`⚡ Launching profiled Bun-native linting pipeline (${isFix ? 'Fix Mode' : 'Check Mode'})...\n`);
 
-  const oxlintBin = Bun.which('oxlint') ?? './node_modules/.bin/oxlint';
-
   const mcRulesTask = runTask('Minecraft Custom Rules', async () => {
     const errors = await validateMinecraftRules();
     if (errors > 0) {
@@ -64,7 +62,7 @@ export async function runLintingPipeline(options?: LintPipelineOptions): Promise
   });
 
   const oxlintTask = runTask('Oxlint Engine (Pure Rust)', () => {
-    return isFix ? $`${oxlintBin} --fix`.quiet() : $`${oxlintBin}`.quiet();
+    return isFix ? $`bunx oxlint --fix`.quiet() : $`bunx oxlint`.quiet();
   });
 
   const schemaTask = runTask('JSON Schema Validation', () => validateSchemas());

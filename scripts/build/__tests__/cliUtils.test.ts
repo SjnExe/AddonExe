@@ -14,6 +14,7 @@ describe('cliUtils - parseCliArgs', () => {
     expect(args.isZip).toBe(false);
     expect(args.isMinify).toBe(false);
     expect(args.sourcemap).toBe(false);
+    expect(args.isCheck).toBe(false);
     expect(args.buildNumber).toBe(0);
     expect(args.customVersion).toBeUndefined();
   });
@@ -68,6 +69,10 @@ describe('cliUtils - parseCliArgs', () => {
 
   it('parses sourcemap flag', () => {
     expect(parseCliArgs(['--sourcemap']).sourcemap).toBe(true);
+  });
+
+  it('parses check flag', () => {
+    expect(parseCliArgs(['--check']).isCheck).toBe(true);
   });
 });
 

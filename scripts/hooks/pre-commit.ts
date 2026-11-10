@@ -79,13 +79,12 @@ export async function runPreCommitHook(options?: PreCommitOptions): Promise<bool
         const fullyStagedFiles = codeFiles.filter((f) => !unstagedFiles.has(f));
         const partiallyStagedFiles = codeFiles.filter((f) => unstagedFiles.has(f));
 
-        const oxlintBin = Bun.which('oxlint') ?? './node_modules/.bin/oxlint';
         if (fullyStagedFiles.length > 0) {
-          await $`${oxlintBin} --fix ${fullyStagedFiles}`.quiet();
+          await $`bunx oxlint --fix ${fullyStagedFiles}`.quiet();
           await $`git add ${fullyStagedFiles}`.quiet();
         }
         if (partiallyStagedFiles.length > 0) {
-          const result = await $`${oxlintBin} ${partiallyStagedFiles}`.nothrow().quiet();
+          const result = await $`bunx oxlint ${partiallyStagedFiles}`.nothrow().quiet();
           if (result.exitCode !== 0) {
             console.error(result.stdout.toString() + result.stderr.toString());
             return false;
