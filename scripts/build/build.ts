@@ -27,11 +27,24 @@ import * as vanillaDataModule from '@minecraft/vanilla-data';
 
 /**
  * Bun build plugin that inlines @minecraft/vanilla-data enum constants directly into string literals, stripping unused
- * package imports and reducing runtime memory footprint.
+ * package imports and reducing runtime memory footprint. Dynamically discovers all exported enums.
  */
 export const vanillaDataInlinerPlugin = {
   name: 'inline-vanilla-data',
   setup(build: import('bun').PluginBuilder) {
+    const enumMap = new Map<string, Record<string, string>>(
+      Object.entries(vanillaDataModule).filter(([, val]) => val !== null && typeof val === 'object') as [
+        string,
+        Record<string, string>,
+      ][],
+    );
+    const pattern = Array.from(enumMap.keys()).join('|');
+    const accessorRegex = new RegExp(
+      `\\b(${pattern})(?:\\.([a-zA-Z0-9_]+)|\\[['"\\x60]([a-zA-Z0-9_]+)['"\\x60]\\])`,
+      'g',
+    );
+    const importRegex = /import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"];?\r?\n?/g;
+
     build.onLoad({ filter: /\.(ts|js)$/ }, async (args) => {
       if (args.path.includes('node_modules') || args.path.includes('scripts/')) {
         return undefined;
@@ -41,45 +54,17 @@ export const vanillaDataInlinerPlugin = {
         return undefined;
       }
 
-      let modified = raw;
-      const enumNames = [
-        'MinecraftItemTypes',
-        'MinecraftBlockTypes',
-        'MinecraftEntityTypes',
-        'MinecraftDimensionTypes',
-        'MinecraftEffectTypes',
-        'MinecraftEnchantmentTypes',
-        'MinecraftBiomeTypes',
-      ];
-
-      for (const enumName of enumNames) {
-        if (!modified.includes(enumName)) {
-          continue;
+      let modified = raw.replace(accessorRegex, (_match, enumName, propDot, propBracket) => {
+        const prop = propDot || propBracket;
+        const obj = enumMap.get(enumName);
+        if (obj && Object.prototype.hasOwnProperty.call(obj, prop)) {
+          return JSON.stringify(obj[prop]);
         }
-        const enumObj = (vanillaDataModule as Record<string, unknown>)[enumName] as Record<string, string> | undefined;
-        if (!enumObj) {
-          continue;
-        }
-
-        const dotRegex = new RegExp(`\\b${enumName}\\.([a-zA-Z0-9_]+)\\b`, 'g');
-        modified = modified.replace(dotRegex, (_match, propName) => {
-          if (Object.prototype.hasOwnProperty.call(enumObj, propName)) {
-            return JSON.stringify(enumObj[propName]);
-          }
-          throw new Error(`[inline-vanilla-data] Unknown member ${enumName}.${propName} in ${args.path}`);
-        });
-
-        const bracketRegex = new RegExp(`\\b${enumName}\\[['"\\x60]([a-zA-Z0-9_]+)['"\\x60]\\]`, 'g');
-        modified = modified.replace(bracketRegex, (_match, propName) => {
-          if (Object.prototype.hasOwnProperty.call(enumObj, propName)) {
-            return JSON.stringify(enumObj[propName]);
-          }
-          throw new Error(`[inline-vanilla-data] Unknown member ${enumName}["${propName}"] in ${args.path}`);
-        });
-      }
+        throw new Error(`[inline-vanilla-data] Unknown member ${enumName}.${prop} in ${args.path}`);
+      });
 
       // Strip unused imports of @minecraft/vanilla-data
-      modified = modified.replace(/import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"];?\r?\n?/g, '');
+      modified = modified.replace(importRegex, '');
 
       return {
         contents: modified,
@@ -101,7 +86,6 @@ export const commandIndexPlugin = {
     });
 
     build.onLoad({ filter: /.*/, namespace: 'virtual-command-index' }, async () => {
-      console.log('[Plugin] Generating virtual command index...');
       const srcDir = resolve(rootDir, 'src');
       const featuresDir = join(srcDir, 'features');
 
@@ -132,7 +116,6 @@ export const commandIndexPlugin = {
       }
 
       commandList.sort((a, b) => a.varName.localeCompare(b.varName));
-      console.log(`[Plugin] Found ${commandList.length} command files.`);
 
       const imports = commandList.map((cmd) => `import ${cmd.varName} from '${cmd.importPath}';`).join('\n');
       const list = commandList.map((cmd) => cmd.varName).join(',\n        ');
@@ -179,7 +162,8 @@ const zipEncoder = new TextEncoder();
 function prepareZipEntry(content: string | Uint8Array): PrecompressedEntry {
   const rawBytes = typeof content === 'string' ? zipEncoder.encode(content) : content;
   const crc = Bun.hash.crc32(rawBytes) >>> 0;
-  const deflated = rawBytes.byteLength > 0 ? Bun.deflateSync(rawBytes, { level: 9 }) : new Uint8Array(0);
+  const deflated =
+    rawBytes.byteLength > 0 ? Bun.deflateSync(rawBytes, { library: 'libdeflate', level: 12 }) : new Uint8Array(0);
   const useDeflate = rawBytes.byteLength > 0 && deflated.byteLength < rawBytes.byteLength;
   return {
     dataBytes: useDeflate ? deflated : rawBytes,
@@ -402,6 +386,11 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
     externalModules.push('@minecraft/server-gametest', '@minecraft/debug-utilities');
   }
 
+  const pkg = (await Bun.file(resolve(rootDir, 'package.json')).json()) as {
+    dependencies?: Record<string, string>;
+  };
+  const bundledDependencies = Object.keys(pkg.dependencies ?? {}).filter((dep) => !externalModules.includes(dep));
+
   // Bundle Core Engine Module into main.js
   const coreResult = await Bun.build({
     entrypoints: coreEntrypoints,
@@ -419,8 +408,11 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
     drop: !isCanary && (isRelease || isMinify) ? ['debugger', 'debugLog'] : ['debugger'],
     splitting: false,
     allowUnresolved: [],
-    metafile: process.argv.includes('--analyze') ? { markdown: 'bundle-meta.md' } : true,
-    noDeprecatedNamespaceObjectSetters: true,
+    metafile: true,
+    deprecatedNamespaceObjectSetters: false,
+    features: isCanary ? ['CANARY'] : [],
+    optimizeImports: bundledDependencies,
+    check: cliArgs.isCheck,
     naming: '[dir]/[name].[ext]',
     define: {
       __CANARY__: JSON.stringify(isCanary),
@@ -443,30 +435,24 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
   const sizeKb = (outputBytes / 1024).toFixed(2);
   console.log(`[Build] Scripts compiled successfully (${inputCount} modules -> ${sizeKb} KB main.js).`);
 
-  if (process.argv.includes('--analyze')) {
-    const mdFile = Bun.file(resolve(rootDir, 'bundle-meta.md'));
-    if (await mdFile.exists()) {
-      const mdText = await mdFile.text();
-      console.log('\n' + mdText.trim() + '\n');
-    } else if (coreResult.metafile) {
-      const outputEntries = Object.entries(coreResult.metafile.outputs);
-      const mainOutput = outputEntries.find(([outPath]) => outPath.endsWith('main.js'))?.[1] ?? outputEntries[0]?.[1];
-      const bundledInputs = mainOutput?.inputs ?? {};
-      const sorted = Object.entries(bundledInputs)
-        .map(([modPath, info]) => ({
-          path: modPath.replace(/^node_modules\/\.bun\/[^/]+\/node_modules\//, 'node_modules/'),
-          bytes: info.bytesInOutput,
-        }))
-        .filter((m) => m.bytes > 0)
-        .sort((a, b) => b.bytes - a.bytes);
-      const totalBundled = sorted.reduce((acc, m) => acc + m.bytes, 0) || outputBytes || 1;
-      console.log(`\n📊 Bundled Modules Breakdown (${sorted.length} modules -> ${sizeKb} KB):`);
-      for (const item of sorted) {
-        const pct = ((item.bytes / totalBundled) * 100).toFixed(1).padStart(5);
-        console.log(`  ${(item.bytes / 1024).toFixed(2).padStart(7)} KB (${pct}%)  ${item.path}`);
-      }
-      console.log('');
+  if (process.argv.includes('--analyze') && coreResult.metafile) {
+    const outputEntries = Object.entries(coreResult.metafile.outputs);
+    const mainOutput = outputEntries.find(([outPath]) => outPath.endsWith('main.js'))?.[1] ?? outputEntries[0]?.[1];
+    const bundledInputs = mainOutput?.inputs ?? {};
+    const sorted = Object.entries(bundledInputs)
+      .map(([modPath, info]) => ({
+        path: modPath.replace(/^node_modules\/\.bun\/[^/]+\/node_modules\//, 'node_modules/'),
+        bytes: info.bytesInOutput,
+      }))
+      .filter((m) => m.bytes > 0)
+      .sort((a, b) => b.bytes - a.bytes);
+    const totalBundled = sorted.reduce((acc, m) => acc + m.bytes, 0) || outputBytes || 1;
+    console.log(`\n📊 Bundled Modules Breakdown (${sorted.length} modules -> ${sizeKb} KB):`);
+    for (const item of sorted) {
+      const pct = ((item.bytes / totalBundled) * 100).toFixed(1).padStart(5);
+      console.log(`  ${(item.bytes / 1024).toFixed(2).padStart(7)} KB (${pct}%)  ${item.path}`);
     }
+    console.log('');
   }
 }
 
@@ -547,7 +533,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
