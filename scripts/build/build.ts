@@ -38,11 +38,6 @@ export const vanillaDataInlinerPlugin = {
         Record<string, string>,
       ][],
     );
-    const pattern = Array.from(enumMap.keys()).join('|');
-    const accessorRegex = new RegExp(
-      `\\b(${pattern})(?:\\.([a-zA-Z0-9_]+)|\\[['"\\x60]([a-zA-Z0-9_]+)['"\\x60]\\])`,
-      'g',
-    );
     const importRegex = /import\s*\{[^}]*\}\s*from\s*['"]@minecraft\/vanilla-data['"];?\r?\n?/g;
 
     build.onLoad({ filter: /\.(ts|js)$/ }, async (args) => {
@@ -54,7 +49,36 @@ export const vanillaDataInlinerPlugin = {
         return undefined;
       }
 
-      let modified = raw.replace(accessorRegex, (_match, enumName, propDot, propBracket) => {
+      const importMatches = Array.from(raw.matchAll(/import\s*\{([^}]+)\}\s*from\s*['"]@minecraft\/vanilla-data['"]/g));
+      if (importMatches.length === 0) {
+        return undefined;
+      }
+
+      const importedEnums = new Set<string>();
+      for (const match of importMatches) {
+        const specifiers = match[1]?.split(',') ?? [];
+        for (const spec of specifiers) {
+          const importedName = spec
+            .trim()
+            .split(/\s+as\s+/)[0]
+            ?.trim();
+          if (importedName && enumMap.has(importedName)) {
+            importedEnums.add(importedName);
+          }
+        }
+      }
+
+      if (importedEnums.size === 0) {
+        return undefined;
+      }
+
+      const filePattern = Array.from(importedEnums).join('|');
+      const fileAccessorRegex = new RegExp(
+        `(?<![.\\w])(${filePattern})(?:\\.([a-zA-Z0-9_]+)|\\[['"\\x60]([a-zA-Z0-9_]+)['"\\x60]\\])`,
+        'g',
+      );
+
+      let modified = raw.replace(fileAccessorRegex, (_match, enumName, propDot, propBracket) => {
         const prop = propDot || propBracket;
         const obj = enumMap.get(enumName);
         if (obj && Object.prototype.hasOwnProperty.call(obj, prop)) {
@@ -68,82 +92,6 @@ export const vanillaDataInlinerPlugin = {
 
       return {
         contents: modified,
-        loader: 'ts',
-      };
-    });
-  },
-};
-
-/** Bun build plugin that discovers all feature command definitions and generates a virtual command index module. */
-export const commandIndexPlugin = {
-  name: 'generate-command-index',
-  setup(build: import('bun').PluginBuilder) {
-    build.onResolve({ filter: /^virtual:command-index$/ }, (args) => {
-      return {
-        path: args.path,
-        namespace: 'virtual-command-index',
-      };
-    });
-
-    build.onLoad({ filter: /.*/, namespace: 'virtual-command-index' }, async () => {
-      const srcDir = resolve(rootDir, 'src');
-      const featuresDir = join(srcDir, 'features');
-
-      const cmdGlob = new Bun.Glob('**/commands/*.ts');
-      const scannedFiles = Array.from(cmdGlob.scanSync({ cwd: featuresDir, absolute: false }));
-      const commandList: { varName: string; importPath: string }[] = [];
-
-      for (const relPath of scannedFiles) {
-        const normalized = relPath.replace(/\\/g, '/');
-        if (normalized.endsWith('/index.ts') || normalized.includes('__tests__')) {
-          continue;
-        }
-        if ((normalized.startsWith('test/') || normalized === 'essentials/commands/debug.ts') && !isCanary) {
-          continue;
-        }
-
-        const noExt = normalized.replace(/\.ts$/, '');
-        const segments = noExt
-          .split('/')
-          .filter((seg) => seg !== 'commands')
-          .map((seg) => seg.replaceAll(/[^a-zA-Z0-9]/g, ''))
-          .filter(Boolean);
-
-        const varName = 'cmd' + segments.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join('');
-        const importPath = `@features/${noExt}.js`;
-
-        commandList.push({ varName, importPath });
-      }
-
-      commandList.sort((a, b) => a.varName.localeCompare(b.varName));
-
-      const imports = commandList.map((cmd) => `import ${cmd.varName} from '${cmd.importPath}';`).join('\n');
-      const list = commandList.map((cmd) => cmd.varName).join(',\n        ');
-
-      const content = `// Auto-generated virtual module
-import { isDefined } from '@lib/guards.js';
-import { commandManager } from '@core/commands/commandManager.js';
-
-${imports}
-
-export function loadCommands() {
-    const commandModules = [
-        ${list}
-    ];
-
-    for (const mod of commandModules) {
-        if (isDefined(mod)) {
-            if (Array.isArray(mod)) {
-                for (const cmd of mod) commandManager.register(cmd);
-            } else {
-                commandManager.register(mod);
-            }
-        }
-    }
-}
-`;
-      return {
-        contents: content,
         loader: 'ts',
       };
     });
@@ -415,10 +363,9 @@ async function compileScripts(_versionArray: number[], versionStr: string, outDi
     check: cliArgs.isCheck,
     naming: '[dir]/[name].[ext]',
     define: {
-      __CANARY__: JSON.stringify(isCanary),
       __VERSION__: JSON.stringify(versionStr),
     },
-    plugins: [commandIndexPlugin, vanillaDataInlinerPlugin],
+    plugins: [vanillaDataInlinerPlugin],
     external: externalModules,
   });
 

@@ -1,3 +1,5 @@
+import { feature } from 'bun:bundle';
+
 import { getConfig } from '@core/config/configManager.js';
 import { getXrayConfig } from '@core/config/configurations.js';
 import { deserializeItem, serializeItem } from '@core/data/itemSerializer.js';
@@ -91,7 +93,7 @@ export function registerMcApiTests(): void {
     assert.ok(restoredContainerItem, 'Container item deserialization should succeed');
   });
 
-  if (typeof __CANARY__ !== 'undefined' && __CANARY__) {
+  if (feature('CANARY')) {
     addTest(suiteName, 'Server GameTest simulated player framework initializes cleanly in live engine', async () => {
       let gametest: typeof import('@minecraft/server-gametest');
       try {

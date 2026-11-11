@@ -121,9 +121,6 @@ function internalLog(method: ConsoleMethod, message: string): void {
  * @param {string} message The message to log.
  */
 export function debugLog(message: string): void {
-  if (!__CANARY__) {
-    return;
-  }
   if (externalDebugHandler) {
     externalDebugHandler(message);
   }
@@ -138,7 +135,7 @@ export function debugLog(message: string): void {
  * @param {string} message The message to log.
  */
 export function infoLog(message: string): void {
-  if (__CANARY__ && externalInfoHandler) {
+  if (externalInfoHandler) {
     externalInfoHandler(message);
   }
   if (currentLogLevel >= LogLevels.INFO) {
@@ -152,7 +149,7 @@ export function infoLog(message: string): void {
  * @param {string} message The message to log.
  */
 export function warnLog(message: string): void {
-  if (__CANARY__ && externalWarnHandler) {
+  if (externalWarnHandler) {
     externalWarnHandler(message);
   }
   if (currentLogLevel >= LogLevels.WARN) {
@@ -174,7 +171,7 @@ export function errorLog(message: string, error?: unknown): void {
     }
     internalLog('error', fullMessage);
 
-    if (__CANARY__ && externalErrorHandler) {
+    if (externalErrorHandler) {
       externalErrorHandler(error ?? new Error(message), message);
     }
   }

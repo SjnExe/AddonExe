@@ -1,7 +1,7 @@
 import { getConfig, initializeConfigManager } from '@core/config/configManager.js';
 import { dataManager, loadPersistentData } from '@core/data/dataManager.js';
 import { initializeMigration } from '@core/data/migrationManager.js';
-import { getAllPlayersFromCache, initializePlayerCache } from '@core/data/playerCache.js';
+import { initializePlayerCache } from '@core/data/playerCache.js';
 import { cleanupPlayerDataManager } from '@core/data/playerDataManager.js';
 import { cleanupEventManager, initializeEventManager } from '@core/events/eventManager.js';
 import * as rankManager from '@core/permissions/rankManager.js';
@@ -9,18 +9,20 @@ import { featureRegistry } from '@core/services/featureRegistry.js';
 import { escapeBedrockPercent, reinitializeOnlinePlayers } from '@core/utils/index.js';
 import { errorLog, infoLog, setLogLevel } from '@core/utils/logger.js';
 import { cleanupTimers } from '@core/utils/timerManager.js';
+import { loadCommands } from '@features/commandIndex.js';
 import { cleanupLeaderboardManager } from '@features/economy/leaderboard.js';
 import { cleanup as cleanupFloatingText } from '@features/essentials/floatingText/manager.js';
 import { cleanupSpawnProtection } from '@features/essentials/protection/spawnProtection.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { loadCommands } from 'virtual:command-index';
 
 const addonVersion = typeof __VERSION__ !== 'undefined' ? __VERSION__ : '0.0.1'; // Current Addon Version
 
 // Load Commands immediately to register slash commands during startup
-loadCommands();
+loadCommands().catch((error: unknown) => {
+  errorLog(`[AddonExe] Failed to load commands: ${String(error)}`);
+});
 
 /** Initializes the addon. This function should be called once at startup. */
 let percentPatchApplied = false;
@@ -99,13 +101,7 @@ function initializeManagers() {
   rankManager.initialize();
 }
 
-/** Updates all player ranks. This is useful when ranks are changed via commands. */
-export function updateAllPlayerRanks() {
-  const config = getConfig();
-  for (const player of getAllPlayersFromCache()) {
-    rankManager.updatePlayerNameTag(player, config);
-  }
-}
+export { updateAllPlayerRanks } from '@core/permissions/rankManager.js';
 
 function cleanupAddon() {
   infoLog('[AddonExe] SCRIPT_UNLOAD detected. Cleaning up timers and events...');

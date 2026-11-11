@@ -1,4 +1,3 @@
-declare const __CANARY__: boolean;
 declare const __VERSION__: string;
 
 interface Console {
@@ -11,6 +10,12 @@ interface Console {
 
 declare let console: Console;
 
-declare module 'virtual:command-index' {
-  export function loadCommands(): void | Promise<void>;
+declare module 'bun:bundle' {
+  /**
+   * Evaluates whether a compile-time feature flag is active in the current bundle.
+   *
+   * @param name The feature flag identifier (e.g. 'CANARY').
+   * @returns `true` if the feature is enabled; otherwise `false`.
+   */
+  export function feature(name: string): boolean;
 }
