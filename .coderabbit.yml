@@ -46,6 +46,12 @@ reviews:
         - Style & Naming: Enforce camelCase for variables/functions and PascalCase for types; reject snake_case or UPPER_SNAKE_CASE.
         - Feature Defaults: Player-facing gameplay features must default to 'enabled: false'.
 
+    - path: 'src/**/__tests__/**/*.ts'
+      instructions: |
+        - Test Completeness & Bijection: When testing registries or discovery maps, enforce bi-directional 1:1 bijection (unique registrations with direct identity comparison between discovered items and registered modules, not counts alone).
+        - Negative Conditions: Assert negative conditions and exclusions (e.g. Canary diagnostic commands debug/test are excluded in release builds; unauthorized callers are rejected).
+        - Spy & Mock Verification: Assert exact spy call counts and argument payloads rather than mere non-throwing execution.
+
     - path: 'scripts/**/*.ts'
       instructions: |
         - Native Bun Runtime: Use native Bun APIs (Bun.spawnSync, Bun.file, Bun.Glob). Never suggest node:child_process or CommonJS require().
