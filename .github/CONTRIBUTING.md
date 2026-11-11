@@ -103,6 +103,7 @@ Contributors must adhere to the core standards detailed in [AGENTS.md](../AGENTS
 - **Entity & Object Safety:**
   - Always verify `.isValid` on player and entity instances across tick boundaries, explosions, and hurt/die events.
   - Guard nullable values with strict type guards (`isDefined`, `isNonEmptyString`, `isNumber` from `@lib/guards.js`).
+  - Sanitize dynamic string literals in `runCommand()` using `escapeCommandArg()` and wrap them in double quotes. Validate structured command syntax, such as coordinates and target selectors, against the expected grammar instead of quoting it.
 - **Engine Performance & Lag Prevention:**
   - Prevent runaway iteration and mass synchronous native C++ engine calls (batch block lookups and decay sweeps).
   - Consolidate item drop entities using `new ItemStack(typeId, count)` rather than spawning single-item entities.
@@ -115,11 +116,14 @@ Contributors must adhere to the core standards detailed in [AGENTS.md](../AGENTS
 
 ## AI-Assisted Contributions Policy
 
-We welcome contributions developed with the assistance of artificial intelligence tools, LLMs, and agentic coding assistants. However, contributors bear **100% of the responsibility** to ensure the code is of top-tier quality:
+AddonExe actively leverages AI pair programming, autonomous agent verification, and automated review bots to maintain high performance and rigorous quality standards across the codebase.
 
-- **Full Understanding & Authorship:** You must thoroughly understand the logic, architecture, and engine implications of any AI-assisted code you submit. You are the code author and must be able to explain, debug, and defend the implementation.
-- **Engine Safety & Invariants:** AI tools often hallucinate non-existent Bedrock APIs or overlook engine invariants. All entity references must be strictly verified with `.isValid`, identifiers must be imported from `@minecraft/vanilla-data`, and player-facing features must default to `enabled: false`.
-- **Mandatory Local Testing:** AI-generated code must pass the full local test suite (`bun test --parallel`), strict casing/typechecks (`bun lint:check`), and be verified in-game on a live world. Untested or blindly generated AI code will be rejected without review.
+We welcome contributions developed with the assistance of artificial intelligence tools (e.g. GitHub Copilot, ChatGPT, Claude, Antigravity, Cursor). However, to protect server stability and Bedrock engine compatibility, human contributors must adhere to the following policies:
+
+- **Full Human Authorship & Responsibility:** You are 100% accountable for every line of code you submit. Blindly copying and pasting raw LLM output without understanding it is strictly prohibited. You must be able to explain, defend, and debug your implementation during code review.
+- **Engine Safety & Invariants:** AI tools frequently hallucinate non-existent Bedrock Script APIs or overlook critical engine invariants. Any AI-assisted code must verify entity validity (`.isValid`), import vanilla IDs from `@minecraft/vanilla-data`, inspect `event.brokenBlockPermutation` in `PlayerBreakBlockAfterEvent` handlers, and default player-facing features to `enabled: false`.
+- **Mandatory Local Testing:** AI-generated code must pass the full local test suite (`bun test --parallel`), strict casing/typechecks (`bun lint:check`), and be verified in-game on a live Bedrock world before opening a PR. Untested or speculative AI code will be rejected without review.
+- **Automated Bot Reviews:** Pull requests are automatically reviewed by CodeRabbit. Treat automated reviews as actionable feedback, verify findings against Bedrock runtime behavior, and resolve all review comments before requesting merge. Detailed instructions for AI coding agents reside in [AGENTS.md](../AGENTS.md).
 
 ---
 
@@ -127,12 +131,31 @@ We welcome contributions developed with the assistance of artificial intelligenc
 
 Concluding any feature, refactor, or bugfix requires **2 consecutive zero-issue passes**:
 
-1. **Stage 1 (Automated Validation):**
+1. **Stage 1 (Automated Validation & Snapshot Coherence):**
+   Develop in a dedicated feature branch or isolated worktree with no unrelated modifications. Stage only your task-relevant modifications and newly created files (`git add <files>`) or specific hunks (`git add -p`). If unrelated working-tree modifications or untracked files exist, stash them (`git stash push --keep-index -u`) before running the validation suite so tests run against the exact intended commit snapshot without interference from uncommitted or untracked files:
+
    ```bash
    bun fmt --changed && bun lint:check && bun test --parallel && bun run build
    ```
-2. **Stage 2 (Extensive Diff Review):**
-   Perform a comprehensive line-by-line audit of `git diff` against `main` for correctness, entity safety, performance, Bedrock engine invariants, and dark-mode styling.
+
+   If `bun fmt --changed` formatted any task files, re-stage only the formatted task changes (`git add <files>` or `git add -p`) so the staged snapshot matches the tested working tree. If you stashed unrelated changes before validation, restore them (`git stash pop`) after committing your changes, and resolve any conflicts.
+
+2. **Stage 2 (Comprehensive Diff Review):**
+   Perform a thorough review across all change states against the PR target branch (defaulting to `main`):
+   - Fetch the PR target branch: `git fetch -q https://github.com/SjnExe/AddonExe.git "${BASE_BRANCH:-main}" || exit 1`
+   - Compute merge base (halting if no common ancestor exists): `MERGE_BASE="$(git merge-base FETCH_HEAD HEAD)" || exit 1`
+   - Committed changes through `HEAD`: `git diff "$MERGE_BASE"..HEAD`
+   - Staged changes: `git diff --staged`
+   - Unstaged modifications: `git diff`
+   - Untracked files: `git status --short`
+
+   When assessing modifications to exported functions, event handlers, lifecycle hooks, or public types, do not review diff hunks in a vacuum—inspect the full enclosing file, related call sites, and test coverage to ensure system-wide semantic integrity:
+   - **Correctness & Boundaries:** Check entity validity (`player.isValid`, `entity.isValid`), strict guards (`isDefined`, `isNonEmptyString`), array bounds, and error wrapping (`try/catch`).
+   - **Test Rigor & Completeness:** Verify 1:1 bi-directional parity between newly added features/registries and test suites (ensuring unique registrations and comparing identities against discovered files, not counts alone), test negative conditions and exclusions, and assert mock/spy call counts and payloads.
+   - **Performance & Engine Safety:** Respect the Bedrock 50ms tick budget, use O(1) Map/Set lookups over O(N) array scans in hot paths, batch native C++ calls, consolidate item entity drops (`new ItemStack`), and verify bundler tree-shaking.
+   - **Bedrock Standards & UI:** Confirm vanilla data constants from `@minecraft/vanilla-data`, valid dark-mode section colors (`§`) and grid headers, and default `enabled: false` on player features.
+   - **Architecture & Modularity:** Ensure zero circular dependencies, organize commands into domain barrels (`src/features/<domain>/commands/index.ts`), and add complete JSDoc docstrings to exported symbols.
+
 3. **Reset Invariant:** Any code change during review resets the pass counter to 0. You must achieve **2 consecutive passes with zero issues found and zero edits made in the final pass**.
 
 ---
