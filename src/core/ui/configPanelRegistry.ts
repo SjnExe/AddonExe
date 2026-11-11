@@ -3,6 +3,8 @@
  *   from the main navigation panel registry.
  */
 
+import { feature } from 'bun:bundle';
+
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 export type UIControlType = 'toggle' | 'textField' | 'dropdown';
@@ -619,10 +621,9 @@ export const configPanelSchema: ConfigCategory[] = [
         key: 'logLevel',
         label: 'Log Level',
         type: 'dropdown',
-        options:
-          typeof __CANARY__ !== 'undefined' && __CANARY__
-            ? ['0: ERROR', '1: WARN', '2: INFO', '3: DEBUG']
-            : ['0: ERROR', '1: WARN', '2: INFO'],
+        options: feature('CANARY')
+          ? ['0: ERROR', '1: WARN', '2: INFO', '3: DEBUG']
+          : ['0: ERROR', '1: WARN', '2: INFO'],
         description: 'Sets the verbosity of the server console logs.',
       },
       {

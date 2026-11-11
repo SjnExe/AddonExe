@@ -79,6 +79,9 @@ export interface CustomCommand {
   cooldown?: number;
 }
 
+/** Represents a single custom command definition or an array of command definitions exported from a command file. */
+export type CommandModule = CustomCommand | CustomCommand[];
+
 /** Manages the registration and execution of both slash and chat commands. */
 class CommandManager {
   public commands: Map<string, CustomCommand> = new Map();

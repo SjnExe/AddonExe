@@ -235,6 +235,14 @@ export function getAllRanks(): RankDefinition[] {
   return getRanksConfig().rankDefinitions;
 }
 
+/** Updates all player ranks and nametags across online cached players. */
+export function updateAllPlayerRanks(): void {
+  const config = getConfig();
+  for (const player of getAllPlayersFromCache()) {
+    updatePlayerNameTag(player, config);
+  }
+}
+
 /**
  * Updates a player's nametag to display their rank and team.
  *

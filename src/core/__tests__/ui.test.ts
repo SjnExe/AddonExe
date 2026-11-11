@@ -93,7 +93,7 @@ describe('UI, Config Schema & UUIDv7 Integrity', () => {
   });
 
   it('in-game /test diagnostic suites should all pass under mock runtime', async () => {
-    const { loadCommands } = await import('virtual:command-index');
+    const { loadCommands } = await import('@features/commandIndex.js');
     await loadCommands();
     registerAllSuites();
     const res = await runTests();

@@ -1,3 +1,5 @@
+import { feature as isBundleFeature } from 'bun:bundle';
+
 export interface FeatureModule {
   initialize?: (isMigration: boolean, subfeatures?: Record<string, boolean>) => void | Promise<void>;
 }
@@ -113,7 +115,7 @@ rawFeatures.push(
   },
 );
 
-if (typeof __CANARY__ !== 'undefined' && __CANARY__) {
+if (isBundleFeature('CANARY')) {
   rawFeatures.push({
     id: 'test',
     name: 'Testing Framework',

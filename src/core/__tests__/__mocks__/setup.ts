@@ -76,31 +76,7 @@ mock.module('@minecraft/common', () => ({
   },
 }));
 
-mock.module('virtual:command-index', () => ({
-  loadCommands: async () => {
-    const glob = new Bun.Glob('src/features/**/commands/*.ts');
-    const { commandManager } = await import('@core/commands/commandManager.js');
-    for (const file of glob.scanSync('.')) {
-      if (file.endsWith('index.ts')) {
-        continue;
-      }
-      const mod = await import(`../../../../${file}`);
-      if (mod.default) {
-        if (Array.isArray(mod.default)) {
-          for (const c of mod.default) {
-            commandManager.register(c);
-          }
-        } else {
-          commandManager.register(mod.default);
-        }
-      }
-    }
-  },
-}));
-
 import { _resetMinecraftMocks } from './minecraftMock.ts';
-
-(globalThis as unknown as Record<string, unknown>).__CANARY__ = true;
 
 const { _clearConfigManagersForTest } = await import('@core/config/configurations.js');
 const { _clearMainConfigManagerForTest } = await import('@core/config/configManager.js');
