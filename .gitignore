@@ -22,4 +22,3 @@ bundle-meta.md
 .cache/
 *.tsbuildinfo
 .helix/
-.agents/
