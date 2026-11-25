@@ -1,3 +1,4 @@
+import { appendFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 import { extractChangelog } from './extractChangelog.ts';
@@ -9,6 +10,13 @@ const cfBaseUrl = 'https://minecraft-bedrock.curseforge.com';
 export interface CfGameVersion {
   id: number;
   gameVersionTypeID: number;
+  name: string;
+  slug: string;
+}
+
+/** Representation of a CurseForge game version type category. */
+export interface CfGameVersionType {
+  id: number;
   name: string;
   slug: string;
 }
@@ -80,6 +88,39 @@ export function selectLatestBedrockVersion(versions: CfGameVersion[], allowBeta 
 }
 
 /**
+ * Filters CurseForge game versions to Minecraft Bedrock version categories when version types are available. Falls back
+ * to all versions if no matching version type category is found.
+ *
+ * @param versions Candidate game versions from CurseForge.
+ * @param versionTypes Game version type definitions from CurseForge.
+ * @returns Filtered game versions belonging to Minecraft Bedrock version categories.
+ */
+export function filterMinecraftVersionTypes(
+  versions: CfGameVersion[],
+  versionTypes: CfGameVersionType[],
+): CfGameVersion[] {
+  if (versionTypes.length === 0) {
+    return versions;
+  }
+
+  const matchingTypeIds = new Set<number>();
+  for (const vt of versionTypes) {
+    const slug = (vt.slug || '').toLowerCase();
+    const name = (vt.name || '').toLowerCase();
+    if (slug.startsWith('minecraft-') || name.startsWith('minecraft ') || /^\d+\.\d+/.test(name)) {
+      matchingTypeIds.add(vt.id);
+    }
+  }
+
+  if (matchingTypeIds.size === 0) {
+    return versions;
+  }
+
+  const filtered = versions.filter((v) => matchingTypeIds.has(v.gameVersionTypeID));
+  return filtered.length > 0 ? filtered : versions;
+}
+
+/**
  * Selects compatible Bedrock version IDs for tagging a release file on CurseForge.
  *
  * @param versions Available game versions from CurseForge.
@@ -88,33 +129,32 @@ export function selectLatestBedrockVersion(versions: CfGameVersion[], allowBeta 
  * @returns Array of unique CurseForge game version IDs.
  */
 export function selectBedrockVersionIds(versions: CfGameVersion[], allowBeta = false, minVersion?: string): number[] {
-  const latest = selectLatestBedrockVersion(versions, allowBeta);
+  const minSemver = minVersion ? parseBedrockSemver(minVersion) : null;
+  const basePool = allowBeta ? versions : versions.filter(isStableBedrockVersion);
+  const eligiblePool = minSemver
+    ? basePool.filter((v) => Bun.semver.order(parseBedrockSemver(v.name), minSemver) >= 0)
+    : basePool;
+  const pool = eligiblePool.length > 0 ? eligiblePool : basePool;
+
+  const latest = selectLatestBedrockVersion(pool, allowBeta);
   if (!latest) {
     return [];
   }
 
+  if (eligiblePool.length === 0) {
+    return [latest.id];
+  }
+
   const latestSemver = parseBedrockSemver(latest.name);
   const [latestMajor, latestMinor] = latestSemver.split('.').map(Number);
-  const minSemver = minVersion ? parseBedrockSemver(minVersion) : null;
-
-  // Include compatible stable versions in the same major.minor series
-  const candidates = allowBeta ? versions : versions.filter(isStableBedrockVersion);
-  const compatible = candidates.filter((v) => {
-    const sem = parseBedrockSemver(v.name);
-    const [maj, min] = sem.split('.').map(Number);
-    if (maj !== latestMajor || min !== latestMinor) {
-      return false;
-    }
-    if (minSemver && Bun.semver.order(sem, minSemver) < 0) {
-      return false;
-    }
-    return true;
-  });
 
   const ids = new Set<number>();
   ids.add(latest.id);
-  for (const v of compatible) {
-    ids.add(v.id);
+  for (const v of pool) {
+    const [maj, min] = parseBedrockSemver(v.name).split('.').map(Number);
+    if (maj === latestMajor && min === latestMinor) {
+      ids.add(v.id);
+    }
   }
 
   return Array.from(ids);
@@ -124,10 +164,18 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, de
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
+    let retryDelayMs = delayMs * attempt;
     try {
       const res = await fetch(url, options);
-      if (res.ok || (res.status >= 400 && res.status < 500)) {
+      const isRetryableStatus = res.status === 408 || res.status === 429 || res.status >= 500;
+      if (res.ok || !isRetryableStatus) {
         return res;
+      }
+      if (res.status === 429) {
+        const retryAfter = Number.parseInt(res.headers.get('retry-after') ?? '', 10);
+        if (!Number.isNaN(retryAfter) && retryAfter > 0) {
+          retryDelayMs = Math.min(retryAfter * 1000, 30000);
+        }
       }
       console.warn(`[CurseForge] Request to ${url} returned HTTP ${res.status}. Attempt ${attempt}/${retries}.`);
     } catch (err: unknown) {
@@ -140,7 +188,7 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, de
     }
 
     if (attempt < retries) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
     }
   }
 
@@ -211,10 +259,16 @@ export async function uploadToCurseForge(opts: UploadOptions = {}) {
   let versionIds: number[] = [];
   if (token) {
     console.log('[CurseForge] Fetching available Minecraft Bedrock versions...');
-    const versionsRes = await fetchWithRetry(`${cfBaseUrl}/api/game/versions`, {
-      headers: { 'X-Api-Token': token },
-      signal: AbortSignal.timeout(30000),
-    });
+    const [versionsRes, versionTypesRes] = await Promise.all([
+      fetchWithRetry(`${cfBaseUrl}/api/game/versions`, {
+        headers: { 'X-Api-Token': token },
+        signal: AbortSignal.timeout(30000),
+      }),
+      fetchWithRetry(`${cfBaseUrl}/api/game/version-types`, {
+        headers: { 'X-Api-Token': token },
+        signal: AbortSignal.timeout(30000),
+      }).catch(() => null),
+    ]);
 
     if (!versionsRes.ok) {
       if (isDryRun) {
@@ -228,27 +282,41 @@ export async function uploadToCurseForge(opts: UploadOptions = {}) {
         );
       }
     } else {
-      const versions = (await versionsRes.json()) as CfGameVersion[];
-      if (!Array.isArray(versions) || versions.length === 0) {
+      const rawVersions = (await versionsRes.json()) as CfGameVersion[];
+      if (!Array.isArray(rawVersions) || rawVersions.length === 0) {
         throw new Error('CurseForge returned an empty game versions list.');
       }
 
-      let minEngineVersion: string | undefined;
-      const manifestFile = Bun.file('packs/behavior/manifest.json');
-      if (await manifestFile.exists()) {
-        try {
-          const manifest = await manifestFile.json();
-          const engine = manifest.header?.min_engine_version;
-          if (Array.isArray(engine) && engine.length >= 3) {
-            minEngineVersion = `${engine[0]}.${engine[1]}.${engine[2]}`;
+      let versionTypes: CfGameVersionType[] = [];
+      if (versionTypesRes?.ok) {
+        const parsedTypes = (await versionTypesRes.json()) as CfGameVersionType[];
+        if (Array.isArray(parsedTypes)) {
+          versionTypes = parsedTypes;
+        }
+      }
+      const versions = filterMinecraftVersionTypes(rawVersions, versionTypes);
+
+      let minEngineVersion = process.env.MIN_ENGINE_VERSION?.trim() || undefined;
+      if (!minEngineVersion) {
+        const manifestFile = Bun.file('packs/behavior/manifest.json');
+        if (await manifestFile.exists()) {
+          try {
+            const manifest = await manifestFile.json();
+            const engine = manifest.header?.min_engine_version;
+            if (Array.isArray(engine) && engine.length >= 3) {
+              minEngineVersion = `${engine[0]}.${engine[1]}.${engine[2]}`;
+            }
+          } catch {
+            // Ignore parse errors, fallback to default
           }
-        } catch {
-          // Ignore parse errors, fallback to default
         }
       }
 
       versionIds = selectBedrockVersionIds(versions, releaseType !== 'release', minEngineVersion);
-      const latestVer = selectLatestBedrockVersion(versions, releaseType !== 'release');
+      const latestVer = selectLatestBedrockVersion(
+        versions.filter((v) => versionIds.includes(v.id)),
+        releaseType !== 'release',
+      );
       console.log(
         `[CurseForge] Selected latest game version: ${latestVer?.name ?? 'unknown'} (Tagged IDs: ${versionIds.join(
           ', ',
@@ -281,18 +349,16 @@ export async function uploadToCurseForge(opts: UploadOptions = {}) {
     console.log('[CurseForge] [DRY RUN] Verification successful. Upload skipped.');
 
     if (process.env.GITHUB_ENV) {
-      const envFile = Bun.file(process.env.GITHUB_ENV);
-      const existing = (await envFile.exists()) ? await envFile.text() : '';
-      await Bun.write(
+      await appendFile(
         process.env.GITHUB_ENV,
-        `${existing}\nCF_FILE_ID=0\nCF_DOWNLOAD_URL=https://www.curseforge.com/minecraft-bedrock/addons/addonexe\n`,
+        `\nCF_FILE_ID=0\nCF_DOWNLOAD_URL=https://www.curseforge.com/minecraft-bedrock/addons/addonexe\n`,
       );
     }
     return;
   }
 
   const formData = new FormData();
-  formData.append('metadata', JSON.stringify(metadata));
+  formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }), 'metadata.json');
   formData.append('file', addonFile, addonFileName);
 
   console.log(`[CurseForge] Uploading ${addonFileName} to project ${projectId}...`);
@@ -317,9 +383,7 @@ export async function uploadToCurseForge(opts: UploadOptions = {}) {
   console.log(`[CurseForge] Upload complete! File ID: ${result.id} -> ${downloadUrl}`);
 
   if (process.env.GITHUB_ENV) {
-    const envFile = Bun.file(process.env.GITHUB_ENV);
-    const existing = (await envFile.exists()) ? await envFile.text() : '';
-    await Bun.write(process.env.GITHUB_ENV, `${existing}\nCF_FILE_ID=${result.id}\nCF_DOWNLOAD_URL=${downloadUrl}\n`);
+    await appendFile(process.env.GITHUB_ENV, `\nCF_FILE_ID=${result.id}\nCF_DOWNLOAD_URL=${downloadUrl}\n`);
   }
 }
 

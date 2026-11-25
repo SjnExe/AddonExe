@@ -25,6 +25,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -66,15 +69,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Cache Bun Dependencies
-        uses: actions/cache@v6
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - run: bun install --frozen-lockfile
       - run: bun fmt --check
 
   test:
@@ -155,14 +149,12 @@ jobs:
 
       - name: Load Build Meta into GITHUB_ENV
         run: |
-          cat build_meta.env >> $GITHUB_ENV
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-              echo "IS_DRY_RUN=true" >> build_meta.env
-              echo "IS_DRY_RUN=true" >> $GITHUB_ENV
+              printf "IS_DRY_RUN=true\n" >> build_meta.env
           else
-              echo "IS_DRY_RUN=false" >> build_meta.env
-              echo "IS_DRY_RUN=false" >> $GITHUB_ENV
+              printf "IS_DRY_RUN=false\n" >> build_meta.env
           fi
+          cat build_meta.env >> "$GITHUB_ENV"
 
       - name: Verify Staged Packs
         run: |
@@ -172,6 +164,7 @@ jobs:
           fi
 
       - name: Upload Raw Build Directory
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7
         with:
           name: build-dir
@@ -179,6 +172,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Build Artifacts
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7
         with:
           name: release-archives
@@ -190,6 +184,7 @@ jobs:
           compression-level: 0
 
       - name: Upload build meta
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v7
         with:
           name: build-meta
@@ -231,13 +226,6 @@ jobs:
         run: |
           cat build_meta.env >> $GITHUB_ENV
 
-      - name: Clean Old Canary Assets
-        if: env.BUILD_TYPE == 'canary' && env.IS_DRY_RUN != 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete canary --cleanup-tag --yes || true
-
       - name: Publish Canary Release
         if: env.BUILD_TYPE == 'canary' && env.IS_DRY_RUN != 'true'
         env:
@@ -245,13 +233,34 @@ jobs:
         run: |
           printf "**Latest Canary Build**\nVersion: \`%s\`\nCommit: \`%s\`\nDate: \`%s\`\n\n*This is an automated development build. It may contain bugs.*\n" \
               "${VERSION_STRING}" "${GITHUB_SHA}" "${BUILD_DATE}" > release_notes.md
-          gh release create canary \
-              --title "Canary Build (Latest Dev)" \
-              --prerelease \
-              --notes-file release_notes.md \
-              AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
-              AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack \
-              AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
+          if gh release view canary >/dev/null 2>&1; then
+            gh api -X PATCH "repos/${{ github.repository }}/git/refs/tags/canary" \
+                -f sha="${{ github.sha }}" \
+                -F force=true
+            gh release upload canary \
+                --clobber \
+                AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
+                AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack \
+                AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
+            for asset in $(gh release view canary --json assets --jq '.assets[].name'); do
+              case "$asset" in
+                "AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon"|"AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack"|"AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack") ;;
+                *) gh release delete-asset canary "$asset" --yes ;;
+              esac
+            done
+            gh release edit canary \
+                --title "Canary Build (Latest Dev)" \
+                --prerelease \
+                --notes-file release_notes.md
+          else
+            gh release create canary \
+                --title "Canary Build (Latest Dev)" \
+                --prerelease \
+                --notes-file release_notes.md \
+                AddonExe.${{ env.ARCHIVE_VERSION }}.mcaddon \
+                AddonExe_BP.${{ env.ARCHIVE_VERSION }}.mcpack \
+                AddonExe_RP.${{ env.ARCHIVE_VERSION }}.mcpack
+          fi
 
       - name: Generate Changelog & Upload Stable Release to CurseForge
         if: env.BUILD_TYPE == 'release'

@@ -424,20 +424,30 @@ async function main() {
     await createArchives(versionStr);
   }
 
-  const buildMetaContent = [
+  const bpManifest = (await Bun.file(resolve(rootDir, 'packs/behavior/manifest.json')).json()) as {
+    header?: { min_engine_version?: number[] };
+  };
+  const minEngineVersion = Array.isArray(bpManifest.header?.min_engine_version)
+    ? bpManifest.header.min_engine_version.slice(0, 3).join('.')
+    : '';
+
+  const buildMetaLines = [
     `BUILD_TYPE=${isCanary ? 'canary' : 'release'}`,
     `ARCHIVE_VERSION=${versionStr}`,
     `VERSION_STRING=${versionStr}`,
     `BUILD_DATE=${new Date().toUTCString()}`,
     `PREFIX=${isCanary ? 'Canary' : 'Release'}`,
-  ].join('\n');
-  await Bun.write(resolve(rootDir, 'build_meta.env'), buildMetaContent);
+  ];
+  if (minEngineVersion) {
+    buildMetaLines.push(`MIN_ENGINE_VERSION=${minEngineVersion}`);
+  }
+  await Bun.write(resolve(rootDir, 'build_meta.env'), `${buildMetaLines.join('\n')}\n`);
 
   console.log('--- Build Complete ---');
 
   if (isWatch) {
     console.log('[Watch] Watching for file changes...');
-    let buildTimeout: any = null;
+    let buildTimeout: ReturnType<typeof setTimeout> | null = null;
     const debounceBuild = () => {
       if (buildTimeout) {
         clearTimeout(buildTimeout);
@@ -447,17 +457,13 @@ async function main() {
         try {
           await compileScripts(versionArray, versionStr, '');
           console.log('[Watch] Rebuild complete.');
-        } catch (e: any) {
-          console.error(`[Watch] Rebuild failed: ${e.message}`);
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error(`[Watch] Rebuild failed: ${msg}`);
         }
       }, 300);
     };
 
-    /**
-     * Watches a directory recursively for source changes and triggers debounced rebuilds.
-     *
-     * @param dir Directory path to watch recursively.
-     */
     const watchDir = async (dir: string) => {
       try {
         const watcher = watch(dir, { recursive: true });

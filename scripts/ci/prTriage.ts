@@ -21,14 +21,14 @@ export interface PRMetadata {
 }
 
 /**
- * Executes a shell command synchronously and returns its trimmed stdout.
+ * Executes a command directly via argv without spawning an intermediate shell.
  *
- * @param cmd Shell command string to execute.
+ * @param args Command and argument vector to execute.
  * @returns Trimmed standard output, or empty string on failure.
  */
-export function runCmd(cmd: string): string {
+function runArgs(args: string[]): string {
   try {
-    const res = Bun.spawnSync(['sh', '-c', cmd], {
+    const res = Bun.spawnSync(args, {
       stdout: 'pipe',
       stderr: 'pipe',
     });
@@ -38,32 +38,44 @@ export function runCmd(cmd: string): string {
   }
 }
 
+/**
+ * Executes a shell command synchronously and returns its trimmed stdout.
+ *
+ * @param cmd Shell command string to execute.
+ * @returns Trimmed standard output, or empty string on failure.
+ */
+export function runCmd(cmd: string): string {
+  return runArgs(['sh', '-c', cmd]);
+}
+
 function getPRDetails(): { prNumber: string; prTitle: string; baseRef: string } {
   const prNumber = process.env.PR_NUMBER || '';
   let prTitle = process.env.PR_TITLE || '';
   const baseRef = process.env.PR_BASE || 'origin/main';
 
   if (!prTitle && prNumber) {
-    prTitle = runCmd(`gh pr view ${prNumber} --json title -q .title`);
+    prTitle = runArgs(['gh', 'pr', 'view', prNumber, '--json', 'title', '-q', '.title']);
   }
 
   if (!prTitle) {
-    prTitle = runCmd('git log -1 --pretty=%s');
+    prTitle = runArgs(['git', 'log', '-1', '--pretty=%s']);
   }
 
   return { prNumber, prTitle, baseRef };
 }
 
 function getChangedFiles(baseRef: string): string[] {
-  const diffOutput = runCmd(`git diff --name-only ${baseRef}...HEAD`);
+  const diffOutput = runArgs(['git', 'diff', '--name-only', `${baseRef}...HEAD`]);
   if (!diffOutput) {
-    return runCmd('git diff --name-only HEAD~1...HEAD').split('\n').filter(Boolean);
+    return runArgs(['git', 'diff', '--name-only', 'HEAD~1...HEAD']).split('\n').filter(Boolean);
   }
   return diffOutput.split('\n').filter(Boolean);
 }
 
 function getDiffStats(baseRef: string): { added: number; deleted: number } {
-  const statOutput = runCmd(`git diff --shortstat ${baseRef}...HEAD`) || runCmd('git diff --shortstat HEAD~1...HEAD');
+  const statOutput =
+    runArgs(['git', 'diff', '--shortstat', `${baseRef}...HEAD`]) ||
+    runArgs(['git', 'diff', '--shortstat', 'HEAD~1...HEAD']);
   const addMatch = /(\d+)\s+insertion/.exec(statOutput);
   const delMatch = /(\d+)\s+deletion/.exec(statOutput);
   return {
@@ -244,7 +256,8 @@ export function runBedrockAudit(files: string[], baseRef: string): AuditResult {
   }
 
   const rawDiff =
-    runCmd(`git diff ${baseRef}...HEAD -U0 -- 'src/**/*.ts'`) || runCmd("git diff HEAD~1...HEAD -U0 -- 'src/**/*.ts'");
+    runArgs(['git', 'diff', `${baseRef}...HEAD`, '-U0', '--', 'src/**/*.ts']) ||
+    runArgs(['git', 'diff', 'HEAD~1...HEAD', '-U0', '--', 'src/**/*.ts']);
   const addedLines = rawDiff.split('\n').filter((l) => l.startsWith('+') && !l.startsWith('+++'));
 
   let hasAsyncPlayerCallWithoutGuard = false;
@@ -351,7 +364,7 @@ async function main() {
     const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
     for (const sizeTag of allSizes) {
       if (sizeTag !== meta.size) {
-        runCmd(`gh pr edit ${prNumber} --remove-label "${sizeTag}" || true`);
+        runArgs(['gh', 'pr', 'edit', prNumber, '--remove-label', sizeTag]);
       }
     }
 
@@ -361,24 +374,37 @@ async function main() {
     }
 
     for (const label of labels) {
-      runCmd(`gh pr edit ${prNumber} --add-label "${label}" || true`);
+      runArgs(['gh', 'pr', 'edit', prNumber, '--add-label', label]);
     }
 
-    const existingComment = runCmd(
-      `gh api repos/${process.env.GITHUB_REPOSITORY}/issues/${prNumber}/comments --jq '.[] | select(.body | contains("<!-- pr-triage-bot -->")) | .id'`,
-    );
+    const repo = process.env.GITHUB_REPOSITORY ?? '';
+    const existingComment = repo
+      ? runArgs([
+          'gh',
+          'api',
+          `repos/${repo}/issues/${prNumber}/comments`,
+          '--jq',
+          '.[] | select(.body | contains("<!-- pr-triage-bot -->")) | .id',
+        ])
+      : '';
 
     const tmpFile = join(tmpdir(), `pr_triage_${prNumber}_${Date.now()}.md`);
     await Bun.write(tmpFile, report);
 
     try {
-      if (existingComment) {
-        runCmd(
-          `gh api repos/${process.env.GITHUB_REPOSITORY}/issues/comments/${existingComment} -X PATCH -F body=@${tmpFile} || true`,
-        );
+      if (existingComment && repo) {
+        runArgs([
+          'gh',
+          'api',
+          `repos/${repo}/issues/comments/${existingComment}`,
+          '-X',
+          'PATCH',
+          '-F',
+          `body=@${tmpFile}`,
+        ]);
         console.log(`Updated existing PR triage comment: ${existingComment}`);
       } else {
-        runCmd(`gh pr comment ${prNumber} --body-file "${tmpFile}" || true`);
+        runArgs(['gh', 'pr', 'comment', prNumber, '--body-file', tmpFile]);
         console.log(`Posted new PR triage comment to PR #${prNumber}`);
       }
     } finally {
