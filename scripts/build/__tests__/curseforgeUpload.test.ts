@@ -3,6 +3,8 @@ import { describe, expect, it } from 'bun:test';
 import { getVersionContext } from '../cliUtils.ts';
 import {
   type CfGameVersion,
+  type CfGameVersionType,
+  filterMinecraftVersionTypes,
   isStableBedrockVersion,
   parseBedrockSemver,
   selectBedrockVersionIds,
@@ -87,6 +89,34 @@ describe('CurseForge Version Selection', () => {
     expect(ids).toContain(104);
     expect(ids).toContain(103);
     expect(ids).not.toContain(102);
+  });
+
+  it('excludes minor series whose versions are all below minVersion', () => {
+    const crossMinorVersions: CfGameVersion[] = [
+      { id: 301, gameVersionTypeID: 1, name: '1.21.60', slug: '1-21-60' },
+      { id: 302, gameVersionTypeID: 1, name: '1.22.0', slug: '1-22-0' },
+      { id: 303, gameVersionTypeID: 1, name: '1.22.5', slug: '1-22-5' },
+    ];
+    // minVersion 1.22.10 is newer than everything -> falls back to only the latest version (1.22.5)
+    const fallbackIds = selectBedrockVersionIds(crossMinorVersions, false, '1.22.10');
+    expect(fallbackIds).toEqual([303]);
+
+    // When 1.21.60 satisfies minVersion 1.21.50 and 1.22.0/1.22.5 are >= 1.21.50, 1.22 series is selected
+    const matchedIds = selectBedrockVersionIds(crossMinorVersions, false, '1.21.50');
+    expect(matchedIds).toEqual([303, 302]);
+  });
+
+  it('filters game versions by Minecraft Bedrock version types when available', () => {
+    const versionTypes: CfGameVersionType[] = [
+      { id: 1, name: 'Minecraft 1.21', slug: 'minecraft-1-21' },
+      { id: 99, name: 'Addons', slug: 'addons' },
+    ];
+    const mixedVersions: CfGameVersion[] = [
+      { id: 104, gameVersionTypeID: 1, name: '1.21.60', slug: '1-21-60' },
+      { id: 999, gameVersionTypeID: 99, name: '1.21.99', slug: '1-21-99' },
+    ];
+    const filtered = filterMinecraftVersionTypes(mixedVersions, versionTypes);
+    expect(filtered.map((v) => v.id)).toEqual([104]);
   });
 });
 
