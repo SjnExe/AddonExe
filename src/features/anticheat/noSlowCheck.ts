@@ -38,7 +38,12 @@ export function _clearNoSlowCheckForTest(): void {
   }
 }
 
-function handleItemStartUse(event: mc.ItemStartUseAfterEvent): void {
+/**
+ * Records the start of an item-use interaction for NoSlow tracking.
+ *
+ * @param event The item start-use after-event payload.
+ */
+export function handleItemStartUse(event: mc.ItemStartUseAfterEvent): void {
   const player = event.source;
   if (!isDefined(player) || !player.isValid) {
     return;

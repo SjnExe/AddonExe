@@ -3,7 +3,6 @@ import { getConfig } from '@core/config/configManager.js';
 import * as playerCache from '@core/data/playerCache.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { clearPlayerChatFilterState } from '@core/events/beforeChatSend.js';
-import { clearPlayerMobKillWindow } from '@core/events/entityDie.js';
 import { hasPermission, invalidatePlayerPermissionCache } from '@core/permissions/permissionEngine.js';
 import { clearPlayerRankCache } from '@core/permissions/rankManager.js';
 import { clearPlayerUiTimestamp } from '@core/ui/uiManager.js';
@@ -76,7 +75,6 @@ function handlePlayerLeave(event: mc.PlayerLeaveAfterEvent) {
   clearPlayerSafeBorderPosition(event.playerId);
   clearPlayerSidebarState(event.playerId);
   clearZoneSelection(event.playerId);
-  clearPlayerMobKillWindow(event.playerId);
   invalidatePlayerPermissionCache(event.playerId);
   clearPlayerRankCache(event.playerId);
   clearCommandCooldown(event.playerId);

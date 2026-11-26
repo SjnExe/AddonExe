@@ -26,13 +26,17 @@ interface MobKillWindow {
 
 const playerMobKillWindows = new Map<string, Map<string, MobKillWindow>>();
 
-/**
- * Clears cached mob-kill reward windows for a departing player.
- *
- * @param playerId The departing player's unique identifier.
- */
-export function clearPlayerMobKillWindow(playerId: string): void {
-  playerMobKillWindows.delete(playerId);
+function pruneExpiredMobKillWindows(now: number, windowMs: number): void {
+  for (const [playerId, mobMap] of playerMobKillWindows) {
+    for (const [mobId, entry] of mobMap) {
+      if (now - entry.windowStart >= windowMs) {
+        mobMap.delete(mobId);
+      }
+    }
+    if (mobMap.size === 0) {
+      playerMobKillWindows.delete(playerId);
+    }
+  }
 }
 
 /**
@@ -101,6 +105,7 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
         const now = Date.now();
         const windowMs = Math.max(10, Number(economyConfig.mobFarmCap.windowSeconds ?? 180)) * 1000;
         const maxKills = Math.max(1, Number(economyConfig.mobFarmCap.maxKillsPerWindow ?? 25));
+        pruneExpiredMobKillWindows(now, windowMs);
         let mobMap = playerMobKillWindows.get(killer.id);
         if (!mobMap) {
           mobMap = new Map();

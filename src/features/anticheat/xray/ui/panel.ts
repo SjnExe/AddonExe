@@ -13,7 +13,27 @@ const dimensionOptions = [
   MinecraftDimensionTypes.TheEnd,
 ];
 
-export async function showXrayOresPanel(player: mc.Player, page: number = 1): Promise<void> {
+const xrayReturnHandlers = new Map<string, () => Promise<void>>();
+
+/**
+ * Displays the monitored X-Ray ores configuration panel.
+ *
+ * @param player Administrative player viewing the panel.
+ * @param page Current pagination page.
+ * @param onReturn Optional return callback (`null` clears any previous return callback).
+ * @returns Promise that resolves when the panel interaction finishes.
+ */
+export async function showXrayOresPanel(
+  player: mc.Player,
+  page: number = 1,
+  onReturn?: (() => Promise<void>) | null,
+): Promise<void> {
+  if (onReturn === null) {
+    xrayReturnHandlers.delete(player.id);
+  } else if (isDefined(onReturn)) {
+    xrayReturnHandlers.set(player.id, onReturn);
+  }
+
   const form = new ActionFormBuilder()
     .title('X-Ray Ores Config')
     .button('§l§2+ Add Ore', 'textures/ui/color_plus', async () => {
@@ -47,6 +67,12 @@ export async function showXrayOresPanel(player: mc.Player, page: number = 1): Pr
   );
 
   form.addBackButton(async () => {
+    const customReturn = xrayReturnHandlers.get(player.id);
+    if (isDefined(customReturn)) {
+      xrayReturnHandlers.delete(player.id);
+      await customReturn();
+      return;
+    }
     const { showConfigCategoryPanel } = await import('@core/ui/panels/configPanel.js');
     await showConfigCategoryPanel(player);
   });

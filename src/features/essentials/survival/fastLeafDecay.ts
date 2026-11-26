@@ -107,6 +107,15 @@ export function handleFastLeafDecay(
 
     const decayAction = () => {
       try {
+        let isStillProtected = false;
+        try {
+          isStillProtected = getProtectionFlags(leaf, dimension.id).preventBlockBreaking;
+        } catch {
+          // Config manager not initialized in isolated unit tests
+        }
+        if (isStillProtected) {
+          return;
+        }
         const cur = dimension.getBlock(leaf);
         if (isDefined(cur) && isLeafBlock(cur.typeId)) {
           dimension.setBlockType(leaf, MinecraftBlockTypes.Air);

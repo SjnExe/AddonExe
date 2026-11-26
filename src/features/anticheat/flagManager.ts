@@ -22,6 +22,7 @@ const storage = new StorageManager('exe:flags');
 interface FlagData {
   vl: number;
   lastFlagTime: number;
+  lastPunishedThreshold?: number;
 }
 
 interface AlertThrottle {
@@ -119,6 +120,8 @@ export interface FlagOptions {
  * @param message Human-readable violation description.
  * @param vlIncrement Violation level points to add (defaults to 1).
  * @param options Optional detection options such as confidence rating and category.
+ * @returns True if the violation was recorded with normal or high confidence, false if exempted, suppressed, or low
+ *   confidence.
  */
 export function flag(
   player: mc.Player,
@@ -126,9 +129,9 @@ export function flag(
   message: string,
   vlIncrement: number = 1,
   options?: FlagOptions,
-): void {
+): boolean {
   if (!player || !player.isValid) {
-    return;
+    return false;
   }
 
   // Exempt Creative and Spectator modes unconditionally
@@ -136,28 +139,36 @@ export function flag(
     typeof player.getGameMode === 'function' &&
     (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator)
   ) {
-    return;
+    return false;
   }
 
   const config = getAnticheatConfig();
 
   // Exempt players possessing bypass permission when adminBypass is enabled
   if (config.adminBypass !== false && checkBypassPermission(player)) {
-    return;
+    return false;
   }
 
-  const category = options?.category ?? (checkName.startsWith('movement') ? 'movement' : undefined);
+  const category =
+    options?.category ??
+    (checkName.startsWith('movement')
+      ? 'movement'
+      : checkName === 'combatCheck'
+        ? 'combat'
+        : checkName === 'miningCheck'
+          ? 'mining'
+          : undefined);
   if (
     category === 'movement' &&
     hasGrace(player.id, ['damage', 'knockback', 'teleport', 'respawn', 'dimension_change', 'join', 'vehicle', 'bounce'])
   ) {
-    return;
+    return false;
   }
 
   const checkConfig = (config as unknown as Record<string, BaseCheckConfig | undefined>)[checkName];
 
   if (config.enabled !== true || !isDefined(checkConfig) || checkConfig.enabled !== true) {
-    return;
+    return false;
   }
 
   // Lag & latency protection: never punish innocent players during server TPS drops or high ping spikes
@@ -167,7 +178,7 @@ export function flag(
     const { tpsNum } = getCurrentTps();
     if (tpsNum < 15.5) {
       debugLog(`[AntiCheat] Suppressed '${checkName}' flag for ${player.name} due to low TPS (${tpsNum.toFixed(1)})`);
-      return;
+      return false;
     }
     let ping = 0;
     try {
@@ -223,8 +234,9 @@ export function flag(
 
   // Punishments: never auto-kick/ban on low confidence or during high latency/TPS dips
   if (isDefined(checkConfig.violations)) {
+    const punishedUpTo = data.lastPunishedThreshold ?? 0;
     for (const v of checkConfig.violations) {
-      if (previousVl < v.threshold && data.vl >= v.threshold) {
+      if ((previousVl < v.threshold || v.threshold > punishedUpTo) && data.vl >= v.threshold) {
         const trimmedCmd = v.command.trim().toLowerCase();
         const isSevereAction = trimmedCmd.startsWith('kick ') || trimmedCmd.startsWith('ban ');
         if (confidence === 'low' && isSevereAction) {
@@ -233,10 +245,12 @@ export function flag(
           );
           continue;
         }
+        data.lastPunishedThreshold = Math.max(data.lastPunishedThreshold ?? 0, v.threshold);
         executePunishment(player, v.command);
       }
     }
   }
+  return !isHighLatencyOrLag && confidence !== 'low';
 }
 
 function checkModPermission(player: mc.Player): boolean {

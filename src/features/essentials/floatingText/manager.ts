@@ -197,8 +197,18 @@ function* updateLoopJob() {
     yield;
   }
 
-  // Reschedule at 1-second cadence (20 ticks) to avoid per-tick job scheduling overhead on large servers
-  updateLoopId = setTrackedTimeout(runUpdateLoop, 20);
+  // Reschedule based on the shortest configured updateInterval (capped at 20 ticks to avoid idle tick overhead)
+  let nextDelay = 20;
+  for (const textConfig of dynamicTexts.values()) {
+    if (
+      isDefined(textConfig.updateInterval) &&
+      textConfig.updateInterval > 0 &&
+      textConfig.updateInterval < nextDelay
+    ) {
+      nextDelay = textConfig.updateInterval;
+    }
+  }
+  updateLoopId = setTrackedTimeout(runUpdateLoop, nextDelay);
 }
 
 function runExpirationLoop() {

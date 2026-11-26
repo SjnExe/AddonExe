@@ -130,8 +130,6 @@ export function handleTreeCapitator(
 
   let maxLogY = block.location.y;
   let topLogPos: mc.Vector3 = { x: block.location.x, y: block.location.y, z: block.location.z };
-  let simulatedDamage = 0;
-  let reachedSafetyLimit = false;
 
   let head = 0;
   while (head < queue.length && toBreak.length < maxLogs) {
@@ -140,21 +138,6 @@ export function handleTreeCapitator(
     if (current.y > maxLogY) {
       maxLogY = current.y;
       topLogPos = current;
-    }
-
-    // Skip durability roll for the first block (it is already broken by the vanilla event)
-    if (toBreak.length > 1) {
-      const consumesDurability = unbreakingLevel <= 0 || Math.random() < 1 / (unbreakingLevel + 1);
-      const candidateDamage = simulatedDamage + (consumesDurability ? 1 : 0);
-
-      if (candidateDamage > maxSafeDamage) {
-        reachedSafetyLimit = true;
-        break; // Stop collecting blocks — tool durability budget reached!
-      }
-
-      if (consumesDurability) {
-        simulatedDamage = candidateDamage;
-      }
     }
 
     // Search adjacent connected blocks (upwards and sideways)
@@ -232,6 +215,8 @@ export function handleTreeCapitator(
     // Config manager not initialized in isolated unit tests
   }
   let brokenCount = 0;
+  let simulatedDamage = 0;
+  let reachedSafetyLimit = false;
   for (const pos of toBreak) {
     if (pos.x === block.location.x && pos.y === block.location.y && pos.z === block.location.z) {
       continue;
@@ -242,6 +227,18 @@ export function handleTreeCapitator(
         !canPlayerModify(player, pos, dimension.id, 'break'))
     ) {
       continue;
+    }
+
+    if (cfg.damageTool !== false && isDefined(durability)) {
+      const consumesDurability = unbreakingLevel <= 0 || Math.random() < 1 / (unbreakingLevel + 1);
+      const candidateDamage = simulatedDamage + (consumesDurability ? 1 : 0);
+      if (candidateDamage > maxSafeDamage) {
+        reachedSafetyLimit = true;
+        break;
+      }
+      if (consumesDurability) {
+        simulatedDamage = candidateDamage;
+      }
     }
 
     try {

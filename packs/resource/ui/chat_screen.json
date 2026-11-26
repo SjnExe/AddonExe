@@ -1,11 +1,14 @@
 {
   "namespace": "chat",
   "exe_tab_autocomplete_button@common_buttons.light_text_button": {
-    "size": [26, 24],
+    "size": [24, "100%"],
+    "anchor_from": "center",
+    "anchor_to": "center",
     "$pressed_button_name": "button.chat_autocomplete",
     "$button_text": "Tab",
     "$button_text_max_size": ["100%", 10],
-    "focus_enabled": true
+    "focus_enabled": "(not $touch)",
+    "consume_event": true
   },
   "chat_bottom_panel": {
     "modifications": [
