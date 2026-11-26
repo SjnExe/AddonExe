@@ -8,6 +8,9 @@ async function handleItemUse(event: mc.ItemUseAfterEvent) {
   if (itemStack.typeId === 'exe:panel') {
     playerDataManager.getOrCreatePlayer(player);
     const { showMainPanel } = await import('@core/ui/panels/mainPanel.js');
+    if (!player.isValid) {
+      return;
+    }
     void showMainPanel(player);
   }
 }

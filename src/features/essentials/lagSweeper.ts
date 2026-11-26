@@ -64,18 +64,29 @@ export interface ClearLagStats {
 }
 
 let pendingSweepTimer: number | undefined;
+const pendingWarningTimers: number[] = [];
 
 export function isPendingSweep(): boolean {
   return isDefined(pendingSweepTimer);
 }
 
+/**
+ * Cancels any pending ClearLag sweep and its scheduled countdown warning timers.
+ *
+ * @returns True if an active sweep timer was cancelled, false otherwise.
+ */
 export function cancelPendingSweep(): boolean {
+  let cancelled = false;
   if (isDefined(pendingSweepTimer)) {
     clearTrackedTimeout(pendingSweepTimer);
     pendingSweepTimer = undefined;
-    return true;
+    cancelled = true;
   }
-  return false;
+  while (pendingWarningTimers.length > 0) {
+    const timerId = pendingWarningTimers.pop()!;
+    clearTrackedTimeout(timerId);
+  }
+  return cancelled;
 }
 
 export function queryWorldEntityCounts(): { items: number; hostile: number; passive: number; total: number } {
@@ -233,6 +244,12 @@ export function executeClearLagSweep(options?: ClearLagConfig): ClearLagStats {
   };
 }
 
+/**
+ * Starts a countdown before executing a ClearLag entity sweep.
+ *
+ * @param countdownSeconds Duration of the countdown in seconds before sweeping.
+ * @param onComplete Optional callback invoked with sweep statistics upon completion.
+ */
 export function startSweepCountdown(countdownSeconds = 30, onComplete?: (stats: ClearLagStats) => void): void {
   cancelPendingSweep();
 
@@ -245,24 +262,28 @@ export function startSweepCountdown(countdownSeconds = 30, onComplete?: (stats: 
   mc.world.sendMessage(`§e[ClearLag] §7Ground entities will be swept in §c${countdownSeconds}s§7!`);
 
   if (countdownSeconds > 10) {
-    setTrackedTimeout(
-      () => {
-        if (isPendingSweep()) {
-          mc.world.sendMessage('§e[ClearLag] §7Ground entities will be swept in §c10s§7!');
-        }
-      },
-      (countdownSeconds - 10) * 20,
+    pendingWarningTimers.push(
+      setTrackedTimeout(
+        () => {
+          if (isPendingSweep()) {
+            mc.world.sendMessage('§e[ClearLag] §7Ground entities will be swept in §c10s§7!');
+          }
+        },
+        (countdownSeconds - 10) * 20,
+      ),
     );
   }
 
   if (countdownSeconds > 3) {
-    setTrackedTimeout(
-      () => {
-        if (isPendingSweep()) {
-          mc.world.sendMessage('§e[ClearLag] §7Ground entities will be swept in §c3s§7!');
-        }
-      },
-      (countdownSeconds - 3) * 20,
+    pendingWarningTimers.push(
+      setTrackedTimeout(
+        () => {
+          if (isPendingSweep()) {
+            mc.world.sendMessage('§e[ClearLag] §7Ground entities will be swept in §c3s§7!');
+          }
+        },
+        (countdownSeconds - 3) * 20,
+      ),
     );
   }
 

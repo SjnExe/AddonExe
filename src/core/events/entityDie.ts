@@ -27,6 +27,15 @@ interface MobKillWindow {
 const playerMobKillWindows = new Map<string, Map<string, MobKillWindow>>();
 
 /**
+ * Clears cached mob-kill reward windows for a departing player.
+ *
+ * @param playerId The departing player's unique identifier.
+ */
+export function clearPlayerMobKillWindow(playerId: string): void {
+  playerMobKillWindows.delete(playerId);
+}
+
+/**
  * Processes entity death events, applying death taxes, kill streaks, mob kill rewards, and penalties.
  *
  * @param event Bedrock entity death event payload.
@@ -34,6 +43,9 @@ const playerMobKillWindows = new Map<string, Map<string, MobKillWindow>>();
 export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
   try {
     const { deadEntity, damageSource } = event;
+    if (!isDefined(deadEntity) || !deadEntity.isValid) {
+      return;
+    }
     const killer = resolveKiller(deadEntity, damageSource.damagingEntity);
 
     if (deadEntity.typeId === MinecraftEntityTypes.Player) {

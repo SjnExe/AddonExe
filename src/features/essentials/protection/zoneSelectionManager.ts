@@ -85,10 +85,26 @@ export function getZoneSelection(playerId: string): ZoneSelection | undefined {
   return playerSelections.get(playerId);
 }
 
+/**
+ * Clears a player's active zone selection corners and stops any boundary particle preview.
+ *
+ * @param playerId The target player's unique identifier.
+ */
 export function clearZoneSelection(playerId: string): void {
   playerSelections.delete(playerId);
+  const timerId = activePreviewTimers.get(playerId);
+  if (isDefined(timerId)) {
+    clearTrackedInterval(timerId);
+    activePreviewTimers.delete(playerId);
+  }
 }
 
+/**
+ * Handles block-break events when an authorized admin holds the Zone Selection Wand to set Pos1.
+ *
+ * @param event The block break before-event payload.
+ * @returns True if the event was handled by the wand, false otherwise.
+ */
 export function handleWandBreakBlock(event: mc.PlayerBreakBlockBeforeEvent): boolean {
   const { player, block, itemStack } = event;
   if (!isZoneWandItem(itemStack) || !hasPermission(player, 'ui.panel.admin')) {
@@ -97,11 +113,19 @@ export function handleWandBreakBlock(event: mc.PlayerBreakBlockBeforeEvent): boo
   event.cancel = true;
   const loc = { x: block.location.x, y: block.location.y, z: block.location.z };
   mc.system.run(() => {
-    setZoneSelectionPos(player, 'pos1', loc);
+    if (player.isValid) {
+      setZoneSelectionPos(player, 'pos1', loc);
+    }
   });
   return true;
 }
 
+/**
+ * Handles block-interact events when an authorized admin holds the Zone Selection Wand to set Pos2.
+ *
+ * @param event The block interact before-event payload.
+ * @returns True if the event was handled by the wand, false otherwise.
+ */
 export function handleWandInteractBlock(event: mc.PlayerInteractWithBlockBeforeEvent): boolean {
   const { player, block, itemStack } = event;
   if (!isZoneWandItem(itemStack) || !hasPermission(player, 'ui.panel.admin')) {
@@ -110,7 +134,9 @@ export function handleWandInteractBlock(event: mc.PlayerInteractWithBlockBeforeE
   event.cancel = true;
   const loc = { x: block.location.x, y: block.location.y, z: block.location.z };
   mc.system.run(() => {
-    setZoneSelectionPos(player, 'pos2', loc);
+    if (player.isValid) {
+      setZoneSelectionPos(player, 'pos2', loc);
+    }
   });
   return true;
 }

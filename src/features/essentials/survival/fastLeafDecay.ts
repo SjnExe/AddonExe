@@ -1,4 +1,5 @@
 import { getConfig } from '@core/config/configManager.js';
+import { getProtectionFlags } from '@core/events/protectionService.js';
 import { isLogBlock } from '@features/essentials/survival/treeCapitator.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -14,6 +15,15 @@ export interface FastLeafDecayOptions {
   ignorePlayerPlacedLeaves?: boolean;
 }
 
+/**
+ * Scans for orphaned leaves around a broken log and schedules staggered decay ticks.
+ *
+ * @param dimension The dimension where the log was broken.
+ * @param brokenBlockLocation World coordinates of the broken log.
+ * @param brokenBlockTypeId Block type identifier of the broken block.
+ * @param options Optional fast-leaf-decay configuration overrides.
+ * @returns Number of orphaned leaf blocks scheduled for decay.
+ */
 export function handleFastLeafDecay(
   dimension: mc.Dimension,
   brokenBlockLocation: mc.Vector3,
@@ -78,7 +88,15 @@ export function handleFastLeafDecay(
       }
     }
     if (!hasSupportingLog) {
-      leavesToDecay.push(leaf);
+      let isProtected = false;
+      try {
+        isProtected = getProtectionFlags(leaf, dimension.id).preventBlockBreaking;
+      } catch {
+        // Config manager not initialized in isolated unit tests
+      }
+      if (!isProtected) {
+        leavesToDecay.push(leaf);
+      }
     }
   }
 

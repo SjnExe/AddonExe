@@ -386,7 +386,6 @@ export function getPunishment(playerId: string, type: PunishmentType): Punishmen
  * @returns {boolean} True if the player was kicked (is banned), false otherwise.
  */
 export function checkAndKickBannedPlayer(player: mc.Player): boolean {
-  clearExpiredPunishments();
   let playerId = '';
   try {
     playerId = player.id;
