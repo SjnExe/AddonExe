@@ -6,6 +6,12 @@ import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
+/**
+ * Displays the player's Mail Inbox panel with compose and clear actions.
+ *
+ * @param player The viewing player.
+ * @returns Promise resolving when the panel closes.
+ */
 export async function showMailPanel(player: mc.Player): Promise<void> {
   const cfg = getConfig();
   if (!cfg.mail?.enabled) {
@@ -35,6 +41,9 @@ export async function showMailPanel(player: mc.Player): Promise<void> {
         .textField('message', 'Message (max 220 chars)', 'Hello!', '')
         .submitButton('Send Mail');
       const res = await modal.show(player);
+      if (!player.isValid) {
+        return;
+      }
       if (res && isNonEmptyString(res.to.trim()) && isNonEmptyString(res.message.trim())) {
         const out = sendMailToPlayer(player, res.to.trim(), res.message.trim());
         player.sendMessage(out.message);
@@ -44,6 +53,9 @@ export async function showMailPanel(player: mc.Player): Promise<void> {
 
   if (inbox.length > 0) {
     form.button('§4Clear All Mail', 'textures/ui/trash', async () => {
+      if (!player.isValid) {
+        return;
+      }
       const cleared = clearPlayerInbox(player.id);
       player.sendMessage(`§aCleared ${cleared} mail message(s) from your inbox.`);
       await showMailPanel(player);

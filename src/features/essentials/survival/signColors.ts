@@ -1,4 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
+import { canBypass } from '@core/events/protectionEvents.js';
+import { getProtectionFlags } from '@core/events/protectionService.js';
+import { canPlayerModify } from '@features/essentials/protection/landclaim/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -14,6 +17,17 @@ export function handleSignColorInteract(event: mc.PlayerInteractWithBlockAfterEv
   const { player, block } = event;
   if (!player.isValid || !block.typeId.includes('sign')) {
     return;
+  }
+  try {
+    const flags = getProtectionFlags(block.location, block.dimension.id);
+    if (
+      (!canBypass(player) && flags.preventBlockInteraction) ||
+      !canPlayerModify(player, block.location, block.dimension.id, 'interact')
+    ) {
+      return;
+    }
+  } catch {
+    // Config manager not initialized in isolated unit tests
   }
   mc.system.run(() => {
     try {

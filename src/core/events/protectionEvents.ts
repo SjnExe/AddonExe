@@ -23,6 +23,7 @@ import {
 } from '@features/essentials/protection/landclaim/manager.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/protection/zoneSelectionManager.js';
 import { handleCarryEntityInteract } from '@features/essentials/survival/carry.js';
+import { handleDynamicLightOffhandSwap } from '@features/essentials/survival/dynamicLighting.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
@@ -206,6 +207,61 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
     return;
   }
 
+  // Prevent placing a Hopper beneath a locked container, chest shop, or grave
+  const placedType = event.permutationToPlace?.type?.id ?? block.typeId;
+  if (placedType === MinecraftBlockTypes.Hopper) {
+    const aboveLoc = { x: block.location.x, y: block.location.y + 1, z: block.location.z };
+    const dimId = player.dimension.id;
+    const aboveLock = getContainerLockAt(dimId, aboveLoc);
+    const aboveShop = getChestShopAt(dimId, aboveLoc);
+    if (
+      isDefined(getGraveAt(dimId, aboveLoc)) ||
+      (isDefined(aboveLock) && !canAccessLockedContainer(aboveLock, player)) ||
+      (isDefined(aboveShop) && aboveShop.ownerId !== player.id && !hasPermission(player, 'group.admin'))
+    ) {
+      event.cancel = true;
+      mc.system.run(() => {
+        setActionBarOverride(player, '§cCannot place a hopper beneath a protected container.', 2500);
+      });
+      return;
+    }
+  }
+
+  // Prevent merging a chest/trapped chest onto another player's chest shop or locked container
+  if (placedType === MinecraftBlockTypes.Chest || placedType === MinecraftBlockTypes.TrappedChest) {
+    const dimId = player.dimension.id;
+    const offsets = [
+      { x: 1, z: 0 },
+      { x: -1, z: 0 },
+      { x: 0, z: 1 },
+      { x: 0, z: -1 },
+    ];
+    for (const off of offsets) {
+      const adjLoc = { x: block.location.x + off.x, y: block.location.y, z: block.location.z + off.z };
+      let adjBlock: mc.Block | undefined;
+      try {
+        adjBlock = player.dimension.getBlock(adjLoc);
+      } catch {
+        continue;
+      }
+      if (!adjBlock || adjBlock.typeId !== placedType) {
+        continue;
+      }
+      const adjLock = getContainerLockAt(dimId, adjLoc);
+      const adjShop = getChestShopAt(dimId, adjLoc);
+      if (
+        (isDefined(adjLock) && !canAccessLockedContainer(adjLock, player)) ||
+        (isDefined(adjShop) && adjShop.ownerId !== player.id && !hasPermission(player, 'group.admin'))
+      ) {
+        event.cancel = true;
+        mc.system.run(() => {
+          setActionBarOverride(player, '§cCannot merge a chest with a protected container.', 2500);
+        });
+        return;
+      }
+    }
+  }
+
   if (shouldRecordAuditEvent('place', block.typeId)) {
     recordAuditEntry({
       playerName: player.name,
@@ -338,9 +394,12 @@ export function handleBeforeItemUse(event: mc.ItemUseBeforeEvent): void {
         mc.system.run(() => {
           setActionBarOverride(player, '§cYou cannot use projectiles here.', 2500);
         });
+        return;
       }
     }
   }
+
+  handleDynamicLightOffhandSwap(event);
 }
 
 /**
@@ -406,6 +465,30 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
       setActionBarOverride(player, `§cThis container is locked by ${containerLock.ownerName}.`, 2500);
     });
     return;
+  }
+
+  // Prevent placing a Hopper Minecart beneath a locked container, chest shop, or grave
+  if (itemStack?.typeId === MinecraftItemTypes.HopperMinecart) {
+    const dimId = player.dimension.id;
+    const checkLocs = [
+      { x: block.location.x, y: block.location.y + 1, z: block.location.z },
+      { x: block.location.x, y: block.location.y + 2, z: block.location.z },
+    ];
+    for (const loc of checkLocs) {
+      const aboveLock = getContainerLockAt(dimId, loc);
+      const aboveShop = getChestShopAt(dimId, loc);
+      if (
+        isDefined(getGraveAt(dimId, loc)) ||
+        (isDefined(aboveLock) && !canAccessLockedContainer(aboveLock, player)) ||
+        (isDefined(aboveShop) && aboveShop.ownerId !== player.id && !hasPermission(player, 'group.admin'))
+      ) {
+        event.cancel = true;
+        mc.system.run(() => {
+          setActionBarOverride(player, '§cCannot place a hopper minecart beneath a protected container.', 2500);
+        });
+        return;
+      }
+    }
   }
 
   const isFireStarter =
@@ -518,6 +601,20 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
   }
 
   const flags = getProtectionFlags(target.location, target.dimension.id);
+
+  if (
+    target.typeId !== MinecraftEntityTypes.Player &&
+    isDefined(getEnforcedClaimAt(target.location, target.dimension.id)) &&
+    !canPlayerModify(player, target.location, target.dimension.id, 'interact')
+  ) {
+    event.cancel = true;
+    mc.system.run(() => {
+      if (player.isValid) {
+        setActionBarOverride(player, '§cYou cannot interact with entities in this claim.', 2500);
+      }
+    });
+    return;
+  }
 
   if (flags.preventEntityInteraction) {
     // We only want to prevent interaction with entities that are NOT meant to be ridden/pets
@@ -652,6 +749,20 @@ export function handleBeforePlayerItemAttackEntity(event: mc.PlayerItemAttackEnt
     return;
   }
 
+  if (
+    targetEntity.typeId !== MinecraftEntityTypes.Player &&
+    isDefined(targetClaim) &&
+    !canPlayerModify(player, targetEntity.location, targetEntity.dimension.id, 'interact')
+  ) {
+    event.cancel = true;
+    mc.system.run(() => {
+      if (player.isValid) {
+        setActionBarOverride(player, '§cYou cannot attack entities in this claim.', 2500);
+      }
+    });
+    return;
+  }
+
   if (flags.preventEntityInteraction && targetEntity.typeId !== MinecraftEntityTypes.Player) {
     const familyTypes = targetEntity.getComponent(EntityComponentTypes.TypeFamily);
     if (!familyTypes?.hasTypeFamily('monster') && !canBypass(player)) {
@@ -700,6 +811,10 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent): void {
     hasTeleportProtection(damager.id)
   ) {
     event.cancel = true;
+    return;
+  }
+
+  if (!victim.isValid) {
     return;
   }
 

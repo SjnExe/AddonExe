@@ -319,12 +319,35 @@ export function getStaffInventoryStatus(player: mc.Player): string {
   ].join('\n');
 }
 
+/**
+ * Swaps a player's inventory profile when their gamemode changes between staff and survival modes.
+ *
+ * @param player Target player.
+ * @param toGameMode New gamemode.
+ * @param fromGameMode Previous gamemode if known.
+ */
 export function handleGameModeInventorySwap(
   player: mc.Player,
   toGameMode: mc.GameMode,
   fromGameMode?: mc.GameMode,
 ): void {
-  if (!player.isValid || !hasStaffInventoryPermission(player)) {
+  if (!player.isValid) {
+    return;
+  }
+
+  const targetProfile: InventoryProfileType = isStaffGamemode(toGameMode) ? 'staff' : 'survival';
+  if (!hasStaffInventoryPermission(player)) {
+    const existing = memoryCache.get(player.id) ?? getStorage(player.id).load<StaffInventoryRecord>();
+    if (
+      isDefined(existing) &&
+      existing.autoSwap &&
+      existing.activeProfile === 'staff' &&
+      targetProfile === 'survival' &&
+      isDefined(existing.survival)
+    ) {
+      memoryCache.set(player.id, existing);
+      swapStaffInventory(player, 'survival', { initialFromMode: fromGameMode });
+    }
     return;
   }
 
@@ -333,7 +356,6 @@ export function handleGameModeInventorySwap(
     return;
   }
 
-  const targetProfile: InventoryProfileType = isStaffGamemode(toGameMode) ? 'staff' : 'survival';
   if (record.activeProfile !== targetProfile) {
     swapStaffInventory(player, targetProfile, { initialFromMode: fromGameMode });
   }

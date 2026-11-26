@@ -150,6 +150,14 @@ export function getFreeWithdrawalsRemaining(
   return { remaining, totalAllowed };
 }
 
+/**
+ * Deposits funds from the player's wallet into their savings account.
+ *
+ * @param player Target player.
+ * @param amount Deposit amount.
+ * @param nowMs Current timestamp in milliseconds.
+ * @returns Result with success flag and feedback message.
+ */
 export function depositToSavings(
   player: mc.Player,
   amount: number,
@@ -157,6 +165,9 @@ export function depositToSavings(
 ): { success: boolean; message: string } {
   if (!isFeatureActive('eco.bank')) {
     return { success: false, message: '§cThe Bank system is currently disabled.' };
+  }
+  if (!Number.isFinite(amount)) {
+    return { success: false, message: '§cDeposit amount must be a valid number.' };
   }
   const cleanAmount = Math.round(amount * 100) / 100;
   if (cleanAmount <= 0) {
@@ -187,6 +198,14 @@ export function depositToSavings(
   };
 }
 
+/**
+ * Withdraws funds from the player's savings account to their wallet.
+ *
+ * @param player Target player.
+ * @param amount Withdrawal amount.
+ * @param nowMs Current timestamp in milliseconds.
+ * @returns Result with success flag, message, and fee charged.
+ */
 export function withdrawFromSavings(
   player: mc.Player,
   amount: number,
@@ -194,6 +213,9 @@ export function withdrawFromSavings(
 ): { success: boolean; message: string; feeCharged: number } {
   if (!isFeatureActive('eco.bank')) {
     return { success: false, message: '§cThe Bank system is currently disabled.', feeCharged: 0 };
+  }
+  if (!Number.isFinite(amount)) {
+    return { success: false, message: '§cWithdrawal amount must be a valid number.', feeCharged: 0 };
   }
   const cleanAmount = Math.round(amount * 100) / 100;
   if (cleanAmount <= 0) {
@@ -254,6 +276,15 @@ export function withdrawFromSavings(
   };
 }
 
+/**
+ * Locks funds into a fixed-term deposit plan.
+ *
+ * @param player Target player.
+ * @param amount Principal amount.
+ * @param planId Fixed deposit term identifier.
+ * @param nowMs Current timestamp in milliseconds.
+ * @returns Result with success flag, message, and created entry.
+ */
 export function createFixedDeposit(
   player: mc.Player,
   amount: number,
@@ -269,6 +300,9 @@ export function createFixedDeposit(
   }
 
   const cfg = getBankConfig();
+  if (!Number.isFinite(amount)) {
+    return { success: false, message: '§cFixed Deposit amount must be a valid number.' };
+  }
   const cleanAmount = Math.round(amount * 100) / 100;
   const minAmt = Math.max(10, Number(cfg.minFixedDepositAmount ?? 100));
   const maxAmt = Math.max(minAmt, Number(cfg.maxFixedDepositAmount ?? 100_000));

@@ -1,5 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
+import { getEnforcedClaimAt } from '@features/essentials/protection/landclaim/manager.js';
 import { isLogBlock } from '@features/essentials/survival/treeCapitator.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -91,6 +92,13 @@ export function handleFastLeafDecay(
       let isProtected = false;
       try {
         isProtected = getProtectionFlags(leaf, dimension.id).preventBlockBreaking;
+        if (!isProtected) {
+          const leafClaim = getEnforcedClaimAt(leaf, dimension.id);
+          if (isDefined(leafClaim)) {
+            const logClaim = getEnforcedClaimAt(brokenBlockLocation, dimension.id);
+            isProtected = !isDefined(logClaim) || logClaim.id !== leafClaim.id;
+          }
+        }
       } catch {
         // Config manager not initialized in isolated unit tests
       }
@@ -110,6 +118,13 @@ export function handleFastLeafDecay(
         let isStillProtected = false;
         try {
           isStillProtected = getProtectionFlags(leaf, dimension.id).preventBlockBreaking;
+          if (!isStillProtected) {
+            const leafClaim = getEnforcedClaimAt(leaf, dimension.id);
+            if (isDefined(leafClaim)) {
+              const logClaim = getEnforcedClaimAt(brokenBlockLocation, dimension.id);
+              isStillProtected = !isDefined(logClaim) || logClaim.id !== leafClaim.id;
+            }
+          }
         } catch {
           // Config manager not initialized in isolated unit tests
         }

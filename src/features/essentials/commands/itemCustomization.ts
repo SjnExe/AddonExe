@@ -57,6 +57,11 @@ const renameCommand: CustomCommand = {
       return;
     }
 
+    if (args.name.length > 64) {
+      sendMessage('§cItem name cannot exceed 64 characters.', executor);
+      return;
+    }
+
     const formattedName = `${formatColors(args.name)}§r`;
     item.nameTag = formattedName;
     equippable?.setEquipment(EquipmentSlot.Mainhand, item);
@@ -123,6 +128,14 @@ const loreCommand: CustomCommand = {
         sendMessage('§cUsage: /lore add <text>', executor);
         return;
       }
+      if (currentLore.length >= 20) {
+        sendMessage('§cItems cannot have more than 20 lore lines.', executor);
+        return;
+      }
+      if (textToAdd.length > 128) {
+        sendMessage('§cLore line cannot exceed 128 characters.', executor);
+        return;
+      }
       const formatted = `${formatColors(textToAdd)}§r`;
       currentLore.push(formatted);
       item.setLore(currentLore);
@@ -134,8 +147,12 @@ const loreCommand: CustomCommand = {
     if (action === 'set') {
       const lineIdx = Number(args.arg1) - 1;
       const textToSet = args.arg2;
-      if (Number.isNaN(lineIdx) || lineIdx < 0 || lineIdx >= currentLore.length || !isNonEmptyString(textToSet)) {
+      if (!Number.isInteger(lineIdx) || lineIdx < 0 || lineIdx >= currentLore.length || !isNonEmptyString(textToSet)) {
         sendMessage(`§cUsage: /lore set <1-${Math.max(1, currentLore.length)}> <text>`, executor);
+        return;
+      }
+      if (textToSet.length > 128) {
+        sendMessage('§cLore line cannot exceed 128 characters.', executor);
         return;
       }
       const formatted = `${formatColors(textToSet)}§r`;
@@ -148,7 +165,7 @@ const loreCommand: CustomCommand = {
 
     if (action === 'remove' || action === 'del') {
       const lineIdx = Number(args.arg1) - 1;
-      if (Number.isNaN(lineIdx) || lineIdx < 0 || lineIdx >= currentLore.length) {
+      if (!Number.isInteger(lineIdx) || lineIdx < 0 || lineIdx >= currentLore.length) {
         sendMessage(`§cUsage: /lore remove <1-${Math.max(1, currentLore.length)}>`, executor);
         return;
       }

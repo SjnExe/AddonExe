@@ -47,6 +47,13 @@ export async function showBountyListPanel(player: mc.Player, context: Record<str
   await form.show(player);
 }
 
+/**
+ * Displays the bounty placement modal for a target player.
+ *
+ * @param player The player placing the bounty.
+ * @param context Panel navigation context containing `targetPlayerId`.
+ * @returns Promise resolving when the modal flow completes.
+ */
 export async function showBountyPlayer(player: mc.Player, context: Record<string, unknown>): Promise<void> {
   const targetId = context.targetPlayerId as string;
   if (!isNonEmptyString(targetId)) {
@@ -67,6 +74,9 @@ export async function showBountyPlayer(player: mc.Player, context: Record<string
     .submitButton('Set Bounty');
 
   const res = await form.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
     return showBountyListPanel(player, context);
   }
@@ -74,7 +84,7 @@ export async function showBountyPlayer(player: mc.Player, context: Record<string
   const amountStr = res.amount;
   const amount = parseCurrency(amountStr);
 
-  if (Number.isNaN(amount) || amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     player.sendMessage('§4Invalid amount. Please enter a positive number (e.g. 100, 2.5k).');
     return showBountyListPanel(player, context);
   }
@@ -86,16 +96,20 @@ export async function showBountyPlayer(player: mc.Player, context: Record<string
     return showBountyListPanel(player, context);
   }
 
-  if (myData.balance < amount) {
-    player.sendMessage(`§4Insufficient funds. You have ${formatCurrency(myData.balance)}.`);
+  const config = getConfig();
+  const minBounty = config.bounties?.minimumBounty ?? 0;
+  if (amount < minBounty) {
+    player.sendMessage(`§4Invalid amount. The minimum bounty is ${formatCurrency(minBounty)}.`);
     return showBountyListPanel(player, context);
   }
 
-  incrementPlayerBalance(player.id, -amount);
-  bountyManager.incrementBounty(targetId, amount);
-  player.sendMessage(`§2Added bounty of ${formatCurrency(amount)} to ${targetData?.name ?? 'Unknown'}.`);
+  const placeResult = bountyManager.placeBounty(player.id, targetId, amount);
+  if (!placeResult.success) {
+    player.sendMessage(`§4${placeResult.message}`);
+    return showBountyListPanel(player, context);
+  }
+  player.sendMessage(`§2${placeResult.message}`);
 
-  const config = getConfig();
   const bountiesConfig = (config as { modules?: { bounties?: { announce?: boolean } } }).modules?.bounties;
   if ((bountiesConfig?.announce ?? true) === true) {
     mc.world.sendMessage(
@@ -105,6 +119,12 @@ export async function showBountyPlayer(player: mc.Player, context: Record<string
   await showPanel(player, 'playerActionsPanel', context);
 }
 
+/**
+ * Displays the modal to pay off/remove a portion or all of a player's active bounty.
+ *
+ * @param player The player paying to remove the bounty.
+ * @param context Panel navigation context containing `targetPlayerId`.
+ */
 export async function showRemovePlayerBounty(player: mc.Player, context: Record<string, unknown>): Promise<void> {
   const targetId = context.targetPlayerId as string;
   if (!isNonEmptyString(targetId)) {
@@ -123,7 +143,16 @@ export async function showRemovePlayerBounty(player: mc.Player, context: Record<
     .submitButton('Remove Bounty');
 
   const res = await form.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
+    return showBountyListPanel(player, context);
+  }
+
+  const latestBounty = bountyManager.getBounty(targetId);
+  if (!isDefined(latestBounty) || latestBounty.amount <= 0) {
+    player.sendMessage('§4Target no longer has an active bounty.');
     return showBountyListPanel(player, context);
   }
 
@@ -142,7 +171,7 @@ export async function showRemovePlayerBounty(player: mc.Player, context: Record<
     return showBountyListPanel(player, context);
   }
 
-  if (amount > targetBounty.amount) {
+  if (amount > latestBounty.amount) {
     player.sendMessage(`§4You cannot remove more than the current bounty.`);
     return showBountyListPanel(player, context);
   }
@@ -153,7 +182,10 @@ export async function showRemovePlayerBounty(player: mc.Player, context: Record<
     return showBountyListPanel(player, context);
   }
 
-  incrementPlayerBalance(player.id, -amount);
+  if (!incrementPlayerBalance(player.id, -amount)) {
+    player.sendMessage(`§4Failed to process payment.`);
+    return showBountyListPanel(player, context);
+  }
   bountyManager.incrementBounty(targetId, -amount);
   player.sendMessage(`§2Removed ${formatCurrency(amount)} from bounty.`);
   return showBountyListPanel(player, context);

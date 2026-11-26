@@ -71,6 +71,9 @@ const homeCommand: CustomCommand = {
 
     for (const homeName of homeList) {
       form.button(homeName, 'textures/ui/icon_recipe_item', () => {
+        if (!executor.isValid) {
+          return;
+        }
         teleportToHome(homeName);
       });
     }
@@ -156,6 +159,9 @@ const delHomeCommand: CustomCommand = {
 
     for (const homeName of homeList) {
       form.button(homeName, 'textures/ui/trash', () => {
+        if (!executor.isValid) {
+          return;
+        }
         deleteHomeByName(homeName);
       });
     }

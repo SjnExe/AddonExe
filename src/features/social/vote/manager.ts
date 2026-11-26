@@ -84,7 +84,15 @@ export function createVote(creator: mc.Player, question: string, options: string
   mc.world.sendMessage(`§a§lNew Vote Started!§r\n§e${question}\n§7Type §f/vote§7 to participate.`);
 }
 
+/**
+ * Casts a vote for `optionId` in the currently active poll.
+ *
+ * @param player Player casting the vote.
+ * @param optionId Selected option ID.
+ * @returns Result object indicating success and feedback message.
+ */
 export function castVote(player: mc.Player, optionId: number): { success: boolean; message: string } {
+  checkVoteExpiry();
   if (!currentVote || currentVote.status !== 'active') {
     return { success: false, message: '§cNo active vote.' };
   }

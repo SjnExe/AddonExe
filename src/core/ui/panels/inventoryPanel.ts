@@ -110,6 +110,14 @@ async function showSlotActionPanel(
 
   if (canEdit) {
     form.button('§6Confiscate (Move to My Inventory)', 'textures/ui/icon_recipe_equipment', async () => {
+      if (!staff.isValid) {
+        return;
+      }
+      if (!targetPlayer.isValid) {
+        staff.sendMessage(`§c${targetName} is no longer online.`);
+        await reopenParent();
+        return;
+      }
       const myInv = (staff.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
         ?.container;
       if (!isDefined(myInv) || myInv.emptySlotsCount === 0) {
@@ -141,6 +149,14 @@ async function showSlotActionPanel(
           )
           .submitButton('Save Quantity');
         const res = await modal.show(staff);
+        if (!staff.isValid) {
+          return;
+        }
+        if (!targetPlayer.isValid) {
+          staff.sendMessage(`§c${targetName} is no longer online.`);
+          await reopenParent();
+          return;
+        }
         if (res) {
           const liveItem = readSlotItem();
           if (!isDefined(liveItem) || liveItem.typeId !== currentItem.typeId) {
@@ -168,6 +184,14 @@ async function showSlotActionPanel(
     }
 
     form.button('§4Delete Item From Slot', 'textures/ui/trash', async () => {
+      if (!staff.isValid) {
+        return;
+      }
+      if (!targetPlayer.isValid) {
+        staff.sendMessage(`§c${targetName} is no longer online.`);
+        await reopenParent();
+        return;
+      }
       const liveItem = readSlotItem();
       if (!isDefined(liveItem) || liveItem.typeId !== currentItem.typeId) {
         staff.sendMessage('§eThat slot changed. Reopening the panel.');
@@ -687,7 +711,7 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
   const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
   const targetPlayer = getPlayerFromCache(targetPlayerId);
 
-  if (!targetPlayer) {
+  if (!targetPlayer || !targetPlayer.isValid) {
     const offlineData = loadPlayerData(targetPlayerId);
     const invSnap = offlineData?.offlineInventory ?? {};
     const eqSnap = offlineData?.offlineEquipment ?? {};
@@ -702,6 +726,15 @@ export async function showInventoryPanel(player: mc.Player, targetPlayerId: stri
         await showAddItemModal(player, targetPlayerId, 'inventory');
       });
       form.button('§l§4Clear Offline Inventory (On Next Join)', 'textures/ui/trash', async () => {
+        if (!player.isValid) {
+          return;
+        }
+        const liveTarget = getPlayerFromCache(targetPlayerId);
+        if (isDefined(liveTarget) && liveTarget.isValid) {
+          player.sendMessage('§ePlayer came online. Reopening live inventory.');
+          await showInventoryPanel(player, targetPlayerId, page);
+          return;
+        }
         updatePlayerData(targetPlayerId, (d) => {
           d.offlineInventory = {};
           d.offlineEquipment = {};
@@ -850,7 +883,7 @@ export async function showEnderChestPanel(player: mc.Player, targetPlayerId: str
   const targetName = getPlayerNameById(targetPlayerId) || targetPlayerId;
   const targetPlayer = getPlayerFromCache(targetPlayerId);
 
-  if (!targetPlayer) {
+  if (!targetPlayer || !targetPlayer.isValid) {
     const offlineData = loadPlayerData(targetPlayerId);
     const ecSnap = offlineData?.offlineEnderChest ?? {};
     const canEdit = canModifyTargetInventory(player, targetPlayerId);
@@ -864,6 +897,15 @@ export async function showEnderChestPanel(player: mc.Player, targetPlayerId: str
         await showAddItemModal(player, targetPlayerId, 'enderchest');
       });
       form.button('§l§4Wipe Offline Ender Chest (On Next Join)', 'textures/ui/trash', async () => {
+        if (!player.isValid) {
+          return;
+        }
+        const liveTarget = getPlayerFromCache(targetPlayerId);
+        if (isDefined(liveTarget) && liveTarget.isValid) {
+          player.sendMessage('§ePlayer came online. Reopening live Ender Chest.');
+          await showEnderChestPanel(player, targetPlayerId);
+          return;
+        }
         updatePlayerData(targetPlayerId, (d) => {
           d.offlineEnderChest = {};
           d.pendingEnderChestWipe = true;

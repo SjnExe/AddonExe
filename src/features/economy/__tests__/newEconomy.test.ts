@@ -15,6 +15,7 @@ import {
 import bottleCommand from '@features/economy/commands/bottle.js';
 import sellCommand from '@features/economy/commands/sell.js';
 import { getPlayerJob, setPlayerJob } from '@features/economy/jobs/manager.js';
+import * as shopManager from '@features/economy/shop/manager.js';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 function attachMockInventory(player: any): any {
@@ -107,33 +108,53 @@ describe('New Economy Subsystems (Jobs, ChestShop, Sell, Bottle)', () => {
       sell: { enabled: false },
       maxBalance: 100000,
     } as any);
+    const shopCfgSpy = spyOn(configurations, 'getShopConfig').mockReturnValue({
+      enabled: true,
+      categories: {
+        ores: {
+          items: {
+            diamond: { sellPrice: 200 },
+            emerald: { sellPrice: 12 },
+          },
+        },
+      },
+    } as any);
+    const ranksSpy = spyOn(permissionEngine, 'getPlayerRanks').mockReturnValue([]);
     const featSpy = spyOn(featureManager, 'isFeatureActive').mockReturnValue(true);
     const getPlayerSpy = spyOn(playerDataManager, 'getOrCreatePlayer').mockReturnValue({ balance: 0 } as any);
     const incSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(() => true as any);
-    spies.push(ecoSpy, featSpy, getPlayerSpy, incSpy);
+    spies.push(ecoSpy, shopCfgSpy, ranksSpy, featSpy, getPlayerSpy, incSpy);
+    shopManager.invalidateShopLookupCache();
 
-    const player = new Player('sell-p1', 'Seller') as any;
-    sellCommand.execute(player, {});
-    expect(incSpy).not.toHaveBeenCalled();
+    try {
+      const player = new Player('sell-p1', 'Seller') as any;
+      const inv = attachMockInventory(player);
+      inv.setItem(0, new ItemStack(MinecraftItemTypes.Diamond, 2));
+      inv.setItem(1, new ItemStack(MinecraftItemTypes.Emerald, 1));
+      player.selectedSlotIndex = 0;
 
-    ecoSpy.mockReturnValue({ sell: { enabled: true }, maxBalance: 100000 } as any);
-    const inv = attachMockInventory(player);
-    inv.setItem(0, new ItemStack(MinecraftItemTypes.Diamond, 2));
-    inv.setItem(1, new ItemStack(MinecraftItemTypes.Emerald, 1));
-    player.selectedSlotIndex = 0;
+      sellCommand.execute(player, {});
+      expect(inv.getItem(0)?.typeId).toBe(MinecraftItemTypes.Diamond);
+      expect(inv.getItem(0)?.amount).toBe(2);
+      expect(incSpy).not.toHaveBeenCalled();
 
-    // Sell hand
-    sellCommand.execute(player, {});
-    expect(inv.getItem(0)).toBeUndefined();
-    expect(inv.getItem(1)?.typeId).toBe(MinecraftItemTypes.Emerald);
-    expect(incSpy).toHaveBeenCalledTimes(1);
-    expect(incSpy).toHaveBeenNthCalledWith(1, 'sell-p1', 400);
+      ecoSpy.mockReturnValue({ sell: { enabled: true }, maxBalance: 100000 } as any);
 
-    // Sell all
-    sellCommand.execute(player, { scope: 'all' });
-    expect(inv.getItem(1)).toBeUndefined();
-    expect(incSpy).toHaveBeenCalledTimes(2);
-    expect(incSpy).toHaveBeenNthCalledWith(2, 'sell-p1', 12);
+      // Sell hand
+      sellCommand.execute(player, {});
+      expect(inv.getItem(0)).toBeUndefined();
+      expect(inv.getItem(1)?.typeId).toBe(MinecraftItemTypes.Emerald);
+      expect(incSpy).toHaveBeenCalledTimes(1);
+      expect(incSpy).toHaveBeenNthCalledWith(1, 'sell-p1', 400);
+
+      // Sell all
+      sellCommand.execute(player, { scope: 'all' });
+      expect(inv.getItem(1)).toBeUndefined();
+      expect(incSpy).toHaveBeenCalledTimes(2);
+      expect(incSpy).toHaveBeenNthCalledWith(2, 'sell-p1', 12);
+    } finally {
+      shopManager.invalidateShopLookupCache();
+    }
   });
 
   it('/bottle converts XP levels when enabled and rejects insufficient levels', () => {

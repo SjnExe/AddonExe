@@ -343,6 +343,13 @@ export function handleCombatPlayerJoin(player: mc.Player): void {
 
 // --- 1v1 PvP Wager Duels (/pvp) ---
 
+/**
+ * Sends a 1v1 PvP wager duel request from `requester` to `target`.
+ *
+ * @param requester Player initiating the duel.
+ * @param target Challenged player.
+ * @param amount Wager amount.
+ */
 export function requestPvP(requester: mc.Player, target: mc.Player, amount: number): void {
   const config = getEconomyConfig().pvp;
   if (!config.enabled) {
@@ -363,8 +370,8 @@ export function requestPvP(requester: mc.Player, target: mc.Player, amount: numb
     return;
   }
 
-  const pData = getPlayer(requester.id);
-  if (pData && amount > 0 && pData.balance < amount) {
+  const pData = getPlayer(requester.id) ?? loadPlayerData(requester.id);
+  if (!pData || (amount > 0 && pData.balance < amount)) {
     sendMessage(`§cYou do not have enough money. Required: ${formatCurrency(amount)}`, requester);
     return;
   }
@@ -392,6 +399,11 @@ export function requestPvP(requester: mc.Player, target: mc.Player, amount: numb
   );
 }
 
+/**
+ * Accepts a pending 1v1 PvP wager duel request for `player`.
+ *
+ * @param player Player accepting the duel.
+ */
 export function acceptPvP(player: mc.Player): void {
   const request = pvpRequests.get(player.id);
   if (!request) {
@@ -403,17 +415,24 @@ export function acceptPvP(player: mc.Player): void {
   const { requesterId, amount } = request;
 
   const requester = getPlayerFromCache(requesterId);
-  if (!requester) {
+  if (!requester || !requester.isValid) {
     sendMessage('§cThe challenger is no longer online. Their wager has been refunded.', player);
-    if (amount > 0) {
-      incrementPlayerBalance(requesterId, amount);
-    }
     clearRequest(player.id, false);
     return;
   }
 
-  const pData = getPlayer(player.id);
-  if (pData && amount > 0 && pData.balance < amount) {
+  if (activeDuels.has(player.id)) {
+    sendMessage('§cYou are already in an active duel.', player);
+    return;
+  }
+
+  if (activeDuels.has(requesterId)) {
+    sendMessage('§cThe challenger is already in an active duel.', player);
+    return;
+  }
+
+  const pData = getPlayer(player.id) ?? loadPlayerData(player.id);
+  if (!pData || (amount > 0 && pData.balance < amount)) {
     sendMessage(`§cYou do not have enough money to accept. Required: ${formatCurrency(amount)}`, player);
     return;
   }

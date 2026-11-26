@@ -10,7 +10,9 @@ describe('BountyManager', () => {
 
   beforeEach(() => {
     _clearBountiesForTest();
-    incrementPlayerBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(() => {});
+    incrementPlayerBalanceSpy = spyOn(playerDataManager, 'incrementPlayerBalance').mockImplementation(
+      () => true as any,
+    );
     getPlayerSpy = spyOn(playerDataManager, 'getPlayer').mockReturnValue(undefined);
     loadPlayerDataSpy = spyOn(playerDataManager, 'loadPlayerData').mockReturnValue(undefined);
   });

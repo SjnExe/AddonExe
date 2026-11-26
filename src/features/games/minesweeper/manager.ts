@@ -1,6 +1,11 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
+import {
+  getOrCreatePlayer,
+  getPlayer,
+  incrementPlayerBalance,
+  updatePlayerData,
+} from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedTimeout } from '@core/utils/timerManager.js';
@@ -330,15 +335,35 @@ export function startMinesweeperGame(
   return game;
 }
 
+/**
+ * Starts a 2-player Minesweeper race match and escrows any wagers.
+ *
+ * @param player1 First player.
+ * @param player2 Second player.
+ * @param wager Optional currency wager per player.
+ * @param difficulty Minesweeper board difficulty.
+ * @returns The created race match, or undefined if players/balances are invalid.
+ */
 export function startMinesweeperRaceMatch(
   player1: mc.Player,
   player2: mc.Player,
   wager: number = 0,
   difficulty: MinesweeperDifficulty = 'easy',
 ): MinesweeperRaceMatch | undefined {
+  if (!player1.isValid || !player2.isValid) {
+    return undefined;
+  }
   if (wager > 0) {
-    incrementPlayerBalance(player1.id, -wager);
-    incrementPlayerBalance(player2.id, -wager);
+    if (getOrCreatePlayer(player1).balance < wager || getOrCreatePlayer(player2).balance < wager) {
+      return undefined;
+    }
+    if (!incrementPlayerBalance(player1.id, -wager)) {
+      return undefined;
+    }
+    if (!incrementPlayerBalance(player2.id, -wager)) {
+      incrementPlayerBalance(player1.id, wager);
+      return undefined;
+    }
   }
 
   const matchId = `ms_race_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -365,6 +390,7 @@ export function startMinesweeperRaceMatch(
     matchId,
     gameId: 'minesweeper',
     playerIds: [player1.id, player2.id],
+    wager: match.wager,
     onPlayerDisconnect: (disconnectedPlayerId) => {
       forfeitMinesweeperRace(matchId, disconnectedPlayerId, 'disconnected');
     },
@@ -495,11 +521,11 @@ export function forfeitMinesweeperRace(matchId: string, losingPlayerId: string, 
   const winnerPlayer = getPlayerFromCache(winnerId);
   const loserPlayer = getPlayerFromCache(losingPlayerId);
 
-  if (isDefined(winnerPlayer)) {
+  if (isDefined(winnerPlayer) && winnerPlayer.isValid) {
     winnerPlayer.sendMessage(`§e[Minesweeper Race] §c${loserName}§r §7${reason}! §aYou win!${prizeText}§r`);
     playSound(winnerPlayer, 'random.levelup');
   }
-  if (isDefined(loserPlayer)) {
+  if (isDefined(loserPlayer) && loserPlayer.isValid) {
     loserPlayer.sendMessage(`§e[Minesweeper Race] §cYou lost (${reason}). §e${winnerName}§r §cwins the match!§r`);
     playSound(loserPlayer, 'note.bass');
   }
@@ -540,11 +566,11 @@ function handleRaceBoardCleared(matchId: string, finisherId: string, netSeconds:
   const p1 = getPlayerFromCache(match.player1Id);
   const p2 = getPlayerFromCache(match.player2Id);
 
-  if (isDefined(p1)) {
+  if (isDefined(p1) && p1.isValid) {
     p1.sendMessage(`§e[Minesweeper Race] ${match.endReason}${prizeText}§r`);
     playSound(p1, isP1 ? 'random.levelup' : 'note.bass');
   }
-  if (isDefined(p2)) {
+  if (isDefined(p2) && p2.isValid) {
     p2.sendMessage(`§e[Minesweeper Race] ${match.endReason}${prizeText}§r`);
     playSound(p2, !isP1 ? 'random.levelup' : 'note.bass');
   }

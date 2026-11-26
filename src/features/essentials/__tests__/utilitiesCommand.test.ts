@@ -8,9 +8,10 @@ import * as permissionEngine from '@core/permissions/permissionEngine.js';
 import utilitiesCommands from '@features/essentials/commands/utilities.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
-import { MinecraftItemTypes } from '@minecraft/vanilla-data';
+import { MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 const repairCommand = utilitiesCommands.find((c) => c.name === 'repair')!;
+const hatCommand = utilitiesCommands.find((c) => c.name === 'hat')!;
 
 describe('repairCommand', () => {
   const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
@@ -184,5 +185,30 @@ describe('repairCommand', () => {
     expect(player.sendMessage).toHaveBeenCalledWith(
       expect.stringContaining('You do not have permission to use /repair all.'),
     );
+  });
+
+  it('blocks /hat when equipped helmet has Curse of Binding', () => {
+    getConfigSpy.mockReturnValue({
+      playerUtilities: { hatEnabled: true },
+    } as any);
+    const heldItem = { typeId: MinecraftItemTypes.CarvedPumpkin, amount: 1, clone: () => ({ ...heldItem }) };
+    const cursedHelmet = {
+      typeId: MinecraftItemTypes.DiamondHelmet,
+      getComponent: (type: string) =>
+        type === ItemComponentTypes.Enchantable
+          ? { hasEnchantment: (id: string) => id === MinecraftEnchantmentTypes.Binding }
+          : undefined,
+    };
+    (player as any).selectedSlotIndex = 0;
+    invComponent.container.getItem.mockReturnValue(heldItem);
+    equipComponent.getEquipment.mockImplementation((slot: string) =>
+      slot === mc.EquipmentSlot.Head ? cursedHelmet : undefined,
+    );
+
+    hatCommand.execute(player, {});
+
+    expect(equipComponent.setEquipment).not.toHaveBeenCalled();
+    expect(player.sendMessage).toHaveBeenCalledTimes(1);
+    expect(player.sendMessage).toHaveBeenCalledWith('§cYou cannot remove a helmet cursed with Binding!');
   });
 });

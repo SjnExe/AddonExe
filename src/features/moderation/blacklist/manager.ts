@@ -208,6 +208,18 @@ export function handleProhibitedItem(player: mc.Player, item: mc.ItemStack, trig
         }
       }
     }
+    if (slot === undefined) {
+      const equipComp = player.getComponent(EntityComponentTypes.Equippable) as
+        mc.EntityEquippableComponent | undefined;
+      if (isDefined(equipComp)) {
+        for (const eqSlot of equipmentSlots) {
+          const eqItem = equipComp.getEquipment(eqSlot);
+          if (isDefined(eqItem) && isItemBlacklisted(eqItem.typeId)) {
+            equipComp.setEquipment(eqSlot, undefined);
+          }
+        }
+      }
+    }
     player.sendMessage(`§c[Blacklist] The prohibited item §4${typeId}§c was confiscated.`);
   } else {
     player.sendMessage(`§c[Blacklist] You are not permitted to use §4${typeId}§c.`);

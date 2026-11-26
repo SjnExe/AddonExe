@@ -72,12 +72,23 @@ export function broadcastRandomCoinFlip(player: mc.Player, calledSide?: CoinSide
   return { success: true, result: landed, message: '' };
 }
 
+/**
+ * Executes a solo wagered coin flip against the house.
+ *
+ * @param player Participating player.
+ * @param calledSide Side called by the player.
+ * @param wager Wager amount.
+ * @returns Outcome of the coin flip.
+ */
 export function playSoloWagerCoinFlip(player: mc.Player, calledSide: CoinSide, wager: number): CoinFlipOutcome {
   const cfg = getGamesConfig();
   if (!cfg.enabled || cfg.coinFlip?.enabled === false) {
     return { success: false, message: '§cCoin Flip is currently disabled.' };
   }
 
+  if (!Number.isFinite(wager)) {
+    return { success: false, message: '§cInvalid wager amount.' };
+  }
   const cleanWager = Math.floor(wager * 100) / 100;
   if (cleanWager <= 0) {
     return broadcastRandomCoinFlip(player, calledSide);
@@ -87,9 +98,19 @@ export function playSoloWagerCoinFlip(player: mc.Player, calledSide: CoinSide, w
     return { success: false, message: '§cCoin Flip wagers are currently disabled.' };
   }
 
+  const cdSec = Math.max(0, Number(cfg.coinFlip?.cooldownSeconds ?? 3));
+  const rem = getCooldown(player.id, 'coinflip');
+  if (rem > 0) {
+    return { success: false, message: `§cPlease wait ${rem}s before flipping another coin.` };
+  }
+
   const pData = getOrCreatePlayer(player);
   if (pData.balance < cleanWager) {
     return { success: false, message: `§cInsufficient funds for wager (${formatCurrency(cleanWager)} required).` };
+  }
+
+  if (cdSec > 0) {
+    setCooldown(player.id, 'coinflip', cdSec);
   }
 
   incrementPlayerBalance(player.id, -cleanWager);
@@ -126,9 +147,23 @@ export function playSoloWagerCoinFlip(player: mc.Player, calledSide: CoinSide, w
   };
 }
 
+/**
+ * Runs a 2-player wagered coin flip match between host and guest.
+ *
+ * @param host Match host (Heads).
+ * @param guest Match guest (Tails).
+ * @param wager Wager amount per player.
+ * @returns Outcome of the match.
+ */
 export function runTwoPlayerCoinFlipMatch(host: mc.Player, guest: mc.Player, wager: number): CoinFlipOutcome {
-  const cleanWager = Math.max(0, Math.floor(wager * 100) / 100);
+  if (!host.isValid || !guest.isValid) {
+    return { success: false, message: '§cMatch cancelled: a player disconnected.' };
+  }
+  const cleanWager = Number.isFinite(wager) ? Math.max(0, Math.floor(wager * 100) / 100) : 0;
   if (cleanWager > 0) {
+    if (getOrCreatePlayer(host).balance < cleanWager || getOrCreatePlayer(guest).balance < cleanWager) {
+      return { success: false, message: '§cMatch cancelled: insufficient funds for the wager.' };
+    }
     incrementPlayerBalance(host.id, -cleanWager);
     incrementPlayerBalance(guest.id, -cleanWager);
   }

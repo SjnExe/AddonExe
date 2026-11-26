@@ -101,8 +101,13 @@ export function rescuePlayerFromVoid(player: mc.Player): void {
     player.addEffect(MinecraftEffectTypes.SlowFalling, 60, { amplifier: 1, showParticles: false });
 
     const spawn = world.getDefaultSpawnLocation();
-    const targetLoc = { x: spawn.x + 0.5, y: spawn.y + 1, z: spawn.z + 0.5 };
     const overworld = world.getDimension(MinecraftDimensionTypes.Overworld);
+    let safeY = spawn.y + 1;
+    if (!Number.isFinite(spawn.y) || spawn.y >= 32767) {
+      const top = overworld.getTopmostBlock({ x: spawn.x, z: spawn.z });
+      safeY = isDefined(top) ? top.location.y + 1 : 64;
+    }
+    const targetLoc = { x: spawn.x + 0.5, y: safeY, z: spawn.z + 0.5 };
     player.teleport(targetLoc, { dimension: overworld });
 
     player.sendMessage('§e[Server] You were rescued from the void!');
@@ -133,6 +138,12 @@ export function initializeGameplayMechanics(): void {
 
     for (const player of world.getAllPlayers()) {
       if (!player.isValid) {
+        continue;
+      }
+      if (
+        typeof player.getGameMode === 'function' &&
+        (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator)
+      ) {
         continue;
       }
       const y = player.location.y;

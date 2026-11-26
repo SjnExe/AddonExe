@@ -4,7 +4,12 @@ import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { getChestShopAt } from '@features/economy/chestShop/manager.js';
 import { getGraveAt } from '@features/essentials/graves/manager.js';
-import { canPlayerModify } from '@features/essentials/protection/landclaim/manager.js';
+import {
+  canBypassLandClaim,
+  canPlayerModify,
+  getEnforcedClaimAt,
+  isClaimOwnerOrTrusted,
+} from '@features/essentials/protection/landclaim/manager.js';
 import { getPlayerTeamId } from '@features/social/team/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -108,6 +113,12 @@ export function getContainerLockAt(dimensionId: string, location: mc.Vector3): C
     const dim = mc.world.getDimension(dimensionId);
     const blk = dim.getBlock(location);
     if (blk && (blk.typeId === MinecraftBlockTypes.Chest || blk.typeId === MinecraftBlockTypes.TrappedChest)) {
+      const inv = blk.getComponent(mc.BlockComponentTypes?.Inventory ?? 'minecraft:inventory') as
+        mc.BlockInventoryComponent | undefined;
+      // Only a paired double chest (54 slots) can share an adjacent block's lock
+      if (inv?.container && inv.container.size <= 27) {
+        return undefined;
+      }
       const offsets = [
         { x: 1, y: 0, z: 0 },
         { x: -1, y: 0, z: 0 },
@@ -194,7 +205,11 @@ export function lockContainer(player: mc.Player, block: mc.Block): { success: bo
   if (isDefined(getChestShopAt(block.dimension.id, block.location))) {
     return { success: false, message: '§cYou cannot lock a chest shop.' };
   }
-  if (!canPlayerModify(player, block.location, block.dimension.id, 'interact')) {
+  const claim = getEnforcedClaimAt(block.location, block.dimension.id);
+  if (isDefined(claim) && !isClaimOwnerOrTrusted(claim, player) && !canBypassLandClaim(player)) {
+    return { success: false, message: '§cYou cannot lock containers inside another player claim.' };
+  }
+  if (!canPlayerModify(player, block.location, block.dimension.id, 'container')) {
     return { success: false, message: '§cYou cannot lock containers inside another player claim.' };
   }
   const key = lockKey(block.dimension.id, block.location);

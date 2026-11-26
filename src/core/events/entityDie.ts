@@ -55,9 +55,19 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
 
     if (deadEntity.typeId === MinecraftEntityTypes.Player) {
       const deadPlayer = deadEntity as mc.Player;
-      saveLastLocation(deadPlayer, 'death');
+      const deathLoc = {
+        x: deadPlayer.location.x,
+        y: deadPlayer.location.y,
+        z: deadPlayer.location.z,
+        dimensionId: deadPlayer.dimension.id,
+      };
+      saveLastLocation(deadPlayer, 'death', deathLoc);
       try {
-        handlePlayerDeathGrave(deadPlayer);
+        handlePlayerDeathGrave(deadPlayer, (graveId) => {
+          if (deadPlayer.isValid) {
+            saveLastLocation(deadPlayer, 'death', { ...deathLoc, graveId });
+          }
+        });
       } catch (graveErr: unknown) {
         errorLog('[EntityDie] Failed to create player grave.', graveErr);
       }
@@ -103,9 +113,16 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
       return;
     }
 
+    const isCreativeOrSpectator =
+      typeof killer.getGameMode === 'function' &&
+      (killer.getGameMode() === mc.GameMode.Creative || killer.getGameMode() === mc.GameMode.Spectator);
+
     const economyConfig = getEconomyConfig();
     const reward = economyConfig.mobMoney[deadEntity.typeId];
     if (isNumber(reward) && reward !== 0) {
+      if (reward > 0 && isCreativeOrSpectator) {
+        return;
+      }
       const mobDisplayName = generateDisplayName(deadEntity.typeId);
       if (reward > 0 && economyConfig.mobFarmCap?.enabled) {
         const now = Date.now();

@@ -202,6 +202,7 @@ describe('protectionEvents & spawn safety', () => {
     const victim = {
       id: 'victim_p',
       typeId: MinecraftEntityTypes.Player,
+      isValid: true,
       location: { x: 0, y: 64, z: 0 },
       dimension: { id: MinecraftDimensionTypes.Overworld },
     } as unknown as mc.Player;
@@ -308,6 +309,7 @@ describe('protectionEvents & spawn safety', () => {
     const victim = {
       id: 'victim_exp',
       typeId,
+      isValid: true,
       location: { x: 0, y: 64, z: 0 },
       dimension: { id: MinecraftDimensionTypes.Overworld },
     } as unknown as mc.Entity;

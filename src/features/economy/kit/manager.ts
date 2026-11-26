@@ -196,13 +196,15 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
   }
 
   // All checks passed, now charge the player
-  if (isEconomyEnabled && isDefined(kit.price) && kit.price > 0) {
-    incrementPlayerBalance(player.id, -kit.price);
+  const chargedPrice = isEconomyEnabled && isDefined(kit.price) && kit.price > 0 ? kit.price : 0;
+  if (chargedPrice > 0) {
+    incrementPlayerBalance(player.id, -chargedPrice);
     savePlayerData(player.id);
   }
 
+  const undoActions: (() => void)[] = [];
   try {
-    giveKitItems(player, kit.items);
+    giveKitItems(player, kit.items, undoActions);
 
     // Set the new cooldown
     setCooldown(player.id, `kit_${lowerCaseKitName}`, kit.cooldownSeconds);
@@ -212,6 +214,17 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
       message: `You have received the '${kitName}' kit.`,
     };
   } catch (error: unknown) {
+    for (let i = undoActions.length - 1; i >= 0; i--) {
+      try {
+        undoActions[i]!();
+      } catch {
+        // Ignore cleanup errors for partial kit rollback
+      }
+    }
+    if (chargedPrice > 0) {
+      incrementPlayerBalance(player.id, chargedPrice);
+      savePlayerData(player.id);
+    }
     if (error instanceof Error) {
       errorLog(`[KitsManager] Failed to give kit: ${error.stack}`);
     } else {
@@ -224,9 +237,14 @@ export function giveKit(player: mc.Player, kitName: string): KitResult {
   }
 }
 
-/** Helper to give a list of items to a player safely. Handles enchantments, lore, nametags, and dropping leftovers. */
-
-export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
+/**
+ * Helper to give a list of items to a player safely. Handles enchantments, lore, nametags, and dropping leftovers.
+ *
+ * @param player Target player receiving kit items.
+ * @param items Kit item definitions to grant.
+ * @param undoActions Optional rollback stack populated for atomic kit failure recovery.
+ */
+export function giveKitItems(player: mc.Player, items: ItemInfo[], undoActions?: (() => void)[]): void {
   const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent;
   if (!isDefined(inventoryComp) || !isDefined(inventoryComp.container)) {
     throw new Error('Could not access player inventory.');
@@ -256,9 +274,41 @@ export function giveKitItems(player: mc.Player, items: ItemInfo[]): void {
         }
       }
     }
+    const prevAmounts = undoActions
+      ? Array.from({ length: inventory.size }, (_, idx) => inventory.getItem(idx)?.amount ?? 0)
+      : undefined;
     const leftovers = inventory.addItem(itemStack);
+    if (undoActions && prevAmounts) {
+      for (let idx = 0; idx < inventory.size; idx++) {
+        const cur = inventory.getItem(idx);
+        const delta = (cur?.amount ?? 0) - prevAmounts[idx]!;
+        if (delta > 0 && isDefined(cur)) {
+          const prevAmt = prevAmounts[idx]!;
+          const restoreType = cur.typeId;
+          undoActions.push(() => {
+            const slotItem = inventory.getItem(idx);
+            if (!isDefined(slotItem) || slotItem.typeId !== restoreType) {
+              return;
+            }
+            if (prevAmt <= 0) {
+              inventory.setItem(idx, undefined);
+            } else {
+              slotItem.amount = prevAmt;
+              inventory.setItem(idx, slotItem);
+            }
+          });
+        }
+      }
+    }
     if (isDefined(leftovers)) {
-      player.dimension.spawnItem(leftovers, player.location);
+      const spawned = player.dimension.spawnItem(leftovers, player.location);
+      if (undoActions && isDefined(spawned)) {
+        undoActions.push(() => {
+          if (spawned.isValid) {
+            spawned.remove();
+          }
+        });
+      }
       player.sendMessage('§eYour inventory is full. Some items were dropped on the ground.');
     }
   }

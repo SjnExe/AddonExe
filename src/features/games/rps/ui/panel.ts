@@ -152,13 +152,19 @@ export async function showRpsMatchPanel(player: mc.Player, matchId: string, init
   }
 }
 
+/**
+ * Displays the Rock Paper Scissors match summary and round history panel.
+ *
+ * @param player Target player viewing the result.
+ * @param match Completed or cancelled RPS match state.
+ */
 export async function showRpsResultPanel(player: mc.Player, match: RpsMatch): Promise<void> {
   if (!player.isValid) {
     return;
   }
 
-  const isWinner = match.winnerId === player.id;
-  const title = isWinner ? '§r§l§aVictory!' : '§r§l§cDefeat!';
+  const isWinner = isDefined(match.winnerId) && match.winnerId === player.id;
+  const title = !isDefined(match.winnerId) ? '§r§l§eMatch Cancelled' : isWinner ? '§r§l§aVictory!' : '§r§l§cDefeat!';
 
   const historyLines = match.rounds.map((r) => {
     const p1Move = formatRpsChoice(r.p1Choice);

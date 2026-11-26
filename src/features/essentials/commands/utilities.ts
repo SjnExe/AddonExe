@@ -11,7 +11,7 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes, EquipmentSlot, ItemComponentTypes } from '@minecraft/server';
-import { MinecraftEffectTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+import { MinecraftEffectTypes, MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 
@@ -287,6 +287,11 @@ const repairCommand: CustomCommand = {
   },
 };
 
+/**
+ * Displays the interactive trash disposal panel for a player.
+ *
+ * @param player Target player.
+ */
 export async function showTrashPanel(player: mc.Player): Promise<void> {
   const invComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
   const container = invComp?.container;
@@ -307,6 +312,7 @@ export async function showTrashPanel(player: mc.Player): Promise<void> {
       continue;
     }
     hasItems = true;
+    const serializedOriginal = JSON.stringify(serializeItem(item));
     const displayName = isNonEmptyString(item.nameTag) ? item.nameTag : resolveTradeItemDisplayName(item.typeId);
     form.button(`Slot ${slotIdx}: ${displayName} x${item.amount}`, resolveTradeItemIcon(item.typeId), async () => {
       await showConfirmationDialog(player, {
@@ -314,12 +320,30 @@ export async function showTrashPanel(player: mc.Player): Promise<void> {
         body: `Permanently destroy §e${displayName} x${item.amount}§f from Slot ${slotIdx}?`,
         confirmButtonText: '§4Destroy Item',
         onConfirm: async () => {
+          if (!player.isValid) {
+            return;
+          }
+          const currentItem = container.getItem(slotIdx);
+          if (
+            !isDefined(currentItem) ||
+            currentItem.typeId !== item.typeId ||
+            currentItem.amount !== item.amount ||
+            currentItem.typeId === 'exe:panel' ||
+            JSON.stringify(serializeItem(currentItem)) !== serializedOriginal
+          ) {
+            player.sendMessage('§cSlot contents changed before confirmation. Disposal cancelled.');
+            await showTrashPanel(player);
+            return;
+          }
           container.setItem(slotIdx, undefined);
           playSound(player, 'random.fizz');
           player.sendMessage(`§aDisposed of ${displayName} x${item.amount}.`);
           await showTrashPanel(player);
         },
         onCancel: async () => {
+          if (!player.isValid) {
+            return;
+          }
           await showTrashPanel(player);
         },
       });
@@ -423,6 +447,17 @@ const hatCommand: CustomCommand = {
       return;
     }
     const currentHead = eq.getEquipment(EquipmentSlot.Head);
+    if (isDefined(currentHead)) {
+      const headEnchantable = currentHead.getComponent(ItemComponentTypes.Enchantable) as
+        mc.ItemEnchantableComponent | undefined;
+      if (
+        headEnchantable?.hasEnchantment(MinecraftEnchantmentTypes.Binding) ||
+        isDefined(headEnchantable?.getEnchantment(MinecraftEnchantmentTypes.Binding))
+      ) {
+        executor.sendMessage('§cYou cannot remove a helmet cursed with Binding!');
+        return;
+      }
+    }
     if (held.amount > 1 && isDefined(currentHead)) {
       executor.sendMessage('§cRemove your current helmet or hold a single item to swap.');
       return;
@@ -546,20 +581,27 @@ async function showEnderVaultPanel(player: mc.Player): Promise<void> {
       if (!inv?.container || !isDefined(stack)) {
         return;
       }
-      const leftover = inv.container.addItem(stack);
-      if (isDefined(leftover)) {
-        if (leftover.amount === currentEntry.amount) {
-          player.sendMessage('§cNot enough inventory space!');
-          return;
-        }
-        latestItems[idx] = serializeItem(leftover);
-      } else {
-        latestItems.splice(idx, 1);
-      }
+      const originalEntry = currentEntry;
+      latestItems.splice(idx, 1);
       latestVaults.set(player.id, latestItems);
       if (!enderVaultStorage.save([...latestVaults.entries()])) {
         player.sendMessage('§cFailed to save Virtual Ender Chest.');
         return;
+      }
+      const leftover = inv.container.addItem(stack);
+      if (isDefined(leftover)) {
+        if (leftover.amount === originalEntry.amount) {
+          latestItems.splice(idx, 0, originalEntry);
+          if (!enderVaultStorage.save([...latestVaults.entries()])) {
+            player.dimension.spawnItem(stack, player.location);
+          }
+          player.sendMessage('§cNot enough inventory space!');
+          return;
+        }
+        latestItems.splice(idx, 0, serializeItem(leftover));
+        if (!enderVaultStorage.save([...latestVaults.entries()])) {
+          player.dimension.spawnItem(leftover, player.location);
+        }
       }
       playSound(player, 'random.pop');
       await showEnderVaultPanel(player);
@@ -651,6 +693,9 @@ async function showWorkbenchPanel(player: mc.Player): Promise<void> {
 
   for (const recipe of quickWorkbenchRecipes) {
     form.button(recipe.label, recipe.icon, async () => {
+      if (!player.isValid) {
+        return;
+      }
       const inv = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
       const container = inv?.container;
       if (!container) {

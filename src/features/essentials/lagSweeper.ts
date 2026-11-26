@@ -89,6 +89,11 @@ export function cancelPendingSweep(): boolean {
   return cancelled;
 }
 
+/**
+ * Queries entity counts across all dimensions categorized by items, hostile mobs, passive mobs, and total.
+ *
+ * @returns Entity count summary.
+ */
 export function queryWorldEntityCounts(): { items: number; hostile: number; passive: number; total: number } {
   let items = 0;
   let hostile = 0;
@@ -114,16 +119,20 @@ export function queryWorldEntityCounts(): { items: number; hostile: number; pass
         }
         total++;
 
-        if (isDefined(ent.getComponent(EntityComponentTypes.Item))) {
-          items++;
-          continue;
-        }
+        try {
+          if (isDefined(ent.getComponent(EntityComponentTypes.Item))) {
+            items++;
+            continue;
+          }
 
-        const typeFam = ent.getComponent(EntityComponentTypes.TypeFamily);
-        if (typeFam?.hasTypeFamily('monster')) {
-          hostile++;
-        } else if (typeFam?.hasTypeFamily('mob') || typeFam?.hasTypeFamily('animal')) {
-          passive++;
+          const typeFam = ent.getComponent(EntityComponentTypes.TypeFamily);
+          if (typeFam?.hasTypeFamily('monster')) {
+            hostile++;
+          } else if (typeFam?.hasTypeFamily('mob') || typeFam?.hasTypeFamily('animal')) {
+            passive++;
+          }
+        } catch {
+          // Entity despawned mid-iteration
         }
       }
     } catch {
@@ -134,6 +143,12 @@ export function queryWorldEntityCounts(): { items: number; hostile: number; pass
   return { items, hostile, passive, total };
 }
 
+/**
+ * Executes a ClearLag sweep across dimensions based on `options` or configured defaults.
+ *
+ * @param options Optional ClearLag configuration overrides.
+ * @returns Counts of removed items, hostile mobs, and XP orbs.
+ */
 export function executeClearLagSweep(options?: ClearLagConfig): ClearLagStats {
   const cfg = options ?? getConfig().clearLag;
   const clearItems = cfg?.clearItems !== false;
@@ -174,13 +189,23 @@ export function executeClearLagSweep(options?: ClearLagConfig): ClearLagStats {
         }
 
         // Never clear tamed pets
-        const tameable = ent.getComponent(EntityComponentTypes.Tameable);
+        let tameable: mc.EntityTameableComponent | undefined;
+        try {
+          tameable = ent.getComponent(EntityComponentTypes.Tameable);
+        } catch {
+          continue;
+        }
         if (isDefined(tameable) && tameable.tamedToPlayerId) {
           continue;
         }
 
         // 1. Dropped Items
-        const itemComp = ent.getComponent(EntityComponentTypes.Item);
+        let itemComp: mc.EntityItemComponent | undefined;
+        try {
+          itemComp = ent.getComponent(EntityComponentTypes.Item);
+        } catch {
+          continue;
+        }
         if (isDefined(itemComp)) {
           if (!clearItems) {
             continue;
@@ -220,14 +245,14 @@ export function executeClearLagSweep(options?: ClearLagConfig): ClearLagStats {
 
         // 3. Hostile Mobs (only if explicitly enabled)
         if (clearHostile) {
-          const typeFam = ent.getComponent(EntityComponentTypes.TypeFamily);
-          if (typeFam?.hasTypeFamily('monster')) {
-            try {
+          try {
+            const typeFam = ent.getComponent(EntityComponentTypes.TypeFamily);
+            if (typeFam?.hasTypeFamily('monster')) {
               ent.remove();
               hostileRemoved++;
-            } catch {
-              // Ignore
             }
+          } catch {
+            // Ignore
           }
         }
       }

@@ -12,6 +12,7 @@ import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 
+/** Active player-to-player trade offer held in escrow until accepted, declined, or expired. */
 export interface TradeProposal {
   id: string;
   senderId: string;
@@ -19,6 +20,7 @@ export interface TradeProposal {
   targetId: string;
   targetName: string;
   offeredMoney: number;
+  flatFee?: number;
   offeredItem?: SerializedItem;
   requestedMoney: number;
   requireTargetHeldItem: boolean;
@@ -29,33 +31,64 @@ const pendingTradesByTarget = new Map<string, TradeProposal>();
 const outgoingTradeBySender = new Map<string, string>();
 
 function returnSenderEscrow(proposal: TradeProposal): void {
-  releaseEscrow(proposal.id);
-  if (proposal.offeredMoney > 0) {
-    incrementPlayerBalance(proposal.senderId, proposal.offeredMoney);
+  const refundMoney = proposal.offeredMoney + (proposal.flatFee ?? 0);
+  let moneyPending = false;
+  if (refundMoney > 0) {
+    moneyPending = !incrementPlayerBalance(proposal.senderId, refundMoney, `${proposal.id}:money`);
   }
+
+  let itemPending = false;
   if (isDefined(proposal.offeredItem)) {
     const sender = getPlayerFromCache(proposal.senderId);
-    const inv = (sender?.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
-      ?.container;
+    const inv =
+      isDefined(sender) && sender.isValid
+        ? (sender.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)?.container
+        : undefined;
     const stack = deserializeItem(proposal.offeredItem);
     if (isDefined(inv) && isDefined(stack) && inv.emptySlotsCount > 0) {
       const leftover = inv.addItem(stack);
       if (isDefined(leftover)) {
-        updatePlayerData(proposal.senderId, (d) => {
+        const saved = updatePlayerData(proposal.senderId, (d) => {
+          const receiptKey = `${proposal.id}:item`;
+          if (d.recoveredEscrowIds?.includes(receiptKey)) {
+            return;
+          }
           d.mailbox.push(serializeItem(leftover));
+          d.recoveredEscrowIds = [...(d.recoveredEscrowIds ?? []), receiptKey].slice(-64);
         });
+        itemPending = !saved;
       }
     } else {
-      updatePlayerData(proposal.senderId, (d) => {
+      const saved = updatePlayerData(proposal.senderId, (d) => {
+        const receiptKey = `${proposal.id}:item`;
+        if (d.recoveredEscrowIds?.includes(receiptKey)) {
+          return;
+        }
         d.mailbox.push(proposal.offeredItem!);
+        d.recoveredEscrowIds = [...(d.recoveredEscrowIds ?? []), receiptKey].slice(-64);
       });
+      itemPending = !saved;
     }
+  }
+
+  if (!moneyPending && !itemPending) {
+    releaseEscrow(proposal.id);
+  } else {
+    recordEscrow({
+      id: proposal.id,
+      playerId: proposal.senderId,
+      ...(moneyPending ? { money: refundMoney } : {}),
+      ...(itemPending ? { item: proposal.offeredItem } : {}),
+      reason: 'trade_refund_retry',
+      timestamp: Date.now(),
+    });
   }
 }
 
 function deliverItemSafely(playerId: string, item: SerializedItem): void {
   const player = getPlayerFromCache(playerId);
-  const inv = (player?.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
+  const validPlayer = isDefined(player) && player.isValid ? player : undefined;
+  const inv = (validPlayer?.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
     ?.container;
   const stack = deserializeItem(item);
   if (isDefined(inv) && isDefined(stack) && inv.emptySlotsCount > 0) {
@@ -64,14 +97,14 @@ function deliverItemSafely(playerId: string, item: SerializedItem): void {
       updatePlayerData(playerId, (d) => {
         d.mailbox.push(serializeItem(leftover));
       });
-      player?.sendMessage('§e[Trade] Inventory full — leftover item sent to your Collection Bin (/ah collect).');
+      validPlayer?.sendMessage('§e[Trade] Inventory full — leftover item sent to your Collection Bin (/ah collect).');
     }
     return;
   }
   updatePlayerData(playerId, (d) => {
     d.mailbox.push(item);
   });
-  player?.sendMessage('§e[Trade] Item sent to your Collection Bin (/ah collect).');
+  validPlayer?.sendMessage('§e[Trade] Item sent to your Collection Bin (/ah collect).');
 }
 
 export function createTradeOffer(
@@ -89,6 +122,10 @@ export function createTradeOffer(
     return { success: false, message: '§cPlayer trading (/trade) is currently disabled.' };
   }
 
+  if (!sender.isValid || !target.isValid) {
+    return { success: false, message: '§cOne of the players is no longer online.' };
+  }
+
   if (sender.id === target.id) {
     return { success: false, message: '§cYou cannot trade with yourself.' };
   }
@@ -101,6 +138,9 @@ export function createTradeOffer(
     return { success: false, message: `§c${target.name} already has a pending trade offer.` };
   }
 
+  if (!Number.isFinite(options.offerMoney) || !Number.isFinite(options.requestMoney)) {
+    return { success: false, message: '§cTrade amounts must be valid numbers.' };
+  }
   const offerMoney = Math.max(0, Math.floor(options.offerMoney * 100) / 100);
   const requestMoney = Math.max(0, Math.floor(options.requestMoney * 100) / 100);
 
@@ -141,15 +181,15 @@ export function createTradeOffer(
   recordEscrow({
     id: proposalId,
     playerId: sender.id,
-    ...(offerMoney > 0 ? { money: offerMoney } : {}),
+    ...(offerMoney + flatFee > 0 ? { money: offerMoney + flatFee } : {}),
     ...(isDefined(offeredItem) ? { item: offeredItem } : {}),
     reason: 'trade',
     timestamp: Date.now(),
   });
 
   // Escrow sender's money & item immediately so they cannot be duped
-  if (offerMoney > 0) {
-    incrementPlayerBalance(sender.id, -offerMoney);
+  if (offerMoney + flatFee > 0) {
+    incrementPlayerBalance(sender.id, -(offerMoney + flatFee));
   }
   if (isDefined(offeredItem) && isDefined(inv)) {
     inv.setItem(sender.selectedSlotIndex, undefined);
@@ -174,6 +214,7 @@ export function createTradeOffer(
     targetId: target.id,
     targetName: target.name,
     offeredMoney: offerMoney,
+    ...(flatFee > 0 ? { flatFee } : {}),
     ...(isDefined(offeredItem) ? { offeredItem } : {}),
     requestedMoney: requestMoney,
     requireTargetHeldItem: options.requireTargetHeldItem,
@@ -213,10 +254,23 @@ export function createTradeOffer(
   };
 }
 
+/**
+ * Accepts the pending trade offer for `target` and exchanges escrowed money/items.
+ *
+ * @param target Player accepting the trade.
+ * @returns Result with success flag and feedback message.
+ */
 export function acceptTradeOffer(target: mc.Player): { success: boolean; message: string } {
+  const cfg = getConfig();
+  if (!cfg.trading?.enabled) {
+    return { success: false, message: '§cPlayer trading is currently disabled.' };
+  }
   const proposal = pendingTradesByTarget.get(target.id);
   if (!isDefined(proposal)) {
     return { success: false, message: '§cYou have no pending trade offers.' };
+  }
+  if ((proposal.offeredMoney > 0 || proposal.requestedMoney > 0) && !isFeatureActive('eco')) {
+    return { success: false, message: '§cMoney trades require Economy to be enabled.' };
   }
 
   const targetData = getOrCreatePlayer(target);
@@ -289,6 +343,12 @@ export function acceptTradeOffer(target: mc.Player): { success: boolean; message
   return { success: true, message: `§a[Trade] Completed trade with §e${proposal.senderName}§a!` };
 }
 
+/**
+ * Declines a pending trade offer and refunds the sender's escrow.
+ *
+ * @param target The recipient declining the offer.
+ * @returns Operation result with feedback message.
+ */
 export function denyTradeOffer(target: mc.Player): { success: boolean; message: string } {
   const proposal = pendingTradesByTarget.get(target.id);
   if (!isDefined(proposal)) {
@@ -301,13 +361,19 @@ export function denyTradeOffer(target: mc.Player): { success: boolean; message: 
   returnSenderEscrow(proposal);
 
   const sender = getPlayerFromCache(proposal.senderId);
-  if (isDefined(sender)) {
+  if (isDefined(sender) && sender.isValid) {
     sender.sendMessage(`§c[Trade] ${target.name} declined your trade offer. Escrow returned.`);
   }
 
   return { success: true, message: `§eDeclined trade offer from ${proposal.senderName}.` };
 }
 
+/**
+ * Cancels the sender's outgoing trade offer and refunds escrow.
+ *
+ * @param sender The player cancelling their offer.
+ * @returns Operation result with feedback message.
+ */
 export function cancelTradeOffer(sender: mc.Player): { success: boolean; message: string } {
   const targetId = outgoingTradeBySender.get(sender.id);
   if (!isDefined(targetId)) {
@@ -320,7 +386,10 @@ export function cancelTradeOffer(sender: mc.Player): { success: boolean; message
     clearTrackedTimeout(proposal.expiryTimerId);
     pendingTradesByTarget.delete(targetId);
     returnSenderEscrow(proposal);
-    getPlayerFromCache(targetId)?.sendMessage(`§c[Trade] ${sender.name} cancelled their trade offer.`);
+    const target = getPlayerFromCache(targetId);
+    if (isDefined(target) && target.isValid) {
+      target.sendMessage(`§c[Trade] ${sender.name} cancelled their trade offer.`);
+    }
   }
 
   return { success: true, message: '§aCancelled your outgoing trade offer and returned escrow.' };

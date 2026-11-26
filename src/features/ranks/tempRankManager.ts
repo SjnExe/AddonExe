@@ -1,6 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { findPlayerByName } from '@core/data/playerCache.js';
-import { getPlayer, setPlayerRanks, updatePlayerData } from '@core/data/playerDataManager.js';
+import { getPlayer, loadPlayerData, setPlayerRanks, updatePlayerData } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { updatePlayerNameTag } from '@core/permissions/rankManager.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
@@ -57,7 +57,7 @@ function saveTempRanks(): boolean {
  */
 export function grantTempRank(playerId: string, rankId: string, durationMs: number): boolean {
   const key = `${playerId}:${rankId}`;
-  const pData = getPlayer(playerId);
+  const pData = getPlayer(playerId) ?? loadPlayerData(playerId);
   const previousRanks = pData?.ranks ? [...pData.ranks] : [getConfig().playerDefaults.rankId];
   const priorTemp = tempRanks.get(key);
   if (previousRanks.includes(rankId) && !priorTemp) {
@@ -78,6 +78,27 @@ export function grantTempRank(playerId: string, rankId: string, durationMs: numb
     if (!previousRanks.includes(rankId)) {
       setPlayerRanks(playerId, previousRanks);
     }
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Removes any tracked temporary rank expiry entry for `playerId` and `rankId` without modifying stored player ranks.
+ *
+ * @param playerId Target player ID.
+ * @param rankId Rank identifier.
+ * @returns True if a temporary rank entry was removed.
+ */
+export function clearTempRank(playerId: string, rankId: string): boolean {
+  const key = `${playerId}:${rankId}`;
+  const existing = tempRanks.get(key);
+  if (!isDefined(existing)) {
+    return false;
+  }
+  tempRanks.delete(key);
+  if (!saveTempRanks()) {
+    tempRanks.set(key, existing);
     return false;
   }
   return true;

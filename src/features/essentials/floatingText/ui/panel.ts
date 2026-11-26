@@ -103,6 +103,11 @@ export async function showFloatingTextActionPanel(player: mc.Player, id: string)
   await form.show(player);
 }
 
+/**
+ * Displays the form for creating a new floating text entry at the player's current location.
+ *
+ * @param player The admin player creating the floating text.
+ */
 export async function showFloatingTextCreatePanel(player: mc.Player): Promise<void> {
   const form = new CustomFormBuilder<{ id: string; text: string }>('Create New Floating Text')
     .textField('id', 'Unique ID (no spaces)', 'e.g., "welcome_message"')
@@ -110,6 +115,9 @@ export async function showFloatingTextCreatePanel(player: mc.Player): Promise<vo
     .submitButton('Create');
 
   const res = await form.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
     return showFloatingTextListPanel(player);
   }
@@ -126,6 +134,12 @@ export async function showFloatingTextCreatePanel(player: mc.Player): Promise<vo
   await showFloatingTextListPanel(player);
 }
 
+/**
+ * Displays the form for editing an existing floating text entry.
+ *
+ * @param player The admin player editing the floating text.
+ * @param id The floating text identifier.
+ */
 export async function showFloatingTextEditPanel(player: mc.Player, id: string): Promise<void> {
   const textData = floatingTextManager.getTextById(id);
   if (!isDefined(textData)) {
@@ -169,19 +183,35 @@ export async function showFloatingTextEditPanel(player: mc.Player, id: string): 
     .submitButton('Save');
 
   const res = await form.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
     return showFloatingTextActionPanel(player, id);
   }
 
   const vals = res;
+  const parsedX = Number.parseFloat(vals.x);
+  const parsedY = Number.parseFloat(vals.y);
+  const parsedZ = Number.parseFloat(vals.z);
+  if (!Number.isFinite(parsedX) || !Number.isFinite(parsedY) || !Number.isFinite(parsedZ)) {
+    player.sendMessage('§cInvalid coordinates. X, Y, and Z must be finite numbers.');
+    return showFloatingTextEditPanel(player, id);
+  }
+
   const dimIndex = dimensionOptions.indexOf(vals.dim);
   const selectedDimension = (dimIndex >= 0 ? dimensionIds[dimIndex] : undefined) ?? MinecraftDimensionTypes.Overworld;
+  const parsedInterval = Number.parseInt(vals.interval, 10);
+  const parsedExpMins = Number(vals.expMins);
   const updatedConfig = {
     text: vals.text,
-    location: { x: Number.parseFloat(vals.x), y: Number.parseFloat(vals.y), z: Number.parseFloat(vals.z) },
+    location: { x: parsedX, y: parsedY, z: parsedZ },
     dimension: selectedDimension,
-    updateInterval: Number.isNaN(Number.parseInt(vals.interval)) ? 0 : Number.parseInt(vals.interval),
-    expiresAt: vals.useExp && Number(vals.expMins) > 0 ? Date.now() + Number(vals.expMins) * 60_000 : undefined,
+    updateInterval: Number.isFinite(parsedInterval) ? Math.max(0, parsedInterval) : 0,
+    expiresAt:
+      vals.useExp && Number.isFinite(parsedExpMins) && parsedExpMins > 0
+        ? Date.now() + parsedExpMins * 60_000
+        : undefined,
   };
 
   floatingTextManager.updateText(id, updatedConfig);

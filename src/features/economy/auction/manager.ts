@@ -71,7 +71,16 @@ function saveAuctions() {
   storage.save(data);
 }
 
-/** Creates a new auction listing. */
+/**
+ * Creates a new auction or Buy-It-Now listing.
+ *
+ * @param player Seller player.
+ * @param item Serialized item being listed.
+ * @param price Starting bid or BIN price.
+ * @param isBid True for auction, false for BIN.
+ * @param duration Listing duration in seconds.
+ * @returns Result with success flag and feedback message.
+ */
 export function createListing(
   player: mc.Player,
   item: SerializedItem,
@@ -81,7 +90,7 @@ export function createListing(
 ): { success: boolean; message: string } {
   const config = getAuctionHouseConfig();
 
-  if (price <= 0) {
+  if (!Number.isFinite(price) || price <= 0) {
     return { success: false, message: '§cPrice must be positive.' };
   }
 
@@ -121,11 +130,21 @@ export function createListing(
   return { success: true, message: `§aItem listed for ${formatCurrency(price)}!` };
 }
 
-/** Buy It Now (BIN) transaction. */
+/**
+ * Purchases a Buy-It-Now auction listing.
+ *
+ * @param buyer Purchasing player.
+ * @param listingId Target listing identifier.
+ * @returns Result with success flag and feedback message.
+ */
 export function buyItem(buyer: mc.Player, listingId: string): { success: boolean; message: string } {
   const listing = activeListings.get(listingId);
   if (!listing) {
     return { success: false, message: '§cListing no longer exists.' };
+  }
+
+  if (Date.now() >= getIdTimestamp(listing.id) + listing.duration * 1000) {
+    return { success: false, message: '§cListing has expired.' };
   }
 
   if (listing.sellerId === buyer.id) {
@@ -197,11 +216,24 @@ export function buyItem(buyer: mc.Player, listingId: string): { success: boolean
   return { success: true, message: '§aPurchase successful.' };
 }
 
-/** Place a bid on an auction. */
+/**
+ * Places a bid on an active auction listing.
+ *
+ * @param bidder Bidding player.
+ * @param listingId Target listing identifier.
+ * @param amount Bid amount.
+ * @returns Result with success flag and feedback message.
+ */
 export function placeBid(bidder: mc.Player, listingId: string, amount: number): { success: boolean; message: string } {
+  if (!Number.isFinite(amount)) {
+    return { success: false, message: '§cInvalid bid amount.' };
+  }
   const listing = activeListings.get(listingId);
   if (!listing) {
     return { success: false, message: '§cListing no longer exists.' };
+  }
+  if (Date.now() >= getIdTimestamp(listing.id) + listing.duration * 1000) {
+    return { success: false, message: '§cListing has expired.' };
   }
   if (!listing.isBid) {
     return { success: false, message: '§cThis is a BIN listing.' };
@@ -258,7 +290,7 @@ export function placeBid(bidder: mc.Player, listingId: string, amount: number): 
 
 function* checkExpiredAuctionsJob() {
   const now = Date.now();
-  const expired: string[] = [];
+  let expiredCount = 0;
   const entries = [...activeListings.entries()];
 
   for (const [i, entry] of entries.entries()) {
@@ -271,7 +303,9 @@ function* checkExpiredAuctionsJob() {
 
     const expiry = getIdTimestamp(listing.id) + listing.duration * 1000;
     if (now >= expiry) {
-      expired.push(id);
+      // Delete immediately before payout/mail or yielding so concurrent calls cannot double-claim
+      activeListings.delete(id);
+      expiredCount++;
 
       if (listing.isBid && isNonEmptyString(listing.highestBidderId) && isDefined(listing.bidPrice)) {
         // Auction Won!
@@ -298,10 +332,7 @@ function* checkExpiredAuctionsJob() {
     }
   }
 
-  if (expired.length > 0) {
-    for (const id of expired) {
-      activeListings.delete(id);
-    }
+  if (expiredCount > 0) {
     saveAuctions();
   }
 }
@@ -322,7 +353,7 @@ function addItemToMailbox(playerId: string, item: SerializedItem) {
 
   // Notify if online using cache
   const player = getPlayerFromCache(playerId);
-  if (player) {
+  if (player && player.isValid) {
     player.sendMessage('§eYou have new items in your Collection Bin (/ah collect).');
   }
 }
@@ -488,10 +519,20 @@ export function getListingsCount(searchQuery?: string, sellerId?: string): numbe
   return count;
 }
 
+/**
+ * Cancels an active auction listing and returns the item to the seller's Collection Bin.
+ *
+ * @param player Player requesting cancellation.
+ * @param listingId Target listing identifier.
+ * @returns Result with success flag and feedback message.
+ */
 export function cancelListing(player: mc.Player, listingId: string): { success: boolean; message: string } {
   const listing = activeListings.get(listingId);
   if (!listing) {
     return { success: false, message: '§cListing no longer exists.' };
+  }
+  if (Date.now() >= getIdTimestamp(listing.id) + listing.duration * 1000) {
+    return { success: false, message: '§cListing has already expired.' };
   }
 
   if (listing.sellerId !== player.id) {

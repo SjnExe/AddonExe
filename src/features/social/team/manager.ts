@@ -225,6 +225,7 @@ export function createTeam(player: mc.Player, name: string): ActionResult {
     applications: [],
     balance: 0,
     open: true,
+    creationCostPaid: costResult.charged ? teamConfig.creationCost : 0,
   };
 
   // Ensure ID uniqueness (Race Condition Fix)
@@ -290,8 +291,6 @@ export function deleteTeam(teamId: number): boolean {
     return false;
   }
 
-  const teamConfig = configurations.getTeamConfig();
-  const cost = teamConfig.creationCost;
   let economyEnabled = false;
   try {
     economyEnabled = isFeatureActive('eco');
@@ -299,9 +298,27 @@ export function deleteTeam(teamId: number): boolean {
     // Fallback
   }
 
-  if (economyEnabled && cost > 0 && isDefined(team.ownerId)) {
-    // Refund if applicable
-    playerDataManager.incrementPlayerBalance(team.ownerId, cost);
+  // Legacy teams without creationCostPaid fall back to configured creationCost (which may refund teams created when cost was 0).
+  const configuredCreationCost = Math.max(0, Number(configurations.getTeamConfig().creationCost ?? 0));
+  const refundCost = team.creationCostPaid ?? configuredCreationCost;
+  const bankBalance = typeof team.balance === 'number' && team.balance > 0 ? team.balance : 0;
+  const totalRefund = refundCost + bankBalance;
+  if (economyEnabled && totalRefund > 0 && isDefined(team.ownerId)) {
+    const ownerData = playerDataManager.getPlayer(team.ownerId) ?? playerDataManager.loadPlayerData(team.ownerId);
+    const maxBalance = Number(configurations.getEconomyConfig().maxBalance ?? 1_000_000_000);
+    if (!ownerData || (Number.isFinite(maxBalance) && ownerData.balance + totalRefund > maxBalance)) {
+      const onlineOwner = getPlayerFromCache(team.ownerId);
+      if (isDefined(onlineOwner) && onlineOwner.isValid) {
+        onlineOwner.sendMessage(
+          '§cCannot disband team: full refund would exceed your maximum balance limit. Withdraw or spend funds first.',
+        );
+      }
+      return false;
+    }
+    // Refund paid creation cost and any remaining team bank balance to owner before deleting team
+    if (!playerDataManager.incrementPlayerBalance(team.ownerId, totalRefund)) {
+      return false;
+    }
   }
 
   // Remove all members
@@ -310,7 +327,7 @@ export function deleteTeam(teamId: number): boolean {
     setTeamChatState(memberId, false);
     // Optimization: Use cached lookup
     const p = getPlayerFromCache(memberId);
-    if (isDefined(p)) {
+    if (isDefined(p) && p.isValid) {
       p.sendMessage('§cYour team has been deleted by the owner.');
     }
   }
@@ -343,6 +360,12 @@ export function isTeamAdminOrOwner(team: TeamData, playerId: string): boolean {
   return team.ownerId === playerId || team.admins.includes(playerId);
 }
 
+/**
+ * Broadcasts a chat message to all currently online members of a team.
+ *
+ * @param teamId Target team ID.
+ * @param message Message to send.
+ */
 export function broadcastTeamMessage(teamId: number, message: string): void {
   const team = activeTeam.get(teamId);
   if (!isDefined(team)) {
@@ -350,7 +373,7 @@ export function broadcastTeamMessage(teamId: number, message: string): void {
   }
   for (const memberId of team.members) {
     const member = getPlayerFromCache(memberId);
-    if (isDefined(member)) {
+    if (isDefined(member) && member.isValid) {
       member.sendMessage(message);
     }
   }
@@ -391,10 +414,21 @@ export function setPlayerTeam(playerId: string, teamId: number | undefined) {
 
 // --- Member Management ---
 
+/**
+ * Kicks a member from a team.
+ *
+ * @param teamId Target team ID.
+ * @param targetId Player ID to kick.
+ * @returns Result object indicating success and feedback message.
+ */
 export function kickMember(teamId: number, targetId: string): ActionResult {
   const team = activeTeam.get(teamId);
   if (!isDefined(team)) {
     return { success: false, message: 'Team not found.' };
+  }
+
+  if (!team.members.includes(targetId)) {
+    return { success: false, message: 'Player not in team.' };
   }
 
   if (targetId === team.ownerId) {
@@ -457,6 +491,13 @@ export function transferOwnership(teamId: number, newOwnerId: string): ActionRes
 // --- Invite System (Team -> Player) ---
 // Stored in PlayerData.pendingInvites
 
+/**
+ * Sends a team invitation to a target player.
+ *
+ * @param teamId Team ID sending the invite.
+ * @param targetId Target player ID.
+ * @returns Result indicating success and feedback message.
+ */
 export function invitePlayer(teamId: number, targetId: string): ActionResult {
   const team = activeTeam.get(teamId);
   if (!isDefined(team)) {
@@ -505,7 +546,7 @@ export function invitePlayer(teamId: number, targetId: string): ActionResult {
 
     // Notify target if online using cache
     const targetPlayer = getPlayerFromCache(targetId);
-    if (isDefined(targetPlayer)) {
+    if (isDefined(targetPlayer) && targetPlayer.isValid) {
       targetPlayer.sendMessage(
         `§aYou have been invited to join team §e${team.name}§a.\nType §e/team join§a or use the menu to accept.`,
       );
@@ -629,6 +670,13 @@ export function applyToTeam(player: mc.Player, teamId: number): ActionResult {
   return { success: true, message: '§aApplication sent successfully.' };
 }
 
+/**
+ * Accepts a pending join application for a team.
+ *
+ * @param teamId Target team ID.
+ * @param playerId Applicant player ID.
+ * @returns Result object indicating success and feedback message.
+ */
 export function acceptApplication(teamId: number, playerId: string): ActionResult {
   const team = activeTeam.get(teamId);
   if (!isDefined(team)) {
@@ -643,6 +691,12 @@ export function acceptApplication(teamId: number, playerId: string): ActionResul
   const appIndex = team.applications.findIndex((app) => app.playerId === playerId);
   if (appIndex === -1) {
     return { success: false, message: 'Application not found.' };
+  }
+
+  if (isDefined(getPlayerTeamId(playerId)) || team.members.includes(playerId)) {
+    team.applications.splice(appIndex, 1);
+    saveTeam(teamId);
+    return { success: false, message: '§cPlayer is already in a team.' };
   }
 
   const pData = playerDataManager.getPlayer(playerId);
@@ -746,8 +800,15 @@ export function updateTeamSetting(teamId: number, setting: string, value: boolea
   return { success: false, message: 'Unknown setting.' };
 }
 
+/**
+ * Deposits currency from a player's balance into their team bank.
+ *
+ * @param player Player depositing funds.
+ * @param amount Amount to deposit.
+ * @returns Result object indicating success and feedback message.
+ */
 export function depositToTeam(player: mc.Player, amount: number): ActionResult {
-  if (Number.isNaN(amount) || amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     return { success: false, message: '§cInvalid amount.' };
   }
 
@@ -772,11 +833,21 @@ export function depositToTeam(player: mc.Player, amount: number): ActionResult {
   return { success: true, message: `§aDeposited $${rounded} to the team.` };
 }
 
+/**
+ * Withdraws currency from the team bank to the team owner's balance.
+ *
+ * @param player Team owner withdrawing funds.
+ * @param amount Amount to withdraw.
+ * @returns Result object indicating success and feedback message.
+ */
 export function withdrawFromTeam(player: mc.Player, amount: number): ActionResult {
-  if (Number.isNaN(amount) || amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     return { success: false, message: '§cInvalid amount.' };
   }
   const rounded = Math.floor(amount * 100) / 100;
+  if (rounded <= 0) {
+    return { success: false, message: '§cInvalid amount.' };
+  }
   const team = getTeamByPlayer(player.id);
   if (!isDefined(team)) {
     return { success: false, message: '§cYou are not in a team.' };

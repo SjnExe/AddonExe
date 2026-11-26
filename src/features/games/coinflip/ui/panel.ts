@@ -92,6 +92,9 @@ async function showSoloWagerCoinFlipModal(player: mc.Player): Promise<void> {
     .submitButton('Flip Coin');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
     await showCoinFlipMenu(player);
     return;

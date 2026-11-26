@@ -1,34 +1,26 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getEconomyConfig } from '@core/config/configurations.js';
-import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
-import { items as shopItems } from '@features/economy/shop/itemsConfig.js';
+import * as shopManager from '@features/economy/shop/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 
-const sellPriceByType = new Map<string, number>();
-for (const entry of Object.values(shopItems)) {
-  if (!entry.enchantment && entry.sellPrice > 0) {
-    sellPriceByType.set(entry.itemId, entry.sellPrice);
-  }
-}
-
 const sellCommand: CustomCommand = {
-  name: 'sell',
-  aliases: ['sellall'],
+  name: 'quicksell',
   description: 'Quick-sells your held item or all sellable items in your inventory.',
   category: 'Economy',
-  permissionNode: 'cmd.sell',
+  permissionNode: 'cmd.sell.member',
   parameters: [{ name: 'scope', type: 'string', optional: true }],
   execute: (executor: CommandExecutor, args: { scope?: string }) => {
     if (!(executor instanceof mc.Player)) {
       return;
     }
     const cfg = getEconomyConfig();
-    if (!isFeatureActive('eco') || !cfg.sell?.enabled) {
-      executor.sendMessage('§cQuick-sell (/sell) is currently disabled.');
+    if (!isFeatureActive('eco') || !isFeatureActive('eco.shop') || !cfg.sell?.enabled) {
+      executor.sendMessage('§cQuick-sell (/quicksell) is currently disabled.');
       return;
     }
     const inv = executor.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
@@ -38,57 +30,55 @@ const sellCommand: CustomCommand = {
     }
 
     const scope = (args.scope ?? 'hand').toLowerCase();
-    const maxBalance = Number(cfg.maxBalance ?? 1_000_000_000);
-    const currentBalance = getOrCreatePlayer(executor).balance;
-    let totalEarned = 0;
-    let totalSold = 0;
 
-    if (scope === 'all') {
-      for (let i = 0; i < container.size; i++) {
-        const item = container.getItem(i);
-        if (!isDefined(item)) {
-          continue;
-        }
-        const price = sellPriceByType.get(item.typeId);
-        if (price && price > 0) {
-          const stackValue = price * item.amount;
-          if (currentBalance + totalEarned + stackValue > maxBalance) {
-            continue;
-          }
-          totalEarned += stackValue;
-          totalSold += item.amount;
-          container.setItem(i, undefined);
-        }
-      }
-    } else {
+    if (scope !== 'all') {
       const slot = executor.selectedSlotIndex;
       const held = container.getItem(slot);
       if (!isDefined(held)) {
-        executor.sendMessage('§cHold an item to sell, or use §e/sell all§c.');
+        executor.sendMessage('§cHold an item to sell, or use §e/quicksell all§c.');
         return;
       }
-      const price = sellPriceByType.get(held.typeId);
-      if (!price || price <= 0) {
+      const match = shopManager.findShopItemByTypeId(held.typeId, executor, 'sell');
+      if (!isDefined(match)) {
         executor.sendMessage('§cThis item cannot be sold to the server shop.');
         return;
       }
-      totalEarned = price * held.amount;
-      if (currentBalance + totalEarned > maxBalance) {
-        executor.sendMessage('§cSelling this would exceed your maximum balance limit.');
-        return;
-      }
-      totalSold = held.amount;
-      container.setItem(slot, undefined);
-    }
-
-    if (totalSold === 0) {
-      executor.sendMessage('§7No sellable items found.');
+      const result = shopManager.sellItem(executor, match.itemKey, held.amount);
+      executor.sendMessage(result.message);
       return;
     }
 
-    incrementPlayerBalance(executor.id, totalEarned);
+    const seenKeys = new Set<string>();
+    const balanceBefore = getOrCreatePlayer(executor).balance;
+    let soldAny = false;
+    let lastError: string | undefined;
+
+    for (let i = 0; i < container.size; i++) {
+      const item = container.getItem(i);
+      if (!isDefined(item)) {
+        continue;
+      }
+      const match = shopManager.findShopItemByTypeId(item.typeId, executor, 'sell');
+      if (!isDefined(match) || seenKeys.has(match.itemKey)) {
+        continue;
+      }
+      seenKeys.add(match.itemKey);
+      const result = shopManager.sellItem(executor, match.itemKey, -1);
+      if (result.success) {
+        soldAny = true;
+      } else {
+        lastError = result.message;
+      }
+    }
+
+    if (!soldAny) {
+      executor.sendMessage(lastError ?? '§7No sellable items found.');
+      return;
+    }
+
+    const totalEarned = Math.max(0, Math.round((getOrCreatePlayer(executor).balance - balanceBefore) * 100) / 100);
     playSound(executor, 'random.orb');
-    executor.sendMessage(`§aSold §e${totalSold}x §aitems for §2${formatCurrency(totalEarned)}§a!`);
+    executor.sendMessage(`§aSold all eligible items for §2${formatCurrency(totalEarned)}§a!`);
   },
 };
 

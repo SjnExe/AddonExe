@@ -5,6 +5,7 @@
  */
 
 import { getConfig } from '@core/config/configManager.js';
+import { getEconomyConfig } from '@core/config/configurations.js';
 import * as playerDataManager from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { calculateTaxWithPolicy, formatCurrency } from '@core/utils/economy.js';
@@ -84,7 +85,7 @@ export function getBounty(playerId: string): BountyEntry | undefined {
  * @param amount The bounty amount.
  */
 export function setBounty(playerId: string, amount: number) {
-  if (amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     removeBounty(playerId);
     return;
   }
@@ -133,13 +134,20 @@ export function removeBounty(playerId: string) {
   }
 }
 
-/** Places a bounty on a player, handling money deduction safely. */
+/**
+ * Places a bounty on a player, handling money deduction safely.
+ *
+ * @param sourcePlayerId Placing player ID.
+ * @param targetPlayerId Target player ID.
+ * @param amount Bounty amount.
+ * @returns Result with success flag and feedback message.
+ */
 export function placeBounty(
   sourcePlayerId: string,
   targetPlayerId: string,
   amount: number,
 ): { success: boolean; message: string } {
-  if (amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     return { success: false, message: 'Invalid amount.' };
   }
 
@@ -163,8 +171,15 @@ export function placeBounty(
         }).tax
       : 0;
 
+  let minBalance = 0;
+  try {
+    minBalance = Math.max(0, Number(getEconomyConfig().minBalance ?? 0));
+  } catch {
+    minBalance = 0;
+  }
+
   const totalCost = Math.round((amount + tax) * 100) / 100;
-  if (pData.balance < totalCost) {
+  if (pData.balance < totalCost || pData.balance - totalCost < minBalance) {
     return {
       success: false,
       message:
@@ -181,13 +196,15 @@ export function placeBounty(
   }
 
   // Deduct Money (bounty + placement tax)
-  playerDataManager.incrementPlayerBalance(sourcePlayerId, -totalCost);
+  if (!playerDataManager.incrementPlayerBalance(sourcePlayerId, -totalCost)) {
+    return { success: false, message: 'Insufficient funds.' };
+  }
 
   // Add Bounty
   incrementBounty(targetPlayerId, amount);
 
   const taxNote = tax > 0 ? ` (+${formatCurrency(tax)} fee)` : '';
-  return { success: true, message: `Placed bounty of $${amount}${taxNote} on ${targetData.name}.` };
+  return { success: true, message: `Placed bounty of ${formatCurrency(amount)}${taxNote} on ${targetData.name}.` };
 }
 
 /** Resets active bounties in-memory cache for unit tests. */

@@ -1,6 +1,6 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import {
@@ -86,6 +86,7 @@ export function evaluateCodeGuess(
   return { exactMatches, partialMatches };
 }
 
+/** Registers Codebreaker with the multiplayer matchmaking system. */
 export function initializeCodebreaker(): void {
   registerMultiplayerGame({
     id: 'codebreaker',
@@ -97,6 +98,9 @@ export function initializeCodebreaker(): void {
     },
     onStartMatch: async (host, guest, wager) => {
       const session = startMultiplayerCodebreaker(host, guest, wager);
+      if (!isDefined(session)) {
+        return;
+      }
       const { showCodemakerSetCodeModal } = await import('@features/games/codebreaker/ui/panel.js');
       void showCodemakerSetCodeModal(host, session);
     },
@@ -121,14 +125,33 @@ export function startSoloCodebreaker(player: mc.Player): CodebreakerSession {
   return session;
 }
 
+/**
+ * Starts a 2-player Codebreaker match and escrows any wagers.
+ *
+ * @param codemaker The player setting the secret code.
+ * @param codebreaker The player guessing the secret code.
+ * @param wager Optional currency wager per player.
+ * @returns The created session, or undefined if players/balances are invalid.
+ */
 export function startMultiplayerCodebreaker(
   codemaker: mc.Player,
   codebreaker: mc.Player,
   wager: number = 0,
-): CodebreakerSession {
+): CodebreakerSession | undefined {
+  if (!codemaker.isValid || !codebreaker.isValid) {
+    return undefined;
+  }
   if (wager > 0) {
-    incrementPlayerBalance(codemaker.id, -wager);
-    incrementPlayerBalance(codebreaker.id, -wager);
+    if (getOrCreatePlayer(codemaker).balance < wager || getOrCreatePlayer(codebreaker).balance < wager) {
+      return undefined;
+    }
+    if (!incrementPlayerBalance(codemaker.id, -wager)) {
+      return undefined;
+    }
+    if (!incrementPlayerBalance(codebreaker.id, -wager)) {
+      incrementPlayerBalance(codemaker.id, wager);
+      return undefined;
+    }
   }
 
   const maxAttempts = Math.max(4, Number(getGamesConfig().codebreaker?.maxAttempts ?? 8));
@@ -152,6 +175,7 @@ export function startMultiplayerCodebreaker(
     matchId: session.id,
     gameId: 'codebreaker',
     playerIds: [codemaker.id, codebreaker.id],
+    wager: session.wager,
     onPlayerDisconnect: (disconnectedId) => {
       const winnerId = disconnectedId === codemaker.id ? codebreaker.id : codemaker.id;
       if (session.wager > 0) {
@@ -183,6 +207,13 @@ export function getPlayerCodebreakerSession(playerId: string): CodebreakerSessio
   return activeSessions.get(playerId);
 }
 
+/**
+ * Evaluates a player's 4-peg guess in an active Codebreaker session.
+ *
+ * @param player Player submitting the guess.
+ * @param pegs Four-peg color combination.
+ * @returns Guess record, updated session, and feedback message.
+ */
 export function submitCodebreakerAttempt(
   player: mc.Player,
   pegs: [CodePeg, CodePeg, CodePeg, CodePeg],
@@ -190,6 +221,9 @@ export function submitCodebreakerAttempt(
   const session = activeSessions.get(player.id);
   if (!isDefined(session) || !isDefined(session.secretCode) || session.status !== 'active') {
     throw new Error('No active Codebreaker session.');
+  }
+  if (session.isMultiplayer && player.id !== session.codebreakerId) {
+    throw new Error('Only the codebreaker can submit guesses.');
   }
 
   const { exactMatches, partialMatches } = evaluateCodeGuess(pegs, session.secretCode);
@@ -208,11 +242,17 @@ export function submitCodebreakerAttempt(
     playSound(player, 'random.levelup');
     if (session.isMultiplayer) {
       unregisterActiveMatchSession(session.id);
+      if (isDefined(session.codemakerId)) {
+        activeSessions.delete(session.codemakerId);
+      }
+      activeSessions.delete(session.codebreakerId);
       const payout = session.wager > 0 ? payoutWagerPot(player.id, session.wager) : { netPrize: 0, taxRate: 0 };
       const prizeText = session.wager > 0 ? ` and won §6${formatCurrency(payout.netPrize)}` : '';
-      codemaker?.sendMessage(
-        `§c[Codebreaker] §e${player.name} §ccracked your code in ${session.guesses.length} tries${prizeText}!`,
-      );
+      if (isDefined(codemaker) && codemaker.isValid) {
+        codemaker.sendMessage(
+          `§c[Codebreaker] §e${player.name} §ccracked your code in ${session.guesses.length} tries${prizeText}!`,
+        );
+      }
       return { record, session, message: `§aCode Cracked in ${session.guesses.length} tries${prizeText}!` };
     }
 
@@ -233,10 +273,14 @@ export function submitCodebreakerAttempt(
     playSound(player, 'note.bass');
     if (session.isMultiplayer && isDefined(session.codemakerId)) {
       unregisterActiveMatchSession(session.id);
+      activeSessions.delete(session.codemakerId);
+      activeSessions.delete(session.codebreakerId);
       const payout =
         session.wager > 0 ? payoutWagerPot(session.codemakerId, session.wager) : { netPrize: 0, taxRate: 0 };
       const prizeText = session.wager > 0 ? ` and won §6${formatCurrency(payout.netPrize)}` : '';
-      codemaker?.sendMessage(`§a[Codebreaker] §e${player.name} §afailed to crack your code! You win${prizeText}!`);
+      if (isDefined(codemaker) && codemaker.isValid) {
+        codemaker.sendMessage(`§a[Codebreaker] §e${player.name} §afailed to crack your code! You win${prizeText}!`);
+      }
     }
     return {
       record,

@@ -23,7 +23,12 @@ const bottleCommand: CustomCommand = {
       return;
     }
 
-    const levels = Math.max(1, Math.min(64, Math.floor(Number(args.levels ?? 1))));
+    const rawLevels = Number(args.levels ?? 1);
+    if (!Number.isFinite(rawLevels)) {
+      executor.sendMessage('§cInvalid level amount.');
+      return;
+    }
+    const levels = Math.max(1, Math.min(64, Math.floor(rawLevels)));
     if (executor.level < levels) {
       executor.sendMessage(`§cYou only have §e${executor.level}§c XP levels (need §e${levels}§c).`);
       return;

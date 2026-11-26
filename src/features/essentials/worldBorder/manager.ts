@@ -443,7 +443,12 @@ function checkWorldBorder(): void {
   }
 
   try {
-    const fallbackDim = mc.world.getDimension(config.dimension);
+    let fallbackDim: mc.Dimension | undefined;
+    try {
+      fallbackDim = mc.world.getDimension(config.dimension);
+    } catch {
+      fallbackDim = undefined;
+    }
 
     for (const player of players) {
       if (!player.isValid) {
@@ -486,7 +491,8 @@ function checkWorldBorder(): void {
         const prevSafe = lastSafePositions.get(player.id);
         if (isDefined(prevSafe) && prevSafe.dimensionId === dimId && isWithinWorldBorder(prevSafe, dimId)) {
           safeDest = { x: prevSafe.x, y: prevSafe.y, z: prevSafe.z };
-        } else {
+        }
+        if (!isDefined(safeDest)) {
           safeDest = { x: clamped.x, y: loc.y, z: clamped.z };
         }
       }
@@ -501,9 +507,32 @@ function checkWorldBorder(): void {
           playSound(player, 'note.bass', { volume: 0.9, pitch: 0.7 });
         }
       } catch {
-        if (typeof mc.world.getDefaultSpawnLocation === 'function') {
-          player.teleport(mc.world.getDefaultSpawnLocation(), { dimension: mc.world.getDimension('overworld') });
-          player.sendMessage('§cYou have reached the world border and were sent to spawn!');
+        if (!player.isValid) {
+          continue;
+        }
+        try {
+          if (typeof mc.world.getDefaultSpawnLocation === 'function') {
+            const rawSpawn = mc.world.getDefaultSpawnLocation();
+            const overworldDimId = MinecraftDimensionTypes.Overworld;
+            const overworldDim = mc.world.getDimension(overworldDimId);
+            const rawSafe =
+              isWithinWorldBorder(rawSpawn, overworldDimId) &&
+              isColumnSafeAt(overworldDim, Math.floor(rawSpawn.x), Math.floor(rawSpawn.y), Math.floor(rawSpawn.z));
+            let safeSpawn: mc.Vector3;
+            if (rawSafe) {
+              safeSpawn = rawSpawn;
+            } else {
+              const clampedSpawn = isWithinWorldBorder(rawSpawn, overworldDimId)
+                ? rawSpawn
+                : { ...clampToWorldBorder(rawSpawn, overworldDimId), y: rawSpawn.y };
+              safeSpawn =
+                findSafeBorderSpot(overworldDim, clampedSpawn.x, clampedSpawn.y, clampedSpawn.z) ?? clampedSpawn;
+            }
+            player.teleport(safeSpawn, { dimension: overworldDim });
+            player.sendMessage('§cYou have reached the world border and were sent to spawn!');
+          }
+        } catch {
+          // Ignore fallback teleport errors
         }
       }
     }

@@ -54,6 +54,7 @@ describe('restartManager', () => {
   it('should start countdown and trigger escaped kick commands when countdown reaches 0', () => {
     const mockPlayer1 = {
       name: 'Malicious"Name\\',
+      isValid: true,
       runCommand: mock(),
       onScreenDisplay: {
         setTitle: mock(),

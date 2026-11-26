@@ -81,6 +81,11 @@ const bedCommand: CustomCommand = {
           z: spawnPoint.z + 0.5,
         };
 
+        if (!isWithinWorldBorder(safeSpot, targetDimId) && !canBypassWorldBorder(executor)) {
+          sendMessage('§cTeleport cancelled: Your bed or respawn anchor is outside the active world border.', executor);
+          return;
+        }
+
         if (chargeCost > 0) {
           const curData = getOrCreatePlayer(executor);
           if (curData.balance < chargeCost) {

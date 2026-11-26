@@ -20,6 +20,7 @@ import {
   getPlayerMinesweeperGame,
   getPlayerMinesweeperStats,
   handleMinesweeperCellTap,
+  type MinesweeperDifficulty,
   recordMinesweeperTurnShown,
   renderBoardButtons,
   startMinesweeperGame,
@@ -46,6 +47,12 @@ const msGridTitlePrefix: Record<'ms9' | 'ms12' | 'ms16', string> = {
   ms16: '§8§1§6§f§r',
 };
 
+/**
+ * Displays the Minesweeper main menu for solo and 2-player race modes.
+ *
+ * @param player The viewing player.
+ * @returns Promise resolving when the menu closes.
+ */
 export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
   const gamesCfg = getGamesConfig();
   if (!gamesCfg.enabled || gamesCfg.minesweeper?.enabled === false) {
@@ -93,12 +100,25 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
     );
   }
 
+  const startSoloIfNotInRace = async (difficulty: MinesweeperDifficulty): Promise<void> => {
+    if (!player.isValid) {
+      return;
+    }
+    const existing = getPlayerMinesweeperGame(player.id);
+    const activeRace = existing?.multiplayerMatchId ? getMinesweeperRaceMatch(existing.multiplayerMatchId) : undefined;
+    if (activeRace?.status === 'active') {
+      player.sendMessage('§cFinish or forfeit your active 2P Minesweeper race before starting a solo game.');
+      return;
+    }
+    startMinesweeperGame(player, difficulty);
+    await showMinesweeperBoard(player);
+  };
+
   form.button(
     `§l§aBeginner (9x9)\n§r§710 Mines • §6${formatCurrency(easy.baseReward)} §a+${formatCurrency(easy.maxSpeedBonus)}`,
     'textures/blocks/grass_carried',
     async () => {
-      startMinesweeperGame(player, 'easy');
-      await showMinesweeperBoard(player);
+      await startSoloIfNotInRace('easy');
     },
   );
 
@@ -106,8 +126,7 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
     `§l§eIntermediate (12x12)\n§r§724 Mines • §6${formatCurrency(medium.baseReward)} §a+${formatCurrency(medium.maxSpeedBonus)}`,
     'textures/items/iron_pickaxe',
     async () => {
-      startMinesweeperGame(player, 'medium');
-      await showMinesweeperBoard(player);
+      await startSoloIfNotInRace('medium');
     },
   );
 
@@ -115,8 +134,7 @@ export async function showMinesweeperMenu(player: mc.Player): Promise<void> {
     `§l§cExpert (16x12)\n§r§740 Mines • §6${formatCurrency(hard.baseReward)} §a+${formatCurrency(hard.maxSpeedBonus)}`,
     'textures/items/diamond_pickaxe',
     async () => {
-      startMinesweeperGame(player, 'hard');
-      await showMinesweeperBoard(player);
+      await startSoloIfNotInRace('hard');
     },
   );
 

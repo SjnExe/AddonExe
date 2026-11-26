@@ -94,6 +94,12 @@ export async function showReportActionsPanel(player: mc.Player, reportId: string
 
 // These functions will replace the action registry entries for moderation actions.
 
+/**
+ * Opens the warn reason modal for a target player and issues the warning on submit.
+ *
+ * @param player Staff player issuing the warning.
+ * @param targetPlayerId Target player's unique ID.
+ */
 export async function handleWarnPlayer(player: mc.Player, targetPlayerId: string): Promise<void> {
   const target = getPlayerFromCache(targetPlayerId);
   if (!isDefined(target)) {
@@ -106,12 +112,26 @@ export async function handleWarnPlayer(player: mc.Player, targetPlayerId: string
     .submitButton('Issue Warning');
 
   const res = await form.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
+    return;
+  }
+  if (!target.isValid) {
+    player.sendMessage('§4Player is offline.');
     return;
   }
 
   const reason = sanitizeString(res.reasonRaw, true);
   const { warnPlayer } = await import('@features/moderation/commands/warn.js');
+  if (!player.isValid) {
+    return;
+  }
+  if (!target.isValid) {
+    player.sendMessage('§4Player is offline.');
+    return;
+  }
   warnPlayer(player, target, reason);
 }
 

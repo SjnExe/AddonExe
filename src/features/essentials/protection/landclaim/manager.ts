@@ -355,7 +355,8 @@ export function claimChunk(player: mc.Player, chunkX?: number, chunkZ?: number):
     if (!config.allowTheEnd) {
       return { success: false, message: '§cLand claiming is prohibited in The End.' };
     }
-    const endRadius = Number(config.endIslandProtectedRadius) || 300;
+    const rawEndRadius = Number(config.endIslandProtectedRadius);
+    const endRadius = Number.isFinite(rawEndRadius) ? Math.max(0, rawEndRadius) : 300;
     if (isChunkOverlappingEndIsland(dimId, cx, cz, endRadius)) {
       return { success: false, message: '§cThe central End island is strictly protected and cannot be claimed.' };
     }
@@ -498,7 +499,8 @@ export function claimRadius(player: mc.Player, radius = 1): ClaimActionResult & 
     return { success: false, message: '§cLand claiming is prohibited in The End.' };
   }
 
-  const endRadius = Number(config.endIslandProtectedRadius) || 300;
+  const rawEndRadius = Number(config.endIslandProtectedRadius);
+  const endRadius = Number.isFinite(rawEndRadius) ? Math.max(0, rawEndRadius) : 300;
   const bypass = canBypassLandClaim(player);
   const candidateCoords: Array<{ cx: number; cz: number; key: string }> = [];
 

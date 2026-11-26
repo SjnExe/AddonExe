@@ -5,11 +5,12 @@ import { registerEvent } from '@core/events/eventManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
-import { isCropBlock } from '@features/essentials/survival/autoReplant.js';
+import { isCropBlock, isMatureCropPermutation } from '@features/essentials/survival/autoReplant.js';
 import { isLogBlock } from '@features/essentials/survival/treeCapitator.js';
 import { isOreBlock } from '@features/essentials/survival/veinMiner.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
+import { EntityComponentTypes } from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
@@ -21,6 +22,123 @@ const xpStorage = new StorageManager('exe:playerJobXp:v1');
 let playerJobs = new Map<string, JobId>();
 let playerJobXp = new Map<string, number>();
 let xpSaveScheduled = false;
+const placedJobBlocks = new Set<string>();
+const maxTrackedPlacedBlocks = 5000;
+const evictedFilterBytes = 8192;
+const evictedFilterBits = evictedFilterBytes * 8;
+const maxEvictionsPerGeneration = 5000;
+let currentEvictedFilter = new Uint8Array(evictedFilterBytes);
+let previousEvictedFilter = new Uint8Array(evictedFilterBytes);
+let currentEvictedCount = 0;
+let hasEvictedJobBlocks = false;
+
+function hashJobBlockKey(key: string, seed: number): number {
+  let hash = seed >>> 0;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+  return hash % evictedFilterBits;
+}
+
+function recordEvictedJobBlockKey(key: string): void {
+  hasEvictedJobBlocks = true;
+  if (currentEvictedCount >= maxEvictionsPerGeneration) {
+    previousEvictedFilter = currentEvictedFilter;
+    currentEvictedFilter = new Uint8Array(evictedFilterBytes);
+    currentEvictedCount = 0;
+  }
+  currentEvictedCount++;
+  for (const seed of [2166136261, 2654435761, 3242174819]) {
+    const bit = hashJobBlockKey(key, seed);
+    currentEvictedFilter[bit >> 3] = (currentEvictedFilter[bit >> 3] ?? 0) | (1 << (bit & 7));
+  }
+}
+
+function matchesBloomFilter(filter: Uint8Array, key: string): boolean {
+  for (const seed of [2166136261, 2654435761, 3242174819]) {
+    const bit = hashJobBlockKey(key, seed);
+    if (((filter[bit >> 3] ?? 0) & (1 << (bit & 7))) === 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isPlacedJobBlockKey(key: string): boolean {
+  if (placedJobBlocks.has(key)) {
+    return true;
+  }
+  if (!hasEvictedJobBlocks) {
+    return false;
+  }
+  return matchesBloomFilter(currentEvictedFilter, key) || matchesBloomFilter(previousEvictedFilter, key);
+}
+
+function formatJobBlockKey(dimensionId: string, loc: mc.Vector3): string {
+  return `${dimensionId}:${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`;
+}
+
+function trackPlacedJobBlockKey(key: string): void {
+  if (placedJobBlocks.has(key)) {
+    return;
+  }
+  if (placedJobBlocks.size >= maxTrackedPlacedBlocks) {
+    const oldest = placedJobBlocks.values().next().value;
+    if (oldest !== undefined) {
+      placedJobBlocks.delete(oldest);
+      recordEvictedJobBlockKey(oldest);
+    }
+  }
+  placedJobBlocks.add(key);
+}
+
+function handleJobBlockPlace(event: mc.PlayerPlaceBlockAfterEvent): void {
+  const typeId = event.block.typeId;
+  if (!isOreBlock(typeId) && !isLogBlock(typeId)) {
+    return;
+  }
+  trackPlacedJobBlockKey(formatJobBlockKey(event.block.dimension.id, event.block.location));
+}
+
+const cardinalOffsets: readonly mc.Vector3[] = [
+  { x: 1, y: 0, z: 0 },
+  { x: -1, y: 0, z: 0 },
+  { x: 0, y: 1, z: 0 },
+  { x: 0, y: -1, z: 0 },
+  { x: 0, y: 0, z: 1 },
+  { x: 0, y: 0, z: -1 },
+];
+
+function handleJobPistonActivate(event: mc.PistonActivateAfterEvent): void {
+  if (placedJobBlocks.size === 0 && !hasEvictedJobBlocks) {
+    return;
+  }
+  try {
+    const dimId = event.dimension.id;
+    const attached = event.piston.getAttachedBlocks();
+    for (const block of attached) {
+      const typeId = block.typeId;
+      if (!isOreBlock(typeId) && !isLogBlock(typeId)) {
+        continue;
+      }
+      const loc = block.location;
+      const curKey = formatJobBlockKey(dimId, loc);
+      if (isPlacedJobBlockKey(curKey)) {
+        continue;
+      }
+      for (const off of cardinalOffsets) {
+        const neighborKey = formatJobBlockKey(dimId, { x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z });
+        if (isPlacedJobBlockKey(neighborKey)) {
+          trackPlacedJobBlockKey(curKey);
+          break;
+        }
+      }
+    }
+  } catch {
+    // Ignore unloaded chunk or invalid piston errors
+  }
+}
 
 function scheduleXpSave(): void {
   if (xpSaveScheduled) {
@@ -106,21 +224,26 @@ function handleJobBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
   if (!isFeatureActive('eco') || !cfg?.enabled) {
     return;
   }
-  const { player, brokenBlockPermutation } = event;
-  if (!isDefined(player) || !player.isValid) {
+  const { player, brokenBlockPermutation, block } = event;
+  if (!isDefined(player) || !player.isValid || player.getGameMode() === mc.GameMode.Creative) {
+    return;
+  }
+  const typeId = brokenBlockPermutation.type.id;
+  const blockKey = formatJobBlockKey(block.dimension.id, block.location);
+  const wasTracked = placedJobBlocks.delete(blockKey);
+  if ((isOreBlock(typeId) || isLogBlock(typeId)) && (wasTracked || isPlacedJobBlockKey(blockKey))) {
     return;
   }
   const job = playerJobs.get(player.id);
   if (!job) {
     return;
   }
-  const typeId = brokenBlockPermutation.type.id;
   let reward = 0;
   if (job === 'miner' && isOreBlock(typeId)) {
     reward = Number(cfg.minerReward) || 0;
   } else if (job === 'woodcutter' && isLogBlock(typeId)) {
     reward = Number(cfg.woodcutterReward) || 0;
-  } else if (job === 'farmer' && isCropBlock(typeId)) {
+  } else if (job === 'farmer' && isCropBlock(typeId) && isMatureCropPermutation(brokenBlockPermutation)) {
     reward = Number(cfg.farmerReward) || 0;
   }
   if (reward > 0) {
@@ -134,17 +257,35 @@ function handleJobEntityDie(event: mc.EntityDieAfterEvent): void {
     return;
   }
   const killer = event.damageSource.damagingEntity;
-  if (!isDefined(killer) || !killer.isValid || killer.typeId !== MinecraftEntityTypes.Player) {
+  if (
+    !isDefined(killer) ||
+    !killer.isValid ||
+    killer.typeId !== MinecraftEntityTypes.Player ||
+    (killer instanceof mc.Player && killer.getGameMode() === mc.GameMode.Creative)
+  ) {
     return;
   }
   if (event.deadEntity.typeId === MinecraftEntityTypes.Player) {
     return;
   }
-  if (playerJobs.get(killer.id) === 'hunter') {
-    const reward = Number(cfg.hunterReward) || 0;
-    if (reward > 0) {
-      awardJobPayout(killer.id, reward);
-    }
+  if (playerJobs.get(killer.id) !== 'hunter') {
+    return;
+  }
+  let isMobEntity = false;
+  try {
+    const typeFam = event.deadEntity.getComponent(EntityComponentTypes.TypeFamily);
+    isMobEntity = Boolean(
+      typeFam?.hasTypeFamily('mob') || typeFam?.hasTypeFamily('monster') || typeFam?.hasTypeFamily('animal'),
+    );
+  } catch {
+    return;
+  }
+  if (!isMobEntity) {
+    return;
+  }
+  const reward = Number(cfg.hunterReward) || 0;
+  if (reward > 0) {
+    awardJobPayout(killer.id, reward);
   }
 }
 
@@ -233,10 +374,16 @@ export async function showJobsPanel(player: mc.Player): Promise<void> {
 /** Initializes the Jobs subsystem and event listeners. */
 export function initializeJobs(): void {
   loadJobs();
+  if (mc.world?.afterEvents?.playerPlaceBlock) {
+    registerEvent(mc.world.afterEvents.playerPlaceBlock, handleJobBlockPlace, 'jobsPlayerPlaceBlock');
+  }
   if (mc.world?.afterEvents?.playerBreakBlock) {
     registerEvent(mc.world.afterEvents.playerBreakBlock, handleJobBlockBreak, 'jobsPlayerBreakBlock');
   }
   if (mc.world?.afterEvents?.entityDie) {
     registerEvent(mc.world.afterEvents.entityDie, handleJobEntityDie, 'jobsEntityDie');
+  }
+  if (mc.world?.afterEvents?.pistonActivate) {
+    registerEvent(mc.world.afterEvents.pistonActivate, handleJobPistonActivate, 'jobsPistonActivate');
   }
 }

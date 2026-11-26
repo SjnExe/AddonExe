@@ -88,7 +88,16 @@ describe('Team Manager', () => {
     getPlayerSpy = spyOn(realPlayerDataManager, 'getPlayer').mockImplementation(
       (id: string) => getMockPlayer(id) as any,
     );
-    incrementPlayerBalanceSpy = spyOn(realPlayerDataManager, 'incrementPlayerBalance');
+    incrementPlayerBalanceSpy = spyOn(realPlayerDataManager, 'incrementPlayerBalance').mockImplementation(
+      (id: string, amount: number) => {
+        const p = getMockPlayer(id);
+        if (p.balance + amount < 0) {
+          return false;
+        }
+        p.balance += amount;
+        return true;
+      },
+    );
     updatePlayerDataSpy = spyOn(realPlayerDataManager, 'updatePlayerData').mockImplementation(
       (id: string, cb: (data: any) => void) => {
         cb(getMockPlayer(id));

@@ -1,6 +1,6 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval, setTrackedTimeout } from '@core/utils/timerManager.js';
 import {
@@ -97,12 +97,26 @@ export function evaluateTicTacToeBoard(board: CellMark[]): {
   return { isDraw };
 }
 
+/**
+ * Starts a 2-player Tic-Tac-Toe match between `playerX` and `playerO`.
+ *
+ * @param playerX Player assigned X.
+ * @param playerO Player assigned O.
+ * @param wager Optional wager amount per player.
+ * @returns Created match instance, or undefined if cancelled.
+ */
 export function startTicTacToeMatch(
   playerX: mc.Player,
   playerO: mc.Player,
   wager: number = 0,
 ): TicTacToeMatch | undefined {
+  if (!playerX.isValid || !playerO.isValid) {
+    return undefined;
+  }
   if (wager > 0) {
+    if (getOrCreatePlayer(playerX).balance < wager || getOrCreatePlayer(playerO).balance < wager) {
+      return undefined;
+    }
     incrementPlayerBalance(playerX.id, -wager);
     incrementPlayerBalance(playerO.id, -wager);
   }
@@ -130,6 +144,7 @@ export function startTicTacToeMatch(
     matchId,
     gameId: 'tictactoe',
     playerIds: [playerX.id, playerO.id],
+    wager: match.wager,
     onPlayerDisconnect: (disconnectedPlayerId) => {
       forfeitTicTacToeMatch(matchId, disconnectedPlayerId, 'disconnected');
     },
@@ -220,11 +235,11 @@ export function makeTicTacToeMove(
     const pX = getPlayerFromCache(match.playerXId);
     const pO = getPlayerFromCache(match.playerOId);
     const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})§r` : '';
-    if (isDefined(pX)) {
+    if (isDefined(pX) && pX.isValid) {
       pX.sendMessage(`§e[Tic-Tac-Toe] §a${winnerName}§r §fwon the match!${prizeText}§r`);
       playSound(pX, playerId === match.playerXId ? 'random.levelup' : 'note.bass');
     }
-    if (isDefined(pO)) {
+    if (isDefined(pO) && pO.isValid) {
       pO.sendMessage(`§e[Tic-Tac-Toe] §a${winnerName}§r §fwon the match!${prizeText}§r`);
       playSound(pO, playerId === match.playerOId ? 'random.levelup' : 'note.bass');
     }
@@ -246,11 +261,11 @@ export function makeTicTacToeMove(
     const pX = getPlayerFromCache(match.playerXId);
     const pO = getPlayerFromCache(match.playerOId);
     const refundText = match.wager > 0 ? ` §7(${formatCurrency(match.wager)} refunded)` : '';
-    if (isDefined(pX)) {
+    if (isDefined(pX) && pX.isValid) {
       pX.sendMessage(`§e[Tic-Tac-Toe] §fMatch ended in a §eDraw§f!${refundText}§r`);
       playSound(pX, 'random.orb');
     }
-    if (isDefined(pO)) {
+    if (isDefined(pO) && pO.isValid) {
       pO.sendMessage(`§e[Tic-Tac-Toe] §fMatch ended in a §eDraw§f!${refundText}§r`);
       playSound(pO, 'random.orb');
     }
@@ -263,10 +278,10 @@ export function makeTicTacToeMove(
   match.currentTurnId = opponentId;
   const mover = getPlayerFromCache(playerId);
   const opponent = getPlayerFromCache(opponentId);
-  if (isDefined(mover)) {
+  if (isDefined(mover) && mover.isValid) {
     playSound(mover, 'random.click');
   }
-  if (isDefined(opponent)) {
+  if (isDefined(opponent) && opponent.isValid) {
     playSound(opponent, 'random.orb');
   }
 
@@ -305,11 +320,11 @@ export function forfeitTicTacToeMatch(
   const winnerPlayer = getPlayerFromCache(winnerId);
   const loserPlayer = getPlayerFromCache(forfeitingPlayerId);
 
-  if (isDefined(winnerPlayer)) {
+  if (isDefined(winnerPlayer) && winnerPlayer.isValid) {
     winnerPlayer.sendMessage(`§e[Tic-Tac-Toe] §c${loserName}§r §7${reason}. §aYou won by forfeit!${prizeText}§r`);
     playSound(winnerPlayer, 'random.levelup');
   }
-  if (isDefined(loserPlayer)) {
+  if (isDefined(loserPlayer) && loserPlayer.isValid) {
     loserPlayer.sendMessage(`§e[Tic-Tac-Toe] §cYou forfeited the match (${reason}). §e${winnerName}§r §cwins!§r`);
     playSound(loserPlayer, 'note.bass');
   }
