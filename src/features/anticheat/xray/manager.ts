@@ -9,7 +9,7 @@ import { MonitoredOreType, XrayHeuristicsConfig } from '@features/anticheat/xray
 import { isWatched } from '@features/moderation/watchManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
+import { MinecraftBlockTypes, MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 
 interface AlertData {
   playerName: string;
@@ -62,6 +62,24 @@ const stoneBlockTypes = new Set<string>([
 const oreCache = new Map<string, CachedOreInfo[]>();
 const alertBuffers = new Map<string, Map<string, AlertData>>();
 const playerMiningStats = new Map<string, PlayerMiningStats>();
+const maxTrackedPlacedBlocks = 15000;
+const playerPlacedBlocks = new Set<string>();
+
+function getBlockCoordKey(dimensionId: string, loc: mc.Vector3): string {
+  return `${dimensionId}:${Math.floor(loc.x)},${Math.floor(loc.y)},${Math.floor(loc.z)}`;
+}
+
+function trackPlacedBlock(key: string): void {
+  if (playerPlacedBlocks.has(key)) {
+    playerPlacedBlocks.delete(key);
+  } else if (playerPlacedBlocks.size >= maxTrackedPlacedBlocks) {
+    const oldest = playerPlacedBlocks.values().next().value;
+    if (isDefined(oldest)) {
+      playerPlacedBlocks.delete(oldest);
+    }
+  }
+  playerPlacedBlocks.add(key);
+}
 
 export function clearPlayerMiningStats(playerId: string): void {
   playerMiningStats.delete(playerId);
@@ -340,16 +358,35 @@ function bufferAlert(
   }
 }
 
+function handleBlockPlace(event: mc.PlayerPlaceBlockAfterEvent): void {
+  const { block, dimension } = event;
+  if (!isDefined(block)) {
+    return;
+  }
+  const blockId = block.typeId;
+  if (!oreCache.has(blockId) && !stoneBlockTypes.has(blockId)) {
+    return;
+  }
+  const dimId = block.dimension?.id ?? dimension?.id ?? MinecraftDimensionTypes.Overworld;
+  trackPlacedBlock(getBlockCoordKey(dimId, block.location));
+}
+
 function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
-  const { player, brokenBlockPermutation, block } = event;
+  const { player, brokenBlockPermutation, block, dimension } = event;
   if (!isDefined(block) || !isDefined(player) || !player.isValid) {
     return;
   }
 
   const blockId = brokenBlockPermutation.type.id;
+  const dimId = block.dimension?.id ?? dimension?.id ?? player.dimension?.id ?? MinecraftDimensionTypes.Overworld;
+  const coordKey = getBlockCoordKey(dimId, block.location);
+  const wasPlayerPlaced = playerPlacedBlocks.delete(coordKey);
 
-  // 1. Ratio tracking: record common stone breaks
+  // 1. Ratio tracking: record naturally generated stone breaks (ignore player-placed stone/cobble)
   if (stoneBlockTypes.has(blockId)) {
+    if (wasPlayerPlaced) {
+      return;
+    }
     let stats = playerMiningStats.get(player.id);
     if (!isDefined(stats)) {
       stats = { stoneCount: 0, oreCount: 0, recentHiddenVeinsCount: 0 };
@@ -361,6 +398,11 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
       stats.stoneCount = Math.round(stats.stoneCount * 0.9);
       stats.oreCount = Math.round(stats.oreCount * 0.9);
     }
+    return;
+  }
+
+  // Player-placed ores are never suspicious
+  if (wasPlayerPlaced) {
     return;
   }
 
@@ -447,6 +489,7 @@ function handleBlockBreak(event: mc.PlayerBreakBlockAfterEvent): void {
 
 let xrayUnsubscribe: (() => void) | undefined;
 
+/** Refreshes the X-Ray block break and block place event subscriptions for monitored ores and stone types. */
 export function updateXraySubscription(): void {
   if (xrayUnsubscribe) {
     try {
@@ -468,10 +511,17 @@ export function updateXraySubscription(): void {
     xrayConfig.heuristics?.enabled === true ? [...monitoredOres, ...Array.from(stoneBlockTypes)] : monitoredOres;
 
   try {
-    const callback = mc.world.afterEvents.playerBreakBlock.subscribe(handleBlockBreak, { blockTypes });
+    const breakCallback = mc.world.afterEvents.playerBreakBlock.subscribe(handleBlockBreak, { blockTypes });
+    const placeCallback =
+      typeof mc.world.afterEvents.playerPlaceBlock?.subscribe === 'function'
+        ? mc.world.afterEvents.playerPlaceBlock.subscribe(handleBlockPlace, { blockTypes })
+        : undefined;
     xrayUnsubscribe = () => {
       try {
-        mc.world.afterEvents.playerBreakBlock.unsubscribe(callback);
+        mc.world.afterEvents.playerBreakBlock.unsubscribe(breakCallback);
+        if (isDefined(placeCallback)) {
+          mc.world.afterEvents.playerPlaceBlock.unsubscribe(placeCallback);
+        }
       } catch {
         // Suppress during reload/shutdown
       }
@@ -485,10 +535,12 @@ export function initializeXrayDetection(): void {
   refreshXrayCache();
 }
 
+/** Resets all X-Ray caches, buffers, and event subscriptions for unit test isolation. */
 export function _clearXrayForTest(): void {
   oreCache.clear();
   alertBuffers.clear();
   playerMiningStats.clear();
+  playerPlacedBlocks.clear();
   if (xrayUnsubscribe) {
     try {
       xrayUnsubscribe();

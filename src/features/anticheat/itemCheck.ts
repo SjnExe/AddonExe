@@ -1,6 +1,7 @@
 import { AnticheatConfig, getAnticheatConfig } from '@core/config/configurations.js';
 import { getAllPlayersFromCache } from '@core/data/playerCache.js';
 import { registerEvent } from '@core/events/eventManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { errorLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval, setTrackedJob } from '@core/utils/timerManager.js';
 import { AntiCheatCheck } from '@features/anticheat/core/check.js';
@@ -48,6 +49,17 @@ export function startItemCheckLoop(): void {
 
 const mutatingSlots = new Set<string>();
 
+function isAdminBypassed(player: mc.Player, config?: AnticheatConfig): boolean {
+  if (config?.adminBypass === false) {
+    return false;
+  }
+  try {
+    return hasPermission(player, 'anticheat.bypass') || hasPermission(player, 'group.admin');
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Evaluates individual slot item modifications to detect illegal items immediately upon inventory interaction.
  *
@@ -65,6 +77,9 @@ export function handlePlayerInventoryItemChange(event: mc.PlayerInventoryItemCha
   }
 
   if (player.getGameMode() === mc.GameMode.Creative || player.getGameMode() === mc.GameMode.Spectator) {
+    return;
+  }
+  if (isAdminBypassed(player, config)) {
     return;
   }
 
@@ -121,7 +136,7 @@ function* checkInventoryGenerator(config: AnticheatConfig) {
     const players = getAllPlayersFromCache();
     const bannedSet = getBannedItemSet(config.itemCheck.bannedItems);
     for (const player of players) {
-      if (player.isValid) {
+      if (player.isValid && !isAdminBypassed(player, config)) {
         checkPlayerEquipment(player, config.itemCheck, bannedSet);
       }
       yield;

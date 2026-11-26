@@ -185,11 +185,11 @@ export function getSystemRegistry(): SystemDefinition[] {
     },
     {
       id: 'anticheat_rules',
-      title: 'Anti-Cheat Violations & Border Center',
+      title: 'Anti-Cheat Center',
       icon: 'textures/items/iron_chestplate',
       showFunction: async (player) => {
         const { showAnticheatAdvancedPanel } = await import('@features/anticheat/ui/adminPanel.js');
-        await showAnticheatAdvancedPanel(player);
+        await showAnticheatAdvancedPanel(player, 'config');
       },
       category: 'Moderation & Rules',
       isSimpleConfig: false,

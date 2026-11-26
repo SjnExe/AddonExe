@@ -139,8 +139,10 @@ export function flag(
     return;
   }
 
-  // Exempt players possessing bypass permission
-  if (checkBypassPermission(player)) {
+  const config = getAnticheatConfig();
+
+  // Exempt players possessing bypass permission when adminBypass is enabled
+  if (config.adminBypass !== false && checkBypassPermission(player)) {
     return;
   }
 
@@ -152,7 +154,6 @@ export function flag(
     return;
   }
 
-  const config = getAnticheatConfig();
   const checkConfig = (config as unknown as Record<string, BaseCheckConfig | undefined>)[checkName];
 
   if (config.enabled !== true || !isDefined(checkConfig) || checkConfig.enabled !== true) {
@@ -318,7 +319,7 @@ export function executePunishment(player: mc.Player, commandTemplate: string): v
   ) {
     return;
   }
-  if (checkBypassPermission(player)) {
+  if (getAnticheatConfig().adminBypass !== false && checkBypassPermission(player)) {
     return;
   }
 

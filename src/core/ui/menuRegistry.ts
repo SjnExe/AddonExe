@@ -253,12 +253,12 @@ export function initializeDefaultMenuItems(): void {
 
   registerMenuItem({
     id: 'eco_vote',
-    title: 'Vote Rewards',
+    title: 'Vote Polls',
     description: 'Vote on active server polls',
     icon: 'textures/ui/color_plus',
-    hub: 'economy',
+    hub: 'social',
     featureId: 'util.vote',
-    order: 70,
+    order: 35,
     action: async (p) => {
       const { showVoteMenu } = await import('@features/social/vote/ui/panel.js');
       await showVoteMenu(p);
@@ -582,19 +582,6 @@ export function initializeDefaultMenuItems(): void {
     },
   });
 
-  registerMenuItem({
-    id: 'profile_tpa',
-    title: 'TPA & Privacy',
-    description: 'Teleport & block settings',
-    icon: 'textures/items/ender_pearl',
-    hub: 'profile',
-    order: 40,
-    action: async (p) => {
-      const { showTpaSettingsPanel } = await import('@features/teleport/tpa/ui/panel.js');
-      await showTpaSettingsPanel(p);
-    },
-  });
-
   // --- STAFF DASHBOARD HUBS ---
   registerMenuItem({
     id: 'staff_mod_hub',
@@ -692,16 +679,16 @@ export function initializeDefaultMenuItems(): void {
   });
 
   registerMenuItem({
-    id: 'mod_xray',
-    title: 'X-Ray Ores',
-    description: 'Configure monitored ores',
-    icon: 'textures/blocks/diamond_ore',
+    id: 'mod_anticheat',
+    title: 'Anti-Cheat & X-Ray',
+    description: 'Checks, bypass, rules & ores',
+    icon: 'textures/items/iron_chestplate',
     hub: 'staff_moderation',
     permissionNode: 'ui.panel.admin',
-    order: 30,
+    order: 15,
     action: async (p) => {
-      const { showXrayOresPanel } = await import('@features/anticheat/xray/ui/panel.js');
-      await showXrayOresPanel(p);
+      const { showAnticheatAdvancedPanel } = await import('@features/anticheat/ui/adminPanel.js');
+      await showAnticheatAdvancedPanel(p, 'moderation');
     },
   });
 
@@ -808,8 +795,8 @@ export function initializeDefaultMenuItems(): void {
   // --- STAFF CONFIG SUB-ITEMS ---
   registerMenuItem({
     id: 'staff_configs',
-    title: 'System Configs',
-    description: 'Tune module settings',
+    title: 'All System Configs',
+    description: 'Browse or search all settings',
     icon: 'textures/ui/icon_setting',
     hub: 'staff_config',
     permissionNode: 'ui.panel.admin',
@@ -845,6 +832,34 @@ export function initializeDefaultMenuItems(): void {
     action: async (p) => {
       const { showKitManagementPanel } = await import('@features/economy/kit/ui/panel.js');
       await showKitManagementPanel(p);
+    },
+  });
+
+  registerMenuItem({
+    id: 'staff_gameplay_admin',
+    title: 'Gameplay & Survival',
+    description: 'QoL, VeinMiner & combat rules',
+    icon: 'textures/items/iron_sword',
+    hub: 'staff_config',
+    permissionNode: 'ui.panel.admin',
+    order: 32,
+    action: async (p) => {
+      const { showGameplayPanel } = await import('@features/gameplay/ui/panel.js');
+      await showGameplayPanel(p);
+    },
+  });
+
+  registerMenuItem({
+    id: 'staff_sidebar_admin',
+    title: 'Sidebar & HUD',
+    description: 'Scoreboard presets & layout',
+    icon: 'textures/items/book_writable',
+    hub: 'staff_config',
+    permissionNode: 'ui.panel.admin',
+    order: 35,
+    action: async (p) => {
+      const { showSidebarAdminPanel } = await import('@features/sidebar/ui/adminPanel.js');
+      await showSidebarAdminPanel(p);
     },
   });
 

@@ -1,5 +1,6 @@
 {
   "ui_defs": [
+    "ui/chat_screen.json",
     "ui/hud_screen.json",
     "ui/loading_messages.json",
     "ui/pause_screen.json",

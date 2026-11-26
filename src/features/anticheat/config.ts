@@ -102,6 +102,8 @@ export interface AntiNetherRoofConfig {
 export interface AnticheatConfig {
   /** Global master switch governing all anti-cheat detection routines. */
   enabled: boolean;
+  /** Whether players with admin or anticheat.bypass permissions are exempt from checks and item removal. */
+  adminBypass?: boolean;
   /** Whether detection alerts are also emitted to server console logs. */
   consoleNotifications: boolean;
   /** Minimum interval in seconds between staff alert messages for the same player and check. */
@@ -127,6 +129,7 @@ export interface AnticheatConfig {
 /** Default Anti-Cheat configuration presets. */
 export const anticheatConfig: AnticheatConfig = {
   enabled: false,
+  adminBypass: true,
   consoleNotifications: true,
   alertCooldownSeconds: 2,
   minAlertVl: 2,
