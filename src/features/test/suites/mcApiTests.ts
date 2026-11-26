@@ -7,7 +7,12 @@ import { StorageManager } from '@core/data/storageManager.js';
 import { diagnosticBotName, floatingTextId } from '@core/utils/constants.js';
 import { debugLog, warnLog } from '@core/utils/logger.js';
 import * as mc from '@minecraft/server';
-import { MinecraftDimensionTypes, MinecraftEnchantmentTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
+import {
+  MinecraftBlockTypes,
+  MinecraftDimensionTypes,
+  MinecraftEnchantmentTypes,
+  MinecraftItemTypes,
+} from '@minecraft/vanilla-data';
 
 import { addTest, assert } from '../testRunner.js';
 
@@ -41,6 +46,26 @@ export function registerMcApiTests(): void {
         mc.EntityTypes.get(floatingTextId as Parameters<typeof mc.EntityTypes.get>[0]),
         `Custom entity '${floatingTextId}' missing from mc.EntityTypes`,
       );
+      assert.ok(
+        mc.EntityTypes.get('exe:seat' as Parameters<typeof mc.EntityTypes.get>[0]),
+        `Custom entity 'exe:seat' missing from mc.EntityTypes`,
+      );
+    }
+
+    if (mc.BlockTypes && typeof mc.BlockTypes.get === 'function') {
+      for (const lightId of [
+        MinecraftBlockTypes.LightBlock15,
+        MinecraftBlockTypes.LightBlock14,
+        MinecraftBlockTypes.LightBlock10,
+        MinecraftBlockTypes.LightBlock7,
+      ]) {
+        assert.ok(mc.BlockTypes.get(lightId), `Dynamic lighting block '${lightId}' missing from mc.BlockTypes`);
+      }
+    }
+
+    if (mc.BlockComponentTypes) {
+      assert.ok(mc.BlockComponentTypes.Inventory, 'BlockComponentTypes.Inventory missing in live engine');
+      assert.ok(mc.BlockComponentTypes.Sign, 'BlockComponentTypes.Sign missing in live engine');
     }
 
     if (mc.ItemTypes && typeof mc.ItemTypes.get === 'function') {
@@ -93,6 +118,28 @@ export function registerMcApiTests(): void {
     assert.ok(restoredContainerItem, 'Container item deserialization should succeed');
   });
 
+  addTest(suiteName, 'Live engine tickingarea command executes and cleans up cleanly', () => {
+    const overworld = mc.world.getDimension(MinecraftDimensionTypes.Overworld);
+    const areaName = 'exe_test_chunky';
+    try {
+      overworld.runCommand(`tickingarea remove ${areaName}`);
+    } catch {
+      // Ignore if not present
+    }
+    try {
+      const res = overworld.runCommand(`tickingarea add 0 0 0 0 0 0 ${areaName} true`);
+      if (res && typeof res.successCount === 'number') {
+        assert.ok(res.successCount >= 1, `Expected tickingarea add to succeed, got successCount=${res.successCount}`);
+      }
+    } finally {
+      try {
+        overworld.runCommand(`tickingarea remove ${areaName}`);
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+  });
+
   if (feature('CANARY')) {
     addTest(suiteName, 'Server GameTest simulated player framework initializes cleanly in live engine', async () => {
       let gametest: typeof import('@minecraft/server-gametest');
@@ -139,6 +186,18 @@ export function registerMcApiTests(): void {
       try {
         assert.ok(bot.isValid, 'SimulatedPlayer should be valid after spawn');
         assert.equal(typeof bot.disconnect, 'function', 'SimulatedPlayer.disconnect should be a function');
+
+        // Verify custom exe:seat entity spawns cleanly with Rideable component in a loaded chunk
+        let seat: mc.Entity | undefined;
+        try {
+          seat = bot.dimension.spawnEntity('exe:seat' as Parameters<typeof bot.dimension.spawnEntity>[0], bot.location);
+          assert.ok(seat.isValid, 'Spawned exe:seat entity should be valid');
+          assert.ok(seat.getComponent(mc.EntityComponentTypes.Rideable), 'exe:seat should have Rideable component');
+        } finally {
+          if (seat?.isValid) {
+            seat.remove();
+          }
+        }
       } catch (err: unknown) {
         assertionError = err;
       }

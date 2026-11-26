@@ -1,6 +1,9 @@
+import { initializeChunky } from '@features/essentials/chunky/manager.js';
 import { restartAnnouncer } from '@features/essentials/commands/announcement.js';
 import { initialize as initializeFloatingText } from '@features/essentials/floatingText/manager.js';
+import { initializeGraves } from '@features/essentials/graves/manager.js';
 import { initializeLagSweeper } from '@features/essentials/lagSweeper.js';
+import { initializeContainerLocks } from '@features/essentials/protection/containerLockManager.js';
 import { initializeLandClaim } from '@features/essentials/protection/landclaim/manager.js';
 import { initializeSpawnProtection } from '@features/essentials/protection/spawnProtection.js';
 import { initializeSurvivalQoL } from '@features/essentials/survival/index.js';
@@ -13,7 +16,10 @@ import { initializeWorldBorder } from '@features/essentials/worldBorder/manager.
  */
 export async function initialize(_isMigration: boolean) {
   initializeWorldBorder();
+  initializeChunky();
   initializeFloatingText();
+  initializeGraves();
+  initializeContainerLocks();
   initializeSpawnProtection();
   initializeLandClaim();
   initializeSurvivalQoL();

@@ -1,5 +1,7 @@
 import { serviceLocator } from '@core/services/serviceLocator.js';
 import { initialize as initSocial, isFriend } from '@features/social/friends/manager.js';
+import { loadIgnores } from '@features/social/ignore/manager.js';
+import { loadNicknames } from '@features/social/nick/manager.js';
 
 /**
  * Initializes social subsystem managers and registers dynamic configuration resets.
@@ -8,6 +10,8 @@ import { initialize as initSocial, isFriend } from '@features/social/friends/man
  */
 export async function initialize(_isMigration: boolean) {
   initSocial();
+  loadIgnores();
+  loadNicknames();
 
   serviceLocator.registerService('social.friends', {
     isFriend,

@@ -12,6 +12,7 @@ import { isFeatureActive } from '@core/services/featureManager.js';
 import { calculateTaxWithPolicy, formatCurrency, generateDisplayName } from '@core/utils/index.js';
 import { errorLog, infoLog } from '@core/utils/logger.js';
 import { processBountyAndSteal, resolveKiller } from '@features/essentials/combat/manager.js';
+import { handlePlayerDeathGrave } from '@features/essentials/graves/manager.js';
 import { saveLastLocation } from '@features/teleport/utils.js';
 import { isDefined, isNumber } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -55,6 +56,11 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
     if (deadEntity.typeId === MinecraftEntityTypes.Player) {
       const deadPlayer = deadEntity as mc.Player;
       saveLastLocation(deadPlayer, 'death');
+      try {
+        handlePlayerDeathGrave(deadPlayer);
+      } catch (graveErr: unknown) {
+        errorLog('[EntityDie] Failed to create player grave.', graveErr);
+      }
 
       getOrCreatePlayer(deadPlayer);
       setPlayerLastDeathLocation(deadPlayer.id, {

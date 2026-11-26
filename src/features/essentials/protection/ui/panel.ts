@@ -1,5 +1,7 @@
+import { getConfig, updateConfig } from '@core/config/configManager.js';
 import { getWorldProtectionConfig, saveWorldProtectionConfig } from '@core/config/configurations.js';
 import { showPanel } from '@core/ui/uiManager.js';
+import { clearProtectionAuditLogs, getAuditLogsNear } from '@features/essentials/protection/auditLog.js';
 import { WorldProtectionZone } from '@features/essentials/protection/config.js';
 import {
   getZoneSelection,
@@ -13,6 +15,12 @@ import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
+/**
+ * Displays the centralized World & Spawn Protection Hub UI.
+ *
+ * @param player The staff member viewing the panel.
+ * @param context Navigation context passed between panels.
+ */
 export async function showWorldProtectionListPanel(
   player: mc.Player,
   context: Record<string, unknown> = {},
@@ -24,6 +32,28 @@ export async function showWorldProtectionListPanel(
   const p1Str = isDefined(sel?.pos1) ? `${sel.pos1.x} ${sel.pos1.y} ${sel.pos1.z}` : 'Unset';
   const p2Str = isDefined(sel?.pos2) ? `${sel.pos2.x} ${sel.pos2.y} ${sel.pos2.z}` : 'Unset';
   form.body(`§7Wand Selection — §bPos1: §f${p1Str} §8| §ePos2: §f${p2Str}`);
+
+  form.button('§l§6Global World Rules\n§r§7PvP, explosions, mob griefing, audit log', 'textures/ui/World', async () => {
+    await showGlobalProtectionRulesPanel(player, context);
+  });
+
+  form.button(
+    '§l§bSpawn Protection Settings\n§r§7Radius, bypass, and spawn flags',
+    'textures/ui/icon_recipe_equipment',
+    async () => {
+      await showSpawnProtectionQuickPanel(player, context);
+    },
+  );
+
+  if (config.auditLog?.enabled) {
+    form.button(
+      '§l§eInspect Nearby Audit Logs\n§r§7Recent breaks/places/containers (8m)',
+      'textures/ui/magnifyingGlass',
+      async () => {
+        await showNearbyAuditLogsPanel(player, context);
+      },
+    );
+  }
 
   form.button('§l§2+ Add New Zone\n§r§7Uses wand Pos1/Pos2 if set', 'textures/ui/color_plus', async () => {
     await showPanel(player, 'addWorldProtectionPanel', { ...context, page: 1 });
@@ -273,4 +303,136 @@ async function handleWorldProtectionForm(
     previewZoneBoundaryParticles(player, { x: minX, y: minY, z: minZ }, { x: maxX, y: maxY, z: maxZ }, dimension, 20);
   }
   return showWorldProtectionListPanel(player, context);
+}
+
+async function showGlobalProtectionRulesPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
+  const config = getWorldProtectionConfig();
+  const globalFlags = config.globalFlags ?? {
+    preventPvP: false,
+    preventExplosions: false,
+    preventMobGriefing: false,
+    preventFireSpread: false,
+  };
+  const auditLog = config.auditLog ?? {
+    enabled: false,
+    maxEntries: 500,
+    retentionMinutes: 1440,
+    logContainerAccess: true,
+    logValuableBlocks: true,
+    logHazardousPlacement: true,
+  };
+
+  type GlobalRulesForm = {
+    preventPvP: boolean;
+    preventExplosions: boolean;
+    preventMobGriefing: boolean;
+    preventFireSpread: boolean;
+    auditEnabled: boolean;
+    auditMaxEntries: string;
+    auditRetentionMinutes: string;
+  };
+
+  const form = new CustomFormBuilder<GlobalRulesForm>('Global World Protection & Audit')
+    .toggle('preventPvP', 'Global Prevent PvP', globalFlags.preventPvP)
+    .toggle('preventExplosions', 'Global Prevent Explosions', globalFlags.preventExplosions)
+    .toggle('preventMobGriefing', 'Global Prevent Mob Griefing', globalFlags.preventMobGriefing)
+    .toggle('preventFireSpread', 'Global Prevent Fire Spread', globalFlags.preventFireSpread)
+    .toggle('auditEnabled', 'Enable Protection Audit Log (Capped)', auditLog.enabled)
+    .textField('auditMaxEntries', 'Audit Max Entries (10-2000)', '500', String(auditLog.maxEntries))
+    .textField('auditRetentionMinutes', 'Audit Retention (Minutes)', '1440', String(auditLog.retentionMinutes))
+    .submitButton('Save Global Rules');
+
+  const v = await form.show(player);
+  if (!v) {
+    await showWorldProtectionListPanel(player, context);
+    return;
+  }
+
+  config.globalFlags = {
+    preventPvP: v.preventPvP,
+    preventExplosions: v.preventExplosions,
+    preventMobGriefing: v.preventMobGriefing,
+    preventFireSpread: v.preventFireSpread,
+  };
+  config.auditLog = {
+    ...auditLog,
+    enabled: v.auditEnabled,
+    maxEntries: Math.max(10, Math.min(2000, Number.parseInt(v.auditMaxEntries, 10) || 500)),
+    retentionMinutes: Math.max(1, Number.parseInt(v.auditRetentionMinutes, 10) || 1440),
+  };
+  saveWorldProtectionConfig(config);
+  player.sendMessage('§aSaved global world protection rules.');
+  await showWorldProtectionListPanel(player, context);
+}
+
+async function showSpawnProtectionQuickPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
+  const cfg = getConfig();
+  const sp = cfg.spawnProtection;
+  type SpawnProtForm = {
+    enabled: boolean;
+    radius: string;
+    allowAdminBypass: boolean;
+    preventPvP: boolean;
+    preventBlockBreaking: boolean;
+    preventBlockPlacing: boolean;
+    preventExplosions: boolean;
+    preventMobGriefing: boolean;
+  };
+
+  const form = new CustomFormBuilder<SpawnProtForm>('Spawn Protection Settings')
+    .toggle('enabled', 'Enable Spawn Protection', Boolean(sp.enabled))
+    .textField('radius', 'Protection Radius (Blocks)', '32', String(sp.protectionRadius ?? 32))
+    .toggle('allowAdminBypass', 'Allow Admin/Mod Bypass', Boolean(sp.allowAdminBypass))
+    .toggle('preventPvP', 'Prevent PvP', Boolean(sp.preventPvP))
+    .toggle('preventBlockBreaking', 'Prevent Block Breaking', Boolean(sp.preventBlockBreaking))
+    .toggle('preventBlockPlacing', 'Prevent Block Placing', Boolean(sp.preventBlockPlacing))
+    .toggle('preventExplosions', 'Prevent Explosions', Boolean(sp.preventExplosions))
+    .toggle('preventMobGriefing', 'Prevent Mob Griefing', Boolean(sp.preventMobGriefing))
+    .submitButton('Save Spawn Protection');
+
+  const v = await form.show(player);
+  if (!v) {
+    await showWorldProtectionListPanel(player, context);
+    return;
+  }
+  const parsedRadius = Math.max(0, Number.parseInt(v.radius, 10) || 0);
+  updateConfig('spawnProtection', {
+    ...sp,
+    enabled: v.enabled,
+    protectionRadius: parsedRadius,
+    allowAdminBypass: v.allowAdminBypass,
+    preventPvP: v.preventPvP,
+    preventBlockBreaking: v.preventBlockBreaking,
+    preventBlockPlacing: v.preventBlockPlacing,
+    preventExplosions: v.preventExplosions,
+    preventMobGriefing: v.preventMobGriefing,
+  });
+  player.sendMessage('§aSaved spawn protection settings.');
+  await showWorldProtectionListPanel(player, context);
+}
+
+async function showNearbyAuditLogsPanel(player: mc.Player, context: Record<string, unknown> = {}): Promise<void> {
+  const logs = getAuditLogsNear(player.location, player.dimension.id, 8, 20);
+  const lines =
+    logs.length === 0
+      ? '§7No recorded valuable/container/hazardous events within 8 blocks.'
+      : logs
+          .map((e) => {
+            const ageSec = Math.max(0, Math.floor((Date.now() - e.timestamp) / 1000));
+            return `§8[${ageSec}s] §e${e.playerName} §f${e.action} §b${e.blockType.replace('minecraft:', '')} §7(${e.x}, ${e.y}, ${e.z})`;
+          })
+          .join('\n');
+
+  const form = new ActionFormBuilder().title('Nearby Protection Audit Logs').body(lines);
+  if (logs.length > 0) {
+    form.button('§cClear All Audit Logs', 'textures/ui/trash', async () => {
+      clearProtectionAuditLogs();
+      player.sendMessage('§aCleared protection audit logs.');
+      await showWorldProtectionListPanel(player, context);
+    });
+  }
+  form.addBackButton(async () => {
+    await showWorldProtectionListPanel(player, context);
+  });
+  await form.show(player);
 }

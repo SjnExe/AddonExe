@@ -8,6 +8,7 @@ import { serviceLocator } from '@core/services/serviceLocator.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
+import { isPlayerIgnored } from '@features/social/ignore/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -125,6 +126,14 @@ export function clearPlayerTpaRequests(playerId: string): void {
   }
 }
 
+/**
+ * Creates a TPA or TPAHere request from `sourcePlayer` to `targetPlayer`.
+ *
+ * @param sourcePlayer Player initiating the request.
+ * @param targetPlayer Target player receiving the request.
+ * @param type Request direction (`tpa` or `tpahere`).
+ * @returns Action result with status and user-facing message.
+ */
 export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, type: TpaRequestType): ActionResult {
   const cd = getCooldown(sourcePlayer.id, 'tpa');
   if (cd > 0) {
@@ -139,8 +148,8 @@ export function createRequest(sourcePlayer: mc.Player, targetPlayer: mc.Player, 
     return { success: false, message: `§c${targetPlayer.name} is not accepting TPA requests.` };
   }
   if (
-    isDefined(targetPlayerData.tpaBlockedPlayerIds) &&
-    targetPlayerData.tpaBlockedPlayerIds.includes(sourcePlayer.id)
+    isPlayerIgnored(targetPlayer.id, sourcePlayer.id) ||
+    (isDefined(targetPlayerData.tpaBlockedPlayerIds) && targetPlayerData.tpaBlockedPlayerIds.includes(sourcePlayer.id))
   ) {
     return { success: false, message: `§cYou are blocked from sending TPA requests to ${targetPlayer.name}.` };
   }

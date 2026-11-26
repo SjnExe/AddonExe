@@ -44,9 +44,13 @@ export const config = {
   // --- Social, Chat & Moderation ---
   voting: socialMainDefaults.voting,
   mail: socialMainDefaults.mail,
+  ignore: socialMainDefaults.ignore,
+  nick: socialMainDefaults.nick,
   afk: essentialsConfig.afk,
   playerUtilities: essentialsConfig.playerUtilities,
   survivalQoL: essentialsConfig.survivalQoL,
+  graves: essentialsConfig.graves,
+  containerLocking: essentialsConfig.containerLocking,
   clearLag: essentialsConfig.clearLag,
   reports: moderationMainDefaults.reports,
   chat: moderationMainDefaults.chat,

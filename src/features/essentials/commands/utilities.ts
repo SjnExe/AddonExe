@@ -1,6 +1,8 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
 import { getConfig } from '@core/config/configManager.js';
+import { deserializeItem, type SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
 import { getOrCreatePlayer, getVisiblePlayers, incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency, playSound, resolveTarget } from '@core/utils/index.js';
@@ -8,8 +10,8 @@ import { resolveTradeItemDisplayName, resolveTradeItemIcon } from '@features/eco
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { Vector3Utils } from '@minecraft/math';
 import * as mc from '@minecraft/server';
-import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
-import { MinecraftEffectTypes } from '@minecraft/vanilla-data';
+import { EntityComponentTypes, EquipmentSlot, ItemComponentTypes } from '@minecraft/server';
+import { MinecraftEffectTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 
@@ -395,4 +397,335 @@ const nearCommand: CustomCommand = {
   },
 };
 
-export default [healCommand, feedCommand, repairCommand, trashCommand, nearCommand];
+const hatCommand: CustomCommand = {
+  name: 'hat',
+  description: 'Equips the item in your main hand onto your head.',
+  category: 'Essentials',
+  permissionNode: 'cmd.hat.vip',
+  execute: (executor: CommandExecutor) => {
+    if (!(executor instanceof mc.Player)) {
+      return;
+    }
+    const cfg = getConfig();
+    if (!cfg.playerUtilities?.hatEnabled && !hasPermission(executor, 'group.admin')) {
+      executor.sendMessage('§cThe /hat command is currently disabled.');
+      return;
+    }
+    const inv = executor.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+    const eq = executor.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+    if (!inv?.container || !eq) {
+      return;
+    }
+    const slot = executor.selectedSlotIndex;
+    const held = inv.container.getItem(slot);
+    if (!isDefined(held)) {
+      executor.sendMessage('§cHold an item in your hand to wear as a hat.');
+      return;
+    }
+    const currentHead = eq.getEquipment(EquipmentSlot.Head);
+    if (held.amount > 1 && isDefined(currentHead)) {
+      executor.sendMessage('§cRemove your current helmet or hold a single item to swap.');
+      return;
+    }
+    const hatItem = held.clone();
+    hatItem.amount = 1;
+    const equipped = eq.setEquipment(EquipmentSlot.Head, hatItem);
+    if (!equipped) {
+      executor.sendMessage('§cCould not equip that item onto your head.');
+      return;
+    }
+    if (held.amount > 1) {
+      held.amount -= 1;
+      inv.container.setItem(slot, held);
+    } else {
+      inv.container.setItem(slot, currentHead);
+    }
+    playSound(executor, 'armor.equip_generic');
+    executor.sendMessage('§aEnjoy your new hat!');
+  },
+};
+
+const enderVaultStorage = new StorageManager('exe:enderVault:v1');
+
+async function showEnderVaultPanel(player: mc.Player): Promise<void> {
+  const allVaults = new Map<string, SerializedItem[]>(enderVaultStorage.load<[string, SerializedItem[]][]>() ?? []);
+  const items = allVaults.get(player.id) ?? [];
+  const form = new ActionFormBuilder()
+    .title('Virtual Ender Chest')
+    .body(`§7Stored stacks: §e${items.length}/27\n§7Deposit your held item or withdraw stored items.`);
+
+  form.button('§l§2+ Deposit Held Item', 'textures/ui/color_plus', async () => {
+    if (!player.isValid) {
+      return;
+    }
+    const inv = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+    const slot = player.selectedSlotIndex;
+    const held = inv?.container?.getItem(slot);
+    if (!inv?.container || !isDefined(held)) {
+      player.sendMessage('§cHold an item in your hand to deposit.');
+      return;
+    }
+    const latestVaults = new Map<string, SerializedItem[]>(
+      enderVaultStorage.load<[string, SerializedItem[]][]>() ?? [],
+    );
+    const latestItems = latestVaults.get(player.id) ?? [];
+    if (latestItems.length >= 27) {
+      player.sendMessage('§cYour Virtual Ender Chest is full (27 slots).');
+      return;
+    }
+    latestItems.push(serializeItem(held));
+    latestVaults.set(player.id, latestItems);
+    if (!enderVaultStorage.save([...latestVaults.entries()])) {
+      player.sendMessage('§cFailed to save Virtual Ender Chest. Deposit aborted.');
+      return;
+    }
+    inv.container.setItem(slot, undefined);
+    playSound(player, 'random.enderchestopen');
+    await showEnderVaultPanel(player);
+  });
+
+  if (items.length > 0) {
+    form.button('§l§bDeposit All Matching', 'textures/ui/icon_import', async () => {
+      if (!player.isValid) {
+        return;
+      }
+      const inv = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+      const container = inv?.container;
+      if (!container) {
+        return;
+      }
+      const latestVaults = new Map<string, SerializedItem[]>(
+        enderVaultStorage.load<[string, SerializedItem[]][]>() ?? [],
+      );
+      const latestItems = latestVaults.get(player.id) ?? [];
+      const storedTypes = new Set(latestItems.map((e) => e.typeId));
+      const slotsToClear: number[] = [];
+      for (let i = 0; i < container.size && latestItems.length < 27; i++) {
+        const it = container.getItem(i);
+        if (isDefined(it) && storedTypes.has(it.typeId)) {
+          latestItems.push(serializeItem(it));
+          slotsToClear.push(i);
+        }
+      }
+      if (slotsToClear.length === 0) {
+        player.sendMessage('§7No matching items found in your inventory.');
+        return;
+      }
+      latestVaults.set(player.id, latestItems);
+      if (!enderVaultStorage.save([...latestVaults.entries()])) {
+        player.sendMessage('§cFailed to save Virtual Ender Chest.');
+        return;
+      }
+      for (const s of slotsToClear) {
+        container.setItem(s, undefined);
+      }
+      playSound(player, 'random.enderchestopen');
+      player.sendMessage(`§aDeposited §e${slotsToClear.length}§a matching stack(s)!`);
+      await showEnderVaultPanel(player);
+    });
+  }
+
+  items.forEach((entry, idx) => {
+    const name = resolveTradeItemDisplayName(entry.typeId, entry.nameTag);
+    const icon = resolveTradeItemIcon(entry.typeId);
+    form.button(`§f${name} §7x${entry.amount}`, icon, async () => {
+      if (!player.isValid) {
+        return;
+      }
+      const latestVaults = new Map<string, SerializedItem[]>(
+        enderVaultStorage.load<[string, SerializedItem[]][]>() ?? [],
+      );
+      const latestItems = latestVaults.get(player.id) ?? [];
+      const currentEntry = latestItems[idx];
+      if (!currentEntry || currentEntry.typeId !== entry.typeId) {
+        await showEnderVaultPanel(player);
+        return;
+      }
+      const inv = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+      const stack = deserializeItem(currentEntry);
+      if (!inv?.container || !isDefined(stack)) {
+        return;
+      }
+      const leftover = inv.container.addItem(stack);
+      if (isDefined(leftover)) {
+        if (leftover.amount === currentEntry.amount) {
+          player.sendMessage('§cNot enough inventory space!');
+          return;
+        }
+        latestItems[idx] = serializeItem(leftover);
+      } else {
+        latestItems.splice(idx, 1);
+      }
+      latestVaults.set(player.id, latestItems);
+      if (!enderVaultStorage.save([...latestVaults.entries()])) {
+        player.sendMessage('§cFailed to save Virtual Ender Chest.');
+        return;
+      }
+      playSound(player, 'random.pop');
+      await showEnderVaultPanel(player);
+    });
+  });
+
+  await form.show(player);
+}
+
+const enderchestCommand: CustomCommand = {
+  name: 'enderchest',
+  aliases: ['ec'],
+  description: 'Opens your personal virtual Ender Chest storage.',
+  category: 'Essentials',
+  permissionNode: 'cmd.enderchest.vip',
+  execute: (executor: CommandExecutor) => {
+    if (!(executor instanceof mc.Player)) {
+      return;
+    }
+    const cfg = getConfig();
+    if (!cfg.playerUtilities?.enderchestEnabled && !hasPermission(executor, 'group.admin')) {
+      executor.sendMessage('§cThe /enderchest command is currently disabled.');
+      return;
+    }
+    mc.system.run(() => {
+      if (executor.isValid) {
+        void showEnderVaultPanel(executor);
+      }
+    });
+  },
+};
+
+interface QuickRecipe {
+  label: string;
+  inputType: string;
+  inputAmount: number;
+  outputType: string;
+  outputAmount: number;
+  icon: string;
+}
+
+const quickWorkbenchRecipes: QuickRecipe[] = [
+  {
+    label: 'Stick x4 (2 Oak Planks)',
+    inputType: MinecraftItemTypes.OakPlanks,
+    inputAmount: 2,
+    outputType: MinecraftItemTypes.Stick,
+    outputAmount: 4,
+    icon: 'textures/items/stick',
+  },
+  {
+    label: 'Crafting Table (4 Oak Planks)',
+    inputType: MinecraftItemTypes.OakPlanks,
+    inputAmount: 4,
+    outputType: MinecraftItemTypes.CraftingTable,
+    outputAmount: 1,
+    icon: 'textures/blocks/crafting_table_top',
+  },
+  {
+    label: 'Chest (8 Oak Planks)',
+    inputType: MinecraftItemTypes.OakPlanks,
+    inputAmount: 8,
+    outputType: MinecraftItemTypes.Chest,
+    outputAmount: 1,
+    icon: 'textures/blocks/chest_front',
+  },
+  {
+    label: 'Furnace (8 Cobblestone)',
+    inputType: MinecraftItemTypes.Cobblestone,
+    inputAmount: 8,
+    outputType: MinecraftItemTypes.Furnace,
+    outputAmount: 1,
+    icon: 'textures/blocks/furnace_front_off',
+  },
+  {
+    label: 'Bread x1 (3 Wheat)',
+    inputType: MinecraftItemTypes.Wheat,
+    inputAmount: 3,
+    outputType: MinecraftItemTypes.Bread,
+    outputAmount: 1,
+    icon: 'textures/items/bread',
+  },
+];
+
+async function showWorkbenchPanel(player: mc.Player): Promise<void> {
+  const form = new ActionFormBuilder()
+    .title('Portable Workbench')
+    .body('§7Quick-craft essential survival items from your inventory.');
+
+  for (const recipe of quickWorkbenchRecipes) {
+    form.button(recipe.label, recipe.icon, async () => {
+      const inv = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+      const container = inv?.container;
+      if (!container) {
+        return;
+      }
+      let available = 0;
+      for (let i = 0; i < container.size; i++) {
+        const it = container.getItem(i);
+        if (it?.typeId === recipe.inputType) {
+          available += it.amount;
+        }
+      }
+      if (available < recipe.inputAmount) {
+        player.sendMessage(
+          `§cMissing materials! Need ${recipe.inputAmount}x ${recipe.inputType.replace('minecraft:', '')}.`,
+        );
+        return;
+      }
+      let toConsume = recipe.inputAmount;
+      for (let i = 0; i < container.size && toConsume > 0; i++) {
+        const it = container.getItem(i);
+        if (it?.typeId === recipe.inputType) {
+          const take = Math.min(it.amount, toConsume);
+          toConsume -= take;
+          if (it.amount - take <= 0) {
+            container.setItem(i, undefined);
+          } else {
+            it.amount -= take;
+            container.setItem(i, it);
+          }
+        }
+      }
+      const leftover = container.addItem(new mc.ItemStack(recipe.outputType, recipe.outputAmount));
+      if (isDefined(leftover)) {
+        player.dimension.spawnItem(leftover, player.location);
+      }
+      playSound(player, 'random.pop');
+      player.sendMessage(`§aCrafted §e${recipe.outputAmount}x ${recipe.outputType.replace('minecraft:', '')}§a!`);
+      await showWorkbenchPanel(player);
+    });
+  }
+
+  await form.show(player);
+}
+
+const workbenchCommand: CustomCommand = {
+  name: 'workbench',
+  aliases: ['wb', 'craft'],
+  description: 'Opens a portable quick-craft workbench.',
+  category: 'Essentials',
+  permissionNode: 'cmd.workbench.vip',
+  execute: (executor: CommandExecutor) => {
+    if (!(executor instanceof mc.Player)) {
+      return;
+    }
+    const cfg = getConfig();
+    if (!cfg.playerUtilities?.workbenchEnabled && !hasPermission(executor, 'group.admin')) {
+      executor.sendMessage('§cThe /workbench command is currently disabled.');
+      return;
+    }
+    mc.system.run(() => {
+      if (executor.isValid) {
+        void showWorkbenchPanel(executor);
+      }
+    });
+  },
+};
+
+export default [
+  healCommand,
+  feedCommand,
+  repairCommand,
+  trashCommand,
+  nearCommand,
+  hatCommand,
+  enderchestCommand,
+  workbenchCommand,
+];
