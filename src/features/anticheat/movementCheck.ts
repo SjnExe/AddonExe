@@ -259,11 +259,24 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   // Determine context-based limit
   let limit = config.maxSpeed;
 
-  // Check for Gliding (Elytra)
+  // Check for Gliding (Elytra) & Riptide Trident
   const isGliding = player.isGliding;
+  const hasRiptideGrace = hasGrace(player.id, 'riptide');
 
   if (isGliding) {
     limit = config.maxSpeedElytra;
+    if (hasRiptideGrace) {
+      limit = Math.max(limit, 145);
+    } else if (hSpeed > limit) {
+      const equippable = player.getComponent(EntityComponentTypes.Equippable) as
+        mc.EntityEquippableComponent | undefined;
+      const mainHandItem = equippable?.getEquipment(mc.EquipmentSlot.Mainhand);
+      const offhandItem = equippable?.getEquipment(mc.EquipmentSlot.Offhand);
+      if (isRiptideTrident(mainHandItem) || isRiptideTrident(offhandItem)) {
+        addGrace(player.id, 'riptide', 4000);
+        limit = Math.max(limit, 145);
+      }
+    }
   } else {
     const now = Date.now();
     const iceGraceMs = config.iceFrictionGraceMs ?? 1500;
@@ -271,13 +284,12 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
 
     // Fast path: if player velocity is within normal speed limit and no ice inertia is active,
     // skip native component, equipment, and block queries.
-    const hasRiptideGrace = hasGrace(player.id, 'riptide');
     const hasBounceGrace = hasGrace(player.id, 'bounce');
     const isPotentialBounce = player.isOnGround !== true && velocity.y > 0.45 && !hasBounceGrace;
 
     if (hSpeed > limit || isIceGraceActive || hasRiptideGrace || hasBounceGrace || isPotentialBounce) {
       if (hasRiptideGrace) {
-        limit = Math.max(limit, 55);
+        limit = Math.max(limit, 65);
       } else if (hasBounceGrace) {
         limit = config.maxSpeedIce;
       } else {
@@ -464,10 +476,10 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     state.lastSafeDimensionId = player.dimension.id;
   }
 
-  // Threshold for flagging
+  // Threshold for flagging (only flag/setback on ticks where speed actually exceeds the limit)
   const flaggingThreshold = 20;
 
-  if (state.violationLevel > flaggingThreshold) {
+  if (hSpeed > effectiveLimit && state.violationLevel > flaggingThreshold) {
     flagManager.flag(
       player,
       'movementCheck',

@@ -5,23 +5,19 @@
     "$pressed_button_name": "button.chat_autocomplete",
     "$button_text": "Tab",
     "$button_text_max_size": ["100%", 10],
-    "focus_enabled": true,
-    "bindings": [
-      {
-        "binding_name": "#chat_visible",
-        "binding_name_override": "#visible"
-      }
-    ]
+    "focus_enabled": true
   },
-  "chat_bottom_panel@chat.chat_bottom_panel": {
+  "chat_bottom_panel": {
     "modifications": [
       {
         "array_name": "controls",
         "control_name": "send_button",
         "operation": "insert_before",
-        "value": {
-          "exe_tab_autocomplete_button@chat.exe_tab_autocomplete_button": {}
-        }
+        "value": [
+          {
+            "exe_tab_autocomplete_button@chat.exe_tab_autocomplete_button": {}
+          }
+        ]
       }
     ]
   }
