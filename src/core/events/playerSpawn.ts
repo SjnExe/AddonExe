@@ -9,6 +9,7 @@ import { diagnosticBotName, frozenTag, vanishedTag } from '@core/utils/constants
 import { formatCurrency, formatLocation, formatString } from '@core/utils/index.js';
 import { debugLog, errorLog, infoLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
+import { addGrace } from '@features/anticheat/core/graceManager.js';
 import { getKit, giveKitItems } from '@features/economy/kit/manager.js';
 import { handleCombatPlayerJoin } from '@features/essentials/combat/manager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
@@ -29,6 +30,7 @@ export function handlePlayerJoin(player: mc.Player) {
   if (player.isValid === false) {
     return;
   }
+  addGrace(player.id, 'join', 4000);
   let pData: PlayerData;
   try {
     pData = getOrCreatePlayer(player);
@@ -405,6 +407,7 @@ export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
     return;
   }
 
+  addGrace(player.id, 'respawn', 3500);
   const config = getConfig();
   let pData: PlayerData;
   try {

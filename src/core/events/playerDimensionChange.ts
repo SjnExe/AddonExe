@@ -2,6 +2,7 @@ import { getConfig } from '@core/config/configManager.js';
 import { getLockState } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import { addGrace } from '@features/anticheat/core/graceManager.js';
 import { teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -14,6 +15,7 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
   if (!isDefined(player) || !player.isValid) {
     return;
   }
+  addGrace(player.id, 'dimension_change', 3500);
   const config = getConfig();
 
   let dimensionId: 'nether' | 'end' | undefined;

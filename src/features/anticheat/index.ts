@@ -10,6 +10,8 @@ import '@features/anticheat/itemCheck.js';
 import '@features/anticheat/movementCheck.js';
 import '@features/anticheat/combatCheck.js';
 import '@features/anticheat/miningCheck.js';
+import '@features/anticheat/scaffoldCheck.js';
+import '@features/anticheat/noSlowCheck.js';
 
 export * from '@features/anticheat/core/check.js';
 export * from '@features/anticheat/core/checkRegistry.js';

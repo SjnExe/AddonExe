@@ -312,7 +312,14 @@ export const itemCheck: AntiCheatCheck = {
       itemCheckIntervalId = undefined;
     }
   },
-  clearPlayer: (_playerId: string) => {},
+  clearPlayer: (playerId: string) => {
+    const prefix = `${playerId}:`;
+    for (const key of mutatingSlots) {
+      if (key.startsWith(prefix)) {
+        mutatingSlots.delete(key);
+      }
+    }
+  },
   reset: () => _clearItemCheckForTest(),
 };
 
