@@ -318,7 +318,7 @@ describe('MovementCheck', () => {
     expect(flagSpy).not.toHaveBeenCalled();
   });
 
-  it('should allow higher speed limit when using trident with Riptide enchantment', () => {
+  it('should allow higher speed limit when using trident with Riptide enchantment', async () => {
     startMovementCheckLoop();
 
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
@@ -357,6 +357,10 @@ describe('MovementCheck', () => {
     });
 
     addPlayerToCache(tridentPlayer);
+
+    // Grant activation-backed Riptide grace (simulating itemReleaseUse with Riptide trident)
+    const { addGrace } = await import('@features/anticheat/core/graceManager.js');
+    addGrace(tridentPlayer.id, 'riptide', 4500);
 
     for (let i = 0; i < 5; i++) {
       intervalCallback();

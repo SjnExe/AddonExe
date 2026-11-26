@@ -45,7 +45,7 @@ export async function showAnticheatAdvancedPanel(
     })
     .button('§l§bMonitored X-Ray Ores\n§r§7Add or toggle tracked ores', 'textures/blocks/diamond_ore', async () => {
       const { showXrayOresPanel } = await import('@features/anticheat/xray/ui/panel.js');
-      await showXrayOresPanel(player);
+      await showXrayOresPanel(player, 1, () => showAnticheatAdvancedPanel(player, returnTo));
     })
     .button(
       `§l§fItem Rules (${config.itemCheck.violations.length})\n§r§7Banned items & enchants`,

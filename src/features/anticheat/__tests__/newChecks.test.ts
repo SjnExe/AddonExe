@@ -9,6 +9,7 @@ import {
   _clearNoSlowCheckForTest,
   clearPlayerNoSlowState,
   evaluateNoSlowPlayers,
+  handleItemStartUse,
 } from '@features/anticheat/noSlowCheck.js';
 import { _clearScaffoldCheckForTest, handlePlayerPlaceBlock } from '@features/anticheat/scaffoldCheck.js';
 import * as sidebarManager from '@features/sidebar/manager.js';
@@ -91,7 +92,7 @@ describe('New AntiCheat Checks & Lag Safety', () => {
   });
 
   it('scaffoldCheck flags impossible backward placement angle after sustained violations', () => {
-    flagSpy = spyOn(flagManager, 'flag').mockImplementation(() => {});
+    flagSpy = spyOn(flagManager, 'flag').mockImplementation(() => true);
     const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
     const player = new PlayerMock('p_angle', 'BackwardPlacer');
     player.getGameMode = () => mc.GameMode.Survival;
@@ -102,16 +103,25 @@ describe('New AntiCheat Checks & Lag Safety', () => {
     const block = { location: { x: 0, y: 64, z: -3 } } as mc.Block;
     const event = { player, block } as unknown as mc.PlayerPlaceBlockAfterEvent;
 
-    for (let i = 0; i < 4; i++) {
-      // Simulate distinct ticks by adjusting system.currentTick if needed, or maxPlacementsPerTick=2 won't trigger if we reset?
-      // Wait: maxPlacementsPerTick is 2, so call twice, then clear? No, just check that angle flag was emitted at 4th!
-      handlePlayerPlaceBlock(event);
-    }
+    // Simulate distinct ticks so FastPlace does not fire
+    const originalTick = mc.system.currentTick;
+    try {
+      for (let i = 0; i < 3; i++) {
+        (mc.system as { currentTick: number }).currentTick = originalTick + i + 1;
+        handlePlayerPlaceBlock(event);
+      }
+      expect(flagSpy).not.toHaveBeenCalled();
 
-    expect(flagSpy).toHaveBeenCalledWith(player, 'scaffoldCheck', expect.stringContaining('Scaffold Angle:'), 1, {
-      category: 'world',
-      confidence: 'low',
-    });
+      (mc.system as { currentTick: number }).currentTick = originalTick + 4;
+      handlePlayerPlaceBlock(event);
+      expect(flagSpy).toHaveBeenCalledTimes(1);
+      expect(flagSpy).toHaveBeenCalledWith(player, 'scaffoldCheck', expect.stringContaining('Scaffold Angle:'), 1, {
+        category: 'world',
+        confidence: 'low',
+      });
+    } finally {
+      (mc.system as { currentTick: number }).currentTick = originalTick;
+    }
   });
 
   it('flagManager suppresses movement flags during severe server TPS drop (< 15.5)', () => {
@@ -137,12 +147,36 @@ describe('New AntiCheat Checks & Lag Safety', () => {
     expect(mockRunCommand).not.toHaveBeenCalled();
   });
 
-  it('noSlowCheck does not flag when no players are using items', () => {
-    flagSpy = spyOn(flagManager, 'flag').mockImplementation(() => {});
+  it('noSlowCheck does not flag when no players are using items, and flags sustained sprint while using an item', () => {
+    flagSpy = spyOn(flagManager, 'flag').mockImplementation(() => true);
     getAllPlayersSpy = spyOn(playerCache, 'getAllPlayersFromCache').mockReturnValue([]);
     evaluateNoSlowPlayers();
     clearPlayerNoSlowState('none');
     expect(flagSpy).not.toHaveBeenCalled();
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const player = new PlayerMock('p_noslow', 'FastEater');
+    player.getGameMode = () => mc.GameMode.Survival;
+    player.isOnGround = true;
+    player.isSprinting = true;
+    player.getVelocity = () => ({ x: 0.45, y: 0, z: 0 }); // 9.0 bps (> 5.5)
+
+    getAllPlayersSpy.mockReturnValue([player]);
+    const nowSpy = spyOn(Date, 'now').mockReturnValue(1000);
+    handleItemStartUse({ source: player } as unknown as mc.ItemStartUseAfterEvent);
+    evaluateNoSlowPlayers();
+    expect(flagSpy).not.toHaveBeenCalled(); // Within 500ms startup grace
+
+    nowSpy.mockReturnValue(2000);
+    evaluateNoSlowPlayers();
+    evaluateNoSlowPlayers();
+    evaluateNoSlowPlayers();
+    expect(flagSpy).toHaveBeenCalledTimes(1);
+    expect(flagSpy).toHaveBeenCalledWith(player, 'noSlowCheck', expect.stringContaining('NoSlow:'), 1, {
+      category: 'movement',
+      confidence: 'low',
+    });
+    nowSpy.mockRestore();
   });
 
   it('flagManager respects adminBypass toggle (false logs admin violations, true exempts)', async () => {
@@ -173,6 +207,7 @@ describe('New AntiCheat Checks & Lag Safety', () => {
     } as ReturnType<typeof configLoader.getAnticheatConfig>);
     flagManager.flag(admin, 'itemCheck', 'Banned Item: minecraft:bedrock');
     expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith('AdminTester', 'itemCheck', 1, 'Banned Item: minecraft:bedrock');
 
     permSpy.mockRestore();
     logSpy.mockRestore();

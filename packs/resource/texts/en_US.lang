@@ -5,7 +5,7 @@ pack.name=§l§cAddonExe§6 §9RP§r
 pack.description=§bThe core resource pack for AddonExe.§r
 
 ## Items & Entities
-item.exe:panel.name=Admin Panel
+item.exe:panel.name=Server Panel
 entity.exe:floating_text.name=Floating Text
 
 ## Common & System Errors
