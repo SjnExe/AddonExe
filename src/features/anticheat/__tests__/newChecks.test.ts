@@ -144,4 +144,37 @@ describe('New AntiCheat Checks & Lag Safety', () => {
     clearPlayerNoSlowState('none');
     expect(flagSpy).not.toHaveBeenCalled();
   });
+
+  it('flagManager respects adminBypass toggle (false logs admin violations, true exempts)', async () => {
+    const permissionEngine = await import('@core/permissions/permissionEngine.js');
+    const logManager = await import('@features/anticheat/logManager.js');
+    const permSpy = spyOn(permissionEngine, 'hasPermission').mockReturnValue(true);
+    const logSpy = spyOn(logManager, 'addFlagLog').mockImplementation(() => {});
+
+    const PlayerMock = mc.Player as unknown as MockConstructable<mc.Player>;
+    const admin = new PlayerMock('admin_1', 'AdminTester');
+
+    // adminBypass: true -> exempt
+    getAnticheatConfigSpy.mockReturnValue({
+      enabled: true,
+      adminBypass: true,
+      consoleNotifications: false,
+      itemCheck: { enabled: true, notifyStaff: false, flagDecaySeconds: 300, violations: [] },
+    } as ReturnType<typeof configLoader.getAnticheatConfig>);
+    flagManager.flag(admin, 'itemCheck', 'Banned Item: minecraft:bedrock');
+    expect(logSpy).not.toHaveBeenCalled();
+
+    // adminBypass: false -> flagged & logged
+    getAnticheatConfigSpy.mockReturnValue({
+      enabled: true,
+      adminBypass: false,
+      consoleNotifications: false,
+      itemCheck: { enabled: true, notifyStaff: false, flagDecaySeconds: 300, violations: [] },
+    } as ReturnType<typeof configLoader.getAnticheatConfig>);
+    flagManager.flag(admin, 'itemCheck', 'Banned Item: minecraft:bedrock');
+    expect(logSpy).toHaveBeenCalledTimes(1);
+
+    permSpy.mockRestore();
+    logSpy.mockRestore();
+  });
 });
