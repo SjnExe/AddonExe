@@ -9,6 +9,7 @@ import { formatCurrency, formatDuration } from '@core/utils/index.js';
 import { debugLog } from '@core/utils/logger.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { getBounty } from '@features/economy/bounty/manager.js';
+import { isPlayerAfk } from '@features/essentials/afk/manager.js';
 import { getRemainingCombatCooldown } from '@features/essentials/combat/manager.js';
 import type { SidebarLayoutMode } from '@features/sidebar/config.js';
 import { isDefined, isNonEmptyString, isNumber } from '@lib/guards.js';
@@ -132,6 +133,8 @@ let lastScoreboardLines: string[] = [];
 let cachedTickNumber = -1;
 let cachedTimeString = '';
 let cachedDateString = '';
+let cachedOnlineStaffTick = -1;
+let cachedOnlineStaffCount = '0';
 
 let lastTpsTime = Date.now();
 let lastTpsTick = 0;
@@ -142,15 +145,37 @@ export function getCurrentTps(): { tps: string; tpsNum: number } {
   return { tps: cachedTps, tpsNum: cachedTpsNum };
 }
 
+function gcd(a: number, b: number): number {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    const t = y;
+    y = x % y;
+    x = t;
+  }
+  return x || 1;
+}
+
 function getOptimalSidebarStep(): number {
   try {
     const config = configurations.getSidebarConfig();
     const globalInterval = Math.max(1, config.globalInfo?.updateInterval ?? 20);
     const hudInterval = Math.max(1, config.hud?.updateInterval ?? 20);
-    return Math.max(1, Math.min(globalInterval, hudInterval));
+    return Math.max(1, gcd(globalInterval, hudInterval));
   } catch {
     return 20;
   }
+}
+
+/**
+ * Clears cached sidebar and HUD state for a departing player.
+ *
+ * @param playerId The departing player's unique identifier.
+ */
+export function clearPlayerSidebarState(playerId: string): void {
+  actionBarOverrides.delete(playerId);
+  lastSentHud.delete(playerId);
+  lastSentTick.delete(playerId);
 }
 
 export function initializeSidebar() {
@@ -473,6 +498,15 @@ export interface PlayerPlaceholderContext {
   leaderboard?: LeaderboardEntry[];
 }
 
+/**
+ * Builds a reusable placeholder token map for sidebar and HUD rendering.
+ *
+ * @param player Optional player entity for player-specific placeholders.
+ * @param mainConfig Active core configuration.
+ * @param sidebarConfig Active sidebar configuration.
+ * @param pData Optional pre-fetched PlayerData record.
+ * @returns Placeholder context containing resolved tokens.
+ */
 export function createPlayerPlaceholderContext(
   player?: mc.Player,
   mainConfig = configManager.getConfig(),
@@ -526,8 +560,13 @@ export function createPlayerPlaceholderContext(
   }
   tokens.set('world_day', worldDay);
 
-  const onlineStaff = getAllPlayersFromCache().filter((p) => p.isValid && hasPermission(p, 'group.mod')).length;
-  tokens.set('online_staff', onlineStaff.toString());
+  if (cachedOnlineStaffTick !== currentTick) {
+    cachedOnlineStaffCount = getAllPlayersFromCache()
+      .filter((p) => p.isValid && hasPermission(p, 'group.mod'))
+      .length.toString();
+    cachedOnlineStaffTick = currentTick;
+  }
+  tokens.set('online_staff', cachedOnlineStaffCount);
 
   if (!isDefined(player)) {
     return { tokens };
@@ -539,7 +578,7 @@ export function createPlayerPlaceholderContext(
   }
 
   tokens.set('name', player.name);
-  tokens.set('afk', typeof player.hasTag === 'function' && player.hasTag('afk') ? '§7[AFK]§r' : '');
+  tokens.set('afk', isPlayerAfk(player.id) ? '§7[AFK]§r' : '');
 
   const rank = getPlayerRank(player, mainConfig);
   tokens.set('rank', rank.name);

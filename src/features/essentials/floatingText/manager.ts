@@ -197,8 +197,8 @@ function* updateLoopJob() {
     yield;
   }
 
-  // Reschedule
-  updateLoopId = setTrackedTimeout(runUpdateLoop, 1);
+  // Reschedule at 1-second cadence (20 ticks) to avoid per-tick job scheduling overhead on large servers
+  updateLoopId = setTrackedTimeout(runUpdateLoop, 20);
 }
 
 function runExpirationLoop() {

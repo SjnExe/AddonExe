@@ -1,4 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
+import { canBypass } from '@core/events/protectionEvents.js';
+import { getProtectionFlags } from '@core/events/protectionService.js';
+import { canPlayerModify } from '@features/essentials/protection/landclaim/manager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes, EquipmentSlot, ItemComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
@@ -203,6 +206,15 @@ const oreDropTable: Record<string, OreDropRule> = {
   },
 };
 
+/**
+ * Mines connected matching ore blocks when a player breaks an ore block with a pickaxe.
+ *
+ * @param player The player breaking the ore.
+ * @param block The broken ore block reference.
+ * @param brokenPermutationOrOptions Optional broken block permutation or options override.
+ * @param maybeOptions Optional VeinMiner configuration overrides.
+ * @returns Number of additional connected ore blocks mined.
+ */
 export function handleVeinMiner(
   player: mc.Player,
   block: mc.Block,
@@ -350,9 +362,24 @@ export function handleVeinMiner(
     }
   }
 
+  let canBypassProt = true;
+  let protectionReady = false;
+  try {
+    canBypassProt = canBypass(player);
+    protectionReady = true;
+  } catch {
+    // Config manager not initialized in isolated unit tests
+  }
   let brokenCount = 0;
   for (const pos of toBreak) {
     if (pos.x === block.location.x && pos.y === block.location.y && pos.z === block.location.z) {
+      continue;
+    }
+    if (
+      protectionReady &&
+      ((!canBypassProt && getProtectionFlags(pos, dimension.id).preventBlockBreaking) ||
+        !canPlayerModify(player, pos, dimension.id, 'break'))
+    ) {
       continue;
     }
 
