@@ -1,5 +1,6 @@
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
+/** Configuration schema for the economy system. */
 export interface EconomyConfig {
   currencySymbol: string;
   startingBalance: number;
@@ -37,6 +38,23 @@ export interface EconomyConfig {
     requestTimeout: number;
     duelTimeout: number;
     maxConcurrentDuels: number;
+  };
+  sell?: {
+    enabled: boolean;
+  };
+  bottle?: {
+    enabled: boolean;
+  };
+  jobs?: {
+    enabled: boolean;
+    minerReward: number;
+    woodcutterReward: number;
+    farmerReward: number;
+    hunterReward: number;
+  };
+  chestShop?: {
+    enabled: boolean;
+    maxShopsPerPlayer: number;
   };
 }
 
@@ -139,6 +157,23 @@ export const economyConfig: EconomyConfig = {
     requestTimeout: 60,
     duelTimeout: 300,
     maxConcurrentDuels: 1,
+  },
+  sell: {
+    enabled: false,
+  },
+  bottle: {
+    enabled: false,
+  },
+  jobs: {
+    enabled: false,
+    minerReward: 2,
+    woodcutterReward: 1,
+    farmerReward: 1,
+    hunterReward: 3,
+  },
+  chestShop: {
+    enabled: false,
+    maxShopsPerPlayer: 10,
   },
 };
 

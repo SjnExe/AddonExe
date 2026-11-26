@@ -1,14 +1,28 @@
 import { getConfig } from '@core/config/configManager.js';
+import { getWorldProtectionConfig } from '@core/config/configurations.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { frozenTag } from '@core/utils/constants.js';
 import { hasTeleportProtection } from '@core/utils/teleportLogic.js';
+import {
+  getChestShopAt,
+  handleChestShopInteract,
+  removeChestShopOnBreak,
+} from '@features/economy/chestShop/manager.js';
+import { getGraveAt, handleGraveInteract } from '@features/essentials/graves/manager.js';
+import { recordAuditEntry, shouldRecordAuditEvent } from '@features/essentials/protection/auditLog.js';
+import {
+  canAccessLockedContainer,
+  getContainerLockAt,
+  removeContainerLockOnBreak,
+} from '@features/essentials/protection/containerLockManager.js';
 import {
   canPlayerModify,
   getEnforcedClaimAt,
   isClaimOwnerOrTrusted,
 } from '@features/essentials/protection/landclaim/manager.js';
 import { handleWandBreakBlock, handleWandInteractBlock } from '@features/essentials/protection/zoneSelectionManager.js';
+import { handleCarryEntityInteract } from '@features/essentials/survival/carry.js';
 import { setActionBarOverride } from '@features/sidebar/manager.js';
 import { isDefined } from '@lib/guards.js';
 import { EntityComponentTypes } from '@minecraft/server';
@@ -86,6 +100,31 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
   if (handleWandBreakBlock(event)) {
     return;
   }
+  if (isDefined(getGraveAt(player.dimension.id, block.location))) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, '§cGraves cannot be broken — interact with it to collect items.', 2500);
+    });
+    return;
+  }
+
+  const containerLock = getContainerLockAt(player.dimension.id, block.location);
+  if (isDefined(containerLock) && !canAccessLockedContainer(containerLock, player, true)) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, `§cLocked by ${containerLock.ownerName}.`, 2500);
+    });
+    return;
+  }
+
+  const chestShop = getChestShopAt(player.dimension.id, block.location);
+  if (isDefined(chestShop) && chestShop.ownerId !== player.id && !hasPermission(player, 'group.admin')) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, `§cChest Shop owned by ${chestShop.ownerName}.`, 2500);
+    });
+    return;
+  }
 
   const flags = getProtectionFlags(block.location, player.dimension.id);
   if (flags.preventBlockBreaking) {
@@ -102,6 +141,26 @@ export function handleBeforePlayerBreakBlock(event: mc.PlayerBreakBlockBeforeEve
     event.cancel = true;
     mc.system.run(() => {
       setActionBarOverride(player, '§cThis land is claimed by another player.', 2500);
+    });
+    return;
+  }
+
+  if (isDefined(containerLock)) {
+    removeContainerLockOnBreak(player.dimension.id, block.location);
+  }
+  if (isDefined(chestShop)) {
+    removeChestShopOnBreak(player.dimension.id, block.location);
+  }
+
+  if (shouldRecordAuditEvent('break', block.typeId)) {
+    recordAuditEntry({
+      playerName: player.name,
+      action: 'break',
+      blockType: block.typeId,
+      dimensionId: player.dimension.id,
+      x: block.location.x,
+      y: block.location.y,
+      z: block.location.z,
     });
   }
 }
@@ -144,6 +203,19 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
     mc.system.run(() => {
       setActionBarOverride(player, '§cThis land is claimed by another player.', 2500);
     });
+    return;
+  }
+
+  if (shouldRecordAuditEvent('place', block.typeId)) {
+    recordAuditEntry({
+      playerName: player.name,
+      action: 'place',
+      blockType: block.typeId,
+      dimensionId: player.dimension.id,
+      x: block.location.x,
+      y: block.location.y,
+      z: block.location.z,
+    });
   }
 }
 
@@ -184,7 +256,13 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent): void {
       continue;
     }
     const blockFlags = getProtectionFlags(block.location, dimId);
-    if (!blockFlags.preventExplosions && (!blockFlags.preventMobGriefing || !isMobSource)) {
+    if (
+      !isDefined(getGraveAt(dimId, block.location)) &&
+      !isDefined(getContainerLockAt(dimId, block.location)) &&
+      !isDefined(getChestShopAt(dimId, block.location)) &&
+      !blockFlags.preventExplosions &&
+      (!blockFlags.preventMobGriefing || !isMobSource)
+    ) {
       const cx = Math.floor(block.location.x / 16);
       const cz = Math.floor(block.location.z / 16);
       const chunkKey = `${cx},${cz}`;
@@ -314,6 +392,21 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
   if (handleWandInteractBlock(event)) {
     return;
   }
+  if (handleGraveInteract(event)) {
+    return;
+  }
+  if (handleChestShopInteract(event)) {
+    return;
+  }
+
+  const containerLock = getContainerLockAt(player.dimension.id, block.location);
+  if (isDefined(containerLock) && !canAccessLockedContainer(containerLock, player)) {
+    event.cancel = true;
+    mc.system.run(() => {
+      setActionBarOverride(player, `§cThis container is locked by ${containerLock.ownerName}.`, 2500);
+    });
+    return;
+  }
 
   const isFireStarter =
     itemStack?.typeId === MinecraftItemTypes.FlintAndSteel || itemStack?.typeId === MinecraftItemTypes.FireCharge;
@@ -321,6 +414,15 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
   const blockFlags = getProtectionFlags(block.location, player.dimension.id);
 
   if (isFireStarter) {
+    const globalFireOff = Boolean(getWorldProtectionConfig().globalFlags?.preventFireSpread);
+    if (globalFireOff && !canBypass(player)) {
+      event.cancel = true;
+      mc.system.run(() => {
+        setActionBarOverride(player, '§cFire starters are disabled globally.', 2500);
+      });
+      return;
+    }
+
     const playerFlags = getProtectionFlags(
       {
         x: Math.floor(player.location.x),
@@ -332,14 +434,15 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
     const targetLocation = getAdjacentBlockLocation(block.location, blockFace);
     const targetFlags = getProtectionFlags(targetLocation, player.dimension.id);
 
+    const globalPvPOnly = Boolean(getWorldProtectionConfig().globalFlags?.preventPvP);
     if (
-      blockFlags.preventPvP ||
+      (blockFlags.preventPvP && !globalPvPOnly) ||
       blockFlags.preventBlockPlacing ||
       blockFlags.preventBlockInteraction ||
-      playerFlags.preventPvP ||
+      (playerFlags.preventPvP && !globalPvPOnly) ||
       playerFlags.preventBlockPlacing ||
       playerFlags.preventBlockInteraction ||
-      targetFlags.preventPvP ||
+      (targetFlags.preventPvP && !globalPvPOnly) ||
       targetFlags.preventBlockPlacing ||
       targetFlags.preventBlockInteraction
     ) {
@@ -363,12 +466,14 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
     }
   }
 
+  const checkIsContainer = () =>
+    containerBlockTypes.has(block.typeId) || block.hasComponent(mc.BlockComponentTypes.Inventory);
   const claim = getEnforcedClaimAt(block.location, player.dimension.id);
   if (isDefined(claim)) {
     const isOwnerOrTrusted = isClaimOwnerOrTrusted(claim, player);
 
     if (!isOwnerOrTrusted) {
-      const isContainer = containerBlockTypes.has(block.typeId) || block.hasComponent(mc.BlockComponentTypes.Inventory);
+      const isContainer = checkIsContainer();
       const actionType = isContainer ? 'container' : 'interact';
       if (!canPlayerModify(player, block.location, player.dimension.id, actionType)) {
         event.cancel = true;
@@ -379,8 +484,21 @@ export function handlePlayerInteractWithBlock(event: mc.PlayerInteractWithBlockB
             2500,
           );
         });
+        return;
       }
     }
+  }
+
+  if (shouldRecordAuditEvent('container', block.typeId) && checkIsContainer()) {
+    recordAuditEntry({
+      playerName: player.name,
+      action: 'container',
+      blockType: block.typeId,
+      dimensionId: player.dimension.id,
+      x: block.location.x,
+      y: block.location.y,
+      z: block.location.z,
+    });
   }
 }
 
@@ -423,6 +541,11 @@ export function handlePlayerInteractWithEntity(event: mc.PlayerInteractWithEntit
       }
     }
   }
+
+  if (event.cancel) {
+    return;
+  }
+  handleCarryEntityInteract(event);
 }
 
 /**
@@ -550,6 +673,14 @@ export function handleBeforeEntityHurt(event: mc.EntityHurtBeforeEvent): void {
   const victim = event.hurtEntity;
 
   if (victim.typeId === MinecraftEntityTypes.Player && hasTeleportProtection(victim.id)) {
+    event.cancel = true;
+    return;
+  }
+  if (
+    victim.typeId === MinecraftEntityTypes.Player &&
+    typeof victim.getDynamicProperty === 'function' &&
+    victim.getDynamicProperty('exe:godMode') === true
+  ) {
     event.cancel = true;
     return;
   }

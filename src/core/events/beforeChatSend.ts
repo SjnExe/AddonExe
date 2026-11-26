@@ -15,6 +15,8 @@ import {
 } from '@features/moderation/commands/staffchat.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
 import { isWatched } from '@features/moderation/watchManager.js';
+import { isPlayerIgnored } from '@features/social/ignore/manager.js';
+import { getDisplayPlayerName } from '@features/social/nick/manager.js';
 import { isTeamChatEnabled, sendTeamChatMessage } from '@features/social/team/commands/team.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -116,6 +118,9 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
   }
 
   if (config.chat.enabled !== true) {
+    if (config.ignore?.enabled) {
+      event.targets = mc.world.getAllPlayers().filter((r) => r.isValid && !isPlayerIgnored(r.id, player.id));
+    }
     return;
   }
 
@@ -194,15 +199,29 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
     const prefix = `${devTag}${chatFormatting.prefixText ? `§e[§r${chatFormatting.prefixText}§e]§r ` : ''}`;
     const nameColor = chatFormatting.nameColor || '§7';
     const msgColor = chatFormatting.messageColor || '§f';
-    const formattedMessage = `${prefix}${nameColor}${player.name}§r: ${msgColor}${finalMessageText}§r`;
+    const displayName = getDisplayPlayerName(player);
+    const formattedMessage = `${prefix}${nameColor}${displayName}§r: ${msgColor}${finalMessageText}§r`;
 
-    mc.world.sendMessage(formattedMessage);
+    if (config.ignore?.enabled) {
+      for (const recipient of mc.world.getAllPlayers()) {
+        if (recipient.isValid && !isPlayerIgnored(recipient.id, player.id)) {
+          recipient.sendMessage(formattedMessage);
+        }
+      }
+    } else {
+      mc.world.sendMessage(formattedMessage);
+    }
 
     if (config.chat.logToConsole === true) {
       rawLog(stripColorCodes(formattedMessage));
     }
-  } else if (config.chat.logToConsole === true) {
-    rawLog(`[CHAT] ${player.name}: ${finalMessageText}`);
+  } else {
+    if (config.ignore?.enabled) {
+      event.targets = mc.world.getAllPlayers().filter((r) => r.isValid && !isPlayerIgnored(r.id, player.id));
+    }
+    if (config.chat.logToConsole === true) {
+      rawLog(`[CHAT] ${player.name}: ${finalMessageText}`);
+    }
   }
 
   // Mentions
@@ -212,7 +231,7 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
       if (word.startsWith('@') && word.length > 1) {
         const cleanName = word.slice(1).replaceAll(/[^a-zA-Z0-9_ -]/g, '');
         const target = findPlayerByName(cleanName) ?? getPlayerFromCache(cleanName);
-        if (isDefined(target)) {
+        if (isDefined(target) && !isPlayerIgnored(target.id, player.id)) {
           target.playSound('random.orb');
           target.sendMessage(`§e${player.name}§r §ementioned you!§r`);
         }

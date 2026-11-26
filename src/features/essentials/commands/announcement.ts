@@ -24,7 +24,21 @@ const announcementCommand: CustomCommand = {
   },
 };
 
+/**
+ * Broadcasts an announcement to all players via chat or actionbar according to config.
+ *
+ * @param message Announcement text.
+ */
 export function broadcastAnnouncement(message: string) {
+  const mode = getConfig().announcements?.mode ?? 'chat';
+  if (mode === 'actionbar') {
+    for (const player of mc.world.getAllPlayers()) {
+      if (player.isValid) {
+        player.onScreenDisplay.setActionBar(`§d[Announcement] §r${message}`);
+      }
+    }
+    return;
+  }
   mc.world.sendMessage(`§d[Announcement] §r${message}`);
 }
 

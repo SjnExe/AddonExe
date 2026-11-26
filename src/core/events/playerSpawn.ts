@@ -12,6 +12,7 @@ import { sendMessage } from '@core/utils/messaging.js';
 import { addGrace } from '@features/anticheat/core/graceManager.js';
 import { getKit, giveKitItems } from '@features/economy/kit/manager.js';
 import { handleCombatPlayerJoin } from '@features/essentials/combat/manager.js';
+import { enforceMaintenanceOnJoin } from '@features/moderation/maintenanceManager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { isWatched } from '@features/moderation/watchManager.js';
 import { getUnreadMailCount } from '@features/social/mail/manager.js';
@@ -54,6 +55,10 @@ export function handlePlayerJoin(player: mc.Player) {
     updatePlayerData(player.id, (d) => {
       d.rankId = calculatedRank.id;
     });
+  }
+
+  if (enforceMaintenanceOnJoin(player)) {
+    return;
   }
 
   // Sync vanish state from tag

@@ -8,12 +8,21 @@ import { playSound } from '@core/utils/index.js';
 import { rawLog } from '@core/utils/logger.js';
 import { addChatLog } from '@features/moderation/chatLog.js';
 import { getPunishment } from '@features/moderation/punishmentManager.js';
+import { isPlayerIgnored } from '@features/social/ignore/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
 export const socialSpyTag = 'exe:socialspy';
 const lastReplyPartner = new Map<string, string>();
 
+/**
+ * Sends a private message from `sender` to `target` respecting mutes, vanish, and ignore lists.
+ *
+ * @param sender The sending player.
+ * @param target The recipient player.
+ * @param rawMessage Raw message text.
+ * @returns Result indicating success or failure reason.
+ */
 export function sendPrivateMessage(
   sender: mc.Player,
   target: mc.Player,
@@ -33,6 +42,10 @@ export function sendPrivateMessage(
   const targetData = getPlayer(target.id);
   if (targetData?.isVanished === true && !hasPermission(sender, 'group.mod')) {
     return { success: false, message: '§cPlayer not found.' };
+  }
+
+  if (isPlayerIgnored(target.id, sender.id) && !hasPermission(sender, 'group.mod')) {
+    return { success: false, message: '§cThis player is ignoring you.' };
   }
 
   const cleanMessage = rawMessage.trim();

@@ -49,6 +49,11 @@ export const essentialsConfig = {
     nearRadius: 100,
     renameEnabled: false,
     loreEnabled: false,
+    hatEnabled: false,
+    enderchestEnabled: false,
+    workbenchEnabled: false,
+    backpackEnabled: false,
+    backpackSlots: 18,
   },
   survivalQoL: {
     treeCapitator: {
@@ -81,6 +86,45 @@ export const essentialsConfig = {
     doubleDoors: {
       enabled: false,
     },
+    onePlayerSleep: {
+      enabled: false,
+      requiredPercentage: 1,
+      skipWeather: true,
+    },
+    telekinesis: {
+      enabled: false,
+    },
+    autoTool: {
+      enabled: false,
+    },
+    dynamicLighting: {
+      enabled: false,
+    },
+    sit: {
+      enabled: false,
+    },
+    carry: {
+      enabled: false,
+    },
+    signColors: {
+      enabled: false,
+    },
+  },
+  graves: {
+    enabled: false,
+    expiryMinutes: 60,
+    unlockCost: 0,
+    unlockCostType: 'money' as 'money' | 'xp',
+    publicUnlockMinutes: 0,
+    autoEquipOnCollect: true,
+    allowTeleport: false,
+    teleportCost: 0,
+  },
+  containerLocking: {
+    enabled: false,
+    maxLocksPerPlayer: 20,
+    allowTeamAccess: true,
+    autoLockOnPlace: false,
   },
   clearLag: {
     enabled: false,
@@ -103,6 +147,7 @@ export const essentialsConfig = {
     enabled: false,
     message: '§2Welcome to the server! Enjoy your stay.',
     interval: 300,
+    mode: 'chat' as 'chat' | 'actionbar',
   },
   dimensionLock: {
     allowAdminBypass: true,

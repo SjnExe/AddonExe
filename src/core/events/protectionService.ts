@@ -98,12 +98,22 @@ export function getProtectionFlags(location: Vector3, dimensionId: string): Prot
   const spawnConfig = getConfig();
   const dimZones = worldConfig.zones.length > 0 ? getZonesForDimension(worldConfig.zones, dimensionId) : [];
   const hasSpawnProt = Boolean(spawnConfig.spawnProtection?.enabled);
+  const globalFlags = worldConfig.globalFlags;
+  const hasGlobalProt = Boolean(
+    globalFlags && (globalFlags.preventPvP || globalFlags.preventExplosions || globalFlags.preventMobGriefing),
+  );
 
-  if (dimZones.length === 0 && !hasSpawnProt) {
+  if (dimZones.length === 0 && !hasSpawnProt && !hasGlobalProt) {
     return defaultFlags as ProtectionFlags;
   }
 
   let activeFlags: ProtectionFlags | undefined;
+  if (hasGlobalProt && globalFlags) {
+    activeFlags = { ...defaultFlags };
+    activeFlags.preventPvP = Boolean(globalFlags.preventPvP);
+    activeFlags.preventExplosions = Boolean(globalFlags.preventExplosions);
+    activeFlags.preventMobGriefing = Boolean(globalFlags.preventMobGriefing);
+  }
   const lx = location.x;
   const ly = location.y;
   const lz = location.z;
