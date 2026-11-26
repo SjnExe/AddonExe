@@ -112,6 +112,13 @@ export async function showWordleMultiplayerMenu(player: mc.Player): Promise<void
   await form.show(player, { wait: true });
 }
 
+/**
+ * Displays the active 2-player Wordle duel board and action buttons.
+ *
+ * @param player The participating player.
+ * @param errorMsg Optional status or error banner to show.
+ * @returns Promise resolving when the panel closes.
+ */
 export async function showWordleDuelPanel(player: mc.Player, errorMsg?: string): Promise<void> {
   const match = getPlayerWordleDuel(player.id);
   if (!isDefined(match)) {
@@ -173,6 +180,9 @@ export async function showWordleDuelPanel(player: mc.Player, errorMsg?: string):
   }
 
   await form.show(player, { wait: true });
+  if (!player.isValid) {
+    return;
+  }
 
   if (selectedAction === 'guess') {
     const refLines = [
@@ -185,6 +195,9 @@ export async function showWordleDuelPanel(player: mc.Player, errorMsg?: string):
       .textField('guess', `${refLines.join('\n')}\n\n§eEnter a ${match.word.length}-letter word:`, 'e.g. apple', '')
       .submitButton('Submit Guess');
     const res = await modal.show(player);
+    if (!player.isValid) {
+      return;
+    }
     if (!res || !isNonEmptyString(res.guess.trim())) {
       await showWordleDuelPanel(player);
       return;

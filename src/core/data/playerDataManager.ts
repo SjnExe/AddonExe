@@ -85,7 +85,7 @@ export interface PlayerData {
   kitCooldowns: Record<string, number>;
   xrayNotificationsEnabled: boolean;
   lastDeathLocation: HomeLocation | undefined;
-  lastLocation: HomeLocation | undefined;
+  lastLocation: (HomeLocation & { graveId?: string }) | undefined;
   deathNotificationSent: boolean;
   tpaRequestsDisabled: boolean;
   tpaBlockedPlayerIds: string[];
@@ -124,6 +124,7 @@ export interface PlayerData {
   pendingOfflineInventoryModifications?: Record<number, SerializedItem | null>;
   pendingOfflineEquipmentModifications?: Partial<Record<mc.EquipmentSlot, SerializedItem | null>>;
   pendingOfflineEnderChestModifications?: Record<number, SerializedItem | null>;
+  recoveredEscrowIds?: string[];
   needsSave?: boolean;
 }
 
@@ -178,8 +179,9 @@ const defaultPlayerData: Omit<PlayerData, 'name' | 'homes' | 'kitCooldowns' | 't
  *
  * @param playerId The ID of the player to update.
  * @param modificationCallback A callback that receives the player data and modifies it.
+ * @returns True if the data was updated and saved (or marked dirty in cache), false otherwise.
  */
-export function updatePlayerData(playerId: string, modificationCallback: (pData: PlayerData) => void) {
+export function updatePlayerData(playerId: string, modificationCallback: (pData: PlayerData) => void): boolean {
   let pData = activePlayerData.get(playerId);
   let wasCached = true;
 
@@ -192,15 +194,16 @@ export function updatePlayerData(playerId: string, modificationCallback: (pData:
     modificationCallback(pData);
     if (wasCached) {
       pData.needsSave = true; // Mark as dirty for auto-save
-    } else {
-      // For offline players, save immediately and remove from cache to prevent memory leaks
-      activePlayerData.set(playerId, pData);
-      savePlayerData(playerId);
-      activePlayerData.delete(playerId);
+      return true;
     }
-  } else {
-    errorLog(`[PlayerDataManager] Failed to update data for player ${playerId}: Not found.`);
+    // For offline players, save immediately and remove from cache to prevent memory leaks
+    activePlayerData.set(playerId, pData);
+    const saved = savePlayerData(playerId);
+    activePlayerData.delete(playerId);
+    return saved;
   }
+  errorLog(`[PlayerDataManager] Failed to update data for player ${playerId}: Not found.`);
+  return false;
 }
 
 /** Resets all in-memory caches and state variables. */
@@ -812,12 +815,26 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
   });
 }
 
-export function incrementPlayerBalance(playerId: string, amount: number) {
+/**
+ * Adjusts a player's balance by `amount`, clamped to configured min/max limits.
+ *
+ * @param playerId Player identifier.
+ * @param amount Signed currency delta.
+ * @param idempotencyKey Optional receipt key persisted in player data to prevent duplicate application on retry.
+ * @returns True if the player balance was updated and saved (or marked dirty), false otherwise.
+ */
+export function incrementPlayerBalance(playerId: string, amount: number, idempotencyKey?: string): boolean {
+  if (!Number.isFinite(amount)) {
+    return false;
+  }
   const economyConfig = getEconomyConfig();
   const min = economyConfig.minBalance;
   const max = economyConfig.maxBalance;
 
-  updatePlayerData(playerId, (pData) => {
+  return updatePlayerData(playerId, (pData) => {
+    if (isNonEmptyString(idempotencyKey) && pData.recoveredEscrowIds?.includes(idempotencyKey)) {
+      return;
+    }
     // Ensure current balance is treated as a number to prevent string concatenation or NaN issues
     const currentBal = Number(pData.balance);
     const safeBal = Number.isNaN(currentBal) ? 0 : currentBal;
@@ -825,6 +842,9 @@ export function incrementPlayerBalance(playerId: string, amount: number) {
     const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
     // Strict 2-decimal precision
     pData.balance = Number.parseFloat(clampedBalance.toFixed(2));
+    if (isNonEmptyString(idempotencyKey)) {
+      pData.recoveredEscrowIds = [...(pData.recoveredEscrowIds ?? []), idempotencyKey].slice(-64);
+    }
     if (economyConfig.logToConsole) {
       infoLog(
         `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`,
@@ -855,7 +875,13 @@ export function setPlayerLastDeathLocation(playerId: string, location: HomeLocat
   });
 }
 
-export function setPlayerLastLocation(playerId: string, location: HomeLocation | undefined) {
+/**
+ * Updates a player's stored last location for `/back`.
+ *
+ * @param playerId Player identifier.
+ * @param location Last location coordinates and optional grave ID, or undefined to clear.
+ */
+export function setPlayerLastLocation(playerId: string, location: (HomeLocation & { graveId?: string }) | undefined) {
   updatePlayerData(playerId, (pData) => {
     pData.lastLocation = location;
   });
@@ -874,12 +900,23 @@ export function getBalance(playerId: string): number | undefined {
   return (isDefined(pData) ? pData.balance : undefined) ?? undefined;
 }
 
+/**
+ * Transfers currency from one player to another, applying configured tax and balance limits.
+ *
+ * @param sourcePlayerId Sender player ID.
+ * @param targetPlayerId Recipient player ID.
+ * @param amount Positive transfer amount.
+ * @returns Transfer result containing success flag and status message.
+ */
 export function transfer(
   sourcePlayerId: string,
   targetPlayerId: string,
   amount: number,
 ): { success: boolean; message: string } {
-  if (amount <= 0) {
+  if (sourcePlayerId === targetPlayerId) {
+    return { success: false, message: 'You cannot transfer money to yourself.' };
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
     return { success: false, message: 'Transfer amount must be positive.' };
   }
 

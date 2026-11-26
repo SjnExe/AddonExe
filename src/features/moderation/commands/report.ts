@@ -51,6 +51,9 @@ const reportCommand: CustomCommand = {
         .submitButton('Submit Report');
 
       const res = await form.show(executor);
+      if (!executor.isValid) {
+        return;
+      }
       if (isDefined(res) && isNonEmptyString(res.reasonRaw)) {
         const reason = sanitizeString(res.reasonRaw, true);
         reportManager.createReport(executor, targetId, correctTargetName, reason);

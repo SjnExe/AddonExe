@@ -6,6 +6,7 @@ export interface TeamApplication {
   timestamp: number;
 }
 
+/** Persistent team record stored in world dynamic properties. */
 export interface TeamData {
   id: number;
   name: string;
@@ -17,4 +18,5 @@ export interface TeamData {
   applications: TeamApplication[];
   balance: number;
   open: boolean;
+  creationCostPaid?: number;
 }

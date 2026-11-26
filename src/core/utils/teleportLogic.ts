@@ -1,5 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
+import { frozenTag } from '@core/utils/constants.js';
 import { errorLog } from '@core/utils/logger.js';
 import { playSound } from '@core/utils/sound.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
@@ -53,14 +54,31 @@ export function cancelActiveTeleportWarmup(playerId: string): void {
   }
 }
 
+/**
+ * Starts a movement/damage-checked teleport warmup before invoking `onWarmupComplete`.
+ *
+ * @param player Teleporting player.
+ * @param durationSeconds Warmup duration in seconds.
+ * @param onWarmupComplete Callback executed when warmup completes.
+ * @param teleportName Human-readable destination label.
+ * @param onCancel Optional callback invoked if warmup is cancelled.
+ */
 export function startTeleportWarmup(
   player: mc.Player,
   durationSeconds: number,
-  onWarmupComplete: () => void,
+  onWarmupComplete: () => boolean | void,
   teleportName = 'teleport',
   onCancel?: () => void,
 ): void {
   cancelActiveTeleportWarmup(player.id);
+
+  if (typeof player.hasTag === 'function' && player.hasTag(frozenTag)) {
+    player.sendMessage('§cYou cannot teleport while frozen.');
+    if (isDefined(onCancel)) {
+      onCancel();
+    }
+    return;
+  }
 
   try {
     const cfg = getConfig();
@@ -78,9 +96,14 @@ export function startTeleportWarmup(
     // Proceed if config not loaded in unit test
   }
 
+  if (!Number.isFinite(durationSeconds)) {
+    durationSeconds = 0;
+  }
+
   if (durationSeconds <= 0) {
-    onWarmupComplete();
-    grantTeleportProtection(player);
+    if (onWarmupComplete() !== false) {
+      grantTeleportProtection(player);
+    }
     return;
   }
 
@@ -134,8 +157,30 @@ export function startTeleportWarmup(
 
   intervalId = setTrackedInterval(() => {
     try {
-      if (!player.isValid) {
+      if (!player.isValid || (typeof player.hasTag === 'function' && player.hasTag(frozenTag))) {
         cancel();
+        return;
+      }
+      let cfg: ReturnType<typeof getConfig> | undefined;
+      try {
+        cfg = getConfig();
+      } catch {
+        // Ignore if config not loaded in unit test
+      }
+      if (
+        cfg &&
+        cfg.combat?.enabled !== false &&
+        cfg.combat?.blockTeleportInCombat !== false &&
+        getRemainingCombatCooldown(player.id) > 0 &&
+        !hasPermission(player, 'group.admin')
+      ) {
+        cancel();
+        try {
+          setActionBarOverride(player, '§cTeleport canceled because you entered combat.', 3000);
+          playSound(player, 'note.bass', { volume: 1, pitch: 0.5 });
+        } catch {
+          // Ignore feedback errors after cancellation
+        }
         return;
       }
       const currentLocation = player.location;
@@ -160,8 +205,9 @@ export function startTeleportWarmup(
         setActionBarOverride(player, '§aTeleporting...', 2000);
         playSound(player, 'random.levelup', { volume: 0.5, pitch: 1 });
         cleanup();
-        onWarmupComplete();
-        grantTeleportProtection(player);
+        if (onWarmupComplete() !== false) {
+          grantTeleportProtection(player);
+        }
       }
     } catch (error: unknown) {
       errorLog(`[Warmup] Error during warmup interval for ${player.name}: ${String(error)}`);

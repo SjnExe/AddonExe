@@ -60,15 +60,24 @@ export async function showWorldProtectionListPanel(
   });
 
   form.button('§l§dGet Selection Wand\n§r§7Break=Pos1, Interact=Pos2', 'textures/items/gold_axe', async () => {
+    if (!player.isValid) {
+      return;
+    }
     giveZoneSelectionWand(player);
   });
 
   form.button('§bSet Pos1 at My Feet', 'textures/ui/icon_map', async () => {
+    if (!player.isValid) {
+      return;
+    }
     setZoneSelectionPos(player, 'pos1', player.location);
     await showWorldProtectionListPanel(player, context);
   });
 
   form.button('§eSet Pos2 at My Feet', 'textures/ui/icon_map', async () => {
+    if (!player.isValid) {
+      return;
+    }
     setZoneSelectionPos(player, 'pos2', player.location);
     await showWorldProtectionListPanel(player, context);
   });

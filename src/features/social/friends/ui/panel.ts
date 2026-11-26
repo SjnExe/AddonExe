@@ -1,6 +1,12 @@
 import * as configManager from '@core/config/configManager.js';
-import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
-import { getOrCreatePlayer, getPlayer, getPlayerNameById, loadPlayerData } from '@core/data/playerDataManager.js';
+import { getPlayerFromCache } from '@core/data/playerCache.js';
+import {
+  getOrCreatePlayer,
+  getPlayer,
+  getPlayerNameById,
+  getVisiblePlayers,
+  loadPlayerData,
+} from '@core/data/playerDataManager.js';
 import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { getPlayerIcon } from '@core/utils/ui.js';
 import * as friendManager from '@features/social/friends/manager.js';
@@ -95,8 +101,13 @@ ${rankText}`,
   await form.show(player);
 }
 
+/**
+ * Displays the modal for sending a friend request to an online or offline player.
+ *
+ * @param player The player initiating the friend request.
+ */
 export async function showFriendAddPanel(player: mc.Player): Promise<void> {
-  const onlinePlayers = getAllPlayersFromCache()
+  const onlinePlayers = getVisiblePlayers(player)
     .filter((p) => p.id !== player.id)
     .map((p) => p.name);
 
@@ -106,6 +117,9 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
       .submitButton('Add Friend');
 
     const res = await modal.show(player);
+    if (player.isValid === false) {
+      return;
+    }
     if (res && res.name) {
       const result = friendManager.sendFriendRequest(player, res.name);
       player.sendMessage(result.message);
@@ -122,6 +136,9 @@ export async function showFriendAddPanel(player: mc.Player): Promise<void> {
     .submitButton('Add Friend');
 
   const res = await modal.show(player);
+  if (player.isValid === false) {
+    return;
+  }
 
   if (res) {
     let targetName = res.manualName;
@@ -195,12 +212,23 @@ export async function showManageFriendRequestPanel(player: mc.Player, reqId: str
   await form.show(player);
 }
 
+/**
+ * Displays management actions (TPA, PM, game invite, remove) for a specific friend.
+ *
+ * @param player The player managing their friend.
+ * @param friendId The target friend's player ID.
+ * @param friendName The target friend's display name.
+ */
 export async function showManageFriendPanel(player: mc.Player, friendId: string, friendName: string): Promise<void> {
   const onlineP = getPlayerFromCache(friendId);
   const form = new ActionFormBuilder().title(`Manage ${friendName}`);
 
   if (onlineP) {
     form.button('Teleport To (TPA)', 'textures/ui/icon_map', () => {
+      if (onlineP.isValid === false) {
+        player.sendMessage('§cThat player is no longer online.');
+        return;
+      }
       const result = tpaManager.createRequest(player, onlineP, 'tpa');
       player.sendMessage(result.message);
     });
@@ -209,16 +237,34 @@ export async function showManageFriendPanel(player: mc.Player, friendId: string,
         .textField('msg', 'Private Message', 'Type your message...', '')
         .submitButton('Send Message');
       const res = await modal.show(player);
+      if (player.isValid === false) {
+        return;
+      }
       if (res && res.msg.trim().length > 0) {
-        const { sendPrivateMessage } = await import('@features/social/pm/manager.js');
-        const out = sendPrivateMessage(player, onlineP, res.msg.trim());
-        if (!out.success && out.message) {
-          player.sendMessage(out.message);
+        if (onlineP.isValid === false) {
+          player.sendMessage('§cThat player is no longer online.');
+        } else {
+          const { sendPrivateMessage } = await import('@features/social/pm/manager.js');
+          if ((player.isValid as boolean | undefined) === false) {
+            return;
+          }
+          if ((onlineP.isValid as boolean | undefined) === false) {
+            player.sendMessage('§cThat player is no longer online.');
+          } else {
+            const out = sendPrivateMessage(player, onlineP, res.msg.trim());
+            if (!out.success && out.message) {
+              player.sendMessage(out.message);
+            }
+          }
         }
       }
       await showManageFriendPanel(player, friendId, friendName);
     });
     form.button('Teleport Here (TPAHere)', 'textures/items/ender_pearl', () => {
+      if (onlineP.isValid === false) {
+        player.sendMessage('§cThat player is no longer online.');
+        return;
+      }
       const result = tpaManager.createRequest(player, onlineP, 'tpahere');
       player.sendMessage(result.message);
     });

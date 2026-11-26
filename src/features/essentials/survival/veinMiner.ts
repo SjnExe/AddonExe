@@ -15,6 +15,40 @@ export function isPickaxeItem(itemTypeId?: string): boolean {
   return isDefined(itemTypeId) && itemTypeId.endsWith('_pickaxe');
 }
 
+/**
+ * Returns the mining tier of a vanilla pickaxe (1 = wood/gold, 2 = stone, 3 = iron, 4 = diamond/netherite).
+ *
+ * @param itemTypeId Item type identifier.
+ * @returns Numeric pickaxe tier, or 0 if not a recognized pickaxe.
+ */
+export function getPickaxeTier(itemTypeId?: string): number {
+  if (!isDefined(itemTypeId) || !isPickaxeItem(itemTypeId)) {
+    return 0;
+  }
+  if (
+    itemTypeId === (MinecraftItemTypes.NetheritePickaxe as string) ||
+    itemTypeId === (MinecraftItemTypes.DiamondPickaxe as string)
+  ) {
+    return 4;
+  }
+  if (itemTypeId === (MinecraftItemTypes.IronPickaxe as string)) {
+    return 3;
+  }
+  if (
+    itemTypeId === (MinecraftItemTypes.StonePickaxe as string) ||
+    itemTypeId === (MinecraftItemTypes.CopperPickaxe as string)
+  ) {
+    return 2;
+  }
+  if (
+    itemTypeId === (MinecraftItemTypes.WoodenPickaxe as string) ||
+    itemTypeId === (MinecraftItemTypes.GoldenPickaxe as string)
+  ) {
+    return 1;
+  }
+  return 1;
+}
+
 export interface VeinMinerOptions {
   enabled?: boolean;
   requireSneak?: boolean;
@@ -33,6 +67,7 @@ interface OreDropRule {
   affectedByFortune: boolean;
   minXp: number;
   maxXp: number;
+  minTier: number;
 }
 
 const oreDropTable: Record<string, OreDropRule> = {
@@ -43,6 +78,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 2,
+    minTier: 1,
   },
   [MinecraftBlockTypes.DeepslateCoalOre as string]: {
     dropItemId: MinecraftItemTypes.Coal,
@@ -51,6 +87,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 2,
+    minTier: 1,
   },
   [MinecraftBlockTypes.IronOre as string]: {
     dropItemId: MinecraftItemTypes.RawIron,
@@ -59,6 +96,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 0,
+    minTier: 2,
   },
   [MinecraftBlockTypes.DeepslateIronOre as string]: {
     dropItemId: MinecraftItemTypes.RawIron,
@@ -67,6 +105,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 0,
+    minTier: 2,
   },
   [MinecraftBlockTypes.CopperOre as string]: {
     dropItemId: MinecraftItemTypes.RawCopper,
@@ -75,6 +114,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 0,
+    minTier: 2,
   },
   [MinecraftBlockTypes.DeepslateCopperOre as string]: {
     dropItemId: MinecraftItemTypes.RawCopper,
@@ -83,6 +123,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 0,
+    minTier: 2,
   },
   [MinecraftBlockTypes.GoldOre as string]: {
     dropItemId: MinecraftItemTypes.RawGold,
@@ -91,6 +132,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 0,
+    minTier: 3,
   },
   [MinecraftBlockTypes.DeepslateGoldOre as string]: {
     dropItemId: MinecraftItemTypes.RawGold,
@@ -99,6 +141,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 0,
+    minTier: 3,
   },
   [MinecraftBlockTypes.NetherGoldOre as string]: {
     dropItemId: MinecraftItemTypes.GoldNugget,
@@ -107,6 +150,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 0,
     maxXp: 1,
+    minTier: 1,
   },
   [MinecraftBlockTypes.RedstoneOre as string]: {
     dropItemId: MinecraftItemTypes.Redstone,
@@ -115,6 +159,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 1,
     maxXp: 5,
+    minTier: 3,
   },
   [MinecraftBlockTypes.LitRedstoneOre as string]: {
     dropItemId: MinecraftItemTypes.Redstone,
@@ -123,6 +168,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 1,
     maxXp: 5,
+    minTier: 3,
   },
   [MinecraftBlockTypes.DeepslateRedstoneOre as string]: {
     dropItemId: MinecraftItemTypes.Redstone,
@@ -131,6 +177,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 1,
     maxXp: 5,
+    minTier: 3,
   },
   [MinecraftBlockTypes.LitDeepslateRedstoneOre as string]: {
     dropItemId: MinecraftItemTypes.Redstone,
@@ -139,6 +186,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 1,
     maxXp: 5,
+    minTier: 3,
   },
   [MinecraftBlockTypes.LapisOre as string]: {
     dropItemId: MinecraftItemTypes.LapisLazuli,
@@ -147,6 +195,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 2,
     maxXp: 5,
+    minTier: 2,
   },
   [MinecraftBlockTypes.DeepslateLapisOre as string]: {
     dropItemId: MinecraftItemTypes.LapisLazuli,
@@ -155,6 +204,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 2,
     maxXp: 5,
+    minTier: 2,
   },
   [MinecraftBlockTypes.DiamondOre as string]: {
     dropItemId: MinecraftItemTypes.Diamond,
@@ -163,6 +213,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 3,
     maxXp: 7,
+    minTier: 3,
   },
   [MinecraftBlockTypes.DeepslateDiamondOre as string]: {
     dropItemId: MinecraftItemTypes.Diamond,
@@ -171,6 +222,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 3,
     maxXp: 7,
+    minTier: 3,
   },
   [MinecraftBlockTypes.EmeraldOre as string]: {
     dropItemId: MinecraftItemTypes.Emerald,
@@ -179,6 +231,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 3,
     maxXp: 7,
+    minTier: 3,
   },
   [MinecraftBlockTypes.DeepslateEmeraldOre as string]: {
     dropItemId: MinecraftItemTypes.Emerald,
@@ -187,6 +240,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 3,
     maxXp: 7,
+    minTier: 3,
   },
   [MinecraftBlockTypes.QuartzOre as string]: {
     dropItemId: MinecraftItemTypes.Quartz,
@@ -195,6 +249,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: true,
     minXp: 2,
     maxXp: 5,
+    minTier: 1,
   },
   [MinecraftBlockTypes.AncientDebris as string]: {
     dropItemId: MinecraftItemTypes.AncientDebris,
@@ -203,6 +258,7 @@ const oreDropTable: Record<string, OreDropRule> = {
     affectedByFortune: false,
     minXp: 0,
     maxXp: 0,
+    minTier: 4,
   },
 };
 
@@ -250,6 +306,11 @@ export function handleVeinMiner(
 
   const targetTypeId = brokenPermutation?.type?.id ?? block.typeId;
   if (!isOreBlock(targetTypeId)) {
+    return 0;
+  }
+
+  const requiredTier = oreDropTable[targetTypeId]?.minTier ?? 1;
+  if (getPickaxeTier(mainHand?.typeId) < requiredTier) {
     return 0;
   }
 
@@ -402,8 +463,14 @@ export function handleVeinMiner(
 
   const dropRule = oreDropTable[targetTypeId];
   if (hasSilkTouch || !isDefined(dropRule)) {
-    // With Silk Touch (or unknown ore), drop the original block 1:1, no XP
-    dropItemId = targetTypeId;
+    // With Silk Touch (or unknown ore), drop the unlit ore block 1:1, no XP
+    if (targetTypeId === (MinecraftBlockTypes.LitRedstoneOre as string)) {
+      dropItemId = MinecraftBlockTypes.RedstoneOre as string;
+    } else if (targetTypeId === (MinecraftBlockTypes.LitDeepslateRedstoneOre as string)) {
+      dropItemId = MinecraftBlockTypes.DeepslateRedstoneOre as string;
+    } else {
+      dropItemId = targetTypeId;
+    }
     totalDropAmount = brokenCount;
   } else {
     dropItemId = dropRule.dropItemId;

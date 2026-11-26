@@ -9,10 +9,15 @@ import {
   _clearGravesForTest,
   canAccessGrave,
   collectGrave,
+  getGraveAt,
+  getPlayerGraves,
+  getUnifiedDeathTeleportPolicy,
   type GraveRecord,
   handlePlayerDeathGrave,
   pruneExpiredGraves,
+  snapshotPlayerInventoryForGrave,
 } from '@features/essentials/graves/manager.js';
+import { EntityComponentTypes, system } from '@minecraft/server';
 import { MinecraftBlockTypes, MinecraftDimensionTypes, MinecraftItemTypes } from '@minecraft/vanilla-data';
 
 describe('Graves Subsystem', () => {
@@ -222,5 +227,183 @@ describe('Graves Subsystem', () => {
     nowSpy.mockReturnValue(1_120_000);
     pruneExpiredGraves();
     nowSpy.mockRestore();
+  });
+
+  it('captures death-attributed dropped item entities and leaves unrelated drops untouched', () => {
+    cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      graves: { enabled: true, expiryMinutes: 60 },
+    } as any);
+    const chestBlock = {
+      typeId: MinecraftBlockTypes.Air,
+      isAir: true,
+      setType: () => {},
+    };
+
+    const ownedDiamond = new ItemStack(MinecraftItemTypes.Diamond, 3);
+    const strangerGold = new ItemStack(MinecraftItemTypes.GoldIngot, 5);
+    let ownedRemoveCalls = 0;
+    let strangerRemoveCalls = 0;
+    const droppedOwned = {
+      isValid: true,
+      getComponent: (id: string) => (id === EntityComponentTypes.Item ? { itemStack: ownedDiamond } : undefined),
+      remove: () => {
+        ownedRemoveCalls++;
+      },
+    };
+    const droppedStranger = {
+      isValid: true,
+      getComponent: (id: string) => (id === EntityComponentTypes.Item ? { itemStack: strangerGold } : undefined),
+      remove: () => {
+        strangerRemoveCalls++;
+      },
+    };
+
+    const getEntitiesCalls: Array<{ location: unknown; maxDistance: number }> = [];
+    let droppedAfterDeath = false;
+    const slots = new Array<any>(36).fill(undefined);
+    slots[0] = ownedDiamond;
+    const p = new Player('owner5', 'Owner5') as any;
+    p.location = { x: 10, y: 64, z: 10 };
+    p.dimension = {
+      id: MinecraftDimensionTypes.Overworld,
+      getBlock: () => chestBlock,
+      getEntities: (opts: { location: unknown; maxDistance: number }) => {
+        getEntitiesCalls.push(opts);
+        return droppedAfterDeath ? [droppedOwned, droppedStranger] : [];
+      },
+    };
+    p.getComponent = (id: string) =>
+      id === EntityComponentTypes.Inventory
+        ? {
+            container: {
+              size: 36,
+              getItem: (i: number) => slots[i],
+              setItem: (i: number, v: any) => {
+                slots[i] = v;
+              },
+            },
+          }
+        : undefined;
+
+    // Snapshot while player still holds the diamond, then simulate death drops spawning before entityDie runs
+    snapshotPlayerInventoryForGrave(p);
+    slots[0] = undefined;
+    droppedAfterDeath = true;
+
+    handlePlayerDeathGrave(p);
+
+    expect(getEntitiesCalls).toEqual([
+      { location: { x: 10, y: 64, z: 10 }, maxDistance: 12 },
+      { location: { x: 10, y: 64, z: 10 }, maxDistance: 6 },
+    ]);
+    const grave = getGraveAt(MinecraftDimensionTypes.Overworld, { x: 10, y: 64, z: 10 });
+    expect(grave).toBeDefined();
+    expect(grave?.items.length).toBe(1);
+    expect(grave?.items[0]?.item.typeId).toBe(MinecraftItemTypes.Diamond);
+    expect(grave?.items[0]?.item.amount).toBe(3);
+    expect(ownedRemoveCalls).toBe(1);
+    expect(strangerRemoveCalls).toBe(0);
+  });
+
+  it('captures dropped item entities that first appear on the next tick', () => {
+    cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      graves: { enabled: true, expiryMinutes: 60 },
+    } as any);
+    const chestBlock = { typeId: MinecraftBlockTypes.Air, isAir: true, isLiquid: false, setType: () => {} };
+    let ownedRemoveCalls = 0;
+    const ownedDiamond = new ItemStack(MinecraftItemTypes.Diamond, 2);
+    const droppedOwned = {
+      id: 'drop-next-tick',
+      isValid: true,
+      getComponent: () => ({ itemStack: new ItemStack(MinecraftItemTypes.Diamond, 2) }),
+      remove: () => {
+        ownedRemoveCalls++;
+      },
+    };
+    let dropsSpawnedOnNextTick = false;
+    const getEntitiesCalls: Array<{ location?: { x: number; y: number; z: number }; maxDistance?: number }> = [];
+    const slots = new Array<any>(36).fill(undefined);
+    slots[0] = ownedDiamond;
+    const p = new Player('owner-next', 'OwnerNext') as any;
+    p.location = { x: 20, y: 64, z: 20 };
+    p.dimension = {
+      id: MinecraftDimensionTypes.Overworld,
+      getBlock: () => chestBlock,
+      getEntities: (opts?: { location?: { x: number; y: number; z: number }; maxDistance?: number }) => {
+        getEntitiesCalls.push({ location: opts?.location, maxDistance: opts?.maxDistance });
+        if (
+          dropsSpawnedOnNextTick &&
+          opts?.location?.x === 20 &&
+          opts?.location?.y === 64 &&
+          opts?.location?.z === 20 &&
+          (opts?.maxDistance === 12 || opts?.maxDistance === 6)
+        ) {
+          return [droppedOwned];
+        }
+        return [];
+      },
+    };
+    p.getComponent = (id: string) =>
+      id === EntityComponentTypes.Inventory
+        ? {
+            container: {
+              size: 36,
+              getItem: (i: number) => slots[i],
+              setItem: (i: number, v: any) => {
+                slots[i] = v;
+              },
+            },
+          }
+        : undefined;
+
+    const sendMsgSpy = spyOn(p, 'sendMessage');
+    const queued: Array<() => void> = [];
+    const runSpy = spyOn(system, 'run').mockImplementation((cb: () => void) => {
+      queued.push(cb);
+      return queued.length;
+    });
+    try {
+      snapshotPlayerInventoryForGrave(p);
+      slots[0] = undefined;
+      handlePlayerDeathGrave(p);
+
+      expect(getPlayerGraves('owner-next')).toHaveLength(0);
+      expect(queued).toHaveLength(1);
+
+      dropsSpawnedOnNextTick = true;
+      queued.shift()!();
+
+      expect(getEntitiesCalls).toEqual([
+        { location: { x: 20, y: 64, z: 20 }, maxDistance: 12 },
+        { location: { x: 20, y: 64, z: 20 }, maxDistance: 6 },
+        { location: { x: 20, y: 64, z: 20 }, maxDistance: 6 },
+      ]);
+
+      const ownerGravesAfterCapture = getPlayerGraves('owner-next');
+      expect(ownerGravesAfterCapture).toHaveLength(1);
+      expect(ownerGravesAfterCapture[0]?.items[0]?.item.typeId).toBe(MinecraftItemTypes.Diamond);
+      expect(ownerGravesAfterCapture[0]?.items[0]?.item.amount).toBe(2);
+      expect(ownedRemoveCalls).toBe(1);
+
+      while (queued.length > 0) {
+        queued.shift()!();
+      }
+    } finally {
+      runSpy.mockRestore();
+    }
+
+    expect(sendMsgSpy.mock.calls.filter(([m]) => String(m).includes('saved in a protected grave'))).toHaveLength(1);
+  });
+
+  it('unifies /back and grave teleport cost to prevent cheaper bypasses', () => {
+    cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      graves: { enabled: true, allowTeleport: true, teleportCost: 10 },
+      back: { enabled: true, cost: 100, cooldownSeconds: 30, teleportWarmupSeconds: 3 },
+    } as any);
+    const policy = getUnifiedDeathTeleportPolicy();
+    expect(policy.cost).toBe(100);
+    expect(policy.cooldownSeconds).toBe(30);
+    expect(policy.warmupSeconds).toBe(3);
+    expect(policy.allowGraveTeleport).toBe(true);
   });
 });

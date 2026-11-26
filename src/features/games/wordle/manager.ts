@@ -1,6 +1,12 @@
 import { getWordleConfig } from '@core/config/configurations.js';
+import { recordEscrow } from '@core/data/escrowManager.js';
 import { getAllPlayersFromCache, getPlayerFromCache } from '@core/data/playerCache.js';
-import { getPlayer, incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
+import {
+  getOrCreatePlayer,
+  getPlayer,
+  incrementPlayerBalance,
+  updatePlayerData,
+} from '@core/data/playerDataManager.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { clearTrackedTimeout, setTrackedTimeout } from '@core/utils/timerManager.js';
 import {
@@ -415,19 +421,47 @@ export function initializeWordleMultiplayer(): void {
   });
 }
 
+/**
+ * Starts a 2-player Wordle race match and escrows any wagers.
+ *
+ * @param player1 First player.
+ * @param player2 Second player.
+ * @param wager Optional currency wager per player.
+ * @returns The created duel match, or undefined if players/balances are invalid.
+ */
 export function startWordleDuelMatch(
   player1: mc.Player,
   player2: mc.Player,
   wager: number = 0,
 ): WordleDuelMatch | undefined {
+  if (!player1.isValid || !player2.isValid) {
+    return undefined;
+  }
   const word = getRandomSolution(5) ?? 'apple';
   const mpCfg = getWordleConfig().multiplayer;
   const maxGuesses = Math.max(1, Number(mpCfg?.defaultLimit ?? 6));
   const timeLimitSec = Math.max(30, Number(mpCfg?.timeLimitSeconds ?? 120));
 
   if (wager > 0) {
-    incrementPlayerBalance(player1.id, -wager);
-    incrementPlayerBalance(player2.id, -wager);
+    if (getOrCreatePlayer(player1).balance < wager || getOrCreatePlayer(player2).balance < wager) {
+      return undefined;
+    }
+    if (!incrementPlayerBalance(player1.id, -wager)) {
+      return undefined;
+    }
+    if (!incrementPlayerBalance(player2.id, -wager)) {
+      const refundId = `wrd2p_refund_${Date.now()}_${player1.id}`;
+      if (!incrementPlayerBalance(player1.id, wager, `${refundId}:money`)) {
+        recordEscrow({
+          id: refundId,
+          playerId: player1.id,
+          money: wager,
+          reason: 'wordle_duel_start_refund',
+          timestamp: Date.now(),
+        });
+      }
+      return undefined;
+    }
   }
 
   const matchId = generateId('wrd2p');
@@ -454,6 +488,7 @@ export function startWordleDuelMatch(
     matchId,
     gameId: 'wordle',
     playerIds: [player1.id, player2.id],
+    wager: match.wager,
     onPlayerDisconnect: (disconnectedId) => {
       forfeitWordleDuel(matchId, disconnectedId, 'disconnected');
     },
@@ -474,13 +509,45 @@ export function clearPlayerWordleDuel(playerId: string): void {
 function finalizeWordleDuelCleanup(match: WordleDuelMatch): void {
   unregisterActiveMatchSession(match.id);
   setTrackedTimeout(() => {
+    if (playerWordleDuelMap.get(match.player1Id) === match.id) {
+      playerWordleDuelMap.delete(match.player1Id);
+    }
+    if (playerWordleDuelMap.get(match.player2Id) === match.id) {
+      playerWordleDuelMap.delete(match.player2Id);
+    }
     activeWordleDuels.delete(match.id);
   }, 600);
 }
 
+/**
+ * Forfeits an active 2-player Wordle duel (or settles as draw if already expired).
+ *
+ * @param matchId Duel match identifier.
+ * @param losingPlayerId Player ID forfeiting the match.
+ * @param reason Human-readable forfeit reason.
+ */
 export function forfeitWordleDuel(matchId: string, losingPlayerId: string, reason: string): void {
   const match = activeWordleDuels.get(matchId);
   if (!isDefined(match) || match.status !== 'active') {
+    return;
+  }
+
+  if (Date.now() >= match.expiresAt) {
+    match.status = 'draw';
+    match.endReason = `§eTime expired! The word was §b${match.word.toUpperCase()}§e.`;
+    if (match.wager > 0) {
+      incrementPlayerBalance(match.player1Id, match.wager);
+      incrementPlayerBalance(match.player2Id, match.wager);
+    }
+    const p1 = getPlayerFromCache(match.player1Id);
+    const p2 = getPlayerFromCache(match.player2Id);
+    if (isDefined(p1) && p1.isValid) {
+      p1.sendMessage(`§e[Wordle 2P] ${match.endReason}`);
+    }
+    if (isDefined(p2) && p2.isValid) {
+      p2.sendMessage(`§e[Wordle 2P] ${match.endReason}`);
+    }
+    finalizeWordleDuelCleanup(match);
     return;
   }
 
@@ -497,16 +564,23 @@ export function forfeitWordleDuel(matchId: string, losingPlayerId: string, reaso
   const p1 = getPlayerFromCache(match.player1Id);
   const p2 = getPlayerFromCache(match.player2Id);
   const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})` : '';
-  if (isDefined(p1)) {
+  if (isDefined(p1) && p1.isValid) {
     p1.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
   }
-  if (isDefined(p2)) {
+  if (isDefined(p2) && p2.isValid) {
     p2.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
   }
 
   finalizeWordleDuelCleanup(match);
 }
 
+/**
+ * Submits a 5-letter guess for an active 2-player Wordle duel.
+ *
+ * @param player Player submitting the guess.
+ * @param rawGuess Raw guess string entered by the player.
+ * @returns Evaluated guess result or an error message string.
+ */
 export function submitWordleDuelGuess(player: mc.Player, rawGuess: string): GuessResult | string {
   const match = getPlayerWordleDuel(player.id);
   if (!isDefined(match) || match.status !== 'active') {
@@ -554,10 +628,10 @@ export function submitWordleDuelGuess(player: mc.Player, rawGuess: string): Gues
     const prizeText = match.wager > 0 ? ` §6(+${formatCurrency(payout.netPrize)})` : '';
     const p1 = getPlayerFromCache(match.player1Id);
     const p2 = getPlayerFromCache(match.player2Id);
-    if (isDefined(p1)) {
+    if (isDefined(p1) && p1.isValid) {
       p1.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
     }
-    if (isDefined(p2)) {
+    if (isDefined(p2) && p2.isValid) {
       p2.sendMessage(`§e[Wordle 2P] ${match.endReason}${prizeText}`);
     }
 
@@ -574,10 +648,10 @@ export function submitWordleDuelGuess(player: mc.Player, rawGuess: string): Gues
     }
     const p1 = getPlayerFromCache(match.player1Id);
     const p2 = getPlayerFromCache(match.player2Id);
-    if (isDefined(p1)) {
+    if (isDefined(p1) && p1.isValid) {
       p1.sendMessage(`§e[Wordle 2P] ${match.endReason}`);
     }
-    if (isDefined(p2)) {
+    if (isDefined(p2) && p2.isValid) {
       p2.sendMessage(`§e[Wordle 2P] ${match.endReason}`);
     }
     finalizeWordleDuelCleanup(match);

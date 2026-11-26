@@ -21,8 +21,16 @@ export function getPlayerWarningCount(playerName: string): number {
   ).length;
 }
 
+/**
+ * Issues a formal warning to an online player and records it in moderation logs.
+ *
+ * @param executor Staff player or console issuing the warning.
+ * @param target Online target player to warn.
+ * @param reason Reason for the warning.
+ * @returns True if the warning was issued.
+ */
 export function warnPlayer(executor: CommandExecutor, target: mc.Player | undefined, reason: string): boolean {
-  if (!isDefined(target)) {
+  if (!isDefined(target) || !target.isValid) {
     sendMessage('§cPlayer not found.', executor);
     if (executor instanceof mc.Player) {
       playSound(executor, soundError);

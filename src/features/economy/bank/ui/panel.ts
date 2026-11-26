@@ -17,6 +17,11 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 
+/**
+ * Displays the main server bank and vault management panel.
+ *
+ * @param player Target player.
+ */
 export async function showBankMainPanel(player: mc.Player): Promise<void> {
   const pData = getOrCreatePlayer(player);
   const { bank } = ensurePlayerBankState(player);
@@ -37,6 +42,9 @@ export async function showBankMainPanel(player: mc.Player): Promise<void> {
           )
           .submitButton('Deposit');
         const res = await modal.show(player);
+        if (!player.isValid) {
+          return;
+        }
         if (res && isNonEmptyString(res.amountStr.trim())) {
           const raw = res.amountStr.trim().toLowerCase();
           const amt = raw === 'all' ? getOrCreatePlayer(player).balance : validateCurrencyAmount(raw, true);
@@ -62,6 +70,9 @@ export async function showBankMainPanel(player: mc.Player): Promise<void> {
           )
           .submitButton('Withdraw');
         const res = await modal.show(player);
+        if (!player.isValid) {
+          return;
+        }
         if (res && isNonEmptyString(res.amountStr.trim())) {
           const raw = res.amountStr.trim().toLowerCase();
           const amt =
@@ -85,6 +96,9 @@ export async function showBankMainPanel(player: mc.Player): Promise<void> {
         .textField('amountStr', `Principal Amount (Wallet: ${formatCurrency(pData.balance)})`, '500', '500')
         .submitButton('Lock Fixed Deposit');
       const res = await modal.show(player);
+      if (!player.isValid) {
+        return;
+      }
       if (res && isNonEmptyString(res.amountStr.trim())) {
         const amt = validateCurrencyAmount(res.amountStr.trim(), true);
         const idx = Math.max(0, planLabels.indexOf(res.planLabel));

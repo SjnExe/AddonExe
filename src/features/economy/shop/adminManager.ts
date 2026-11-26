@@ -389,7 +389,7 @@ export function addShopItemFromHand(
     permission: 'ui.panel.member', // Default to everyone
     icon: icon,
     displayName: displayName,
-    itemId: newId,
+    itemId: itemStack.typeId,
   };
 
   const setResult = setItem(categoryName, subCategoryName, newId, shopItemData);
@@ -434,12 +434,32 @@ export function setItem(
     targetContainer = subCat;
   }
 
+  for (const [catName, cat] of Object.entries(categories)) {
+    if (!isDefined(cat)) {
+      continue;
+    }
+    if (cat !== targetContainer && isDefined(cat.items?.[itemId])) {
+      return { success: false, message: `Item ID '${itemId}' already exists in category '${catName}'.` };
+    }
+    if (isDefined(cat.subCategories)) {
+      for (const [subName, sub] of Object.entries(cat.subCategories)) {
+        if (isDefined(sub) && sub !== targetContainer && isDefined(sub.items?.[itemId])) {
+          return {
+            success: false,
+            message: `Item ID '${itemId}' already exists in '${catName}/${subName}'.`,
+          };
+        }
+      }
+    }
+  }
+
   targetContainer.items[itemId] = {
     buyPrice: itemData.buyPrice,
     sellPrice: itemData.sellPrice,
     permission: itemData.permission ?? 'ui.panel.member',
     icon: itemData.icon,
     displayName: itemData.displayName,
+    ...(isNonEmptyString(itemData.itemId) && itemData.itemId !== itemId ? { itemId: itemData.itemId } : {}),
     ...(isDefined(itemData.rankMultiplierOverrides)
       ? { rankMultiplierOverrides: itemData.rankMultiplierOverrides }
       : {}),

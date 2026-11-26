@@ -149,6 +149,13 @@ export async function showTeamMembersPanel(player: mc.Player, page: number = 1):
   await form.show(player);
 }
 
+/**
+ * Displays management actions for a specific team member.
+ *
+ * @param player Viewing team admin or owner.
+ * @param targetId Target member player ID.
+ * @param targetName Target member display name.
+ */
 export async function showTeamMemberActionPanel(
   player: mc.Player,
   targetId: string,
@@ -168,13 +175,31 @@ export async function showTeamMemberActionPanel(
   if (isOwner) {
     if (isTargetAdmin) {
       form.button('Demote to Member', 'textures/ui/cancel', async () => {
-        const res = teamManager.demoteMember(team.id, targetId);
+        if (!player.isValid) {
+          return;
+        }
+        const latestTeam = teamManager.getTeamByPlayer(player.id);
+        if (!latestTeam || latestTeam.id !== team.id || latestTeam.ownerId !== player.id) {
+          player.sendMessage('§cYou are no longer the owner of this team.');
+          await showTeamMainPanel(player);
+          return;
+        }
+        const res = teamManager.demoteMember(latestTeam.id, targetId);
         player.sendMessage(res.message ?? '§aDemoted member.');
         await showTeamMembersPanel(player, 1);
       });
     } else {
       form.button('Promote to Team Admin', 'textures/ui/color_plus', async () => {
-        const res = teamManager.promoteMember(team.id, targetId);
+        if (!player.isValid) {
+          return;
+        }
+        const latestTeam = teamManager.getTeamByPlayer(player.id);
+        if (!latestTeam || latestTeam.id !== team.id || latestTeam.ownerId !== player.id) {
+          player.sendMessage('§cYou are no longer the owner of this team.');
+          await showTeamMainPanel(player);
+          return;
+        }
+        const res = teamManager.promoteMember(latestTeam.id, targetId);
         player.sendMessage(res.message ?? '§aPromoted member.');
         await showTeamMembersPanel(player, 1);
       });
@@ -185,11 +210,23 @@ export async function showTeamMemberActionPanel(
         title: 'Transfer Team Ownership',
         body: `Are you sure you want to transfer ownership of ${team.name}§r to ${targetName}?`,
         onConfirm: async () => {
-          const res = teamManager.transferOwnership(team.id, targetId);
+          if (!player.isValid) {
+            return;
+          }
+          const latestTeam = teamManager.getTeamByPlayer(player.id);
+          if (!latestTeam || latestTeam.id !== team.id || latestTeam.ownerId !== player.id) {
+            player.sendMessage('§cYou are no longer the owner of this team.');
+            await showTeamMainPanel(player);
+            return;
+          }
+          const res = teamManager.transferOwnership(latestTeam.id, targetId);
           player.sendMessage(res.message ?? '§aOwnership transferred.');
           await showTeamMainPanel(player);
         },
         onCancel: async () => {
+          if (!player.isValid) {
+            return;
+          }
           await showTeamMemberActionPanel(player, targetId, targetName);
         },
       });
@@ -198,7 +235,21 @@ export async function showTeamMemberActionPanel(
 
   if (isOwner || !isTargetAdmin) {
     form.button('§cKick Member', 'textures/ui/cancel', async () => {
-      const res = teamManager.kickMember(team.id, targetId);
+      if (!player.isValid) {
+        return;
+      }
+      const latestTeam = teamManager.getTeamByPlayer(player.id);
+      if (
+        !latestTeam ||
+        latestTeam.id !== team.id ||
+        !teamManager.isTeamAdminOrOwner(latestTeam, player.id) ||
+        (latestTeam.ownerId !== player.id && latestTeam.admins.includes(targetId))
+      ) {
+        player.sendMessage('§cYou no longer have permission to kick this member.');
+        await showTeamMainPanel(player);
+        return;
+      }
+      const res = teamManager.kickMember(latestTeam.id, targetId);
       player.sendMessage(res.message ?? '§aMember kicked.');
       await showTeamMembersPanel(player, 1);
     });
@@ -211,6 +262,11 @@ export async function showTeamMemberActionPanel(
   await form.show(player);
 }
 
+/**
+ * Displays the team management panel for team admins and owners.
+ *
+ * @param player Viewing player.
+ */
 export async function showTeamManagePanel(player: mc.Player): Promise<void> {
   const team = teamManager.getTeamByPlayer(player.id);
   if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
@@ -242,11 +298,23 @@ export async function showTeamManagePanel(player: mc.Player): Promise<void> {
         body: `Are you sure you want to permanently delete team '${team.name}§r'?`,
         confirmButtonText: '§4Disband',
         onConfirm: async () => {
-          teamManager.deleteTeam(team.id);
+          if (!player.isValid) {
+            return;
+          }
+          const latestTeam = teamManager.getTeamByPlayer(player.id);
+          if (!latestTeam || latestTeam.id !== team.id || latestTeam.ownerId !== player.id) {
+            player.sendMessage('§cYou are no longer the owner of this team.');
+            await showTeamMainPanel(player);
+            return;
+          }
+          teamManager.deleteTeam(latestTeam.id);
           player.sendMessage('§aTeam disbanded.');
           await showTeamMainPanel(player);
         },
         onCancel: async () => {
+          if (!player.isValid) {
+            return;
+          }
           await showTeamManagePanel(player);
         },
       });
@@ -260,6 +328,12 @@ export async function showTeamManagePanel(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Displays the modal to invite an online player to the current team.
+ *
+ * @param player The team admin/owner sending the invite.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showTeamInvitePlayerModal(player: mc.Player): Promise<void> {
   const team = teamManager.getTeamByPlayer(player.id);
   if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
@@ -279,6 +353,9 @@ export async function showTeamInvitePlayerModal(player: mc.Player): Promise<void
     .submitButton('Send Invite');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (res) {
     const chosen = isNonEmptyString(res.manualName.trim())
       ? res.manualName.trim()
@@ -299,6 +376,12 @@ export async function showTeamInvitePlayerModal(player: mc.Player): Promise<void
   await showTeamManagePanel(player);
 }
 
+/**
+ * Displays the team settings modal (e.g. open/closed application status).
+ *
+ * @param player The team admin/owner editing settings.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showTeamSettingPanel(player: mc.Player): Promise<void> {
   const team = teamManager.getTeamByPlayer(player.id);
   if (!team || !teamManager.isTeamAdminOrOwner(team, player.id)) {
@@ -310,6 +393,9 @@ export async function showTeamSettingPanel(player: mc.Player): Promise<void> {
     .submitButton('Save Settings');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (res) {
     const updateRes = teamManager.setTeamOpenStatus(team.id, res.open);
     if (updateRes.message) {
@@ -414,6 +500,9 @@ export async function showTeamHomePanel(player: mc.Player): Promise<void> {
   const form = new ActionFormBuilder()
     .title('Manage Team Home')
     .button('Set Home Here', 'textures/ui/color_plus', async () => {
+      if (!player.isValid) {
+        return;
+      }
       const res = teamManager.setTeamHome(team.id, player.location, player.dimension.id, player);
       player.sendMessage(res.message ?? 'Done');
       await showTeamHomePanel(player);
@@ -421,6 +510,9 @@ export async function showTeamHomePanel(player: mc.Player): Promise<void> {
 
   if (team.home) {
     form.button('Delete Home', 'textures/ui/trash', async () => {
+      if (!player.isValid) {
+        return;
+      }
       const res = teamManager.deleteTeamHome(team.id);
       player.sendMessage(res.message ?? 'Done');
       await showTeamHomePanel(player);
@@ -434,12 +526,21 @@ export async function showTeamHomePanel(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Displays the modal to create a new team.
+ *
+ * @param player The player creating a team.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showTeamCreatePanel(player: mc.Player): Promise<void> {
   const modal = new CustomFormBuilder<{ name: string }>('Create Team')
     .textField('name', 'Team Name', 'Enter team name', '')
     .submitButton('Create Team');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (res && isNonEmptyString(res.name)) {
     const result = teamManager.createTeam(player, res.name.trim());
     player.sendMessage(result.message ?? 'Done');
@@ -453,6 +554,12 @@ export async function showTeamCreatePanel(player: mc.Player): Promise<void> {
   await showTeamMainPanel(player);
 }
 
+/**
+ * Displays the modal to deposit currency into the team bank.
+ *
+ * @param player The depositing team member.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showTeamDepositPanel(player: mc.Player): Promise<void> {
   const team = teamManager.getTeamByPlayer(player.id);
   if (!team) {
@@ -464,9 +571,12 @@ export async function showTeamDepositPanel(player: mc.Player): Promise<void> {
     .submitButton('Deposit');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (res && isNonEmptyString(res.amount)) {
     const amount = Number.parseFloat(res.amount);
-    if (!Number.isNaN(amount) && amount > 0) {
+    if (Number.isFinite(amount) && amount > 0) {
       const depositRes = teamManager.depositToTeam(player, amount);
       player.sendMessage(depositRes.message ?? (depositRes.success ? '§aDeposit successful.' : '§cDeposit failed.'));
     } else {
@@ -476,6 +586,12 @@ export async function showTeamDepositPanel(player: mc.Player): Promise<void> {
   await showTeamMainPanel(player);
 }
 
+/**
+ * Displays the modal to withdraw currency from the team bank.
+ *
+ * @param player The team owner withdrawing funds.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showTeamWithdrawPanel(player: mc.Player): Promise<void> {
   const team = teamManager.getTeamByPlayer(player.id);
   if (!team || team.ownerId !== player.id) {
@@ -487,12 +603,19 @@ export async function showTeamWithdrawPanel(player: mc.Player): Promise<void> {
     .submitButton('Withdraw');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (res && isNonEmptyString(res.amount)) {
     const amount = Number.parseFloat(res.amount);
-    const withdrawRes = teamManager.withdrawFromTeam(player, amount);
-    player.sendMessage(
-      withdrawRes.message ?? (withdrawRes.success ? '§aWithdrawal successful.' : '§cWithdrawal failed.'),
-    );
+    if (Number.isFinite(amount) && amount > 0) {
+      const withdrawRes = teamManager.withdrawFromTeam(player, amount);
+      player.sendMessage(
+        withdrawRes.message ?? (withdrawRes.success ? '§aWithdrawal successful.' : '§cWithdrawal failed.'),
+      );
+    } else {
+      player.sendMessage('§cInvalid amount.');
+    }
   }
   await showTeamMainPanel(player);
 }
@@ -514,12 +637,21 @@ export async function showTeamJoinPanel(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Displays the modal to search for an open team by exact name and apply.
+ *
+ * @param player The player searching for a team.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showTeamSearchPanel(player: mc.Player): Promise<void> {
   const modal = new CustomFormBuilder<{ teamName: string }>('Search Team')
     .textField('teamName', 'Team Name (exact)', 'Name', '')
     .submitButton('Search');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (res && isNonEmptyString(res.teamName)) {
     const allTeams = teamManager.getAllTeam();
     const lowerTeamName = res.teamName.trim().toLowerCase();

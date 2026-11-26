@@ -1,4 +1,5 @@
 import { getConfig } from '@core/config/configManager.js';
+import { playSound } from '@core/utils/index.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -121,6 +122,71 @@ export function tickDynamicLighting(): void {
       clearPlayerLight(id);
     }
   }
+}
+
+/**
+ * Checks whether an item type emits dynamic light when held.
+ *
+ * @param typeId Item type identifier.
+ * @returns True if the item is a supported dynamic light source.
+ */
+export function isLightSourceItem(typeId: string): boolean {
+  return lightLevels.has(typeId);
+}
+
+/**
+ * Allows players to sneak-use a dynamic light source item to equip it into their offhand slot (bypassing Bedrock's
+ * vanilla offhand UI restriction).
+ *
+ * @param event Item use before event.
+ * @returns True if the light item swap was handled.
+ */
+export function handleDynamicLightOffhandSwap(event: mc.ItemUseBeforeEvent): boolean {
+  if (!getConfig().survivalQoL?.dynamicLighting?.enabled) {
+    return false;
+  }
+  const player = event.source;
+  if (!(player instanceof mc.Player) || !player.isValid || !player.isSneaking) {
+    return false;
+  }
+  if (!isLightSourceItem(event.itemStack.typeId)) {
+    return false;
+  }
+
+  const originSlot = player.selectedSlotIndex;
+  const originTypeId = event.itemStack.typeId;
+  event.cancel = true;
+  mc.system.run(() => {
+    if (!player.isValid || player.selectedSlotIndex !== originSlot) {
+      return;
+    }
+    let eq: mc.EntityEquippableComponent | undefined;
+    try {
+      eq = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+    } catch {
+      return;
+    }
+    if (!eq) {
+      return;
+    }
+
+    const mainItem = eq.getEquipment(EquipmentSlot.Mainhand);
+    if (!mainItem || mainItem.typeId !== originTypeId || !isLightSourceItem(mainItem.typeId)) {
+      return;
+    }
+    const offItem = eq.getEquipment(EquipmentSlot.Offhand);
+    if (eq.setEquipment(EquipmentSlot.Offhand, mainItem) === false) {
+      return;
+    }
+    if (eq.setEquipment(EquipmentSlot.Mainhand, offItem) === false) {
+      eq.setEquipment(EquipmentSlot.Offhand, offItem);
+      eq.setEquipment(EquipmentSlot.Mainhand, mainItem);
+      return;
+    }
+    playSound(player, 'random.pop');
+    player.onScreenDisplay.setActionBar(`§eEquipped §f${mainItem.typeId.replace('minecraft:', '')} §eto offhand`);
+  });
+  return true;
 }
 
 /** Initializes the Dynamic Lighting interval check. */

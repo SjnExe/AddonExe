@@ -1,13 +1,17 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getGameplayConfig } from '@core/config/configurations.js';
+import * as cooldownManager from '@core/data/cooldownManager.js';
 import { deserializeItem, type SerializedItem, serializeItem } from '@core/data/itemSerializer.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
-import { formatCurrency, playSound } from '@core/utils/index.js';
+import { formatCooldown, formatCurrency, playSound } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
+import * as teleportLogicModule from '@core/utils/teleportLogic.js';
 import { clearTrackedInterval, setTrackedInterval } from '@core/utils/timerManager.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
+import { saveLastLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes, EquipmentSlot } from '@minecraft/server';
@@ -35,12 +39,93 @@ export interface GraveRecord {
   expiresAt: number;
   items: GraveSlotEntry[];
   unlocked: boolean;
+  markerPending?: boolean;
+  markerPlaced?: boolean;
 }
 
 const storage = new StorageManager('exe:graves:v1');
 let graves = new Map<string, GraveRecord>();
 let gravesByCoord = new Map<string, string>();
 let expiryIntervalId: number | undefined;
+let pendingRetryCursor = 0;
+const recentHurtSnapshots = new Map<
+  string,
+  { capturedAt: number; counts: Map<string, number>; preExistingEntityIds: Set<string> }
+>();
+const hurtSnapshotTtlMs = 5000;
+
+function pruneExpiredHurtSnapshots(now = Date.now()): void {
+  for (const [id, entry] of recentHurtSnapshots) {
+    if (now - entry.capturedAt > hurtSnapshotTtlMs) {
+      recentHurtSnapshots.delete(id);
+    }
+  }
+}
+
+/**
+ * Snapshots a player's non-keepOnDeath inventory and equipment counts when taking damage so post-death dropped-entity
+ * grave capture only attributes items the dying player actually owned.
+ *
+ * @param player The damaged player.
+ */
+export function snapshotPlayerInventoryForGrave(player: mc.Player): void {
+  if (!getConfig().graves?.enabled || !player.isValid || getGameplayConfig().keepInventory) {
+    return;
+  }
+  const counts = new Map<string, number>();
+  try {
+    const invComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+    if (invComp?.container) {
+      for (let i = 0; i < invComp.container.size; i++) {
+        const item = invComp.container.getItem(i);
+        if (isDefined(item) && !item.keepOnDeath) {
+          counts.set(item.typeId, (counts.get(item.typeId) ?? 0) + item.amount);
+        }
+      }
+    }
+    const eqComp = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
+    if (eqComp) {
+      const slots = [
+        EquipmentSlot.Head,
+        EquipmentSlot.Chest,
+        EquipmentSlot.Legs,
+        EquipmentSlot.Feet,
+        EquipmentSlot.Offhand,
+      ];
+      for (const slot of slots) {
+        const item = eqComp.getEquipment(slot);
+        if (isDefined(item) && !item.keepOnDeath) {
+          counts.set(item.typeId, (counts.get(item.typeId) ?? 0) + item.amount);
+        }
+      }
+    }
+  } catch {
+    return;
+  }
+
+  if (recentHurtSnapshots.size > 16) {
+    pruneExpiredHurtSnapshots();
+  }
+  if (counts.size > 0) {
+    const preExistingEntityIds = new Set<string>();
+    try {
+      const nearby = player.dimension.getEntities({
+        location: player.location,
+        maxDistance: 12,
+      });
+      for (const ent of nearby) {
+        if (ent.id && ent.id !== player.id) {
+          preExistingEntityIds.add(ent.id);
+        }
+      }
+    } catch {
+      // Ignore unloaded chunk or mock errors
+    }
+    recentHurtSnapshots.set(player.id, { capturedAt: Date.now(), counts, preExistingEntityIds });
+  } else {
+    recentHurtSnapshots.delete(player.id);
+  }
+}
 
 function coordKey(dimensionId: string, x: number, y: number, z: number): string {
   return `${dimensionId}:${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`;
@@ -134,6 +219,9 @@ function placeGraveMarker(dimension: mc.Dimension, loc: { x: number; y: number; 
 }
 
 function removeGraveMarker(grave: GraveRecord): boolean {
+  if (!grave.markerPlaced) {
+    return true;
+  }
   try {
     const dim = mc.world.getDimension(grave.dimensionId);
     const blk = dim.getBlock({ x: grave.x, y: grave.y, z: grave.z });
@@ -160,12 +248,180 @@ function deleteGrave(graveId: string): void {
   saveGraves();
 }
 
+interface OwnerSnapshot {
+  id: string;
+  name: string;
+}
+
+function finalizeGraveCreation(
+  owner: OwnerSnapshot,
+  player: mc.Player,
+  dim: mc.Dimension,
+  deathOrigin: mc.Vector3,
+  captured: GraveSlotEntry[],
+  capturedTypeIds: Set<string>,
+  invComp?: mc.EntityInventoryComponent,
+  eqComp?: mc.EntityEquippableComponent,
+  droppedEntities: mc.Entity[] = [],
+  onGraveCreated?: (graveId: string) => void,
+): void {
+  if (captured.length === 0) {
+    return;
+  }
+
+  const cfg = getConfig().graves;
+  const loc = findSafeGraveLocation(dim, deathOrigin);
+  if (!loc) {
+    return;
+  }
+
+  const now = Date.now();
+  const expiryMinutes = Math.max(0, Number(cfg?.expiryMinutes ?? 60));
+  const expiresAt = expiryMinutes > 0 ? now + expiryMinutes * 60_000 : 0;
+  const id = `grave_${now}_${Math.random().toString(36).slice(2, 7)}`;
+
+  const record: GraveRecord = {
+    id,
+    ownerId: owner.id,
+    ownerName: owner.name,
+    dimensionId: dim.id,
+    x: loc.x,
+    y: loc.y,
+    z: loc.z,
+    createdAt: now,
+    expiresAt,
+    items: captured,
+    unlocked: (Number(cfg?.unlockCost) || 0) <= 0,
+    markerPending: true,
+    markerPlaced: false,
+  };
+
+  graves.set(id, record);
+  gravesByCoord.set(coordKey(dim.id, loc.x, loc.y, loc.z), id);
+  if (!saveGraves()) {
+    graves.delete(id);
+    gravesByCoord.delete(coordKey(dim.id, loc.x, loc.y, loc.z));
+    return;
+  }
+  onGraveCreated?.(id);
+
+  // Clear slots only after persistence succeeds
+  if (invComp?.container) {
+    for (const entry of captured) {
+      if (entry.slotType === 'inventory' && isDefined(entry.slotIndex)) {
+        invComp.container.setItem(entry.slotIndex, undefined);
+      }
+    }
+  }
+  if (eqComp) {
+    for (const entry of captured) {
+      if (entry.slotType === 'equipment' && entry.equipmentSlot) {
+        eqComp.setEquipment(entry.equipmentSlot as EquipmentSlot, undefined);
+      }
+    }
+  }
+  for (const ent of droppedEntities) {
+    try {
+      if (ent.isValid) {
+        ent.remove();
+      }
+    } catch {
+      // Ignore already-removed item entities
+    }
+  }
+
+  // Place marker & clean up matching dropped item entities on next tick (inventory-capture path only)
+  const notifyAndCleanup = () => {
+    const currentRecord = graves.get(id);
+    if (currentRecord && !currentRecord.markerPlaced && placeGraveMarker(dim, loc)) {
+      currentRecord.markerPending = false;
+      currentRecord.markerPlaced = true;
+      saveGraves();
+    }
+    if (droppedEntities.length === 0) {
+      try {
+        const nearbyItems = dim.getEntities({
+          location: deathOrigin,
+          maxDistance: 6,
+        });
+        for (const ent of nearbyItems) {
+          if (!ent.isValid) {
+            continue;
+          }
+          const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;
+          if (itemComp?.itemStack && capturedTypeIds.has(itemComp.itemStack.typeId)) {
+            ent.remove();
+          }
+        }
+      } catch {
+        // Ignore in unloaded chunks or mock environments
+      }
+    }
+    if (player.isValid) {
+      if (currentRecord?.markerPlaced) {
+        player.sendMessage(
+          `§a[Grave] §fYour items were saved in a protected grave at §e${loc.x}, ${loc.y}, ${loc.z}§f. Use §b/grave§f to track it.`,
+        );
+      } else {
+        player.sendMessage(
+          `§e[Grave] §fYour items were saved at §e${loc.x}, ${loc.y}, ${loc.z}§f, but the grave marker could not be placed yet. Use §b/grave§f to collect or retry once the chunk is loaded.`,
+        );
+      }
+    }
+  };
+
+  mc.system.run(notifyAndCleanup);
+}
+
+function captureDroppedItemEntities(
+  dim: mc.Dimension,
+  origin: mc.Vector3,
+  expectedCounts: Map<string, number>,
+  preExistingEntityIds?: Set<string>,
+): { captured: GraveSlotEntry[]; typeIds: Set<string>; entities: mc.Entity[] } {
+  const captured: GraveSlotEntry[] = [];
+  const typeIds = new Set<string>();
+  const entities: mc.Entity[] = [];
+  if (expectedCounts.size === 0) {
+    return { captured, typeIds, entities };
+  }
+  const remaining = new Map(expectedCounts);
+  try {
+    const dropped = dim.getEntities({
+      location: origin,
+      maxDistance: 6,
+    });
+    for (const ent of dropped) {
+      if (!ent.isValid || (preExistingEntityIds?.has(ent.id) ?? false)) {
+        continue;
+      }
+      const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;
+      const stack = itemComp?.itemStack;
+      if (!stack) {
+        continue;
+      }
+      const allowed = remaining.get(stack.typeId) ?? 0;
+      if (allowed <= 0 || stack.amount > allowed) {
+        continue;
+      }
+      remaining.set(stack.typeId, allowed - stack.amount);
+      captured.push({ slotType: 'inventory', item: serializeItem(stack) });
+      typeIds.add(stack.typeId);
+      entities.push(ent);
+    }
+  } catch {
+    // Ignore unloaded chunk or mock errors
+  }
+  return { captured, typeIds, entities };
+}
+
 /**
  * Captures a dying player's inventory into a protected grave when the graves feature is enabled.
  *
  * @param player The player who died.
+ * @param onGraveCreated Optional callback invoked with the created grave ID.
  */
-export function handlePlayerDeathGrave(player: mc.Player): void {
+export function handlePlayerDeathGrave(player: mc.Player, onGraveCreated?: (graveId: string) => void): void {
   const cfg = getConfig().graves;
   if (!cfg?.enabled || !player.isValid) {
     return;
@@ -173,6 +429,10 @@ export function handlePlayerDeathGrave(player: mc.Player): void {
   if (getGameplayConfig().keepInventory) {
     return;
   }
+
+  const owner: OwnerSnapshot = { id: player.id, name: player.name };
+  const snapshot = recentHurtSnapshots.get(owner.id);
+  recentHurtSnapshots.delete(owner.id);
 
   const captured: GraveSlotEntry[] = [];
   const capturedTypeIds = new Set<string>();
@@ -212,86 +472,61 @@ export function handlePlayerDeathGrave(player: mc.Player): void {
     }
   }
 
-  if (captured.length === 0) {
-    return;
-  }
-
   const dim = player.dimension;
-  const loc = findSafeGraveLocation(dim, player.location);
-  if (!loc) {
-    return;
-  }
-
-  const now = Date.now();
-  const expiryMinutes = Math.max(0, Number(cfg.expiryMinutes ?? 60));
-  const expiresAt = expiryMinutes > 0 ? now + expiryMinutes * 60_000 : 0;
-  const id = `grave_${now}_${Math.random().toString(36).slice(2, 7)}`;
-
-  const record: GraveRecord = {
-    id,
-    ownerId: player.id,
-    ownerName: player.name,
-    dimensionId: dim.id,
-    x: loc.x,
-    y: loc.y,
-    z: loc.z,
-    createdAt: now,
-    expiresAt,
-    items: captured,
-    unlocked: (Number(cfg.unlockCost) || 0) <= 0,
-  };
-
-  graves.set(id, record);
-  gravesByCoord.set(coordKey(dim.id, loc.x, loc.y, loc.z), id);
-  if (!saveGraves()) {
-    graves.delete(id);
-    gravesByCoord.delete(coordKey(dim.id, loc.x, loc.y, loc.z));
-    return;
-  }
-
-  // Clear slots only after persistence succeeds
-  if (invComp?.container) {
-    for (const entry of captured) {
-      if (entry.slotType === 'inventory' && isDefined(entry.slotIndex)) {
-        invComp.container.setItem(entry.slotIndex, undefined);
-      }
-    }
-  }
-  if (eqComp) {
-    for (const entry of captured) {
-      if (entry.slotType === 'equipment' && entry.equipmentSlot) {
-        eqComp.setEquipment(entry.equipmentSlot as EquipmentSlot, undefined);
-      }
-    }
-  }
-
-  // Place marker & clean up matching dropped item entities on next tick
   const deathOrigin = { ...player.location };
+
+  if (captured.length > 0) {
+    finalizeGraveCreation(
+      owner,
+      player,
+      dim,
+      deathOrigin,
+      captured,
+      capturedTypeIds,
+      invComp,
+      eqComp,
+      [],
+      onGraveCreated,
+    );
+    return;
+  }
+
+  if (!snapshot || Date.now() - snapshot.capturedAt > hurtSnapshotTtlMs || snapshot.counts.size === 0) {
+    return;
+  }
+
+  // Bedrock entityDie fires after vanilla drops items on the ground; capture death-attributed item entities.
+  const immediateDrops = captureDroppedItemEntities(dim, deathOrigin, snapshot.counts, snapshot.preExistingEntityIds);
+  if (immediateDrops.captured.length > 0) {
+    finalizeGraveCreation(
+      owner,
+      player,
+      dim,
+      deathOrigin,
+      immediateDrops.captured,
+      immediateDrops.typeIds,
+      undefined,
+      undefined,
+      immediateDrops.entities,
+      onGraveCreated,
+    );
+    return;
+  }
+
   mc.system.run(() => {
-    const markerPlaced = placeGraveMarker(dim, loc);
-    if (!markerPlaced) {
-      return;
-    }
-    try {
-      const droppedItems = dim.getEntities({
-        location: deathOrigin,
-        maxDistance: 4,
-      });
-      for (const ent of droppedItems) {
-        if (!ent.isValid) {
-          continue;
-        }
-        const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;
-        if (itemComp?.itemStack && capturedTypeIds.has(itemComp.itemStack.typeId)) {
-          ent.remove();
-        }
-      }
-    } catch {
-      // Ignore in unloaded chunks or mock environments
-    }
-    if (player.isValid) {
-      player.sendMessage(
-        `§a[Grave] §fYour items were saved in a protected grave at §e${loc.x}, ${loc.y}, ${loc.z}§f. Use §b/grave§f to track it.`,
+    const nextTickDrops = captureDroppedItemEntities(dim, deathOrigin, snapshot.counts, snapshot.preExistingEntityIds);
+    if (nextTickDrops.captured.length > 0) {
+      finalizeGraveCreation(
+        owner,
+        player,
+        dim,
+        deathOrigin,
+        nextTickDrops.captured,
+        nextTickDrops.typeIds,
+        undefined,
+        undefined,
+        nextTickDrops.entities,
+        onGraveCreated,
       );
     }
   });
@@ -491,6 +726,151 @@ export function getPlayerGraves(playerId: string): GraveRecord[] {
   return list.sort((a, b) => b.createdAt - a.createdAt);
 }
 
+/** Unified teleport policy shared between `/back` and Grave TP to prevent cost/cooldown bypasses. */
+export interface UnifiedDeathTeleportPolicy {
+  cost: number;
+  cooldownSeconds: number;
+  warmupSeconds: number;
+  allowGraveTeleport: boolean;
+}
+
+/**
+ * Resolves the unified death/grave teleport cost, warmup, and cooldown policy.
+ *
+ * @returns Policy using the higher of `graves.teleportCost` and `back.cost` (when `/back` is enabled).
+ */
+export function getUnifiedDeathTeleportPolicy(): UnifiedDeathTeleportPolicy {
+  const cfg = getConfig();
+  const graveCfg = cfg.graves;
+  const backCfg = cfg.back as
+    { enabled?: boolean; cost?: number; cooldownSeconds?: number; teleportWarmupSeconds?: number } | undefined;
+  const graveCost = Math.max(0, Number(graveCfg?.teleportCost ?? 0));
+  const backCost = backCfg?.enabled ? Math.max(0, Number(backCfg.cost ?? 0)) : 0;
+  return {
+    cost: Math.max(graveCost, backCost),
+    cooldownSeconds: Math.max(0, Number(backCfg?.cooldownSeconds ?? 0)),
+    warmupSeconds: Math.max(0, Number(backCfg?.teleportWarmupSeconds ?? 0)),
+    allowGraveTeleport: Boolean(graveCfg?.allowTeleport),
+  };
+}
+
+function getEffectiveGraveTeleportCost(player: mc.Player, policy: UnifiedDeathTeleportPolicy): number {
+  return !hasPermission(player, 'group.admin') && isFeatureActive('eco') && policy.cost > 0 ? policy.cost : 0;
+}
+
+/**
+ * Teleports a player to an active grave using the unified `/back` + Grave TP cost, cooldown, warmup, and world-border
+ * checks.
+ *
+ * @param player Target player.
+ * @param graveId Identifier of the grave to teleport to.
+ */
+export function teleportPlayerToGrave(player: mc.Player, graveId: string): void {
+  if (!player.isValid) {
+    return;
+  }
+  const currentGrave = graves.get(graveId);
+  if (!currentGrave || (currentGrave.expiresAt > 0 && Date.now() >= currentGrave.expiresAt)) {
+    player.sendMessage('§cThis grave is no longer available.');
+    return;
+  }
+
+  const policy = getUnifiedDeathTeleportPolicy();
+  const isAdmin = hasPermission(player, 'group.admin');
+  if (!policy.allowGraveTeleport && !isAdmin) {
+    player.sendMessage('§cTeleporting to graves is disabled.');
+    return;
+  }
+
+  const remainingCd = cooldownManager.getCooldown(player.id, 'back');
+  if (remainingCd > 0 && !isAdmin) {
+    player.sendMessage(`§cYou must wait ${formatCooldown(remainingCd)} before teleporting to a grave or using /back.`);
+    return;
+  }
+
+  const dest = { x: currentGrave.x + 0.5, y: currentGrave.y + 1, z: currentGrave.z + 0.5 };
+  if (!isWithinWorldBorder(dest, currentGrave.dimensionId) && !canBypassWorldBorder(player)) {
+    player.sendMessage('§cThis grave is outside the active world border.');
+    return;
+  }
+
+  const tpCost = getEffectiveGraveTeleportCost(player, policy);
+  if (tpCost > 0 && getOrCreatePlayer(player).balance < tpCost) {
+    player.sendMessage(`§cYou need §e${formatCurrency(tpCost)}§c to teleport to your grave.`);
+    return;
+  }
+
+  const executeTeleport = (): boolean => {
+    if (!player.isValid) {
+      return false;
+    }
+    const freshPolicy = getUnifiedDeathTeleportPolicy();
+    const freshIsAdmin = hasPermission(player, 'group.admin');
+    if (!freshPolicy.allowGraveTeleport && !freshIsAdmin) {
+      player.sendMessage('§cTeleporting to graves is disabled.');
+      return false;
+    }
+    const freshGrave = graves.get(graveId);
+    if (!freshGrave || (freshGrave.expiresAt > 0 && Date.now() >= freshGrave.expiresAt)) {
+      player.sendMessage('§cThis grave is no longer available.');
+      return false;
+    }
+    const freshDest = { x: freshGrave.x + 0.5, y: freshGrave.y + 1, z: freshGrave.z + 0.5 };
+    if (!isWithinWorldBorder(freshDest, freshGrave.dimensionId) && !canBypassWorldBorder(player)) {
+      player.sendMessage('§cThis grave is outside the active world border.');
+      return false;
+    }
+    const freshTpCost = getEffectiveGraveTeleportCost(player, freshPolicy);
+    let charged = false;
+    if (freshTpCost > 0) {
+      if (getOrCreatePlayer(player).balance < freshTpCost) {
+        player.sendMessage(`§cTeleport cancelled. You need §e${formatCurrency(freshTpCost)}§c.`);
+        return false;
+      }
+      incrementPlayerBalance(player.id, -freshTpCost);
+      charged = true;
+    }
+    try {
+      const dim = mc.world.getDimension(freshGrave.dimensionId);
+      const departureLocation = {
+        x: player.location.x,
+        y: player.location.y,
+        z: player.location.z,
+        dimensionId: player.dimension.id,
+      };
+      teleportPlayerWithTransition(player, freshDest, { dimension: dim });
+      saveLastLocation(player, 'teleport', departureLocation);
+      if (freshGrave.markerPending && !freshGrave.markerPlaced) {
+        mc.system.run(() => {
+          const activeGrave = graves.get(freshGrave.id);
+          if (
+            activeGrave?.markerPending &&
+            !activeGrave.markerPlaced &&
+            placeGraveMarker(dim, { x: activeGrave.x, y: activeGrave.y, z: activeGrave.z })
+          ) {
+            activeGrave.markerPending = false;
+            activeGrave.markerPlaced = true;
+            saveGraves();
+          }
+        });
+      }
+      playSound(player, 'mob.endermen.portal');
+      if (freshPolicy.cooldownSeconds > 0 && !freshIsAdmin) {
+        cooldownManager.setCooldown(player.id, 'back', freshPolicy.cooldownSeconds);
+      }
+      return true;
+    } catch {
+      if (charged) {
+        incrementPlayerBalance(player.id, freshTpCost);
+      }
+      player.sendMessage('§cCould not teleport to grave dimension.');
+      return false;
+    }
+  };
+
+  teleportLogicModule.startTeleportWarmup(player, policy.warmupSeconds, executeTeleport, 'grave');
+}
+
 /**
  * Opens the `/grave` UI listing the player's active graves.
  *
@@ -498,7 +878,6 @@ export function getPlayerGraves(playerId: string): GraveRecord[] {
  */
 export async function showPlayerGravesPanel(player: mc.Player): Promise<void> {
   const list = getPlayerGraves(player.id);
-  const cfg = getConfig().graves;
   const form = new ActionFormBuilder().title('Your Active Graves');
   if (list.length === 0) {
     form.body('§7You have no active graves.');
@@ -524,43 +903,69 @@ export async function showPlayerGravesPanel(player: mc.Player): Promise<void> {
           .body(
             `§7Location: §f${g.x}, ${g.y}, ${g.z} §8[${g.dimensionId.replace('minecraft:', '')}]\n\n§eItems:\n${preview}${more}`,
           );
-        if (cfg?.allowTeleport) {
-          const tpCost = Math.max(0, Number(cfg.teleportCost ?? 0));
-          const costTag = tpCost > 0 && isFeatureActive('eco') ? ` (${formatCurrency(tpCost)})` : '';
+        const canCollectFromUi =
+          g.markerPending ||
+          (player.dimension.id === g.dimensionId &&
+            Math.hypot(player.location.x - g.x, player.location.y - g.y, player.location.z - g.z) <= 8);
+        if (canCollectFromUi) {
+          detail.button('§l§aCollect Grave Items', 'textures/blocks/chest_front', () => {
+            if (!player.isValid) {
+              return;
+            }
+            const current = graves.get(g.id);
+            if (!current) {
+              player.sendMessage('§cThis grave is no longer available.');
+              return;
+            }
+            const stillEligible =
+              Boolean(current.markerPending) ||
+              (player.dimension.id === current.dimensionId &&
+                Math.hypot(
+                  player.location.x - current.x,
+                  player.location.y - current.y,
+                  player.location.z - current.z,
+                ) <= 8);
+            if (!stillEligible) {
+              player.sendMessage('§cYou must be within 8 blocks of the grave to collect it.');
+              return;
+            }
+            if (current.markerPending && !current.markerPlaced) {
+              try {
+                const dim = mc.world.getDimension(current.dimensionId);
+                if (placeGraveMarker(dim, { x: current.x, y: current.y, z: current.z })) {
+                  current.markerPending = false;
+                  current.markerPlaced = true;
+                  saveGraves();
+                }
+              } catch {
+                // Allow direct UI collection even if chunk/dimension marker placement fails
+              }
+            }
+            collectGrave(current, player);
+          });
+        }
+        const renderedPolicy = getUnifiedDeathTeleportPolicy();
+        if (renderedPolicy.allowGraveTeleport || hasPermission(player, 'group.admin')) {
+          const quotedCost = getEffectiveGraveTeleportCost(player, renderedPolicy);
+          const costTag = quotedCost > 0 ? ` (${formatCurrency(quotedCost)})` : '';
           detail.button(`§l§bTeleport to Grave${costTag}`, 'textures/items/ender_pearl', async () => {
             if (!player.isValid) {
               return;
             }
-            const currentGrave = graves.get(g.id);
-            if (!currentGrave || (currentGrave.expiresAt > 0 && Date.now() >= currentGrave.expiresAt)) {
-              player.sendMessage('§cThis grave is no longer available.');
+            const currentPolicy = getUnifiedDeathTeleportPolicy();
+            const currentCost = getEffectiveGraveTeleportCost(player, currentPolicy);
+            if (currentCost !== quotedCost) {
+              player.sendMessage('§eGrave teleport price changed. Refreshing quote...');
+              await showPlayerGravesPanel(player);
               return;
             }
-            let charged = false;
-            if (tpCost > 0 && isFeatureActive('eco') && !hasPermission(player, 'group.admin')) {
-              if (getOrCreatePlayer(player).balance < tpCost) {
-                player.sendMessage(`§cYou need §e${formatCurrency(tpCost)}§c to teleport to your grave.`);
-                return;
-              }
-              incrementPlayerBalance(player.id, -tpCost);
-              charged = true;
-            }
-            try {
-              const dim = mc.world.getDimension(currentGrave.dimensionId);
-              player.teleport(
-                { x: currentGrave.x + 0.5, y: currentGrave.y + 1, z: currentGrave.z + 0.5 },
-                { dimension: dim },
-              );
-              playSound(player, 'mob.endermen.portal');
-            } catch {
-              if (charged) {
-                incrementPlayerBalance(player.id, tpCost);
-              }
-              player.sendMessage('§cCould not teleport to grave dimension.');
-            }
+            teleportPlayerToGrave(player, g.id);
           });
         }
         detail.addBackButton(async () => {
+          if (!player.isValid) {
+            return;
+          }
           await showPlayerGravesPanel(player);
         });
         await detail.show(player);
@@ -573,6 +978,7 @@ export async function showPlayerGravesPanel(player: mc.Player): Promise<void> {
 /** Purges expired graves on a periodic interval (bounded per sweep). */
 export function pruneExpiredGraves(): void {
   const now = Date.now();
+  pruneExpiredHurtSnapshots(now);
   let changed = false;
   let removed = 0;
   for (const [id, grave] of graves) {
@@ -588,6 +994,30 @@ export function pruneExpiredGraves(): void {
       }
     }
   }
+
+  const pendingMarkers = [...graves.values()].filter((g) => g.markerPending && !g.markerPlaced);
+  if (pendingMarkers.length > 0) {
+    const maxPendingRetriesPerSweep = 10;
+    const batchSize = Math.min(maxPendingRetriesPerSweep, pendingMarkers.length);
+    const startIdx = pendingRetryCursor % pendingMarkers.length;
+    for (let offset = 0; offset < batchSize; offset++) {
+      const grave = pendingMarkers[(startIdx + offset) % pendingMarkers.length]!;
+      try {
+        const dim = mc.world.getDimension(grave.dimensionId);
+        if (placeGraveMarker(dim, { x: grave.x, y: grave.y, z: grave.z })) {
+          grave.markerPending = false;
+          grave.markerPlaced = true;
+          changed = true;
+        }
+      } catch {
+        // Chunk still unloaded; keep pending
+      }
+    }
+    pendingRetryCursor = (startIdx + batchSize) % pendingMarkers.length;
+  } else {
+    pendingRetryCursor = 0;
+  }
+
   if (changed) {
     saveGraves();
   }
@@ -606,4 +1036,5 @@ export function initializeGraves(): void {
 export function _clearGravesForTest(): void {
   graves.clear();
   gravesByCoord.clear();
+  recentHurtSnapshots.clear();
 }

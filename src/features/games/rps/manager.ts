@@ -1,6 +1,6 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval, setTrackedTimeout } from '@core/utils/timerManager.js';
 import {
@@ -121,8 +121,27 @@ export function initializeRps(): void {
       const timeoutMs = Math.max(15, getGamesConfig().rps?.turnTimeoutSeconds ?? 30) * 1000;
       for (const match of activeMatches.values()) {
         if (match.status === 'active' && !match.isBotMatch && now - match.lastActionTime >= timeoutMs) {
-          const slowPlayerId = !isDefined(match.p1Choice) ? match.player1Id : match.player2Id;
-          forfeitRpsMatch(match.id, slowPlayerId, 'ran out of time');
+          if (!isDefined(match.p1Choice) && !isDefined(match.p2Choice)) {
+            // Both players stalled: cancel as draw and refund wagers
+            match.status = 'forfeit';
+            match.endReason = '§eMatch cancelled: neither player chose in time.§r';
+            if (match.wager > 0) {
+              incrementPlayerBalance(match.player1Id, match.wager);
+              incrementPlayerBalance(match.player2Id, match.wager);
+            }
+            const p1 = getPlayerFromCache(match.player1Id);
+            const p2 = getPlayerFromCache(match.player2Id);
+            if (isDefined(p1) && p1.isValid) {
+              p1.sendMessage(match.endReason);
+            }
+            if (isDefined(p2) && p2.isValid) {
+              p2.sendMessage(match.endReason);
+            }
+            finalizeMatchCleanup(match);
+          } else {
+            const slowPlayerId = !isDefined(match.p1Choice) ? match.player1Id : match.player2Id;
+            forfeitRpsMatch(match.id, slowPlayerId, 'ran out of time');
+          }
         }
       }
     }, 20);
@@ -149,7 +168,13 @@ function normalizeBestOf(rawBestOf?: number): number {
  * @returns The initialized match instance, or undefined if invalid.
  */
 export function startRpsMatch(player1: mc.Player, player2: mc.Player, wager: number = 0): RpsMatch | undefined {
+  if (!player1.isValid || !player2.isValid) {
+    return undefined;
+  }
   if (wager > 0) {
+    if (getOrCreatePlayer(player1).balance < wager || getOrCreatePlayer(player2).balance < wager) {
+      return undefined;
+    }
     incrementPlayerBalance(player1.id, -wager);
     incrementPlayerBalance(player2.id, -wager);
   }
@@ -185,6 +210,7 @@ export function startRpsMatch(player1: mc.Player, player2: mc.Player, wager: num
     matchId,
     gameId: 'rps',
     playerIds: [player1.id, player2.id],
+    wager: match.wager,
     onPlayerDisconnect: (disconnectedPlayerId) => {
       forfeitRpsMatch(matchId, disconnectedPlayerId, 'disconnected');
     },
@@ -412,13 +438,13 @@ export function submitRpsChoice(
     const p1 = getPlayerFromCache(match.player1Id);
     const p2 = getPlayerFromCache(match.player2Id);
 
-    if (isDefined(p1)) {
+    if (isDefined(p1) && p1.isValid) {
       p1.sendMessage(
         `§e[RPS] ${match.lastRoundSummary}§r\n§e[RPS] §a${winnerName}§r §fwon the match (${match.p1Wins}-${match.p2Wins})!${prizeText}§r`,
       );
       playSound(p1, p1Won ? 'random.levelup' : 'note.bass');
     }
-    if (isDefined(p2)) {
+    if (isDefined(p2) && p2.isValid) {
       p2.sendMessage(
         `§e[RPS] ${match.lastRoundSummary}§r\n§e[RPS] §a${winnerName}§r §fwon the match (${match.p1Wins}-${match.p2Wins})!${prizeText}§r`,
       );
@@ -439,10 +465,10 @@ export function submitRpsChoice(
   match.round++;
   const p1 = getPlayerFromCache(match.player1Id);
   const p2 = getPlayerFromCache(match.player2Id);
-  if (isDefined(p1)) {
+  if (isDefined(p1) && p1.isValid) {
     playSound(p1, 'random.orb');
   }
-  if (isDefined(p2)) {
+  if (isDefined(p2) && p2.isValid) {
     playSound(p2, 'random.orb');
   }
 
@@ -491,11 +517,11 @@ export function forfeitRpsMatch(matchId: string, forfeitingPlayerId: string, rea
   const winnerPlayer = getPlayerFromCache(winnerId);
   const loserPlayer = getPlayerFromCache(forfeitingPlayerId);
 
-  if (isDefined(winnerPlayer)) {
+  if (isDefined(winnerPlayer) && winnerPlayer.isValid) {
     winnerPlayer.sendMessage(`§e[RPS] §c${loserName}§r §7${reason}. §aYou won by forfeit!${prizeText}§r`);
     playSound(winnerPlayer, 'random.levelup');
   }
-  if (isDefined(loserPlayer)) {
+  if (isDefined(loserPlayer) && loserPlayer.isValid) {
     loserPlayer.sendMessage(`§e[RPS] §cYou forfeited the match (${reason}). §e${winnerName}§r §cwins!§r`);
     playSound(loserPlayer, 'note.bass');
   }

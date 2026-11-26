@@ -3,6 +3,7 @@ import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getPlayerIdByName, getPlayerNameById } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { playSound } from '@core/utils/index.js';
+import { getPunishment } from '@features/moderation/punishmentManager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { generateId } from '@lib/id.js';
 import * as mc from '@minecraft/server';
@@ -42,6 +43,14 @@ export function getUnreadMailCount(playerId: string): number {
   return getPlayerInbox(playerId).filter((m) => !m.read).length;
 }
 
+/**
+ * Sends a mail message from `sender` to an online or offline target player.
+ *
+ * @param sender Player sending the mail.
+ * @param targetNameOrId Target player name or entity ID.
+ * @param rawMessage Mail body text.
+ * @returns Result object indicating success and feedback message.
+ */
 export function sendMailToPlayer(
   sender: mc.Player,
   targetNameOrId: string,
@@ -50,6 +59,11 @@ export function sendMailToPlayer(
   const cfg = getConfig();
   if (!cfg.mail?.enabled) {
     return { success: false, message: '§cThe Mail system is currently disabled.' };
+  }
+
+  const mute = getPunishment(sender.id, 'mute');
+  if (isDefined(mute)) {
+    return { success: false, message: '§cYou cannot send mail while muted.' };
   }
 
   const cleanMsg = rawMessage.trim();

@@ -582,6 +582,7 @@ async function findSafeLocationAndTeleport(player: mc.Player, settings: Resolved
   activeRtpSearches.add(player.id);
   const searchToken = (Date.now() % 100000).toString(36);
   const tickingAreaName = `rtp_${player.id}_${searchToken}`;
+  const startDimension = player.dimension;
 
   try {
     const cachedSpot = popValidCachedLocation(player, settings);
@@ -594,8 +595,8 @@ async function findSafeLocationAndTeleport(player: mc.Player, settings: Resolved
     sendMessage('§aSearching for a safe random location...', player);
 
     for (let attempt = 1; attempt <= settings.maxAttempts; attempt++) {
-      if (!player.isValid) {
-        safeRemoveTickingArea(player.dimension, tickingAreaName);
+      if (!player.isValid || player.dimension.id !== startDimension.id) {
+        safeRemoveTickingArea(startDimension, tickingAreaName);
         return;
       }
 
@@ -615,11 +616,15 @@ async function findSafeLocationAndTeleport(player: mc.Player, settings: Resolved
       let keepTickingArea = false;
 
       try {
-        await createTickingAreaFast(player.dimension, tickingAreaName, candidate.x, candidate.z);
-        const chunkReady = await waitForChunkReady(player.dimension, candidate.x, candidate.z);
+        await createTickingAreaFast(startDimension, tickingAreaName, candidate.x, candidate.z);
+        const chunkReady = await waitForChunkReady(startDimension, candidate.x, candidate.z);
+
+        if (!player.isValid || player.dimension.id !== startDimension.id) {
+          return;
+        }
 
         if (chunkReady) {
-          const safeSpot = scanChunkForSafeSpot(player.dimension, candidate.x, candidate.z, settings, player.id);
+          const safeSpot = scanChunkForSafeSpot(startDimension, candidate.x, candidate.z, settings, player.id);
           if (isDefined(safeSpot)) {
             keepTickingArea = true;
             initiateRtpWarmup(player, safeSpot, tickingAreaName, settings);
@@ -630,12 +635,14 @@ async function findSafeLocationAndTeleport(player: mc.Player, settings: Resolved
         debugLog(`[RTP] Attempt ${attempt} error: ${String(error)}`);
       } finally {
         if (!keepTickingArea) {
-          safeRemoveTickingArea(player.dimension, tickingAreaName);
+          safeRemoveTickingArea(startDimension, tickingAreaName);
         }
       }
     }
 
-    sendMessage('§cCould not find a safe dry land location away from players/claims. Please try /rtp again!', player);
+    if (player.isValid) {
+      sendMessage('§cCould not find a safe dry land location away from players/claims. Please try /rtp again!', player);
+    }
   } finally {
     activeRtpSearches.delete(player.id);
   }

@@ -12,20 +12,23 @@ export class StorageManager {
   }
 
   /**
-   * Saves data to dynamic properties, handling sharding if necessary.
+   * Saves data to dynamic properties, handling sharding if necessary, and reports whether any failure was cleanly
+   * rolled back or left storage in an indeterminate state.
    *
    * @param data Data payload to serialize and persist.
-   * @returns True if saved successfully, false on error.
+   * @returns Save outcome: 'saved', 'rolled_back', or 'indeterminate'.
    */
-  save<T>(data: T): boolean {
+  saveWithStatus<T>(data: T): 'saved' | 'rolled_back' | 'indeterminate' {
     let previousMeta: string | number | boolean | mc.Vector3 | undefined;
     const backupShards: (string | undefined)[] = [];
+    let backupCompleted = false;
     try {
       previousMeta = mc.world.getDynamicProperty(`${this.dbName}:meta`);
       const backupCount = typeof previousMeta === 'number' ? previousMeta : 0;
       for (let i = 0; i < backupCount; i++) {
         backupShards.push(mc.world.getDynamicProperty(`${this.dbName}:${i}`) as string | undefined);
       }
+      backupCompleted = true;
 
       const jsonString = JSON.stringify(data);
       const totalLength = jsonString.length;
@@ -55,39 +58,53 @@ export class StorageManager {
         writeShards();
         cleanupOldChunks();
       }
-      return true;
+      return 'saved';
     } catch (error) {
-      // Restore previous valid snapshot on write failure and remove newly written shards
-      try {
-        if (previousMeta !== undefined) {
-          mc.world.setDynamicProperty(`${this.dbName}:meta`, previousMeta);
-          for (let i = 0; i < backupShards.length; i++) {
-            mc.world.setDynamicProperty(`${this.dbName}:${i}`, backupShards[i]);
+      let rolledBack = false;
+      // Restore previous valid snapshot only if backup completed before any writes began
+      if (backupCompleted) {
+        try {
+          if (previousMeta !== undefined) {
+            mc.world.setDynamicProperty(`${this.dbName}:meta`, previousMeta);
+            for (let i = 0; i < backupShards.length; i++) {
+              mc.world.setDynamicProperty(`${this.dbName}:${i}`, backupShards[i]);
+            }
+            // Remove any orphaned shard indices written by the failed save
+            let cleanupIdx = backupShards.length;
+            while (mc.world.getDynamicProperty(`${this.dbName}:${cleanupIdx}`) !== undefined) {
+              mc.world.setDynamicProperty(`${this.dbName}:${cleanupIdx}`, undefined);
+              cleanupIdx++;
+            }
+          } else {
+            mc.world.setDynamicProperty(`${this.dbName}:meta`, undefined);
+            let cleanupIdx = 0;
+            while (mc.world.getDynamicProperty(`${this.dbName}:${cleanupIdx}`) !== undefined) {
+              mc.world.setDynamicProperty(`${this.dbName}:${cleanupIdx}`, undefined);
+              cleanupIdx++;
+            }
           }
-          // Remove any orphaned shard indices written by the failed save
-          let cleanupIdx = backupShards.length;
-          while (mc.world.getDynamicProperty(`${this.dbName}:${cleanupIdx}`) !== undefined) {
-            mc.world.setDynamicProperty(`${this.dbName}:${cleanupIdx}`, undefined);
-            cleanupIdx++;
-          }
-        } else {
-          mc.world.setDynamicProperty(`${this.dbName}:meta`, undefined);
-          let cleanupIdx = 0;
-          while (mc.world.getDynamicProperty(`${this.dbName}:${cleanupIdx}`) !== undefined) {
-            mc.world.setDynamicProperty(`${this.dbName}:${cleanupIdx}`, undefined);
-            cleanupIdx++;
-          }
+          rolledBack = true;
+        } catch {
+          // Rollback failed; storage may still contain partial writes
         }
-      } catch {
-        // Ignore rollback errors during early execution or hard failures
       }
 
       const msg = String(error);
       if (!msg.includes('cannot be used in early execution')) {
         errorLog(`[StorageManager] Failed to save ${this.dbName}`, error);
       }
-      return false;
+      return rolledBack ? 'rolled_back' : 'indeterminate';
     }
+  }
+
+  /**
+   * Saves data to dynamic properties, handling sharding if necessary.
+   *
+   * @param data Data payload to serialize and persist.
+   * @returns True if saved successfully, false on error.
+   */
+  save<T>(data: T): boolean {
+    return this.saveWithStatus(data) === 'saved';
   }
 
   /** Generator version of save for use with mc.system.runJob to avoid lag spikes with large data. */

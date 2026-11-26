@@ -1,6 +1,6 @@
-import { getShopConfig } from '@core/config/configurations.js';
+import { getEconomyConfig, getShopConfig } from '@core/config/configurations.js';
 import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
-import { getPlayerRanks } from '@core/permissions/permissionEngine.js';
+import { getPlayerRanks, hasPermission } from '@core/permissions/permissionEngine.js';
 import { formatCurrency } from '@core/utils/index.js';
 import { errorLog } from '@core/utils/logger.js';
 import { items as allItems } from '@features/economy/shop/itemsConfig.js';
@@ -13,9 +13,11 @@ import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 import * as mc from '@minecraft/server';
 
+/** Resolved shop item configuration and pricing metadata. */
 export interface ItemInfo {
   itemId: string;
   displayName?: string;
+  permission?: string;
   enchantment?: { id: string; level: number };
   buyPrice?: number;
   sellPrice?: number;
@@ -138,8 +140,8 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
  * @returns The item definition or undefined if not found.
  */
 let cachedItemByKeyMap: Map<string, ItemInfo> | undefined;
-let cachedItemByTypeIdMap: Map<string, { itemKey: string; shopItem: ItemInfo }> | undefined;
-let cachedReverseSellMap: Map<string, { itemKey: string; shopItem: ItemInfo }> | undefined;
+let cachedItemByTypeIdMap: Map<string, { itemKey: string; shopItem: ItemInfo }[]> | undefined;
+let cachedReverseSellMap: Map<string, { itemKey: string; shopItem: ItemInfo }[]> | undefined;
 
 export function invalidateShopLookupCache(): void {
   cachedItemByKeyMap = undefined;
@@ -154,14 +156,17 @@ function ensureShopLookupCaches(): void {
   }
 
   const byKey = new Map<string, ItemInfo>();
-  const byTypeId = new Map<string, { itemKey: string; shopItem: ItemInfo }>();
-  const sellMap = new Map<string, { itemKey: string; shopItem: ItemInfo }>();
+  const byTypeId = new Map<string, { itemKey: string; shopItem: ItemInfo }[]>();
+  const sellMap = new Map<string, { itemKey: string; shopItem: ItemInfo }[]>();
 
   const shopConfig = getShopConfig();
   const categories = shopConfig.categories;
   const items = allItems as Record<string, ItemInfo>;
 
   const registerEntry = (itemKey: string, rawEntry: unknown) => {
+    if (byKey.has(itemKey)) {
+      return;
+    }
     const raw = { ...items[itemKey], ...(rawEntry as Record<string, unknown>) };
     const meta = resolveTradeItemMetadata(itemKey, raw);
     const resolved: ItemInfo = {
@@ -170,19 +175,16 @@ function ensureShopLookupCaches(): void {
       displayName: meta.displayName,
       ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}),
     };
-    if (!byKey.has(itemKey)) {
-      byKey.set(itemKey, resolved);
+    byKey.set(itemKey, resolved);
+    if (!isDefined(resolved.enchantment)) {
+      const list = byTypeId.get(resolved.itemId) ?? [];
+      list.push({ itemKey, shopItem: resolved });
+      byTypeId.set(resolved.itemId, list);
     }
-    if (!isDefined(resolved.enchantment) && !byTypeId.has(resolved.itemId)) {
-      byTypeId.set(resolved.itemId, { itemKey, shopItem: resolved });
-    }
-    if (
-      isDefined(resolved.sellPrice) &&
-      resolved.sellPrice > 0 &&
-      !isDefined(resolved.enchantment) &&
-      !sellMap.has(resolved.itemId)
-    ) {
-      sellMap.set(resolved.itemId, { itemKey, shopItem: resolved });
+    if (isDefined(resolved.sellPrice) && resolved.sellPrice > 0 && !isDefined(resolved.enchantment)) {
+      const candidates = sellMap.get(resolved.itemId) ?? [];
+      candidates.push({ itemKey, shopItem: resolved });
+      sellMap.set(resolved.itemId, candidates);
     }
   };
 
@@ -217,9 +219,52 @@ export function findShopItem(itemKey: string): ItemInfo | undefined {
   return cachedItemByKeyMap?.get(itemKey);
 }
 
-export function findShopItemByTypeId(typeId: string): { itemKey: string; shopItem: ItemInfo } | undefined {
+/**
+ * Finds the best matching shop listing for a given Minecraft item type ID.
+ *
+ * @param typeId Minecraft item type ID.
+ * @param player Optional player used to prefer permitted/sellable listings.
+ * @param mode Optional `'sell'` mode to prefer listings with positive sell price and remaining quota.
+ * @returns Matching shop entry or undefined if not found.
+ */
+export function findShopItemByTypeId(
+  typeId: string,
+  player?: mc.Player,
+  mode?: 'sell',
+): { itemKey: string; shopItem: ItemInfo } | undefined {
   ensureShopLookupCaches();
-  return cachedItemByTypeIdMap?.get(typeId);
+  const candidates = cachedItemByTypeIdMap?.get(typeId);
+  if (!isDefined(candidates) || candidates.length === 0) {
+    return undefined;
+  }
+  if (!isDefined(player)) {
+    return candidates[0];
+  }
+  const hasEntryPermission = (entry: { itemKey: string; shopItem: ItemInfo }) =>
+    !isNonEmptyString(entry.shopItem.permission) || hasPermission(player, entry.shopItem.permission);
+
+  if (mode === 'sell') {
+    const sellCandidates = cachedReverseSellMap?.get(typeId) ?? candidates;
+    const withQuota = sellCandidates.find((entry) => {
+      if (!isDefined(entry.shopItem.sellPrice) || entry.shopItem.sellPrice <= 0 || !hasEntryPermission(entry)) {
+        return false;
+      }
+      const unitPrice = getPlayerShopItemPrice(player, entry.shopItem, 'sell');
+      if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+        return false;
+      }
+      return getRemainingDailyShopQuota(player, entry.itemKey, entry.shopItem, 'sell') > 0;
+    });
+    if (isDefined(withQuota)) {
+      return withQuota;
+    }
+    const sellable = sellCandidates.find(
+      (entry) => isDefined(entry.shopItem.sellPrice) && entry.shopItem.sellPrice > 0 && hasEntryPermission(entry),
+    );
+    return sellable ?? candidates[0];
+  }
+
+  return candidates.find(hasEntryPermission) ?? candidates[0];
 }
 
 export function getPlayerInventoryShopItemCount(player: mc.Player, itemKey: string): number {
@@ -288,14 +333,18 @@ export function getPlayerShopItemPrice(player: mc.Player, shopItem: ItemInfo, ty
  * @returns The result of the transaction.
  */
 export function buyItem(player: mc.Player, itemId: string, quantity: number): ShopTransactionResult {
-  if (quantity <= 0 && quantity !== -1) {
-    return { success: false, message: '§cQuantity must be a positive number.' };
+  if (quantity !== -1 && (!Number.isInteger(quantity) || quantity <= 0)) {
+    return { success: false, message: '§cQuantity must be a positive integer.' };
   }
 
   const shopItem = findShopItem(itemId);
 
   if (!isDefined(shopItem)) {
     return { success: false, message: '§cThis item is not available in the shop.' };
+  }
+
+  if (isNonEmptyString(shopItem.permission) && !hasPermission(player, shopItem.permission)) {
+    return { success: false, message: '§cYou do not have permission to purchase this item.' };
   }
 
   const buyPrice = getPlayerShopItemPrice(player, shopItem, 'buy');
@@ -398,11 +447,15 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
   }
 
   if (failedCount > 0) {
+    const delivered = finalQuantity - failedCount;
+    if (delivered > 0) {
+      recordDailyShopUsage(player, itemId, shopItem, 'buy', delivered);
+    }
     const refund = failedCount * buyPrice;
     incrementPlayerBalance(player.id, refund);
     return {
       success: true,
-      message: `§2Purchased ${finalQuantity - failedCount}x ${shopItem.displayName ?? itemId}. Refunded §e${formatCurrency(refund)}§2 for ${failedCount} items that didn't fit.`,
+      message: `§2Purchased ${delivered}x ${shopItem.displayName ?? itemId}. Refunded §e${formatCurrency(refund)}§2 for ${failedCount} items that didn't fit.`,
     };
   }
 
@@ -411,6 +464,11 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     success: true,
     message: `§2Successfully purchased ${finalQuantity}x ${shopItem.displayName ?? itemId} for §e${formatCurrency(finalCost)}§2.`,
   };
+}
+
+function hasStoredInventoryContents(item: mc.ItemStack): boolean {
+  const invComp = item.getComponent(ItemComponentTypes.Inventory) as mc.ItemInventoryComponent | undefined;
+  return isDefined(invComp?.container) && invComp.container.emptySlotsCount < invComp.container.size;
 }
 
 /**
@@ -431,10 +489,22 @@ function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
     return false;
   }
 
-  const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
-  const hasEnchants = isDefined(enchantable) && enchantable.getEnchantments().length > 0;
-  if (hasEnchants && !isDefined(shopItem.enchantment)) {
+  if (hasStoredInventoryContents(item)) {
     return false;
+  }
+
+  const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent;
+  const enchants = isDefined(enchantable) ? enchantable.getEnchantments() : [];
+  if (!isDefined(shopItem.enchantment)) {
+    if (enchants.length > 0) {
+      return false;
+    }
+  } else {
+    const req = shopItem.enchantment;
+    const hasRequired = enchants.some((e) => e.type.id === req.id && e.level >= req.level);
+    if (!hasRequired) {
+      return false;
+    }
   }
 
   return true;
@@ -449,14 +519,18 @@ function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
  * @returns The result of the transaction.
  */
 export function sellItem(player: mc.Player, itemId: string, quantity: number): ShopTransactionResult {
-  if (quantity <= 0 && quantity !== -1) {
-    return { success: false, message: '§cQuantity must be a positive number.' };
+  if (quantity !== -1 && (!Number.isInteger(quantity) || quantity <= 0)) {
+    return { success: false, message: '§cQuantity must be a positive integer.' };
   }
 
   const shopItem = findShopItem(itemId);
 
   if (!isDefined(shopItem)) {
     return { success: false, message: '§cThis item cannot be sold to the shop.' };
+  }
+
+  if (isNonEmptyString(shopItem.permission) && !hasPermission(player, shopItem.permission)) {
+    return { success: false, message: '§cYou do not have permission to sell this item.' };
   }
 
   const sellPrice = getPlayerShopItemPrice(player, shopItem, 'sell');
@@ -469,8 +543,7 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
     return { success: false, message: '§cCould not access inventory.' };
   }
   const inventory = inventoryComp.container;
-  const itemType = mc.ItemTypes.get(shopItem.itemId);
-  if (!isDefined(itemType)) {
+  if (isDefined(mc.ItemTypes) && !isDefined(mc.ItemTypes.get(shopItem.itemId))) {
     return { success: false, message: '§cInternal server error: Item type not found.' };
   }
 
@@ -537,107 +610,288 @@ export function sellItem(player: mc.Player, itemId: string, quantity: number): S
   };
 }
 
+/** Summary of sellable items and payout calculated for a sell-all preview. */
 export interface SellAllPreview {
   totalItems: number;
   distinctTypes: number;
   totalPayout: number;
   breakdown: { itemKey: string; displayName: string; count: number; payout: number }[];
+  overflowed?: boolean;
 }
 
-function buildReverseSellMap(): Map<string, { itemKey: string; shopItem: ItemInfo }> {
+function buildReverseSellMap(): Map<string, { itemKey: string; shopItem: ItemInfo }[]> {
   ensureShopLookupCaches();
   return cachedReverseSellMap ?? new Map();
 }
 
+function isSellableStackConditionMet(stack: mc.ItemStack): boolean {
+  const durability = stack.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent | undefined;
+  if (isDefined(durability) && durability.damage > 0) {
+    return false;
+  }
+  if (hasStoredInventoryContents(stack)) {
+    return false;
+  }
+  const enchantable = stack.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent | undefined;
+  if (isDefined(enchantable) && enchantable.getEnchantments().length > 0) {
+    return false;
+  }
+  return true;
+}
+
+interface PlannedSellAll {
+  preview: SellAllPreview;
+  soldByItemKey: Map<string, { shopItem: ItemInfo; count: number }>;
+  slotMutations: { slotIndex: number; originalAmount: number; remainingAmount: number; stack: mc.ItemStack }[];
+  overflowed: boolean;
+}
+
+function planSellAllInventory(player: mc.Player, container: mc.Container): PlannedSellAll {
+  const sellMap = buildReverseSellMap();
+  const remainingQuotas = new Map<string, number>();
+  const soldByItemKey = new Map<string, { shopItem: ItemInfo; count: number; payout: number }>();
+  const soldTypeIds = new Set<string>();
+  const slotMutations: { slotIndex: number; originalAmount: number; remainingAmount: number; stack: mc.ItemStack }[] =
+    [];
+  let totalItems = 0;
+  let totalPayout = 0;
+  let overflowed = false;
+
+  for (let i = 0; i < container.size; i++) {
+    const stack = container.getItem(i);
+    if (!isDefined(stack)) {
+      continue;
+    }
+    const candidates = sellMap.get(stack.typeId);
+    if (!isDefined(candidates) || candidates.length === 0 || !isSellableStackConditionMet(stack)) {
+      continue;
+    }
+
+    let remaining = stack.amount;
+    for (const candidate of candidates) {
+      if (remaining <= 0) {
+        break;
+      }
+      const cachedQuota = remainingQuotas.get(candidate.itemKey);
+      if (isDefined(cachedQuota) && cachedQuota <= 0) {
+        continue;
+      }
+      if (isNonEmptyString(candidate.shopItem.permission) && !hasPermission(player, candidate.shopItem.permission)) {
+        continue;
+      }
+      const unitPrice = getPlayerShopItemPrice(player, candidate.shopItem, 'sell');
+      if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+        continue;
+      }
+      const quota = isDefined(cachedQuota)
+        ? cachedQuota
+        : getRemainingDailyShopQuota(player, candidate.itemKey, candidate.shopItem, 'sell');
+      remainingQuotas.set(candidate.itemKey, quota);
+      if (quota <= 0) {
+        continue;
+      }
+
+      const toSell = Math.min(remaining, quota);
+      const payout = Math.round(unitPrice * toSell * 100) / 100;
+      const nextTotalPayout = Math.round((totalPayout + payout) * 100) / 100;
+      if (!Number.isFinite(payout) || payout <= 0 || !Number.isFinite(nextTotalPayout)) {
+        overflowed = true;
+        break;
+      }
+
+      remainingQuotas.set(candidate.itemKey, quota - toSell);
+      remaining -= toSell;
+      totalItems += toSell;
+      totalPayout = nextTotalPayout;
+      soldTypeIds.add(stack.typeId);
+
+      const existing = soldByItemKey.get(candidate.itemKey);
+      if (isDefined(existing)) {
+        existing.count += toSell;
+        existing.payout = Math.round((existing.payout + payout) * 100) / 100;
+      } else {
+        soldByItemKey.set(candidate.itemKey, {
+          shopItem: candidate.shopItem,
+          count: toSell,
+          payout,
+        });
+      }
+    }
+
+    if (overflowed) {
+      break;
+    }
+    if (remaining < stack.amount) {
+      slotMutations.push({
+        slotIndex: i,
+        originalAmount: stack.amount,
+        remainingAmount: remaining,
+        stack,
+      });
+    }
+  }
+
+  const breakdown = [...soldByItemKey.entries()].map(([itemKey, entry]) => ({
+    itemKey,
+    displayName: entry.shopItem.displayName ?? itemKey,
+    count: entry.count,
+    payout: entry.payout,
+  }));
+
+  return {
+    preview: {
+      totalItems,
+      distinctTypes: soldTypeIds.size,
+      totalPayout,
+      breakdown,
+    },
+    soldByItemKey,
+    slotMutations,
+    overflowed,
+  };
+}
+
+/**
+ * Previews all sellable items in a player's inventory, respecting permissions and daily sell limits.
+ *
+ * @param player The player whose inventory is previewed.
+ * @returns Breakdown and totals of sellable items.
+ */
 export function previewSellAllInventory(player: mc.Player): SellAllPreview {
   const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
   const container = inventoryComp?.container;
   if (!isDefined(container)) {
     return { totalItems: 0, distinctTypes: 0, totalPayout: 0, breakdown: [] };
   }
-
-  const sellMap = buildReverseSellMap();
-  const counts = new Map<string, { itemKey: string; shopItem: ItemInfo; count: number }>();
-
-  for (let i = 0; i < container.size; i++) {
-    const stack = container.getItem(i);
-    if (!isDefined(stack)) {
-      continue;
-    }
-    const match = sellMap.get(stack.typeId);
-    if (!isDefined(match) || !isValidSellItem(stack, match.shopItem)) {
-      continue;
-    }
-    const existing = counts.get(match.itemKey);
-    if (isDefined(existing)) {
-      existing.count += stack.amount;
-    } else {
-      counts.set(match.itemKey, { itemKey: match.itemKey, shopItem: match.shopItem, count: stack.amount });
-    }
+  const plan = planSellAllInventory(player, container);
+  if (plan.overflowed) {
+    return { totalItems: 0, distinctTypes: 0, totalPayout: 0, breakdown: [], overflowed: true };
   }
-
-  let totalItems = 0;
-  let totalPayout = 0;
-  const breakdown: { itemKey: string; displayName: string; count: number; payout: number }[] = [];
-
-  for (const entry of counts.values()) {
-    const unitPrice = getPlayerShopItemPrice(player, entry.shopItem, 'sell');
-    if (unitPrice <= 0) {
-      continue;
-    }
-    const payout = Math.round(unitPrice * entry.count * 100) / 100;
-    totalItems += entry.count;
-    totalPayout = Math.round((totalPayout + payout) * 100) / 100;
-    breakdown.push({
-      itemKey: entry.itemKey,
-      displayName: entry.shopItem.displayName ?? entry.itemKey,
-      count: entry.count,
-      payout,
-    });
-  }
-
-  return {
-    totalItems,
-    distinctTypes: breakdown.length,
-    totalPayout,
-    breakdown,
-  };
+  return plan.preview;
 }
 
-export function executeSellAllInventory(player: mc.Player): ShopTransactionResult {
+function doBreakdownsMatch(
+  expected: { itemKey: string; count: number }[],
+  actual: { itemKey: string; count: number }[],
+): boolean {
+  const expectedMap = new Map<string, number>();
+  for (const entry of expected) {
+    expectedMap.set(entry.itemKey, (expectedMap.get(entry.itemKey) ?? 0) + entry.count);
+  }
+  const actualMap = new Map<string, number>();
+  for (const entry of actual) {
+    actualMap.set(entry.itemKey, (actualMap.get(entry.itemKey) ?? 0) + entry.count);
+  }
+  if (expectedMap.size !== actualMap.size) {
+    return false;
+  }
+  for (const [key, count] of expectedMap) {
+    if (actualMap.get(key) !== count) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Sells all eligible items in a player's inventory while enforcing permissions, balance limits, and daily sell limits.
+ *
+ * @param player The player selling their inventory.
+ * @param expectedQuote Optional previously confirmed quote to guard against mid-confirmation price/quota shifts.
+ * @returns The transaction result.
+ */
+export function executeSellAllInventory(
+  player: mc.Player,
+  expectedQuote?: { totalItems: number; totalPayout: number; breakdown?: { itemKey: string; count: number }[] },
+): ShopTransactionResult & { quoteChanged?: boolean; updatedPreview?: SellAllPreview } {
   const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
   const container = inventoryComp?.container;
   if (!isDefined(container)) {
     return { success: false, message: '§cCould not access inventory.' };
   }
 
-  const sellMap = buildReverseSellMap();
-  let totalItems = 0;
-  let totalPayout = 0;
-
-  for (let i = 0; i < container.size; i++) {
-    const stack = container.getItem(i);
-    if (!isDefined(stack)) {
-      continue;
-    }
-    const match = sellMap.get(stack.typeId);
-    if (!isDefined(match) || !isValidSellItem(stack, match.shopItem)) {
-      continue;
-    }
-    const unitPrice = getPlayerShopItemPrice(player, match.shopItem, 'sell');
-    if (unitPrice <= 0) {
-      continue;
-    }
-    totalItems += stack.amount;
-    totalPayout = Math.round((totalPayout + unitPrice * stack.amount) * 100) / 100;
-    container.setItem(i, undefined);
+  const plan = planSellAllInventory(player, container);
+  if (plan.overflowed) {
+    return { success: false, message: '§cSale payout exceeds supported numeric limits.' };
   }
-
+  const { totalItems, totalPayout } = plan.preview;
   if (totalItems === 0 || totalPayout <= 0) {
-    return { success: false, message: '§cYou have no sellable items in your inventory.' };
+    return { success: false, message: '§cYou have no sellable items in your inventory (or daily limits reached).' };
   }
 
-  incrementPlayerBalance(player.id, totalPayout);
+  if (
+    isDefined(expectedQuote) &&
+    (totalItems !== expectedQuote.totalItems ||
+      Math.abs(totalPayout - expectedQuote.totalPayout) > 0.001 ||
+      (isDefined(expectedQuote.breakdown) && !doBreakdownsMatch(expectedQuote.breakdown, plan.preview.breakdown)))
+  ) {
+    return {
+      success: false,
+      quoteChanged: true,
+      updatedPreview: plan.preview,
+      message: `§e[Shop] Sale quote changed (now §f${totalItems}§e items for §a${formatCurrency(totalPayout)}§e). Please review and confirm again.`,
+    };
+  }
+
+  const pData = getOrCreatePlayer(player);
+  const { maxBalance } = getEconomyConfig();
+  const currentBal = Number.isFinite(Number(pData.balance)) ? Number(pData.balance) : 0;
+  const projectedBalance = Number.parseFloat((currentBal + totalPayout).toFixed(2));
+  if (Number.isFinite(maxBalance) && projectedBalance > maxBalance) {
+    return {
+      success: false,
+      message: `§cCannot sell all: payout of §e${formatCurrency(totalPayout)}§c would exceed the maximum balance of §e${formatCurrency(maxBalance)}§c.`,
+    };
+  }
+
+  const restoreMutations = (mutations: typeof plan.slotMutations): boolean => {
+    let allRestored = true;
+    for (const mutation of mutations) {
+      try {
+        mutation.stack.amount = mutation.originalAmount;
+        container.setItem(mutation.slotIndex, mutation.stack);
+      } catch {
+        allRestored = false;
+      }
+    }
+    return allRestored;
+  };
+
+  const appliedMutations: typeof plan.slotMutations = [];
+  try {
+    for (const mutation of plan.slotMutations) {
+      if (mutation.remainingAmount <= 0) {
+        container.setItem(mutation.slotIndex, undefined);
+      } else {
+        mutation.stack.amount = mutation.remainingAmount;
+        container.setItem(mutation.slotIndex, mutation.stack);
+      }
+      appliedMutations.push(mutation);
+    }
+  } catch {
+    const allRestored = restoreMutations(appliedMutations);
+    return {
+      success: false,
+      message: allRestored
+        ? '§cFailed to update inventory. Sale cancelled.'
+        : '§cInventory update failed and rollback was incomplete. Please check your inventory.',
+    };
+  }
+
+  if (!incrementPlayerBalance(player.id, totalPayout)) {
+    const allRestored = restoreMutations(appliedMutations);
+    return {
+      success: false,
+      message: allRestored
+        ? '§cFailed to credit balance. Sale cancelled.'
+        : '§cFailed to credit balance and inventory rollback was incomplete. Please check your inventory.',
+    };
+  }
+
+  for (const [itemKey, sold] of plan.soldByItemKey) {
+    recordDailyShopUsage(player, itemKey, sold.shopItem, 'sell', sold.count);
+  }
+
   return {
     success: true,
     message: `§2Successfully sold §e${totalItems}§2 items from your inventory for §a${formatCurrency(totalPayout)}§2!`,

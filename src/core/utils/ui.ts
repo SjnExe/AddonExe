@@ -199,6 +199,9 @@ export async function uiWait(
     }
 
     if (retry === 15) {
+      if (isPlayerInvalid(player)) {
+        break;
+      }
       player.sendMessage('§eOpening UI... please close chat or inventory to view.§r');
     }
   }

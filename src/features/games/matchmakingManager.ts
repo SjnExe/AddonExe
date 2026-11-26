@@ -34,10 +34,12 @@ export interface GameInvitation {
   expiryTimestamp: number;
 }
 
+/** Active 2-player match session tracked for disconnect and shutdown escrow handling. */
 export interface ActiveMatchSession {
   matchId: string;
   gameId: string;
   playerIds: [string, string];
+  wager?: number;
   onPlayerDisconnect: (disconnectedPlayerId: string) => void;
 }
 
@@ -48,12 +50,15 @@ const activePlayerMatches = new Map<string, ActiveMatchSession>();
 const matchmakingQueues = new Map<string, string[]>();
 
 let initialized = false;
+let isShuttingDown = false;
 
+/** Initializes multiplayer matchmaking expiry intervals, leave handlers, and shutdown refunds. */
 export function initializeMatchmaking(): void {
   if (initialized) {
     return;
   }
   initialized = true;
+  isShuttingDown = false;
 
   setTrackedInterval(() => {
     const now = Date.now();
@@ -62,15 +67,33 @@ export function initializeMatchmaking(): void {
         removeInvite(inv);
         const sender = getPlayerFromCache(senderId);
         const target = getPlayerFromCache(inv.targetId);
-        if (isDefined(sender)) {
+        if (isDefined(sender) && sender.isValid) {
           sender.sendMessage(`§cYour ${inv.gameName} invitation to ${inv.targetName} has expired.`);
         }
-        if (isDefined(target)) {
+        if (isDefined(target) && target.isValid) {
           target.sendMessage(`§cThe ${inv.gameName} invitation from ${inv.senderName} has expired.`);
         }
       }
     }
   }, 20);
+
+  if (mc.system?.beforeEvents?.shutdown) {
+    mc.system.beforeEvents.shutdown.subscribe(() => {
+      isShuttingDown = true;
+      const refundedMatchIds = new Set<string>();
+      for (const session of activePlayerMatches.values()) {
+        if (refundedMatchIds.has(session.matchId)) {
+          continue;
+        }
+        refundedMatchIds.add(session.matchId);
+        if (isDefined(session.wager) && session.wager > 0) {
+          incrementPlayerBalance(session.playerIds[0], session.wager);
+          incrementPlayerBalance(session.playerIds[1], session.wager);
+        }
+      }
+      activePlayerMatches.clear();
+    });
+  }
 
   mc.world.afterEvents.playerLeave.subscribe((event) => {
     const { playerId } = event;
@@ -86,6 +109,9 @@ export function initializeMatchmaking(): void {
     }
 
     leaveMatchmakingQueue(playerId);
+    if (isShuttingDown) {
+      return;
+    }
     const activeSession = activePlayerMatches.get(playerId);
     if (isDefined(activeSession)) {
       activeSession.onPlayerDisconnect(playerId);
@@ -95,6 +121,28 @@ export function initializeMatchmaking(): void {
 
 export function registerMultiplayerGame(def: MultiplayerGameDefinition): void {
   registeredGames.set(def.id.toLowerCase(), def);
+}
+
+/**
+ * Checks whether wagering is enabled for a specific multiplayer game.
+ *
+ * @param gameId Multiplayer game identifier.
+ * @returns True if economy is active and wagering is not disabled for the game.
+ */
+export function isGameWagerEnabled(gameId: string): boolean {
+  if (!isFeatureActive('eco')) {
+    return false;
+  }
+  const gamesCfg = getGamesConfig();
+  const wagerConfigMap: Record<string, boolean | undefined> = {
+    coinflip: gamesCfg.coinFlip?.allowWagers,
+    tictactoe: gamesCfg.ticTacToe?.allowWagers,
+    rps: gamesCfg.rps?.allowWagers,
+    minesweeper: gamesCfg.minesweeper?.allowWagers,
+    connect4: gamesCfg.connect4?.allowWagers,
+    codebreaker: gamesCfg.codebreaker?.allowWagers,
+  };
+  return wagerConfigMap[gameId.toLowerCase()] !== false;
 }
 
 export function getMultiplayerGame(gameId: string): MultiplayerGameDefinition | undefined {
@@ -154,6 +202,15 @@ export function getOutgoingGameInvite(playerId: string): GameInvitation | undefi
   return outgoingInvites.get(playerId);
 }
 
+/**
+ * Sends a multiplayer game invitation with optional wager validation.
+ *
+ * @param sender The player sending the invitation.
+ * @param target The target player.
+ * @param gameId Registered multiplayer game ID.
+ * @param wager Optional currency wager per player.
+ * @returns Result object indicating success and feedback message.
+ */
 export function sendGameInvite(
   sender: mc.Player,
   target: mc.Player,
@@ -202,9 +259,9 @@ export function sendGameInvite(
     return { success: false, message: `§cYou are blocked from sending game invitations to ${target.name}.` };
   }
 
-  const cleanWager = Math.max(0, Math.floor(wager * 100) / 100);
+  const cleanWager = Number.isFinite(wager) ? Math.max(0, Math.floor(wager * 100) / 100) : 0;
   if (cleanWager > 0) {
-    if (!isFeatureActive('eco') || gamesCfg.ticTacToe?.allowWagers === false) {
+    if (!isGameWagerEnabled(gameDef.id)) {
       return { success: false, message: '§cGame wagers are currently disabled.' };
     }
     const senderData = getOrCreatePlayer(sender);
@@ -250,6 +307,14 @@ export function sendGameInvite(
   };
 }
 
+/**
+ * Accepts a pending multiplayer game invitation and schedules match startup.
+ *
+ * @param player Target player accepting the invite.
+ * @param senderName Optional sender name filter.
+ * @param gameId Optional game ID filter.
+ * @returns Result with success flag and feedback message.
+ */
 export function acceptGameInvite(
   player: mc.Player,
   senderName?: string,
@@ -304,6 +369,27 @@ export function acceptGameInvite(
   player.sendMessage(`§aAccepted ${sender.name}'s §b${invite.gameName}§a invitation! Starting match...`);
 
   mc.system.run(() => {
+    if (!sender.isValid || !player.isValid) {
+      if (sender.isValid) {
+        sender.sendMessage(`§cMatch cancelled: ${invite.targetName} disconnected.`);
+      }
+      if (player.isValid) {
+        player.sendMessage(`§cMatch cancelled: ${invite.senderName} disconnected.`);
+      }
+      return;
+    }
+    if (isPlayerInMatch(sender.id) || isPlayerInMatch(player.id)) {
+      sender.sendMessage('§cMatch cancelled: one of the players is already in an active match.');
+      player.sendMessage('§cMatch cancelled: one of the players is already in an active match.');
+      return;
+    }
+    if (invite.wager > 0) {
+      if (getOrCreatePlayer(sender).balance < invite.wager || getOrCreatePlayer(player).balance < invite.wager) {
+        sender.sendMessage('§cMatch cancelled: insufficient funds for the wager.');
+        player.sendMessage('§cMatch cancelled: insufficient funds for the wager.');
+        return;
+      }
+    }
     void gameDef.onStartMatch(sender, player, invite.wager);
   });
 
@@ -444,7 +530,13 @@ export function payoutWagerPot(winnerId: string, wagerPerPlayer: number): { netP
   return { netPrize, taxRate };
 }
 
-/** Joins or toggles the random matchmaking queue for a multiplayer game. */
+/**
+ * Joins or toggles the random matchmaking queue for a multiplayer game.
+ *
+ * @param player The player entering or leaving the queue.
+ * @param gameId The game identifier.
+ * @returns Matchmaking result indicating whether a match was formed.
+ */
 export function joinMatchmakingQueue(
   player: mc.Player,
   gameId: string,
@@ -489,6 +581,21 @@ export function joinMatchmakingQueue(
       playSound(opponent, 'random.orb');
       playSound(player, 'random.orb');
       mc.system.run(() => {
+        const oppUnavailable = !opponent.isValid || isPlayerInMatch(opponent.id);
+        const playerUnavailable = !player.isValid || isPlayerInMatch(player.id);
+        if (oppUnavailable || playerUnavailable) {
+          if (!oppUnavailable && opponent.isValid) {
+            opponent.sendMessage(
+              `§e[Matchmaking] §cMatch cancelled — opponent is unavailable. You can rejoin the §b${gameDef.name}§c queue.`,
+            );
+          }
+          if (!playerUnavailable && player.isValid) {
+            player.sendMessage(
+              `§e[Matchmaking] §cMatch cancelled — opponent is unavailable. You can rejoin the §b${gameDef.name}§c queue.`,
+            );
+          }
+          return;
+        }
         void gameDef.onStartMatch(opponent, player, 0);
       });
       return { success: true, matched: true, message: '' };
@@ -596,7 +703,9 @@ export function handleCommonGameSubcommand(
   return false;
 }
 
+/** Clears in-memory matchmaking queues, invites, and active sessions for unit tests. */
 export function _clearMatchmakingForTest(): void {
+  isShuttingDown = false;
   matchmakingQueues.clear();
   outgoingInvites.clear();
   incomingInvites.clear();

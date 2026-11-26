@@ -89,6 +89,13 @@ const spawnCommand: CustomCommand = {
         if (!executor.isValid) {
           return;
         }
+        if (
+          !isWithinWorldBorder({ x: spawnTarget.x, z: spawnTarget.z }, spawnLocation.dimensionId) &&
+          !canBypassWorldBorder(executor)
+        ) {
+          sendMessage('§cTeleport cancelled: The server spawn point is outside the active world border.', executor);
+          return;
+        }
         if (chargeCost > 0) {
           if (getOrCreatePlayer(executor).balance < chargeCost) {
             sendMessage(`§cTeleport cancelled: Insufficient funds (${formatCurrency(chargeCost)} required).`, executor);

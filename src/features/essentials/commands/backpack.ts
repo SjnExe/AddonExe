@@ -14,7 +14,7 @@ const backpackStorage = new StorageManager('exe:backpacks:v1');
 
 function loadAllBackpacks(): Map<string, SerializedItem[]> | undefined {
   const loaded = backpackStorage.load<[string, SerializedItem[]][]>();
-  if (!loaded && mc.world.getDynamicProperty('exe:backpack:v1:meta') !== undefined) {
+  if (!loaded && mc.world.getDynamicProperty('exe:backpacks:v1:meta') !== undefined) {
     return undefined;
   }
   return new Map<string, SerializedItem[]>(loaded ?? []);
@@ -131,20 +131,67 @@ async function showBackpackPanel(player: mc.Player): Promise<void> {
       if (!inv?.container || !isDefined(stack)) {
         return;
       }
-      const leftover = inv.container.addItem(stack);
-      if (isDefined(leftover)) {
-        if (leftover.amount === currentEntry.amount) {
-          player.sendMessage('§cNot enough inventory space!');
-          return;
-        }
-        latestItems[idx] = serializeItem(leftover);
-      } else {
-        latestItems.splice(idx, 1);
-      }
+      const originalEntry = currentEntry;
+      latestItems.splice(idx, 1);
       latestPacks.set(player.id, latestItems);
       if (!backpackStorage.save([...latestPacks.entries()])) {
         player.sendMessage('§cFailed to save backpack.');
         return;
+      }
+      const countMatchingInContainer = (): number => {
+        let total = 0;
+        for (let i = 0; i < inv.container!.size; i++) {
+          const item = inv.container!.getItem(i);
+          if (item && item.typeId === originalEntry.typeId) {
+            total += item.amount;
+          }
+        }
+        return total;
+      };
+      const beforeCount = countMatchingInContainer();
+      let leftover: mc.ItemStack | undefined;
+      try {
+        leftover = inv.container.addItem(stack);
+      } catch {
+        const afterCount = countMatchingInContainer();
+        const insertedAmount = Math.max(0, Math.min(originalEntry.amount, afterCount - beforeCount));
+        const uninsertedAmount = originalEntry.amount - insertedAmount;
+        if (uninsertedAmount > 0) {
+          const restoreEntry: SerializedItem = { ...originalEntry, amount: uninsertedAmount };
+          latestItems.splice(idx, 0, restoreEntry);
+          const restoreStatus = backpackStorage.saveWithStatus([...latestPacks.entries()]);
+          if (restoreStatus === 'rolled_back') {
+            const dropStack = deserializeItem(restoreEntry);
+            if (isDefined(dropStack)) {
+              player.dimension.spawnItem(dropStack, player.location);
+            }
+          } else if (restoreStatus === 'indeterminate') {
+            player.sendMessage('§cBackpack storage write was interrupted; check /backpack before retrying.');
+          }
+        }
+        player.sendMessage('§cFailed to add item to inventory.');
+        return;
+      }
+      if (isDefined(leftover)) {
+        if (leftover.amount === originalEntry.amount) {
+          latestItems.splice(idx, 0, originalEntry);
+          const restoreStatus = backpackStorage.saveWithStatus([...latestPacks.entries()]);
+          if (restoreStatus === 'rolled_back') {
+            player.dimension.spawnItem(stack, player.location);
+          } else if (restoreStatus === 'indeterminate') {
+            player.sendMessage('§cBackpack storage write was interrupted; check /backpack before retrying.');
+            return;
+          }
+          player.sendMessage('§cNot enough inventory space!');
+          return;
+        }
+        latestItems.splice(idx, 0, serializeItem(leftover));
+        const restoreStatus = backpackStorage.saveWithStatus([...latestPacks.entries()]);
+        if (restoreStatus === 'rolled_back') {
+          player.dimension.spawnItem(leftover, player.location);
+        } else if (restoreStatus === 'indeterminate') {
+          player.sendMessage('§cBackpack storage write was interrupted; check /backpack before retrying.');
+        }
       }
       playSound(player, 'random.pop');
       await showBackpackPanel(player);

@@ -25,8 +25,16 @@ import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 import { showConfirmationDialog } from '@ui/components.js';
 
+/**
+ * Displays the main server shop panel to a player.
+ *
+ * @param player Target player.
+ */
 export async function showShopMainPanel(player: mc.Player): Promise<void> {
   await ensureItemsConfig();
+  if (!player.isValid) {
+    return;
+  }
   const pData = getOrCreatePlayer(player);
   const form = new ActionFormBuilder()
     .grid(3)
@@ -39,26 +47,54 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
       formatTwoLineButton('§l§aSell All', 'Bulk sell inventory'),
       'textures/ui/icon_recipe_equipment',
       async () => {
-        const preview = previewSellAllInventory(player);
-        if (preview.totalItems === 0) {
-          player.sendMessage('§cYou have no sellable shop items in your inventory.');
-          await showShopMainPanel(player);
+        if (!player.isValid) {
           return;
         }
-        await showConfirmationDialog(player, {
-          title: 'Confirm Sell All',
-          body: `Sell §e${preview.totalItems}§f items (§b${preview.distinctTypes}§f types) for §a${formatCurrency(preview.totalPayout)}§f?`,
-          confirmButtonText: `§2Sell All (${formatCurrency(preview.totalPayout)})`,
-          cancelButtonText: '§cCancel',
-          onConfirm: async () => {
-            const res = executeSellAllInventory(player);
-            player.sendMessage(res.message);
+        const preview = previewSellAllInventory(player);
+        const confirmSellAll = async (quote: ReturnType<typeof previewSellAllInventory>): Promise<void> => {
+          if (!player.isValid) {
+            return;
+          }
+          if (quote.overflowed) {
+            player.sendMessage('§cSale payout exceeds supported numeric limits.');
             await showShopMainPanel(player);
-          },
-          onCancel: async () => {
+            return;
+          }
+          if (quote.totalItems === 0) {
+            player.sendMessage('§cYou have no sellable shop items in your inventory.');
             await showShopMainPanel(player);
-          },
-        });
+            return;
+          }
+          await showConfirmationDialog(player, {
+            title: 'Confirm Sell All',
+            body: `Sell §e${quote.totalItems}§f items (§b${quote.distinctTypes}§f types) for §a${formatCurrency(quote.totalPayout)}§f?`,
+            confirmButtonText: `§2Sell All (${formatCurrency(quote.totalPayout)})`,
+            cancelButtonText: '§cCancel',
+            onConfirm: async () => {
+              if (!player.isValid) {
+                return;
+              }
+              const res = executeSellAllInventory(player, {
+                totalItems: quote.totalItems,
+                totalPayout: quote.totalPayout,
+                breakdown: quote.breakdown,
+              });
+              player.sendMessage(res.message);
+              if (res.quoteChanged && res.updatedPreview) {
+                await confirmSellAll(res.updatedPreview);
+                return;
+              }
+              await showShopMainPanel(player);
+            },
+            onCancel: async () => {
+              if (!player.isValid) {
+                return;
+              }
+              await showShopMainPanel(player);
+            },
+          });
+        };
+        await confirmSellAll(preview);
       },
     );
 
@@ -102,8 +138,18 @@ export async function showShopMainPanel(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Displays a shop category panel with subcategories and items.
+ *
+ * @param player Target player.
+ * @param categoryName Category identifier.
+ * @param page Current page number.
+ */
 export async function showShopCategoryPanel(player: mc.Player, categoryName: string, page: number = 1): Promise<void> {
   await ensureItemsConfig();
+  if (!player.isValid) {
+    return;
+  }
   const shopConfig = getShopConfig();
   const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
 
@@ -192,6 +238,14 @@ export async function showShopCategoryPanel(player: mc.Player, categoryName: str
   await form.show(player);
 }
 
+/**
+ * Displays items within a shop subcategory.
+ *
+ * @param player Target player.
+ * @param categoryName Parent category identifier.
+ * @param subCategoryName Subcategory identifier.
+ * @param page Current page number.
+ */
 export async function showShopItemListPanel(
   player: mc.Player,
   categoryName: string,
@@ -199,6 +253,9 @@ export async function showShopItemListPanel(
   page: number = 1,
 ): Promise<void> {
   await ensureItemsConfig();
+  if (!player.isValid) {
+    return;
+  }
   const shopConfig = getShopConfig();
   const category = shopConfig.categories[categoryName] as ShopCategory | undefined;
   const subCat = category?.subCategories?.[subCategoryName];
@@ -259,11 +316,19 @@ export async function showShopItemListPanel(
   await form.show(player);
 }
 
+/**
+ * Opens the shop search input modal.
+ *
+ * @param player Target player.
+ */
 export async function showShopSearchPanel(player: mc.Player): Promise<void> {
   const modal = new CustomFormBuilder<{ query: string }>('Search Shop')
     .textField('query', 'Item Name', 'e.g., Diamond Sword, Stone Stairs', '')
     .submitButton('Search');
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
     void showShopMainPanel(player);
     return;
@@ -275,8 +340,18 @@ export async function showShopSearchPanel(player: mc.Player): Promise<void> {
   }
 }
 
+/**
+ * Displays paginated shop search results matching `query`.
+ *
+ * @param player Target player.
+ * @param query Search query string.
+ * @param page Current page number.
+ */
 export async function showShopSearchResultsPanel(player: mc.Player, query: string, page: number = 1): Promise<void> {
   await ensureItemsConfig();
+  if (!player.isValid) {
+    return;
+  }
   const shopConfig = getShopConfig();
   const results: { id: string; name: string; subtitle: string; icon: string; itemData: ShopItemInfo }[] = [];
   const lowerQuery = query.toLowerCase();
@@ -356,6 +431,14 @@ export interface ReturnContext {
   page: number;
 }
 
+/**
+ * Displays the buy/sell transaction panel for a specific shop item.
+ *
+ * @param player Target player.
+ * @param itemKey Shop item key.
+ * @param itemData Raw item configuration data.
+ * @param returnCtx Navigation context for the Back button.
+ */
 export async function showBuyOrSellPanel(
   player: mc.Player,
   itemKey: string,
@@ -448,6 +531,9 @@ export async function showBuyOrSellPanel(
           .textField('qty', 'Quantity', 'e.g. 32', '16')
           .submitButton('Confirm Trade');
         const res = await modal.show(player);
+        if (!player.isValid) {
+          return;
+        }
         if (res) {
           const parsedQty = Number.parseInt(res.qty, 10);
           if (!Number.isNaN(parsedQty) && parsedQty > 0) {

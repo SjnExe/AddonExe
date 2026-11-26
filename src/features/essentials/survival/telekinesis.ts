@@ -1,7 +1,7 @@
 import { getConfig } from '@core/config/configManager.js';
 import { getProtectionFlags } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
-import { isDefined } from '@lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 
@@ -21,6 +21,16 @@ export function collectNearbyDropsToPlayer(player: mc.Player, origin: mc.Vector3
   if (flags.preventItemPickup && !hasPermission(player, 'group.mod')) {
     return;
   }
+  const preExistingIds = new Set<string>();
+  try {
+    for (const ent of dimension.getEntities({ location: loc, maxDistance: 2.5 })) {
+      if (ent.isValid && isNonEmptyString(ent.id) && isDefined(ent.getComponent(EntityComponentTypes.Item))) {
+        preExistingIds.add(ent.id);
+      }
+    }
+  } catch {
+    // Ignore unloaded chunk errors
+  }
   mc.system.run(() => {
     if (!player.isValid) {
       return;
@@ -37,7 +47,7 @@ export function collectNearbyDropsToPlayer(player: mc.Player, origin: mc.Vector3
       return;
     }
     for (const ent of items) {
-      if (!ent.isValid) {
+      if (!ent.isValid || (isNonEmptyString(ent.id) && preExistingIds.has(ent.id))) {
         continue;
       }
       const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;

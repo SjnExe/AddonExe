@@ -1,5 +1,5 @@
 import { getEconomyConfig } from '@core/config/configurations.js';
-import { getOrCreatePlayer, getPlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, getPlayer, incrementPlayerBalance, loadPlayerData } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
@@ -9,9 +9,9 @@ import { resolveTradeItemDisplayName } from '@features/economy/tradeUtils.js';
 import { getGraveAt } from '@features/essentials/graves/manager.js';
 import { getContainerLockAt } from '@features/essentials/protection/containerLockManager.js';
 import { canPlayerModify } from '@features/essentials/protection/landclaim/manager.js';
-import { isDefined } from '@lib/guards.js';
+import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { EntityComponentTypes } from '@minecraft/server';
+import { EntityComponentTypes, ItemComponentTypes } from '@minecraft/server';
 import { MinecraftBlockTypes } from '@minecraft/vanilla-data';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 
@@ -175,7 +175,16 @@ export function createChestShop(
   if (!isDefined(held)) {
     return { success: false, message: '§cHold the item you want this shop to trade.' };
   }
+  if (!isPlainChestShopItem(held)) {
+    return {
+      success: false,
+      message: '§cChest Shops only support plain, undamaged, unenchanted items without custom names or inventories.',
+    };
+  }
 
+  if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(amount) || amount <= 0) {
+    return { success: false, message: '§cPrice and amount must be valid positive numbers.' };
+  }
   const maxStack = Math.max(1, held.maxAmount || 64);
   const cleanPrice = Math.max(1, Math.floor(price));
   const cleanAmount = Math.max(1, Math.min(maxStack, Math.floor(amount)));
@@ -246,6 +255,37 @@ export function removeChestShopOnBreak(dimensionId: string, loc: mc.Vector3): vo
   }
 }
 
+function isPlainChestShopItem(item: mc.ItemStack): boolean {
+  if (isNonEmptyString(item.nameTag)) {
+    return false;
+  }
+  if (typeof item.getLore === 'function' && item.getLore().length > 0) {
+    return false;
+  }
+  if (typeof item.getCanDestroy === 'function' && item.getCanDestroy().length > 0) {
+    return false;
+  }
+  if (typeof item.getCanPlaceOn === 'function' && item.getCanPlaceOn().length > 0) {
+    return false;
+  }
+  try {
+    const durability = item.getComponent(ItemComponentTypes.Durability) as mc.ItemDurabilityComponent | undefined;
+    if (isDefined(durability) && durability.damage > 0) {
+      return false;
+    }
+    const enchantable = item.getComponent(ItemComponentTypes.Enchantable) as mc.ItemEnchantableComponent | undefined;
+    if (isDefined(enchantable) && enchantable.getEnchantments().length > 0) {
+      return false;
+    }
+    if (isDefined(item.getComponent(ItemComponentTypes.Inventory))) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+  return true;
+}
+
 function canContainerFit(container: mc.Container, itemTypeId: string, needed: number): boolean {
   const probe = new mc.ItemStack(itemTypeId, 1);
   const maxStack = Math.max(1, probe.maxAmount || 64);
@@ -254,7 +294,11 @@ function canContainerFit(container: mc.Container, itemTypeId: string, needed: nu
     const it = container.getItem(i);
     if (!isDefined(it)) {
       capacity += maxStack;
-    } else if (it.typeId === itemTypeId && it.amount < maxStack) {
+    } else if (
+      it.typeId === itemTypeId &&
+      it.amount < maxStack &&
+      (typeof it.isStackableWith === 'function' ? it.isStackableWith(probe) : !isNonEmptyString(it.nameTag))
+    ) {
       capacity += maxStack - it.amount;
     }
     if (capacity >= needed) {
@@ -262,6 +306,59 @@ function canContainerFit(container: mc.Container, itemTypeId: string, needed: nu
     }
   }
   return false;
+}
+
+interface StagedSlotTake {
+  slot: number;
+  item: mc.ItemStack;
+  originalAmount: number;
+}
+
+function restoreStagedSlotTakes(container: mc.Container, staged: StagedSlotTake[]): boolean {
+  let allRestored = true;
+  for (const entry of staged) {
+    try {
+      entry.item.amount = entry.originalAmount;
+      container.setItem(entry.slot, entry.item);
+    } catch {
+      allRestored = false;
+    }
+  }
+  return allRestored;
+}
+
+function takePlainItemsStaged(
+  container: mc.Container,
+  itemTypeId: string,
+  amount: number,
+): { ok: boolean; staged: StagedSlotTake[]; allRestored: boolean } {
+  const staged: StagedSlotTake[] = [];
+  let toTake = amount;
+  try {
+    for (let i = 0; i < container.size && toTake > 0; i++) {
+      const it = container.getItem(i);
+      if (it?.typeId === itemTypeId && isPlainChestShopItem(it)) {
+        const originalAmount = it.amount;
+        const take = Math.min(originalAmount, toTake);
+        toTake -= take;
+        staged.push({ slot: i, item: it, originalAmount });
+        if (originalAmount - take <= 0) {
+          container.setItem(i, undefined);
+        } else {
+          it.amount = originalAmount - take;
+          container.setItem(i, it);
+        }
+      }
+    }
+    if (toTake > 0) {
+      const allRestored = restoreStagedSlotTakes(container, staged);
+      return { ok: false, staged, allRestored };
+    }
+    return { ok: true, staged, allRestored: true };
+  } catch {
+    const allRestored = restoreStagedSlotTakes(container, staged);
+    return { ok: false, staged, allRestored };
+  }
 }
 
 function executeChestShopTrade(player: mc.Player, block: mc.Block, shop: ChestShopRecord): void {
@@ -281,16 +378,16 @@ function executeChestShopTrade(player: mc.Player, block: mc.Block, shop: ChestSh
   const pCont = playerInv.container;
   const label = resolveTradeItemDisplayName(shop.itemTypeId);
   const maxBalance = Number(econCfg.maxBalance ?? 1_000_000_000);
+  const minBalance = Math.max(0, Number(econCfg.minBalance ?? 0));
 
   if (shop.mode === 'buy') {
     const buyerBalance = getOrCreatePlayer(player).balance;
-    const minBalance = Math.max(0, Number(econCfg.minBalance ?? 0));
     if (buyerBalance < shop.price || buyerBalance - shop.price < minBalance) {
       player.sendMessage(`§cYou need §e${formatCurrency(shop.price)}§c.`);
       return;
     }
-    const ownerData = getPlayer(shop.ownerId);
-    if (ownerData && ownerData.balance + shop.price > maxBalance) {
+    const ownerData = getPlayer(shop.ownerId) ?? loadPlayerData(shop.ownerId);
+    if (!ownerData || ownerData.balance + shop.price > maxBalance) {
       player.sendMessage(`§cShop owner §e${shop.ownerName}§c has reached the maximum balance limit.`);
       return;
     }
@@ -301,7 +398,7 @@ function executeChestShopTrade(player: mc.Player, block: mc.Block, shop: ChestSh
     let stock = 0;
     for (let i = 0; i < chest.size; i++) {
       const it = chest.getItem(i);
-      if (it?.typeId === shop.itemTypeId) {
+      if (it?.typeId === shop.itemTypeId && isPlainChestShopItem(it)) {
         stock += it.amount;
       }
     }
@@ -315,35 +412,70 @@ function executeChestShopTrade(player: mc.Player, block: mc.Block, shop: ChestSh
       }
       return;
     }
-    let toTake = shop.amount;
-    for (let i = 0; i < chest.size && toTake > 0; i++) {
-      const it = chest.getItem(i);
-      if (it?.typeId === shop.itemTypeId) {
-        const take = Math.min(it.amount, toTake);
-        toTake -= take;
-        if (it.amount - take <= 0) {
-          chest.setItem(i, undefined);
-        } else {
-          it.amount -= take;
-          chest.setItem(i, it);
-        }
-      }
+    if (!incrementPlayerBalance(player.id, -shop.price)) {
+      player.sendMessage('§cFailed to deduct funds. Please try again.');
+      return;
     }
-    pCont.addItem(new mc.ItemStack(shop.itemTypeId, shop.amount));
-    incrementPlayerBalance(player.id, -shop.price);
-    incrementPlayerBalance(shop.ownerId, shop.price);
+    const taken = takePlainItemsStaged(chest, shop.itemTypeId, shop.amount);
+    if (!taken.ok) {
+      const refunded = incrementPlayerBalance(player.id, shop.price);
+      player.sendMessage(
+        taken.allRestored && refunded
+          ? '§cChest shop trade failed. Your funds were refunded.'
+          : '§cChest shop trade failed and recovery was incomplete. Contact staff.',
+      );
+      return;
+    }
+
+    let deliveredAmount = 0;
+    let deliveryFailed = false;
+    try {
+      const leftover = pCont.addItem(new mc.ItemStack(shop.itemTypeId, shop.amount));
+      if (isDefined(leftover)) {
+        deliveredAmount = Math.max(0, shop.amount - leftover.amount);
+        deliveryFailed = true;
+      } else {
+        deliveredAmount = shop.amount;
+      }
+    } catch {
+      deliveryFailed = true;
+    }
+
+    if (deliveryFailed) {
+      const removedOk = deliveredAmount > 0 ? takePlainItemsStaged(pCont, shop.itemTypeId, deliveredAmount).ok : true;
+      const chestRestored = restoreStagedSlotTakes(chest, taken.staged);
+      const refunded = incrementPlayerBalance(player.id, shop.price);
+      player.sendMessage(
+        removedOk && chestRestored && refunded
+          ? '§cYour inventory could not accept the items. Trade cancelled.'
+          : '§cTrade failed and rollback was incomplete. Contact staff.',
+      );
+      return;
+    }
+
+    if (!incrementPlayerBalance(shop.ownerId, shop.price)) {
+      const removedOk = takePlainItemsStaged(pCont, shop.itemTypeId, shop.amount).ok;
+      const chestRestored = restoreStagedSlotTakes(chest, taken.staged);
+      const refunded = incrementPlayerBalance(player.id, shop.price);
+      player.sendMessage(
+        removedOk && chestRestored && refunded
+          ? `§cShop owner §e${shop.ownerName}§c could not receive payment. Trade cancelled.`
+          : '§cOwner credit failed and rollback was incomplete. Contact staff.',
+      );
+      return;
+    }
     playSound(player, 'random.orb');
     player.sendMessage(`§aBought §e${shop.amount}x ${label}§a for §2${formatCurrency(shop.price)}§a!`);
   } else {
     let playerHas = 0;
     for (let i = 0; i < pCont.size; i++) {
       const it = pCont.getItem(i);
-      if (it?.typeId === shop.itemTypeId) {
+      if (it?.typeId === shop.itemTypeId && isPlainChestShopItem(it)) {
         playerHas += it.amount;
       }
     }
     if (playerHas < shop.amount) {
-      player.sendMessage(`§cYou need §e${shop.amount}x ${label}§c to sell.`);
+      player.sendMessage(`§cYou need §e${shop.amount}x ${label}§c (undamaged, unenchanted) to sell.`);
       return;
     }
     const sellerData = getOrCreatePlayer(player);
@@ -351,8 +483,8 @@ function executeChestShopTrade(player: mc.Player, block: mc.Block, shop: ChestSh
       player.sendMessage('§cYou have reached the maximum balance limit.');
       return;
     }
-    const ownerData = getPlayer(shop.ownerId);
-    if (!ownerData || ownerData.balance < shop.price) {
+    const ownerData = getPlayer(shop.ownerId) ?? loadPlayerData(shop.ownerId);
+    if (!ownerData || ownerData.balance < shop.price || ownerData.balance - shop.price < minBalance) {
       player.sendMessage(`§cShop owner §e${shop.ownerName}§c does not have enough funds.`);
       return;
     }
@@ -360,23 +492,59 @@ function executeChestShopTrade(player: mc.Player, block: mc.Block, shop: ChestSh
       player.sendMessage('§cThis shop chest is full.');
       return;
     }
-    chest.addItem(new mc.ItemStack(shop.itemTypeId, shop.amount));
-    let toTake = shop.amount;
-    for (let i = 0; i < pCont.size && toTake > 0; i++) {
-      const it = pCont.getItem(i);
-      if (it?.typeId === shop.itemTypeId) {
-        const take = Math.min(it.amount, toTake);
-        toTake -= take;
-        if (it.amount - take <= 0) {
-          pCont.setItem(i, undefined);
-        } else {
-          it.amount -= take;
-          pCont.setItem(i, it);
-        }
-      }
+    if (!incrementPlayerBalance(shop.ownerId, -shop.price)) {
+      player.sendMessage(`§cShop owner §e${shop.ownerName}§c does not have enough funds.`);
+      return;
     }
-    incrementPlayerBalance(shop.ownerId, -shop.price);
-    incrementPlayerBalance(player.id, shop.price);
+
+    const takenFromPlayer = takePlainItemsStaged(pCont, shop.itemTypeId, shop.amount);
+    if (!takenFromPlayer.ok) {
+      const ownerRefunded = incrementPlayerBalance(shop.ownerId, shop.price);
+      player.sendMessage(
+        takenFromPlayer.allRestored && ownerRefunded
+          ? '§cChest shop sale failed. Trade cancelled.'
+          : '§cChest shop sale failed and rollback was incomplete. Contact staff.',
+      );
+      return;
+    }
+
+    let depositedAmount = 0;
+    let depositFailed = false;
+    try {
+      const leftover = chest.addItem(new mc.ItemStack(shop.itemTypeId, shop.amount));
+      if (isDefined(leftover)) {
+        depositedAmount = Math.max(0, shop.amount - leftover.amount);
+        depositFailed = true;
+      } else {
+        depositedAmount = shop.amount;
+      }
+    } catch {
+      depositFailed = true;
+    }
+
+    if (depositFailed) {
+      const chestClean = depositedAmount > 0 ? takePlainItemsStaged(chest, shop.itemTypeId, depositedAmount).ok : true;
+      const playerRestored = restoreStagedSlotTakes(pCont, takenFromPlayer.staged);
+      const ownerRefunded = incrementPlayerBalance(shop.ownerId, shop.price);
+      player.sendMessage(
+        chestClean && playerRestored && ownerRefunded
+          ? '§cThis shop chest is full. Trade cancelled.'
+          : '§cChest shop deposit failed and rollback was incomplete. Contact staff.',
+      );
+      return;
+    }
+
+    if (!incrementPlayerBalance(player.id, shop.price)) {
+      const chestClean = takePlainItemsStaged(chest, shop.itemTypeId, shop.amount).ok;
+      const playerRestored = restoreStagedSlotTakes(pCont, takenFromPlayer.staged);
+      const ownerRefunded = incrementPlayerBalance(shop.ownerId, shop.price);
+      player.sendMessage(
+        chestClean && playerRestored && ownerRefunded
+          ? '§cFailed to credit your balance. Trade cancelled.'
+          : '§cBalance credit failed and rollback was incomplete. Contact staff.',
+      );
+      return;
+    }
     playSound(player, 'random.orb');
     player.sendMessage(`§aSold §e${shop.amount}x ${label}§a for §2${formatCurrency(shop.price)}§a!`);
   }
@@ -412,10 +580,12 @@ export function handleChestShopInteract(event: mc.PlayerInteractWithBlockBeforeE
   event.cancel = true;
 
   mc.system.run(async () => {
-    if (!player.isValid) {
+    if (!player.isValid || !block.isValid) {
       return;
     }
-    const latestShop = getChestShopAt(player.dimension.id, block.location);
+    const blockDimId = block.dimension.id;
+    const blockLoc = { x: block.location.x, y: block.location.y, z: block.location.z };
+    const latestShop = getChestShopAt(blockDimId, blockLoc);
     if (!latestShop) {
       return;
     }
@@ -425,12 +595,29 @@ export function handleChestShopInteract(event: mc.PlayerInteractWithBlockBeforeE
       .title(`${latestShop.ownerName}'s Chest Shop`)
       .body(`§7Action: §e${verb} ${latestShop.amount}x ${label}\n§7Price: §2${formatCurrency(latestShop.price)}`);
     form.button(`§l§2${verb} ${latestShop.amount}x ${label}`, 'textures/ui/trade_icon', async () => {
-      if (!player.isValid) {
+      if (!player.isValid || !block.isValid || player.dimension.id !== blockDimId) {
         return;
       }
-      const confirmedShop = getChestShopAt(player.dimension.id, block.location);
+      const dx = player.location.x - blockLoc.x;
+      const dy = player.location.y - blockLoc.y;
+      const dz = player.location.z - blockLoc.z;
+      if (dx * dx + dy * dy + dz * dz > 100) {
+        player.sendMessage('§cYou moved too far away from the chest shop.');
+        return;
+      }
+      const confirmedShop = getChestShopAt(blockDimId, blockLoc);
       if (!confirmedShop) {
         player.sendMessage('§cThis chest shop no longer exists.');
+        return;
+      }
+      if (
+        confirmedShop.ownerId !== latestShop.ownerId ||
+        confirmedShop.mode !== latestShop.mode ||
+        confirmedShop.itemTypeId !== latestShop.itemTypeId ||
+        confirmedShop.amount !== latestShop.amount ||
+        confirmedShop.price !== latestShop.price
+      ) {
+        player.sendMessage('§cThis chest shop changed while the menu was open. Please try again.');
         return;
       }
       executeChestShopTrade(player, block, confirmedShop);

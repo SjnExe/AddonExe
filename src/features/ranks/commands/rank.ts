@@ -6,6 +6,7 @@ import { canAssignRankToPlayer, resolveRankIdAlias } from '@core/permissions/per
 import { getRankById, updatePlayerNameTag } from '@core/permissions/rankManager.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { rankDefinitions } from '@features/ranks/config.js';
+import { clearTempRank } from '@features/ranks/tempRankManager.js';
 import { isNonEmptyString } from '@lib/guards.js';
 
 const rankCommand: CustomCommand = {
@@ -117,11 +118,19 @@ const rankCommand: CustomCommand = {
 
     if (action === 'set') {
       if (currentRanks.includes(rankId)) {
+        if (clearTempRank(targetId, rankId)) {
+          sendMessage(`§aPromoted temporary rank §e${rankDef.name} §afor §e${targetName} §ato permanent.`, executor);
+          if (targetPlayer) {
+            targetPlayer.sendMessage(`§aYour temporary rank §e${rankDef.name} §ahas been made permanent.`);
+          }
+          return;
+        }
         sendMessage(`§e${targetName} §7already has the rank §a${rankDef.name}§7.`, executor);
         return;
       }
       currentRanks.push(rankId);
       setPlayerRanks(targetId, currentRanks);
+      clearTempRank(targetId, rankId);
       sendMessage(`§aSuccessfully added rank §e${rankDef.name} §ato §e${targetName}§a.`, executor);
       if (targetPlayer) {
         updatePlayerNameTag(targetPlayer, getConfig());
@@ -132,6 +141,7 @@ const rankCommand: CustomCommand = {
         sendMessage(`§cCannot remove core system rank '${rankDef.name}'.`, executor);
         return;
       }
+      clearTempRank(targetId, rankId);
       if (!currentRanks.includes(rankId)) {
         sendMessage(`§e${targetName} §7does not have the rank §a${rankDef.name}§7.`, executor);
         return;

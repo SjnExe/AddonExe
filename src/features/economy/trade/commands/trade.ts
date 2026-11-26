@@ -14,6 +14,13 @@ import * as mc from '@minecraft/server';
 import { EntityComponentTypes } from '@minecraft/server';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
+/**
+ * Displays the modal to configure and send a trade offer to another player.
+ *
+ * @param sender The player initiating the trade.
+ * @param target The recipient player.
+ * @returns Promise resolving when the trade modal completes.
+ */
 export async function showCreateTradeModal(sender: mc.Player, target: mc.Player): Promise<void> {
   const inv = (sender.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined)
     ?.container;
@@ -35,7 +42,11 @@ export async function showCreateTradeModal(sender: mc.Player, target: mc.Player)
     .submitButton('Send Trade Offer');
 
   const res = await modal.show(sender);
-  if (!res) {
+  if (!sender.isValid || !res) {
+    return;
+  }
+  if (!target.isValid) {
+    sender.sendMessage('§cTarget player is no longer online.');
     return;
   }
 

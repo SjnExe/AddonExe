@@ -7,10 +7,11 @@ import {
   setPlayerHome as setPlayerDataHome,
 } from '@core/data/playerDataManager.js';
 import { canBypass } from '@core/events/protectionEvents.js';
-import { isLocationInSpawn } from '@core/events/protectionService.js';
+import { getProtectionFlags, isLocationInSpawn } from '@core/events/protectionService.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { formatCurrency } from '@core/utils/economy.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
@@ -27,8 +28,35 @@ interface ActionResult {
  * @returns The result of the operation.
  */
 export function setHome(player: mc.Player, homeName: string): ActionResult {
-  if (isLocationInSpawn(player.location, player.dimension.id) && !canBypass(player)) {
+  const roundedX = Math.round(player.location.x * 100) / 100;
+  const roundedY = Math.round(player.location.y * 100) / 100;
+  const roundedZ = Math.round(player.location.z * 100) / 100;
+  const storedLocation = { x: roundedX, y: roundedY, z: roundedZ };
+
+  if (
+    (isLocationInSpawn(player.location, player.dimension.id) ||
+      isLocationInSpawn(storedLocation, player.dimension.id)) &&
+    !canBypass(player)
+  ) {
     return { success: false, message: 'You cannot set a home inside the spawn area.' };
+  }
+
+  const currentZoneFlags = getProtectionFlags(player.location, player.dimension.id);
+  const storedZoneFlags = getProtectionFlags(storedLocation, player.dimension.id);
+  if (
+    (currentZoneFlags.preventBlockPlacing ||
+      currentZoneFlags.preventBlockBreaking ||
+      currentZoneFlags.preventBlockInteraction ||
+      storedZoneFlags.preventBlockPlacing ||
+      storedZoneFlags.preventBlockBreaking ||
+      storedZoneFlags.preventBlockInteraction) &&
+    !canBypass(player)
+  ) {
+    return { success: false, message: 'You cannot set a home inside a protected zone.' };
+  }
+
+  if (!isWithinWorldBorder({ x: roundedX, z: roundedZ }, player.dimension.id) && !canBypassWorldBorder(player)) {
+    return { success: false, message: 'You cannot set a home outside the world border.' };
   }
 
   const pData = getOrCreatePlayer(player);
@@ -68,9 +96,9 @@ export function setHome(player: mc.Player, homeName: string): ActionResult {
   }
 
   const location: HomeLocation = {
-    x: Math.round(player.location.x * 100) / 100,
-    y: Math.round(player.location.y * 100) / 100,
-    z: Math.round(player.location.z * 100) / 100,
+    x: roundedX,
+    y: roundedY,
+    z: roundedZ,
     dimensionId: player.dimension.id,
   };
 

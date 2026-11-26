@@ -1,5 +1,6 @@
 import { getConfig } from '@core/config/configManager.js';
 import { findPlayerByName, getPlayerFromCache } from '@core/data/playerCache.js';
+import { getPlayer } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { getPlayerRank } from '@core/permissions/rankManager.js';
 import { developerBadge, isDeveloperPlayer } from '@core/utils/constants.js';
@@ -231,7 +232,11 @@ export default function handleBeforeChatSend(event: mc.ChatSendBeforeEvent) {
       if (word.startsWith('@') && word.length > 1) {
         const cleanName = word.slice(1).replaceAll(/[^a-zA-Z0-9_ -]/g, '');
         const target = findPlayerByName(cleanName) ?? getPlayerFromCache(cleanName);
-        if (isDefined(target) && !isPlayerIgnored(target.id, player.id)) {
+        if (isDefined(target) && target.isValid && !isPlayerIgnored(target.id, player.id)) {
+          const targetData = getPlayer(target.id);
+          if (targetData?.isVanished === true && !hasPermission(player, 'group.mod')) {
+            continue;
+          }
           target.playSound('random.orb');
           target.sendMessage(`§e${player.name}§r §ementioned you!§r`);
         }

@@ -1,18 +1,35 @@
 import { getConfig } from '@core/config/configManager.js';
+import { canBypass } from '@core/events/protectionEvents.js';
+import { getProtectionFlags } from '@core/events/protectionService.js';
+import { canPlayerModify } from '@features/essentials/protection/landclaim/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 
+/**
+ * Checks whether a block type ID represents a non-iron wooden/copper double-capable door.
+ *
+ * @param blockTypeId Block type identifier.
+ * @returns True if the block is a hand-openable door.
+ */
 export function isDoorBlock(blockTypeId?: string): boolean {
   if (!isNonEmptyString(blockTypeId)) {
     return false;
   }
-  return blockTypeId.includes('door') && !blockTypeId.includes('trapdoor');
+  return blockTypeId.includes('door') && !blockTypeId.includes('trapdoor') && !blockTypeId.includes('iron_door');
 }
 
 export interface DoubleDoorsOptions {
   enabled?: boolean;
 }
 
+/**
+ * Toggles an adjacent matching door half in tandem when a player interacts with a door.
+ *
+ * @param player The interacting player.
+ * @param block The door block interacted with.
+ * @param options Optional double-door configuration overrides.
+ * @returns True if an adjacent door was synchronized.
+ */
 export function handleDoubleDoorInteract(player: mc.Player, block: mc.Block, options?: DoubleDoorsOptions): boolean {
   if (!player.isValid) {
     return false;
@@ -56,6 +73,12 @@ export function handleDoubleDoorInteract(player: mc.Player, block: mc.Block, opt
     try {
       const neighbor = dimension.getBlock({ x: bx + offset.x, y: by, z: bz + offset.z });
       if (isDefined(neighbor) && neighbor.typeId === targetTypeId) {
+        if (
+          !canPlayerModify(player, neighbor.location, dimension.id, 'interact') ||
+          (getProtectionFlags(neighbor.location, dimension.id).preventBlockInteraction && !canBypass(player))
+        ) {
+          continue;
+        }
         const neighborOpen = neighbor.permutation.getState('open_bit');
         if (typeof neighborOpen === 'boolean' && neighborOpen !== newOpenState) {
           const newPerm = neighbor.permutation.withState('open_bit', newOpenState);

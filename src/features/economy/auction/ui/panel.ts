@@ -153,6 +153,9 @@ async function showCreateListingModal(player: mc.Player): Promise<void> {
     .submitButton('Create Listing');
 
   const res = await modal.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!res) {
     await showAuctionHouse(player);
     return;
@@ -213,6 +216,9 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
     });
   } else {
     form.button(formatTwoLineButton('§2Buy Now', formatCurrency(listing.price)), summary.icon, async () => {
+      if (!player.isValid) {
+        return;
+      }
       const res = buyItem(player, listing.id);
       player.sendMessage(res.message);
       await showAuctionHouse(player);
@@ -220,6 +226,9 @@ async function showListingDetail(player: mc.Player, listing: AuctionListing): Pr
   }
 
   form.addBackButton(async () => {
+    if (!player.isValid) {
+      return;
+    }
     await showAuctionHouse(player);
   });
 
@@ -235,6 +244,9 @@ async function showBidUI(player: mc.Player, listing: AuctionListing): Promise<vo
     .submitButton('Place Bid');
 
   const response = await form.show(player);
+  if (!player.isValid) {
+    return;
+  }
   if (!response) {
     await showListingDetail(player, listing);
     return;
@@ -338,6 +350,9 @@ async function showMailboxUI(player: mc.Player): Promise<void> {
       formatTwoLineButton(`§l§f${summary.title}`, `§7Quantity: §ex${item.amount} §8• §aTap to Claim`),
       summary.icon,
       async () => {
+        if (!player.isValid) {
+          return;
+        }
         const res = claimMailboxItem(player, itemIndex);
         player.sendMessage(res.message);
         await showMailboxUI(player);

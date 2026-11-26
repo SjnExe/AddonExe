@@ -5,9 +5,11 @@ import { getOrCreatePlayer, incrementPlayerBalance, updatePlayerData } from '@co
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
+import { frozenTag } from '@core/utils/constants.js';
 import { formatCurrency } from '@core/utils/economy.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { setTrackedInterval } from '@core/utils/timerManager.js';
+import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { isPlayerIgnored } from '@features/social/ignore/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -236,6 +238,12 @@ export function getOutgoingRequest(player: mc.Player): TpaRequest | undefined {
   return outgoingRequests.get(player.id);
 }
 
+/**
+ * Accepts an incoming TPA/TPAHere request for `player`.
+ *
+ * @param player Player accepting the request.
+ * @param sourcePlayerName Optional requester name filter.
+ */
 export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
   const request = _findIncomingRequest(player.id, sourcePlayerName, true);
   if (!isDefined(request)) {
@@ -265,18 +273,28 @@ export function acceptRequest(player: mc.Player, sourcePlayerName?: string) {
   const teleportLogic = () => {
     const freshSource = getPlayerFromCache(request.sourcePlayerId);
     const freshTarget = getPlayerFromCache(request.targetPlayerId);
-    if (!isDefined(freshSource) || !isDefined(freshTarget)) {
+    if (!isDefined(freshSource) || !freshSource.isValid || !isDefined(freshTarget) || !freshTarget.isValid) {
       return;
     }
 
     // SAFE GROUND CHECK
     const mover = request.type === 'tpa' ? freshSource : freshTarget;
     const destinationTarget = request.type === 'tpa' ? freshTarget : freshSource;
+    if (typeof mover.hasTag === 'function' && mover.hasTag(frozenTag)) {
+      mover.sendMessage('§cTeleport cancelled: you are frozen.');
+      return;
+    }
+
     const safeLoc = findSafeLocation(destinationTarget.dimension, destinationTarget.location);
 
     if (!isDefined(safeLoc)) {
       freshSource.sendMessage('§cTeleport cancelled: No safe location found near target.');
       freshTarget.sendMessage('§cTeleport cancelled: No safe location found near you.');
+      return;
+    }
+
+    if (!isWithinWorldBorder(safeLoc, destinationTarget.dimension.id) && !canBypassWorldBorder(mover)) {
+      mover.sendMessage('§cTeleport cancelled: Destination is outside the world border.');
       return;
     }
 

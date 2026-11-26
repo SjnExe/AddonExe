@@ -153,12 +153,19 @@ export function calculateTaxWithPolicy(
   return { tax: roundedTax, netAmount, totalCost };
 }
 
+/**
+ * Parses and validates a currency input string for finiteness, sign, and 2-decimal precision.
+ *
+ * @param amountStr Raw currency string.
+ * @param requirePositive Whether zero should be rejected (defaults to true).
+ * @returns Validated finite amount, or undefined if invalid.
+ */
 export function validateCurrencyAmount(amountStr: string, requirePositive = true): number | undefined {
   if (typeof amountStr !== 'string' || amountStr.trim().length === 0) {
     return undefined;
   }
   const amount = parseCurrency(amountStr);
-  if (Number.isNaN(amount)) {
+  if (!Number.isFinite(amount)) {
     return undefined;
   }
 
@@ -169,7 +176,7 @@ export function validateCurrencyAmount(amountStr: string, requirePositive = true
     return undefined;
   }
 
-  if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 0.001) {
+  if (Math.abs(amount - Number.parseFloat(amount.toFixed(2))) > 1e-6) {
     return undefined;
   }
 

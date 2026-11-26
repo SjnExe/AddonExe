@@ -3,7 +3,7 @@ import { getLockState } from '@core/data/playerDataManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { addGrace } from '@features/anticheat/core/graceManager.js';
-import { teleportPlayerWithTransition } from '@features/teleport/utils.js';
+import { findSafeLocation, teleportPlayerWithTransition } from '@features/teleport/utils.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -40,11 +40,7 @@ function handlePlayerDimensionChange(event: mc.PlayerDimensionChangeAfterEvent) 
   }
 
   try {
-    const returnLocation = {
-      x: fromLocation.x + 3,
-      y: fromLocation.y,
-      z: fromLocation.z + 3,
-    };
+    const returnLocation = findSafeLocation(fromDimension, fromLocation) ?? fromLocation;
     teleportPlayerWithTransition(player, returnLocation, { dimension: fromDimension });
     player.sendMessage(`§cThe ${dimensionId} dimension is currently locked.`);
   } catch (error: unknown) {

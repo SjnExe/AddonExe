@@ -1,4 +1,5 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
+import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { shopDisabled } from '@core/utils/constants.js';
@@ -38,8 +39,11 @@ const tryOpenHandItemPanel = async (player: mc.Player): Promise<boolean> => {
     return false;
   }
 
-  const match = shopManager.findShopItemByTypeId(item.typeId);
+  const match = shopManager.findShopItemByTypeId(item.typeId, player);
   if (isDefined(match)) {
+    if (isNonEmptyString(match.shopItem.permission) && !hasPermission(player, match.shopItem.permission)) {
+      return false;
+    }
     await showPanel(player, 'shopBuyOrSellPanel', {
       itemKey: match.itemKey,
       itemData: match.shopItem,
@@ -120,9 +124,13 @@ const sellHandCommand: CustomCommand = {
       return;
     }
 
-    const match = shopManager.findShopItemByTypeId(heldItem.typeId);
+    const match = shopManager.findShopItemByTypeId(heldItem.typeId, executor, 'sell');
     if (!isDefined(match)) {
       executor.sendMessage('§cThe item in your hand cannot be sold to the shop.');
+      return;
+    }
+    if (isNonEmptyString(match.shopItem.permission) && !hasPermission(executor, match.shopItem.permission)) {
+      executor.sendMessage('§cYou do not have permission to sell this item.');
       return;
     }
 
@@ -230,7 +238,14 @@ const addShopCommand: CustomCommand = {
   },
 };
 
-const pendingSellAllConfirmations = new Map<string, number>();
+interface PendingSellAllQuote {
+  expiresAt: number;
+  totalItems: number;
+  totalPayout: number;
+  breakdown: { itemKey: string; count: number }[];
+}
+
+const pendingSellAllConfirmations = new Map<string, PendingSellAllQuote>();
 
 const sellAllCommand: CustomCommand = {
   name: 'sellall',
@@ -257,19 +272,42 @@ const sellAllCommand: CustomCommand = {
     }
 
     const preview = shopManager.previewSellAllInventory(executor);
+    if (preview.overflowed) {
+      executor.sendMessage('§cSale payout exceeds supported numeric limits.');
+      return;
+    }
     if (preview.totalItems === 0) {
       executor.sendMessage('§cYou have no sellable shop items in your inventory.');
       return;
     }
 
     if (args.action?.toLowerCase() === 'confirm') {
+      const pending = pendingSellAllConfirmations.get(executor.id);
       pendingSellAllConfirmations.delete(executor.id);
-      const result = shopManager.executeSellAllInventory(executor);
+      const expectedQuote =
+        pending && pending.expiresAt > Date.now()
+          ? { totalItems: pending.totalItems, totalPayout: pending.totalPayout, breakdown: pending.breakdown }
+          : undefined;
+      const result = shopManager.executeSellAllInventory(executor, expectedQuote);
+      if (result.quoteChanged && result.updatedPreview) {
+        pendingSellAllConfirmations.set(executor.id, {
+          expiresAt: Date.now() + 30_000,
+          totalItems: result.updatedPreview.totalItems,
+          totalPayout: result.updatedPreview.totalPayout,
+          breakdown: result.updatedPreview.breakdown,
+        });
+      }
       executor.sendMessage(result.message);
       return;
     }
 
-    pendingSellAllConfirmations.set(executor.id, Date.now() + 30_000);
+    const pendingEntry: PendingSellAllQuote = {
+      expiresAt: Date.now() + 30_000,
+      totalItems: preview.totalItems,
+      totalPayout: preview.totalPayout,
+      breakdown: preview.breakdown,
+    };
+    pendingSellAllConfirmations.set(executor.id, pendingEntry);
     const topLines = preview.breakdown
       .slice(0, 8)
       .map((b) => `§7- §f${b.displayName} §ex${b.count} §7(§a${formatCurrency(b.payout)}§7)`)
@@ -286,12 +324,35 @@ const sellAllCommand: CustomCommand = {
       confirmButtonText: `§2Sell All (${formatCurrency(preview.totalPayout)})`,
       cancelButtonText: '§cCancel',
       onConfirm: () => {
+        const currentPending = pendingSellAllConfirmations.get(executor.id);
+        if (currentPending !== pendingEntry) {
+          if (executor.isValid) {
+            executor.sendMessage('§cSell All preview expired or was superseded. Please run /sellall again.');
+          }
+          return;
+        }
         pendingSellAllConfirmations.delete(executor.id);
-        const res = shopManager.executeSellAllInventory(executor);
+        if (!executor.isValid) {
+          return;
+        }
+        if (pendingEntry.expiresAt <= Date.now()) {
+          executor.sendMessage('§cSell All preview expired. Please run /sellall again.');
+          return;
+        }
+        const res = shopManager.executeSellAllInventory(executor, {
+          totalItems: pendingEntry.totalItems,
+          totalPayout: pendingEntry.totalPayout,
+          breakdown: pendingEntry.breakdown,
+        });
         executor.sendMessage(res.message);
       },
       onCancel: () => {
-        pendingSellAllConfirmations.delete(executor.id);
+        if (pendingSellAllConfirmations.get(executor.id) === pendingEntry) {
+          pendingSellAllConfirmations.delete(executor.id);
+        }
+        if (!executor.isValid) {
+          return;
+        }
         executor.sendMessage('§eSell All cancelled.');
       },
     });

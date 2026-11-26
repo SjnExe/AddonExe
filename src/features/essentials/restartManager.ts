@@ -8,6 +8,11 @@ import * as mc from '@minecraft/server';
 
 let restartTaskId: number | undefined;
 
+/**
+ * Starts a server restart countdown, displaying title/subtitle warnings and kicking all players at zero.
+ *
+ * @param initiator Optional player or command executor who triggered the restart.
+ */
 export function startRestart(initiator?: CommandExecutor | mc.Entity) {
   if (restartTaskId !== undefined) {
     if (initiator && (initiator as mc.Player).sendMessage) {
@@ -31,6 +36,9 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
       restartTaskId = undefined;
 
       for (const player of players) {
+        if (!player.isValid) {
+          continue;
+        }
         kickPlayer(player.name, kickMessage);
       }
       return;
@@ -38,24 +46,31 @@ export function startRestart(initiator?: CommandExecutor | mc.Entity) {
 
     // Show titles
     for (const player of players) {
-      let color = '§a';
-      if (secondsRemaining <= 10) {
-        color = '§c';
-      } else if (secondsRemaining <= 30) {
-        color = '§e';
+      if (!player.isValid) {
+        continue;
       }
+      try {
+        let color = '§a';
+        if (secondsRemaining <= 10) {
+          color = '§c';
+        } else if (secondsRemaining <= 30) {
+          color = '§e';
+        }
 
-      player.onScreenDisplay.setTitle(`${color}${secondsRemaining}`);
-      setActionBarOverride(player, `§c§l⚠ Server Restarting in ${color}${secondsRemaining}s §c§l⚠`, 1200);
-      if (subtitle) {
-        player.onScreenDisplay.updateSubtitle(subtitle);
-      }
+        player.onScreenDisplay.setTitle(`${color}${secondsRemaining}`);
+        setActionBarOverride(player, `§c§l⚠ Server Restarting in ${color}${secondsRemaining}s §c§l⚠`, 1200);
+        if (subtitle) {
+          player.onScreenDisplay.updateSubtitle(subtitle);
+        }
 
-      // Play a tick sound for countdown
-      if (secondsRemaining <= 5) {
-        player.playSound('note.bass', { volume: 1.0, pitch: 1.5 });
-      } else if (secondsRemaining % 5 === 0) {
-        player.playSound('random.click', { volume: 0.5, pitch: 1.0 });
+        // Play a tick sound for countdown
+        if (secondsRemaining <= 5) {
+          player.playSound('note.bass', { volume: 1.0, pitch: 1.5 });
+        } else if (secondsRemaining % 5 === 0) {
+          player.playSound('random.click', { volume: 0.5, pitch: 1.0 });
+        }
+      } catch {
+        // Ignore players disconnecting mid-tick
       }
     }
 

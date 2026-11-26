@@ -2,6 +2,7 @@ import { getConfig } from '@core/config/configManager.js';
 import { updatePlayerNameTag } from '@core/permissions/rankManager.js';
 import { recordMovementDamage } from '@features/anticheat/movementCheck.js';
 import { setLastHit } from '@features/essentials/combat/manager.js';
+import { snapshotPlayerInventoryForGrave } from '@features/essentials/graves/manager.js';
 import * as mc from '@minecraft/server';
 import { MinecraftEntityTypes } from '@minecraft/vanilla-data';
 
@@ -48,6 +49,7 @@ function handleEntityHurt(event: mc.EntityHurtAfterEvent): void {
   }
 
   recordMovementDamage(victim.id);
+  snapshotPlayerInventoryForGrave(victim as mc.Player);
 
   const config = getConfig();
   if (config.playerInfo?.healthIndicator?.enabled === true) {

@@ -55,6 +55,14 @@ export function handleSitBlockInteract(event: mc.PlayerInteractWithBlockAfterEve
   if (!player.isValid || player.isSneaking || isDefined(itemStack)) {
     return;
   }
+  try {
+    const riding = player.getComponent(EntityComponentTypes.Riding) as mc.EntityRidingComponent | undefined;
+    if (riding?.entityRidingOn?.isValid) {
+      return;
+    }
+  } catch {
+    return;
+  }
   const id = block.typeId.toLowerCase();
   if (!id.includes('stairs') && !id.includes('slab')) {
     return;

@@ -31,7 +31,10 @@ export function sendPrivateMessage(
   const mute = getPunishment(sender.id, 'mute');
   if (isDefined(mute)) {
     const reason = isNonEmptyString(mute.reason) ? ` Reason: ${mute.reason}` : '';
-    const durationStr = mute.expires === Infinity ? 'Permanently' : `Until: ${new Date(mute.expires).toLocaleString()}`;
+    const durationStr =
+      !Number.isFinite(mute.expires) || mute.expires <= 0
+        ? 'Permanently'
+        : `Until: ${new Date(mute.expires).toLocaleString()}`;
     return { success: false, message: `§cYou are muted and cannot send private messages. ${durationStr}${reason}` };
   }
 

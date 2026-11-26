@@ -52,6 +52,13 @@ export async function showCodebreakerMenu(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Prompts the codemaker to choose the 4-color secret code for a 2P Codebreaker session.
+ *
+ * @param player The codemaker player.
+ * @param session The active Codebreaker session.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showCodemakerSetCodeModal(player: mc.Player, session: CodebreakerSession): Promise<void> {
   const opts = [...codePegOptions];
   const modal = new CustomFormBuilder<{ p1: string; p2: string; p3: string; p4: string }>(
@@ -64,6 +71,9 @@ export async function showCodemakerSetCodeModal(player: mc.Player, session: Code
     .submitButton('Lock In Secret Code');
 
   const res = await modal.show(player);
+  if (!player.isValid || session.status !== 'awaiting_code') {
+    return;
+  }
   const code: [CodePeg, CodePeg, CodePeg, CodePeg] = res
     ? [res.p1 as CodePeg, res.p2 as CodePeg, res.p3 as CodePeg, res.p4 as CodePeg]
     : generateRandomCode();

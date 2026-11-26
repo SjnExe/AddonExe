@@ -1,6 +1,6 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
-import { incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
 import { formatCurrency, playSound } from '@core/utils/index.js';
 import { setTrackedInterval, setTrackedTimeout } from '@core/utils/timerManager.js';
 import {
@@ -128,12 +128,26 @@ export function evaluateConnect4Board(board: Connect4Disc[]): {
   return { isDraw };
 }
 
+/**
+ * Starts a 2-player Connect 4 match between `playerR` and `playerY`.
+ *
+ * @param playerR Red player.
+ * @param playerY Yellow player.
+ * @param wager Optional wager amount per player.
+ * @returns Created match instance, or undefined if cancelled.
+ */
 export function startConnect4Match(
   playerR: mc.Player,
   playerY: mc.Player,
   wager: number = 0,
 ): Connect4Match | undefined {
+  if (!playerR.isValid || !playerY.isValid) {
+    return undefined;
+  }
   if (wager > 0) {
+    if (getOrCreatePlayer(playerR).balance < wager || getOrCreatePlayer(playerY).balance < wager) {
+      return undefined;
+    }
     incrementPlayerBalance(playerR.id, -wager);
     incrementPlayerBalance(playerY.id, -wager);
   }
@@ -161,6 +175,7 @@ export function startConnect4Match(
     matchId,
     gameId: 'connect4',
     playerIds: [playerR.id, playerY.id],
+    wager: match.wager,
     onPlayerDisconnect: (disconnectedId) => {
       forfeitConnect4Match(matchId, disconnectedId, 'disconnected');
     },

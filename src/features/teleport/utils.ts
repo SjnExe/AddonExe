@@ -119,8 +119,12 @@ export function teleportPlayerWithTransition(
   player.teleport(location, Object.keys(teleportOptions).length > 0 ? teleportOptions : undefined);
 }
 
-/** Saves the player's current location as their "last location" for /back command. */
-export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport' = 'teleport'): void {
+/** Saves the player's current location (or an explicit departure snapshot) as their "last location" for /back command. */
+export function saveLastLocation(
+  player: mc.Player,
+  reason: 'death' | 'teleport' = 'teleport',
+  locationOverride?: { x: number; y: number; z: number; dimensionId: string; graveId?: string },
+): void {
   if (!isDefined(player) || !player.isValid) {
     return;
   }
@@ -138,12 +142,13 @@ export function saveLastLocation(player: mc.Player, reason: 'death' | 'teleport'
   }
 
   try {
-    setPlayerLastLocation(player.id, {
+    const loc = locationOverride ?? {
       x: player.location.x,
       y: player.location.y,
       z: player.location.z,
       dimensionId: player.dimension.id,
-    });
+    };
+    setPlayerLastLocation(player.id, loc);
   } catch {
     // Ignore if player disconnected during call
   }
@@ -218,6 +223,8 @@ export interface ExecuteTeleportParams {
 /**
  * Consolidates common teleport logic including cooldown check, world border check, warmup, dimension resolution, and
  * error logging.
+ *
+ * @param params Teleport execution parameters.
  */
 export function executeTeleport(params: ExecuteTeleportParams): void {
   const { executor, location, destinationName, teleportType, warmupSeconds, cooldownSeconds, cooldownKey } = params;
@@ -252,21 +259,28 @@ export function executeTeleport(params: ExecuteTeleportParams): void {
     return;
   }
 
-  const teleportLogic = () => {
+  const teleportLogic = (): boolean => {
     try {
       if (!executor.isValid) {
-        return;
+        return false;
+      }
+      if (!isWithinWorldBorder(location, location.dimensionId) && !canBypassWorldBorder(executor)) {
+        sendMessage(
+          `§cTeleport cancelled: ${teleportType} '${destinationName}' is outside the active world border.`,
+          executor,
+        );
+        return false;
       }
       const dimension = mc.world.getDimension(location.dimensionId);
       if (!isDefined(dimension)) {
         sendMessage(`§cError: Dimension '${location.dimensionId}' not found.`, executor);
-        return;
+        return false;
       }
       if (chargeCost > 0) {
         const curData = getOrCreatePlayer(executor);
         if (curData.balance < chargeCost) {
           sendMessage(`§cTeleport cancelled: Insufficient funds (${formatCurrency(chargeCost)} required).`, executor);
-          return;
+          return false;
         }
         incrementPlayerBalance(executor.id, -chargeCost);
       }
@@ -276,11 +290,13 @@ export function executeTeleport(params: ExecuteTeleportParams): void {
       const costSuffix = chargeCost > 0 ? ` §7(-${formatCurrency(chargeCost)})` : '';
       sendMessage(`§aTeleported to ${teleportType} '${destinationName}'.${costSuffix}`, executor);
       setCooldown(executor.id, cooldownKey, cooldownSeconds);
+      return true;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       const stack = error instanceof Error ? error.stack : String(error);
       sendMessage(`§cFailed to teleport. Error: ${message}`, executor);
       errorLog(`[/${teleportType}] Failed to teleport: ${stack}`);
+      return false;
     }
   };
 

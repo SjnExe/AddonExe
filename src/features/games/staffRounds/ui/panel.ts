@@ -17,6 +17,12 @@ import * as mc from '@minecraft/server';
 import { ActionFormBuilder } from '@ui/builders/actionFormBuilder.js';
 import { CustomFormBuilder } from '@ui/builders/customFormBuilder.js';
 
+/**
+ * Displays the Staff-Hosted Mini-Games hub panel for participating or hosting rounds.
+ *
+ * @param player The viewing player.
+ * @returns Promise resolving when the panel closes.
+ */
 export async function showStaffGamesHubPanel(player: mc.Player): Promise<void> {
   const isStaff = hasPermission(player, 'ui.panel.mod') || hasPermission(player, 'ui.panel.admin');
   const scr = getActiveScrambleRound();
@@ -37,6 +43,9 @@ export async function showStaffGamesHubPanel(player: mc.Player): Promise<void> {
         .textField('word', `Unscramble: ${scr.promptDisplay} (Fee: ${formatCurrency(scr.entryFee)})`, 'word', '')
         .submitButton('Submit');
       const res = await modal.show(player);
+      if (!player.isValid) {
+        return;
+      }
       if (res && isNonEmptyString(res.word.trim())) {
         const out = submitScrambleAttempt(player, res.word.trim());
         if (isNonEmptyString(out.message)) {
@@ -52,6 +61,9 @@ export async function showStaffGamesHubPanel(player: mc.Player): Promise<void> {
         .textField('ans', `Solve: ${math.promptDisplay} (Fee: ${formatCurrency(math.entryFee)})`, '0', '')
         .submitButton('Submit');
       const res = await modal.show(player);
+      if (!player.isValid) {
+        return;
+      }
       if (res && isNonEmptyString(res.ans.trim())) {
         const parsed = Number.parseFloat(res.ans.trim());
         if (!Number.isNaN(parsed)) {
@@ -70,6 +82,9 @@ export async function showStaffGamesHubPanel(player: mc.Player): Promise<void> {
         .textField('numStr', `Range: ${num.promptDisplay} (Fee: ${formatCurrency(num.entryFee)})`, '50', '')
         .submitButton('Submit Guess');
       const res = await modal.show(player);
+      if (!player.isValid) {
+        return;
+      }
       if (res && isNonEmptyString(res.numStr.trim())) {
         const parsed = Number.parseInt(res.numStr.trim(), 10);
         if (!Number.isNaN(parsed)) {

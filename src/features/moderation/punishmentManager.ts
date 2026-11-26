@@ -416,7 +416,10 @@ export function checkAndKickBannedPlayer(player: mc.Player): boolean {
   }
 
   const punishment =
-    getPunishment(playerId, 'ban') ?? (resolvedName ? getPunishment(resolvedName.toLowerCase(), 'ban') : undefined);
+    getPunishment(playerId, 'ban') ??
+    (resolvedName
+      ? (getPunishment(resolvedName, 'ban') ?? getPunishment(resolvedName.toLowerCase(), 'ban'))
+      : undefined);
   if (isDefined(punishment)) {
     const banReason = isNonEmptyString(punishment.reason) ? punishment.reason : 'You are banned.';
     const targetName = resolvedName;

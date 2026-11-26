@@ -83,6 +83,9 @@ const warpCommand: CustomCommand = {
           `${warpName}\n§8(X: ${location.x.toFixed(2)}, Y: ${location.y.toFixed(2)}, Z: ${location.z.toFixed(2)})`,
           'textures/ui/NetherPortal',
           () => {
+            if (!executor.isValid) {
+              return;
+            }
             teleportToWarp(warpName);
           },
         );
@@ -199,6 +202,9 @@ const delWarpCommand: CustomCommand = {
 
     for (const warpName of warpList) {
       form.button(warpName, 'textures/ui/trash', () => {
+        if (!executor.isValid) {
+          return;
+        }
         deleteWarpByName(warpName);
       });
     }

@@ -1,13 +1,13 @@
 import { getGamesConfig } from '@core/config/configurations.js';
 import { getPlayerFromCache } from '@core/data/playerCache.js';
 import { getOrCreatePlayer } from '@core/data/playerDataManager.js';
-import { isFeatureActive } from '@core/services/featureManager.js';
 import { showPanel } from '@core/ui/uiManager.js';
 import { beginUiSession, isUiSessionActive, nextTick } from '@core/utils/ui.js';
 import {
   appendGameInviteButtons,
   getIncomingGameInvites,
   getOutgoingGameInvite,
+  isGameWagerEnabled,
   isPlayerInQueue,
   joinMatchmakingQueue,
   sendGameInvite,
@@ -228,6 +228,14 @@ export async function showTicTacToeMenu(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
+/**
+ * Displays the modal to invite an online friend to a multiplayer mini-game.
+ *
+ * @param player The inviting player.
+ * @param defaultGameId Default game identifier to preselect.
+ * @param preselectedFriendId Optional friend player ID to preselect.
+ * @returns Promise resolving when the modal completes.
+ */
 export async function showInviteFriendToGameModal(
   player: mc.Player,
   defaultGameId: string = 'tictactoe',
@@ -258,7 +266,7 @@ export async function showInviteFriendToGameModal(
     }
   }
 
-  const canWager = isFeatureActive('eco') && getGamesConfig().ticTacToe?.allowWagers !== false;
+  const canWager = isGameWagerEnabled(defaultGameId);
 
   const gameTitle =
     defaultGameId === 'rps'
@@ -279,18 +287,18 @@ export async function showInviteFriendToGameModal(
   modal.submitButton('Send Game Invite');
 
   const res = await modal.show(player);
-  if (!res) {
+  if (!player.isValid || !res) {
     return;
   }
 
   const targetFriend = onlineFriends.find((f) => f.name === res.friendName) ?? onlineFriends[defaultIdx];
-  if (!isDefined(targetFriend)) {
+  if (!isDefined(targetFriend) || !targetFriend.isValid) {
     player.sendMessage('§cFriend is no longer online.');
     return;
   }
 
   const parsedWager = canWager && isNonEmptyString(res.wagerStr) ? Number.parseFloat(res.wagerStr) : 0;
-  const wager = Number.isNaN(parsedWager) || parsedWager < 0 ? 0 : parsedWager;
+  const wager = !Number.isFinite(parsedWager) || parsedWager < 0 ? 0 : parsedWager;
 
   const inviteRes = sendGameInvite(player, targetFriend, defaultGameId, wager);
   player.sendMessage(inviteRes.message);
