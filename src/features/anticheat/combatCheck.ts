@@ -11,6 +11,7 @@ interface PlayerCombatState {
   hitTimestamps: number[];
   reachVl: number;
   cpsVl: number;
+  angleVl: number;
   lastHitTime: number;
   lastSwingTime: number;
   recentTargetsInSwing: Set<string>;
@@ -82,6 +83,7 @@ export function handleEntityHit(event: mc.EntityHitEntityAfterEvent): void {
       hitTimestamps: [],
       reachVl: 0,
       cpsVl: 0,
+      angleVl: 0,
       lastHitTime: now,
       lastSwingTime: 0,
       recentTargetsInSwing: new Set<string>(),
@@ -92,8 +94,10 @@ export function handleEntityHit(event: mc.EntityHitEntityAfterEvent): void {
   // Natural decay of violation accumulators if > 2 seconds since last hit
   const elapsedSinceLastHit = now - state.lastHitTime;
   if (elapsedSinceLastHit > 2000) {
-    state.reachVl = Math.max(0, state.reachVl - Math.floor(elapsedSinceLastHit / 1000));
-    state.cpsVl = Math.max(0, state.cpsVl - Math.floor(elapsedSinceLastHit / 1000));
+    const decay = Math.floor(elapsedSinceLastHit / 1000);
+    state.reachVl = Math.max(0, state.reachVl - decay);
+    state.cpsVl = Math.max(0, state.cpsVl - decay);
+    state.angleVl = Math.max(0, state.angleVl - decay);
   }
   state.lastHitTime = now;
 
@@ -116,9 +120,11 @@ export function handleEntityHit(event: mc.EntityHitEntityAfterEvent): void {
       state.recentTargetsInSwing.add(target.id);
     }
 
-    // Keep only hits within the last 1000ms window
+    // Keep only hits within the last 1000ms window in-place (chronological order)
     const windowStart = now - 1000;
-    state.hitTimestamps = state.hitTimestamps.filter((t) => t >= windowStart);
+    while (state.hitTimestamps.length > 0 && state.hitTimestamps[0]! < windowStart) {
+      state.hitTimestamps.shift();
+    }
 
     const currentCps = state.hitTimestamps.length;
     if (currentCps > combatConfig.maxCps) {
@@ -134,35 +140,83 @@ export function handleEntityHit(event: mc.EntityHitEntityAfterEvent): void {
     }
   }
 
-  // 2. Reach Check (Eye-to-Target Distance with Hitbox Compensation)
-  if (combatConfig.checkReach !== false) {
+  // 2. Reach & Angle Check (Eye-to-Target Distance with Hitbox & Latency Compensation)
+  if (combatConfig.checkReach !== false || combatConfig.checkAngle === true) {
     const origin = typeof player.getHeadLocation === 'function' ? player.getHeadLocation() : player.location;
     const targetLoc = target.location;
 
     if (isDefined(origin) && isDefined(targetLoc)) {
-      const distance = Math.hypot(origin.x - targetLoc.x, origin.y - targetLoc.y, origin.z - targetLoc.z);
+      const dx = targetLoc.x - origin.x;
+      const dy = targetLoc.y - origin.y;
+      const dz = targetLoc.z - origin.z;
+      const distance = Math.hypot(dx, dy, dz);
 
-      // Hitbox allowance: boss / large mobs have extended bounding boxes
-      const hitboxAllowance = largeEntityHitboxAllowances[target.typeId] ?? 0;
-      const effectiveReachLimit =
-        hitboxAllowance > 0
-          ? Math.max(combatConfig.maxReach + hitboxAllowance, combatConfig.maxReachLargeMobs ?? 6.5)
-          : combatConfig.maxReach;
-
-      if (distance > effectiveReachLimit) {
-        const excess = distance - effectiveReachLimit;
-        state.reachVl += excess * 2;
-
-        if (state.reachVl >= 4) {
-          flag(
-            player,
-            'combatCheck',
-            `Reach: ${distance.toFixed(2)} blocks (Limit: ${effectiveReachLimit.toFixed(2)})`,
-          );
-          state.reachVl = 2; // Clamp
+      let pingCompensation = 0;
+      let playerPing = 0;
+      try {
+        if (typeof player.getPing === 'function') {
+          const rawPing = player.getPing();
+          if (typeof rawPing === 'number' && Number.isFinite(rawPing) && rawPing > 0) {
+            playerPing = rawPing;
+            // Allow up to 1.25 blocks of lag compensation for moving targets at high latency
+            pingCompensation = Math.min(1.25, (rawPing / 1000) * 5.0);
+          }
         }
-      } else {
-        state.reachVl = Math.max(0, state.reachVl - 0.5);
+      } catch {
+        // Ignore ping errors
+      }
+
+      if (combatConfig.checkReach !== false) {
+        // Standard entity hitbox radius (~0.35m) + boss/large mob allowance + ping leeway
+        const hitboxAllowance = largeEntityHitboxAllowances[target.typeId] ?? 0.35;
+        const baseLimit =
+          largeEntityHitboxAllowances[target.typeId] !== undefined
+            ? Math.max(combatConfig.maxReach + hitboxAllowance, combatConfig.maxReachLargeMobs ?? 6.5)
+            : combatConfig.maxReach + hitboxAllowance;
+        const effectiveReachLimit = baseLimit + pingCompensation;
+
+        if (distance > effectiveReachLimit) {
+          const excess = distance - effectiveReachLimit;
+          state.reachVl += excess * 2;
+
+          if (state.reachVl >= 4) {
+            flag(
+              player,
+              'combatCheck',
+              `Reach: ${distance.toFixed(2)} blocks (Limit: ${effectiveReachLimit.toFixed(2)})`,
+            );
+            state.reachVl = 2; // Clamp
+          }
+        } else {
+          state.reachVl = Math.max(0, state.reachVl - 0.5);
+        }
+      }
+
+      // 3. KillAura / Angle Check (hits clearly behind camera beyond close-range hitbox overlap)
+      if (
+        combatConfig.checkAngle === true &&
+        distance > 1.8 &&
+        playerPing <= 200 &&
+        typeof player.getViewDirection === 'function'
+      ) {
+        const view = player.getViewDirection();
+        const invDist = 1 / distance;
+        const dot = view.x * dx * invDist + view.y * dy * invDist + view.z * dz * invDist;
+        if (dot < -0.2) {
+          state.angleVl += 1;
+          if (state.angleVl >= 3) {
+            flag(
+              player,
+              'combatCheck',
+              `Invalid Attack Angle: target behind view (dot: ${dot.toFixed(2)}, dist: ${distance.toFixed(1)}m)`,
+              1,
+              { category: 'combat', confidence: 'low' },
+            );
+            state.angleVl = 1;
+          }
+        } else {
+          state.angleVl = Math.max(0, state.angleVl - 0.5);
+        }
       }
     }
   }

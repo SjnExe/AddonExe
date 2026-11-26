@@ -133,6 +133,23 @@ export function handlePlayerBreakBlockRate(event: mc.PlayerBreakBlockAfterEvent)
   }
 
   const miningConfig = config.miningCheck;
+
+  // Break Reach Check (exempts creative/spectator above; uses low confidence for lag safety)
+  if (miningConfig.checkBreakReach !== false && isDefined(event.block)) {
+    const head = typeof player.getHeadLocation === 'function' ? player.getHeadLocation() : player.location;
+    if (isDefined(head)) {
+      const bLoc = event.block.location;
+      const dist = Math.hypot(head.x - (bLoc.x + 0.5), head.y - (bLoc.y + 0.5), head.z - (bLoc.z + 0.5));
+      const maxBreakReach = miningConfig.maxBreakReach ?? 6.5;
+      if (dist > maxBreakReach) {
+        flag(player, 'miningCheck', `Break Reach: ${dist.toFixed(2)} blocks (Limit: ${maxBreakReach.toFixed(2)})`, 1, {
+          category: 'mining',
+          confidence: 'low',
+        });
+      }
+    }
+  }
+
   const blockId = event.brokenBlockPermutation.type.id;
 
   // Ignore instant-break and soft blocks (flowers, grass, torches, leaves, crops, snow layers)

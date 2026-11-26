@@ -11,6 +11,8 @@ import {
   hasGrace,
   recordPlayerBounceGrace,
   recordPlayerDamageGrace,
+  recordPlayerTeleportGrace,
+  recordPlayerVehicleGrace,
 } from '@features/anticheat/core/graceManager.js';
 import * as flagManager from '@features/anticheat/flagManager.js';
 import { isDefined } from '@lib/guards.js';
@@ -27,15 +29,27 @@ import {
 interface PlayerMovementState {
   violationLevel: number; // Token bucket
   airTicks: number;
+  wasRiding?: boolean;
   lastDamageTimestamp?: number;
   lastIceTimestamp?: number;
+  lastSafeLocation?: mc.Vector3;
+  lastSafeDimensionId?: string;
 }
 
 const movementStates = new Map<string, PlayerMovementState>();
 let isChecking = false;
 let movementIntervalId: number | undefined;
 
-const movementGraceReasons = ['teleport', 'respawn', 'damage', 'knockback', 'vehicle', 'bounce'] as const;
+const movementGraceReasons = [
+  'teleport',
+  'respawn',
+  'dimension_change',
+  'join',
+  'damage',
+  'knockback',
+  'vehicle',
+  'bounce',
+] as const;
 const flightGraceReasons = ['bounce', 'riptide'] as const;
 
 /**
@@ -217,8 +231,14 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
   // 2. Mount Exemption: players riding horses, minecarts, boats inherit mount velocity
   const isRiding = isDefined(player.getComponent(EntityComponentTypes.Riding));
   if (isRiding) {
+    state.wasRiding = true;
     state.violationLevel = Math.max(0, state.violationLevel - 5);
     state.airTicks = 0;
+    return;
+  }
+  if (state.wasRiding) {
+    state.wasRiding = false;
+    recordPlayerVehicleGrace(player.id, 2000);
     return;
   }
 
@@ -273,12 +293,15 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
           }
           limit = Math.max(limit, 55); // Riptide III boost threshold
         } else {
-          // Check for Speed Effect
+          // Check for Speed Effect & Swimming (covers Depth Strider / Dolphin boost)
           const speedEffect =
             typeof player.getEffect === 'function' ? player.getEffect(MinecraftEffectTypes.Speed) : undefined;
           if (isDefined(speedEffect)) {
             const amplifier = speedEffect.amplifier + 1;
             limit *= 1 + 0.2 * amplifier;
+          }
+          if (player.isSwimming === true) {
+            limit *= 1.35;
           }
 
           // Check slippery / bounce blocks below
@@ -435,6 +458,12 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
     state.airTicks = 0;
   }
 
+  // Record safe grounded location for non-punitive setback on high-confidence flags
+  if (player.isOnGround === true && !isUnderKnockback && hSpeed <= effectiveLimit && state.airTicks === 0) {
+    state.lastSafeLocation = { x: player.location.x, y: player.location.y, z: player.location.z };
+    state.lastSafeDimensionId = player.dimension.id;
+  }
+
   // Threshold for flagging
   const flaggingThreshold = 20;
 
@@ -444,6 +473,18 @@ function checkMovement(player: mc.Player, config: MovementCheckConfig) {
       'movementCheck',
       `Speed: ${hSpeed.toFixed(1)} bps (Limit: ${limit.toFixed(1)}, VL: ${state.violationLevel.toFixed(1)})`,
     );
+    if (
+      state.violationLevel >= 35 &&
+      isDefined(state.lastSafeLocation) &&
+      state.lastSafeDimensionId === player.dimension.id
+    ) {
+      try {
+        recordPlayerTeleportGrace(player.id, 1500);
+        player.teleport(state.lastSafeLocation, { dimension: player.dimension });
+      } catch {
+        // Ignore setback errors
+      }
+    }
     state.violationLevel = Math.min(state.violationLevel, 50);
   }
 }

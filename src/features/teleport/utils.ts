@@ -10,6 +10,7 @@ import { errorLog } from '@core/utils/logger.js';
 import { sendMessage } from '@core/utils/messaging.js';
 import { startTeleportWarmup } from '@core/utils/teleportLogic.js';
 import { formatCooldown } from '@core/utils/time.js';
+import { recordPlayerTeleportGrace } from '@features/anticheat/core/graceManager.js';
 import { canBypassWorldBorder, isWithinWorldBorder } from '@features/essentials/worldBorder/manager.js';
 import { isDefined } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
@@ -66,7 +67,13 @@ export interface TeleportTransitionOptions extends mc.TeleportOptions {
   fadeTime?: mc.CameraFadeTimeOptions;
 }
 
-/** Teleports a player safely with optional camera fade transition to prevent abrupt visual popping. */
+/**
+ * Teleports a player safely with optional camera fade transition to prevent abrupt visual popping.
+ *
+ * @param player The player entity to teleport.
+ * @param location Destination world coordinates.
+ * @param options Optional teleport and camera fade configuration.
+ */
 export function teleportPlayerWithTransition(
   player: mc.Player,
   location: mc.Vector3,
@@ -75,6 +82,8 @@ export function teleportPlayerWithTransition(
   if (!isDefined(player) || !player.isValid) {
     return;
   }
+
+  recordPlayerTeleportGrace(player.id);
 
   const fadeScreen = options?.fadeScreen ?? true;
   if (fadeScreen && isDefined(player.camera) && typeof player.camera.fade === 'function') {

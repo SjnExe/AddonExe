@@ -60,6 +60,8 @@ export interface CombatCheckConfig extends BaseCheckConfig {
   checkAutoClicker: boolean;
   /** Whether to verify and flag combat hits originating outside normal reach boundaries. */
   checkReach: boolean;
+  /** Whether to verify and flag melee hits aimed clearly behind the attacker's view direction. */
+  checkAngle?: boolean;
   /** Maximum reach distance permitted when attacking wide-hitbox boss mobs (e.g. Ender Dragon, Ghast). */
   maxReachLargeMobs?: number;
 }
@@ -68,6 +70,24 @@ export interface CombatCheckConfig extends BaseCheckConfig {
 export interface MiningCheckConfig extends BaseCheckConfig {
   /** Maximum allowable solid block break events permitted in a single server tick. */
   maxBreaksPerTick: number;
+  /** Whether to verify and flag block breaks originating beyond normal survival reach. */
+  checkBreakReach?: boolean;
+  /** Maximum allowable distance in blocks between player eye and broken block center. */
+  maxBreakReach?: number;
+}
+
+/** Configuration for impossible block placement and scaffold checks. */
+export interface ScaffoldCheckConfig extends BaseCheckConfig {
+  /** Maximum allowable block placements permitted in a single server tick. */
+  maxPlacementsPerTick: number;
+  /** Whether to flag placements where the player is looking away from the placed block. */
+  checkImpossibleAngle: boolean;
+}
+
+/** Configuration for detecting full-speed movement while eating, drinking, bowing, or shielding. */
+export interface NoSlowCheckConfig extends BaseCheckConfig {
+  /** Maximum allowable horizontal speed in blocks per second while actively using an item. */
+  maxSpeedWhileUsing: number;
 }
 
 /** Configuration for the Nether roof restriction system. */
@@ -96,6 +116,10 @@ export interface AnticheatConfig {
   combatCheck: CombatCheckConfig;
   /** Mining rate and fast-break rules. */
   miningCheck: MiningCheckConfig;
+  /** Block placement and scaffold verification rules. */
+  scaffoldCheck?: ScaffoldCheckConfig;
+  /** Item-use movement speed verification rules. */
+  noSlowCheck?: NoSlowCheckConfig;
   /** Nether ceiling boundary protection rules. */
   antiNetherRoof: AntiNetherRoofConfig;
 }
@@ -154,6 +178,7 @@ export const anticheatConfig: AnticheatConfig = {
     maxReach: 4.5,
     checkAutoClicker: true,
     checkReach: true,
+    checkAngle: true,
     maxReachLargeMobs: 6.5,
   },
   miningCheck: {
@@ -165,6 +190,23 @@ export const anticheatConfig: AnticheatConfig = {
       { threshold: 15, command: 'kick {player} FastBreak or Nuker detected.' },
     ],
     maxBreaksPerTick: 3,
+    checkBreakReach: true,
+    maxBreakReach: 6.5,
+  },
+  scaffoldCheck: {
+    enabled: false,
+    notifyStaff: true,
+    flagDecaySeconds: 60,
+    violations: [{ threshold: 5, command: 'warn {player} Suspicious block placement.' }],
+    maxPlacementsPerTick: 4,
+    checkImpossibleAngle: true,
+  },
+  noSlowCheck: {
+    enabled: false,
+    notifyStaff: true,
+    flagDecaySeconds: 60,
+    violations: [{ threshold: 5, command: 'warn {player} Moving too fast while using an item.' }],
+    maxSpeedWhileUsing: 5.5,
   },
   antiNetherRoof: {
     enabled: false,

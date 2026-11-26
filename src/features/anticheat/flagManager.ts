@@ -12,6 +12,7 @@ import { AntiCheatCheckCategory } from '@features/anticheat/core/check.js';
 import { hasGrace } from '@features/anticheat/core/graceManager.js';
 import { addFlagLog } from '@features/anticheat/logManager.js';
 import { isWatched } from '@features/moderation/watchManager.js';
+import { getCurrentTps } from '@features/sidebar/manager.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
 import { MinecraftDimensionTypes } from '@minecraft/vanilla-data';
@@ -146,7 +147,7 @@ export function flag(
   const category = options?.category ?? (checkName.startsWith('movement') ? 'movement' : undefined);
   if (
     category === 'movement' &&
-    hasGrace(player.id, ['damage', 'knockback', 'teleport', 'respawn', 'vehicle', 'bounce'])
+    hasGrace(player.id, ['damage', 'knockback', 'teleport', 'respawn', 'dimension_change', 'join', 'vehicle', 'bounce'])
   ) {
     return;
   }
@@ -156,6 +157,31 @@ export function flag(
 
   if (config.enabled !== true || !isDefined(checkConfig) || checkConfig.enabled !== true) {
     return;
+  }
+
+  // Lag & latency protection: never punish innocent players during server TPS drops or high ping spikes
+  const isLatencySensitive = category === 'movement' || category === 'combat' || category === 'mining';
+  let isHighLatencyOrLag = false;
+  if (isLatencySensitive) {
+    const { tpsNum } = getCurrentTps();
+    if (tpsNum < 15.5) {
+      debugLog(`[AntiCheat] Suppressed '${checkName}' flag for ${player.name} due to low TPS (${tpsNum.toFixed(1)})`);
+      return;
+    }
+    let ping = 0;
+    try {
+      if (typeof player.getPing === 'function') {
+        const rawPing = player.getPing();
+        if (typeof rawPing === 'number' && Number.isFinite(rawPing) && rawPing >= 0) {
+          ping = rawPing;
+        }
+      }
+    } catch {
+      // Ignore ping query errors
+    }
+    if (tpsNum < 17.5 || ping > 200) {
+      isHighLatencyOrLag = true;
+    }
   }
 
   if (!flags.has(player.id)) {
@@ -178,7 +204,7 @@ export function flag(
 
   const previousVl = data.vl;
   const rawIncrement = Math.max(1, vlIncrement);
-  const confidence = options?.confidence ?? 'medium';
+  const confidence = isHighLatencyOrLag ? 'low' : (options?.confidence ?? 'medium');
   // Low confidence adds minimal VL to protect innocents while logging suspicion
   const effectiveIncrement = confidence === 'low' ? Math.max(0.5, rawIncrement * 0.5) : rawIncrement;
 
@@ -194,10 +220,18 @@ export function flag(
     processStaffNotification(player, checkName, Math.floor(data.vl), message, config);
   }
 
-  // Punishments
+  // Punishments: never auto-kick/ban on low confidence or during high latency/TPS dips
   if (isDefined(checkConfig.violations)) {
     for (const v of checkConfig.violations) {
       if (previousVl < v.threshold && data.vl >= v.threshold) {
+        const trimmedCmd = v.command.trim().toLowerCase();
+        const isSevereAction = trimmedCmd.startsWith('kick ') || trimmedCmd.startsWith('ban ');
+        if (confidence === 'low' && isSevereAction) {
+          debugLog(
+            `[AntiCheat] Skipped severe punishment '${v.command}' for ${player.name} due to low confidence/lag.`,
+          );
+          continue;
+        }
         executePunishment(player, v.command);
       }
     }
@@ -290,9 +324,23 @@ export function executePunishment(player: mc.Player, commandTemplate: string): v
 
   const safePlayerName = escapeCommandArg(player.name);
   const normalizedTemplate = commandTemplate.replaceAll('"{player}"', '{player}').replaceAll("'{player}'", '{player}');
+  const trimmed = normalizedTemplate.trim();
+
+  // Handle AddonExe structured moderation actions directly without doomed vanilla runCommand calls
+  if (trimmed.startsWith('warn ')) {
+    const reason = trimmed.replace(/^warn\s+\{player\}\s*/i, '').trim();
+    dispatchWarn(player, isNonEmptyString(reason) ? reason : 'Anti-cheat detection');
+    return;
+  }
+  if (trimmed.startsWith('ban ')) {
+    const argsStr = trimmed.replace(/^ban\s+\{player\}\s*/i, '').trim();
+    dispatchBan(player, argsStr);
+    return;
+  }
+
   const cmd = formatString(normalizedTemplate, { player: `"${safePlayerName}"` });
 
-  // 1. Primary execution via player dimension (supports mocks and standard commands)
+  // Execute via player dimension (supports kick and custom commands)
   let dimensionSucceeded = false;
   if (isDefined(player.dimension) && typeof player.dimension.runCommand === 'function') {
     try {
@@ -304,19 +352,11 @@ export function executePunishment(player: mc.Player, commandTemplate: string): v
     }
   }
 
-  // 2. Structured moderation execution for warn, kick, ban to ensure engine safety
-  const trimmed = normalizedTemplate.trim();
-  if (trimmed.startsWith('warn ')) {
-    const reason = trimmed.replace(/^warn\s+\{player\}\s*/i, '').trim();
-    dispatchWarn(player, isNonEmptyString(reason) ? reason : 'Anti-cheat detection');
-  } else if (trimmed.startsWith('kick ')) {
+  if (trimmed.startsWith('kick ')) {
     if (!dimensionSucceeded) {
       const reason = trimmed.replace(/^kick\s+\{player\}\s*/i, '').trim();
       kickPlayer(player.name, isNonEmptyString(reason) ? reason : 'Anti-cheat violation');
     }
-  } else if (trimmed.startsWith('ban ')) {
-    const argsStr = trimmed.replace(/^ban\s+\{player\}\s*/i, '').trim();
-    dispatchBan(player, argsStr);
   } else if (!dimensionSucceeded) {
     // Arbitrary fallback command via Overworld dimension
     try {
