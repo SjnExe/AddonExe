@@ -1,5 +1,5 @@
 import { SerializedItem } from '@core/data/itemSerializer.js';
-import { incrementPlayerBalance, updatePlayerData } from '@core/data/playerDataManager.js';
+import { incrementPlayerBalanceWithDelta, updatePlayerData } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { errorLog, infoLog } from '@core/utils/logger.js';
 import { isDefined } from '@lib/guards.js';
@@ -47,11 +47,16 @@ export function recoverPendingEscrowsOnStartup(): void {
   const remaining: EscrowEntry[] = [];
 
   for (const entry of pending) {
-    let moneyPending = typeof entry.money === 'number' && entry.money > 0;
+    let remainingMoney = typeof entry.money === 'number' && entry.money > 0 ? entry.money : 0;
+    let moneyPending = remainingMoney > 0;
     let itemPending = isDefined(entry.item);
 
-    if (moneyPending && incrementPlayerBalance(entry.playerId, entry.money!, `${entry.id}:money`)) {
-      moneyPending = false;
+    if (moneyPending) {
+      const creditRes = incrementPlayerBalanceWithDelta(entry.playerId, remainingMoney, `${entry.id}:money`);
+      if (creditRes.success) {
+        remainingMoney = Math.max(0, Number.parseFloat((remainingMoney - creditRes.appliedDelta).toFixed(2)));
+        moneyPending = remainingMoney > 0;
+      }
     }
     if (
       itemPending &&
@@ -70,7 +75,7 @@ export function recoverPendingEscrowsOnStartup(): void {
     if (moneyPending || itemPending) {
       remaining.push({
         ...entry,
-        ...(moneyPending ? { money: entry.money } : { money: undefined }),
+        ...(moneyPending ? { money: remainingMoney } : { money: undefined }),
         ...(itemPending ? { item: entry.item } : { item: undefined }),
       });
     } else {

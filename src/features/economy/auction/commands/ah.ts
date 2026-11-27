@@ -1,5 +1,5 @@
 import { CommandExecutor, CustomCommand } from '@commands/commandManager.js';
-import { getAuctionHouseConfig } from '@core/config/configurations.js';
+import { getAuctionHouseConfig, getEconomyConfig } from '@core/config/configurations.js';
 import { serializeItem } from '@core/data/itemSerializer.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
 import { ahDisabled } from '@core/utils/constants.js';
@@ -39,12 +39,14 @@ const mainCommand: CustomCommand = {
     }
 
     const config = getAuctionHouseConfig();
-    if (!isFeatureActive('eco.ah') || !config.enabled) {
+    const sub = args.subcommand?.toLowerCase();
+    const isCollectSub = sub === 'collect' || sub === 'claim' || sub === 'mailbox';
+    const ordersEnabled = isFeatureActive('eco') && getEconomyConfig().orders?.enabled === true;
+
+    if ((!isFeatureActive('eco.ah') || !config.enabled) && !(isCollectSub && ordersEnabled)) {
       sendMessage(ahDisabled, executor);
       return;
     }
-
-    const sub = args.subcommand?.toLowerCase();
 
     if (!isNonEmptyString(sub)) {
       await showAuctionHouse(executor);

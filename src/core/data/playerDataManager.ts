@@ -823,15 +823,28 @@ export function setPlayerBalance(playerId: string, newBalance: number) {
  * @param idempotencyKey Optional receipt key persisted in player data to prevent duplicate application on retry.
  * @returns True if the player balance was updated and saved (or marked dirty), false otherwise.
  */
-export function incrementPlayerBalance(playerId: string, amount: number, idempotencyKey?: string): boolean {
+/**
+ * Atomically adjusts a player's balance and reports both success and the actual clamped delta applied.
+ *
+ * @param playerId Player identifier.
+ * @param amount Signed currency delta.
+ * @param idempotencyKey Optional receipt key persisted in player data to prevent duplicate application on retry.
+ * @returns Object with `success` flag and `appliedDelta` actually added/subtracted after clamping.
+ */
+export function incrementPlayerBalanceWithDelta(
+  playerId: string,
+  amount: number,
+  idempotencyKey?: string,
+): { success: boolean; appliedDelta: number } {
   if (!Number.isFinite(amount)) {
-    return false;
+    return { success: false, appliedDelta: 0 };
   }
   const economyConfig = getEconomyConfig();
   const min = economyConfig.minBalance;
   const max = economyConfig.maxBalance;
+  let appliedDelta = 0;
 
-  return updatePlayerData(playerId, (pData) => {
+  const ok = updatePlayerData(playerId, (pData) => {
     if (isNonEmptyString(idempotencyKey) && pData.recoveredEscrowIds?.includes(idempotencyKey)) {
       return;
     }
@@ -840,18 +853,35 @@ export function incrementPlayerBalance(playerId: string, amount: number, idempot
     const safeBal = Number.isNaN(currentBal) ? 0 : currentBal;
     const potentialBalance = safeBal + amount;
     const clampedBalance = Math.max(min, Math.min(potentialBalance, max));
-    // Strict 2-decimal precision
-    pData.balance = Number.parseFloat(clampedBalance.toFixed(2));
-    if (isNonEmptyString(idempotencyKey)) {
+    const nextBalance = Number.parseFloat(clampedBalance.toFixed(2));
+    appliedDelta = Number.parseFloat((nextBalance - safeBal).toFixed(2));
+    pData.balance = nextBalance;
+
+    // Only mark idempotencyKey when full requested amount was applied (or negative charge)
+    if (isNonEmptyString(idempotencyKey) && (amount <= 0 || Math.abs(appliedDelta - amount) <= 0.001)) {
       pData.recoveredEscrowIds = [...(pData.recoveredEscrowIds ?? []), idempotencyKey].slice(-64);
     }
     if (economyConfig.logToConsole) {
       infoLog(
-        `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, New: ${pData.balance}`,
+        `[Economy] Updating balance for ${pData.name}. Old: ${safeBal}, Change: ${amount}, Applied: ${appliedDelta}, New: ${pData.balance}`,
       );
     }
     updateAndSaveLeaderboard(playerId, pData.name, pData.balance);
   });
+
+  return { success: ok, appliedDelta: ok ? appliedDelta : 0 };
+}
+
+/**
+ * Atomically adjusts a player's balance and returns whether the update succeeded.
+ *
+ * @param playerId Player identifier.
+ * @param amount Signed currency delta.
+ * @param idempotencyKey Optional receipt key to prevent duplicate application on retry.
+ * @returns True if the player balance was updated and saved (or marked dirty), false otherwise.
+ */
+export function incrementPlayerBalance(playerId: string, amount: number, idempotencyKey?: string): boolean {
+  return incrementPlayerBalanceWithDelta(playerId, amount, idempotencyKey).success;
 }
 
 export function setKitCooldown(playerId: string, kitName: string, timestamp: number) {
