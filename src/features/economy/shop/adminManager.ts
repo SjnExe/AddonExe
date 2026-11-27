@@ -571,10 +571,7 @@ export function updateShopItem(
   itemId: string,
   newData: UpdateItemData,
 ): ActionResult {
-  // 1. Update the master item list (items.js)
-  updateMasterItemList(itemId, newData);
-
-  // 2. Update the shop-specific configuration (shop.json)
+  // 1. Validate the shop-specific configuration (shop.json) before mutating any state
   const shopConfig = configurations.getShopConfig();
   const categories = shopConfig.categories;
   const category = categories[categoryName];
@@ -595,15 +592,24 @@ export function updateShopItem(
     return { success: false, message: `Item '${itemId}' not found in shop config.` };
   }
 
-  const targetKey = isNonEmptyString(newData.itemId) ? newData.itemId : itemId;
   const existingItemData = targetContainer.items[itemId];
+  const hasSeparateItemId = isNonEmptyString(existingItemData.itemId);
+  const canRenameKey = !hasSeparateItemId && isNonEmptyString(newData.itemId) && newData.itemId !== itemId;
+  if (canRenameKey && isDefined(targetContainer.items[newData.itemId])) {
+    return { success: false, message: `Item '${newData.itemId}' already exists in this container.` };
+  }
 
+  // 2. Update the master item list (items.js)
+  updateMasterItemList(itemId, newData);
+
+  const targetKey = canRenameKey ? newData.itemId : itemId;
   if (itemId !== targetKey) {
     delete targetContainer.items[itemId];
   }
 
   targetContainer.items[targetKey] = {
     ...existingItemData,
+    ...(hasSeparateItemId && isNonEmptyString(newData.itemId) ? { itemId: newData.itemId } : {}),
     buyPrice: newData.buyPrice,
     sellPrice: newData.sellPrice,
     permission: newData.permission,
@@ -636,4 +642,297 @@ export function updateShopItem(
   configurations.saveShopConfig(shopConfig);
   debugLog(`[ShopAdminManager] Updated item '${targetKey}' in shop and master list.`);
   return { success: true, message: `Successfully updated item '${targetKey}'.` };
+}
+
+/**
+ * Locates the category and optional subcategory containing `itemKey`.
+ *
+ * @param itemKey Shop item key.
+ * @returns Location object or undefined if not found.
+ */
+export function findItemLocation(itemKey: string): { categoryName: string; subCategoryName?: string } | undefined {
+  const shopConfig = configurations.getShopConfig();
+  for (const [categoryName, category] of Object.entries(shopConfig.categories ?? {})) {
+    if (!isDefined(category)) {
+      continue;
+    }
+    if (isDefined(category.items?.[itemKey])) {
+      return { categoryName };
+    }
+    for (const [subCategoryName, subCat] of Object.entries(category.subCategories ?? {})) {
+      if (isDefined(subCat?.items?.[itemKey])) {
+        return { categoryName, subCategoryName };
+      }
+    }
+  }
+  return undefined;
+}
+
+function normalizeShopPrice(price: number): number | undefined {
+  if (!Number.isFinite(price) || (price < 0 && price !== -1)) {
+    return undefined;
+  }
+  if (price === -1) {
+    return -1;
+  }
+  const rounded = Math.round(price * 100) / 100;
+  return Number.isFinite(rounded) ? rounded : undefined;
+}
+
+/**
+ * Quickly updates buy/sell prices and optional daily limits for an existing shop item.
+ *
+ * @param categoryName Category name.
+ * @param subCategoryName Subcategory name (optional).
+ * @param itemKey Item key.
+ * @param buyPrice New buy price (-1 or 0 to disable, undefined to keep existing).
+ * @param sellPrice New sell price (-1 or 0 to disable, undefined to keep existing).
+ * @param dailyBuyLimit Optional daily buy limit (0 for unlimited, undefined to keep existing).
+ * @param dailySellLimit Optional daily sell limit (0 for unlimited, undefined to keep existing).
+ * @returns Operation result.
+ */
+export function quickUpdateItemPrices(
+  categoryName: string,
+  subCategoryName: string | undefined,
+  itemKey: string,
+  buyPrice?: number,
+  sellPrice?: number,
+  dailyBuyLimit?: number,
+  dailySellLimit?: number,
+): ActionResult {
+  const nextBuyPrice = isDefined(buyPrice) ? normalizeShopPrice(buyPrice) : undefined;
+  if (isDefined(buyPrice) && !isDefined(nextBuyPrice)) {
+    return { success: false, message: 'Prices must be finite numbers >= 0, or -1 to disable.' };
+  }
+
+  const nextSellPrice = isDefined(sellPrice) ? normalizeShopPrice(sellPrice) : undefined;
+  if (isDefined(sellPrice) && !isDefined(nextSellPrice)) {
+    return { success: false, message: 'Prices must be finite numbers >= 0, or -1 to disable.' };
+  }
+
+  if (isDefined(dailyBuyLimit) && (!Number.isFinite(dailyBuyLimit) || dailyBuyLimit < 0)) {
+    return { success: false, message: 'Daily buy limit must be a non-negative number.' };
+  }
+  if (isDefined(dailySellLimit) && (!Number.isFinite(dailySellLimit) || dailySellLimit < 0)) {
+    return { success: false, message: 'Daily sell limit must be a non-negative number.' };
+  }
+
+  const shopConfig = configurations.getShopConfig();
+  const category = shopConfig.categories[categoryName];
+  if (!isDefined(category)) {
+    return { success: false, message: `Category '${categoryName}' not found.` };
+  }
+
+  const targetContainer = isNonEmptyString(subCategoryName) ? category.subCategories[subCategoryName] : category;
+  if (!isDefined(targetContainer)) {
+    return { success: false, message: `Subcategory '${subCategoryName}' not found in '${categoryName}'.` };
+  }
+
+  const item = targetContainer.items[itemKey];
+  if (!isDefined(item)) {
+    return { success: false, message: `Item '${itemKey}' not found.` };
+  }
+
+  if (
+    !isDefined(nextBuyPrice) &&
+    !isDefined(nextSellPrice) &&
+    !isDefined(dailyBuyLimit) &&
+    !isDefined(dailySellLimit)
+  ) {
+    return { success: true, message: `No changes made for '${item.displayName ?? itemKey}'.` };
+  }
+
+  if (isDefined(nextBuyPrice)) {
+    item.buyPrice = nextBuyPrice;
+  }
+  if (isDefined(nextSellPrice)) {
+    item.sellPrice = nextSellPrice;
+  }
+
+  if (isDefined(dailyBuyLimit)) {
+    if (dailyBuyLimit > 0) {
+      item.dailyBuyLimit = Math.floor(dailyBuyLimit);
+    } else {
+      delete item.dailyBuyLimit;
+    }
+  }
+  if (isDefined(dailySellLimit)) {
+    if (dailySellLimit > 0) {
+      item.dailySellLimit = Math.floor(dailySellLimit);
+    } else {
+      delete item.dailySellLimit;
+    }
+  }
+
+  configurations.saveShopConfig(shopConfig);
+  debugLog(`[ShopAdminManager] Quick-updated prices for '${itemKey}' (B:${item.buyPrice}, S:${item.sellPrice}).`);
+  return { success: true, message: `Updated prices for '${item.displayName ?? itemKey}'.` };
+}
+
+/**
+ * Moves a shop item from one category/subcategory to another.
+ *
+ * @param fromCategory Source category.
+ * @param fromSubCategory Source subcategory (optional).
+ * @param itemKey Item key to move.
+ * @param toCategory Destination category.
+ * @param toSubCategory Destination subcategory (optional).
+ * @returns Operation result.
+ */
+export function moveShopItem(
+  fromCategory: string,
+  fromSubCategory: string | undefined,
+  itemKey: string,
+  toCategory: string,
+  toSubCategory: string | undefined,
+): ActionResult {
+  const shopConfig = configurations.getShopConfig();
+  const srcCat = shopConfig.categories[fromCategory];
+  const dstCat = shopConfig.categories[toCategory];
+  if (!isDefined(srcCat)) {
+    return { success: false, message: `Source category '${fromCategory}' not found.` };
+  }
+  if (!isDefined(dstCat)) {
+    return { success: false, message: `Destination category '${toCategory}' not found.` };
+  }
+
+  const srcContainer = isNonEmptyString(fromSubCategory) ? srcCat.subCategories[fromSubCategory] : srcCat;
+  const dstContainer = isNonEmptyString(toSubCategory) ? dstCat.subCategories[toSubCategory] : dstCat;
+  if (!isDefined(srcContainer) || !isDefined(dstContainer)) {
+    return { success: false, message: 'Source or destination subcategory not found.' };
+  }
+  if (srcContainer === dstContainer) {
+    return { success: false, message: 'Item is already in that location.' };
+  }
+
+  const item = srcContainer.items[itemKey];
+  if (!isDefined(item)) {
+    return { success: false, message: `Item '${itemKey}' not found.` };
+  }
+  if (isDefined(dstContainer.items[itemKey])) {
+    return { success: false, message: `Item '${itemKey}' already exists in destination.` };
+  }
+
+  dstContainer.items[itemKey] = item;
+  delete srcContainer.items[itemKey];
+  configurations.saveShopConfig(shopConfig);
+  debugLog(`[ShopAdminManager] Moved '${itemKey}' to '${toCategory}/${toSubCategory ?? ''}'.`);
+  return {
+    success: true,
+    message: `Moved '${item.displayName ?? itemKey}' to ${toCategory}${toSubCategory ? ` > ${toSubCategory}` : ''}.`,
+  };
+}
+
+/**
+ * Scales buy and/or sell prices by a multiplier globally or for a single category.
+ *
+ * @param buyMultiplier Multiplier for positive buy prices (e.g. 1.1 = +10%).
+ * @param sellMultiplier Multiplier for positive sell prices (e.g. 0.9 = -10%).
+ * @param categoryName Optional category name to limit scaling.
+ * @returns Operation result with count of updated items.
+ */
+export function applyGlobalPriceMultiplier(
+  buyMultiplier: number,
+  sellMultiplier: number,
+  categoryName?: string,
+): ActionResult & { updatedCount: number } {
+  if (
+    !Number.isFinite(buyMultiplier) ||
+    buyMultiplier <= 0 ||
+    !Number.isFinite(sellMultiplier) ||
+    sellMultiplier <= 0
+  ) {
+    return { success: false, message: 'Multipliers must be positive numbers.', updatedCount: 0 };
+  }
+
+  const shopConfig = configurations.getShopConfig();
+  const targetCategories = isNonEmptyString(categoryName)
+    ? isDefined(shopConfig.categories[categoryName])
+      ? [shopConfig.categories[categoryName]]
+      : []
+    : Object.values(shopConfig.categories ?? {});
+
+  if (targetCategories.length === 0) {
+    return { success: false, message: 'No matching categories found.', updatedCount: 0 };
+  }
+
+  const stagedUpdates: {
+    item: { buyPrice: number; sellPrice: number };
+    nextBuy?: number;
+    nextSell?: number;
+  }[] = [];
+
+  const stageMap = (itemMap: Record<string, { buyPrice: number; sellPrice: number }>): boolean => {
+    for (const item of Object.values(itemMap ?? {})) {
+      if (!isDefined(item)) {
+        continue;
+      }
+      let nextBuy: number | undefined;
+      let nextSell: number | undefined;
+      if (item.buyPrice > 0 && buyMultiplier !== 1) {
+        const scaled = Math.max(0.25, Math.round(item.buyPrice * buyMultiplier * 100) / 100);
+        if (!Number.isFinite(scaled)) {
+          return false;
+        }
+        nextBuy = scaled;
+      }
+      if (item.sellPrice > 0 && sellMultiplier !== 1) {
+        const scaled = Math.max(0.25, Math.round(item.sellPrice * sellMultiplier * 100) / 100);
+        if (!Number.isFinite(scaled)) {
+          return false;
+        }
+        nextSell = scaled;
+      }
+      if (isDefined(nextBuy) || isDefined(nextSell)) {
+        stagedUpdates.push({ item, nextBuy, nextSell });
+      }
+    }
+    return true;
+  };
+
+  for (const cat of targetCategories) {
+    if (!isDefined(cat)) {
+      continue;
+    }
+    if (!stageMap(cat.items)) {
+      return { success: false, message: 'Scaled price exceeds numeric limits.', updatedCount: 0 };
+    }
+    for (const sub of Object.values(cat.subCategories ?? {})) {
+      if (isDefined(sub) && !stageMap(sub.items)) {
+        return { success: false, message: 'Scaled price exceeds numeric limits.', updatedCount: 0 };
+      }
+    }
+  }
+
+  for (const update of stagedUpdates) {
+    if (isDefined(update.nextBuy)) {
+      update.item.buyPrice = update.nextBuy;
+    }
+    if (isDefined(update.nextSell)) {
+      update.item.sellPrice = update.nextSell;
+    }
+  }
+
+  const updatedCount = stagedUpdates.length;
+
+  configurations.saveShopConfig(shopConfig);
+  debugLog(
+    `[ShopAdminManager] Scaled prices for ${updatedCount} items (buy x${buyMultiplier}, sell x${sellMultiplier}).`,
+  );
+  return {
+    success: true,
+    updatedCount,
+    message: `Updated prices for ${updatedCount} items.`,
+  };
+}
+
+/**
+ * Resets the shop configuration to the built-in default preset.
+ *
+ * @returns Operation result.
+ */
+export function resetShopToDefaults(): ActionResult {
+  configurations.resetShopConfig();
+  debugLog('[ShopAdminManager] Reset shop configuration to default preset.');
+  return { success: true, message: 'Shop configuration reset to default preset.' };
 }
