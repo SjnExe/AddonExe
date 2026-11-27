@@ -1,5 +1,5 @@
 import { getShopConfig, saveShopConfig } from '@core/config/configurations.js';
-import { ShopCategory, ShopItem, ShopSubCategory } from '@features/economy/shop/config.js';
+import { ShopItem, ShopSubCategory } from '@features/economy/shop/config.js';
 import { ItemData, items } from '@features/economy/shop/itemsConfig.js';
 import {
   resolveTradeItemDisplayName,
@@ -8,227 +8,6 @@ import {
 } from '@features/economy/tradeUtils.js';
 import { isDefined, isNonEmptyString } from '@lib/guards.js';
 import * as mc from '@minecraft/server';
-import { MinecraftItemTypes } from '@minecraft/vanilla-data';
-
-interface BlockFamilySpec {
-  subCategoryName: string;
-  legacyKey?: string;
-  icon: string;
-  baseBuy: number;
-  baseSell: number;
-  variants: { key: string; typeId: string; displayName?: string }[];
-}
-
-const buildingBlockFamilies: BlockFamilySpec[] = [
-  {
-    subCategoryName: 'Stone',
-    legacyKey: 'stone',
-    icon: 'textures/blocks/stone',
-    baseBuy: 10,
-    baseSell: 5,
-    variants: [
-      { key: 'stone', typeId: MinecraftItemTypes.Stone },
-      { key: 'normalStoneStairs', typeId: MinecraftItemTypes.NormalStoneStairs, displayName: 'Stone Stairs' },
-      { key: 'smoothStone', typeId: MinecraftItemTypes.SmoothStone },
-      { key: 'smoothStoneSlab', typeId: MinecraftItemTypes.SmoothStoneSlab },
-      { key: 'stoneButton', typeId: MinecraftItemTypes.StoneButton },
-      { key: 'stonePressurePlate', typeId: MinecraftItemTypes.StonePressurePlate },
-    ],
-  },
-  {
-    subCategoryName: 'Cobblestone',
-    legacyKey: 'cobblestone',
-    icon: 'textures/blocks/cobblestone',
-    baseBuy: 6,
-    baseSell: 2,
-    variants: [
-      { key: 'cobblestone', typeId: MinecraftItemTypes.Cobblestone },
-      { key: 'stoneStairs', typeId: MinecraftItemTypes.StoneStairs, displayName: 'Cobblestone Stairs' },
-      { key: 'cobblestoneSlab', typeId: MinecraftItemTypes.CobblestoneSlab },
-      { key: 'cobblestoneWall', typeId: MinecraftItemTypes.CobblestoneWall },
-      { key: 'mossyCobblestone', typeId: MinecraftItemTypes.MossyCobblestone },
-      {
-        key: 'mossyCobblestoneStairs',
-        typeId: MinecraftItemTypes.MossyCobblestoneStairs,
-        displayName: 'Mossy Cobblestone Stairs',
-      },
-      {
-        key: 'mossyCobblestoneSlab',
-        typeId: MinecraftItemTypes.MossyCobblestoneSlab,
-        displayName: 'Mossy Cobblestone Slab',
-      },
-    ],
-  },
-  {
-    subCategoryName: 'Stone Bricks',
-    legacyKey: 'stoneBricks',
-    icon: 'textures/blocks/stonebrick',
-    baseBuy: 12,
-    baseSell: 6,
-    variants: [
-      { key: 'stoneBricks', typeId: MinecraftItemTypes.StoneBricks },
-      { key: 'stoneBrickStairs', typeId: MinecraftItemTypes.StoneBrickStairs },
-      { key: 'stoneBrickSlab', typeId: MinecraftItemTypes.StoneBrickSlab },
-      { key: 'mossyStoneBricks', typeId: MinecraftItemTypes.MossyStoneBricks },
-      {
-        key: 'mossyStoneBrickStairs',
-        typeId: MinecraftItemTypes.MossyStoneBrickStairs,
-        displayName: 'Mossy Stone Brick Stairs',
-      },
-      {
-        key: 'mossyStoneBrickSlab',
-        typeId: MinecraftItemTypes.MossyStoneBrickSlab,
-        displayName: 'Mossy Stone Brick Slab',
-      },
-    ],
-  },
-  {
-    subCategoryName: 'Sand & Sandstone',
-    legacyKey: 'sand',
-    icon: 'textures/blocks/sand',
-    baseBuy: 8,
-    baseSell: 3,
-    variants: [
-      { key: 'sand', typeId: MinecraftItemTypes.Sand },
-      { key: 'gravel', typeId: MinecraftItemTypes.Gravel },
-      { key: 'dirt', typeId: MinecraftItemTypes.Dirt },
-      { key: 'sandstone', typeId: MinecraftItemTypes.Sandstone },
-      { key: 'sandstoneStairs', typeId: MinecraftItemTypes.SandstoneStairs },
-      { key: 'sandstoneSlab', typeId: MinecraftItemTypes.SandstoneSlab },
-    ],
-  },
-  {
-    subCategoryName: 'Glass',
-    legacyKey: 'glass',
-    icon: 'textures/blocks/glass',
-    baseBuy: 15,
-    baseSell: 5,
-    variants: [
-      { key: 'glass', typeId: MinecraftItemTypes.Glass },
-      { key: 'glassPane', typeId: MinecraftItemTypes.GlassPane },
-      { key: 'tintedGlass', typeId: MinecraftItemTypes.TintedGlass },
-    ],
-  },
-  {
-    subCategoryName: 'Concrete & Terracotta',
-    legacyKey: 'whiteConcrete',
-    icon: 'textures/blocks/concrete_white',
-    baseBuy: 20,
-    baseSell: 10,
-    variants: [
-      { key: 'whiteConcrete', typeId: MinecraftItemTypes.WhiteConcrete },
-      { key: 'blackConcrete', typeId: MinecraftItemTypes.BlackConcrete },
-      { key: 'redConcrete', typeId: MinecraftItemTypes.RedConcrete },
-      { key: 'blueConcrete', typeId: MinecraftItemTypes.BlueConcrete },
-      { key: 'terracotta', typeId: MinecraftItemTypes.HardenedClay, displayName: 'Terracotta' },
-    ],
-  },
-  {
-    subCategoryName: 'Nether & Obsidian',
-    legacyKey: 'obsidian',
-    icon: 'textures/blocks/obsidian',
-    baseBuy: 40,
-    baseSell: 20,
-    variants: [
-      { key: 'obsidian', typeId: MinecraftItemTypes.Obsidian },
-      { key: 'glowstone', typeId: MinecraftItemTypes.Glowstone },
-      { key: 'netherrack', typeId: MinecraftItemTypes.Netherrack },
-      { key: 'netherBrick', typeId: MinecraftItemTypes.NetherBrick, displayName: 'Nether Bricks' },
-      { key: 'netherBrickStairs', typeId: MinecraftItemTypes.NetherBrickStairs },
-      { key: 'netherBrickSlab', typeId: MinecraftItemTypes.NetherBrickSlab },
-      { key: 'netherBrickFence', typeId: MinecraftItemTypes.NetherBrickFence },
-    ],
-  },
-  {
-    subCategoryName: 'End & Purpur',
-    legacyKey: 'purpurBlock',
-    icon: 'textures/blocks/purpur_block',
-    baseBuy: 15,
-    baseSell: 6,
-    variants: [
-      { key: 'endStone', typeId: MinecraftItemTypes.EndStone },
-      { key: 'endBricks', typeId: MinecraftItemTypes.EndBricks, displayName: 'End Stone Bricks' },
-      { key: 'endBrickStairs', typeId: MinecraftItemTypes.EndBrickStairs, displayName: 'End Stone Brick Stairs' },
-      { key: 'purpurBlock', typeId: MinecraftItemTypes.PurpurBlock },
-      { key: 'purpurStairs', typeId: MinecraftItemTypes.PurpurStairs },
-      { key: 'purpurSlab', typeId: MinecraftItemTypes.PurpurSlab },
-    ],
-  },
-];
-
-const woodFamilies: BlockFamilySpec[] = [
-  {
-    subCategoryName: 'Oak Wood',
-    legacyKey: 'oakLog',
-    icon: 'textures/blocks/log_oak_top',
-    baseBuy: 20,
-    baseSell: 10,
-    variants: [
-      { key: 'oakLog', typeId: MinecraftItemTypes.OakLog },
-      { key: 'oakPlanks', typeId: MinecraftItemTypes.OakPlanks },
-      { key: 'oakStairs', typeId: MinecraftItemTypes.OakStairs },
-      { key: 'oakSlab', typeId: MinecraftItemTypes.OakSlab },
-      { key: 'oakFence', typeId: MinecraftItemTypes.OakFence },
-      { key: 'oakFenceGate', typeId: MinecraftItemTypes.FenceGate, displayName: 'Oak Fence Gate' },
-    ],
-  },
-  {
-    subCategoryName: 'Spruce Wood',
-    legacyKey: 'spruceLog',
-    icon: 'textures/blocks/log_spruce_top',
-    baseBuy: 20,
-    baseSell: 10,
-    variants: [
-      { key: 'spruceLog', typeId: MinecraftItemTypes.SpruceLog },
-      { key: 'sprucePlanks', typeId: MinecraftItemTypes.SprucePlanks },
-      { key: 'spruceStairs', typeId: MinecraftItemTypes.SpruceStairs },
-      { key: 'spruceSlab', typeId: MinecraftItemTypes.SpruceSlab },
-      { key: 'spruceFence', typeId: MinecraftItemTypes.SpruceFence },
-      { key: 'spruceFenceGate', typeId: MinecraftItemTypes.SpruceFenceGate },
-    ],
-  },
-  {
-    subCategoryName: 'Birch Wood',
-    legacyKey: 'birchLog',
-    icon: 'textures/blocks/log_birch_top',
-    baseBuy: 20,
-    baseSell: 10,
-    variants: [
-      { key: 'birchLog', typeId: MinecraftItemTypes.BirchLog },
-      { key: 'birchPlanks', typeId: MinecraftItemTypes.BirchPlanks },
-      { key: 'birchStairs', typeId: MinecraftItemTypes.BirchStairs },
-      { key: 'birchSlab', typeId: MinecraftItemTypes.BirchSlab },
-    ],
-  },
-  {
-    subCategoryName: 'Jungle, Acacia & Dark Oak',
-    legacyKey: 'darkOakLog',
-    icon: 'textures/blocks/log_big_oak_top',
-    baseBuy: 20,
-    baseSell: 10,
-    variants: [
-      { key: 'jungleLog', typeId: MinecraftItemTypes.JungleLog },
-      { key: 'junglePlanks', typeId: MinecraftItemTypes.JunglePlanks },
-      { key: 'acaciaLog', typeId: MinecraftItemTypes.AcaciaLog },
-      { key: 'acaciaPlanks', typeId: MinecraftItemTypes.AcaciaPlanks },
-      { key: 'darkOakLog', typeId: MinecraftItemTypes.DarkOakLog },
-      { key: 'darkOakPlanks', typeId: MinecraftItemTypes.DarkOakPlanks },
-    ],
-  },
-  {
-    subCategoryName: 'Mangrove, Cherry & Nether Stems',
-    legacyKey: 'cherryLog',
-    icon: 'textures/blocks/cherry_log_top',
-    baseBuy: 25,
-    baseSell: 12,
-    variants: [
-      { key: 'mangroveLog', typeId: MinecraftItemTypes.MangroveLog },
-      { key: 'cherryLog', typeId: MinecraftItemTypes.CherryLog },
-      { key: 'crimsonStem', typeId: MinecraftItemTypes.CrimsonStem },
-      { key: 'warpedStem', typeId: MinecraftItemTypes.WarpedStem },
-    ],
-  },
-];
 
 const unobtainableShortIds = new Set<string>([
   'air',
@@ -339,74 +118,6 @@ export function calculateVariantPricing(
   return { buyPrice, sellPrice };
 }
 
-function populateFamilyVariantsIntoShop(
-  categoryName: string,
-  category: ShopCategory,
-  families: BlockFamilySpec[],
-  legacyFlatKeysToRemove: string[],
-): boolean {
-  let changed = false;
-  if (!isDefined(category.subCategories)) {
-    category.subCategories = {};
-    changed = true;
-  }
-
-  for (const family of families) {
-    for (const variant of family.variants) {
-      const resolvedName = variant.displayName ?? resolveTradeItemDisplayName(variant.typeId);
-      const prices = calculateVariantPricing(variant.typeId, family.baseBuy, family.baseSell);
-      if (!isDefined(items[variant.key])) {
-        items[variant.key] = {
-          itemId: variant.typeId,
-          icon: family.icon,
-          buyPrice: prices.buyPrice,
-          sellPrice: prices.sellPrice,
-          category: categoryName,
-          subCategory: family.subCategoryName,
-          displayName: resolvedName,
-        };
-      }
-    }
-
-    const existingSub = category.subCategories[family.subCategoryName];
-    if (!isDefined(existingSub) || Object.keys(existingSub.items ?? {}).length === 0) {
-      const subItems: Record<string, ShopItem> = {};
-      for (const variant of family.variants) {
-        const legacyPriceItem = isDefined(family.legacyKey) ? category.items?.[family.legacyKey] : undefined;
-        const baseBuy = legacyPriceItem?.buyPrice ?? family.baseBuy;
-        const baseSell = legacyPriceItem?.sellPrice ?? family.baseSell;
-        const prices =
-          variant.key === family.legacyKey
-            ? { buyPrice: baseBuy, sellPrice: baseSell }
-            : calculateVariantPricing(variant.typeId, baseBuy, baseSell);
-
-        subItems[variant.key] = {
-          buyPrice: prices.buyPrice,
-          sellPrice: prices.sellPrice,
-          permission: legacyPriceItem?.permission ?? 'ui.panel.member',
-          icon: family.icon,
-          displayName: variant.displayName ?? resolveTradeItemDisplayName(variant.typeId),
-          itemId: variant.typeId,
-        };
-      }
-      category.subCategories[family.subCategoryName] = {
-        icon: family.icon,
-        items: subItems,
-      };
-      changed = true;
-    }
-  }
-
-  for (const flatKey of legacyFlatKeysToRemove) {
-    if (isDefined(category.items?.[flatKey])) {
-      delete category.items[flatKey];
-      changed = true;
-    }
-  }
-
-  return changed;
-}
-
 function hydrateItemMap(itemMap: Record<string, ShopItem>): boolean {
   let modified = false;
   for (const [itemKey, itemVal] of Object.entries(itemMap)) {
@@ -436,6 +147,11 @@ export function invalidateShopHydration(): void {
   isShopHydrated = false;
 }
 
+/**
+ * Ensures shop entries have resolved metadata (displayName, icon, itemId) without mutating category structure.
+ *
+ * @returns Master item catalog.
+ */
 export async function ensureItemsConfig(): Promise<Record<string, ItemData>> {
   if (isShopHydrated) {
     return items;
@@ -481,44 +197,6 @@ export async function ensureItemsConfig(): Promise<Record<string, ItemData>> {
             items: candidate.items,
           };
           delete category.items[entryKey];
-          changed = true;
-        }
-      }
-
-      if (catName === 'Building Blocks') {
-        const legacyBuildingKeys = [
-          'stone',
-          'cobblestone',
-          'dirt',
-          'sand',
-          'gravel',
-          'glass',
-          'terracotta',
-          'whiteConcrete',
-          'stoneBricks',
-          'obsidian',
-          'glowstone',
-          'netherrack',
-          'endStone',
-          'purpurBlock',
-        ];
-        if (populateFamilyVariantsIntoShop(catName, category, buildingBlockFamilies, legacyBuildingKeys)) {
-          changed = true;
-        }
-      } else if (catName === 'Logs') {
-        const legacyLogKeys = [
-          'oakLog',
-          'spruceLog',
-          'birchLog',
-          'jungleLog',
-          'acaciaLog',
-          'darkOakLog',
-          'mangroveLog',
-          'cherryLog',
-          'crimsonStem',
-          'warpedStem',
-        ];
-        if (populateFamilyVariantsIntoShop(catName, category, woodFamilies, legacyLogKeys)) {
           changed = true;
         }
       }

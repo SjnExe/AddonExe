@@ -18,6 +18,7 @@ export interface ItemInfo {
   itemId: string;
   displayName?: string;
   permission?: string;
+  icon?: string;
   enchantment?: { id: string; level: number };
   buyPrice?: number;
   sellPrice?: number;
@@ -25,6 +26,15 @@ export interface ItemInfo {
   dailyBuyLimit?: number;
   dailySellLimit?: number;
   limitScope?: 'player' | 'global';
+}
+
+/** Indexed catalog entry with category location and resolved metadata. */
+export interface ShopCatalogEntry {
+  itemKey: string;
+  categoryName: string;
+  subCategoryName?: string;
+  shopItem: ItemInfo;
+  icon: string;
 }
 
 let currentLimitDayKey = '';
@@ -39,6 +49,12 @@ function getTodayLimitKey(): string {
   return day;
 }
 
+/**
+ * Returns the player's highest active rank shop daily limit multiplier.
+ *
+ * @param player Target player.
+ * @returns Limit multiplier (defaults to 1).
+ */
 export function getPlayerShopLimitMultiplier(player: mc.Player): number {
   const ranks = getPlayerRanks(player);
   let best = 1;
@@ -50,6 +66,15 @@ export function getPlayerShopLimitMultiplier(player: mc.Player): number {
   return best;
 }
 
+/**
+ * Returns the remaining daily buy or sell quota for a player and shop item.
+ *
+ * @param player Target player.
+ * @param itemKey Shop item key.
+ * @param shopItem Shop item definition.
+ * @param mode Transaction mode (`'buy'` or `'sell'`).
+ * @returns Remaining daily quantity, or `Infinity` when unlimited.
+ */
 export function getRemainingDailyShopQuota(
   player: mc.Player,
   itemKey: string,
@@ -57,7 +82,7 @@ export function getRemainingDailyShopQuota(
   mode: 'buy' | 'sell',
 ): number {
   const baseLimit = mode === 'buy' ? Number(shopItem.dailyBuyLimit ?? 0) : Number(shopItem.dailySellLimit ?? 0);
-  if (!baseLimit || baseLimit <= 0) {
+  if (!Number.isFinite(baseLimit) || baseLimit <= 0) {
     return Infinity;
   }
   getTodayLimitKey();
@@ -76,7 +101,7 @@ function recordDailyShopUsage(
   amount: number,
 ): void {
   const baseLimit = mode === 'buy' ? Number(shopItem.dailyBuyLimit ?? 0) : Number(shopItem.dailySellLimit ?? 0);
-  if (!baseLimit || baseLimit <= 0 || amount <= 0) {
+  if (!Number.isFinite(baseLimit) || baseLimit <= 0 || amount <= 0) {
     return;
   }
   getTodayLimitKey();
@@ -133,37 +158,40 @@ function createShopItemStack(itemInfo: ItemInfo, quantity: number): mc.ItemStack
   return itemStack;
 }
 
-/**
- * Finds a shop item definition by its ID.
- *
- * @param itemId The item ID to look up.
- * @returns The item definition or undefined if not found.
- */
 let cachedItemByKeyMap: Map<string, ItemInfo> | undefined;
 let cachedItemByTypeIdMap: Map<string, { itemKey: string; shopItem: ItemInfo }[]> | undefined;
 let cachedReverseSellMap: Map<string, { itemKey: string; shopItem: ItemInfo }[]> | undefined;
+let cachedCatalogEntries: ShopCatalogEntry[] | undefined;
 
+/** Clears cached shop item lookup maps and daily usage counters. */
 export function invalidateShopLookupCache(): void {
   cachedItemByKeyMap = undefined;
   cachedItemByTypeIdMap = undefined;
   cachedReverseSellMap = undefined;
+  cachedCatalogEntries = undefined;
   dailyShopUsage.clear();
 }
 
 function ensureShopLookupCaches(): void {
-  if (isDefined(cachedItemByKeyMap) && isDefined(cachedItemByTypeIdMap) && isDefined(cachedReverseSellMap)) {
+  if (
+    isDefined(cachedItemByKeyMap) &&
+    isDefined(cachedItemByTypeIdMap) &&
+    isDefined(cachedReverseSellMap) &&
+    isDefined(cachedCatalogEntries)
+  ) {
     return;
   }
 
   const byKey = new Map<string, ItemInfo>();
   const byTypeId = new Map<string, { itemKey: string; shopItem: ItemInfo }[]>();
   const sellMap = new Map<string, { itemKey: string; shopItem: ItemInfo }[]>();
+  const catalog: ShopCatalogEntry[] = [];
 
   const shopConfig = getShopConfig();
   const categories = shopConfig.categories;
   const items = allItems as Record<string, ItemInfo>;
 
-  const registerEntry = (itemKey: string, rawEntry: unknown) => {
+  const registerEntry = (itemKey: string, rawEntry: unknown, categoryName: string, subCategoryName?: string) => {
     if (byKey.has(itemKey)) {
       return;
     }
@@ -173,9 +201,17 @@ function ensureShopLookupCaches(): void {
       ...raw,
       itemId: meta.itemId,
       displayName: meta.displayName,
+      icon: meta.icon,
       ...(isDefined(meta.enchantment) ? { enchantment: meta.enchantment } : {}),
     };
     byKey.set(itemKey, resolved);
+    catalog.push({
+      itemKey,
+      categoryName,
+      ...(isDefined(subCategoryName) ? { subCategoryName } : {}),
+      shopItem: resolved,
+      icon: meta.icon,
+    });
     if (!isDefined(resolved.enchantment)) {
       const list = byTypeId.get(resolved.itemId) ?? [];
       list.push({ itemKey, shopItem: resolved });
@@ -195,14 +231,14 @@ function ensureShopLookupCaches(): void {
     }
     if (isDefined(category.items)) {
       for (const [k, v] of Object.entries(category.items)) {
-        registerEntry(k, v);
+        registerEntry(k, v, categoryName);
       }
     }
     if (isDefined(category.subCategories)) {
-      for (const subCategory of Object.values(category.subCategories)) {
+      for (const [subName, subCategory] of Object.entries(category.subCategories)) {
         if (isDefined(subCategory?.items)) {
           for (const [k, v] of Object.entries(subCategory.items)) {
-            registerEntry(k, v);
+            registerEntry(k, v, categoryName, subName);
           }
         }
       }
@@ -212,8 +248,15 @@ function ensureShopLookupCaches(): void {
   cachedItemByKeyMap = byKey;
   cachedItemByTypeIdMap = byTypeId;
   cachedReverseSellMap = sellMap;
+  cachedCatalogEntries = catalog;
 }
 
+/**
+ * Finds a shop item definition by its shop key.
+ *
+ * @param itemKey The shop item key to look up.
+ * @returns The item definition or undefined if not found.
+ */
 export function findShopItem(itemKey: string): ItemInfo | undefined {
   ensureShopLookupCaches();
   return cachedItemByKeyMap?.get(itemKey);
@@ -267,6 +310,13 @@ export function findShopItemByTypeId(
   return candidates.find(hasEntryPermission) ?? candidates[0];
 }
 
+/**
+ * Counts how many sellable items matching a shop entry a player currently holds.
+ *
+ * @param player Target player.
+ * @param itemKey Shop item key.
+ * @returns Total matching item count across inventory slots.
+ */
 export function getPlayerInventoryShopItemCount(player: mc.Player, itemKey: string): number {
   const shopItem = findShopItem(itemKey);
   if (!isDefined(shopItem)) {
@@ -379,7 +429,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     player.sendMessage(`§eNotice: Capped purchase to your remaining daily buy limit (${remainingBuyQuota}).`);
   }
 
-  const initialCost = buyPrice * targetQuantity;
+  const initialCost = Math.round(buyPrice * targetQuantity * 100) / 100;
 
   if (pData.balance < initialCost) {
     return {
@@ -414,7 +464,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
   }
 
   // 3. Recalculate cost and perform final transaction
-  const finalCost = buyPrice * finalQuantity;
+  const finalCost = Math.round(buyPrice * finalQuantity * 100) / 100;
   if (pData.balance < finalCost) {
     // This can happen if the adjusted quantity is still too expensive, though unlikely if the initial check passed.
     return {
@@ -451,7 +501,7 @@ export function buyItem(player: mc.Player, itemId: string, quantity: number): Sh
     if (delivered > 0) {
       recordDailyShopUsage(player, itemId, shopItem, 'buy', delivered);
     }
-    const refund = failedCount * buyPrice;
+    const refund = Math.round(failedCount * buyPrice * 100) / 100;
     incrementPlayerBalance(player.id, refund);
     return {
       success: true,
@@ -478,7 +528,7 @@ function hasStoredInventoryContents(item: mc.ItemStack): boolean {
  * @param shopItem The shop definition.
  * @returns True if the item matches and is valid for sale.
  */
-function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
+export function isValidSellItem(item: mc.ItemStack, shopItem: ItemInfo): boolean {
   if (item.typeId !== shopItem.itemId) {
     return false;
   }
@@ -646,10 +696,23 @@ interface PlannedSellAll {
   overflowed: boolean;
 }
 
-function planSellAllInventory(player: mc.Player, container: mc.Container): PlannedSellAll {
+interface AllocatedSellStacks {
+  slotMutations: { slotIndex: number; originalAmount: number; remainingAmount: number; stack: mc.ItemStack }[];
+  soldByItemKey: Map<string, { shopItem: ItemInfo; count: number; payout: number; unitPrice: number }>;
+  initialQuotas: Map<string, number>;
+  soldTypeIds: Set<string>;
+  totalItems: number;
+  totalPayout: number;
+  overflowed: boolean;
+}
+
+function allocateSellableStacks(player: mc.Player, container: mc.Container): AllocatedSellStacks {
   const sellMap = buildReverseSellMap();
   const remainingQuotas = new Map<string, number>();
-  const soldByItemKey = new Map<string, { shopItem: ItemInfo; count: number; payout: number }>();
+  const initialQuotas = new Map<string, number>();
+  const permissionCache = new Map<string, boolean>();
+  const unitPriceCache = new Map<string, number>();
+  const soldByItemKey = new Map<string, { shopItem: ItemInfo; count: number; payout: number; unitPrice: number }>();
   const soldTypeIds = new Set<string>();
   const slotMutations: { slotIndex: number; originalAmount: number; remainingAmount: number; stack: mc.ItemStack }[] =
     [];
@@ -659,11 +722,11 @@ function planSellAllInventory(player: mc.Player, container: mc.Container): Plann
 
   for (let i = 0; i < container.size; i++) {
     const stack = container.getItem(i);
-    if (!isDefined(stack)) {
+    if (!isDefined(stack) || !isSellableStackConditionMet(stack)) {
       continue;
     }
     const candidates = sellMap.get(stack.typeId);
-    if (!isDefined(candidates) || candidates.length === 0 || !isSellableStackConditionMet(stack)) {
+    if (!isDefined(candidates) || candidates.length === 0) {
       continue;
     }
 
@@ -676,44 +739,61 @@ function planSellAllInventory(player: mc.Player, container: mc.Container): Plann
       if (isDefined(cachedQuota) && cachedQuota <= 0) {
         continue;
       }
-      if (isNonEmptyString(candidate.shopItem.permission) && !hasPermission(player, candidate.shopItem.permission)) {
+
+      let allowed = permissionCache.get(candidate.itemKey);
+      if (!isDefined(allowed)) {
+        allowed =
+          !isNonEmptyString(candidate.shopItem.permission) || hasPermission(player, candidate.shopItem.permission);
+        permissionCache.set(candidate.itemKey, allowed);
+      }
+      if (!allowed) {
         continue;
       }
-      const unitPrice = getPlayerShopItemPrice(player, candidate.shopItem, 'sell');
+
+      let unitPrice = unitPriceCache.get(candidate.itemKey);
+      if (!isDefined(unitPrice)) {
+        unitPrice = getPlayerShopItemPrice(player, candidate.shopItem, 'sell');
+        unitPriceCache.set(candidate.itemKey, unitPrice);
+      }
       if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
         continue;
       }
+
       const quota = isDefined(cachedQuota)
         ? cachedQuota
         : getRemainingDailyShopQuota(player, candidate.itemKey, candidate.shopItem, 'sell');
+      if (!initialQuotas.has(candidate.itemKey)) {
+        initialQuotas.set(candidate.itemKey, quota);
+      }
       remainingQuotas.set(candidate.itemKey, quota);
       if (quota <= 0) {
         continue;
       }
 
-      const toSell = Math.min(remaining, quota);
-      const payout = Math.round(unitPrice * toSell * 100) / 100;
+      const toAllocate = Math.min(remaining, quota);
+      const payout = Math.round(unitPrice * toAllocate * 100) / 100;
       const nextTotalPayout = Math.round((totalPayout + payout) * 100) / 100;
       if (!Number.isFinite(payout) || payout <= 0 || !Number.isFinite(nextTotalPayout)) {
         overflowed = true;
         break;
       }
 
-      remainingQuotas.set(candidate.itemKey, quota - toSell);
-      remaining -= toSell;
-      totalItems += toSell;
+      remainingQuotas.set(candidate.itemKey, quota - toAllocate);
+      remaining -= toAllocate;
+      totalItems += toAllocate;
       totalPayout = nextTotalPayout;
       soldTypeIds.add(stack.typeId);
 
       const existing = soldByItemKey.get(candidate.itemKey);
       if (isDefined(existing)) {
-        existing.count += toSell;
+        existing.count += toAllocate;
         existing.payout = Math.round((existing.payout + payout) * 100) / 100;
       } else {
         soldByItemKey.set(candidate.itemKey, {
           shopItem: candidate.shopItem,
-          count: toSell,
+          count: toAllocate,
           payout,
+          unitPrice,
         });
       }
     }
@@ -731,7 +811,20 @@ function planSellAllInventory(player: mc.Player, container: mc.Container): Plann
     }
   }
 
-  const breakdown = [...soldByItemKey.entries()].map(([itemKey, entry]) => ({
+  return {
+    slotMutations,
+    soldByItemKey,
+    initialQuotas,
+    soldTypeIds,
+    totalItems,
+    totalPayout,
+    overflowed,
+  };
+}
+
+function planSellAllInventory(player: mc.Player, container: mc.Container): PlannedSellAll {
+  const allocated = allocateSellableStacks(player, container);
+  const breakdown = [...allocated.soldByItemKey.entries()].map(([itemKey, entry]) => ({
     itemKey,
     displayName: entry.shopItem.displayName ?? itemKey,
     count: entry.count,
@@ -740,14 +833,14 @@ function planSellAllInventory(player: mc.Player, container: mc.Container): Plann
 
   return {
     preview: {
-      totalItems,
-      distinctTypes: soldTypeIds.size,
-      totalPayout,
+      totalItems: allocated.totalItems,
+      distinctTypes: allocated.soldTypeIds.size,
+      totalPayout: allocated.totalPayout,
       breakdown,
     },
-    soldByItemKey,
-    slotMutations,
-    overflowed,
+    soldByItemKey: allocated.soldByItemKey,
+    slotMutations: allocated.slotMutations,
+    overflowed: allocated.overflowed,
   };
 }
 
@@ -896,4 +989,176 @@ export function executeSellAllInventory(
     success: true,
     message: `§2Successfully sold §e${totalItems}§2 items from your inventory for §a${formatCurrency(totalPayout)}§2!`,
   };
+}
+
+/**
+ * Returns the player's best active rank shop multipliers (buy discount, sell bonus, daily limit multiplier).
+ *
+ * @param player Target player.
+ * @returns Active rank multipliers.
+ */
+export function getPlayerShopPerkSummary(player: mc.Player): {
+  buyMultiplier: number;
+  sellMultiplier: number;
+  limitMultiplier: number;
+} {
+  const ranks = getPlayerRanks(player);
+  let buyMultiplier = 1;
+  let sellMultiplier = 1;
+  let limitMultiplier = 1;
+
+  for (const rank of ranks) {
+    if (isDefined(rank.shopMultiplier?.buy) && rank.shopMultiplier.buy < buyMultiplier) {
+      buyMultiplier = rank.shopMultiplier.buy;
+    }
+    if (isDefined(rank.shopMultiplier?.sell) && rank.shopMultiplier.sell > sellMultiplier) {
+      sellMultiplier = rank.shopMultiplier.sell;
+    }
+    if (isDefined(rank.shopLimitMultiplier) && rank.shopLimitMultiplier > limitMultiplier) {
+      limitMultiplier = rank.shopLimitMultiplier;
+    }
+  }
+
+  return { buyMultiplier, sellMultiplier, limitMultiplier };
+}
+
+/**
+ * Returns true if the shop item is unstackable (max stack size 1 or enchanted book).
+ *
+ * @param shopItem Shop item metadata.
+ * @returns Whether the item is unstackable.
+ */
+export function isUnstackableShopItem(shopItem: ItemInfo): boolean {
+  if (isDefined(shopItem.enchantment)) {
+    return true;
+  }
+  try {
+    const itemType = mc.ItemTypes.get(shopItem.itemId);
+    if (!isDefined(itemType)) {
+      return false;
+    }
+    const stack = new mc.ItemStack(itemType, 1);
+    return stack.maxAmount <= 1;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Queries the indexed shop catalog with optional player permission, mode, and search query filtering.
+ *
+ * @param player Optional player for permission/price checks (omit for admin catalog views).
+ * @param options Optional filter options (`query`, `mode`, `includeDisabled`).
+ * @returns Matching catalog entries.
+ */
+export function getShopCatalogEntries(
+  player?: mc.Player,
+  options?: { query?: string; mode?: 'all' | 'buy' | 'sell'; includeDisabled?: boolean },
+): ShopCatalogEntry[] {
+  ensureShopLookupCaches();
+  const entries = cachedCatalogEntries ?? [];
+  const lowerQuery = isNonEmptyString(options?.query) ? options.query.trim().toLowerCase() : '';
+  const mode = options?.mode ?? 'all';
+  const includeDisabled = options?.includeDisabled ?? false;
+
+  return entries.filter((entry) => {
+    const { shopItem, itemKey } = entry;
+    if (isDefined(player) && isNonEmptyString(shopItem.permission) && !hasPermission(player, shopItem.permission)) {
+      return false;
+    }
+    const buyPrice = shopItem.buyPrice ?? -1;
+    const sellPrice = shopItem.sellPrice ?? -1;
+    if (!includeDisabled && buyPrice <= 0 && sellPrice <= 0) {
+      return false;
+    }
+    if (mode === 'buy' && buyPrice <= 0) {
+      return false;
+    }
+    if (mode === 'sell' && sellPrice <= 0) {
+      return false;
+    }
+    if (lowerQuery.length > 0) {
+      const normalizedSnake = lowerQuery.replace(/\s+/g, '_');
+      const displayName = (shopItem.displayName ?? itemKey).toLowerCase();
+      const shortId = shopItem.itemId.replace(/^minecraft:/, '').toLowerCase();
+      return (
+        displayName.includes(lowerQuery) ||
+        itemKey.toLowerCase().includes(lowerQuery) ||
+        shortId.includes(lowerQuery) ||
+        shortId.includes(normalizedSnake) ||
+        shopItem.itemId.toLowerCase().includes(lowerQuery) ||
+        shopItem.itemId.toLowerCase().includes(normalizedSnake)
+      );
+    }
+    return true;
+  });
+}
+
+/**
+ * Finds the best single shop entry matching a user-typed item query (exact key/name/id first, then prefix/substring).
+ *
+ * @param query User-provided item name or key.
+ * @param player Optional player for permission filtering.
+ * @param mode Optional transaction mode filter.
+ * @returns Best matching catalog entry, or undefined.
+ */
+export function findBestShopMatchByQuery(
+  query: string,
+  player?: mc.Player,
+  mode: 'all' | 'buy' | 'sell' = 'all',
+): ShopCatalogEntry | undefined {
+  const trimmed = query.trim().toLowerCase();
+  if (!isNonEmptyString(trimmed)) {
+    return undefined;
+  }
+  const normalizedSnake = trimmed.replace(/\s+/g, '_');
+  const candidates = getShopCatalogEntries(player, { query: trimmed, mode });
+  if (candidates.length === 0) {
+    return undefined;
+  }
+
+  const exact = candidates.find((entry) => {
+    const display = (entry.shopItem.displayName ?? '').toLowerCase();
+    const key = entry.itemKey.toLowerCase();
+    const shortId = entry.shopItem.itemId.replace(/^minecraft:/, '').toLowerCase();
+    return display === trimmed || key === trimmed || shortId === trimmed || shortId === normalizedSnake;
+  });
+  return exact ?? (candidates.length === 1 ? candidates[0] : undefined);
+}
+
+/**
+ * Summarizes all sellable shop items currently in a player's inventory.
+ *
+ * @param player Target player.
+ * @returns Array of sellable item summaries sorted by total payout descending.
+ */
+export function getPlayerSellableInventoryItems(player: mc.Player): {
+  itemKey: string;
+  displayName: string;
+  icon: string;
+  sellableCount: number;
+  unitPrice: number;
+  remainingQuota: number;
+  shopItem: ItemInfo;
+}[] {
+  const inventoryComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+  const container = inventoryComp?.container;
+  if (!isDefined(container)) {
+    return [];
+  }
+
+  const allocated = allocateSellableStacks(player, container);
+
+  return [...allocated.soldByItemKey.entries()]
+    .map(([itemKey, data]) => ({
+      itemKey,
+      displayName: data.shopItem.displayName ?? itemKey,
+      icon: data.shopItem.icon ?? resolveTradeItemMetadata(itemKey, data.shopItem).icon,
+      sellableCount: data.count,
+      unitPrice: data.unitPrice,
+      remainingQuota:
+        allocated.initialQuotas.get(itemKey) ?? getRemainingDailyShopQuota(player, itemKey, data.shopItem, 'sell'),
+      shopItem: data.shopItem,
+    }))
+    .toSorted((a, b) => b.sellableCount * b.unitPrice - a.sellableCount * a.unitPrice);
 }

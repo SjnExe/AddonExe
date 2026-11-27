@@ -19,7 +19,12 @@ import { showMyStatsPanel, showPlayerActionsPanel, showPlayerListPanel } from '@
 import { showInfoPanel } from '@core/ui/panels/serverInfoPanel.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { showBountyListPanel } from '@features/economy/bounty/ui/panel.js';
-import { type ReturnContext, showBuyOrSellPanel, showShopMainPanel } from '@features/economy/shop/ui/userPanel.js';
+import {
+  type ReturnContext,
+  type ShopViewMode,
+  showBuyOrSellPanel,
+  showShopMainPanel,
+} from '@features/economy/shop/ui/userPanel.js';
 import { showAddWorldProtectionPanel, showEditWorldProtectionPanel } from '@features/essentials/protection/ui/panel.js';
 import { showCodebreakerMenu } from '@features/games/codebreaker/ui/panel.js';
 import { showCoinFlipMenu } from '@features/games/coinflip/ui/panel.js';
@@ -85,7 +90,10 @@ const panelRoutes: Record<string, PanelRouteHandler> = {
     await showPlayerActionsPanel(p, targetPlayerId, targetName);
   },
   reportListPanel: (p) => showReportListPanel(p),
-  shopMainPanel: (p) => showShopMainPanel(p),
+  shopMainPanel: (p, ctx) => {
+    const view = ctx.view === 'buy' || ctx.view === 'sell' ? (ctx.view as ShopViewMode) : 'shop';
+    return showShopMainPanel(p, view);
+  },
   shopBuyOrSellPanel: async (p, ctx) => {
     if (isDefined(ctx.itemKey) && isDefined(ctx.itemData)) {
       const fallbackReturn: ReturnContext = { returnTo: 'main', page: 1 };
