@@ -247,15 +247,17 @@ export function handleBeforePlayerPlaceBlock(event: mc.PlayerPlaceBlockBeforeEve
       if (!adjBlock || adjBlock.typeId !== placedType) {
         continue;
       }
+      const adjGrave = getGraveAt(dimId, adjLoc);
       const adjLock = getContainerLockAt(dimId, adjLoc);
       const adjShop = getChestShopAt(dimId, adjLoc);
       if (
+        isDefined(adjGrave) ||
         (isDefined(adjLock) && !canAccessLockedContainer(adjLock, player)) ||
         (isDefined(adjShop) && adjShop.ownerId !== player.id && !hasPermission(player, 'group.admin'))
       ) {
         event.cancel = true;
         mc.system.run(() => {
-          setActionBarOverride(player, '§cCannot merge a chest with a protected container.', 2500);
+          setActionBarOverride(player, '§cCannot merge a chest with a protected container or grave.', 2500);
         });
         return;
       }

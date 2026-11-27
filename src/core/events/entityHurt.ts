@@ -88,6 +88,10 @@ export function handleEntityHealthChanged(event: mc.EntityHealthChangedAfterEven
     return;
   }
 
+  if (event.newValue < event.oldValue) {
+    snapshotPlayerInventoryForGrave(victim as mc.Player);
+  }
+
   const config = getConfig();
   if (config.playerInfo?.healthIndicator?.enabled === true) {
     scheduleHealthRefresh(victim as mc.Player);
