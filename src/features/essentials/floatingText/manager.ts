@@ -1,5 +1,6 @@
 import { StorageManager } from '@core/data/storageManager.js';
 import { serviceLocator } from '@core/services/serviceLocator.js';
+import { graveLabelPrefix } from '@core/utils/constants.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import { isDeepEqual } from '@core/utils/objectUtils.js';
 import {
@@ -258,7 +259,11 @@ function pruneOrphanedTexts() {
         if (!isDefined(entity) || !entity.isValid) {
           continue;
         }
-        const id = extractFloatingTextId(entity.getTags());
+        const tags = entity.getTags();
+        if (tags.some((t) => t.startsWith(graveLabelPrefix))) {
+          continue;
+        }
+        const id = extractFloatingTextId(tags);
         if (!id || !floatingTexts.has(id)) {
           debugLog(
             `[FloatingText] Removing orphaned entity at ${entity.location.x.toFixed(1)}, ${entity.location.y.toFixed(1)}, ${entity.location.z.toFixed(1)}`,
@@ -295,7 +300,11 @@ function spawnAllTexts() {
         if (!isDefined(entity) || !entity.isValid) {
           continue;
         }
-        const id = extractFloatingTextId(entity.getTags());
+        const tags = entity.getTags();
+        if (tags.some((t) => t.startsWith(graveLabelPrefix))) {
+          continue;
+        }
+        const id = extractFloatingTextId(tags);
         if (id !== undefined && !entityMap.has(id)) {
           entityMap.set(id, entity);
         }

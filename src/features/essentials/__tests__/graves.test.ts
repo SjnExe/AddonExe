@@ -305,23 +305,36 @@ describe('Graves Subsystem', () => {
     expect(strangerRemoveCalls).toBe(0);
   });
 
-  it('captures dropped item entities that first appear on the next tick', () => {
+  it('captures inventory from pre-death snapshot immediately and cleans up next-tick dropped item entities', () => {
     cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
       graves: { enabled: true, expiryMinutes: 60 },
     } as any);
-    const chestBlock = { typeId: MinecraftBlockTypes.Air, isAir: true, isLiquid: false, setType: () => {} };
+    const chestBlock: any = {
+      typeId: MinecraftBlockTypes.Air,
+      isAir: true,
+      isLiquid: false,
+      setType: (t: string) => {
+        chestBlock.typeId = t;
+        chestBlock.isAir = t === MinecraftBlockTypes.Air;
+      },
+    };
     let ownedRemoveCalls = 0;
     const ownedDiamond = new ItemStack(MinecraftItemTypes.Diamond, 2);
     const droppedOwned = {
       id: 'drop-next-tick',
       isValid: true,
-      getComponent: () => ({ itemStack: new ItemStack(MinecraftItemTypes.Diamond, 2) }),
+      getComponent: (id: string) =>
+        id === EntityComponentTypes.Item ? { itemStack: new ItemStack(MinecraftItemTypes.Diamond, 2) } : undefined,
       remove: () => {
         ownedRemoveCalls++;
       },
     };
     let dropsSpawnedOnNextTick = false;
-    const getEntitiesCalls: Array<{ location?: { x: number; y: number; z: number }; maxDistance?: number }> = [];
+    const getEntitiesCalls: Array<{
+      type?: string;
+      location?: { x: number; y: number; z: number };
+      maxDistance?: number;
+    }> = [];
     const slots = new Array<any>(36).fill(undefined);
     slots[0] = ownedDiamond;
     const p = new Player('owner-next', 'OwnerNext') as any;
@@ -329,14 +342,14 @@ describe('Graves Subsystem', () => {
     p.dimension = {
       id: MinecraftDimensionTypes.Overworld,
       getBlock: () => chestBlock,
-      getEntities: (opts?: { location?: { x: number; y: number; z: number }; maxDistance?: number }) => {
-        getEntitiesCalls.push({ location: opts?.location, maxDistance: opts?.maxDistance });
+      getEntities: (opts?: { type?: string; location?: { x: number; y: number; z: number }; maxDistance?: number }) => {
+        getEntitiesCalls.push({ type: opts?.type, location: opts?.location, maxDistance: opts?.maxDistance });
         if (
           dropsSpawnedOnNextTick &&
           opts?.location?.x === 20 &&
           opts?.location?.y === 64 &&
           opts?.location?.z === 20 &&
-          (opts?.maxDistance === 12 || opts?.maxDistance === 6)
+          opts?.maxDistance === 10
         ) {
           return [droppedOwned];
         }
@@ -367,32 +380,238 @@ describe('Graves Subsystem', () => {
       slots[0] = undefined;
       handlePlayerDeathGrave(p);
 
-      expect(getPlayerGraves('owner-next')).toHaveLength(0);
-      expect(queued).toHaveLength(1);
-
-      dropsSpawnedOnNextTick = true;
-      queued.shift()!();
-
-      expect(getEntitiesCalls).toEqual([
-        { location: { x: 20, y: 64, z: 20 }, maxDistance: 12 },
-        { location: { x: 20, y: 64, z: 20 }, maxDistance: 6 },
-        { location: { x: 20, y: 64, z: 20 }, maxDistance: 6 },
-      ]);
-
       const ownerGravesAfterCapture = getPlayerGraves('owner-next');
       expect(ownerGravesAfterCapture).toHaveLength(1);
       expect(ownerGravesAfterCapture[0]?.items[0]?.item.typeId).toBe(MinecraftItemTypes.Diamond);
       expect(ownerGravesAfterCapture[0]?.items[0]?.item.amount).toBe(2);
-      expect(ownedRemoveCalls).toBe(1);
+      expect(ownerGravesAfterCapture[0]?.items[0]?.slotIndex).toBe(0);
+      expect(chestBlock.typeId).toBe(MinecraftBlockTypes.Chest);
 
+      dropsSpawnedOnNextTick = true;
       while (queued.length > 0) {
         queued.shift()!();
       }
+      expect(ownedRemoveCalls).toBe(1);
+      expect(getEntitiesCalls).toEqual([
+        { type: undefined, location: { x: 20, y: 64, z: 20 }, maxDistance: 12 },
+        { type: undefined, location: { x: 20, y: 64, z: 20 }, maxDistance: 6 },
+        { type: undefined, location: { x: 20, y: 64, z: 20 }, maxDistance: 10 },
+      ]);
     } finally {
       runSpy.mockRestore();
     }
 
-    expect(sendMsgSpy.mock.calls.filter(([m]) => String(m).includes('saved in a protected grave'))).toHaveLength(1);
+    expect(sendMsgSpy).toHaveBeenCalledTimes(1);
+    expect(sendMsgSpy).toHaveBeenCalledWith(
+      '§a[Grave] §fSaved §b1§f item stack(s) at §e20, 64, 20 §7[Overworld] §8(Expires in 60m)§f. Use §b/grave§f to view or track.',
+    );
+  });
+
+  it('creates a second non-adjacent grave when dying again without opening the first grave', () => {
+    cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      graves: { enabled: true, expiryMinutes: 60 },
+    } as any);
+
+    const blocks = new Map<string, any>();
+    const getBlock = (loc: { x: number; y: number; z: number }) => {
+      const key = `${loc.x},${loc.y},${loc.z}`;
+      let blk = blocks.get(key);
+      if (!blk) {
+        blk = {
+          isAir: true,
+          isLiquid: false,
+          typeId: MinecraftBlockTypes.Air,
+          setType: (t: string) => {
+            blk.typeId = t;
+            blk.isAir = t === MinecraftBlockTypes.Air;
+          },
+        };
+        blocks.set(key, blk);
+      }
+      return blk;
+    };
+
+    const slots = new Array<any>(36).fill(undefined);
+    const p = new Player('owner-multi', 'OwnerMulti') as any;
+    p.location = { x: 10, y: 64, z: 10 };
+    p.dimension = {
+      id: MinecraftDimensionTypes.Overworld,
+      getBlock,
+      getEntities: () => [],
+    };
+    p.getComponent = (id: string) =>
+      id === EntityComponentTypes.Inventory
+        ? {
+            container: {
+              size: 36,
+              getItem: (i: number) => slots[i],
+              setItem: (i: number, v: any) => {
+                slots[i] = v;
+              },
+            },
+          }
+        : undefined;
+
+    const runSpy = spyOn(system, 'run').mockImplementation((cb: () => void) => {
+      cb();
+      return 1;
+    });
+    try {
+      slots[0] = new ItemStack(MinecraftItemTypes.IronIngot, 5);
+      handlePlayerDeathGrave(p);
+
+      slots[0] = new ItemStack(MinecraftItemTypes.GoldIngot, 3);
+      handlePlayerDeathGrave(p);
+    } finally {
+      runSpy.mockRestore();
+    }
+
+    const active = getPlayerGraves('owner-multi');
+    expect(active).toHaveLength(2);
+    const [g1, g2] = active;
+    const manhattan = Math.abs(g1!.x - g2!.x) + Math.abs(g1!.y - g2!.y) + Math.abs(g1!.z - g2!.z);
+    expect(manhattan).toBeGreaterThan(0);
+    if (g1!.y === g2!.y) {
+      expect(Math.abs(g1!.x - g2!.x) + Math.abs(g1!.z - g2!.z)).toBeGreaterThan(1);
+    }
+  });
+
+  it('removes expired grave chest blocks when markerPlaced was false but grave hologram proves ownership', () => {
+    cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      graves: { enabled: true, expiryMinutes: 1 },
+    } as any);
+
+    const chestBlock: any = {
+      isAir: true,
+      isLiquid: false,
+      typeId: MinecraftBlockTypes.Air,
+      setType: (t: string) => {
+        chestBlock.typeId = t;
+        chestBlock.isAir = t === MinecraftBlockTypes.Air;
+      },
+    };
+    let hologramEntity: any | undefined;
+    const dimMock = {
+      id: MinecraftDimensionTypes.Overworld,
+      getBlock: () => chestBlock,
+      getEntities: (opts?: { type?: string }) =>
+        opts?.type === 'exe:floating_text' && hologramEntity?.isValid ? [hologramEntity] : [],
+      spawnEntity: () => {
+        const tags = new Set<string>();
+        hologramEntity = {
+          isValid: true,
+          nameTag: '',
+          addTag: (t: string) => tags.add(t),
+          hasTag: (t: string) => tags.has(t),
+          getTags: () => [...tags],
+          remove: () => {
+            hologramEntity.isValid = false;
+          },
+        };
+        return hologramEntity;
+      },
+    };
+    const mcWorld = require('@minecraft/server').world;
+    const getDimSpy = spyOn(mcWorld, 'getDimension').mockReturnValue(dimMock as any);
+
+    const p = new Player('owner-orphan', 'OwnerOrphan') as any;
+    p.location = { x: 5, y: 64, z: 5 };
+    p.dimension = dimMock;
+    const slots = new Array<any>(36).fill(undefined);
+    slots[0] = new ItemStack(MinecraftItemTypes.Apple, 1);
+    p.getComponent = (id: string) =>
+      id === EntityComponentTypes.Inventory
+        ? {
+            container: {
+              size: 36,
+              getItem: (i: number) => slots[i],
+              setItem: (i: number, v: any) => {
+                slots[i] = v;
+              },
+            },
+          }
+        : undefined;
+
+    const nowSpy = spyOn(Date, 'now').mockReturnValue(1_000_000);
+    const runSpy = spyOn(system, 'run').mockImplementation(() => 1);
+    try {
+      handlePlayerDeathGrave(p);
+      const created = getPlayerGraves('owner-orphan')[0]!;
+      created.markerPlaced = false;
+      chestBlock.typeId = MinecraftBlockTypes.Chest;
+
+      nowSpy.mockReturnValue(1_000_000 + 120_000);
+      pruneExpiredGraves();
+
+      expect(getGraveAt(MinecraftDimensionTypes.Overworld, { x: 5, y: 64, z: 5 })).toBeUndefined();
+      expect(chestBlock.typeId).toBe(MinecraftBlockTypes.Air);
+      expect(hologramEntity?.isValid).toBe(false);
+    } finally {
+      nowSpy.mockRestore();
+      runSpy.mockRestore();
+      getDimSpy.mockRestore();
+    }
+  });
+
+  it('preserves an ordinary chest at a pending grave coordinate when markerPlaced is false and no hologram exists', () => {
+    cfgSpy = spyOn(configManager, 'getConfig').mockReturnValue({
+      graves: { enabled: true, expiryMinutes: 1 },
+    } as any);
+
+    const chestBlock: any = {
+      isAir: true,
+      isLiquid: false,
+      typeId: MinecraftBlockTypes.Air,
+      setType: (t: string) => {
+        chestBlock.typeId = t;
+        chestBlock.isAir = t === MinecraftBlockTypes.Air;
+      },
+    };
+    const dimMock = {
+      id: MinecraftDimensionTypes.Overworld,
+      getBlock: () => chestBlock,
+      getEntities: () => [],
+    };
+    const mcWorld = require('@minecraft/server').world;
+    const getDimSpy = spyOn(mcWorld, 'getDimension').mockReturnValue(dimMock as any);
+
+    const p = new Player('owner-ordinary', 'OwnerOrdinary') as any;
+    p.location = { x: 6, y: 64, z: 6 };
+    p.dimension = dimMock;
+    const slots = new Array<any>(36).fill(undefined);
+    slots[0] = new ItemStack(MinecraftItemTypes.Apple, 1);
+    p.getComponent = (id: string) =>
+      id === EntityComponentTypes.Inventory
+        ? {
+            container: {
+              size: 36,
+              getItem: (i: number) => slots[i],
+              setItem: (i: number, v: any) => {
+                slots[i] = v;
+              },
+            },
+          }
+        : undefined;
+
+    const nowSpy = spyOn(Date, 'now').mockReturnValue(1_000_000);
+    const runSpy = spyOn(system, 'run').mockImplementation(() => 1);
+    try {
+      handlePlayerDeathGrave(p);
+      const created = getPlayerGraves('owner-ordinary')[0]!;
+      created.markerPlaced = false;
+      created.markerPending = true;
+      chestBlock.typeId = MinecraftBlockTypes.Chest;
+
+      nowSpy.mockReturnValue(1_000_000 + 120_000);
+      pruneExpiredGraves();
+
+      expect(getGraveAt(MinecraftDimensionTypes.Overworld, { x: 6, y: 64, z: 6 })).toBeUndefined();
+      expect(chestBlock.typeId).toBe(MinecraftBlockTypes.Chest);
+    } finally {
+      nowSpy.mockRestore();
+      runSpy.mockRestore();
+      getDimSpy.mockRestore();
+    }
   });
 
   it('unifies /back and grave teleport cost to prevent cheaper bypasses', () => {

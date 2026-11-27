@@ -7,6 +7,7 @@ import { RawMessage } from '@minecraft/server';
 
 // --- Entity & Particle Identifiers ---
 export const floatingTextId = 'exe:floating_text';
+export const graveLabelPrefix = 'exe:grave_label:';
 export const villagerHappyParticleId = 'minecraft:' + 'villager_happy';
 
 // --- Common Tags ---

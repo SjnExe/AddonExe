@@ -12,6 +12,7 @@ import { sendMessage } from '@core/utils/messaging.js';
 import { addGrace } from '@features/anticheat/core/graceManager.js';
 import { getKit, giveKitItems } from '@features/economy/kit/manager.js';
 import { handleCombatPlayerJoin } from '@features/essentials/combat/manager.js';
+import { notifyPlayerRespawnGrave } from '@features/essentials/graves/manager.js';
 import { enforceMaintenanceOnJoin } from '@features/moderation/maintenanceManager.js';
 import { checkAndKickBannedPlayer } from '@features/moderation/punishmentManager.js';
 import { isWatched } from '@features/moderation/watchManager.js';
@@ -447,4 +448,6 @@ export function handlePlayerSpawn(event: mc.PlayerSpawnAfterEvent) {
     const costSuffix = hasCost ? ` §6(Cost: ${formatCurrency(cost)})§7` : '';
     sendMessage(`§7Use §e/back§7 to return to your death location${costSuffix}.`, player);
   }
+
+  notifyPlayerRespawnGrave(player);
 }

@@ -6,6 +6,7 @@ import { getOrCreatePlayer, incrementPlayerBalance } from '@core/data/playerData
 import { StorageManager } from '@core/data/storageManager.js';
 import { hasPermission } from '@core/permissions/permissionEngine.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
+import { floatingTextId, graveLabelPrefix } from '@core/utils/constants.js';
 import { formatCooldown, formatCurrency, playSound } from '@core/utils/index.js';
 import { debugLog, errorLog } from '@core/utils/logger.js';
 import * as teleportLogicModule from '@core/utils/teleportLogic.js';
@@ -41,6 +42,7 @@ export interface GraveRecord {
   unlocked: boolean;
   markerPending?: boolean;
   markerPlaced?: boolean;
+  abandoned?: boolean;
 }
 
 const storage = new StorageManager('exe:graves:v1');
@@ -48,11 +50,17 @@ let graves = new Map<string, GraveRecord>();
 let gravesByCoord = new Map<string, string>();
 let expiryIntervalId: number | undefined;
 let pendingRetryCursor = 0;
-const recentHurtSnapshots = new Map<
-  string,
-  { capturedAt: number; counts: Map<string, number>; preExistingEntityIds: Set<string> }
->();
-const hurtSnapshotTtlMs = 5000;
+let hologramRefreshCursor = 0;
+interface HurtInventorySnapshot {
+  capturedAt: number;
+  slots: GraveSlotEntry[];
+  typeIds: Set<string>;
+  counts: Map<string, number>;
+  preExistingEntityIds: Set<string>;
+}
+
+const recentHurtSnapshots = new Map<string, HurtInventorySnapshot>();
+const hurtSnapshotTtlMs = 3_000;
 
 function pruneExpiredHurtSnapshots(now = Date.now()): void {
   for (const [id, entry] of recentHurtSnapshots) {
@@ -62,9 +70,50 @@ function pruneExpiredHurtSnapshots(now = Date.now()): void {
   }
 }
 
+const equipmentSlotsOrder: EquipmentSlot[] = [
+  EquipmentSlot.Head,
+  EquipmentSlot.Chest,
+  EquipmentSlot.Legs,
+  EquipmentSlot.Feet,
+  EquipmentSlot.Offhand,
+];
+
+function collectPlayerSlotEntries(
+  invComp?: mc.EntityInventoryComponent,
+  eqComp?: mc.EntityEquippableComponent,
+): { slots: GraveSlotEntry[]; typeIds: Set<string>; counts: Map<string, number> } {
+  const slots: GraveSlotEntry[] = [];
+  const typeIds = new Set<string>();
+  const counts = new Map<string, number>();
+
+  if (invComp?.container) {
+    for (let i = 0; i < invComp.container.size; i++) {
+      const item = invComp.container.getItem(i);
+      if (isDefined(item) && !item.keepOnDeath) {
+        slots.push({ slotType: 'inventory', slotIndex: i, item: serializeItem(item) });
+        typeIds.add(item.typeId);
+        counts.set(item.typeId, (counts.get(item.typeId) ?? 0) + item.amount);
+      }
+    }
+  }
+
+  if (eqComp) {
+    for (const eqSlot of equipmentSlotsOrder) {
+      const item = eqComp.getEquipment(eqSlot);
+      if (isDefined(item) && !item.keepOnDeath) {
+        slots.push({ slotType: 'equipment', equipmentSlot: eqSlot, item: serializeItem(item) });
+        typeIds.add(item.typeId);
+        counts.set(item.typeId, (counts.get(item.typeId) ?? 0) + item.amount);
+      }
+    }
+  }
+
+  return { slots, typeIds, counts };
+}
+
 /**
- * Snapshots a player's non-keepOnDeath inventory and equipment counts when taking damage so post-death dropped-entity
- * grave capture only attributes items the dying player actually owned.
+ * Snapshots a player's non-keepOnDeath inventory and equipment when taking damage so post-death grave capture preserves
+ * exact slots, enchantments, and items even if dropped entities burn in lava/fire/void or scatter.
  *
  * @param player The damaged player.
  */
@@ -72,41 +121,21 @@ export function snapshotPlayerInventoryForGrave(player: mc.Player): void {
   if (!getConfig().graves?.enabled || !player.isValid || getGameplayConfig().keepInventory) {
     return;
   }
-  const counts = new Map<string, number>();
+  let invComp: mc.EntityInventoryComponent | undefined;
+  let eqComp: mc.EntityEquippableComponent | undefined;
   try {
-    const invComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
-    if (invComp?.container) {
-      for (let i = 0; i < invComp.container.size; i++) {
-        const item = invComp.container.getItem(i);
-        if (isDefined(item) && !item.keepOnDeath) {
-          counts.set(item.typeId, (counts.get(item.typeId) ?? 0) + item.amount);
-        }
-      }
-    }
-    const eqComp = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
-    if (eqComp) {
-      const slots = [
-        EquipmentSlot.Head,
-        EquipmentSlot.Chest,
-        EquipmentSlot.Legs,
-        EquipmentSlot.Feet,
-        EquipmentSlot.Offhand,
-      ];
-      for (const slot of slots) {
-        const item = eqComp.getEquipment(slot);
-        if (isDefined(item) && !item.keepOnDeath) {
-          counts.set(item.typeId, (counts.get(item.typeId) ?? 0) + item.amount);
-        }
-      }
-    }
+    invComp = player.getComponent(EntityComponentTypes.Inventory) as mc.EntityInventoryComponent | undefined;
+    eqComp = player.getComponent(EntityComponentTypes.Equippable) as mc.EntityEquippableComponent | undefined;
   } catch {
     return;
   }
 
+  const { slots, typeIds, counts } = collectPlayerSlotEntries(invComp, eqComp);
+
   if (recentHurtSnapshots.size > 16) {
     pruneExpiredHurtSnapshots();
   }
-  if (counts.size > 0) {
+  if (slots.length > 0) {
     const preExistingEntityIds = new Set<string>();
     try {
       const nearby = player.dimension.getEntities({
@@ -121,7 +150,13 @@ export function snapshotPlayerInventoryForGrave(player: mc.Player): void {
     } catch {
       // Ignore unloaded chunk or mock errors
     }
-    recentHurtSnapshots.set(player.id, { capturedAt: Date.now(), counts, preExistingEntityIds });
+    recentHurtSnapshots.set(player.id, {
+      capturedAt: Date.now(),
+      slots,
+      typeIds,
+      counts,
+      preExistingEntityIds,
+    });
   } else {
     recentHurtSnapshots.delete(player.id);
   }
@@ -138,11 +173,75 @@ function rebuildCoordIndex(): void {
   }
 }
 
-/** Loads persisted grave records from world dynamic properties. */
+function isValidGraveSlotEntry(value: unknown): value is GraveSlotEntry {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const entry = value as Partial<GraveSlotEntry>;
+  if (entry.slotType !== 'inventory' && entry.slotType !== 'equipment') {
+    return false;
+  }
+  if (entry.slotIndex !== undefined && (typeof entry.slotIndex !== 'number' || !Number.isInteger(entry.slotIndex))) {
+    return false;
+  }
+  if (entry.equipmentSlot !== undefined && typeof entry.equipmentSlot !== 'string') {
+    return false;
+  }
+  if (!entry.item || typeof entry.item !== 'object') {
+    return false;
+  }
+  const item = entry.item as Partial<SerializedItem>;
+  return (
+    typeof item.typeId === 'string' &&
+    item.typeId.length > 0 &&
+    typeof item.amount === 'number' &&
+    Number.isFinite(item.amount) &&
+    item.amount > 0 &&
+    (item.enchantments === undefined || Array.isArray(item.enchantments))
+  );
+}
+
+function isValidGraveRecord(value: unknown): value is GraveRecord {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const rec = value as Partial<GraveRecord>;
+  return (
+    typeof rec.id === 'string' &&
+    rec.id.length > 0 &&
+    typeof rec.ownerId === 'string' &&
+    typeof rec.ownerName === 'string' &&
+    typeof rec.dimensionId === 'string' &&
+    typeof rec.x === 'number' &&
+    typeof rec.y === 'number' &&
+    typeof rec.z === 'number' &&
+    typeof rec.createdAt === 'number' &&
+    typeof rec.expiresAt === 'number' &&
+    Array.isArray(rec.items) &&
+    rec.items.every(isValidGraveSlotEntry)
+  );
+}
+
+/** Loads persisted grave records from world dynamic properties, validating each entry individually. */
 export function loadGraves(): void {
   try {
-    const parsed = storage.load<[string, GraveRecord][]>();
-    graves = parsed ? new Map(parsed) : new Map();
+    const parsed = storage.load<unknown>();
+    graves = new Map();
+    if (Array.isArray(parsed)) {
+      for (const entry of parsed) {
+        if (
+          Array.isArray(entry) &&
+          entry.length === 2 &&
+          typeof entry[0] === 'string' &&
+          isValidGraveRecord(entry[1]) &&
+          entry[0] === entry[1].id
+        ) {
+          if (entry[1].items.length > 0 || entry[1].abandoned === true) {
+            graves.set(entry[0], entry[1]);
+          }
+        }
+      }
+    }
     rebuildCoordIndex();
     debugLog(`[Graves] Loaded ${graves.size} active graves.`);
   } catch (err) {
@@ -166,50 +265,209 @@ export function saveGraves(): boolean {
   }
 }
 
+function getDimensionBounds(dimensionId: string): { minY: number; maxY: number } {
+  if (dimensionId === MinecraftDimensionTypes.Overworld) {
+    return { minY: -63, maxY: 319 };
+  }
+  if (dimensionId === MinecraftDimensionTypes.Nether) {
+    return { minY: 1, maxY: 126 };
+  }
+  return { minY: 1, maxY: 255 };
+}
+
+function formatDimensionLabel(dimensionId: string): string {
+  if (dimensionId === MinecraftDimensionTypes.Overworld) {
+    return 'Overworld';
+  }
+  if (dimensionId === MinecraftDimensionTypes.Nether) {
+    return 'Nether';
+  }
+  if (dimensionId === MinecraftDimensionTypes.TheEnd) {
+    return 'The End';
+  }
+  return dimensionId.replace('minecraft:', '');
+}
+
+function isReplaceableForGrave(blk: mc.Block | undefined): boolean {
+  if (!blk) {
+    return false;
+  }
+  return (
+    blk.isAir ||
+    blk.isLiquid ||
+    blk.typeId === MinecraftBlockTypes.Fire ||
+    blk.typeId === MinecraftBlockTypes.SoulFire ||
+    blk.typeId === MinecraftBlockTypes.SnowLayer
+  );
+}
+
+function hasAdjacentChestOrGrave(dimension: mc.Dimension, loc: { x: number; y: number; z: number }): boolean {
+  const offsets = [
+    { x: 1, z: 0 },
+    { x: -1, z: 0 },
+    { x: 0, z: 1 },
+    { x: 0, z: -1 },
+  ];
+  for (const off of offsets) {
+    const ax = loc.x + off.x;
+    const az = loc.z + off.z;
+    if (gravesByCoord.has(coordKey(dimension.id, ax, loc.y, az))) {
+      return true;
+    }
+    try {
+      const adj = dimension.getBlock({ x: ax, y: loc.y, z: az });
+      if (adj && (adj.typeId === MinecraftBlockTypes.Chest || adj.typeId === MinecraftBlockTypes.TrappedChest)) {
+        return true;
+      }
+    } catch {
+      // Unloaded chunk: ignore
+    }
+  }
+  return false;
+}
+
 function findSafeGraveLocation(
   dimension: mc.Dimension,
   origin: mc.Vector3,
 ): { x: number; y: number; z: number } | undefined {
-  const minY = dimension.id === MinecraftDimensionTypes.Overworld ? -63 : 1;
-  const maxY = 319;
+  const { minY, maxY } = getDimensionBounds(dimension.id);
   const bx = Math.floor(origin.x);
-  const by = Math.max(minY, Math.min(maxY, Math.floor(origin.y)));
   const bz = Math.floor(origin.z);
+  const isVoidDeath = origin.y < minY;
+  const by = Math.max(minY, Math.min(maxY, Math.floor(origin.y)));
 
-  const candidates = [
-    { x: bx, y: by, z: bz },
-    { x: bx, y: by + 1, z: bz },
-    { x: bx, y: by + 2, z: bz },
-    { x: bx + 1, y: by, z: bz },
-    { x: bx - 1, y: by, z: bz },
-    { x: bx, y: by, z: bz + 1 },
-    { x: bx, y: by, z: bz - 1 },
-  ];
-
-  for (const c of candidates) {
-    if (c.y < minY || c.y > maxY) {
-      continue;
+  function* generateCandidates(): Generator<{ x: number; y: number; z: number }> {
+    if (isVoidDeath) {
+      // Void death: search upward from safe floor so the grave isn't buried at the void boundary
+      for (let y = minY + 1; y <= Math.min(maxY, minY + 40); y++) {
+        yield { x: bx, y, z: bz };
+      }
+      return;
     }
+
+    const yOffsets = [0, 1, -1, 2, -2, 3];
+    for (let radius = 0; radius <= 4; radius++) {
+      for (const dy of yOffsets) {
+        const y = by + dy;
+        if (y < minY || y > maxY) {
+          continue;
+        }
+        if (radius === 0) {
+          yield { x: bx, y, z: bz };
+          continue;
+        }
+        for (let dx = -radius; dx <= radius; dx++) {
+          for (let dz = -radius; dz <= radius; dz++) {
+            if (Math.max(Math.abs(dx), Math.abs(dz)) !== radius) {
+              continue;
+            }
+            yield { x: bx + dx, y, z: bz + dz };
+          }
+        }
+      }
+    }
+  }
+
+  // Prefer replaceable blocks not adjacent to any existing chest or grave (prevents double-chest merge)
+  let firstUnloaded: { x: number; y: number; z: number } | undefined;
+  for (const c of generateCandidates()) {
     if (gravesByCoord.has(coordKey(dimension.id, c.x, c.y, c.z))) {
       continue;
     }
     try {
       const blk = dimension.getBlock(c);
-      if (blk && (blk.isAir || blk.isLiquid || blk.typeId === MinecraftBlockTypes.Fire)) {
+      if (!blk) {
+        // Bedrock getBlock() returns undefined in unloaded chunks instead of throwing
+        if (!firstUnloaded) {
+          firstUnloaded = c;
+        }
+        continue;
+      }
+      if (isReplaceableForGrave(blk) && !hasAdjacentChestOrGrave(dimension, c)) {
         return c;
       }
     } catch {
-      return c;
+      if (!firstUnloaded) {
+        firstUnloaded = c;
+      }
     }
   }
-  return undefined;
+
+  return firstUnloaded;
+}
+
+function formatGraveHologramText(grave: GraveRecord): string {
+  const count = grave.items.length;
+  const now = Date.now();
+  const publicMins = Number(getConfig().graves?.publicUnlockMinutes ?? 0);
+  const isPublic = publicMins > 0 && now - grave.createdAt >= publicMins * 60_000;
+  const status = isPublic ? '§aPublic' : grave.unlocked ? '§eProtected' : '§cLocked';
+  const timeLeft = grave.expiresAt > 0 ? ` §8(${Math.max(0, Math.ceil((grave.expiresAt - now) / 60_000))}m)` : '';
+  return `§6☠ §e${grave.ownerName}'s Grave\n§7${count} item${count === 1 ? '' : 's'} §8• ${status}${timeLeft}`;
+}
+
+function removeGraveHologram(grave: GraveRecord): void {
+  try {
+    const dim = mc.world.getDimension(grave.dimensionId);
+    const entities = dim.getEntities({
+      type: floatingTextId,
+      location: { x: grave.x + 0.5, y: grave.y + 1.15, z: grave.z + 0.5 },
+      maxDistance: 2.5,
+    });
+    const tag = `${graveLabelPrefix}${grave.id}`;
+    for (const ent of entities) {
+      if (ent.isValid && ent.hasTag(tag)) {
+        ent.remove();
+      }
+    }
+  } catch {
+    // Ignore unloaded chunk or mock environment without floatingTextId
+  }
+}
+
+function syncGraveHologram(grave: GraveRecord): void {
+  if (!grave.markerPlaced) {
+    return;
+  }
+  try {
+    const dim = mc.world.getDimension(grave.dimensionId);
+    const pos = { x: grave.x + 0.5, y: grave.y + 1.15, z: grave.z + 0.5 };
+    const tag = `${graveLabelPrefix}${grave.id}`;
+    const existing = dim
+      .getEntities({ type: floatingTextId, location: pos, maxDistance: 2.5 })
+      .find((ent) => ent.isValid && ent.hasTag(tag));
+    const text = formatGraveHologramText(grave);
+    if (existing) {
+      if (existing.nameTag !== text) {
+        existing.nameTag = text;
+      }
+      return;
+    }
+    const spawned = dim.spawnEntity(floatingTextId as unknown as Parameters<mc.Dimension['spawnEntity']>[0], pos);
+    spawned.addTag(tag);
+    spawned.nameTag = text;
+  } catch {
+    // Ignore unloaded chunk or mock environment without floatingTextId
+  }
+}
+
+function hasGraveHologram(dim: mc.Dimension, grave: GraveRecord): boolean {
+  try {
+    const pos = { x: grave.x + 0.5, y: grave.y + 1.15, z: grave.z + 0.5 };
+    const tag = `${graveLabelPrefix}${grave.id}`;
+    return dim
+      .getEntities({ type: floatingTextId, location: pos, maxDistance: 2.5 })
+      .some((ent) => ent.isValid && ent.hasTag(tag));
+  } catch {
+    return false;
+  }
 }
 
 function placeGraveMarker(dimension: mc.Dimension, loc: { x: number; y: number; z: number }): boolean {
   try {
     const blk = dimension.getBlock(loc);
-    if (blk && (blk.isAir || blk.isLiquid || blk.typeId === MinecraftBlockTypes.Fire)) {
-      blk.setType(MinecraftBlockTypes.Chest);
+    if (isReplaceableForGrave(blk) && !hasAdjacentChestOrGrave(dimension, loc)) {
+      blk!.setType(MinecraftBlockTypes.Chest);
       return true;
     }
   } catch {
@@ -219,33 +477,42 @@ function placeGraveMarker(dimension: mc.Dimension, loc: { x: number; y: number; 
 }
 
 function removeGraveMarker(grave: GraveRecord): boolean {
-  if (!grave.markerPlaced) {
-    return true;
-  }
   try {
     const dim = mc.world.getDimension(grave.dimensionId);
     const blk = dim.getBlock({ x: grave.x, y: grave.y, z: grave.z });
     if (!blk) {
-      return false;
+      // Chunk unloaded: only allow removal if marker was never placed
+      return !grave.markerPlaced;
     }
-    if (blk.typeId === MinecraftBlockTypes.Chest) {
+    const isProvenMarker = grave.markerPlaced === true || hasGraveHologram(dim, grave);
+    removeGraveHologram(grave);
+    if (
+      isProvenMarker &&
+      (blk.typeId === MinecraftBlockTypes.Chest || blk.typeId === MinecraftBlockTypes.TrappedChest)
+    ) {
       blk.setType(MinecraftBlockTypes.Air);
     }
     return true;
   } catch {
-    return false;
+    removeGraveHologram(grave);
+    return !grave.markerPlaced;
   }
 }
 
-function deleteGrave(graveId: string): void {
+function deleteGrave(graveId: string): boolean {
   const grave = graves.get(graveId);
   if (!grave) {
-    return;
+    return true;
   }
-  removeGraveMarker(grave);
+  if (!removeGraveMarker(grave)) {
+    grave.abandoned = true;
+    saveGraves();
+    return false;
+  }
   graves.delete(graveId);
   gravesByCoord.delete(coordKey(grave.dimensionId, grave.x, grave.y, grave.z));
   saveGraves();
+  return true;
 }
 
 interface OwnerSnapshot {
@@ -264,14 +531,21 @@ function finalizeGraveCreation(
   eqComp?: mc.EntityEquippableComponent,
   droppedEntities: mc.Entity[] = [],
   onGraveCreated?: (graveId: string) => void,
+  preExistingEntityIds?: Set<string>,
 ): void {
   if (captured.length === 0) {
     return;
   }
 
   const cfg = getConfig().graves;
-  const loc = findSafeGraveLocation(dim, deathOrigin);
-  if (!loc) {
+  const safeLoc = findSafeGraveLocation(dim, deathOrigin);
+  const { minY, maxY } = getDimensionBounds(dim.id);
+  const loc = safeLoc ?? {
+    x: Math.floor(deathOrigin.x),
+    y: Math.max(minY, Math.min(maxY, Math.floor(deathOrigin.y))),
+    z: Math.floor(deathOrigin.z),
+  };
+  if (gravesByCoord.has(coordKey(dim.id, loc.x, loc.y, loc.z))) {
     return;
   }
 
@@ -320,9 +594,23 @@ function finalizeGraveCreation(
       }
     }
   }
+  const remainingCounts = new Map<string, number>();
+  for (const entry of captured) {
+    remainingCounts.set(entry.item.typeId, (remainingCounts.get(entry.item.typeId) ?? 0) + entry.item.amount);
+  }
   for (const ent of droppedEntities) {
     try {
       if (ent.isValid) {
+        const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;
+        const stack = itemComp?.itemStack;
+        if (stack) {
+          const rem = remainingCounts.get(stack.typeId) ?? 0;
+          if (rem <= stack.amount) {
+            remainingCounts.delete(stack.typeId);
+          } else {
+            remainingCounts.set(stack.typeId, rem - stack.amount);
+          }
+        }
         ent.remove();
       }
     } catch {
@@ -330,41 +618,72 @@ function finalizeGraveCreation(
     }
   }
 
-  // Place marker & clean up matching dropped item entities on next tick (inventory-capture path only)
+  const removeMatchingDroppedItems = () => {
+    if (remainingCounts.size === 0 || capturedTypeIds.size === 0) {
+      return;
+    }
+    try {
+      const nearbyItems = dim.getEntities({
+        location: deathOrigin,
+        maxDistance: 10,
+      });
+      for (const ent of nearbyItems) {
+        if (!ent.isValid || (preExistingEntityIds?.has(ent.id) ?? false)) {
+          continue;
+        }
+        const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;
+        const stack = itemComp?.itemStack;
+        if (!stack || !capturedTypeIds.has(stack.typeId)) {
+          continue;
+        }
+        const allowed = remainingCounts.get(stack.typeId) ?? 0;
+        if (allowed <= 0 || stack.amount > allowed) {
+          continue;
+        }
+        if (allowed <= stack.amount) {
+          remainingCounts.delete(stack.typeId);
+        } else {
+          remainingCounts.set(stack.typeId, allowed - stack.amount);
+        }
+        ent.remove();
+      }
+    } catch {
+      // Ignore in unloaded chunks or mock environments
+    }
+  };
+
+  // Attempt synchronous marker placement immediately so restarts on the next tick never leave an untracked chest
+  if (placeGraveMarker(dim, loc)) {
+    record.markerPending = false;
+    record.markerPlaced = true;
+    syncGraveHologram(record);
+    saveGraves();
+  }
+
+  // Place marker (if still pending) & clean up matching dropped item entities on next tick
   const notifyAndCleanup = () => {
     const currentRecord = graves.get(id);
-    if (currentRecord && !currentRecord.markerPlaced && placeGraveMarker(dim, loc)) {
-      currentRecord.markerPending = false;
-      currentRecord.markerPlaced = true;
-      saveGraves();
-    }
-    if (droppedEntities.length === 0) {
-      try {
-        const nearbyItems = dim.getEntities({
-          location: deathOrigin,
-          maxDistance: 6,
-        });
-        for (const ent of nearbyItems) {
-          if (!ent.isValid) {
-            continue;
-          }
-          const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;
-          if (itemComp?.itemStack && capturedTypeIds.has(itemComp.itemStack.typeId)) {
-            ent.remove();
-          }
-        }
-      } catch {
-        // Ignore in unloaded chunks or mock environments
+    if (currentRecord && !currentRecord.markerPlaced) {
+      if (placeGraveMarker(dim, loc) || hasGraveHologram(dim, currentRecord)) {
+        currentRecord.markerPending = false;
+        currentRecord.markerPlaced = true;
+        syncGraveHologram(currentRecord);
+        saveGraves();
       }
     }
+    if (remainingCounts.size > 0) {
+      removeMatchingDroppedItems();
+    }
     if (player.isValid) {
+      const dimLabel = formatDimensionLabel(dim.id);
+      const expiryLabel = expiryMinutes > 0 ? ` §8(Expires in ${expiryMinutes}m)` : '';
       if (currentRecord?.markerPlaced) {
         player.sendMessage(
-          `§a[Grave] §fYour items were saved in a protected grave at §e${loc.x}, ${loc.y}, ${loc.z}§f. Use §b/grave§f to track it.`,
+          `§a[Grave] §fSaved §b${captured.length}§f item stack(s) at §e${loc.x}, ${loc.y}, ${loc.z} §7[${dimLabel}]${expiryLabel}§f. Use §b/grave§f to view or track.`,
         );
       } else {
         player.sendMessage(
-          `§e[Grave] §fYour items were saved at §e${loc.x}, ${loc.y}, ${loc.z}§f, but the grave marker could not be placed yet. Use §b/grave§f to collect or retry once the chunk is loaded.`,
+          `§e[Grave] §fSaved §b${captured.length}§f item stack(s) at §e${loc.x}, ${loc.y}, ${loc.z} §7[${dimLabel}]${expiryLabel}§f (marker pending chunk load). Use §b/grave§f to collect or track.`,
         );
       }
     }
@@ -434,8 +753,6 @@ export function handlePlayerDeathGrave(player: mc.Player, onGraveCreated?: (grav
   const snapshot = recentHurtSnapshots.get(owner.id);
   recentHurtSnapshots.delete(owner.id);
 
-  const captured: GraveSlotEntry[] = [];
-  const capturedTypeIds = new Set<string>();
   let invComp: mc.EntityInventoryComponent | undefined;
   let eqComp: mc.EntityEquippableComponent | undefined;
   try {
@@ -445,44 +762,18 @@ export function handlePlayerDeathGrave(player: mc.Player, onGraveCreated?: (grav
     return;
   }
 
-  if (invComp?.container) {
-    for (let i = 0; i < invComp.container.size; i++) {
-      const item = invComp.container.getItem(i);
-      if (isDefined(item) && !item.keepOnDeath) {
-        captured.push({ slotType: 'inventory', slotIndex: i, item: serializeItem(item) });
-        capturedTypeIds.add(item.typeId);
-      }
-    }
-  }
-
-  if (eqComp) {
-    const slots = [
-      EquipmentSlot.Head,
-      EquipmentSlot.Chest,
-      EquipmentSlot.Legs,
-      EquipmentSlot.Feet,
-      EquipmentSlot.Offhand,
-    ];
-    for (const slot of slots) {
-      const item = eqComp.getEquipment(slot);
-      if (isDefined(item) && !item.keepOnDeath) {
-        captured.push({ slotType: 'equipment', equipmentSlot: slot, item: serializeItem(item) });
-        capturedTypeIds.add(item.typeId);
-      }
-    }
-  }
-
+  const direct = collectPlayerSlotEntries(invComp, eqComp);
   const dim = player.dimension;
   const deathOrigin = { ...player.location };
 
-  if (captured.length > 0) {
+  if (direct.slots.length > 0) {
     finalizeGraveCreation(
       owner,
       player,
       dim,
       deathOrigin,
-      captured,
-      capturedTypeIds,
+      direct.slots,
+      direct.typeIds,
       invComp,
       eqComp,
       [],
@@ -491,41 +782,85 @@ export function handlePlayerDeathGrave(player: mc.Player, onGraveCreated?: (grav
     return;
   }
 
-  if (!snapshot || Date.now() - snapshot.capturedAt > hurtSnapshotTtlMs || snapshot.counts.size === 0) {
-    return;
-  }
-
-  // Bedrock entityDie fires after vanilla drops items on the ground; capture death-attributed item entities.
-  const immediateDrops = captureDroppedItemEntities(dim, deathOrigin, snapshot.counts, snapshot.preExistingEntityIds);
-  if (immediateDrops.captured.length > 0) {
+  if (snapshot && Date.now() - snapshot.capturedAt <= hurtSnapshotTtlMs && snapshot.slots.length > 0) {
+    // Bedrock entityDie fires after vanilla drops items on the ground. Use the full pre-death snapshot
+    // (preserving slot positions, enchantments, and durability even if items burned in lava/fire/void)
+    // and remove matching dropped item entities so nothing duplicates.
+    const immediateDrops = captureDroppedItemEntities(dim, deathOrigin, snapshot.counts, snapshot.preExistingEntityIds);
     finalizeGraveCreation(
       owner,
       player,
       dim,
       deathOrigin,
-      immediateDrops.captured,
-      immediateDrops.typeIds,
+      snapshot.slots,
+      snapshot.typeIds,
       undefined,
       undefined,
       immediateDrops.entities,
+      onGraveCreated,
+      snapshot.preExistingEntityIds,
+    );
+    return;
+  }
+
+  // Fallback when no hurt/health snapshot was recorded (e.g. instant /kill): capture dropped items around deathOrigin
+  const fallbackCapture = (
+    maxDistance: number,
+  ): { captured: GraveSlotEntry[]; typeIds: Set<string>; entities: mc.Entity[] } => {
+    const captured: GraveSlotEntry[] = [];
+    const typeIds = new Set<string>();
+    const entities: mc.Entity[] = [];
+    try {
+      const dropped = dim.getEntities({ location: deathOrigin, maxDistance });
+      for (const ent of dropped) {
+        if (!ent.isValid) {
+          continue;
+        }
+        const itemComp = ent.getComponent(EntityComponentTypes.Item) as mc.EntityItemComponent | undefined;
+        const stack = itemComp?.itemStack;
+        if (!stack || stack.keepOnDeath) {
+          continue;
+        }
+        captured.push({ slotType: 'inventory', item: serializeItem(stack) });
+        typeIds.add(stack.typeId);
+        entities.push(ent);
+      }
+    } catch {
+      // Ignore unloaded chunk or mock errors
+    }
+    return { captured, typeIds, entities };
+  };
+
+  const immediateFallback = fallbackCapture(6);
+  if (immediateFallback.captured.length > 0) {
+    finalizeGraveCreation(
+      owner,
+      player,
+      dim,
+      deathOrigin,
+      immediateFallback.captured,
+      immediateFallback.typeIds,
+      undefined,
+      undefined,
+      immediateFallback.entities,
       onGraveCreated,
     );
     return;
   }
 
   mc.system.run(() => {
-    const nextTickDrops = captureDroppedItemEntities(dim, deathOrigin, snapshot.counts, snapshot.preExistingEntityIds);
-    if (nextTickDrops.captured.length > 0) {
+    const nextTickFallback = fallbackCapture(6);
+    if (nextTickFallback.captured.length > 0) {
       finalizeGraveCreation(
         owner,
         player,
         dim,
         deathOrigin,
-        nextTickDrops.captured,
-        nextTickDrops.typeIds,
+        nextTickFallback.captured,
+        nextTickFallback.typeIds,
         undefined,
         undefined,
-        nextTickDrops.entities,
+        nextTickFallback.entities,
         onGraveCreated,
       );
     }
@@ -541,7 +876,8 @@ export function handlePlayerDeathGrave(player: mc.Player, onGraveCreated?: (grav
  */
 export function getGraveAt(dimensionId: string, location: mc.Vector3): GraveRecord | undefined {
   const id = gravesByCoord.get(coordKey(dimensionId, location.x, location.y, location.z));
-  return id ? graves.get(id) : undefined;
+  const grave = id ? graves.get(id) : undefined;
+  return grave && !grave.abandoned ? grave : undefined;
 }
 
 /**
@@ -678,6 +1014,7 @@ export function collectGrave(grave: GraveRecord, player: mc.Player): void {
     player.sendMessage('§aCollected all items! The grave has disappeared.');
   } else {
     saveGraves();
+    syncGraveHologram(grave);
     player.sendMessage(`§eInventory full! §f${grave.items.length} item(s) remain in the grave.`);
   }
 }
@@ -690,7 +1027,7 @@ export function collectGrave(grave: GraveRecord, player: mc.Player): void {
  */
 export function handleGraveInteract(event: mc.PlayerInteractWithBlockBeforeEvent): boolean {
   const { player, block } = event;
-  const dimId = player.dimension.id;
+  const dimId = block.dimension?.id ?? player.dimension.id;
   const blockLoc = { ...block.location };
   const grave = getGraveAt(dimId, blockLoc);
   if (!grave) {
@@ -719,7 +1056,7 @@ export function handleGraveInteract(event: mc.PlayerInteractWithBlockBeforeEvent
 export function getPlayerGraves(playerId: string): GraveRecord[] {
   const list: GraveRecord[] = [];
   for (const grave of graves.values()) {
-    if (grave.ownerId === playerId) {
+    if (grave.ownerId === playerId && !grave.abandoned) {
       list.push(grave);
     }
   }
@@ -846,10 +1183,12 @@ export function teleportPlayerToGrave(player: mc.Player, graveId: string): void 
           if (
             activeGrave?.markerPending &&
             !activeGrave.markerPlaced &&
-            placeGraveMarker(dim, { x: activeGrave.x, y: activeGrave.y, z: activeGrave.z })
+            (placeGraveMarker(dim, { x: activeGrave.x, y: activeGrave.y, z: activeGrave.z }) ||
+              hasGraveHologram(dim, activeGrave))
           ) {
             activeGrave.markerPending = false;
             activeGrave.markerPlaced = true;
+            syncGraveHologram(activeGrave);
             saveGraves();
           }
         });
@@ -885,7 +1224,7 @@ export async function showPlayerGravesPanel(player: mc.Player): Promise<void> {
     const now = Date.now();
     const lines = list.map((g, idx) => {
       const rem = g.expiresAt > 0 ? `${Math.max(0, Math.ceil((g.expiresAt - now) / 60_000))}m left` : 'No expiry';
-      return `§e#${idx + 1} §f(${g.x}, ${g.y}, ${g.z}) §7[${g.dimensionId.replace('minecraft:', '')}] - §b${g.items.length} items §8(${rem})`;
+      return `§e#${idx + 1} §f(${g.x}, ${g.y}, ${g.z}) §7[${formatDimensionLabel(g.dimensionId)}] - §b${g.items.length} items §8(${rem})`;
     });
     form.body(lines.join('\n'));
     list.forEach((g, idx) => {
@@ -894,14 +1233,19 @@ export async function showPlayerGravesPanel(player: mc.Player): Promise<void> {
           return;
         }
         const preview = g.items
-          .slice(0, 8)
-          .map((e) => `§7- §f${e.item.typeId.replace('minecraft:', '')} §8x${e.item.amount}`)
+          .slice(0, 10)
+          .map((e) => {
+            const ench = e.item.enchantments?.length ? ' §d✦' : '';
+            return `§7- §f${e.item.typeId.replace('minecraft:', '')} §8x${e.item.amount}${ench}`;
+          })
           .join('\n');
-        const more = g.items.length > 8 ? `\n§8...and ${g.items.length - 8} more` : '';
+        const more = g.items.length > 10 ? `\n§8...and ${g.items.length - 10} more` : '';
+        const rem =
+          g.expiresAt > 0 ? `${Math.max(0, Math.ceil((g.expiresAt - Date.now()) / 60_000))}m left` : 'No expiry';
         const detail = new ActionFormBuilder()
           .title(`Grave #${idx + 1}`)
           .body(
-            `§7Location: §f${g.x}, ${g.y}, ${g.z} §8[${g.dimensionId.replace('minecraft:', '')}]\n\n§eItems:\n${preview}${more}`,
+            `§7Location: §f${g.x}, ${g.y}, ${g.z} §8[${formatDimensionLabel(g.dimensionId)}]\n§7Status: ${g.unlocked ? '§aUnlocked' : '§cLocked'} §8• §7${rem}\n\n§eItems (${g.items.length}):\n${preview}${more}`,
           );
         const canCollectFromUi =
           g.markerPending ||
@@ -962,6 +1306,21 @@ export async function showPlayerGravesPanel(player: mc.Player): Promise<void> {
             teleportPlayerToGrave(player, g.id);
           });
         }
+        detail.button('§cAbandon Grave', 'textures/ui/trash_default', () => {
+          if (!player.isValid) {
+            return;
+          }
+          const target = graves.get(g.id);
+          if (!target || target.abandoned) {
+            player.sendMessage('§cThis grave is no longer available.');
+            return;
+          }
+          if (deleteGrave(g.id)) {
+            player.sendMessage('§eGrave abandoned and removed.');
+          } else {
+            player.sendMessage('§eGrave abandoned. Marker chest will be removed when its chunk loads.');
+          }
+        });
         detail.addBackButton(async () => {
           if (!player.isValid) {
             return;
@@ -975,7 +1334,33 @@ export async function showPlayerGravesPanel(player: mc.Player): Promise<void> {
   await form.show(player);
 }
 
-/** Purges expired graves on a periodic interval (bounded per sweep). */
+function pruneStaleGraveHolograms(): void {
+  const dims = [MinecraftDimensionTypes.Overworld, MinecraftDimensionTypes.Nether, MinecraftDimensionTypes.TheEnd];
+  for (const dimId of dims) {
+    try {
+      const dim = mc.world.getDimension(dimId);
+      const entities = dim.getEntities({ type: floatingTextId });
+      for (const ent of entities) {
+        if (!ent.isValid) {
+          continue;
+        }
+        const labelTag = ent.getTags().find((t) => t.startsWith(graveLabelPrefix));
+        if (!labelTag) {
+          continue;
+        }
+        const graveId = labelTag.slice(graveLabelPrefix.length);
+        const grave = graves.get(graveId);
+        if (!grave || grave.abandoned) {
+          ent.remove();
+        }
+      }
+    } catch {
+      // Ignore unloaded dimensions or mock environments
+    }
+  }
+}
+
+/** Purges expired/abandoned graves, retries pending markers, and refreshes loaded holograms (bounded per sweep). */
 export function pruneExpiredGraves(): void {
   const now = Date.now();
   pruneExpiredHurtSnapshots(now);
@@ -985,7 +1370,7 @@ export function pruneExpiredGraves(): void {
     if (removed >= 20) {
       break;
     }
-    if (grave.expiresAt > 0 && now >= grave.expiresAt) {
+    if (grave.abandoned || (grave.expiresAt > 0 && now >= grave.expiresAt)) {
       if (removeGraveMarker(grave)) {
         graves.delete(id);
         gravesByCoord.delete(coordKey(grave.dimensionId, grave.x, grave.y, grave.z));
@@ -995,7 +1380,7 @@ export function pruneExpiredGraves(): void {
     }
   }
 
-  const pendingMarkers = [...graves.values()].filter((g) => g.markerPending && !g.markerPlaced);
+  const pendingMarkers = [...graves.values()].filter((g) => !g.abandoned && g.markerPending && !g.markerPlaced);
   if (pendingMarkers.length > 0) {
     const maxPendingRetriesPerSweep = 10;
     const batchSize = Math.min(maxPendingRetriesPerSweep, pendingMarkers.length);
@@ -1004,9 +1389,17 @@ export function pruneExpiredGraves(): void {
       const grave = pendingMarkers[(startIdx + offset) % pendingMarkers.length]!;
       try {
         const dim = mc.world.getDimension(grave.dimensionId);
-        if (placeGraveMarker(dim, { x: grave.x, y: grave.y, z: grave.z })) {
+        const loc = { x: grave.x, y: grave.y, z: grave.z };
+        const existingChestWithHologram =
+          hasGraveHologram(dim, grave) &&
+          (() => {
+            const blk = dim.getBlock(loc);
+            return blk?.typeId === MinecraftBlockTypes.Chest || blk?.typeId === MinecraftBlockTypes.TrappedChest;
+          })();
+        if (placeGraveMarker(dim, loc) || existingChestWithHologram) {
           grave.markerPending = false;
           grave.markerPlaced = true;
+          syncGraveHologram(grave);
           changed = true;
         }
       } catch {
@@ -1017,6 +1410,21 @@ export function pruneExpiredGraves(): void {
   } else {
     pendingRetryCursor = 0;
   }
+
+  const placedGraves = [...graves.values()].filter((g) => !g.abandoned && g.markerPlaced);
+  if (placedGraves.length > 0) {
+    const maxHologramRefreshesPerSweep = 20;
+    const batchSize = Math.min(maxHologramRefreshesPerSweep, placedGraves.length);
+    const startIdx = hologramRefreshCursor % placedGraves.length;
+    for (let offset = 0; offset < batchSize; offset++) {
+      syncGraveHologram(placedGraves[(startIdx + offset) % placedGraves.length]!);
+    }
+    hologramRefreshCursor = (startIdx + batchSize) % placedGraves.length;
+  } else {
+    hologramRefreshCursor = 0;
+  }
+
+  pruneStaleGraveHolograms();
 
   if (changed) {
     saveGraves();
@@ -1030,6 +1438,26 @@ export function initializeGraves(): void {
     clearTrackedInterval(expiryIntervalId);
   }
   expiryIntervalId = setTrackedInterval(pruneExpiredGraves, 600);
+}
+
+/**
+ * Sends a helpful reminder to a respawning player if they have active graves.
+ *
+ * @param player Respawning player.
+ */
+export function notifyPlayerRespawnGrave(player: mc.Player): void {
+  if (!getConfig().graves?.enabled || !player.isValid) {
+    return;
+  }
+  const now = Date.now();
+  const active = getPlayerGraves(player.id).filter((g) => g.expiresAt <= 0 || g.expiresAt > now);
+  if (active.length === 0) {
+    return;
+  }
+  const newest = active[0]!;
+  player.sendMessage(
+    `§e[Grave] §fYou have §b${active.length}§f active grave(s). Latest: §e${newest.x}, ${newest.y}, ${newest.z} §7[${formatDimensionLabel(newest.dimensionId)}]§f. Use §b/grave§f to view or collect.`,
+  );
 }
 
 /** Clears in-memory graves (for tests). */
