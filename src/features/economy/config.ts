@@ -56,6 +56,31 @@ export interface EconomyConfig {
     enabled: boolean;
     maxShopsPerPlayer: number;
   };
+  orders?: {
+    enabled: boolean;
+    maxOrdersPerPlayer: number;
+    maxOrderQuantity: number;
+    minUnitPrice: number;
+    listingFee: number;
+    taxRatePercent: number;
+    maxTax: number;
+    defaultDurationSeconds: number;
+    blockedItemIds: string[];
+  };
+  vouchers?: {
+    enabled: boolean;
+    maxActivePerPlayer: number;
+    minAmount: number;
+    maxAmount: number;
+    creationFee: number;
+    taxRatePercent: number;
+    maxTax: number;
+    defaultExpiryHours: number;
+  };
+  ledger?: {
+    enabled: boolean;
+    maxEntriesPerPlayer: number;
+  };
 }
 
 export const economyConfig: EconomyConfig = {
@@ -174,6 +199,31 @@ export const economyConfig: EconomyConfig = {
   chestShop: {
     enabled: false,
     maxShopsPerPlayer: 10,
+  },
+  orders: {
+    enabled: false,
+    maxOrdersPerPlayer: 10,
+    maxOrderQuantity: 2304,
+    minUnitPrice: 1,
+    listingFee: 10,
+    taxRatePercent: 5,
+    maxTax: 500,
+    defaultDurationSeconds: 259_200, // 72 Hours
+    blockedItemIds: [],
+  },
+  vouchers: {
+    enabled: false,
+    maxActivePerPlayer: 10,
+    minAmount: 10,
+    maxAmount: 1_000_000,
+    creationFee: 5,
+    taxRatePercent: 5,
+    maxTax: 500,
+    defaultExpiryHours: 168, // 7 Days
+  },
+  ledger: {
+    enabled: false,
+    maxEntriesPerPlayer: 25,
   },
 };
 

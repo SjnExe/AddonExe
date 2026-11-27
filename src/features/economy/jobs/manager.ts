@@ -1,5 +1,5 @@
 import { getEconomyConfig } from '@core/config/configurations.js';
-import { getPlayer, incrementPlayerBalance } from '@core/data/playerDataManager.js';
+import { getPlayer, incrementPlayerBalanceWithDelta } from '@core/data/playerDataManager.js';
 import { StorageManager } from '@core/data/storageManager.js';
 import { registerEvent } from '@core/events/eventManager.js';
 import { isFeatureActive } from '@core/services/featureManager.js';
@@ -176,7 +176,18 @@ function awardJobPayout(playerId: string, baseReward: number): void {
   const level = getPlayerJobLevel(playerId);
   const multiplier = 1 + (level - 1) * 0.1;
   const payout = Math.max(1, Math.round(baseReward * multiplier));
-  incrementPlayerBalance(playerId, payout);
+  const creditRes = incrementPlayerBalanceWithDelta(playerId, payout);
+  if (creditRes.success && creditRes.appliedDelta > 0) {
+    void import('@features/economy/ledger/manager.js').then(({ recordLedgerTransaction }) => {
+      recordLedgerTransaction({
+        playerId,
+        type: 'faucet',
+        category: 'jobs',
+        amount: creditRes.appliedDelta,
+        description: `Job payout (level ${level})`,
+      });
+    });
+  }
   const nextXp = (playerJobXp.get(playerId) ?? 0) + 1;
   playerJobXp.set(playerId, nextXp);
   if (nextXp % 10 === 0) {

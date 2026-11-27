@@ -5,9 +5,12 @@ import cmdBank from '../bank/commands/bank.js';
 import cmdBounty from '../bounty/commands/bounty.js';
 import cmdDaily from '../daily/commands/daily.js';
 import cmdKit from '../kit/commands/kit.js';
+import cmdLedger from '../ledger/commands/ledger.js';
+import cmdOrders from '../orders/commands/orders.js';
 import cmdPlaytime from '../playtime/commands/playtime.js';
 import cmdShop from '../shop/commands/shop.js';
 import cmdTrade from '../trade/commands/trade.js';
+import cmdVoucher from '../vouchers/commands/voucher.js';
 import cmdBalance from './balance.js';
 import cmdBottle from './bottle.js';
 import cmdChestshop from './chestshop.js';
@@ -27,10 +30,13 @@ export const economyCommands: CommandModule[] = [
   cmdDaily,
   cmdJobs,
   cmdKit,
+  cmdLedger,
+  cmdOrders,
   cmdPay,
   cmdPlaytime,
   cmdSell,
   cmdSetbalance,
   cmdShop,
   cmdTrade,
+  cmdVoucher,
 ];
