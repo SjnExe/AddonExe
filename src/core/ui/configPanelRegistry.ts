@@ -407,6 +407,13 @@ export const configPanelSchema: ConfigCategory[] = [
         description: 'Optional cost in money or XP levels to unlock a grave.',
       },
       {
+        key: 'graves.unlockCostType',
+        label: 'Unlock Cost Type',
+        type: 'dropdown',
+        options: ['money', 'xp'],
+        description: 'Currency used for grave unlock cost (money or xp levels).',
+      },
+      {
         key: 'graves.publicUnlockMinutes',
         label: 'Public Unlock Delay (Minutes, 0 = Never)',
         type: 'textField',

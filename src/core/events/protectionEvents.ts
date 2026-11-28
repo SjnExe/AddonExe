@@ -9,7 +9,7 @@ import {
   handleChestShopInteract,
   removeChestShopOnBreak,
 } from '@features/economy/chestShop/manager.js';
-import { getGraveAt, handleGraveInteract } from '@features/essentials/graves/manager.js';
+import { getGraveAt, handleGraveInteract, restoreDisplacedGraveMarker } from '@features/essentials/graves/manager.js';
 import { recordAuditEntry, shouldRecordAuditEvent } from '@features/essentials/protection/auditLog.js';
 import {
   canAccessLockedContainer,
@@ -336,6 +336,70 @@ export function handleBeforeExplosion(event: mc.ExplosionBeforeEvent): void {
   }
   if (allowedBlocks.length !== impactedBlocks.length) {
     event.setImpactedBlocks(allowedBlocks);
+  }
+}
+
+/**
+ * Restores grave marker chests if a piston attempts to push or pull them.
+ *
+ * @param event Piston activate after-event payload.
+ */
+export function handlePistonActivate(event: mc.PistonActivateAfterEvent): void {
+  const dim = event.dimension;
+  if (!isDefined(dim)) {
+    return;
+  }
+  let attachedLocs: mc.Vector3[];
+  try {
+    attachedLocs = event.piston.getAttachedBlocksLocations();
+  } catch {
+    return;
+  }
+  const dimId = dim.id;
+  const neighborOffsets = [
+    { x: 0, y: 0, z: 0 },
+    { x: 1, y: 0, z: 0 },
+    { x: -1, y: 0, z: 0 },
+    { x: 0, y: 1, z: 0 },
+    { x: 0, y: -1, z: 0 },
+    { x: 0, y: 0, z: 1 },
+    { x: 0, y: 0, z: -1 },
+  ];
+  const handledLocs = new Set<string>();
+  let restoredAny = true;
+  while (restoredAny) {
+    restoredAny = false;
+    for (const loc of attachedLocs) {
+      const locKey = `${loc.x},${loc.y},${loc.z}`;
+      if (handledLocs.has(locKey)) {
+        continue;
+      }
+      for (const off of neighborOffsets) {
+        const checkLoc = { x: loc.x + off.x, y: loc.y + off.y, z: loc.z + off.z };
+        const grave = getGraveAt(dimId, checkLoc);
+        if (
+          isDefined(grave) &&
+          grave.markerPlaced === true &&
+          (loc.x !== grave.x || loc.y !== grave.y || loc.z !== grave.z) &&
+          restoreDisplacedGraveMarker(dimId, grave)
+        ) {
+          try {
+            const pushedBlk = dim.getBlock(loc);
+            if (
+              pushedBlk &&
+              (pushedBlk.typeId === MinecraftBlockTypes.Chest || pushedBlk.typeId === MinecraftBlockTypes.TrappedChest)
+            ) {
+              pushedBlk.setType(MinecraftBlockTypes.Air);
+            }
+          } catch {
+            // Ignore unloaded chunk
+          }
+          handledLocs.add(locKey);
+          restoredAny = true;
+          break;
+        }
+      }
+    }
   }
 }
 

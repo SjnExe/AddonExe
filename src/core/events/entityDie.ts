@@ -63,11 +63,15 @@ export function handleEntityDie(event: mc.EntityDieAfterEvent): void {
       };
       saveLastLocation(deadPlayer, 'death', deathLoc);
       try {
-        handlePlayerDeathGrave(deadPlayer, (graveId) => {
-          if (deadPlayer.isValid) {
-            saveLastLocation(deadPlayer, 'death', { ...deathLoc, graveId });
-          }
-        });
+        handlePlayerDeathGrave(
+          deadPlayer,
+          (graveId) => {
+            if (deadPlayer.isValid) {
+              saveLastLocation(deadPlayer, 'death', { ...deathLoc, graveId });
+            }
+          },
+          damageSource.cause,
+        );
       } catch (graveErr: unknown) {
         errorLog('[EntityDie] Failed to create player grave.', graveErr);
       }
