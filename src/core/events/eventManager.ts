@@ -15,6 +15,7 @@ import {
   handleBeforePlayerBreakBlock,
   handleBeforePlayerItemAttackEntity,
   handleBeforePlayerPlaceBlock,
+  handlePistonActivate,
   handlePlayerInteractWithBlock,
   handlePlayerInteractWithEntity,
 } from '@core/events/protectionEvents.js';
@@ -93,6 +94,9 @@ export function initializeEventManager() {
   registerEvent(mc.world.afterEvents.entitySpawn, handleBeforeEntitySpawn, 'entitySpawn');
   registerEvent(mc.world.beforeEvents.entityItemPickup, handleBeforeItemPickup, 'entityItemPickup');
   registerEvent(mc.world.beforeEvents.itemUse, handleBeforeItemUse, 'beforeItemUse');
+  if (mc.world?.afterEvents?.pistonActivate) {
+    registerEvent(mc.world.afterEvents.pistonActivate, handlePistonActivate, 'pistonActivate');
+  }
   // Removed old unstable version fallbacks.
   // Use the official, statically typed API from @minecraft/server without casts.
 
